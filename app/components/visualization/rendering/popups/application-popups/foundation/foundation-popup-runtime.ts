@@ -1,9 +1,11 @@
 import Component from '@glimmer/component';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-
 import {
-  getAllClassesInApplication,
-  getAllPackagesInApplication,
+  Application,
+  TypeOfAnalysis,
+} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import {
+  getAllClassesInApplicationForGivenOrigin,
+  getAllPackagesInApplicationForGivenOrigin,
 } from 'explorviz-frontend/utils/application-helpers';
 
 interface Args {
@@ -12,10 +14,16 @@ interface Args {
 
 export default class FoundationPopup extends Component<Args> {
   get clazzCount() {
-    return getAllClassesInApplication(this.args.application).length;
+    return getAllClassesInApplicationForGivenOrigin(
+      this.args.application,
+      TypeOfAnalysis.Dynamic
+    ).length;
   }
 
   get packageCount() {
-    return getAllPackagesInApplication(this.args.application).length;
+    return getAllPackagesInApplicationForGivenOrigin(
+      this.args.application,
+      TypeOfAnalysis.Dynamic
+    ).length;
   }
 }

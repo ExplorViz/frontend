@@ -7,6 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import LocalUser, {
   VisualizationMode,
 } from 'collaboration/services/local-user';
+
 import RoomSerializer from 'collaboration/services/room-serializer';
 import SpectateUser from 'collaboration/services/spectate-user';
 import WebSocketService from 'collaboration/services/web-socket';
@@ -54,8 +55,10 @@ import * as THREE from 'three';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
-import CommitTreeHandler from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
-import RenderingService from 'explorviz-frontend/services/rendering-service';
+import RenderingService, {
+  VisualizationMode as RenderingVisualizationMode,
+} from 'explorviz-frontend/services/rendering-service';
+import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export const earthTexture = new THREE.TextureLoader().load(
@@ -74,12 +77,19 @@ export const earthTexture = new THREE.TextureLoader().load(
 export default class VisualizationController extends Controller {
   private readonly debug = debugLogger('VisualizationController');
 
-  queryParams = ['roomId', 'deviceId'];
+  queryParams = ['roomId', 'deviceId', 'commit1', 'commit2', 'bottomBar'];
 
   private sidebarHandler!: SidebarHandler;
-  private commitTreeHandler!: CommitTreeHandler;
+
+  private commit1: string | undefined | null;
+  private commit2: string | undefined | null;
+
+  private bottomBar: RenderingVisualizationMode | undefined | null;
 
   // #region Services
+
+  @service('commit-tree-state')
+  commitTreeStateService!: CommitTreeStateService;
 
   @service('rendering-service')
   renderingService!: RenderingService;
@@ -206,13 +216,11 @@ export default class VisualizationController extends Controller {
   // #region Setup
 
   @action
-  initRenderingAndSetupListeners() {
+  async initRenderingAndSetupListeners() {
     this.debug('initRenderingAndSetupListeners');
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
     );
-
-    this.commitTreeHandler = new CommitTreeHandler();
 
     this.renderingService.landscapeData = null;
 
@@ -233,7 +241,34 @@ export default class VisualizationController extends Controller {
     SemanticZoomManager.instance.reset();
 
     // fetch applications for evolution mode
-    this.evolutionDataRepository.fetchAllApplications();
+    await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
+
+    let showEvolutionVisualization = false;
+
+    // check what kind of rendering we should start
+    if (this.commit1 && this.commit1.length > 0) {
+      showEvolutionVisualization = this.commitTreeStateService.setDefaultState(
+        this.evolutionDataRepository.appNameCommitTreeMap,
+        this.commit1,
+        this.commit2
+      );
+
+      // check which bottom bar should be displayed by default
+      if (this.bottomBar === 'runtime') {
+        this.isRuntimeTimelineSelected = true;
+        this.isCommitTreeSelected = false;
+      } else {
+        this.isRuntimeTimelineSelected = false;
+        this.isCommitTreeSelected = true;
+      }
+    }
+
+    if (showEvolutionVisualization) {
+      this.renderingService.triggerRenderingForSelectedCommits();
+    } else {
+      // start main loop for cross-commit runtime
+      this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
+    }
 
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
@@ -393,6 +428,9 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleBottomChart() {
+    // disable keyboard events for button to prevent space bar
+    document.getElementById('bottom-bar-toggle-chart-button')?.blur();
+
     if (this.isCommitTreeSelected) {
       this.isCommitTreeSelected = false;
       this.isRuntimeTimelineSelected = true;
@@ -415,20 +453,21 @@ export default class VisualizationController extends Controller {
     this.landscapeRestructure.resetLandscapeRestructure();
     this.timestampPollingService.resetPolling();
     this.applicationRenderer.cleanup();
-    this.timestampRepo.timestamps = new Map();
+    this.timestampRepo.commitToTimestampMap = new Map();
 
     if (this.sidebarHandler) {
       this.sidebarHandler.closeSettingsSidebar();
       this.sidebarHandler.closeToolsSidebar();
     }
 
-    // always show runtime first
+    // Always show runtime first
     this.isRuntimeTimelineSelected = true;
     this.isCommitTreeSelected = false;
 
     this.evolutionDataRepository.resetAllEvolutionData();
 
     this.roomId = null;
+    this.localUser.visualizationMode = 'browser';
 
     if (this.webSocket.isWebSocketOpen()) {
       this.webSocket.off(

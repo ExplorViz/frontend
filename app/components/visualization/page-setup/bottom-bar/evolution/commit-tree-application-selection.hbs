@@ -1,33 +1,31 @@
 {{#if (gt @appNameCommitTreeMap.size 0)}}
-  <div class='row justify-content-md-center'>
-    <div class='col-md-auto'>
-      <div id='application-selection' class='dropdown' style='z-index: 500;'>
-        <button
-          class='btn btn-outline-dark dropdown-toggle'
-          type='button'
-          data-toggle='dropdown'
-          aria-haspopup='true'
-          aria-expanded='false'
-        >
-          {{#if @selectedAppName}}
-            {{@selectedAppName}}
-          {{else}}
-            Applications
-          {{/if}}
-        </button>
+  <div class='col-md-auto'>
+    <div id='application-selection' class='dropdown' style='z-index: 500;'>
+      <button
+        class='btn btn-outline-dark dropdown-toggle'
+        type='button'
+        data-toggle='dropdown'
+        aria-haspopup='true'
+        aria-expanded='false'
+      >
+        {{#if @selectedAppName}}
+          {{@selectedAppName}}
+        {{else}}
+          Applications
+        {{/if}}
+      </button>
 
-        <div class='dropdown-menu'>
-          {{#each @appNameCommitTreeMap as |mapEntry|}}
-            {{#let (get-key-of-map-entry mapEntry) as |appName|}}
-              <div
-                class='dropdown-item pointer-cursor'
-                {{on 'click' (fn @setSelectedAppName appName)}}
-              >
-                {{appName}}
-              </div>
-            {{/let}}
-          {{/each}}
-        </div>
+      <div class='dropdown-menu'>
+        {{#each @appNameCommitTreeMap as |mapEntry|}}
+          {{#let (get-key-of-map-entry mapEntry) as |appName|}}
+            <div
+              class='dropdown-item pointer-cursor'
+              {{on 'click' (fn @setSelectedAppName appName)}}
+            >
+              {{appName}}
+            </div>
+          {{/let}}
+        {{/each}}
       </div>
     </div>
   </div>

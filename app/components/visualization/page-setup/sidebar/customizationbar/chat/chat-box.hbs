@@ -1,0 +1,113 @@
+<div class='chat'>
+  <h5 class='text-center'>Chat</h5>
+  <div class='chat-button-area'>
+    <div class='filter-box'>
+      <BsButton {{on 'click' this.toggleFilter}} title='Filter'>
+        {{svg-jar 'gear-16' class='octicon align-middle'}}
+      </BsButton>
+      {{#if this.openFilterOptions}}
+        <div class='filter-options'>
+          <label for='filter-checkbox'>
+            <input
+              type='checkbox'
+              checked={{this.isFilterEnabled}}
+              id='filter-checkbox'
+              {{on 'change' this.toggleCheckbox}}
+            />
+            Enable Filtering By
+            <div class='radio-buttons-chat'>
+              <label>
+                <input
+                  type='radio'
+                  name='filter-u'
+                  value='UserId'
+                  checked={{eq this.filterMode 'UserId'}}
+                  {{on 'change' (fn this.setFilterMode 'UserId')}}
+                />
+                User
+                {{!<input type="text" id="filter-value" class="filter-input" {{on "change" this.updateFilterValue value={{this.filterValue>}}
+                <select
+                  id='filter-val'
+                  {{on 'focus' this.updateFilterValue}}
+                  {{on 'change' this.updateFilterValue}}
+                  selected={{this.filterValue}}
+                >
+                  {{#each this.usersInChat as |users|}}
+                    <option value={{users.name}}>{{users.name}}</option>
+                  {{/each}}
+                </select>
+              </label>
+              <label>
+                <input
+                  type='radio'
+                  name='filter-e'
+                  value='Events'
+                  checked={{eq this.filterMode 'Events'}}
+                  {{on 'change' (fn this.setFilterMode 'Events')}}
+                />
+                Events
+              </label>
+            </div>
+          </label>
+        </div>
+      {{/if}}
+    </div>
+    <div class='chat-right-buttons'>
+      {{#if this.userIsHost}}
+        <div class='host-actions'>
+          <BsButton {{on 'click' this.toggleDeleteAction}} title='Host action'>
+            {{svg-jar 'trash-16' class='octicon align-middle'}}
+          </BsButton>
+          {{#if this.openDeleteActions}}
+            <BsButton
+              {{on 'click' this.deleteSelectedMessages}}
+              title='Delete Selected Messages'
+              @type='danger'
+            >
+              Delete
+            </BsButton>
+          {{/if}}
+        </div>
+      {{/if}}
+      <div class='synchronize'>
+        <BsButton
+          {{on 'click' this.synchronize}}
+          title='Get Chat Log From Room'
+        >
+          {{svg-jar 'log-16' class='octicon align-middle'}}
+        </BsButton>
+      </div>
+      <div class='download'>
+        <BsButton {{on 'click' this.downloadChat}} title='Download'>
+          {{svg-jar 'download-16' class='octicon align-middle'}}
+        </BsButton>
+      </div>
+    </div>
+  </div>
+
+  {{#if this.deletedMessage}}
+    {{this.deleteMessageOnEvent}}
+  {{/if}}
+  {{#if this.isFilterEnabled}}
+    <ul class='chat-thread filtered'>
+      {{#each this.filteredMessages as |message|}}
+        {{this.postMessage message}}
+      {{/each}}
+    </ul>
+  {{else}}
+    <ul class='chat-thread normal'>
+      {{#each this.chatService.chatMessages as |message|}}
+        {{this.postMessage message}}
+      {{/each}}
+    </ul>
+  {{/if}}
+
+  <div class='message-box'>
+    <Input
+      id='texfield'
+      class='message-input form-control mr-2'
+      @enter={{this.insertMessage}}
+    />
+  </div>
+</div>
+<div class='bg'></div>

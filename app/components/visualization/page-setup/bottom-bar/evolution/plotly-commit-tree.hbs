@@ -3,12 +3,7 @@
     class='plotlyCommitDiv'
     {{on 'mouseenter' this.handleMouseEnter}}
     {{on 'mouseleave' this.handleMouseLeave}}
-    {{did-update
-      this.updatePlotlyCommitTree
-      @commitTreeHandler
-      @selectedAppName
-      @selectedCommits
-    }}
+    {{did-update this.updatePlotlyCommitTree @selectedAppName @selectedCommits}}
     {{did-insert this.setupPlotlyCommitTreeChart}}
   >
   </div>

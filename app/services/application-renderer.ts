@@ -1,9 +1,8 @@
-// #region imports
+// #region Imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import LocalUser from 'collaboration/services/local-user';
 import { task } from 'ember-concurrency';
-import debugLogger from 'ember-debug-logger';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
@@ -14,17 +13,13 @@ import {
 } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
-  Application,
   Class,
   Package,
-  StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'extended-reality/services/ar-settings';
@@ -44,22 +39,30 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import EvolutionDataRepository from './repos/evolution-data-repository';
+import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import {
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/utils/application-helpers';
+import { MeshLineMaterial } from 'meshline';
+import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
+import TextureService from './texture-service';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 // #endregion imports
 
-export default class ApplicationRenderer extends Service.extend({
-  // anything which *must* be merged to prototype here
-}) {
-  // #region fields
+export default class ApplicationRenderer extends Service.extend() {
+  // #region Services
 
-  debug = debugLogger('ApplicationRendering');
+  @service('repos/evolution-data-repository')
+  private evolutionDataRepository!: EvolutionDataRepository;
 
   @service('local-user')
-  localUser!: LocalUser;
+  private localUser!: LocalUser;
 
   @service('configuration')
-  configuration!: Configuration;
+  private configuration!: Configuration;
 
   @service('ar-settings')
   private arSettings!: ArSettings;
@@ -70,38 +73,40 @@ export default class ApplicationRenderer extends Service.extend({
   @service('message-sender')
   private sender!: MessageSender;
 
-  @service('heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
-
   @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  private applicationRepo!: ApplicationRepository;
 
   @service('repos/font-repository')
-  fontRepo!: FontRepository;
+  private fontRepo!: FontRepository;
 
   @service('room-serializer')
-  roomSerializer!: RoomSerializer;
+  private roomSerializer!: RoomSerializer;
 
   @service('link-renderer')
-  linkRenderer!: LinkRenderer;
+  private linkRenderer!: LinkRenderer;
 
   @service('highlighting-service')
-  highlightingService!: HighlightingService;
+  private highlightingService!: HighlightingService;
 
-  forceGraph!: ThreeForceGraph;
+  @service('texture-service')
+  private textureService!: TextureService;
 
-  private structureLandscapeData!: StructureLandscapeData;
+  // #endregion
 
-  private openApplicationsMap: Map<string, ApplicationObject3D>;
+  //#region Fields
 
-  readonly appCommRendering: CommunicationRendering;
+  private _forceGraph!: ThreeForceGraph;
 
-  // #endregion fields
+  private _openApplicationsMap: Map<string, ApplicationObject3D>;
+
+  private _appCommRendering: CommunicationRendering;
+
+  // #endregion
 
   constructor(properties?: object) {
     super(properties);
-    this.openApplicationsMap = new Map();
-    this.appCommRendering = new CommunicationRendering(
+    this._openApplicationsMap = new Map();
+    this._appCommRendering = new CommunicationRendering(
       this.configuration,
       this.userSettings,
       this.localUser
@@ -120,7 +125,15 @@ export default class ApplicationRenderer extends Service.extend({
     }
   }
 
-  // #region getters
+  // #region Get / Set
+
+  get forceGraph() {
+    return this._forceGraph;
+  }
+
+  set forceGraph(newForceGraph: ThreeForceGraph) {
+    this._forceGraph = newForceGraph;
+  }
 
   get appSettings() {
     return this.userSettings.applicationSettings;
@@ -131,19 +144,15 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   get openApplications() {
-    return Array.from(this.openApplicationsMap.values());
+    return Array.from(this._openApplicationsMap.values());
   }
 
   get openApplicationIds() {
-    return Array.from(this.openApplicationsMap.keys());
+    return Array.from(this._openApplicationsMap.keys());
   }
 
   getApplicationById(id: string): ApplicationObject3D | undefined {
-    return this.openApplicationsMap.get(id);
-  }
-
-  getApplicationInCurrentLandscapeById(id: string): Application | undefined {
-    return getApplicationInLandscapeById(this.structureLandscapeData, id);
+    return this._openApplicationsMap.get(id);
   }
 
   getBoxMeshByModelId(id: string) {
@@ -172,7 +181,7 @@ export default class ApplicationRenderer extends Service.extend({
   getGraphPosition(mesh: THREE.Object3D) {
     const worldPosition = new THREE.Vector3();
     mesh.getWorldPosition(worldPosition);
-    this.forceGraph.worldToLocal(worldPosition);
+    this._forceGraph.worldToLocal(worldPosition);
     return worldPosition;
   }
 
@@ -198,11 +207,11 @@ export default class ApplicationRenderer extends Service.extend({
   }
 
   getOpenApplications(): ApplicationObject3D[] {
-    return Array.from(this.openApplicationsMap.values());
+    return Array.from(this._openApplicationsMap.values());
   }
 
   isApplicationOpen(id: string): boolean {
-    return this.openApplicationsMap.has(id);
+    return this._openApplicationsMap.has(id);
   }
 
   // #endregion getters
@@ -213,7 +222,7 @@ export default class ApplicationRenderer extends Service.extend({
       addApplicationArgs: AddApplicationArgs = {}
     ) => {
       const applicationModel = applicationData.application;
-      const boxLayoutMap = ApplicationRenderer.convertToBoxLayoutMap(
+      const boxLayoutMap = this.convertToBoxLayoutMap(
         applicationData.layoutData
       );
 
@@ -232,7 +241,7 @@ export default class ApplicationRenderer extends Service.extend({
           applicationData,
           boxLayoutMap
         );
-        this.openApplicationsMap.set(applicationModel.id, applicationObject3D);
+        this._openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
 
       const applicationState =
@@ -305,6 +314,21 @@ export default class ApplicationRenderer extends Service.extend({
 
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
+      const commitComparison =
+        this.evolutionDataRepository.getCommitComparisonByAppName(
+          applicationModel.name
+        );
+
+      if (commitComparison) {
+        this.visualizeCommitComparisonPackagesAndClasses(
+          applicationData,
+          commitComparison
+        );
+      } else {
+        // remove existing comparison visualizations
+        this.removeCommitComparisonVisualization(applicationData);
+      }
+
       applicationObject3D.resetRotation();
 
       return applicationObject3D;
@@ -315,7 +339,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {
-    this.appCommRendering.addCommunication(
+    this._appCommRendering.addCommunication(
       applicationObject3D,
       this.userSettings.applicationSettings
     );
@@ -415,7 +439,7 @@ export default class ApplicationRenderer extends Service.extend({
 
   // #endregion @actions
 
-  // #region utility methods
+  // #region Utility
 
   openAllComponents(applicationObject3D: ApplicationObject3D) {
     this.openAllComponentsLocally(applicationObject3D);
@@ -489,7 +513,7 @@ export default class ApplicationRenderer extends Service.extend({
   updateCommunication() {
     this.getOpenApplications().forEach((application) => {
       if (this.arSettings.renderCommunication) {
-        this.appCommRendering.addCommunication(
+        this._appCommRendering.addCommunication(
           application,
           this.userSettings.applicationSettings
         );
@@ -502,7 +526,7 @@ export default class ApplicationRenderer extends Service.extend({
   removeApplicationLocally(application: ApplicationObject3D) {
     application.parent?.remove(application);
     application.removeAllEntities();
-    this.openApplicationsMap.delete(application.getModelId());
+    this._openApplicationsMap.delete(application.getModelId());
   }
 
   removeApplicationLocallyById(applicationId: string) {
@@ -556,12 +580,178 @@ export default class ApplicationRenderer extends Service.extend({
     this.highlightingService.updateHighlighting();
   }
 
-  cleanup() {
-    this.forEachOpenApplication(this.removeApplicationLocally);
-    this.openApplicationsMap.clear();
+  // #endregion
+
+  //#region Priv. Helper
+
+  private visualizeCommitComparisonPackagesAndClasses(
+    applicationData: ApplicationData,
+    commitComparison: CommitComparison
+  ) {
+    this.visualizeAddedPackagesAndClasses(applicationData, commitComparison);
+    this.visualizeDeletedPackagesAndClasses(applicationData, commitComparison);
+    this.visualizeModifiedPackagesAndClasses(applicationData, commitComparison);
   }
 
-  static convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
+  private getFlatDataModelForBestFqnMatch(
+    applicationData: ApplicationData,
+    fqFileName: string
+  ): FlatDataModelBasicInfo | null {
+    const fqnToModelMap = applicationData.flatData.fqnToModelMap;
+
+    // replace all occurences of / with .
+    // (change in code service in the future)
+    const fqFileNameDotDelimiter = fqFileName.replace(/\//g, '.');
+
+    let longestKeyMatch = null;
+    let flatDataModelBasicInfo: FlatDataModelBasicInfo | null = null;
+
+    for (const [fqn, modelObj] of fqnToModelMap.entries()) {
+      if (fqFileNameDotDelimiter.includes(fqn)) {
+        if (!longestKeyMatch || fqn.length > longestKeyMatch.length) {
+          longestKeyMatch = fqn;
+          flatDataModelBasicInfo = modelObj;
+        }
+      }
+    }
+    return flatDataModelBasicInfo;
+  }
+
+  private visualizeAddedPackagesAndClasses(
+    applicationData: ApplicationData,
+    commitComparison: CommitComparison
+  ) {
+    commitComparison.added.forEach((fqFileName, index) => {
+      const addedPackages = commitComparison.addedPackages[index];
+
+      const flatDataModel = this.getFlatDataModelForBestFqnMatch(
+        applicationData,
+        fqFileName
+      );
+
+      const id = flatDataModel?.modelId;
+
+      if (id) {
+        // Mark the class as added
+        this.textureService.applyAddedTextureToMesh(this.getMeshById(id));
+
+        if (addedPackages) {
+          const clazz = flatDataModel.model as Class;
+          let packageNode: Package | undefined = clazz?.parent;
+          const addedPackageNames = addedPackages.split('.');
+          const firstAddedPackageName = addedPackageNames[0];
+
+          // Traverse up the package hierarchy and mark packages as added
+          while (packageNode && packageNode.name !== firstAddedPackageName) {
+            this.textureService.applyAddedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
+            packageNode = packageNode.parent;
+          }
+
+          // Mark the first added package
+          if (packageNode) {
+            this.textureService.applyAddedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
+          }
+        }
+      }
+    });
+  }
+
+  private visualizeDeletedPackagesAndClasses(
+    applicationData: ApplicationData,
+    commitComparison: CommitComparison
+  ) {
+    commitComparison.deleted.forEach((fqFileName, index) => {
+      const deletedPackages = commitComparison.deletedPackages[index];
+
+      const flatDataModel = this.getFlatDataModelForBestFqnMatch(
+        applicationData,
+        fqFileName
+      );
+
+      const id = flatDataModel?.modelId;
+
+      if (id) {
+        // Mark the class as deleted
+        this.textureService.applyDeletedTextureToMesh(this.getMeshById(id));
+
+        if (deletedPackages) {
+          const clazz = flatDataModel.model as Class;
+          let packageNode: Package | undefined = clazz?.parent;
+          const deletedPackageNames = deletedPackages.split('.');
+          const firstDeletedPackageName = deletedPackageNames[0];
+
+          // Traverse up the package hierarchy and mark packages as deleted
+          while (packageNode && packageNode.name !== firstDeletedPackageName) {
+            this.textureService.applyDeletedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
+            packageNode = packageNode.parent;
+          }
+
+          // Mark the first deleted package
+          if (packageNode) {
+            this.textureService.applyDeletedTextureToMesh(
+              this.getMeshById(packageNode.id)
+            );
+          }
+        }
+      }
+    });
+  }
+
+  private visualizeModifiedPackagesAndClasses(
+    applicationData: ApplicationData,
+    commitComparison: CommitComparison
+  ) {
+    // only mark classes as modified. Why? Because if we decided to apply the added/deleted package visualization, we would
+    // have to mark every parent package as modified. The design choice is to not do that as it seems overloaded
+
+    for (const fqFileName of commitComparison.modified) {
+      const id = this.getFlatDataModelForBestFqnMatch(
+        applicationData,
+        fqFileName
+      )?.modelId;
+
+      if (id) {
+        this.textureService.applyModifiedTextureToMesh(this.getMeshById(id));
+      }
+    }
+  }
+
+  private removeCommitComparisonVisualization(
+    applicationData: ApplicationData
+  ) {
+    const packages = getAllPackagesInApplication(applicationData.application);
+    const classes = getAllClassesInApplication(applicationData.application);
+    packages.forEach((pckg) => {
+      const mesh = this.getBoxMeshByModelId(pckg.id);
+      if (
+        mesh &&
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+          mesh.material instanceof THREE.MeshLambertMaterial ||
+          mesh.material instanceof MeshLineMaterial)
+      ) {
+        mesh.material.map = null;
+      }
+    });
+    classes.forEach((clazz) => {
+      const mesh = this.getBoxMeshByModelId(clazz.id);
+      if (
+        mesh &&
+        (mesh.material instanceof THREE.MeshBasicMaterial ||
+          mesh.material instanceof THREE.MeshLambertMaterial ||
+          mesh.material instanceof MeshLineMaterial)
+      ) {
+        mesh.material.map = null;
+      }
+    });
+  }
+
+  private convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
     const boxLayoutMap: Map<string, BoxLayout> = new Map();
 
     layoutedApplication.forEach((value, key) => {
@@ -578,10 +768,19 @@ export default class ApplicationRenderer extends Service.extend({
     return boxLayoutMap;
   }
 
-  // #endregion utility methods
+  //#endregion
+
+  //#region Cleanup
+
+  cleanup() {
+    this.forEachOpenApplication(this.removeApplicationLocally);
+    this._openApplicationsMap.clear();
+  }
+
+  //#endregion
 }
 
-// #region typescript types
+// #region Type Def.
 export type LayoutData = {
   height: number;
   width: number;

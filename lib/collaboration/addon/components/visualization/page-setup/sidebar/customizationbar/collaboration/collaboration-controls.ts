@@ -20,6 +20,7 @@ import SpectateConfigurationService, {
 } from 'explorviz-frontend/services/spectate-configuration';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import ChatService from 'explorviz-frontend/services/chat';
 
 export default class CollaborationControls extends Component {
   @service('auth')
@@ -52,6 +53,9 @@ export default class CollaborationControls extends Component {
   @service('router')
   router!: any;
 
+  @service('chat')
+  chatService!: ChatService;
+
   @service('spectate-user')
   private spectateUserService!: SpectateUser;
 
@@ -76,6 +80,9 @@ export default class CollaborationControls extends Component {
 
   @tracked
   landscapeTokens: LandscapeToken[] = [];
+
+  @tracked
+  mutedUsers: string[] = [];
 
   @tracked
   spectateConfigEnabled: boolean = false;
@@ -121,6 +128,9 @@ export default class CollaborationControls extends Component {
         isLocalUser: true,
         isSpectatable: false,
         isSpectatedByUs: false,
+        isMuteable: false,
+        isMuted: false,
+        isKickable: false,
       });
     }
     const remoteUsers = Array.from(
@@ -136,6 +146,9 @@ export default class CollaborationControls extends Component {
         isLocalUser: false,
         isSpectatedByUs: isSpectatedByUs,
         isSpectatable: true,
+        isMuteable: this.localUser.isHost,
+        isMuted: false,
+        isKickable: this.localUser.isHost,
       };
     });
 
@@ -145,6 +158,7 @@ export default class CollaborationControls extends Component {
   constructor(owner: any, args: any) {
     super(owner, args);
 
+    this.mutedUsers = this.chatService.userIdMuteList || [];
     this.loadRooms(false);
   }
 
@@ -196,6 +210,36 @@ export default class CollaborationControls extends Component {
   @action
   shareSettings() {
     this.userSettings.shareApplicationSettings();
+  }
+
+  @action
+  toggleMuteStatus(user: { remoteUserId: string }) {
+    if (user) {
+      const userId = user.remoteUserId;
+
+      if (this.chatService.isUserMuted(userId)) {
+        this.mutedUsers = this.mutedUsers.filter((id) => id !== userId);
+      } else {
+        this.mutedUsers = [...this.mutedUsers, userId];
+      }
+      this.chatService.toggleMuteStatus(userId);
+    }
+  }
+
+  @action
+  isUserMuted(user: { remoteUserId: string }) {
+    if (!user) {
+      return;
+    }
+    return this.mutedUsers.includes(user.remoteUserId);
+  }
+
+  @action
+  kickUser(user: { remoteUserId: string }) {
+    if (!user) {
+      return;
+    }
+    this.sender.sendKickUser(user.remoteUserId);
   }
 
   @action
@@ -277,6 +321,15 @@ export default class CollaborationControls extends Component {
       },
     });
     this.sender.sendChangeLandscape(event.target.value);
+    this.sender.sendChatMessage(
+      this.localUser.userId,
+      `${this.localUser.userName}(${this.localUser.userId}) changed the landscape`,
+      this.localUser.userName,
+      '',
+      true,
+      'landscape_change',
+      []
+    );
   }
 
   @action

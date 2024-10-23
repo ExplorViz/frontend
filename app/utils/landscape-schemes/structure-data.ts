@@ -10,20 +10,25 @@ export interface Parameters {
   name: string;
   type: string;
 }
-export interface Method {
+export type Method = {
   name: string;
   type: string;
   private: boolean;
   methodHash: string;
   parameters: Parameters[];
-}
+};
 export interface Interface {
   name: string;
   methods: Method[];
   variables: Variable[];
 }
+export enum TypeOfAnalysis {
+  Dynamic = 'dynamic',
+  Static = 'static',
+  StaticAndDynamic = 'static+dynamic',
+}
 
-export interface Class {
+export type BaseModel = {
   id: string;
   name: string;
   methods: Method[];
@@ -31,36 +36,47 @@ export interface Class {
   variables?: Variable[];
   extends?: Class[];
   implements?: Interface[];
-}
+};
 
-export interface Package {
-  id: string;
-  name: string;
-  subPackages: Package[];
-  classes: Class[];
-  parent?: Package;
-}
+type OriginOfData = {
+  originOfData: TypeOfAnalysis;
+};
 
-export interface Application {
-  id: string;
-  name: string;
-  language: string;
-  instanceId: string;
-  parentId: string;
-  packages: Package[];
-}
+export type Class = BaseModel &
+  OriginOfData & {
+    name: string;
+    methods: Method[];
+    parent: Package;
+  };
 
-export interface Node {
-  id: string;
-  ipAddress: string;
-  hostName: string;
-  applications: Application[];
-}
+export type Package = BaseModel &
+  OriginOfData & {
+    name: string;
+    subPackages: Package[];
+    classes: Class[];
+    parent?: Package;
+  };
 
-export interface StructureLandscapeData {
+export type Application = BaseModel &
+  OriginOfData & {
+    name: string;
+    language: string;
+    instanceId: string;
+    parentId: string;
+    packages: Package[];
+  };
+
+export type Node = BaseModel &
+  OriginOfData & {
+    ipAddress: string;
+    hostName: string;
+    applications: Application[];
+  };
+
+export type StructureLandscapeData = {
   landscapeToken: string;
   nodes: Node[];
-}
+};
 
 export function isLandscape(x: any): x is StructureLandscapeData {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'nodes');
@@ -94,7 +110,8 @@ export function getNodeById(
 }
 
 export function preProcessAndEnhanceStructureLandscape(
-  landscapeStructure: StructureLandscapeData
+  landscapeStructure: StructureLandscapeData,
+  typeOfAnalysis: TypeOfAnalysis
 ) {
   const entitiesForIdHashing: Set<Class | Package | Application | Node> =
     new Set();
@@ -159,6 +176,12 @@ export function preProcessAndEnhanceStructureLandscape(
     });
   }
 
+  function setOriginStatus(typeOfAnalysis: TypeOfAnalysis) {
+    entitiesForIdHashing.forEach((entity) => {
+      entity.originOfData = typeOfAnalysis;
+    });
+  }
+
   /* const a = performance.now(); */
   const enhancedlandscapeStructure: StructureLandscapeData =
     structuredClone(landscapeStructure);
@@ -182,6 +205,7 @@ export function preProcessAndEnhanceStructureLandscape(
   });
 
   hashEntityIds();
+  setOriginStatus(typeOfAnalysis);
 
   return enhancedlandscapeStructure;
 }

@@ -158,7 +158,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
-    this.debug('Constructor called');
+
     // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
@@ -368,8 +368,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   canvasInserted(canvas: HTMLCanvasElement) {
-    this.debug('Canvas inserted');
-
     this.canvas = canvas;
     this.landscapeRestructure.canvas = canvas;
 
@@ -487,7 +485,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
-    this.debug('Renderer set up');
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,

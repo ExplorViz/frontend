@@ -35,6 +35,11 @@ import {
 } from 'collaboration/utils/web-socket-messages/types/controller-id';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import {
+  USER_KICK_EVENT,
+  UserKickEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/kick-user';
+import ChatService from 'explorviz-frontend/services/chat';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -76,6 +81,9 @@ export default class CollaborationSession extends Service.extend({
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
+  @service('chat')
+  chatService!: ChatService;
+
   @tracked
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
@@ -91,6 +99,9 @@ export default class CollaborationSession extends Service.extend({
   @tracked
   currentRoomId: string | null = null;
 
+  @tracked
+  previousRoomId: string | null = this.currentRoomId;
+
   init() {
     super.init();
     this.debug('Initializing collaboration session');
@@ -99,6 +110,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
+    this.webSocket.on(USER_KICK_EVENT, this, this.onUserKickEvent);
   }
 
   willDestroy() {
@@ -107,6 +119,7 @@ export default class CollaborationSession extends Service.extend({
     this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
     this.webSocket.off(USER_POSITIONS_EVENT, this, this.onUserPositions);
     this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
+    this.webSocket.off(USER_KICK_EVENT, this, this.onUserKickEvent);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -200,6 +213,16 @@ export default class CollaborationSession extends Service.extend({
     // Ensure same settings for all users in collaboration session
     this.userSettings.applyDefaultApplicationSettings(false);
 
+    if (this.userCount === 1) {
+      this.localUser.isHost = true;
+    }
+
+    this.chatService.sendChatMessage(
+      self.id,
+      `${self.name}(${self.id}) connected to room ${this.currentRoomId}`,
+      true,
+      'connection_event'
+    );
     this.toastHandlerService.showSuccessToastMessage(
       'Joined room successfully'
     );
@@ -226,6 +249,13 @@ export default class CollaborationSession extends Service.extend({
     this.toastHandlerService.showInfoToastMessage(
       `User connected: ${remoteUser.userName}`
     );
+  }
+
+  onUserKickEvent({ originalMessage }: ForwardedMessage<UserKickEvent>): void {
+    if (this.localUser.userId == originalMessage.userId) {
+      this.toastHandlerService.showErrorToastMessage('You were kicked');
+      this.onSelfDisconnected('kick_event');
+    }
   }
 
   /**
@@ -270,6 +300,7 @@ export default class CollaborationSession extends Service.extend({
 
   onSelfDisconnected(event?: any) {
     this.disconnect();
+    this.localUser.isHost = false;
 
     if (this.isConnecting) {
       this.toastHandlerService.showInfoToastMessage(
@@ -298,7 +329,13 @@ export default class CollaborationSession extends Service.extend({
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();
 
-    this.disconnect();
+    this.chatService.sendChatMessage(
+      this.localUser.userId,
+      `${this.localUser.userName}(${this.localUser.userId}) disconnected from room ${this.previousRoomId}`,
+      true,
+      'disconnection_event'
+    );
+    //this.disconnect();
   }
 
   get isOnline() {
@@ -404,6 +441,11 @@ export default class CollaborationSession extends Service.extend({
    */
   disconnect() {
     this.debug('Disconnect Collab Session');
+
+    if (this.connectionStatus != 'offline') {
+      this.previousRoomId = this.currentRoomId;
+    }
+
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
     this.webSocket.closeSocket();
