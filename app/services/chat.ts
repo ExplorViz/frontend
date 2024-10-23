@@ -138,7 +138,7 @@ export default class ChatService extends Service {
     if (userId == this.localUser.userId) {
       return;
     }
-    this.removeChatMessage(originalMessage.msgId, true);
+    this.removeChatMessage(originalMessage.msgIds, true);
     this.toastHandler.showErrorToastMessage('Message(s) deleted');
   }
 

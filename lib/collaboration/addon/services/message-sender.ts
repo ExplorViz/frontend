@@ -644,7 +644,7 @@ export default class MessageSender extends Service {
   sendMessageDelete(msgId: number[]) {
     this.webSocket.send<MessageDeleteEvent>(MESSAGE_DELETE_EVENT, {
       event: 'message_delete_event',
-      msgId,
+      msgIds: msgId,
     });
   }
 }

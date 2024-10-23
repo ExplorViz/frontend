@@ -2,7 +2,7 @@ export const MESSAGE_DELETE_EVENT = 'message_delete_event';
 
 export type MessageDeleteEvent = {
   event: typeof MESSAGE_DELETE_EVENT;
-  msgId: number[];
+  msgIds: number[];
 };
 
 export function isMessageDeleteEvent(msg: any): msg is MessageDeleteEvent {
