@@ -120,6 +120,26 @@ export default abstract class BaseMesh<
     }
   }
 
+  replayBlinkEffect(duration = 1000): void {
+    if (
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      this.material.color = new THREE.Color('yellow');
+    } else {
+      return;
+    }
+
+    setTimeout(() => {
+      if (this.highlighted) {
+        this.material.color = this.highlightingColor;
+      } else {
+        this.material.color = this.defaultColor;
+      }
+    }, duration);
+  }
+
   /**
    * Alters the color of a given mesh such that it is clear which mesh
    * the mouse points at

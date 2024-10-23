@@ -25,7 +25,7 @@
   <div class='ml-3'>
     <div class='d-flex justify-content-between'>
       <label>Enable Spectate Configuration Settings: </label>
-      {{!-- template-lint-disable require-input-label --}}
+      {{! template-lint-disable require-input-label }}
       <Input
         @type='checkbox'
         style='margin-bottom: 5px;'
@@ -37,8 +37,10 @@
   <div>
     {{! Indicator that device should be in control of spectating configurations }}
     {{#if (and this.deviceId this.spectateConfigEnabled)}}
-      <div class="d-flex">
-        <label class='bold mr-2' style='padding-top: 3px;'>Spectate Configuration: </label>
+      <div class='d-flex'>
+        <label class='bold mr-2' style='padding-top: 3px;'>Spectate
+          Configuration:
+        </label>
         <PowerSelect
           class='form-select mr-2'
           style='min-width: 314px; height: 20px;'
@@ -51,26 +53,28 @@
           {{config.id}}
         </PowerSelect>
         <BsButton
-        title='New Configuration'
-        class='mr-2'
-        {{on 'click' this.openSpectateConfigModal}}
-        @type='secondary'
-        @outline={{true}}
-      >
-        {{svg-jar 'diff-added-16' class='octicon'}}
-      </BsButton>
-      <BsButton
-        title='Edit Configuration'
-        {{on 'click' this.openEditSpectateConfigModal}}
-        @type='secondary'
-        @outline={{true}}
-      >
-        {{svg-jar 'pencil-16' class='octicon'}}
-      </BsButton>
+          title='New Configuration'
+          class='mr-2'
+          {{on 'click' this.openSpectateConfigModal}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          {{svg-jar 'diff-added-16' class='octicon'}}
+        </BsButton>
+        <BsButton
+          title='Edit Configuration'
+          {{on 'click' this.openEditSpectateConfigModal}}
+          @type='secondary'
+          @outline={{true}}
+        >
+          {{svg-jar 'pencil-16' class='octicon'}}
+        </BsButton>
       </div>
       <ul></ul>
-      <div class="d-flex">
-        <label class='bold mr-2' style='padding-top: 3px;'>Select Spectate Device: </label>
+      <div class='d-flex'>
+        <label class='bold mr-2' style='padding-top: 3px;'>Select Spectate
+          Device:
+        </label>
         <PowerSelect
           class='form-select mr-2'
           style='min-width: 314px; height: 20px;'
@@ -83,10 +87,10 @@
           {{device}}
         </PowerSelect>
         <BsButton
-        title='New Configuration'
-        {{on 'click' this.sendSelectedConfiguration}}
-        @type='secondary'
-        @outline={{true}}
+          title='New Configuration'
+          {{on 'click' this.sendSelectedConfiguration}}
+          @type='secondary'
+          @outline={{true}}
         >
           Apply
         </BsButton>
@@ -98,7 +102,7 @@
 
   <ul>
     {{#each this.users as |user|}}
-      <div class='flex-space-between collaboration-list-item'>
+      <div class='chat-right-buttons collaboration-list-item'>
         <li style={{html-safe user.style}}>
           <div class='nav-link-with-cursor'>
             {{user.name}}
@@ -112,6 +116,29 @@
             @outline={{true}}
           >
             Share Settings
+          </BsButton>
+        {{/if}}
+        {{#if user.isMuteable}}
+          <BsButton
+            title={{if (this.isUserMuted user) 'Unmute User' 'Mute User'}}
+            {{on 'click' (fn this.toggleMuteStatus user)}}
+            @type='primary'
+            @outline={{true}}
+          >
+            {{svg-jar
+              (if (this.isUserMuted user) 'mute-16' 'unmute-16')
+              class='octicon align-middle'
+            }}
+          </BsButton>
+        {{/if}}
+        {{#if user.isKickable}}
+          <BsButton
+            title='Kick User'
+            {{on 'click' (fn this.kickUser user)}}
+            @type='danger'
+            @outline={{true}}
+          >
+            {{svg-jar 'person-fill-16' class='octicon align-middle'}}
           </BsButton>
         {{/if}}
         {{#if user.isSpectatable}}
@@ -209,7 +236,7 @@
       <label class='mt-2'>Devices:</label>
       {{#each this.spectateConfigDevices as |device index|}}
         <div class='ml-3'>
-          <hr>
+          <hr />
           <label for='deviceId'>Device ID:</label>
           {{#if (eq index 0)}}
             <div class='d-flex justify-content-between'>
@@ -246,7 +273,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='mn11'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -254,7 +281,7 @@
               />
               <Input
                 id='mn12'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -262,7 +289,7 @@
               />
               <Input
                 id='mn13'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -270,7 +297,7 @@
               />
               <Input
                 id='mn14'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -281,7 +308,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='mn21'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -289,7 +316,7 @@
               />
               <Input
                 id='mn22'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -297,7 +324,7 @@
               />
               <Input
                 id='mn23'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -305,7 +332,7 @@
               />
               <Input
                 id='mn24'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -316,7 +343,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='mn31'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -324,7 +351,7 @@
               />
               <Input
                 id='mn32'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -332,7 +359,7 @@
               />
               <Input
                 id='mn33'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -340,7 +367,7 @@
               />
               <Input
                 id='mn34'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -351,7 +378,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='mn41'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -359,7 +386,7 @@
               />
               <Input
                 id='mn42'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -367,7 +394,7 @@
               />
               <Input
                 id='mn43'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -375,7 +402,7 @@
               />
               <Input
                 id='mn44'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -438,7 +465,7 @@
       <label class='mt-2'>Devices:</label>
       {{#each this.spectateConfigDevices as |device index|}}
         <div class='ml-3'>
-          <hr>
+          <hr />
           <label for='deviceId'>Device ID:</label>
           {{#if (eq index 0)}}
             <div class='d-flex justify-content-between'>
@@ -475,7 +502,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='edit-mn11'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -484,7 +511,7 @@
               />
               <Input
                 id='edit-mn12'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -493,7 +520,7 @@
               />
               <Input
                 id='edit-mn13'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -502,7 +529,7 @@
               />
               <Input
                 id='edit-mn14'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -514,7 +541,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='edit-mn21'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -523,7 +550,7 @@
               />
               <Input
                 id='edit-mn22'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -532,7 +559,7 @@
               />
               <Input
                 id='edit-mn23'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -541,7 +568,7 @@
               />
               <Input
                 id='edit-mn24'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -553,7 +580,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='edit-mn31'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -562,7 +589,7 @@
               />
               <Input
                 id='edit-mn32'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -571,7 +598,7 @@
               />
               <Input
                 id='edit-mn33'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -580,7 +607,7 @@
               />
               <Input
                 id='edit-mn34'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -592,7 +619,7 @@
             <div class='d-flex justify-content-between'>
               <Input
                 id='edit-mn41'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -601,7 +628,7 @@
               />
               <Input
                 id='edit-mn42'
-                class="matrixNumber matrixNumber form-control mr-2"
+                class='matrixNumber matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -610,7 +637,7 @@
               />
               <Input
                 id='edit-mn43'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
@@ -619,7 +646,7 @@
               />
               <Input
                 id='edit-mn44'
-                class="matrixNumber form-control mr-2"
+                class='matrixNumber form-control mr-2'
                 @type='number'
                 inputmode='numeric'
                 required
