@@ -724,7 +724,7 @@ export default class SemanticZoomManager {
   localUser: LocalUser | undefined;
   appCommRendering: CommunicationRendering | undefined;
   font: Font | undefined;
-
+  updateLinks?: () => void;
   // Enable auto open/close of component Meshes
   autoOpenCloseFeature: boolean = false;
 

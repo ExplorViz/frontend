@@ -10,6 +10,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import ThreeForceGraph from 'three-forcegraph';
 
@@ -98,6 +99,12 @@ export default class ForceGraph {
         this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
       });
     };
+    try {
+      SemanticZoomManager.instance.updateLinks =
+        this.applicationRenderer.updateLinks;
+    } catch (error) {
+      this.debug('LinkUpdater function not set in SemanticZoomManger!');
+    }
     this.graph.scale.setScalar(scale);
   }
 

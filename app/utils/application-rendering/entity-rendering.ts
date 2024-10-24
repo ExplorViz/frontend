@@ -139,7 +139,8 @@ export function addComponentAndChildrenToScene(
       true,
       SemanticZoomManager.instance.userSettings?.applicationSettings,
       SemanticZoomManager.instance.userSettings,
-      SemanticZoomManager.instance.font
+      SemanticZoomManager.instance.font,
+      SemanticZoomManager.instance.updateLinks
     );
   };
   mesh.setAppearence(1, triggerOpen);
@@ -158,7 +159,8 @@ export function addComponentAndChildrenToScene(
       true,
       SemanticZoomManager.instance.userSettings?.applicationSettings,
       SemanticZoomManager.instance.userSettings,
-      SemanticZoomManager.instance.font
+      SemanticZoomManager.instance.font,
+      SemanticZoomManager.instance.updateLinks
     );
   });
   // const recipe = new Recipe();
@@ -376,7 +378,8 @@ export function updateApplicationObject3DAfterUpdate(
   renderComm: boolean,
   applicationSettings: ApplicationSettings,
   userSettings: UserSettings,
-  font: Font
+  font: Font,
+  linkUpdater: () => void
 ) {
   // Render communication
   // if (
@@ -397,6 +400,7 @@ export function updateApplicationObject3DAfterUpdate(
     userSettings.applicationColors //this.userSettings.applicationColors
   );
   // Update links
+  linkUpdater?.();
   //this.updateLinks?.();
   // Update highlighting
   // TODO reactivate !
