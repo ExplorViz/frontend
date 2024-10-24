@@ -143,9 +143,9 @@ export function addComponentAndChildrenToScene(
     );
   };
   mesh.setAppearence(1, triggerOpen);
-  mesh.setAppearence(2, triggerOpen);
-  mesh.setAppearence(3, triggerOpen);
-  mesh.setAppearence(4, triggerOpen);
+  // mesh.setAppearence(2, triggerOpen);
+  // mesh.setAppearence(3, triggerOpen);
+  // mesh.setAppearence(4, triggerOpen);
 
   mesh.setCallBeforeAppearenceZero(() => {
     if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;

@@ -713,6 +713,10 @@ export default class SemanticZoomManager {
 
   zoomLevelMap: Array<number> = [];
   alreadyCreatedZoomLevelMap: boolean = false;
+  // The following three variables are used internaly to create the zoomLevelMap
+  _distinctMeshClassNames = new Set<string>();
+  _smallestMap = new Map<string, number>();
+  _biggestMap = new Map<string, number>();
 
   // Settings from Service
   configuration: Configuration | undefined;
@@ -751,6 +755,9 @@ export default class SemanticZoomManager {
     this.zoomableObjects.clear();
     this.zoomLevelMap.clear();
     this.alreadyCreatedZoomLevelMap = false;
+    this._biggestMap.clear();
+    this._smallestMap.clear();
+    this._distinctMeshClassNames.clear();
     // if (this.isEnabled == true) {
     //   this.activate();
     // }
@@ -844,15 +851,19 @@ export default class SemanticZoomManager {
     this.debug(this.zoomLevelMap);
   }
 
-  createZoomLevelMapDependingOnMeshTypes(cam: THREE.Camera) {
-    const appSettings: ApplicationSettings = getStoredSettings();
-    const d1: number = appSettings.distanceLevel1.value;
-    const d2: number = appSettings.distanceLevel2.value;
-    const d3: number = appSettings.distanceLevel3.value;
-    const d4: number = appSettings.distanceLevel4.value;
-    const d5: number = appSettings.distanceLevel5.value;
-    const userSettingLevels = [d1, d2, d3, d4, d5];
-    this.zoomLevelMap = [Number.POSITIVE_INFINITY];
+  private _createZoomLevelMapDepedingOnMeshHelper() {
+    // return already calculated values
+    if (
+      this._biggestMap.size > 0 &&
+      this._smallestMap.size > 0 &&
+      this._distinctMeshClassNames.size > 0
+    )
+      return [
+        this._distinctMeshClassNames,
+        this._smallestMap,
+        this._biggestMap,
+      ];
+    // resume with new values
     // Extract All Mesh Class Names and store the biggest and smallest one per Class
     const distinctMeshClassNames = new Set<string>();
     const smallestMap = new Map<string, number>();
@@ -877,6 +888,25 @@ export default class SemanticZoomManager {
         biggestMap.set(zobject.constructor.name, currentSize);
       }
     });
+    this._distinctMeshClassNames = distinctMeshClassNames;
+    this._smallestMap = smallestMap;
+    this._biggestMap = biggestMap;
+    return [distinctMeshClassNames, smallestMap, biggestMap];
+  }
+  createZoomLevelMapDependingOnMeshTypes(cam: THREE.Camera) {
+    const appSettings: ApplicationSettings = getStoredSettings();
+    const d1: number = appSettings.distanceLevel1.value;
+    const d2: number = appSettings.distanceLevel2.value;
+    const d3: number = appSettings.distanceLevel3.value;
+    const d4: number = appSettings.distanceLevel4.value;
+    const d5: number = appSettings.distanceLevel5.value;
+    const userSettingLevels = [d1, d2, d3, d4, d5];
+    this.zoomLevelMap = [Number.POSITIVE_INFINITY];
+
+    const helper = this._createZoomLevelMapDepedingOnMeshHelper();
+    const distinctMeshClassNames = helper[0];
+    const smallestMap = helper[1];
+    const biggestMap = helper[2];
     // Iterat over all the distinct names
     // Store avg distance for each distinct object
     for (let index = 0; index < userSettingLevels.length; index++) {
