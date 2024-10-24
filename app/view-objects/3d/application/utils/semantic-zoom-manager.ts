@@ -821,7 +821,7 @@ export default class SemanticZoomManager {
     const d4: number = appSettings.distanceLevel4.value;
     const d5: number = appSettings.distanceLevel5.value;
     const userSettingLevels = [d1, d2, d3, d4, d5];
-    this.zoomLevelMap = [];
+    this.zoomLevelMap = [Number.POSITIVE_INFINITY];
     for (let index = 0; index < userSettingLevels.length; index++) {
       const distances: Array<number> =
         this.calculateDistancesForCoveragePercentage(
@@ -852,7 +852,7 @@ export default class SemanticZoomManager {
     const d4: number = appSettings.distanceLevel4.value;
     const d5: number = appSettings.distanceLevel5.value;
     const userSettingLevels = [d1, d2, d3, d4, d5];
-    this.zoomLevelMap = [];
+    this.zoomLevelMap = [Number.POSITIVE_INFINITY];
     // Extract All Mesh Class Names and store the biggest and smallest one per Class
     const distinctMeshClassNames = new Set<string>();
     const smallestMap = new Map<string, number>();
@@ -1119,6 +1119,7 @@ export default class SemanticZoomManager {
     this.timeoutId = setTimeout(() => {
       this.triggerLevelDecision2(cam);
     }, 250);
+    this.debug('# Semantic Zoom update in 250ms');
   }
   /**
    * This function gets called by ThreeJS everytime the camera changes. It uses the cameras frustum to determine the

@@ -115,7 +115,7 @@ export default class ApplicationRenderer extends Service.extend() {
       SemanticZoomManager.instance.configuration = this.configuration;
       SemanticZoomManager.instance.userSettings = this.userSettings;
       SemanticZoomManager.instance.localUser = this.localUser;
-      SemanticZoomManager.instance.appCommRendering = this.appCommRendering;
+      SemanticZoomManager.instance.appCommRendering = this._appCommRendering;
       SemanticZoomManager.instance.font = this.font;
       ImmersiveView.instance.font = this.font;
     } catch (error) {
