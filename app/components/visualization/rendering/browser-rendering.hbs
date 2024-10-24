@@ -228,7 +228,7 @@
                   @landscapeToken={{@landscapeToken}}
                 />
               {{/if}}
-              {{#if (eq componentId 'Persist-Landscape')}}
+              {{#if (eq @openedSettingComponent 'Persist-Landscape')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Snapshot::Snapshot
                   @landscapeData={{@landscapeData}}
                   @popUpData={{this.popupHandler.popupData}}
