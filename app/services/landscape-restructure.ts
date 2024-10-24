@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import {
   addFoundationToLandscape,
   addMethodToClass,
@@ -1989,7 +1989,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         wrapper
       );
 
-      changeID({ entity: copiedPackage }, 'copied' + this.newMeshCounter + '|');
+      changeID(
+        this.landscapeData.structureLandscapeData,
+        { entity: copiedPackage },
+        'copied' + this.newMeshCounter + '|'
+      );
 
       this.newMeshCounter++;
 
@@ -2073,7 +2077,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         wrapper
       );
 
-      changeID({ entity: copiedClass }, 'copied' + this.newMeshCounter + '|');
+      changeID(
+        this.landscapeData.structureLandscapeData,
+        { entity: copiedClass },
+        'copied' + this.newMeshCounter + '|'
+      );
 
       this.newMeshCounter++;
 
@@ -2165,7 +2173,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           );
         }
 
-        changeID({ entity: this.clippedMesh }, 'removed|');
+        changeID(
+          this.landscapeData.structureLandscapeData,
+          { entity: this.clippedMesh },
+          'removed|'
+        );
 
         this.meshModelTextureMappings.push({
           action: RestructureAction.Delete,
@@ -2200,7 +2212,11 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
           this.landscapeData.structureLandscapeData
         );
 
-        changeID({ entity: this.clippedMesh }, 'removed|');
+        changeID(
+          this.landscapeData.structureLandscapeData,
+          { entity: this.clippedMesh },
+          'removed|'
+        );
 
         this.meshModelTextureMappings.push({
           action: RestructureAction.Delete,

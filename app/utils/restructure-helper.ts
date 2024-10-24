@@ -11,6 +11,7 @@ import {
   isPackage,
   Method,
   isApplication,
+  getNodeById,
 } from './landscape-schemes/structure-data';
 import { getApplicationFromPackage } from './landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
@@ -77,7 +78,7 @@ export function addFoundationToLandscape(
     name: appName,
     language: language,
     instanceId: '0',
-    parent: myNode,
+    parentId: myNode.id,
     packages: [],
   };
 
@@ -92,7 +93,6 @@ export function addFoundationToLandscape(
   newPckg.classes.push(newClass as Class);
   myApplication.packages.push(newPckg);
   myNode.applications.push(myApplication);
-  myApplication.parent = myNode;
 
   return myNode;
 }
@@ -106,7 +106,7 @@ export function duplicateApplication(
     copiedComms: ClassCommunication[];
   }
 ) {
-  const originalNode = app.parent;
+  const originalNode = getNodeById(landscapeData, app.parentId)!;
   const duplicatedNode: Node = {
     id: originalNode.id,
     ipAddress: originalNode.ipAddress,
@@ -119,7 +119,7 @@ export function duplicateApplication(
     name: app.name,
     language: app.language,
     instanceId: app.instanceId,
-    parent: duplicatedNode,
+    parentId: duplicatedNode.id,
     packages: [],
   };
 
@@ -137,7 +137,7 @@ export function duplicateApplication(
     copyCommunications(classesInApp, wrapper, duplicatedApp);
   }
 
-  changeID({ entity: duplicatedApp }, 'duplicated|');
+  changeID(landscapeData, { entity: duplicatedApp }, 'duplicated|');
 
   landscapeData.nodes.pushObject(duplicatedNode);
 
@@ -256,7 +256,7 @@ export function removeApplication(
   landscapeStructure: StructureLandscapeData,
   app: Application
 ) {
-  const parentNode = app.parent;
+  const parentNode = getNodeById(landscapeStructure, app.parentId)!;
 
   //If the node contains only of the one application, then delete the whole node, otherwise remove application from node.
   if (parentNode.applications.length <= 1) {
@@ -513,11 +513,12 @@ export function moveClass(
 }
 
 export function changeID(
+  landscapeStructure: StructureLandscapeData,
   wrapper: { entity: Application | Package | Class },
   id: string
 ) {
   if (isApplication(wrapper.entity)) {
-    const node = wrapper.entity.parent;
+    const node = getNodeById(landscapeStructure, wrapper.entity.parentId)!;
     node.id = id + node.id;
 
     wrapper.entity.id = id + wrapper.entity.id;

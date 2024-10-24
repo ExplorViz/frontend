@@ -10,7 +10,13 @@ import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import ChatService from 'explorviz-frontend/services/chat';
+import collaborationSession from 'explorviz-frontend/services/collaboration-session';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -28,6 +34,15 @@ export default class LocalUser extends Service.extend({
 
   @service
   applicationRenderer!: ApplicationRenderer;
+
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
+
+  @service('chat')
+  chatService!: ChatService;
+
+  @service('collaboration-session')
+  collaborationSession!: collaborationSession;
 
   userId!: string;
 
@@ -62,11 +77,14 @@ export default class LocalUser extends Service.extend({
 
   xr?: WebXRManager;
 
+  @tracked
+  isHost!: boolean;
+
   init() {
     super.init();
 
     this.userId = 'unknown';
-
+    this.isHost = false;
     this.userGroup = new THREE.Group();
 
     // Initialize camera. The default aspect ratio is not known at this point
@@ -176,21 +194,22 @@ export default class LocalUser extends Service.extend({
 
     if (applicationObject3D) {
       const mesh = applicationObject3D.getBoxMeshbyModelId(modelId);
+      if (!mesh) return;
 
       if (options?.nonrestartable) {
         this.pingNonRestartable(
-          mesh!,
-          mesh!.getWorldPosition(mesh!.position),
+          mesh,
+          mesh.getWorldPosition(mesh!.position),
           duration
         );
       } else {
-        this.ping(mesh!, mesh!.getWorldPosition(mesh!.position), duration);
+        this.ping(mesh, mesh.getWorldPosition(mesh.position), duration);
       }
     }
   }
 
   pingNonRestartable(
-    obj: THREE.Object3D | null,
+    obj: EntityMesh | null,
     pingPosition: THREE.Vector3,
     durationInMs: number = 5000
   ) {
@@ -198,61 +217,87 @@ export default class LocalUser extends Service.extend({
     if (!this.mousePing || !obj) {
       return;
     }
-    const parentObj = obj.parent;
-    if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
 
-      this.applicationRenderer.openParents(
-        obj as EntityMesh,
-        (parentObj as ApplicationObject3D).data.application.id
-      );
-
-      this.mousePing.pingNonRestartable.perform({
-        parentObj,
-        position: pingPosition,
-        durationInMs,
-      });
-
-      if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
-      }
+    const app3D = obj.parent;
+    if (!(app3D instanceof ApplicationObject3D)) {
+      return;
     }
+
+    app3D.worldToLocal(pingPosition);
+
+    this.applicationRenderer.openParents(obj, app3D.getModelId());
+
+    this.mousePing.pingNonRestartable.perform({
+      parentObj: app3D,
+      position: pingPosition,
+      durationInMs,
+    });
+
+    this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
   }
 
   ping(
-    obj: THREE.Object3D | null,
+    obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
     durationInMs: number = 5000
   ) {
-    // or touch, primary input ...
-    if (!this.mousePing || !obj) {
+    const app3D = obj.parent;
+    if (!app3D || !(app3D instanceof ApplicationObject3D)) {
       return;
     }
-    const parentObj = obj.parent;
-    if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
 
-      this.applicationRenderer.openParents(
-        obj as EntityMesh,
-        (parentObj as ApplicationObject3D).data.application.id
-      );
+    app3D.worldToLocal(pingPosition);
 
-      this.mousePing.ping.perform({
-        parentObj,
-        position: pingPosition,
-        durationInMs,
-      });
+    if (isEntityMesh(obj)) {
+      this.applicationRenderer.openParents(obj, app3D.getModelId());
+    }
 
-      if (parentObj instanceof ApplicationObject3D) {
-        this.sender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
+    const replay = false;
+
+    this.mousePing.ping.perform({
+      parentObj: app3D,
+      position: pingPosition,
+      durationInMs,
+      replay,
+    });
+
+    this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
+    this.chatService.sendChatMessage(
+      this.userId,
+      `${this.userName}(${this.userId}) pinged ${obj.dataModel.name}`,
+      true,
+      'ping',
+      [app3D.getModelId(), pingPosition.toArray(), durationInMs]
+    );
+  }
+
+  pingReplay(
+    userId: string,
+    modelId: string,
+    position: number[],
+    durationInMs: number,
+    replay: boolean = true
+  ) {
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
+
+    const applicationObj = this.applicationRenderer.getApplicationById(modelId);
+
+    const point = new THREE.Vector3().fromArray(position);
+    if (applicationObj) {
+      if (remoteUser) {
+        remoteUser.mousePing.ping.perform({
+          parentObj: applicationObj,
+          position: point,
+          durationInMs,
+          replay,
+        });
+      } else {
+        this.mousePing.ping.perform({
+          parentObj: applicationObj,
+          position: point,
+          durationInMs,
+          replay,
+        });
       }
     }
   }

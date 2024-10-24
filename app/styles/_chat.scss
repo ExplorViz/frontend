@@ -1,0 +1,148 @@
+.chat {
+  margin-top: 2rem;
+}
+
+.chat-thread {
+  border: 2px;
+  border-color: #000000;
+	margin: 24px auto 0 auto;
+	padding: 0 20px 0 0;
+	list-style: none;
+  height: 400px;
+  max-height: 400px;
+	overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+//user message
+.chat-thread li {
+  position: relative;
+  clear: both;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  margin: 0 0 20px 0;
+  font: 16px/20px 'Noto Sans', sans-serif;
+  border-radius: 10px;
+  background-color: rgba(59, 170, 114, 0.2);
+  overflow-x: hidden;
+  padding-right: 40px;
+}
+
+.chat-thread .event-message {
+  background-color: #ffecb3;
+  color: #5d4037;
+  border-left: 5px solid #ffc107;
+  border-right: 5px solid #ffc107;
+  font-weight: bold;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding-right: 40px;
+}
+
+.chat-thread .event-message .event-button {
+  margin-top: 5px;
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #f57c00;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  justify-content: space-between;
+}
+
+.chat-timestamp {
+    font-size: 0.75em;
+    color: #888;
+    align-self: flex-end;
+    margin-left: 10px;
+    position: absolute;
+    right: 10px;
+    bottom: 0px;
+}
+
+.chat-button-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-box {
+    flex-grow: 1;
+}
+
+.chat-right-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-synchronize, .chat-download {
+    margin-right: 10px;
+}
+
+.message-input {
+  background: rgb(255, 255, 255);
+  border: 3px;
+  resize: none;
+  color: rgba(0, 0, 0, 0.842);
+  font-size: 14px;
+  height: 50px;
+  margin: 0;
+  border-radius: 4px;
+  padding-right: 20px;
+
+  border-top-left-radius: 0.5em;
+  border-bottom-left-radius: 0.5em;
+  border: 1px solid #cccccc;
+  border-right: none;
+}
+
+.selected-message {
+  background-color: rgba(255, 0, 0, 0.2);
+  border: 1px solid red;
+}
+
+.message-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.message-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+
+.delete-checkbox {
+  position: absolute;
+  top: 5px;
+  right: 15px;
+}
+
+.message-container {
+  position: relative;
+}
+
+.message-text {
+  flex: 1;
+  padding: 5px 10px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+
+.radio-buttons-chat {
+    display: flex;
+    flex-direction: column;
+}
+
+.radio-buttons-chat label {
+    margin: 5px 0;
+}

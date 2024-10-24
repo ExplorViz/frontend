@@ -15,28 +15,34 @@
           title='Join Room'
           class='room-entry'
         >
-          <th scope='row'>{{room.roomName}}</th>
-          <th scope='row'>{{room.size}}</th>
-          <th scope='row'>
+          <td>{{room.roomName}}</td>
+          <td>{{room.size}}</td>
+          <td>
             {{if room.alias room.alias room.landscapeToken}}
-          </th>
-          <th scope='row' class='room-token'>
+          </td>
+          <td class='room-token'>
             {{room.landscapeToken}}
             <BsTooltip @placement='bottom' @triggerEvents='hover'>
               {{room.landscapeToken}}
             </BsTooltip>
-          </th>
+          </td>
         </tr>
       {{else}}
         There are no open rooms at the moment.
       {{/each}}
+      <tr>
+        <td colspan='4' class='p-1'>
+          <div class='d-flex flex-row justify-content-center'>
+            <BsButton
+              @type='primary'
+              class='align-self-center pt-2 px-3'
+              @onClick={{this.loadRooms}}
+            >
+              {{svg-jar 'sync-16' class='octicon'}}
+            </BsButton>
+          </div>
+        </td>
+      </tr>
     </tbody>
   </table>
 </div>
-<BsButton
-  @type='primary'
-  class='align-self-center pt-2 px-3'
-  @onClick={{this.loadRooms}}
->
-  {{svg-jar 'sync-16' class='octicon'}}
-</BsButton>

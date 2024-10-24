@@ -1,11 +1,13 @@
+/* eslint-disable no-self-assign */
+import { getOwner } from '@ember/application';
 import Controller from '@ember/controller';
-import { action, set } from '@ember/object';
+import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser, {
   VisualizationMode,
 } from 'collaboration/services/local-user';
+
 import RoomSerializer from 'collaboration/services/room-serializer';
 import SpectateUser from 'collaboration/services/spectate-user';
 import WebSocketService from 'collaboration/services/web-socket';
@@ -39,21 +41,16 @@ import {
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
-import PlotlyTimeline from 'explorviz-frontend/components/visualization/page-setup/timeline/plotly-timeline';
 import ENV from 'explorviz-frontend/config/environment';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Auth from 'explorviz-frontend/services/auth';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
-import SnapshotTokenService, {
-  SnapshotToken,
-} from 'explorviz-frontend/services/snapshot-token';
+import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
@@ -61,18 +58,19 @@ import UserApiTokenService, {
   ApiToken,
 } from 'explorviz-frontend/services/user-api-token';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { animatePlayPauseButton } from 'explorviz-frontend/utils/animate';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
-
-export interface LandscapeData {
-  structureLandscapeData: StructureLandscapeData;
-  dynamicLandscapeData: DynamicLandscapeData;
-}
+import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
+import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
+import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
+import RenderingService, {
+  VisualizationMode as RenderingVisualizationMode,
+} from 'explorviz-frontend/services/rendering-service';
+import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -93,6 +91,33 @@ export default class VisualizationController extends Controller {
 
   @service('auth')
   auth!: Auth;
+  private readonly debug = debugLogger('VisualizationController');
+
+  queryParams = [
+    'roomId',
+    'deviceId',
+    'sharedSnapshot',
+    'owner',
+    'createdAt',
+    'commit1',
+    'commit2',
+    'bottomBar',
+  ];
+
+  private sidebarHandler!: SidebarHandler;
+
+  private commit1: string | undefined | null;
+  private commit2: string | undefined | null;
+
+  private bottomBar: RenderingVisualizationMode | undefined | null;
+
+  // #region Services
+
+  @service('commit-tree-state')
+  commitTreeStateService!: CommitTreeStateService;
+
+  @service('rendering-service')
+  renderingService!: RenderingService;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -103,19 +128,16 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('heatmap-configuration') heatmapConf!: HeatmapConfiguration;
+  @service('heatmap-configuration')
+  heatmapConf!: HeatmapConfiguration;
 
-  @service('landscape-token') landscapeTokenService!: LandscapeTokenService;
+  @service('landscape-token')
+  landscapeTokenService!: LandscapeTokenService;
 
   @service('snapshot-token') snapshotTokenService!: SnapshotTokenService;
 
-  @service('reload-handler') reloadHandler!: ReloadHandler;
-
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
-
-  @service('collaboration-session')
-  collaborationSession!: CollaborationSession;
+  @service('reload-handler')
+  reloadHandler!: ReloadHandler;
 
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
@@ -156,11 +178,12 @@ export default class VisualizationController extends Controller {
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;
 
-  plotlyTimelineRef!: PlotlyTimeline;
+  @service('repos/evolution-data-repository')
+  evolutionDataRepository!: EvolutionDataRepository;
 
-  queryParams = ['roomId', 'deviceId', 'sharedSnapshot', 'owner', 'createdAt'];
+  // #endregion
 
-  selectedTimestampRecords: Timestamp[] = [];
+  // #region Tracked properties
 
   @tracked
   roomId?: string | undefined | null;
@@ -208,30 +231,43 @@ export default class VisualizationController extends Controller {
   vrSupported: boolean = false;
 
   @tracked
-  buttonText: string = '';
+  vrButtonText: string = '';
 
   @tracked
-  flag: boolean = false; // default value
+  timelineDataObjectHandler!: TimelineDataObjectHandler;
 
-  private readonly debug = debugLogger();
+  @tracked
+  isBottomBarMaximized: boolean = true;
+
+  @tracked
+  isRuntimeTimelineSelected: boolean = true;
+
+  @tracked
+  isCommitTreeSelected: boolean = false;
+
+  // #endregion
+
+  // #region Template helpers
 
   get isLandscapeExistentAndEmpty() {
     return (
-      this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData?.nodes.length === 0
+      this.renderingService.landscapeData !== null &&
+      this.renderingService.landscapeData.structureLandscapeData?.nodes
+        .length === 0
     );
   }
 
   get allLandscapeDataExistsAndNotEmpty() {
     return (
-      this.landscapeData !== null &&
-      this.landscapeData.structureLandscapeData?.nodes.length > 0
+      this.renderingService.landscapeData !== null &&
+      this.renderingService.landscapeData.structureLandscapeData?.nodes.length >
+        0
     );
   }
 
-  get showTimeline() {
+  get shouldDisplayBottomBar() {
     return (
-      this.landscapeData &&
+      this.renderingService.landscapeData &&
       !this.showAR &&
       !this.showVR &&
       !this.isSingleLandscapeMode &&
@@ -239,12 +275,73 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  get showVrButton() {
-    return this.userSettings.applicationSettings.showVrButton.value;
+  get isSingleLandscapeMode() {
+    return (
+      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
+    );
   }
 
+  get showAR() {
+    return this.localUser.visualizationMode === 'ar';
+  }
+
+  get showVR() {
+    return this.localUser.visualizationMode === 'vr';
+  }
+
+  // #endregion
+
+  // #region Setup
+
   @action
-  setupListeners() {
+  async initRenderingAndSetupListeners() {
+    this.debug('initRenderingAndSetupListeners');
+    this.timelineDataObjectHandler = new TimelineDataObjectHandler(
+      getOwner(this)
+    );
+
+    this.renderingService.landscapeData = null;
+
+    // set timelineDataObjectHandler where necessary
+    this.renderingService.timelineDataObjectHandler =
+      this.timelineDataObjectHandler;
+
+    this.timestampRepo.timelineDataObjectHandler =
+      this.timelineDataObjectHandler;
+
+    this.sidebarHandler = new SidebarHandler();
+    this.renderingService.visualizationPaused = false;
+
+    // fetch applications for evolution mode
+    await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
+
+    let showEvolutionVisualization = false;
+
+    // check what kind of rendering we should start
+    if (this.commit1 && this.commit1.length > 0) {
+      showEvolutionVisualization = this.commitTreeStateService.setDefaultState(
+        this.evolutionDataRepository.appNameCommitTreeMap,
+        this.commit1,
+        this.commit2
+      );
+
+      // check which bottom bar should be displayed by default
+      if (this.bottomBar === 'runtime') {
+        this.isRuntimeTimelineSelected = true;
+        this.isCommitTreeSelected = false;
+      } else {
+        this.isRuntimeTimelineSelected = false;
+        this.isCommitTreeSelected = true;
+      }
+    }
+
+    if (showEvolutionVisualization) {
+      this.renderingService.triggerRenderingForSelectedCommits();
+    } else {
+      // start main loop for cross-commit runtime
+      this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
+    }
+
     this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
     this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
     this.webSocket.on(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
@@ -264,438 +361,9 @@ export default class VisualizationController extends Controller {
     );
   }
 
-  @action
-  removeTimestampListener() {
-    if (this.webSocket.isWebSocketOpen()) {
-      this.webSocket.off(
-        TIMESTAMP_UPDATE_TIMER_EVENT,
-        this,
-        this.onTimestampUpdateTimer
-      );
-    }
-  }
+  // #endregio
 
-  @action
-  updateTimestampList() {
-    if (
-      !this.landscapeTokenService.token &&
-      !this.snapshotTokenService.snapshotToken
-    ) {
-      this.debug('No token available to update timestamp list');
-      return;
-    }
-    this.debug('updateTimestampList');
-    if (this.snapshotTokenService.snapshotToken) {
-      const currentToken =
-        String(this.snapshotTokenService.snapshotToken.createdAt) +
-        this.snapshotTokenService.snapshotToken.owner;
-      this.timelineTimestamps =
-        this.timestampRepo.getTimestamps(currentToken) ?? [];
-    } else if (this.landscapeTokenService.token) {
-      const currentToken = this.landscapeTokenService.token.value;
-      this.timelineTimestamps =
-        this.timestampRepo.getTimestamps(currentToken) ?? [];
-    }
-  }
-
-  @action
-  receiveNewLandscapeData(
-    structureData: StructureLandscapeData | null,
-    dynamicData: DynamicLandscapeData
-  ) {
-    if (
-      !structureData ||
-      this.landscapeTokenService.token?.value !==
-        this.landscapeData?.structureLandscapeData.landscapeToken
-    ) {
-      this.landscapeData = null;
-      this.updateTimestampList();
-      return;
-    }
-
-    this.debug('receiveNewLandscapeData');
-    if (this.visualizationPaused) {
-      return;
-    }
-
-    this.updateLandscape(structureData, dynamicData);
-    if (this.timelineTimestamps.lastObject) {
-      this.timestampService.updateSelectedTimestamp(
-        this.timelineTimestamps.lastObject?.epochMilli
-      );
-      this.selectedTimestampRecords = [
-        this.timestampRepo.getLatestTimestamp(structureData.landscapeToken)!,
-      ];
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
-    }
-  }
-
-  @action
-  restructureLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.updateLandscape(structureData, dynamicData);
-  }
-
-  @action
-  updateLandscape(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ) {
-    this.landscapeData = {
-      structureLandscapeData: structureData,
-      dynamicLandscapeData: dynamicData,
-    };
-  }
-
-  @action
-  switchToAR() {
-    this.switchToMode('ar');
-  }
-
-  @action
-  switchToVR() {
-    this.flag = this.userSettings.applicationSettings.showVrOnClick.value;
-    if (this.vrSupported) {
-      this.switchToMode('vr');
-    }
-  }
-
-  @action
-  openLandscapeView() {
-    this.switchToMode('browser');
-  }
-
-  get isSingleLandscapeMode() {
-    return (
-      ENV.mode.tokenToShow.length > 0 && ENV.mode.tokenToShow !== 'change-token'
-    );
-  }
-
-  get showAR() {
-    return this.localUser.visualizationMode === 'ar';
-  }
-
-  get showVR() {
-    return this.localUser.visualizationMode === 'vr';
-  }
-
-  private switchToMode(mode: VisualizationMode) {
-    this.roomSerializer.serializeRoom();
-    this.closeDataSelection();
-    this.localUser.visualizationMode = mode;
-    this.webSocket.send<VisualizationModeUpdateMessage>(
-      VISUALIZATION_MODE_UPDATE_EVENT,
-      { mode }
-    );
-  }
-
-  @action
-  resetView() {
-    this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
-  }
-
-  @action
-  resetTimestampPolling() {
-    this.timestampPollingService.resetPolling();
-  }
-
-  @action
-  closeDataSelection() {
-    this.debug('closeDataSelection');
-    this.showSettingsSidebar = false;
-    this.components = [];
-  }
-
-  @action
-  closeToolsSidebar() {
-    this.debug('closeToolsSidebar');
-    this.showToolsSidebar = false;
-    this.componentsToolsSidebar = [];
-  }
-
-  @action
-  openSettingsSidebar() {
-    this.debug('openSettingsSidebar');
-    this.showSettingsSidebar = true;
-  }
-
-  @action
-  openToolsSidebar() {
-    this.debug('openToolsSidebar');
-    this.showToolsSidebar = true;
-  }
-
-  @action
-  toggleToolsSidebarComponent(component: string): boolean {
-    if (this.componentsToolsSidebar.includes(component)) {
-      this.removeToolsSidebarComponent(component);
-    } else {
-      this.componentsToolsSidebar = [component, ...this.componentsToolsSidebar];
-    }
-    return this.componentsToolsSidebar.includes(component);
-  }
-
-  @action
-  toggleSettingsSidebarComponent(component: string): boolean {
-    if (this.components.includes(component)) {
-      this.removeComponent(component);
-    } else {
-      this.components = [component, ...this.components];
-    }
-    return this.components.includes(component);
-  }
-
-  removeComponent(path: string) {
-    if (this.components.length === 0) {
-      return;
-    }
-
-    const index = this.components.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const components = [...this.components];
-      components.splice(index, 1);
-      this.components = components;
-    }
-  }
-
-  @action
-  removeToolsSidebarComponent(path: string) {
-    if (this.componentsToolsSidebar.length === 0) {
-      return;
-    }
-
-    const index = this.componentsToolsSidebar.indexOf(path);
-    // Remove existing sidebar component
-    if (index !== -1) {
-      const componentsToolsSidebar = [...this.componentsToolsSidebar];
-      componentsToolsSidebar.splice(index, 1);
-      this.componentsToolsSidebar = componentsToolsSidebar;
-    }
-  }
-
-  @action
-  async timelineClicked(selectedTimestamps: Timestamp[]) {
-    if (
-      this.selectedTimestampRecords.length > 0 &&
-      selectedTimestamps[0] === this.selectedTimestampRecords[0]
-    ) {
-      return;
-    }
-    this.selectedTimestampRecords = selectedTimestamps;
-    this.pauseVisualizationUpdating();
-    this.updateTimestamp(selectedTimestamps[0].epochMilli, selectedTimestamps);
-  }
-
-  async updateTimestamp(
-    epochMilli: number,
-    timestampRecordArray?: Timestamp[]
-  ) {
-    try {
-      if (!this.snapshotTokenService.snapshotToken) {
-        const [structureData, dynamicData] =
-          await this.reloadHandler.loadLandscapeByTimestamp(epochMilli);
-        this.updateLandscape(structureData, dynamicData);
-      } else {
-        const [structureData, dynamicData] =
-          await this.reloadHandler.loadLandscapeByTimestampSnapshot(
-            this.snapshotTokenService.snapshotToken!.structureData
-              .structureLandscapeData,
-            this.snapshotTokenService.snapshotToken!.structureData
-              .dynamicLandscapeData
-          );
-        this.updateLandscape(structureData, dynamicData);
-      }
-
-      if (timestampRecordArray) {
-        this.selectedTimestampRecords = timestampRecordArray;
-      }
-      this.timestampService.updateSelectedTimestamp(epochMilli);
-    } catch (e) {
-      this.debug("Landscape couldn't be requested!", e);
-      this.toastHandlerService.showErrorToastMessage(
-        "Landscape couldn't be requested!"
-      );
-      this.resumeVisualizationUpdating();
-    }
-  }
-
-  @action
-  getTimelineReference(plotlyTimelineRef: PlotlyTimeline) {
-    // called from within the plotly timeline component
-    set(this, 'plotlyTimelineRef', plotlyTimelineRef);
-  }
-
-  @action
-  toggleTimeline() {
-    this.isTimelineActive = !this.isTimelineActive;
-  }
-
-  @action
-  toggleVisualizationUpdating() {
-    // TODO: need to notify the timeline
-    if (this.visualizationPaused) {
-      this.resumeVisualizationUpdating();
-    } else {
-      this.pauseVisualizationUpdating();
-    }
-  }
-
-  resumeVisualizationUpdating() {
-    if (this.visualizationPaused) {
-      this.visualizationPaused = false;
-      this.highlightedMarkerColor = 'blue ';
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
-      animatePlayPauseButton(false);
-    }
-  }
-
-  @action
-  pauseVisualizationUpdating() {
-    if (!this.visualizationPaused) {
-      this.visualizationPaused = true;
-      this.highlightedMarkerColor = 'red';
-      this.plotlyTimelineRef.continueTimeline(this.selectedTimestampRecords);
-      animatePlayPauseButton(true);
-    }
-  }
-
-  async initRendering() {
-    this.annotationHandler.init();
-    if (
-      this.owner &&
-      this.createdAt &&
-      this.snapshotTokenService.snapshotToken === null
-    ) {
-      const snapshotToken: SnapshotToken | null =
-        await this.snapshotTokenService.retrieveToken(
-          this.owner,
-          this.createdAt,
-          this.sharedSnapshot!
-        );
-      if (snapshotToken === null) {
-        this.toastHandlerService.showErrorToastMessage(
-          'Snapshot could not be loaded.'
-        );
-        this.router.transitionTo('landscapes');
-      } else {
-        this.snapshotTokenService.setToken(snapshotToken);
-      }
-    }
-
-    this.debug('initRendering');
-    this.userApiTokens = await this.userApiTokenService.retrieveApiTokens();
-    this.landscapeData = null;
-    this.selectedTimestampRecords = [];
-    this.visualizationPaused = false;
-
-    this.timestampPollingService.initTimestampPollingWithCallback(
-      this.timestampPollingCallback.bind(this)
-    );
-
-    if (this.snapshotTokenService.snapshotToken !== null) {
-      // set the landscapeToken to use e.g. collaboration service, snapshot,...
-      this.landscapeTokenService.token =
-        this.snapshotTokenService.snapshotToken.landscapeToken;
-      this.loadSnapshot();
-    }
-
-    this.updateTimestampList();
-    this.initWebSocket();
-    this.debug('initRendering done');
-  }
-
-  willDestroy() {
-    this.collaborationSession.disconnect();
-    this.landscapeRestructure.resetLandscapeRestructure();
-    this.resetTimestampPolling();
-    this.applicationRepo.cleanup();
-    this.applicationRenderer.cleanup();
-
-    // added for snapshot, highlights need to be removed
-    this.highlightingService.removeHighlightingForAllApplications(false);
-
-    this.closeDataSelection();
-    this.closeToolsSidebar();
-
-    this.roomId = null;
-    this.sharedSnapshot = null;
-    this.owner = null;
-    this.createdAt = null;
-    this.snapshotTokenService.snapshotToken = null;
-
-    if (this.webSocket.isWebSocketOpen()) {
-      this.webSocket.off(
-        INITIAL_LANDSCAPE_EVENT,
-        this,
-        this.onInitialLandscape
-      );
-      this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-      this.webSocket.off(
-        TIMESTAMP_UPDATE_TIMER_EVENT,
-        this,
-        this.onTimestampUpdateTimer
-      );
-      this.webSocket.off(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
-    }
-
-    if (this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
-      this.timestampService.off(
-        TIMESTAMP_UPDATE_EVENT,
-        this,
-        this.onTimestampUpdate
-      );
-    }
-  }
-
-  timestampPollingCallback(timestamps: Timestamp[]) {
-    let uniqueKey: string | null = null;
-    if (this.snapshotTokenService.snapshotToken) {
-      // the value can not be the landscapeTokenValue because the landscape could be updated and the
-      // snapshot is persisted at a certain time
-
-      // generate from createdAtTimestamp plus owner
-      uniqueKey =
-        String(this.snapshotTokenService.snapshotToken.createdAt) +
-        this.snapshotTokenService.snapshotToken.owner;
-    }
-
-    this.timestampRepo.addTimestamps(
-      uniqueKey !== null ? uniqueKey : this.landscapeTokenService.token!.value,
-      timestamps
-    );
-
-    if (timestamps.length > 0) {
-      this.timestampRepo.triggerTimelineUpdate();
-    }
-
-    const lastSelectTimestamp = this.timestampService.timestamp;
-
-    if (this.visualizationPaused) {
-      return;
-    }
-
-    const timestampToRender = this.timestampRepo.getNextTimestampOrLatest(
-      uniqueKey !== null ? uniqueKey : this.landscapeTokenService.token!.value,
-      lastSelectTimestamp
-    );
-
-    if (
-      timestampToRender &&
-      JSON.stringify(this.selectedTimestampRecords) !==
-        JSON.stringify([timestampToRender])
-    ) {
-      this.updateTimestamp(timestampToRender.epochMilli);
-      this.selectedTimestampRecords = [timestampToRender];
-      this.plotlyTimelineRef?.continueTimeline(this.selectedTimestampRecords);
-    }
-  }
-
-  private async initWebSocket() {
-    this.debug('Initializing websocket...');
-  }
+  // #region Event Handlers
 
   // collaboration start
   // user handling end
@@ -723,21 +391,23 @@ export default class VisualizationController extends Controller {
     };
 
     this.highlightingService.updateHighlighting();
-    await this.updateTimestamp(landscape.timestamp);
+    await this.renderingService.triggerRenderingForGivenTimestamp(
+      landscape.timestamp
+    );
     // Disable polling. It is now triggerd by the websocket.
   }
 
   async onTimestampUpdate({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
-    this.updateTimestamp(timestamp);
+    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onTimestampUpdateTimer({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
     await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
-    this.updateTimestamp(timestamp);
+    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onSyncRoomState(event: {
@@ -794,21 +464,47 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializedRoom =
       this.snapshotTokenService.snapshotToken.serializedRoom;
 
-    this.updateTimestamp(
-      this.snapshotTokenService.snapshotToken.serializedRoom.landscape.timestamp
-    );
-
     this.localUser.defaultCamera.position.set(
       this.snapshotTokenService.snapshotToken.camera!.x,
       this.snapshotTokenService.snapshotToken.camera!.y,
       this.snapshotTokenService.snapshotToken.camera!.z
     );
   }
+  // #endregion
+
+  // #region XR
+
+  @action
+  switchToAR() {
+    this.switchToMode('ar');
+  }
+
+  @action
+  switchToVR() {
+    if (this.vrSupported) {
+      this.switchToMode('vr');
+    }
+  }
+
+  @action
+  switchToOnScreenMode() {
+    this.switchToMode('browser');
+  }
+
+  private switchToMode(mode: VisualizationMode) {
+    this.roomSerializer.serializeRoom();
+    this.sidebarHandler.closeSettingsSidebar();
+    this.localUser.visualizationMode = mode;
+    this.webSocket.send<VisualizationModeUpdateMessage>(
+      VISUALIZATION_MODE_UPDATE_EVENT,
+      { mode }
+    );
+  }
 
   /**
    * Checks the current status of WebXR in the browser and if compatible
    * devices are connected. Sets the tracked properties
-   * 'buttonText' and 'vrSupported' accordingly.
+   * 'vrButtonText' and 'vrSupported' accordingly.
    */
   @action
   async updateVrStatus() {
@@ -817,16 +513,100 @@ export default class VisualizationController extends Controller {
         (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
 
       if (this.vrSupported) {
-        this.buttonText = 'Enter VR';
+        this.vrButtonText = 'Enter VR';
       } else if (window.isSecureContext === false) {
-        this.buttonText = 'WEBXR NEEDS HTTPS';
+        this.vrButtonText = 'WEBXR NEEDS HTTPS';
       } else {
-        this.buttonText = 'WEBXR NOT AVAILABLE';
+        this.vrButtonText = 'WEBXR NOT AVAILABLE';
       }
     } else {
-      this.buttonText = 'WEBXR NOT SUPPORTED';
+      this.vrButtonText = 'WEBXR NOT SUPPORTED';
     }
   }
+
+  // #endregion
+
+  // #region Template Actions
+
+  @action
+  toggleBottomChart() {
+    // disable keyboard events for button to prevent space bar
+    document.getElementById('bottom-bar-toggle-chart-button')?.blur();
+
+    if (this.isCommitTreeSelected) {
+      this.isCommitTreeSelected = false;
+      this.isRuntimeTimelineSelected = true;
+    } else {
+      this.isRuntimeTimelineSelected = false;
+      this.isCommitTreeSelected = true;
+    }
+  }
+
+  @action
+  toggleVisibilityBottomBar() {
+    this.isBottomBarMaximized = !this.isBottomBarMaximized;
+  }
+
+  // #endregion
+
+  // #region Cleanup
+
+  willDestroy() {
+    this.landscapeRestructure.resetLandscapeRestructure();
+    this.timestampPollingService.resetPolling();
+    this.applicationRenderer.cleanup();
+    this.timestampRepo.commitToTimestampMap = new Map();
+
+    if (this.sidebarHandler) {
+      this.sidebarHandler.closeSettingsSidebar();
+      this.sidebarHandler.closeToolsSidebar();
+    }
+
+    // Always show runtime first
+    this.isRuntimeTimelineSelected = true;
+    this.isCommitTreeSelected = false;
+
+    this.evolutionDataRepository.resetAllEvolutionData();
+
+    this.roomId = null;
+    this.localUser.visualizationMode = 'browser';
+
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        INITIAL_LANDSCAPE_EVENT,
+        this,
+        this.onInitialLandscape
+      );
+      this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+      this.webSocket.off(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
+    }
+
+    if (this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
+      this.timestampService.off(
+        TIMESTAMP_UPDATE_EVENT,
+        this,
+        this.onTimestampUpdate
+      );
+    }
+  }
+
+  @action
+  removeTimestampListener() {
+    if (this.webSocket.isWebSocketOpen()) {
+      this.webSocket.off(
+        TIMESTAMP_UPDATE_TIMER_EVENT,
+        this,
+        this.onTimestampUpdateTimer
+      );
+    }
+  }
+
+  // #endregion
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.

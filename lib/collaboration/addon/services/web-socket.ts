@@ -39,7 +39,11 @@ import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messag
 import { USER_CONTROLLER_CONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
 import { USER_CONTROLLER_DISCONNECT_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import { USER_POSITIONS_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+import { CHAT_MESSAGE_EVENT } from 'collaboration/utils/web-socket-messages/receivable/chat-message';
+import { CHAT_SYNC_EVENT } from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
 import { io, Socket } from 'socket.io-client';
+import { USER_KICK_EVENT } from 'collaboration/utils/web-socket-messages/sendable/kick-user';
+import { MESSAGE_DELETE_EVENT } from 'collaboration/utils/web-socket-messages/sendable/delete-message';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -78,6 +82,10 @@ const RECEIVABLE_EVENTS = [
   USER_CONTROLLER_DISCONNECT_EVENT,
   USER_DISCONNECTED_EVENT,
   USER_POSITIONS_EVENT,
+  CHAT_MESSAGE_EVENT,
+  CHAT_SYNC_EVENT,
+  USER_KICK_EVENT,
+  MESSAGE_DELETE_EVENT,
 ];
 
 const RESPONSE_EVENTS = [

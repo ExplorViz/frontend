@@ -13,6 +13,7 @@ import {
 } from 'collaboration/utils/web-socket-messages/sendable/heatmap-update';
 import WebSocketService from 'collaboration/services/web-socket';
 import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import equal from 'fast-deep-equal';
 
 function cleanup(instance: SyncStateModifier) {
   instance.webSocket.off(
@@ -79,7 +80,7 @@ export default class SyncStateModifier extends Modifier {
     const lastMessage = this.state.get(event);
     // TODO order matters, should be implemented better
     // if (_.isEqual(object, other);)
-    if (JSON.stringify(message) !== JSON.stringify(lastMessage)) {
+    if (!equal(message, lastMessage)) {
       this.debug(`Sending${args.isActive}`);
       this.webSocket.send(event, message);
       this.state.set(message.event, message);

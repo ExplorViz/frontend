@@ -29,22 +29,56 @@ export default abstract class BaseMesh<
     this.highlightingColor = highlightingColor;
   }
 
-  changeTexture(texturePath: string, repeat: number = 5) {
+  show() {
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = true;
+      this.material.needsUpdate = true;
+    }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.show();
+      }
+    });
+  }
+
+  hide() {
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = false;
+      this.material.needsUpdate = true;
+    }
+
+    this.children.forEach((childObj) => {
+      if (childObj instanceof BaseMesh) {
+        childObj.hide();
+      }
+    });
+  }
+
+  get texturePath(): string | null {
     if (
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof THREE.MeshLambertMaterial ||
       this.material instanceof MeshLineMaterial
     ) {
-      const loader = new THREE.TextureLoader();
+      return this.material.map ? this.material.map.image.src : null;
+    }
+    return null;
+  }
 
-      const texture = loader.load(
-        texturePath,
-        function textureSettings(texture) {
-          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-          texture.offset.set(0, 0);
-          texture.repeat.set(repeat, repeat);
-        }
-      );
+  changeTexture(
+    texture: THREE.Texture,
+    repeatX: number = 5,
+    repeatY: number = repeatX
+  ) {
+    if (
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.offset.set(0, 0);
+      texture.repeat.set(repeatX, repeatY);
 
       this.material.map = texture;
       this.material.blending = THREE.NormalBlending;
@@ -84,6 +118,26 @@ export default abstract class BaseMesh<
     ) {
       this.material.color = this.defaultColor;
     }
+  }
+
+  replayBlinkEffect(duration = 1000): void {
+    if (
+      this.material instanceof THREE.MeshLambertMaterial ||
+      this.material instanceof THREE.MeshBasicMaterial ||
+      this.material instanceof MeshLineMaterial
+    ) {
+      this.material.color = new THREE.Color('yellow');
+    } else {
+      return;
+    }
+
+    setTimeout(() => {
+      if (this.highlighted) {
+        this.material.color = this.highlightingColor;
+      } else {
+        this.material.color = this.defaultColor;
+      }
+    }, duration);
   }
 
   /**

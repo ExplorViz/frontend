@@ -2,7 +2,7 @@ import Component from '@glimmer/component';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { inject as service } from '@ember/service';
 import TimestampService, {
   NEW_SELECTED_TIMESTAMP_EVENT,
@@ -10,7 +10,7 @@ import TimestampService, {
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  updateLandscape(
+  triggerRenderingForGivenLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ): void;
@@ -39,7 +39,7 @@ export default class EntityFiltering extends Component<Args> {
 
   @action
   resetToInit() {
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );
@@ -56,7 +56,7 @@ export default class EntityFiltering extends Component<Args> {
   }
 
   willDestroy(): void {
-    this.args.updateLandscape(
+    this.args.triggerRenderingForGivenLandscapeData(
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );

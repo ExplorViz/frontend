@@ -54,18 +54,8 @@
           }}&nbsp;{{this.tokenService.token.alias}}
         </span>
       </div>
-    {{else if this.tokenService.latestToken}}
-      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
-        <span
-          class='d-flex-center'
-          type='button'
-          {{on 'click' this.goToVisualization}}
-        >
-          {{svg-jar
-            'iterations-16'
-            class='octicon'
-          }}&nbsp;{{this.tokenService.latestToken.alias}}
-        </span>
+      <div class='navbar-rendering-mode text-center'>
+        {{this.renderingMode}}
       </div>
     {{/if}}
   {{/unless}}
@@ -104,28 +94,7 @@
               }}
               {{this.auth.user.sub}}</span>
           </div></li>
-        <li>
-          <button
-            class='dropdown-item'
-            type='button'
-            {{on 'click' this.goToSettings}}
-          >
-            {{svg-jar 'gear-16' class='octicon'}}
-            Settings
-          </button>
-        </li>
-        {{#if this.snapshotService.snapshotToken}}
-          <li>
-            <button
-              class='dropdown-item'
-              type='button'
-              {{on 'click' this.goToLandscapeSelection}}
-            >
-              {{svg-jar 'key-16' class='octicon'}}
-              {{this.snapshotService.snapshotToken.name}}
-            </button>
-          </li>
-        {{else if this.tokenService.token}}
+        {{#if this.tokenService.token}}
           <li>
             <button
               class='dropdown-item'

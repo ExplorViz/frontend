@@ -179,6 +179,8 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action keyDown(event: KeyboardEvent) {
+    if (event.target instanceof HTMLInputElement) return;
+
     const key = event.key;
     switch (key) {
       case 'Control':
@@ -195,7 +197,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
         break;
     }
   }
+
   @action keyUp(event: KeyboardEvent) {
+    if (event.target instanceof HTMLInputElement) return;
+
     const key = event.key;
     switch (key) {
       case 'Control':

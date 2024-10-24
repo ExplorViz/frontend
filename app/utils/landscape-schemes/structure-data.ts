@@ -1,46 +1,60 @@
 import sha256 from 'crypto-js/sha256';
 import isObject from '../object-helpers';
 
-export interface Method {
+export enum TypeOfAnalysis {
+  Dynamic = 'dynamic',
+  Static = 'static',
+  StaticAndDynamic = 'static+dynamic',
+}
+
+export type BaseModel = {
+  id: string;
+};
+
+type OriginOfData = {
+  originOfData: TypeOfAnalysis;
+};
+
+export type Method = {
   name: string;
   methodHash: string;
-}
+};
 
-export interface Class {
-  id: string;
-  name: string;
-  methods: Method[];
-  parent: Package;
-}
+export type Class = BaseModel &
+  OriginOfData & {
+    name: string;
+    methods: Method[];
+    parent: Package;
+  };
 
-export interface Package {
-  id: string;
-  name: string;
-  subPackages: Package[];
-  classes: Class[];
-  parent?: Package;
-}
+export type Package = BaseModel &
+  OriginOfData & {
+    name: string;
+    subPackages: Package[];
+    classes: Class[];
+    parent?: Package;
+  };
 
-export interface Application {
-  id: string;
-  name: string;
-  language: string;
-  instanceId: string;
-  parent: Node;
-  packages: Package[];
-}
+export type Application = BaseModel &
+  OriginOfData & {
+    name: string;
+    language: string;
+    instanceId: string;
+    parentId: string;
+    packages: Package[];
+  };
 
-export interface Node {
-  id: string;
-  ipAddress: string;
-  hostName: string;
-  applications: Application[];
-}
+export type Node = BaseModel &
+  OriginOfData & {
+    ipAddress: string;
+    hostName: string;
+    applications: Application[];
+  };
 
-export interface StructureLandscapeData {
+export type StructureLandscapeData = {
   landscapeToken: string;
   nodes: Node[];
-}
+};
 
 export function isLandscape(x: any): x is StructureLandscapeData {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'nodes');
@@ -66,8 +80,16 @@ export function isMethod(x: any): x is Method {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'methodHash');
 }
 
+export function getNodeById(
+  landscapeStructure: StructureLandscapeData,
+  id: string
+) {
+  return landscapeStructure.nodes.find((node) => node.id === id);
+}
+
 export function preProcessAndEnhanceStructureLandscape(
-  landscapeStructure: StructureLandscapeData
+  landscapeStructure: StructureLandscapeData,
+  typeOfAnalysis: TypeOfAnalysis
 ) {
   const entitiesForIdHashing: Set<Class | Package | Application | Node> =
     new Set();
@@ -78,9 +100,10 @@ export function preProcessAndEnhanceStructureLandscape(
     entitiesForIdHashing.add(node);
   }
 
-  function createApplicationId(app: Application) {
-    const { hostName, ipAddress } = app.parent;
-    app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+  function createApplicationId(app: Application, parent: Node) {
+    const { hostName, ipAddress } = parent;
+    //app.id = `${hostName}#${ipAddress}#${app.instanceId}`;
+    app.id = `${hostName}#${ipAddress}#${app.name}`;
     entitiesForIdHashing.add(app);
   }
 
@@ -119,24 +142,33 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   function addParentToApplication(app: Application, parent: Node) {
-    app.parent = parent;
+    app.parentId = parent.id;
   }
 
   function hashEntityIds() {
     entitiesForIdHashing.forEach((entity) => {
       entity.id = sha256(entity.id).toString();
+      if (isApplication(entity)) {
+        entity.parentId = sha256(entity.parentId).toString();
+      }
+    });
+  }
+
+  function setOriginStatus(typeOfAnalysis: TypeOfAnalysis) {
+    entitiesForIdHashing.forEach((entity) => {
+      entity.originOfData = typeOfAnalysis;
     });
   }
 
   /* const a = performance.now(); */
-  const enhancedlandscapeStructure: StructureLandscapeData = JSON.parse(
-    JSON.stringify(landscapeStructure)
-  );
+  const enhancedlandscapeStructure: StructureLandscapeData =
+    structuredClone(landscapeStructure);
 
   enhancedlandscapeStructure.nodes.forEach((node) => {
+    createNodeId(node);
     node.applications.forEach((app) => {
+      createApplicationId(app, node);
       addParentToApplication(app, node);
-      createApplicationId(app);
       app.packages.forEach((component) => {
         // create package ids in Java notation, e.g., 'net.explorviz.test'
         // and add parent relations for quicker access
@@ -148,10 +180,10 @@ export function preProcessAndEnhanceStructureLandscape(
       });
       createClassIds(app.packages);
     });
-    createNodeId(node);
   });
 
   hashEntityIds();
+  setOriginStatus(typeOfAnalysis);
 
   return enhancedlandscapeStructure;
 }

@@ -1,25 +1,25 @@
 import isObject from '../../object-helpers';
 
-export interface Trace {
+export type Trace = {
   landscapeToken: string;
   traceId: string;
+  gitCommitChecksum: string;
   startTime: number;
   endTime: number;
   duration: number;
   overallRequestCount: number;
   traceCount: number;
   spanList: Span[];
-}
+};
 
-export interface Span {
-  landscapeToken: string;
+export type Span = {
+  traceId: string;
   spanId: string;
   parentSpanId: string;
-  traceId: string;
   startTime: number;
   endTime: number;
   methodHash: string;
-}
+};
 
 export function isTrace(x: any): x is Trace {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'traceId');

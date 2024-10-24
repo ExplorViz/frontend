@@ -6,7 +6,7 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import debugLogger from 'ember-debug-logger';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
@@ -167,7 +167,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
-    this.debug('Constructor called');
+
     // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
@@ -289,8 +289,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   canvasInserted(canvas: HTMLCanvasElement) {
-    this.debug('Canvas inserted');
-
     this.canvas = canvas;
     this.landscapeRestructure.canvas = canvas;
 
@@ -389,7 +387,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
-    this.debug('Renderer set up');
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,

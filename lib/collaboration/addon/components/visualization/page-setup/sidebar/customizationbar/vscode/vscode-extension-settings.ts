@@ -5,26 +5,15 @@ import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 import { inject as service } from '@ember/service';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 
-interface VscodeExtensionSettingsArgs {
-  removeComponent(componentPath: string): void;
-}
-
-//const { vsCodeService } = ENV.backendAddresses;
-
-export default class VscodeExtensionSettings extends Component<VscodeExtensionSettingsArgs> {
+export default class VscodeExtensionSettings extends Component {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  constructor(owner: any, args: VscodeExtensionSettingsArgs) {
+  constructor(owner: any, args: any) {
     super(owner, args);
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('vscode-extension-settings');
   }
 
   @action

@@ -349,7 +349,7 @@ function getFqnForMeshes(orderedParents: ParentOrder): {
 function VizDataToOrderTuple(vizData: VizDataRaw): OrderTuple[] {
   const vizDataOrderTuple: OrderTuple[] = [];
   vizData.applicationObject3D.forEach((element) => {
-    const orderedParents = getOrderedParents(element.data.application);
+    const orderedParents = getOrderedParents(element.dataModel.application);
     const meshes = getFqnForMeshes(orderedParents);
     let tempOT: OrderTuple = { hierarchyModel: orderedParents, meshes: meshes };
     tempOT = addCommunicationLinksToOrderTuple(

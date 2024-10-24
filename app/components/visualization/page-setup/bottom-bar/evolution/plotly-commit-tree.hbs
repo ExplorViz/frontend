@@ -1,0 +1,25 @@
+{{#if (and @appNameCommitTreeMap @selectedAppName)}}
+  <div
+    class='plotlyCommitDiv'
+    {{on 'mouseenter' this.handleMouseEnter}}
+    {{on 'mouseleave' this.handleMouseLeave}}
+    {{did-update this.updatePlotlyCommitTree @selectedAppName @selectedCommits}}
+    {{did-insert this.setupPlotlyCommitTreeChart}}
+  >
+  </div>
+{{else}}
+  <div class='timeline-no-timestamps-outer'>
+    <div class='timeline-no-timestamps-inner'>
+      {{#if @selectedAppName}}
+        No commit tree data available!
+      {{else}}
+        No application selected!
+      {{/if}}
+    </div>
+  </div>
+  <div
+    class='plotlyDiv timeline-blur-effect'
+    {{did-insert this.setupPlotlyCommitTreeChart}}
+  >
+  </div>
+{{/if}}

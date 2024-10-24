@@ -1,6 +1,12 @@
 {
-  "eslint.validate": ["javascript", "typescript"]
-  //"editor.codeActionsOnSave": {
-  //    "source.fixAll.eslint": true
-  //},
+  "eslint.validate": ["javascript", "typescript"],
+  "[gjs]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[gts]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

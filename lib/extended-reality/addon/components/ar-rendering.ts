@@ -7,7 +7,7 @@ import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import debugLogger from 'ember-debug-logger';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
@@ -38,13 +38,13 @@ import {
 
 interface Args {
   readonly landscapeData: LandscapeData;
-  readonly components: string[];
+  readonly openedSettingComponent: string | null;
   readonly showSettingsSidebar: boolean;
   readonly visualizationPaused: boolean;
-  openLandscapeView(): void;
+  switchToOnScreenMode(): void;
   toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
   openSettingsSidebar(): void;
-  closeDataSelection(): void;
+  closeSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
 }
 
@@ -159,7 +159,7 @@ export default class ArRendering extends Component<Args> {
   @action
   leaveArView() {
     this.currentSession?.end();
-    this.args.openLandscapeView();
+    this.args.switchToOnScreenMode();
   }
 
   // #endregion CLASS FIELDS AND GETTERS
