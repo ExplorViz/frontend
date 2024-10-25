@@ -504,11 +504,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             1.2,
             ...this.applicationRenderer.getOpenApplications()
           );
+          if (SemanticZoomManager.instance.isEnabled == true) {
+            SemanticZoomManager.instance.activate();
+          }
         }, 200);
         this.initDone = true;
-        if (SemanticZoomManager.instance.isEnabled == true) {
-          SemanticZoomManager.instance.activate();
-        }
       }
     });
   }
