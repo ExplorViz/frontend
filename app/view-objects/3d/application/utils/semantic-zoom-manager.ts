@@ -1372,12 +1372,15 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
         }
       });
     });
-
-    const result = this.kmeans(allPois, zoomableObject, this.kSize);
     const resultCleaned = new Map<
       THREE.Vector3,
       Array<SemanticZoomableObject>
     >();
+    // Return imediatly if no data is provided
+    if (allPois.length == 0 || zoomableObject.length == 0) return resultCleaned;
+    // Do the clustering
+    const result = this.kmeans(allPois, zoomableObject, this.kSize);
+    // Clean up the cluster and sort by ascending y order.
     result['clusters'].forEach((element) => {
       // Sort by the y-axis, such that objects closer to the ground get triggered first (Pyramid climing style)
       //getPoI();
@@ -1785,11 +1788,13 @@ class MeanShiftClusteringAlg implements ClusteringAlgInterface {
         }
       });
     });
-    const result = this.meanShift(allPois, this.bandwidth);
     const resultCleaned = new Map<
       THREE.Vector3,
       Array<SemanticZoomableObject>
     >();
+    // Return imediatly if no data is provided
+    if (allPois.length == 0 || zoomableObject.length == 0) return resultCleaned;
+    const result = this.meanShift(allPois, this.bandwidth);
     result.forEach((finalPos, idx) => {
       // Search for Vector in Centroid Database
       const members = Array.from(resultCleaned.keys());
