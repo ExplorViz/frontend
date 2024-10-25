@@ -1610,6 +1610,8 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
           }
         }
       }
+      // If no close centroid found, ignore this point
+      if (closestCentroidIndex == -1) continue;
       // add point to centroid labels:
       labels.get(closestCentroidIndex)['points'].push(a);
       labels
