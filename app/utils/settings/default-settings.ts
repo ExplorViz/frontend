@@ -310,9 +310,18 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isButtonSetting: true,
   },
   // Semantic Zoom Settings
-  autoOpenCloseFeature: {
+  semanticZoomState: {
     value: false,
     orderNumber: 1,
+    group: 'Semantic Zoom',
+    displayName: 'Semantic Zoom',
+    description:
+      'This switch enables the semantic zoom feature, that hides/shows additional information based on the distance between the user and the object.',
+    isFlagSetting: true,
+  },
+  autoOpenCloseFeature: {
+    value: false,
+    orderNumber: 2,
     group: 'Semantic Zoom',
     displayName: 'Auto Open/Close of Components',
     description:
@@ -320,8 +329,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   useKmeansInsteadOfMeanShift: {
-    value: false,
-    orderNumber: 1,
+    value: true,
+    orderNumber: 2,
     group: 'Semantic Zoom',
     displayName: 'Use k-Means instead of Shift-Mean',
     description:
@@ -335,21 +344,30 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 1.0,
     },
-    orderNumber: 4,
+    orderNumber: 5,
     group: 'Semantic Zoom',
     displayName: 'Relative # of clusters',
     description:
       'It takes a percentage of the number of 3D Objects that are capable of semantic zoom in the scene. It is used as the k in the k-means clustering. If the clustering mode is not k-means, this value is ignored.',
     isRangeSetting: true,
   },
+  usePredefinedSet: {
+    value: false,
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Use Predefined Set',
+    description:
+      'If enabled, uses the slider for the predefined sets. Else its customized',
+    isFlagSetting: true,
+  },
   distancePreSet: {
-    value: 0,
+    value: 1,
     range: {
-      min: 0.0,
+      min: 1.0,
       max: 6.0,
       step: 1.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Semantic Zoom',
     displayName: 'Predefined Zoom Sets',
     description:
@@ -363,7 +381,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 1',
     description:
@@ -377,7 +395,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 2',
     description:
@@ -391,7 +409,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 3',
     description:
@@ -405,7 +423,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 4',
     description:
@@ -419,7 +437,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 3,
+    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 5',
     description:

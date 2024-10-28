@@ -228,6 +228,10 @@ export default class Settings extends Component<Args> {
             targetValue
           );
         }
+        this.userSettings.updateApplicationSetting(
+          'usePredefinedSet' as ApplicationSettingId,
+          true
+        );
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
         );
@@ -250,6 +254,10 @@ export default class Settings extends Component<Args> {
         //this.cleanArray(valueArray, false);
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
+        );
+        this.userSettings.updateApplicationSetting(
+          'usePredefinedSet' as ApplicationSettingId,
+          false
         );
         //console.log(this.userSettings.applicationSettings.distanceLevel1.value);
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
@@ -312,6 +320,17 @@ export default class Settings extends Component<Args> {
         break;
       case 'enableGamepadControls':
         this.args.setGamepadSupport(value);
+        break;
+      case 'semanticZoomState':
+        if (SemanticZoomManager.instance.isEnabled == false) {
+          SemanticZoomManager.instance.activate();
+          //this.userSettings.updateApplicationSetting('semanticZoomState', true);
+        } else {
+          //this.userSettings.updateApplicationSetting('semanticZoomState', false);
+          SemanticZoomManager.instance.deactivate();
+        }
+        // this.configuration.semanticZoomManagerState =
+        //   SemanticZoomManager.instance.isEnabled;
         break;
       case 'autoOpenCloseFeature':
         SemanticZoomManager.instance.toggleAutoOpenClose(value);

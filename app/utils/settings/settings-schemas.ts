@@ -45,6 +45,8 @@ export type ApplicationCommunicationSettingId =
 export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
 
 export type ApplicationSemanticZoomSettingId =
+  | 'semanticZoomState'
+  | 'usePredefinedSet'
   | 'distancePreSet'
   | 'distanceLevel1'
   | 'distanceLevel2'
@@ -127,6 +129,8 @@ export type ApplicationCameraSettings = {
 };
 
 export type ApplicationSemanticZoomSettings = {
+  usePredefinedSet: FlagSetting;
+  semanticZoomState: FlagSetting;
   distancePreSet: RangeSetting;
   distanceLevel1: RangeSetting;
   distanceLevel2: RangeSetting;

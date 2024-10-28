@@ -48,6 +48,7 @@ import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-c
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
@@ -94,6 +95,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -267,7 +271,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: 'Reset View', action: this.resetView },
       {
         title: 'Open All Components',
-        action: this.applicationRenderer.openAllComponentsOfAllApplications,
+        action: () => {
+          if (
+            this.userSettings.applicationSettings.autoOpenCloseFeature.value ==
+              true &&
+            this.userSettings.applicationSettings.semanticZoomState.value ==
+              true
+          ) {
+            this.toastHandlerService.showErrorToastMessage(
+              'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
+            );
+            return;
+          }
+          this.applicationRenderer.openAllComponentsOfAllApplications();
+        },
       },
       {
         title: commButtonTitle,
@@ -289,7 +306,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   toggleSemanticZoom() {
     if (SemanticZoomManager.instance.isEnabled == false) {
       SemanticZoomManager.instance.activate();
+      this.userSettings.updateApplicationSetting('semanticZoomState', true);
     } else {
+      this.userSettings.updateApplicationSetting('semanticZoomState', false);
       SemanticZoomManager.instance.deactivate();
     }
     this.configuration.semanticZoomManagerState =
