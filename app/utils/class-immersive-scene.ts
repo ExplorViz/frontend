@@ -483,7 +483,7 @@ export default class ImmsersiveClassScene {
     methods.forEach((method) => {
       const ourGroup = new THREE.Group();
       const material = new THREE.MeshBasicMaterial({ color: 0x00a0ff });
-      const material2 = new THREE.MeshBasicMaterial({ color: 0xa000ff });
+      const material2 = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
       const geometryText = new TextGeometry(method.name, {
         font: ImmersiveView.instance.font,
         size: 0.1,
@@ -517,7 +517,7 @@ export default class ImmsersiveClassScene {
       ourGroup.add(textMesh1);
       textMesh1.geometry.center();
       textMesh1.position.setZ(0.1);
-      textMesh1.position.setY(0.1);
+      //textMesh1.position.setY(0.1);
 
       //
       //  Return Type
@@ -540,7 +540,7 @@ export default class ImmsersiveClassScene {
         }
       );
       const returnTypeTextMaterial = new THREE.MeshBasicMaterial({
-        color: 0xf00f0f,
+        color: 0x0000ff,
         wireframe: false,
       });
       const returnTypeText = new THREE.Mesh(
@@ -559,10 +559,9 @@ export default class ImmsersiveClassScene {
       //   0.15
       // );
       returnTypeBox.add(returnTypeText);
-      returnTypeBox.position.setY(-0.2);
       returnTypeBox.position.setZ(0.1);
       returnTypeText.position.setZ(0.1);
-
+      let methodParameterOffset: number = -0.5;
       // Parameter List
       method.parameters.forEach((parameterOfMethod, idx) => {
         const parameterTextGeometry = new TextGeometry(
@@ -588,8 +587,11 @@ export default class ImmsersiveClassScene {
         const whd = new THREE.Vector3();
         parameterText.geometry.boundingBox?.getSize(whd);
         parameterText.position.setY(-0.5 + whd.y * idx);
+        methodParameterOffset = methodParameterOffset + whd.y * idx;
         ourGroup.add(parameterText);
       });
+      // Move the return Type below all Parameters
+      returnTypeBox.position.setY(-0.5 + methodParameterOffset);
 
       this.positionInSphereRadius2(ourGroup, 115, 180, sphere, 1.5); // + 25 * idx
       // Calculate Box Size
