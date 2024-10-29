@@ -156,10 +156,12 @@ export class MethodGroupMesh extends THREE.Group {
   }
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
+    void arg;
     //this.debug('You are hovering a MethodMeshGroup');
   }
 
   resetHoverEffect(mode?: VisualizationMode): void {
+    void mode;
     //this.debug('You are leaving a MethodMeshGroup');
   }
 }

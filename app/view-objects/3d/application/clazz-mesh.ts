@@ -113,6 +113,7 @@ export class _ClazzMesh extends BoxMesh {
   };
 
   callBeforeAppearenceZero = (currentMesh: THREE.Mesh | undefined) => {
+    void currentMesh;
     if (this.currentMethodMesh == undefined) return;
     this.remove(this.currentMethodMesh);
     //this.currentMethodMesh.decompose();
