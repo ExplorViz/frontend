@@ -93,7 +93,7 @@ export class MethodMesh extends THREE.Mesh {
     this.parent.resetHoverEffect(mode);
   }
   getModelId() {
-    return 'MethodMeshIDXYZ';
+    return 'MethodMeshID' + this.dataModel.methodHash;
   }
 }
 export class MethodGroupMesh extends THREE.Group {
@@ -103,6 +103,9 @@ export class MethodGroupMesh extends THREE.Group {
     super();
     this.isHovered = false;
     this.dataModel = parentDataModel;
+  }
+  getModelId() {
+    return this.dataModel.name + 'MethodMesh';
   }
   showMethods(parentGeo: THREE.BufferGeometry, parentlayout: BoxLayout) {
     const functionSeperation: Array<number> = [];

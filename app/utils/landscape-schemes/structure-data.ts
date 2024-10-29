@@ -11,6 +11,7 @@ export interface Parameters {
   type: string;
 }
 export type Method = {
+  id: string;
   name: string;
   type: string;
   private: boolean;
