@@ -11,6 +11,7 @@ import {
 } from 'explorviz-frontend/rendering/application/immersive-view';
 import gsap from 'gsap';
 import ImmsersiveClassScene from 'explorviz-frontend/utils/class-immersive-scene';
+import { MethodGroupMesh } from './method-mesh';
 
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
@@ -34,6 +35,7 @@ export class _ClazzMesh extends BoxMesh {
   dataModel: Class;
 
   _original_layout: BoxLayout;
+  currentMethodMesh: MethodGroupMesh | undefined;
 
   // Immersive View
   private zoomOutCounter: number = 0;
@@ -61,6 +63,7 @@ export class _ClazzMesh extends BoxMesh {
 
     // Semantic Zoom preparations
     this.saveOriginalAppearence();
+    this.currentMethodMesh = undefined;
     // Register multiple levels
     this.setAppearence(2, this.setHeightAccordingToClassSize);
     this.setAppearence(3, this.showMethodMesh);
@@ -104,6 +107,21 @@ export class _ClazzMesh extends BoxMesh {
   };
 
   showMethodMesh = () => {
+    this.currentMethodMesh = new MethodGroupMesh(this.dataModel);
+    this.currentMethodMesh.showMethods(this.geometry, this.layout);
+    this.add(this.currentMethodMesh);
+  };
+
+  callBeforeAppearenceZero = (currentMesh: THREE.Mesh | undefined) => {
+    if (this.currentMethodMesh == undefined) return;
+    this.remove(this.currentMethodMesh);
+    //this.currentMethodMesh.decompose();
+  };
+
+  /**
+   * DEPRECATED used to show the MethodMesh as part of the classmesh
+   */
+  showMethodMeshDeprecated = () => {
     // Add Methods lengths
     // Example with 3 Function
     // Function 1 -> 33 Line of Code

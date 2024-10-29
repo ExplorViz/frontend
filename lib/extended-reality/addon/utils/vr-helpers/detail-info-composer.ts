@@ -21,6 +21,7 @@ import {
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from 'collaboration/utils/web-socket-messages/types/entity-type';
+import { MethodMesh } from 'explorviz-frontend/view-objects/3d/application/method-mesh';
 
 export type DetailedInfo = {
   title: string;
@@ -262,6 +263,7 @@ export type EntityMesh =
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
     object instanceof ComponentMesh ||
+    object instanceof MethodMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
     object instanceof FoundationMesh
