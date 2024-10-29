@@ -187,51 +187,7 @@ export default class Settings extends Component<Args> {
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'distancePreSet':
-        if (input == 1) {
-          valueArray[0].value = 5;
-          valueArray[1].value = 30;
-          valueArray[2].value = 40;
-          valueArray[3].value = 50;
-          valueArray[4].value = 60;
-        } else if (input == 2) {
-          valueArray[0].value = 10;
-          valueArray[1].value = 40;
-          valueArray[2].value = 50;
-          valueArray[3].value = 60;
-          valueArray[4].value = 70;
-        } else if (input == 3) {
-          valueArray[0].value = 20;
-          valueArray[1].value = 50;
-          valueArray[2].value = 60;
-          valueArray[3].value = 70;
-          valueArray[4].value = 80;
-        } else if (input == 4) {
-          valueArray[0].value = 40;
-          valueArray[1].value = 60;
-          valueArray[2].value = 70;
-          valueArray[3].value = 80;
-          valueArray[4].value = 90;
-        } else if (input == 5) {
-          valueArray[0].value = 65;
-          valueArray[1].value = 80;
-          valueArray[2].value = 85;
-          valueArray[3].value = 90;
-          valueArray[4].value = 95;
-        } else if (input == 6) {
-          valueArray[0].value = 75;
-          valueArray[1].value = 80;
-          valueArray[2].value = 85;
-          valueArray[3].value = 90;
-          valueArray[4].value = 95;
-        }
-        // Update all the values and save them to the storage
-        for (let index = 0; index < valueArray.length; index++) {
-          const targetValue = valueArray[index].value;
-          this.userSettings.updateApplicationSetting(
-            ('distanceLevel' + (index + 1).toString()) as ApplicationSettingId,
-            targetValue
-          );
-        }
+        this.semanticZoomPreSetsetter(input, valueArray);
         this.userSettings.updateApplicationSetting(
           'usePredefinedSet' as ApplicationSettingId,
           true
@@ -249,19 +205,19 @@ export default class Settings extends Component<Args> {
         if (pre_input != undefined && input != undefined) {
           this.cleanArray(valueArray, (pre_input as number) < input, false);
           // Set `distancePreSet` to Custom Settings
+          // this.userSettings.updateApplicationSetting(
+          //   'distancePreSet' as ApplicationSettingId,
+          //   0
+          // );
           this.userSettings.updateApplicationSetting(
-            'distancePreSet' as ApplicationSettingId,
-            0
+            'usePredefinedSet' as ApplicationSettingId,
+            false
           );
         }
         // cleanArray resorts the user settings such that the condtion of increasing is satisfied.
         //this.cleanArray(valueArray, false);
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
-        );
-        this.userSettings.updateApplicationSetting(
-          'usePredefinedSet' as ApplicationSettingId,
-          false
         );
         //console.log(this.userSettings.applicationSettings.distanceLevel1.value);
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
@@ -316,6 +272,13 @@ export default class Settings extends Component<Args> {
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
+    const valueArray = [
+      this.userSettings.applicationSettings.distanceLevel1,
+      this.userSettings.applicationSettings.distanceLevel2,
+      this.userSettings.applicationSettings.distanceLevel3,
+      this.userSettings.applicationSettings.distanceLevel4,
+      this.userSettings.applicationSettings.distanceLevel5,
+    ];
     switch (settingId) {
       case 'applyHighlightingOnHover':
         if (this.args.updateHighlighting) {
@@ -338,6 +301,18 @@ export default class Settings extends Component<Args> {
         }
         this.configuration.semanticZoomManagerState =
           SemanticZoomManager.instance.isEnabled;
+        break;
+      case 'usePredefinedSet':
+        //this.userSettings.applicationSettings.distancePreSet.value
+        // Set the value of the Slider distancePreSet to the same value again, to trigger the update routine!
+        this.semanticZoomPreSetsetter(
+          this.userSettings.applicationSettings.distancePreSet.value,
+          valueArray
+        );
+        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
+          this.localUser.defaultCamera
+        );
+        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       case 'autoOpenCloseFeature':
         SemanticZoomManager.instance.toggleAutoOpenClose(value);
@@ -381,6 +356,53 @@ export default class Settings extends Component<Args> {
       this.localUser.defaultCamera.fov =
         this.userSettings.applicationSettings.cameraFov.value;
       this.localUser.defaultCamera.updateProjectionMatrix();
+    }
+  }
+  private semanticZoomPreSetsetter(targetPreset: number, valueArray: any) {
+    if (targetPreset == 1) {
+      valueArray[0].value = 5;
+      valueArray[1].value = 30;
+      valueArray[2].value = 40;
+      valueArray[3].value = 50;
+      valueArray[4].value = 60;
+    } else if (targetPreset == 2) {
+      valueArray[0].value = 10;
+      valueArray[1].value = 40;
+      valueArray[2].value = 50;
+      valueArray[3].value = 60;
+      valueArray[4].value = 70;
+    } else if (targetPreset == 3) {
+      valueArray[0].value = 20;
+      valueArray[1].value = 50;
+      valueArray[2].value = 60;
+      valueArray[3].value = 70;
+      valueArray[4].value = 80;
+    } else if (targetPreset == 4) {
+      valueArray[0].value = 40;
+      valueArray[1].value = 60;
+      valueArray[2].value = 70;
+      valueArray[3].value = 80;
+      valueArray[4].value = 90;
+    } else if (targetPreset == 5) {
+      valueArray[0].value = 65;
+      valueArray[1].value = 80;
+      valueArray[2].value = 85;
+      valueArray[3].value = 90;
+      valueArray[4].value = 95;
+    } else if (targetPreset == 6) {
+      valueArray[0].value = 75;
+      valueArray[1].value = 80;
+      valueArray[2].value = 85;
+      valueArray[3].value = 90;
+      valueArray[4].value = 95;
+    }
+    // Update all the values and save them to the storage
+    for (let index = 0; index < valueArray.length; index++) {
+      const targetValue = valueArray[index].value;
+      this.userSettings.updateApplicationSetting(
+        ('distanceLevel' + (index + 1).toString()) as ApplicationSettingId,
+        targetValue
+      );
     }
   }
 }

@@ -523,8 +523,14 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             1.2,
             ...this.applicationRenderer.getOpenApplications()
           );
-          if (SemanticZoomManager.instance.isEnabled == true) {
+          if (
+            SemanticZoomManager.instance.isEnabled == true ||
+            this.userSettings.applicationSettings.semanticZoomState.value ==
+              true
+          ) {
             SemanticZoomManager.instance.activate();
+            this.configuration.semanticZoomManagerState =
+              SemanticZoomManager.instance.isEnabled;
           }
         }, 200);
         this.initDone = true;
