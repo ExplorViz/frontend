@@ -18,6 +18,7 @@ import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
+import Configuration from 'explorviz-frontend/services/configuration';
 
 interface Args {
   enterFullscreen?(): void;
@@ -47,6 +48,9 @@ export default class Settings extends Component<Args> {
 
   @service('toast-handler')
   private toastHandlerService!: ToastHandlerService;
+
+  @service('configuration')
+  configuration!: Configuration;
 
   @service('user-settings')
   private userSettings!: UserSettings;
@@ -322,15 +326,18 @@ export default class Settings extends Component<Args> {
         this.args.setGamepadSupport(value);
         break;
       case 'semanticZoomState':
-        if (SemanticZoomManager.instance.isEnabled == false) {
+        if (SemanticZoomManager.instance.isEnabled == false && value == true) {
           SemanticZoomManager.instance.activate();
           //this.userSettings.updateApplicationSetting('semanticZoomState', true);
-        } else {
+        } else if (
+          SemanticZoomManager.instance.isEnabled == true &&
+          value == false
+        ) {
           //this.userSettings.updateApplicationSetting('semanticZoomState', false);
           SemanticZoomManager.instance.deactivate();
         }
-        // this.configuration.semanticZoomManagerState =
-        //   SemanticZoomManager.instance.isEnabled;
+        this.configuration.semanticZoomManagerState =
+          SemanticZoomManager.instance.isEnabled;
         break;
       case 'autoOpenCloseFeature':
         SemanticZoomManager.instance.toggleAutoOpenClose(value);
