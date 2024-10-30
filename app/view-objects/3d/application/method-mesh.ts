@@ -5,6 +5,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import { VisualizationMode } from 'collaboration/services/local-user';
+import BaseMesh from '../base-mesh';
 
 // export class MethodMesh extends BoxMesh {
 //   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
@@ -74,28 +75,66 @@ import { VisualizationMode } from 'collaboration/services/local-user';
 //   }
 // }
 
-export class MethodMesh extends THREE.Mesh {
+export class MethodMesh extends BaseMesh {
   dataModel: Method;
   constructor(
     geometry: THREE.Geometry | THREE.BufferGeometry = new THREE.BoxGeometry(),
     material: THREE.Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
     dataModel: Method
   ) {
-    super(geometry, material);
+    super();
+    this.geometry = geometry;
+    this.material = material;
     this.dataModel = dataModel;
   }
-
   applyHoverEffect(arg?: VisualizationMode | number): void {
-    this.parent.applyHoverEffect(arg);
+    if (arg === 'vr' && this.isHovered === false) {
+      this.scaleAll = 3;
+      super.applyHoverEffect();
+    } else if (typeof arg === 'number' && this.isHovered === false) {
+      super.applyHoverEffect(arg);
+    } else if (this.isHovered === false) {
+      super.applyHoverEffect(1.5);
+    }
   }
 
   resetHoverEffect(mode?: VisualizationMode): void {
-    this.parent.resetHoverEffect(mode);
+    if (this.isHovered) {
+      super.resetHoverEffect();
+      if (mode === 'vr') {
+        this.scaleAll = -3;
+      }
+    }
   }
   getModelId() {
     return 'MethodMeshID' + this.dataModel.methodHash;
   }
 }
+
+// DEPRECATED MethodMeshTest
+// export class MethodMeshTest extends THREE.Mesh {
+//   dataModel: Method;
+//   constructor(
+//     geometry: THREE.Geometry | THREE.BufferGeometry = new THREE.BoxGeometry(),
+//     material: THREE.Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
+//     dataModel: Method
+//   ) {
+//     super(geometry, material);
+//     this.dataModel = dataModel;
+//   }
+
+//   applyHoverEffect(arg?: VisualizationMode | number): void {
+//     this.parent.applyHoverEffect(arg);
+//   }
+
+//   resetHoverEffect(mode?: VisualizationMode): void {
+//     this.parent.resetHoverEffect(mode);
+//   }
+//   getModelId() {
+//     return 'MethodMeshID' + this.dataModel.methodHash;
+//   }
+// }
+
 export class MethodGroupMesh extends THREE.Group {
   isHovered: boolean;
   dataModel: Class;

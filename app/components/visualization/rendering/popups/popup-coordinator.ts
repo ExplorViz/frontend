@@ -9,6 +9,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import {
   isApplication,
   isClass,
+  isMethod,
   isNode,
   isPackage,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -224,6 +225,9 @@ export default class PopupCoordinator extends Component<IArgs> {
     }
     if (isPackage(this.args.popupData.entity)) {
       return 'package';
+    }
+    if (isMethod(this.args.popupData.entity)) {
+      return 'method';
     }
     if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
       return 'classCommunication';

@@ -88,6 +88,12 @@
       @popupData={{@popupData}}
     />
   {{/if}}
+  {{#if (eq this.entityType 'method')}}
+    <Visualization::Rendering::Popups::ApplicationPopups::Method::MethodPopup
+      @restructureMode={{this.landscapeRestructure.restructureMode}}
+      @popupData={{@popupData}}
+    />
+  {{/if}}
   {{#if (eq this.entityType 'classCommunication')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopup
       @restructureMode={{this.landscapeRestructure.restructureMode}}
