@@ -598,13 +598,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleAltDown() {
-    //Testing
-    if (this.toggleForceAppearenceLayer == true)
-      SemanticZoomManager.instance.forceLevel(0, false);
-    else SemanticZoomManager.instance.forceLevel(1, false);
-    this.toggleForceAppearenceLayer = !this.toggleForceAppearenceLayer;
-    // Original
-    //this.highlightingService.updateHighlightingOnHover(true);
+    this.highlightingService.updateHighlightingOnHover(true);
   }
 
   @action
