@@ -1,7 +1,7 @@
 <div id='landscape-container'>
   <BsTab id='tabnav' @type='pills' as |tab|>
     <tab.pane @id='landscape-tab' @title='Landscapes'>
-      <div class='d-flex flex-row justify-content-center overflow-auto'>
+      <div class='d-flex flex-row justify-content-center overflow-auto' style='max-height: 80vh; overflow-y: auto;'>
         <TokenSelection
           @openTokenCreationModal={{this.openTokenCreationModal}}
           @selectToken={{this.selectToken}}
