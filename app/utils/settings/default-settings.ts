@@ -245,7 +245,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   showVrOnClick: {
-    value: false,
+    value: true,
     orderNumber: 2,
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',
