@@ -213,15 +213,6 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If enabled, popups can be dragged to a prefered, fixed position',
     isFlagSetting: true,
   },
-  // Camera Settings
-  useOrthographicCamera: {
-    value: false,
-    orderNumber: 1,
-    group: 'Camera',
-    displayName: 'Use Orthographic Camera Instead of Perspective',
-    description: 'Switch between orthographic and perspective camera',
-    isFlagSetting: true,
-  },
   cameraFov: {
     value: 75,
     range: {

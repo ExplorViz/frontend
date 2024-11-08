@@ -41,7 +41,7 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
+export type ApplicationCameraSettingId = 'cameraFov';
 
 export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
@@ -109,7 +109,6 @@ export type ApplicationPopupSettings = Record<
 >;
 
 export type ApplicationCameraSettings = {
-  useOrthographicCamera: FlagSetting;
   cameraFov: RangeSetting;
 };
 

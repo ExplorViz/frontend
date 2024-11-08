@@ -116,8 +116,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   hoveredObject: EntityMesh | null = null;
 
-  private frustumSize = 5;
-
   cameraControls!: CameraControls;
 
   gamepadControls: GamepadControls | null = null;
@@ -275,17 +273,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.setSize(width, height);
     this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
-
-    this.localUser.ortographicCamera.left =
-      (this.frustumSize * newAspectRatio) / -2;
-    this.localUser.ortographicCamera.right =
-      (this.frustumSize * newAspectRatio) / 2;
-    this.localUser.ortographicCamera.top = this.frustumSize / 2;
-    this.localUser.ortographicCamera.bottom = -this.frustumSize / 2;
-
-    this.localUser.ortographicCamera.userData.aspect = newAspectRatio;
-
-    this.localUser.ortographicCamera.updateProjectionMatrix();
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
@@ -321,32 +308,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.camera);
-
-    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
-      -aspectRatio * this.frustumSize,
-      aspectRatio * this.frustumSize,
-      this.frustumSize,
-      -this.frustumSize,
-      0.1,
-      100
-    );
-
-    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
-
-    this.localUser.ortographicCamera.position.setFromSphericalCoords(
-      10,
-      Math.PI / 3,
-      Math.PI / 4
-    );
-    this.localUser.ortographicCamera.lookAt(this.scene.position);
     // controls
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
-      this.localUser.ortographicCamera,
       this.canvas
     );
-
     this.spectateUserService.cameraControls = this.cameraControls;
 
     this.updatables.push(this.localUser);
@@ -371,7 +338,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      orthographicCamera: this.localUser.ortographicCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,

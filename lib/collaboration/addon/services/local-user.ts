@@ -56,9 +56,6 @@ export default class LocalUser extends Service.extend({
   defaultCamera!: THREE.PerspectiveCamera;
 
   @tracked
-  orthographicCamera!: THREE.OrthographicCamera;
-
-  @tracked
   visualizationMode: VisualizationMode = 'browser';
 
   mousePing!: MousePing;
@@ -90,7 +87,6 @@ export default class LocalUser extends Service.extend({
     // Initialize camera. The default aspect ratio is not known at this point
     // and must be updated when the canvas is inserted.
     this.defaultCamera = new THREE.PerspectiveCamera();
-    this.orthographicCamera = new THREE.OrthographicCamera();
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
@@ -106,9 +102,6 @@ export default class LocalUser extends Service.extend({
   get camera() {
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
-    }
-    if (this.settings.applicationSettings.useOrthographicCamera.value) {
-      return this.orthographicCamera;
     }
     return this.defaultCamera;
   }
