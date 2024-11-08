@@ -447,6 +447,7 @@ export default class VisualizationController extends Controller {
     this.timestampPollingService.resetPolling();
     this.applicationRenderer.cleanup();
     this.timestampRepo.commitToTimestampMap = new Map();
+    this.renderingService.resetAllRenderingStates();
 
     if (this.sidebarHandler) {
       this.sidebarHandler.closeSettingsSidebar();
