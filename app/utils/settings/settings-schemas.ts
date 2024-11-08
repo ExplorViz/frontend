@@ -41,7 +41,10 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type ApplicationCameraSettingId = 'cameraFov';
+export type ApplicationCameraSettingId =
+  | 'cameraNear'
+  | 'cameraFar'
+  | 'cameraFov';
 
 export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
@@ -109,6 +112,8 @@ export type ApplicationPopupSettings = Record<
 >;
 
 export type ApplicationCameraSettings = {
+  cameraNear: RangeSetting;
+  cameraFar: RangeSetting;
   cameraFov: RangeSetting;
 };
 

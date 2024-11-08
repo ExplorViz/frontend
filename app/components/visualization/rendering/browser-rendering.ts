@@ -299,16 +299,19 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   private initCameras() {
     const aspectRatio = this.canvas.width / this.canvas.height;
-    // camera
+    const settings = this.userSettings.applicationSettings;
+
+    // Camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      this.userSettings.applicationSettings.cameraFov.value,
+      settings.cameraFov.value,
       aspectRatio,
-      0.1,
-      100
+      settings.cameraNear.value,
+      settings.cameraFar.value
     );
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.camera);
-    // controls
+
+    // Controls
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
