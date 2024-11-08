@@ -237,7 +237,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // VR Settings
   showVrButton: {
-    value: true,
+    value: false,
     orderNumber: 1,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
