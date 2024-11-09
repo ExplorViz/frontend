@@ -42,9 +42,7 @@ export default class SpectateConfigurationService extends Service {
             resolve(spectateConfiguration);
           } else {
             resolve([]);
-            this.toastHandler.showErrorToastMessage(
-              'Spectate Configurations could not be loaded.'
-            );
+            console.error('Spectate Configurations could not be loaded.');
           }
         })
         .catch(async () => {

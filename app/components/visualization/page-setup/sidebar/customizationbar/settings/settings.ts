@@ -119,6 +119,16 @@ export default class Settings extends Component<Args> {
           this.args.updateHighlighting();
         }
         break;
+      case 'cameraNear':
+        this.localUser.defaultCamera.near =
+          this.userSettings.applicationSettings.cameraNear.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
+      case 'cameraFar':
+        this.localUser.defaultCamera.far =
+          this.userSettings.applicationSettings.cameraFar.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
       case 'cameraFov':
         this.localUser.defaultCamera.fov =
           this.userSettings.applicationSettings.cameraFov.value;

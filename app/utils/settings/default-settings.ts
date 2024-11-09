@@ -202,13 +202,31 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   // Camera Settings
-  useOrthographicCamera: {
-    value: false,
+  cameraNear: {
+    value: 0.1,
+    range: {
+      min: 0.01,
+      max: 5.0,
+      step: 0.01,
+    },
     orderNumber: 1,
     group: 'Camera',
-    displayName: 'Use Orthographic Camera Instead of Perspective',
-    description: 'Switch between orthographic and perspective camera',
-    isFlagSetting: true,
+    displayName: 'Render Near',
+    description: 'Determines near render distance',
+    isRangeSetting: true,
+  },
+  cameraFar: {
+    value: 100,
+    range: {
+      min: 5.0,
+      max: 150.0,
+      step: 1.0,
+    },
+    orderNumber: 2,
+    group: 'Camera',
+    displayName: 'Render Far',
+    description: 'Determines far render distance',
+    isRangeSetting: true,
   },
   cameraFov: {
     value: 75,
@@ -217,7 +235,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 150.0,
       step: 5.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Camera',
     displayName: 'Field of View',
     description: 'Set field of view for the perspective camera',
@@ -225,7 +243,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // VR Settings
   showVrButton: {
-    value: true,
+    value: false,
     orderNumber: 1,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
@@ -233,7 +251,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   showVrOnClick: {
-    value: false,
+    value: true,
     orderNumber: 2,
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',
