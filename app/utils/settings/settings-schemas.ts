@@ -34,7 +34,8 @@ export type ApplicationHighlightingSettingId =
 
 export type ApplicationHoveringSettingId =
   | 'enableHoverEffects'
-  | 'enableAnimations';
+  | 'enableAnimations'
+  | 'castShadows';
 
 export type ApplicationCommunicationSettingId =
   | 'commThickness'

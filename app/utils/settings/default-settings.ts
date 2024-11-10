@@ -161,6 +161,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
+  castShadows: {
+    value: false,
+    orderNumber: 3,
+    group: 'Effects',
+    displayName: 'Cast Shadows',
+    description: 'Enable casting shadows from light (can be expensive)',
+    isFlagSetting: true,
+  },
   // Communication Settings
   commThickness: {
     value: 0.5,
