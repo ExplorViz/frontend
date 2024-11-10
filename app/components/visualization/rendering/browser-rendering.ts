@@ -479,6 +479,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
+    this.popupHandler.handleMouseMove(event);
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object, event);
@@ -505,7 +506,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined, event: MouseEvent) {
+  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
     const { value: enableAppHoverEffects } =
       this.appSettings.enableHoverEffects;
 
@@ -522,20 +523,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject = mesh;
       mesh.applyHoverEffect();
     }
-
-    // Hide popups when mouse moves
-    if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
   }
 
   @action
   removePopup(entityId: string) {
-    if (!this.appSettings.enableCustomPopupPosition.value) {
-      this.popupHandler.clearPopups();
-    } else {
-      this.popupHandler.removePopup(entityId);
-    }
+    this.popupHandler.removePopup(entityId);
 
     // remove potential toggle effect
     const mesh = this.applicationRenderer.getMeshById(entityId);
@@ -545,11 +537,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseOut(event: PointerEvent) {
+  handleMouseOut(/*event: PointerEvent*/) {
     this.popupHandler.handleHoverOnMesh();
-    if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
   }
 
   @action
@@ -558,7 +547,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.popupHandler.addPopup({
         mesh: intersection.object,
         position: mouseOnCanvas,
-        replace: !this.appSettings.enableCustomPopupPosition.value,
         hovered: true,
       });
     }

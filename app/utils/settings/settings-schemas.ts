@@ -57,7 +57,7 @@ export type ApplicationDebugSettingId =
   | 'syncRoomState'
   | 'resetToDefaults';
 
-export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
+export type ApplicationPopupSettingId = 'hidePopupDelay';
 
 export type ApplicationSettingId =
   | ApplicationColorSettingId
@@ -107,10 +107,9 @@ export type ApplicationDebugSettings = {
   resetToDefaults: ButtonSetting;
 };
 
-export type ApplicationPopupSettings = Record<
-  ApplicationPopupSettingId,
-  FlagSetting
->;
+export type ApplicationPopupSettings = {
+  hidePopupDelay: RangeSetting;
+};
 
 export type ApplicationCameraSettings = {
   cameraNear: RangeSetting;
