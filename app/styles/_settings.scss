@@ -19,13 +19,11 @@
   display: block;
   position: relative;
   cursor: pointer;
-  font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.25;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  width: 5rem;
 }
 
 /* Hide the browser's default checkbox */
@@ -41,11 +39,27 @@
 .wide-checkbox {
   position: absolute;
   border-radius: 0.25rem;
-  top: 0;
-  left: 0;
-  height: 2rem;
-  width: 4rem;
+  right: 0.5rem;
+  height: 1.25rem;
+  width: 3rem;
   background-color: #ffbaba;
+}
+
+.setting-container:hover {
+  background-color: whitesmoke;
+}
+
+.setting-button {
+    height: 1.25rem !important;
+    padding: 0.25rem !important;
+    line-height: 0.5rem !important;
+    font-size: 0.75rem !important;
+}
+
+.setting-reset-button {
+  height:1.25rem !important;
+  padding:0 !important;
+  line-height:1 !important;
 }
 
 /* On mouse-over, add a grey background color */
@@ -67,7 +81,7 @@
   display: block;
   color: white;
   text-align: center;
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 .wide-checkbox-container input:checked ~ .wide-checkbox:before {
@@ -80,7 +94,7 @@
   display: none;
   color: white;
   text-align: center;
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 /* Show the wide-checkbox when checked */
