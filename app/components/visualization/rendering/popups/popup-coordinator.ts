@@ -84,6 +84,8 @@ export default class PopupCoordinator extends Component<IArgs> {
       return;
     }
 
+    this.args.popupData.wasMoved = true;
+
     //this line makes it impossible to interact with input fields
     //event.preventDefault();
     // get the mouse cursor position at startup:
@@ -96,8 +98,6 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   elementDrag(event: MouseEvent) {
-    this.args.popupData.wasMoved = true;
-
     event.preventDefault();
     // Calculate delta of cursor position:
     const diffX = this.lastMousePosition.x - event.clientX;

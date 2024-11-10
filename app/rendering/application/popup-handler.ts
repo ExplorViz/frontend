@@ -55,6 +55,12 @@ export default class PopupHandler {
   @tracked
   popupData: PopupData[] = [];
 
+  latestMousePosition: { timestamp: number; x: number; y: number } = {
+    timestamp: 0,
+    x: 0,
+    y: 0,
+  };
+
   constructor(owner: any) {
     setOwner(this, owner);
     this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
@@ -164,6 +170,14 @@ export default class PopupHandler {
     );
   }
 
+  handleMouseMove(event: MouseEvent) {
+    this.latestMousePosition = {
+      timestamp: Date.now(),
+      x: event.pageX,
+      y: event.pageY,
+    };
+  }
+
   @action
   handleHoverOnMesh(mesh?: THREE.Object3D) {
     if (isEntityMesh(mesh)) {
@@ -228,6 +242,7 @@ export default class PopupHandler {
     // Replace all existing popups with new popup
     if (replace) {
       this.popupData = [newPopup];
+      this.removePopupAfterTimeout(newPopup);
       return;
     }
 
@@ -258,10 +273,49 @@ export default class PopupHandler {
         newPopup.wasMoved = true;
       }
     }
+
+    this.removePopupAfterTimeout(newPopup);
+  }
+
+  private removePopupAfterTimeout(popup: PopupData) {
+    const latestMousePosition = this.latestMousePosition;
+    // Store popup position
+    const mouseX = popup.mouseX;
+    const mouseY = popup.mouseY;
+
+    setTimeout(() => {
+      const maybePopup = this.popupData.find(
+        (pd) => pd.entity.id === popup.entity.id
+      );
+
+      // Popup no longer available
+      if (!maybePopup || maybePopup.wasMoved || popup.isPinned) {
+        return;
+      }
+
+      // Do not remove popup when mouse stayed (recently) on target entity
+      if (
+        latestMousePosition.x == this.latestMousePosition.x &&
+        latestMousePosition.y == this.latestMousePosition.y
+      ) {
+        this.removePopupAfterTimeout(popup);
+        return;
+      }
+
+      // Popup did not move (was not updated)
+      if (maybePopup.mouseX == mouseX && maybePopup.mouseY == mouseY) {
+        this.removePopup(popup.entity.id);
+        return;
+      }
+
+      this.removePopupAfterTimeout(popup);
+    }, 1000);
   }
 
   private updateExistingPopup(popup: PopupData, newPopup: PopupData) {
     popup.wasMoved = popup.wasMoved || newPopup.wasMoved;
+    popup.mouseX = newPopup.mouseX;
+    popup.mouseY = newPopup.mouseY;
     popup.isPinned = popup.isPinned || newPopup.isPinned;
     popup.sharedBy = newPopup.sharedBy;
     this.updateMeshReference(popup);
