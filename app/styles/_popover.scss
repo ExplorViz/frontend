@@ -37,7 +37,9 @@
 }
 
 .popover > button {
-  margin: 0.2rem;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
 }
 
 .popover > button[disabled] {
