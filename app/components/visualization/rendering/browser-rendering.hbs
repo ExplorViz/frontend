@@ -74,7 +74,6 @@
       {{! popup(s) }}
       {{#each this.popupHandler.popupData as |data|}}
         <Visualization::Rendering::Popups::PopupCoordinator
-          @isMovable={{this.appSettings.enableCustomPopupPosition.value}}
           @popupData={{data}}
           @pinPopup={{this.popupHandler.pinPopup}}
           @sharePopup={{this.popupHandler.sharePopup}}

@@ -10,6 +10,7 @@ import PopupData from 'explorviz-frontend/components/visualization/rendering/pop
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
@@ -60,6 +61,8 @@ export default class PopupHandler {
     x: 0,
     y: 0,
   };
+
+  isShiftPressed = false;
 
   constructor(owner: any) {
     setOwner(this, owner);
@@ -176,6 +179,7 @@ export default class PopupHandler {
       x: event.pageX,
       y: event.pageY,
     };
+    this.isShiftPressed = event.shiftKey;
   }
 
   @action
@@ -197,7 +201,6 @@ export default class PopupHandler {
     position,
     wasMoved,
     pinned,
-    replace,
     menuId,
     sharedBy,
     hovered,
@@ -206,12 +209,11 @@ export default class PopupHandler {
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
-    replace?: boolean;
     menuId?: string | null;
     sharedBy?: string;
     hovered?: boolean;
   }) {
-    if (!isEntityMesh(mesh)) {
+    if (!isEntityMesh(mesh) || getStoredSettings().hidePopupDelay.value == 0) {
       return;
     }
     let popupPosition = position;
@@ -238,13 +240,6 @@ export default class PopupHandler {
       sharedBy: sharedBy || '',
       hovered: hovered || false,
     });
-
-    // Replace all existing popups with new popup
-    if (replace) {
-      this.popupData = [newPopup];
-      this.removePopupAfterTimeout(newPopup);
-      return;
-    }
 
     // Check if popup for entity already exists and update it if so
     const maybePopup = this.popupData.find(
@@ -293,10 +288,11 @@ export default class PopupHandler {
         return;
       }
 
-      // Do not remove popup when mouse stayed (recently) on target entity
+      // Do not remove popup when mouse stayed (recently) on target entity or shift is pressed
       if (
-        latestMousePosition.x == this.latestMousePosition.x &&
-        latestMousePosition.y == this.latestMousePosition.y
+        this.isShiftPressed ||
+        (latestMousePosition.x == this.latestMousePosition.x &&
+          latestMousePosition.y == this.latestMousePosition.y)
       ) {
         this.removePopupAfterTimeout(popup);
         return;
@@ -309,7 +305,7 @@ export default class PopupHandler {
       }
 
       this.removePopupAfterTimeout(popup);
-    }, 1000);
+    }, getStoredSettings().hidePopupDelay.value * 1000);
   }
 
   private updateExistingPopup(popup: PopupData, newPopup: PopupData) {

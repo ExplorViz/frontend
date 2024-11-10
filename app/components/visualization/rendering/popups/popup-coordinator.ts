@@ -18,7 +18,6 @@ import LocalUser from 'collaboration/services/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 
 interface IArgs {
-  isMovable: boolean;
   popupData: PopupData;
   popupHandler: PopupHandler;
   removePopup(entityId: string): void;
@@ -80,10 +79,6 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   dragMouseDown(event: MouseEvent) {
-    if (!this.args.isMovable) {
-      return;
-    }
-
     this.args.popupData.wasMoved = true;
 
     //this line makes it impossible to interact with input fields

@@ -211,16 +211,21 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
-  // Popup Settings
-  enableCustomPopupPosition: {
-    value: true,
+  // Popup settings
+  hidePopupDelay: {
+    value: 1.0,
+    range: {
+      min: 0.0,
+      max: 3.0,
+      step: 0.25,
+    },
     orderNumber: 1,
     group: 'Popups',
-    displayName: 'Enable Custom Popup Positioning',
-    description:
-      'If enabled, popups can be dragged to a prefered, fixed position',
-    isFlagSetting: true,
+    displayName: 'Hide Popups After',
+    description: 'Determines how many seconds popups stay on screen',
+    isRangeSetting: true,
   },
+  // Camera settings
   cameraNear: {
     value: 0.1,
     range: {
