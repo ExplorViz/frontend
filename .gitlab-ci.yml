@@ -73,6 +73,16 @@ build-prod-noauth:
   before_script:
     - export AUTH0_ENABLED=false
 
+deploy-prod:
+  extends:
+    - .build-and-deploy
+  dependencies:
+    - build-prod
+  variables:
+    DOCKERHUB_TAG: 'production'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
+
 deploy-dev-noauth:
   extends:
     - .build-and-deploy
