@@ -134,5 +134,5 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            --tag ${{ vars.DOCKER_IMAGE_NAME }}:latest . \
+            --tag ${{ vars.DOCKER_IMAGE_NAME }}:latest --tag explorviz/frontend:latest . \
             --push
