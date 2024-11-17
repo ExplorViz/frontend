@@ -30,7 +30,8 @@ export type ApplicationHighlightingSettingId =
 
 export type ApplicationHoveringSettingId =
   | 'enableHoverEffects'
-  | 'enableAnimations';
+  | 'enableAnimations'
+  | 'castShadows';
 
 export type ApplicationCommunicationSettingId =
   | 'commThickness'
@@ -52,7 +53,7 @@ export type ApplicationDebugSettingId =
   | 'syncRoomState'
   | 'resetToDefaults';
 
-export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
+export type ApplicationPopupSettingId = 'hidePopupDelay';
 
 export type ApplicationAnnotationSettingId = 'enableCustomAnnotationPosition';
 
@@ -99,10 +100,9 @@ export type ApplicationDebugSettings = {
   resetToDefaults: ButtonSetting;
 };
 
-export type ApplicationPopupSettings = Record<
-  ApplicationPopupSettingId,
-  FlagSetting
->;
+export type ApplicationPopupSettings = {
+  hidePopupDelay: RangeSetting;
+};
 
 export type ApplicationAnnotationSettings = Record<
   ApplicationAnnotationSettingId,

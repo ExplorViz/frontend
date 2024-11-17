@@ -512,9 +512,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
     // Hide unmoved popups and annotations when mouse moves
-    if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
     if (
       !this.appSettings.enableCustomAnnotationPosition.value ||
       !event.shiftKey
@@ -523,6 +520,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     // this.runOrRestartMouseMovementTimer();
+    this.popupHandler.handleMouseMove(event);
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
@@ -571,11 +569,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   removePopup(entityId: string) {
-    if (!this.appSettings.enableCustomPopupPosition.value) {
-      this.popupHandler.clearPopups();
-    } else {
-      this.popupHandler.removePopup(entityId);
-    }
+    this.popupHandler.removePopup(entityId);
 
     // remove potential toggle effect
     const mesh = this.applicationRenderer.getMeshById(entityId);
@@ -617,9 +611,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleMouseOut(event: PointerEvent) {
     this.popupHandler.handleHoverOnMesh();
     this.annotationHandler.handleHoverOnMesh();
-    if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
+
     if (
       !this.appSettings.enableCustomAnnotationPosition.value &&
       !event.shiftKey
@@ -634,7 +626,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.popupHandler.addPopup({
         mesh: intersection.object,
         position: mouseOnCanvas,
-        replace: !this.appSettings.enableCustomPopupPosition.value,
         hovered: true,
       });
 

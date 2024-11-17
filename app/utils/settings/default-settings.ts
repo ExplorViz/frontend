@@ -139,6 +139,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
+  castShadows: {
+    value: false,
+    orderNumber: 3,
+    group: 'Effects',
+    displayName: 'Cast Shadows',
+    description: 'Enable casting shadows from light (can be expensive)',
+    isFlagSetting: true,
+  },
   // Communication Settings
   commThickness: {
     value: 0.5,
@@ -181,15 +189,19 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
-  // Popup Settings
-  enableCustomPopupPosition: {
-    value: true,
+  // Popup settings
+  hidePopupDelay: {
+    value: 1.0,
+    range: {
+      min: 0.0,
+      max: 3.0,
+      step: 0.25,
+    },
     orderNumber: 1,
     group: 'Popups',
-    displayName: 'Enable Custom Popup Positioning',
-    description:
-      'If enabled, popups can be dragged to a prefered, fixed position',
-    isFlagSetting: true,
+    displayName: 'Hide Popups After',
+    description: 'Determines how many seconds popups stay on screen',
+    isRangeSetting: true,
   },
   // Annotation Settings
   enableCustomAnnotationPosition: {
@@ -201,7 +213,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If enabled, annotations can be dragged to a prefered, fixed position',
     isFlagSetting: true,
   },
-  // Camera Settings
+  // Camera settings
   cameraNear: {
     value: 0.1,
     range: {
