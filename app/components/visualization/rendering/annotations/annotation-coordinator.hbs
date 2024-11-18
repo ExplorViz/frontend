@@ -134,17 +134,10 @@
         {{/unless}}
       {{else}}
         <div class="d-flex justify-content-between">
-          <label style="font-weight: bold; margin-left: 3px;">Associated to '{{@annotationData.entity.name}}'</label>
+          <label style="font-weight: bold; margin-left: 3px;">Annotation</label>
         </div>
-        <label style="background-color:lightgray; font-weight: bold;" class="form-control mr-2">Annotation</label>
-        <BsButton
-          @type='secondary'
-          size='extra-small'
-          @outline='true'
-          disabled='true'
-        >
-          SHIFT + Mouse to Drag
-        </BsButton>
+        <label style="background-color:lightgray; font-weight: bold;" class="form-control mr-2">{{@annotationData.annotationTitle}}</label>
+        <label style="margin-left: 3px;">Associated to '{{@annotationData.entity.name}}'</label>
       {{/if}}
     {{else}}
       <div class="d-flex justify-content-between">

@@ -586,7 +586,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.annotationHandler.addAnnotation({
       annotationId: undefined,
       mesh: mesh,
-      position: { x: 250, y: 100 },
+      position: { x: popup.mouseX + 400, y: popup.mouseY },
       hovered: true,
       annotationTitle: '',
       annotationText: '',
