@@ -51,6 +51,7 @@ import {
   isAnnotationEditResponse,
 } from 'collaboration/utils/web-socket-messages/receivable/response/annotation-edit-response';
 import CollaborationSession from 'collaboration/services/collaboration-session';
+import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -76,6 +77,14 @@ export default class AnnotationHandlerService extends Service {
 
   minimizedAnnotations: AnnotationData[] = [];
 
+  latestMousePosition: { timestamp: number; x: number; y: number } = {
+    timestamp: 0,
+    x: 0,
+    y: 0,
+  };
+
+  isShiftPressed = false;
+
   init() {
     super.init();
     this.webSocket.on(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
@@ -86,6 +95,15 @@ export default class AnnotationHandlerService extends Service {
       this,
       this.onRestoreAnnotations
     );
+  }
+
+  handleMouseMove(event: MouseEvent) {
+    this.latestMousePosition = {
+      timestamp: Date.now(),
+      x: event.pageX,
+      y: event.pageY,
+    };
+    this.isShiftPressed = event.shiftKey;
   }
 
   @action
@@ -458,6 +476,8 @@ export default class AnnotationHandlerService extends Service {
     }
 
     if (!minimized && !alreadyExists) {
+      this.removeUnmovedAnnotations();
+
       let annotationPosition = position;
 
       if (!annotationPosition) {
@@ -535,7 +555,48 @@ export default class AnnotationHandlerService extends Service {
       }
 
       this.annotationData = [...this.annotationData, newAnnotation];
+
+      this.removeAnnotationAfterTimeout(newAnnotation);
     }
+  }
+
+  private removeAnnotationAfterTimeout(annotation: AnnotationData) {
+    const latestMousePosition = this.latestMousePosition;
+    // Store popup position
+    const mouseX = annotation.mouseX;
+    const mouseY = annotation.mouseY;
+
+    setTimeout(() => {
+      const maybeAnnotation = this.annotationData.find(
+        (ad) => ad.annotationId === annotation.annotationId
+      );
+
+      // Popup no longer available
+      if (!maybeAnnotation || maybeAnnotation.wasMoved) {
+        return;
+      }
+
+      // Do not remove popup when mouse stayed (recently) on target entity or shift is pressed
+      if (
+        this.isShiftPressed ||
+        (latestMousePosition.x == this.latestMousePosition.x &&
+          latestMousePosition.y == this.latestMousePosition.y)
+      ) {
+        this.removeAnnotationAfterTimeout(annotation);
+        return;
+      }
+
+      // Popup did not move (was not updated)
+      if (
+        maybeAnnotation.mouseX == mouseX &&
+        maybeAnnotation.mouseY == mouseY
+      ) {
+        this.removeAnnotation(annotation.annotationId);
+        return;
+      }
+
+      this.removeAnnotationAfterTimeout(annotation);
+    }, getStoredSettings().hidePopupDelay.value * 1000);
   }
 
   private updateExistingAnnotation(

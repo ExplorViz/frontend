@@ -528,16 +528,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
-    // Hide unmoved popups and annotations when mouse moves
-    if (
-      !this.appSettings.enableCustomAnnotationPosition.value ||
-      !event.shiftKey
-    ) {
-      this.annotationHandler.removeUnmovedAnnotations();
-    }
-
-    // this.runOrRestartMouseMovementTimer();
     this.popupHandler.handleMouseMove(event);
+    this.annotationHandler.handleMouseMove(event);
+
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
@@ -625,16 +618,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseOut(event: PointerEvent) {
+  handleMouseOut(/*event: PointerEvent*/) {
     this.popupHandler.handleHoverOnMesh();
     this.annotationHandler.handleHoverOnMesh();
-
-    if (
-      !this.appSettings.enableCustomAnnotationPosition.value &&
-      !event.shiftKey
-    ) {
-      this.annotationHandler.removeUnmovedAnnotations();
-    }
   }
 
   @action
