@@ -1,5 +1,6 @@
 export type SettingGroup =
   | 'Camera'
+  | 'Minimap'
   | 'Colors'
   | 'Controls'
   | 'Communication'
@@ -43,6 +44,17 @@ export type ApplicationCommunicationSettingId =
   | 'commArrowSize'
   | 'curvyCommHeight';
 
+export type ApplicationMinimapSettingId =
+  | 'minimap'
+  | 'zoom'
+  | 'version2'
+  | 'layer1'
+  | 'layer2'
+  | 'layer3'
+  | 'layer4'
+  | 'layer6'
+  | 'layer7';
+
 export type ApplicationCameraSettingId =
   | 'cameraNear'
   | 'cameraFar'
@@ -72,6 +84,7 @@ export type ApplicationSettingId =
   | ApplicationCameraSettingId
   | ApplicationXRSettingId
   | ApplicationPopupSettingId
+  | ApplicationMinimapSettingId
   | ApplicationAnnotationSettingId;
 
 export type ApplicationColorSettings = Record<
@@ -126,6 +139,18 @@ export type ApplicationCameraSettings = {
   cameraFov: RangeSetting;
 };
 
+export type ApplicationMinimapSettings = {
+  minimap: FlagSetting;
+  zoom: RangeSetting;
+  version2: FlagSetting;
+  layer1: FlagSetting;
+  layer2: FlagSetting;
+  layer3: FlagSetting;
+  layer4: FlagSetting;
+  layer6: FlagSetting;
+  layer7: FlagSetting;
+};
+
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
@@ -137,7 +162,8 @@ export type ApplicationSettings = ApplicationColorSettings &
   ApplicationAnnotationSettings &
   ApplicationCameraSettings &
   ApplicationXRSettings &
-  ApplicationCommunicationSettings;
+  ApplicationCommunicationSettings &
+  ApplicationMinimapSettings;
 
 export interface Setting<T> {
   value: T;

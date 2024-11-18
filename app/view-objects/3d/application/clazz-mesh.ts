@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ClazzLabelMesh from './clazz-label-mesh';
 import { VisualizationMode } from 'collaboration/services/local-user';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -31,6 +32,8 @@ export default class ClazzMesh extends BoxMesh {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
     this.dataModel = clazz;
+
+    this.layers.enable(SceneLayers.Clazz);
   }
 
   getModelId() {

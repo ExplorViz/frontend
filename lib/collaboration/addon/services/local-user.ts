@@ -56,6 +56,9 @@ export default class LocalUser extends Service.extend({
   defaultCamera!: THREE.PerspectiveCamera;
 
   @tracked
+  minimapCamera!: THREE.OrthographicCamera;
+
+  @tracked
   visualizationMode: VisualizationMode = 'browser';
 
   mousePing!: MousePing;
@@ -87,6 +90,7 @@ export default class LocalUser extends Service.extend({
     // Initialize camera. The default aspect ratio is not known at this point
     // and must be updated when the canvas is inserted.
     this.defaultCamera = new THREE.PerspectiveCamera();
+    this.minimapCamera = new THREE.OrthographicCamera();
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
@@ -108,10 +112,7 @@ export default class LocalUser extends Service.extend({
 
   tick(delta: number) {
     this.animationMixer.update(delta);
-
-    if (this.visualizationMode === 'vr') {
-      this.sendPositions();
-    }
+    this.sendPositions();
   }
 
   sendPositions() {
@@ -403,7 +404,6 @@ export default class LocalUser extends Service.extend({
     controller.removeTeleportArea();
   }
 }
-
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {

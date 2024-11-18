@@ -4,6 +4,7 @@ import BaseMesh from '../base-mesh';
 import CommunicationArrowMesh from './communication-arrow-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
 import { VisualizationMode } from 'collaboration/services/local-user';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -32,6 +33,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.material.transparent = true;
 
     this.castShadow = true;
+    this.layers.enable(SceneLayers.Communication);
   }
 
   getModelId() {

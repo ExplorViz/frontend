@@ -6,6 +6,8 @@ import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
+import LocalUser from 'collaboration/services/local-user';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 const clock = new Clock();
 
@@ -29,7 +31,15 @@ export default class RenderingLoop {
   @service('user-settings')
   userSettings!: UserSettings;
 
+  @service('local-user')
+  private localUser!: LocalUser;
+
+  @service('minimap-service')
+  minimapService!: MinimapService;
+
   camera: THREE.Camera;
+
+  minimapCamera: THREE.OrthographicCamera;
 
   scene: THREE.Scene;
 
@@ -39,6 +49,13 @@ export default class RenderingLoop {
 
   zoomHandler?: ArZoomHandler;
 
+  currentViewport = new THREE.Vector4(
+    0,
+    0,
+    window.innerWidth,
+    window.innerHeight
+  );
+
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
@@ -46,6 +63,7 @@ export default class RenderingLoop {
     this.renderer = args.renderer;
     this.updatables = args.updatables;
     this.zoomHandler = args.zoomHandler;
+    this.minimapCamera = this.localUser.minimapCamera;
   }
 
   start() {
@@ -80,6 +98,10 @@ export default class RenderingLoop {
       }
       if (this.threePerformance) {
         this.threePerformance.stats.end();
+      }
+
+      if (this.minimapService.minimapEnabled) {
+        this.renderMinimap();
       }
     });
   }
@@ -133,5 +155,48 @@ export default class RenderingLoop {
       this.scene.remove(this.axesHelper);
       this.axesHelper = undefined;
     }
+  }
+  /**
+   * Renders the minimap every tick, either on top right corner or as the minimap overlay.
+   */
+  renderMinimap() {
+    const minimapNums = this.minimapService.minimap();
+    const minimapHeight = minimapNums[0];
+    const minimapWidth = minimapNums[1];
+    const minimapX = minimapNums[2];
+    const minimapY = minimapNums[3];
+    const borderWidth = 1;
+
+    this.currentViewport = this.renderer.getViewport(new THREE.Vector4());
+
+    // Enable scissor test and set the scissor area for the border
+    this.renderer.setScissorTest(true);
+    this.renderer.setScissor(
+      minimapX - borderWidth,
+      minimapY - borderWidth,
+      minimapWidth + 2 * borderWidth,
+      minimapHeight + 2 * borderWidth
+    );
+    this.renderer.setViewport(
+      minimapX - borderWidth,
+      minimapY - borderWidth,
+      minimapWidth + 2 * borderWidth,
+      minimapHeight + 2 * borderWidth
+    );
+
+    // Background color for the border
+    this.renderer.setClearColor('#989898');
+    this.renderer.clear();
+
+    // Set scissor and viewport for the minimap itself
+    this.renderer.setScissor(minimapX, minimapY, minimapWidth, minimapHeight);
+    this.renderer.setViewport(minimapX, minimapY, minimapWidth, minimapHeight);
+
+    // Render the minimap scene
+    this.renderer.render(this.scene, this.minimapCamera);
+
+    // Restore original viewport and disable scissor test
+    this.renderer.setViewport(...this.currentViewport);
+    this.renderer.setScissorTest(false);
   }
 }

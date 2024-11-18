@@ -278,7 +278,6 @@ export default class SpectateUser extends Service {
     if (!configuration || !configuration.devices) {
       return;
     }
-
     // Adapt projection matrix according to spectate update
     const deviceId = new URLSearchParams(window.location.search).get(
       'deviceId'

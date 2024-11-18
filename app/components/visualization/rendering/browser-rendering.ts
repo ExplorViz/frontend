@@ -30,6 +30,9 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import { Vector3 } from 'three';
+import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUser from 'collaboration/services/spectate-user';
 import {
@@ -42,14 +45,12 @@ import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-r
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import RoomSerializer from 'collaboration/services/room-serializer';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap-configuration';
-import ThreeForceGraph from 'three-forcegraph';
-import { Vector3 } from 'three/src/math/Vector3';
-import * as THREE from 'three';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
+import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
 
 interface BrowserRenderingArgs {
@@ -104,6 +105,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
+  @service('minimap-service')
+  minimapService!: MinimapService;
+
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;
 
@@ -115,7 +119,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
-  readonly graph: ThreeForceGraph;
+  readonly graph: ForceGraph;
 
   @tracked
   readonly scene: THREE.Scene;
@@ -178,7 +182,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph.graph;
+    this.graph = forceGraph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
@@ -186,8 +190,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // Spectate
     this.updatables.push(this.spectateUserService);
 
+    // Minimap
+    this.updatables.push(this.minimapService);
+
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.applicationRenderer.forceGraph = this.graph;
+    this.applicationRenderer.forceGraph = this.graph.graph;
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
@@ -208,7 +215,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
-
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;
     }
@@ -337,9 +343,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.canvas
     );
     this.spectateUserService.cameraControls = this.cameraControls;
-
+    this.localUser.cameraControls = this.cameraControls;
     this.updatables.push(this.localUser);
     this.updatables.push(this.cameraControls);
+
+    // initialize minimap
+    this.minimapService.initializeMinimap(
+      this.scene,
+      this.graph,
+      this.cameraControls
+    );
+
+    this.minimapService.raycaster = new Raycaster(
+      this.localUser.minimapCamera,
+      this.minimapService
+    );
   }
 
   /**
@@ -357,6 +375,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
+    this.debug('Renderer set up');
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
@@ -368,8 +387,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
     if (this.args.snapshot || this.args.snapshotReload) {
-      this.graph.onFinishUpdate(() => {
-        if (!this.initDone && this.graph.graphData().nodes.length > 0) {
+      this.graph.graph.onFinishUpdate(() => {
+        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
           this.debug('initdone!');
           setTimeout(() => {
             this.applicationRenderer.getOpenApplications();
@@ -378,8 +397,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         }
       });
     } else {
-      this.graph.onFinishUpdate(() => {
-        if (!this.initDone && this.graph.graphData().nodes.length > 0) {
+      this.graph.graph.onFinishUpdate(() => {
+        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
           this.debug('initdone!');
           setTimeout(() => {
             this.cameraControls.resetCameraFocusOn(

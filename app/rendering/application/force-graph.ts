@@ -12,7 +12,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import ThreeForceGraph from 'three-forcegraph';
-
+import * as THREE from 'three';
 export interface GraphNode {
   // data: ApplicationData,
   id: string;
@@ -55,8 +55,13 @@ export default class ForceGraph {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  boundingBox: THREE.Box3 = new THREE.Box3();
+
+  scaleFactor!: number;
+
   constructor(owner: any, scale: number = 1) {
     this.scale = scale;
+    this.scaleFactor = 30;
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
     setOwner(this, owner);
     this.graph = new GrabbableForceGraph()
@@ -103,5 +108,54 @@ export default class ForceGraph {
 
   tick() {
     this.graph.tickFrame();
+    this.calculateBoundingBox();
+  }
+  /**
+   * Calculates the bounding box of the graph using the position and collision radius of the nodes
+   */
+  calculateBoundingBox() {
+    let minX = Infinity,
+      minY = Infinity,
+      minZ = Infinity;
+    let maxX = -Infinity,
+      maxY = -Infinity,
+      maxZ = -Infinity;
+
+    const isAlone = this.graph.graphData().nodes.length == 1;
+
+    this.graph.graphData().nodes.forEach((node) => {
+      if (
+        node.x !== undefined &&
+        node.y !== undefined &&
+        node.z !== undefined
+      ) {
+        let collisionRadius: number;
+        if (!isAlone) {
+          collisionRadius = node.collisionRadius / 4 || 0;
+        } else {
+          collisionRadius = node.collisionRadius / 2 || 0;
+        }
+
+        if (node.x - collisionRadius < minX) minX = node.x - collisionRadius;
+        if (node.y - collisionRadius < minY) minY = node.y - collisionRadius;
+        if (node.z - collisionRadius < minZ) minZ = node.z - collisionRadius;
+        if (node.x + collisionRadius > maxX) maxX = node.x + collisionRadius;
+        if (node.y + collisionRadius > maxY) maxY = node.y + collisionRadius;
+        if (node.z + collisionRadius > maxZ) maxZ = node.z + collisionRadius;
+      }
+    });
+
+    this.boundingBox = new THREE.Box3(
+      new THREE.Vector3(
+        minX / this.scaleFactor,
+        minY / this.scaleFactor,
+        minZ / this.scaleFactor
+      ),
+      new THREE.Vector3(
+        maxX / this.scaleFactor,
+        maxY / this.scaleFactor,
+        maxZ / this.scaleFactor
+      )
+    );
   }
 }

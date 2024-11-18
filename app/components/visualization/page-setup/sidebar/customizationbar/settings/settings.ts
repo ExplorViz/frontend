@@ -15,6 +15,7 @@ import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { Mesh } from 'three';
 
@@ -53,6 +54,9 @@ export default class Settings extends Component<Args> {
   @service('user-settings')
   private userSettings!: UserSettings;
 
+  @service('minimap-service')
+  private minimapService!: MinimapService;
+
   colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
     { name: 'Classic (Initial)', id: 'classic' },
@@ -68,6 +72,7 @@ export default class Settings extends Component<Args> {
       ApplicationSettingId[]
     > = {
       Camera: [],
+      Minimap: [],
       Colors: [],
       Controls: [],
       Communication: [],
@@ -141,6 +146,9 @@ export default class Settings extends Component<Args> {
           this.userSettings.applicationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
+      case 'zoom':
+        this.minimapService.updateSphereRadius();
+        break;
       default:
         break;
     }
@@ -176,11 +184,39 @@ export default class Settings extends Component<Args> {
 
   @action
   updateFlagSetting(name: ApplicationSettingId, value: boolean) {
-    const settingId = name as ApplicationSettingId;
+    const settingId = name;
+    const settingString = settingId as string;
     try {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
+    }
+    if (settingString.startsWith('layer')) {
+      const layerNumber = parseInt(settingString.slice(5), 10); // Extract the layer number from settingId
+      if (!isNaN(layerNumber)) {
+        // Ensure it's a valid number
+        if (value || value === undefined) {
+          this.localUser.minimapCamera.layers.enable(layerNumber);
+        } else {
+          this.localUser.minimapCamera.layers.disable(layerNumber);
+        }
+      }
+    } else {
+      switch (settingId) {
+        case 'applyHighlightingOnHover':
+          if (this.args.updateHighlighting) {
+            this.args.updateHighlighting();
+          }
+          break;
+        case 'enableGamepadControls':
+          this.args.setGamepadSupport(value);
+          break;
+        case 'minimap':
+          this.minimapService.minimapEnabled = value;
+          break;
+        default:
+          break;
+      }
     }
 
     const scene = this.sceneRepo.getScene();

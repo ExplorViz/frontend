@@ -93,7 +93,6 @@ export function addComponentAndChildrenToScene(
     color,
     highlightedEntityColor
   );
-
   addMeshToApplication(mesh, applicationObject3D);
   updateMeshVisiblity(mesh, applicationObject3D);
 
@@ -156,7 +155,6 @@ export function addFoundationAndChildrenToApplication(
     foundationColor,
     highlightedEntityColor
   );
-
   addMeshToApplication(mesh, applicationObject3D);
 
   const children = application.packages;
