@@ -25,8 +25,11 @@ declare const config: {
     profile: Auth0UserProfile;
   };
   backendAddresses: {
+    shareSnapshot: string;
+    gitlabApi: string;
     spanService: string;
     userService: string;
+    userServiceApi: string;
     vsCodeService: string;
     collaborationService: string;
     metricsService: string;

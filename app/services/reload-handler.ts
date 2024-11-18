@@ -15,7 +15,7 @@ export default class ReloadHandler extends Service.extend(Evented) {
   landscapeHttpRequestUtil: LandscapeHttpRequestUtil =
     new LandscapeHttpRequestUtil(getOwner(this));
 
-  debug = debugLogger('ReloadHandler');
+  debug = debugLogger();
 
   /**
    * Loads a landscape from the backend and triggers a visualization update
@@ -57,6 +57,27 @@ export default class ReloadHandler extends Service.extend(Evented) {
     } catch (e) {
       throw Error(e);
     }
+  }
+
+  async loadLandscapeByTimestampSnapshot(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    const structure = preProcessAndEnhanceStructureLandscape(structureData);
+    const dynamic = dynamicData;
+
+    for (const t of dynamic) {
+      const traceId = t.traceId;
+
+      for (const s of t.spanList) {
+        s.traceId = traceId;
+      }
+    }
+
+    return [structure, dynamic] as [
+      StructureLandscapeData,
+      DynamicLandscapeData,
+    ];
   }
 }
 

@@ -39,6 +39,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import {
@@ -321,6 +322,32 @@ export default class ApplicationRenderer extends Service.extend() {
   );
 
   // #region @actions
+
+  @action
+  updateLabel(entityId: string, label: string) {
+    const appId = this.getApplicationIdByMeshId(entityId);
+    const applicationObject3D = this.getApplicationById(appId!);
+
+    const boxMesh = applicationObject3D!.getBoxMeshbyModelId(entityId) as
+      | ComponentMesh
+      | FoundationMesh;
+
+    const { componentTextColor, foundationTextColor } =
+      this.userSettings.applicationColors;
+
+    if (boxMesh instanceof ComponentMesh) {
+      Labeler.updateBoxTextLabel(boxMesh, this.font, componentTextColor, label);
+    } else if (boxMesh instanceof FoundationMesh) {
+      Labeler.updateBoxTextLabel(
+        boxMesh,
+        this.font,
+        foundationTextColor,
+        label
+      );
+    }
+
+    this.updateApplicationObject3DAfterUpdate(applicationObject3D!);
+  }
 
   @action
   addCommunication(applicationObject3D: ApplicationObject3D) {

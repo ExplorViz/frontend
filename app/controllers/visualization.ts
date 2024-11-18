@@ -33,6 +33,8 @@ import {
   VisualizationModeUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
 import {
+  SerializedAnnotation,
+  // SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
@@ -40,16 +42,23 @@ import {
 import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
+import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Auth from 'explorviz-frontend/services/auth';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ReloadHandler from 'explorviz-frontend/services/reload-handler';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
+import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import UserApiTokenService, {
+  ApiToken,
+} from 'explorviz-frontend/services/user-api-token';
 import UserSettings from 'explorviz-frontend/services/user-settings';
+import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import * as THREE from 'three';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
@@ -59,6 +68,9 @@ import RenderingService, {
   VisualizationMode as RenderingVisualizationMode,
 } from 'explorviz-frontend/services/rendering-service';
 import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -74,9 +86,23 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
+  @service('router')
+  router!: any;
+
+  @service('auth')
+  auth!: Auth;
   private readonly debug = debugLogger('VisualizationController');
 
-  queryParams = ['roomId', 'deviceId', 'commit1', 'commit2', 'bottomBar'];
+  queryParams = [
+    'roomId',
+    'deviceId',
+    'sharedSnapshot',
+    'owner',
+    'createdAt',
+    'commit1',
+    'commit2',
+    'bottomBar',
+  ];
 
   private sidebarHandler!: SidebarHandler;
 
@@ -101,6 +127,14 @@ export default class VisualizationController extends Controller {
 
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
+
+  @service('heatmap-configuration')
+  heatmapConf!: HeatmapConfiguration;
+
+  @service('landscape-token')
+  landscapeTokenService!: LandscapeTokenService;
+
+  @service('snapshot-token') snapshotTokenService!: SnapshotTokenService;
 
   @service('reload-handler')
   reloadHandler!: ReloadHandler;
@@ -135,8 +169,14 @@ export default class VisualizationController extends Controller {
   @service('spectate-user')
   spectateUser!: SpectateUser;
 
+  @service('user-api-token')
+  userApiTokenService!: UserApiTokenService;
+
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
+
+  @service('annotation-handler')
+  annotationHandler!: AnnotationHandlerService;
 
   @service('repos/evolution-data-repository')
   evolutionDataRepository!: EvolutionDataRepository;
@@ -147,6 +187,45 @@ export default class VisualizationController extends Controller {
 
   @tracked
   roomId?: string | undefined | null;
+
+  @tracked
+  sharedSnapshot?: boolean | undefined | null;
+
+  @tracked
+  owner?: string | undefined | null;
+
+  @tracked
+  createdAt: number | undefined | null;
+
+  @tracked
+  userApiTokens: ApiToken[] = [];
+
+  @tracked
+  showSettingsSidebar = false;
+
+  @tracked
+  showToolsSidebar = false;
+
+  @tracked
+  components: string[] = [];
+
+  @tracked
+  componentsToolsSidebar: string[] = [];
+
+  @tracked
+  isTimelineActive: boolean = true;
+
+  @tracked
+  landscapeData: LandscapeData | null = null;
+
+  @tracked
+  visualizationPaused = false;
+
+  @tracked
+  timelineTimestamps: Timestamp[] = [];
+
+  @tracked
+  highlightedMarkerColor = 'blue';
 
   @tracked
   vrSupported: boolean = false;
@@ -293,6 +372,7 @@ export default class VisualizationController extends Controller {
     openApps,
     detachedMenus,
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
+    annotations,
   }: InitialLandscapeMessage): Promise<void> {
     this.linkRenderer.flag = true;
     while (this.linkRenderer.flag) {
@@ -307,6 +387,7 @@ export default class VisualizationController extends Controller {
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
       highlightedExternCommunicationLinks,
       popups: [], // ToDo
+      annotations: annotations as SerializedAnnotation[],
     };
 
     this.highlightingService.updateHighlighting();
@@ -338,6 +419,7 @@ export default class VisualizationController extends Controller {
       openApps,
       highlightedExternCommunicationLinks,
       popups,
+      annotations,
       detachedMenus,
     } = event.originalMessage;
     const serializedRoom = {
@@ -345,14 +427,16 @@ export default class VisualizationController extends Controller {
       openApps: openApps as SerializedApp[],
       highlightedExternCommunicationLinks,
       popups: popups as SerializedPopup[],
+      annotations: annotations as SerializedAnnotation[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
     };
-
+    console.log('onSyncRoomState');
     this.applicationRenderer.restoreFromSerialization(serializedRoom);
     this.detachedMenuRenderer.restore(
       serializedRoom.popups,
       serializedRoom.detachedMenus
     );
+    this.detachedMenuRenderer.restoreAnnotations(serializedRoom.annotations);
 
     this.highlightingService.updateHighlighting();
 
@@ -361,6 +445,31 @@ export default class VisualizationController extends Controller {
     );
   }
 
+  async loadSnapshot() {
+    if (this.snapshotTokenService.snapshotToken === null) {
+      return;
+    }
+
+    // make sure our linkRenderer has all extern links
+    this.linkRenderer.flag = true;
+    while (this.linkRenderer.flag) {
+      // war mal 350?
+      await timeout(50);
+    }
+
+    /**
+     * Serialized room is used in landscape-data-watcher to load the landscape with
+     * all highlights and popUps.
+     */
+    this.roomSerializer.serializedRoom =
+      this.snapshotTokenService.snapshotToken.serializedRoom;
+
+    this.localUser.defaultCamera.position.set(
+      this.snapshotTokenService.snapshotToken.camera!.x,
+      this.snapshotTokenService.snapshotToken.camera!.y,
+      this.snapshotTokenService.snapshotToken.camera!.z
+    );
+  }
   // #endregion
 
   // #region XR

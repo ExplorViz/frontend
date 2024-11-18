@@ -5,6 +5,7 @@ import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
+import SnapshotTokenService from './snapshot-token';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
 import { SelectedCommit } from './commit-tree-state';
 
@@ -14,6 +15,9 @@ export default class TimestampPollingService extends Service {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
+
   @service('auth')
   auth!: Auth;
 
@@ -21,7 +25,7 @@ export default class TimestampPollingService extends Service {
   timestampRepo!: TimestampRepository;
 
   private timer: NodeJS.Timeout | null = null;
-  private debug = debugLogger('TimestampPollingService');
+  private debug = debugLogger();
 
   async initTimestampPollingWithCallback(
     commits: SelectedCommit[],
@@ -57,6 +61,12 @@ export default class TimestampPollingService extends Service {
     commits: SelectedCommit[],
     callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
   ) {
+    // if (this.snapshotService.snapshotToken) {
+    //   const timestamps =
+    //     this.snapshotService.snapshotToken.timestamps.timestamps;
+    //   callback(timestamps);
+    // }
+
     const polledCommitToTimestampMap: Map<string, Timestamp[]> = new Map();
 
     if (commits.length === 0) {

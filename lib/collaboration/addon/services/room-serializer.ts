@@ -18,6 +18,7 @@ import {
   isDetachableMenu,
 } from 'extended-reality/utils/vr-menus/detachable-menu';
 import {
+  SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedHighlightedComponent,
@@ -26,6 +27,7 @@ import {
   SerializedRoom,
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 
 export default class RoomSerializer extends Service {
   @service('application-renderer')
@@ -48,13 +50,18 @@ export default class RoomSerializer extends Service {
   /**
    * Creates a JSON object for the current state of the room.
    */
-  serializeRoom(popupData: PopupData[] = []): SerializedRoom {
+  serializeRoom(
+    popupData: PopupData[] = [],
+    annotationData: AnnotationData[] = [],
+    snapshot: boolean = false
+  ): SerializedRoom {
     const serializedRoom = {
       landscape: this.serializeLandscape(),
       openApps: this.serializeOpenApplications(),
       highlightedExternCommunicationLinks:
         this.serializehighlightedExternCommunicationLinks(),
-      popups: this.serializeOpenPopups(popupData),
+      popups: this.serializeOpenPopups(popupData, snapshot),
+      annotations: this.serializeOpenAnnotations(annotationData, snapshot),
       detachedMenus: this.serializeDetachedMenus(),
     };
     return serializedRoom;
@@ -169,16 +176,57 @@ export default class RoomSerializer extends Service {
     return [];
   }
 
-  private serializeOpenPopups(popupData: PopupData[]): SerializedPopup[] {
+  /**
+   * Change that if snapshot is created, that the pop up does not need to be shared
+   * We always want to save a popup if pinned
+   * @param popupData
+   * @returns
+   */
+  private serializeOpenPopups(
+    popupData: PopupData[],
+    snapshot: boolean
+  ): SerializedPopup[] {
     return popupData
       .filter((popup) => {
-        return popup.isPinned && popup.sharedBy;
+        return (
+          (popup.isPinned && popup.sharedBy) || (popup.isPinned && snapshot)
+        );
       })
       .map((popup) => {
         return {
           userId: popup.sharedBy,
           entityId: popup.mesh.dataModel.id,
           menuId: popup.menuId,
+        };
+      });
+  }
+
+  private serializeOpenAnnotations(
+    annotationData: AnnotationData[],
+    snapshot: boolean
+  ): SerializedAnnotation[] {
+    return annotationData
+      .filter((annotation) => {
+        return annotation.shared || snapshot;
+      })
+      .map((annotation) => {
+        let entityId = undefined;
+
+        if (annotation.entity !== undefined) {
+          entityId = annotation.entity.id;
+        }
+        return {
+          objectId: null,
+          annotationId: annotation.annotationId,
+          userId: annotation.sharedBy,
+          entityId: entityId,
+          menuId: annotation.menuId,
+          annotationText: annotation.annotationText,
+          annotationTitle: annotation.annotationTitle,
+          owner: annotation.owner,
+          shared: snapshot ? false : true,
+          inEdit: annotation.inEdit,
+          lastEditor: annotation.lastEditor,
         };
       });
   }

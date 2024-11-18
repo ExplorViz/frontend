@@ -124,7 +124,7 @@ export default class CollaborationControls extends Component {
     if (this.localUser.color) {
       users.push({
         name: `${this.localUser.userName} (you)`,
-        style: `color: ${this.localUser.color.getStyle()}`,
+        style: `color:#${this.localUser.color.getHexString()}`,
         isLocalUser: true,
         isSpectatable: false,
         isSpectatedByUs: false,
@@ -138,11 +138,10 @@ export default class CollaborationControls extends Component {
     ).map((user) => {
       const isSpectatedByUs =
         this.spectateUserService.spectatedUser?.userId === user.userId;
-
       return {
         remoteUserId: user.userId,
         name: user.userName,
-        style: `color: ${user.color.getStyle()}`,
+        style: `color:#${user.color.getHexString()}`,
         isLocalUser: false,
         isSpectatedByUs: isSpectatedByUs,
         isSpectatable: true,

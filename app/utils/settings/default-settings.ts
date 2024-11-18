@@ -157,7 +157,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: true,
     orderNumber: 2,
     group: 'Effects',
-    displayName: 'Enable Package Animations',
+    displayName: 'Enable Animations',
     description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
@@ -224,6 +224,16 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Hide Popups After',
     description: 'Determines how many seconds popups stay on screen',
     isRangeSetting: true,
+  },
+  // Annotation Settings
+  enableCustomAnnotationPosition: {
+    value: true,
+    orderNumber: 1,
+    group: 'Annotations',
+    displayName: 'Enable Custom Annotation Positioning',
+    description:
+      'If enabled, annotations can be dragged to a prefered, fixed position',
+    isFlagSetting: true,
   },
   // Camera settings
   cameraNear: {

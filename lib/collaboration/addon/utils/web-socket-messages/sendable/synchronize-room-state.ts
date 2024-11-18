@@ -4,6 +4,7 @@ import {
   InitialRoomLandscape,
 } from 'collaboration/utils/room-payload/sendable/initial-room';
 import {
+  SerializedAnnotation,
   SerializedHighlightedExternLink,
   SerializedPopup,
 } from '../types/serialized-room';
@@ -16,6 +17,7 @@ export type SyncRoomStateMessage = {
   openApps: InitialRoomApp[];
   highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
   popups: SerializedPopup[];
+  annotations: SerializedAnnotation[];
   detachedMenus: InitialRoomDetachedMenu[];
 };
 

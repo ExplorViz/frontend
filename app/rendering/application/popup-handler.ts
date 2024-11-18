@@ -341,6 +341,7 @@ export default class PopupHandler {
 
     for (const popup of popups) {
       const mesh = this.applicationRenderer.getMeshById(popup.entityId);
+
       if (!mesh) {
         continue;
       }

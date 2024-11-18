@@ -7,7 +7,7 @@ import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
 
 export default class Auth extends Service.extend(Evented) {
-  private debug = debugLogger('Auth');
+  private debug = debugLogger();
 
   @service('router')
   router!: any;

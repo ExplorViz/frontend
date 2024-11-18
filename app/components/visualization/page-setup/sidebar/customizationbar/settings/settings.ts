@@ -79,6 +79,7 @@ export default class Settings extends Component<Args> {
       Highlighting: [],
       Effects: [],
       Popups: [],
+      Annotations: [],
       'Virtual Reality': [],
       Debugging: [],
     };
@@ -240,6 +241,7 @@ export default class Settings extends Component<Args> {
         this.args.setGamepadSupport(value);
         break;
       default:
+        break;
     }
   }
 
