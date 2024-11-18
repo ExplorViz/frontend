@@ -310,7 +310,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // Minimap Settings
   minimap: {
-    value: true,
+    value: false,
     orderNumber: 1,
     group: 'Minimap',
     displayName: 'Enable Minimap',
