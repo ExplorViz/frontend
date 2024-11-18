@@ -99,8 +99,8 @@ export const defaultApplicationSettings: ApplicationSettings = {
     orderNumber: 2,
     group: 'Controls',
     displayName: 'Selected Gamepad Index',
-      description: 'Index of the gamepad to be used for navigation',
-      isRangeSetting: true,
+    description: 'Index of the gamepad to be used for navigation',
+    isRangeSetting: true,
   },
   // Highlighting Settings
   applyHighlightingOnHover: {

@@ -27,7 +27,6 @@ export type ApplicationControlSettingId =
   | 'enableGamepadControls'
   | 'selectedGamepadIndex';
 
-
 export type ApplicationHighlightingSettingId =
   | 'applyHighlightingOnHover'
   | 'keepHighlightingOnOpenOrClose'
