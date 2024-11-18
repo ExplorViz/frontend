@@ -5,6 +5,7 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
+import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 interface AutoSelectLandscapeArgs {
   roomId: string;
   landscapeToken: string;
@@ -18,6 +19,9 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
 
   @service('landscape-token')
   private tokenService!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  private snapshotService!: SnapshotTokenService;
 
   @service('auth')
   auth!: Auth;
@@ -38,29 +42,51 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
 
   // Create task to handle async calls on room handling
   async autoSelectLandscape() {
+    /** For some reason the queryparameter sharedSnapshot is always undefined in the application controller. This works fine
+     * in the visualization controller. Also it is not possible to have the same queryParameters in two controllers. This can be
+     * handles with "owner: {as other-owner}". But if I want to set other-owner = null, the queryParameter is not set to null and
+     * if the route changes, the url does not change. Therefore, queryParams is used here
+     */
+    const queryParams = this.router.currentRoute.queryParams;
+
     if (
-      !this.args.landscapeToken ||
-      this.tokenService.token?.value === this.args.landscapeToken
+      queryParams.owner &&
+      queryParams.createdAt &&
+      queryParams.sharedSnapshot !== undefined
     ) {
-      return;
-    }
-    try {
-      const tokens = await this.getLandscapeTokens();
-      const selectedToken = tokens.find(
-        (token) => token.value === this.args.landscapeToken
+      const token = await this.snapshotService.retrieveToken(
+        queryParams.owner,
+        queryParams.createdAt,
+        queryParams.sharedSnapshot
       );
 
-      if (selectedToken) {
-        this.tokenService.setToken(selectedToken);
-        this.router.transitionTo('visualization');
-      } else {
-        // Token not found => remove faulty query param
-        this.router.transitionTo({
-          queryParams: { landscapeToken: undefined },
-        });
+      this.snapshotService.setToken(token);
+      this.router.transitionTo('visualization');
+    } else {
+      if (
+        !this.args.landscapeToken ||
+        this.tokenService.token?.value === this.args.landscapeToken
+      ) {
+        return;
       }
-    } catch (error) {
-      console.error('Error in setUpLandscapeSelection:', error);
+      try {
+        const tokens = await this.getLandscapeTokens();
+        const selectedToken = tokens.find(
+          (token) => token.value === this.args.landscapeToken
+        );
+
+        if (selectedToken) {
+          this.tokenService.setToken(selectedToken);
+          this.router.transitionTo('visualization');
+        } else {
+          // Token not found => remove faulty query param
+          this.router.transitionTo({
+            queryParams: { landscapeToken: undefined },
+          });
+        }
+      } catch (error) {
+        console.error('Error in setUpLandscapeSelection:', error);
+      }
     }
   }
 

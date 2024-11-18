@@ -22,6 +22,7 @@ Router.map(function () {
   this.route('callback');
   this.route('visualization');
   this.route('landscapes');
+  this.route('settings');
 });
 
 export default Router;

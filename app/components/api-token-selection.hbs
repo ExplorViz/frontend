@@ -1,0 +1,133 @@
+<div class='pb-5 px-5 w-100'>
+  <h5 class='text-left mb-3'>API-Tokens</h5>
+  <div class='flex-row justify-content-center overflow-scroll'>
+    <table class='table table-striped'>
+      <thead>
+        <tr>
+          <th scope='col' {{on 'click' (fn this.sortBy 'name')}}>Name</th>
+          <th scope='col'>API Token</th>
+          <th
+            scope='col'
+            {{on 'click' (fn this.sortBy 'createdAt')}}
+          >Created</th>
+          <th scope='col' {{on 'click' (fn this.sortBy 'expires')}}>Expires</th>
+          <th scope='col'></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each
+          (sort-by
+            (concat this.sortProperty ':' this.sortOrder) 'createdAt' @apiTokens
+          )
+          as |apiToken|
+        }}
+          <tr class='snapshot-selection-row'>
+            <th style='width: 40%' scope='row'>{{apiToken.name}} </th>
+            <th style='width: 25%' scope='row'>{{apiToken.token}} </th>
+            <th scope='row'>{{this.formatDate apiToken.createdAt true}}</th>
+            <th scope='row'>{{this.formatDate apiToken.expires}}</th>
+            <th scope='row'>
+              <ul class='token-selection-icons'>
+                <li>
+                  <div id='colorPresets' class='dropdown'>
+                    <a
+                      class='button-svg-with-hover'
+                      type='button'
+                      tabindex='0'
+                      href='#'
+                      {{on 'click' (fn this.deleteApiToken apiToken)}}
+                    >
+                      {{svg-jar 'trash-16' class='octicon align-middle'}}
+                      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                        Delete Snapshot
+                      </BsTooltip>
+                    </a>
+                  </div>
+                </li>
+              </ul>
+            </th>
+          </tr>
+        {{else}}
+          There are no saved API-Tokens.
+        {{/each}}
+        <tr>
+          <td colspan='5' class='p-1'>
+            <div class='d-flex flex-row justify-content-center'>
+              <BsButton
+                @type='primary'
+                class='align-self-center pt-2 px-3'
+                {{on 'click' this.openMenu}}
+              >
+                {{svg-jar 'plus-16' class='octicon'}}
+              </BsButton>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div>
+  <BsModal @open={{this.createToken}} @onHidden={{this.closeMenu}} as |modal|>
+    <modal.header>
+      <h4 class='modal-title'>Create API Token</h4>
+    </modal.header>
+    <modal.body>
+
+      <label class='mt-2' for='token'>Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='name'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.name}}
+        />
+      </div>
+      <label for='token'>API Token:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='token'
+          class='form-control mr-2'
+          oninput={{this.updateToken}}
+          value={{this.token}}
+        />
+      </div>
+      <label for='token'>Host URL:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='url'
+          class='form-control mr-2'
+          placeholder='e.g.: https://git.<hostname>.<de/com...>'
+          oninput={{this.updateHostUrl}}
+          value={{this.hostUrl}}
+        />
+      </div>
+      <label class='mt-2' for='token'>Expires <i>- Optional:</i> </label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='date'
+          class='form-control mr-2'
+          type='date'
+          min={{this.today}}
+          oninput={{this.updateExpDate}}
+          {{!-- value={{this.expDate}} --}}
+        />
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.reset}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Save'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{(fn this.createApiToken @refreshRoute)}}
+        disabled={{this.saveBtnDisabled}}
+      >Save</BsButton>
+    </modal.footer>
+
+  </BsModal>
+</div>

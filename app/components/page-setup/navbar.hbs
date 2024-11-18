@@ -80,6 +80,16 @@
           <button
             class='dropdown-item'
             type='button'
+            {{on 'click' this.goToSettings}}
+          >
+            {{svg-jar 'git-branch-16' class='octicon'}}
+            Git API Token
+          </button>
+        </li>
+        <li>
+          <button
+            class='dropdown-item'
+            type='button'
             {{on 'click' this.logout}}
           >
             {{svg-jar 'sign-out-16' class='octicon'}}

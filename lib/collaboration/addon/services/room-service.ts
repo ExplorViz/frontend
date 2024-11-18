@@ -70,6 +70,7 @@ export default class RoomService extends Service {
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
+      annotations: room.annotations!.map(({ ...annotation }) => annotation),
     };
   }
 

@@ -1,0 +1,258 @@
+<div class='pb-5'>
+  <h5 class='text-left mb-3'>Personal Snapshots</h5>
+  <div class='flex-row justify-content-center overflow-scroll'>
+    <table class='table table-striped' id='personal-token-selection-table'>
+      <thead>
+        <tr>
+          <th
+            style='width:70%'
+            scope='col'
+            {{on 'click' (fn this.sortByPersonal 'name')}}
+          >Alias</th>
+          <th
+            scope='col'
+            {{on 'click' (fn this.sortByPersonal 'createdAt')}}
+          >Created</th>
+          <th scope='col'></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each
+          (sort-by
+            (concat this.sortPropertyPersonal ':' this.sortOrderPersonal)
+            'createdAt'
+            @snapshotInfo.personalSnapshots
+          )
+          as |personalToken|
+        }}
+          <tr class='token-selection-row'>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectPersonalToken personalToken)}}
+            >{{personalToken.name}} </th>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectPersonalToken personalToken)}}
+            >{{timestamp-to-date personalToken.createdAt 'localString'}}</th>
+            <th scope='row'>
+              <ul class='token-selection-icons'>
+                <li>
+                  <AdditionalSnapshotInfo @token={{personalToken}} />
+                </li>
+
+                <li>
+                  <ShareSnapshot @token={{personalToken}} />
+                </li>
+                <li>
+                  <DeleteSnapshot
+                    @token={{personalToken}}
+                    @isShared={{false}}
+                    @subscribed={{false}}
+                  />
+                </li>
+              </ul>
+            </th>
+          </tr>
+        {{else}}
+          There are no saved snapshots.
+        {{/each}}
+        <tr>
+          <td colspan='3' class='p-1'>
+            <div class='d-flex flex-row justify-content-center'>
+              <BsButton
+                @type='primary'
+                class='align-self-center pt-2 px-3'
+                {{on 'click' this.openMenu}}
+              >
+                {{svg-jar 'file-added-16' class='octicon'}}
+              </BsButton>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <BsModal
+    @open={{this.uploadSnapshotMenu}}
+    @onHidden={{this.closeMenu}}
+    as |modal|
+  >
+    <modal.header>
+      <h4 class='modal-title'>Upload Snapshot</h4>
+    </modal.header>
+    <modal.body>
+      {{#if this.displayName}}
+        <label for='token'>Snapshot Name:</label>
+        <div class='d-flex justify-content-between mb-4'>
+          <input
+            id='name'
+            class='form-control mr-2'
+            oninput={{this.updateName}}
+            value={{this.name}}
+          />
+        </div>
+      {{/if}}
+      <div class='d-flex justify-content-between'>
+        <input
+          id='fileUpload'
+          type='file'
+          name='file'
+          accept='.explorviz'
+          oninput={{this.updateFile}}
+        />
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.reset}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Upload'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.uploadSnapshot}}
+        disabled={{this.uploadSnapshotBtnDisabled}}
+      >Upload</BsButton>
+    </modal.footer>
+
+  </BsModal>
+</div>
+
+<div class='pb-5'>
+  <h5 class='text-left'>Shared Snapshots</h5>
+  <div class='d-flex flex-row justify-content-center overflow-scroll'>
+    <table class='table table-striped' id='shared-token-selection-table'>
+      <thead>
+        <tr>
+          <th
+            style='width:70%'
+            scope='col'
+            {{on 'click' (fn this.sortByShared 'name')}}
+          >Alias</th>
+          <th
+            scope='col'
+            {{on 'click' (fn this.sortByShared 'createdAt')}}
+          >Created</th>
+          <th scope='col'></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each
+          (sort-by
+            (concat this.sortPropertyShared ':' this.sortOrderShared)
+            'createdAt'
+            @snapshotInfo.sharedSnapshots
+          )
+          as |sharedToken|
+        }}
+          <tr class='token-selection-row'>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectSharedToken sharedToken)}}
+            >{{sharedToken.name}}</th>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectSharedToken sharedToken)}}
+            >{{timestamp-to-date sharedToken.createdAt 'localString'}}</th>
+            <th scope='row'>
+              <ul class='token-selection-icons'>
+                <li>
+                  <AdditionalSnapshotInfo @token={{sharedToken}} />
+                </li>
+                <li>
+                  {{!-- <ShareSnapshot @token={{sharedToken}} /> --}}
+                  <div id='colorPresets' class='dropdown'>
+                    <a
+                      class='button-svg-with-hover'
+                      type='button'
+                      tabindex='0'
+                      href='#'
+                      {{on 'click' (fn this.createLink sharedToken)}}
+                    >
+                      {{svg-jar
+                        'share-android-16'
+                        class='octicon align-middle'
+                      }}
+                      <BsTooltip @placement='bottom' @triggerEvents='hover'>
+                        Share Snapshot
+                      </BsTooltip>
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <DeleteSnapshot
+                    @token={{sharedToken}}
+                    @isShared={{true}}
+                    @subscribed={{false}}
+                  />
+                </li>
+              </ul>
+            </th>
+          </tr>
+        {{else}}
+          There are no shared snapshots.
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class='pb-3'>
+  <h5 class='text-left'>Subscribed Snapshots</h5>
+  <div class='d-flex flex-row justify-content-center overflow-scroll'>
+    <table class='table table-striped' id='subscribed-token-selection-table'>
+      <thead>
+        <tr>
+          <th
+            style='width:70%'
+            scope='col'
+            {{on 'click' (fn this.sortByShared 'name')}}
+          >Alias</th>
+          <th
+            scope='col'
+            {{on 'click' (fn this.sortByShared 'createdAt')}}
+          >Created</th>
+          <th scope='col'></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each
+          (sort-by
+            (concat this.sortPropertyShared ':' this.sortOrderShared)
+            'createdAt'
+            @snapshotInfo.subscribedSnapshots
+          )
+          as |subscribedToken|
+        }}
+          <tr class='token-selection-row'>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectSharedToken subscribedToken)}}
+            >{{subscribedToken.name}}</th>
+            <th
+              scope='row'
+              {{on 'click' (fn @selectSharedToken subscribedToken)}}
+            >{{timestamp-to-date subscribedToken.createdAt 'localString'}}</th>
+            <th scope='row'>
+              <ul class='token-selection-icons'>
+                <li>
+                  <AdditionalSnapshotInfo @token={{subscribedToken}} />
+                </li>
+                <li>
+                  <DeleteSnapshot
+                    @token={{subscribedToken}}
+                    @isShared={{false}}
+                    @subscribed={{true}}
+                  />
+                </li>
+              </ul>
+            </th>
+          </tr>
+        {{else}}
+          There are no subsrcibed snapshots.
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

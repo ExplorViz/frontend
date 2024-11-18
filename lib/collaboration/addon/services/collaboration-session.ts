@@ -174,12 +174,12 @@ export default class CollaborationSession extends Service.extend({
     return this.idToRemoteUser.get(userId);
   }
 
-  getCssColor(userId: string) {
+  getColor(userId: string) {
     const remoteUser = this.lookupRemoteUserById(userId);
     if (!remoteUser) {
       return `#${this.localUser.color?.getHexString()}`;
     }
-    return remoteUser?.color.getStyle();
+    return `#${remoteUser?.color.getHexString()}`;
   }
 
   /**
@@ -205,9 +205,7 @@ export default class CollaborationSession extends Service.extend({
     this.localUser.connected({
       id: self.id,
       name: self.name,
-      color: new THREE.Color(
-        `rgb(${self.color.red}, ${self.color.green}, ${self.color.blue})`
-      ),
+      color: new THREE.Color(self.color.red, self.color.green, self.color.blue),
     });
 
     // Ensure same settings for all users in collaboration session

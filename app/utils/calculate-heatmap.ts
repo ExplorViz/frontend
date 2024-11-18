@@ -1,9 +1,6 @@
-import debugLogger from 'ember-debug-logger';
 import { ApplicationMetrics, Metric } from './metric-schemes/metric-data';
 
 const windowSize = 9;
-
-const debug = debugLogger('calculate-heatmap');
 
 export default function calculateHeatmap(
   applicationMetrics: ApplicationMetrics,
@@ -26,7 +23,7 @@ export default function calculateHeatmap(
         applicationMetrics.metricsArray.slice(-windowSize);
       const oldScoresForMetricTypeFlattened = oldScoresForMetricType.flat();
 
-      debug('All old Scores flattened', oldScoresForMetricTypeFlattened);
+      // console.log('all old Scores flattened', oldScoresForMetricTypeFlattened);
 
       // update values
       newMetricScore.values.forEach((value, key) => {
@@ -37,14 +34,14 @@ export default function calculateHeatmap(
             (metric) => metric.name === metricName
           );
 
-        debug('oldScores', oldScoresFilteredMetricType);
+        // console.log('oldScores', oldScoresFilteredMetricType);
 
         if (oldScoresFilteredMetricType?.length > 0) {
           let newMetricValue = 0;
 
           oldScoresFilteredMetricType.forEach((oldMetricScore) => {
             const oldValue = oldMetricScore.values.get(key);
-            debug('oldValue', key, oldValue);
+            // console.log('oldValue', key, oldValue);
             if (oldValue) {
               newMetricValue += oldValue;
             }
@@ -55,9 +52,9 @@ export default function calculateHeatmap(
             key,
             roundToTwoDecimalPlaces(newMetricValue)
           );
-          debug('set new Window', key, newMetricValue);
+          // console.log('set new Window', key, newMetricValue);
         } else {
-          debug('init value');
+          // console.log('init value');
           newWindowedMetricsMap.set(key, value);
         }
 
@@ -69,7 +66,6 @@ export default function calculateHeatmap(
 
         // Init metrics (first run)
         if (!oldMetricAggregated) {
-          debug('init agg Metric', newMetricScore.values);
           applicationMetrics.aggregatedMetricScores.set(
             metricName,
             newMetricScore
@@ -78,7 +74,6 @@ export default function calculateHeatmap(
           // update metric scores (subsequent runs)
           const oldScore = oldMetricScores.get(key);
           if (oldScore) {
-            debug('udpate agg Metric', key, value + 0.5 * oldScore);
             applicationMetrics.aggregatedMetricScores
               .get(metricName)
               ?.values.set(
@@ -133,7 +128,7 @@ export default function calculateHeatmap(
       // Finally, set new Metrics for windowed mode
 
       if (newWindowedMetricsMap.size > 0) {
-        debug('new window map', newWindowedMetricsMap);
+        // console.log('new window map', newWindowedMetricsMap);
 
         let newMin: any;
         let newMax: any;
@@ -152,7 +147,7 @@ export default function calculateHeatmap(
           }
         });
 
-        debug('new window map objects', Object.values(newWindowedMetricsMap));
+        // console.log('new window map objects', Object.values(newWindowedMetricsMap));
 
         const newMetricScoreObject = {
           name: metricName,
@@ -162,7 +157,7 @@ export default function calculateHeatmap(
           max: roundToTwoDecimalPlaces(newMax),
           values: newWindowedMetricsMap,
         };
-        debug('new Metric Score', newMetricScoreObject);
+        // console.log('new Metric Score', newMetricScoreObject);
 
         if (applicationMetrics.differenceMetricScores?.get(metricName)) {
           applicationMetrics.differenceMetricScores
@@ -173,7 +168,6 @@ export default function calculateHeatmap(
             newMetricScoreObject,
           ]);
         }
-        debug('Windowed metrics', applicationMetrics.differenceMetricScores);
       }
     }
   });

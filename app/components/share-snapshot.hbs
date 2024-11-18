@@ -1,0 +1,47 @@
+<div id='colorPresets' class='dropdown'>
+  <a
+    class='button-svg-with-hover'
+    type='button'
+    tabindex='0'
+    href='#'
+    {{on 'click' this.openMenu}}
+  >
+    {{svg-jar 'share-android-16' class='octicon align-middle'}}
+    <BsTooltip @placement='bottom' @triggerEvents='hover'>
+      Share Snapshot
+    </BsTooltip>
+  </a>
+  <BsModal
+    @open={{this.setExpireDateMenu}}
+    @onHidden={{this.closeMenu}}
+    as |modal|
+  >
+    <modal.header>
+      <h5 class="'modal-title">Set expiry Date <i>- Optional</i> </h5>
+    </modal.header>
+    <modal.body>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='date'
+          class='form-control mr-2'
+          type='date'
+          min={{this.today}}
+          oninput={{this.updateExpDate}}
+        />
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.closeMenu}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Upload'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{fn this.shareSnapshot @token}}
+      >Share</BsButton>
+    </modal.footer>
+  </BsModal>
+</div>

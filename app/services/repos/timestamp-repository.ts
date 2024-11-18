@@ -7,7 +7,6 @@ import RenderingService from '../rendering-service';
 import TimestampService from '../timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
-import debugLogger from 'ember-debug-logger';
 import { SelectedCommit } from '../commit-tree-state';
 
 /**
@@ -17,8 +16,6 @@ import { SelectedCommit } from '../commit-tree-state';
  * @extends Ember.Service
  */
 export default class TimestampRepository extends Service.extend(Evented) {
-  private readonly debug = debugLogger('TimestampRepository');
-
   // #region Services
 
   @service('timestamp-polling')
@@ -167,7 +164,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   // #region Helper functions
 
-  private getTimestampsForCommitId(commitId: string): Timestamp[] {
+  getTimestampsForCommitId(commitId: string): Timestamp[] {
     const timestampsForCommitId = this.commitToTimestampMap.get(commitId);
     if (timestampsForCommitId) {
       return [...timestampsForCommitId.values()];

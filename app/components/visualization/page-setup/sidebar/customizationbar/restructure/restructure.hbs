@@ -21,16 +21,36 @@
   {{#if this.landscapeRestructure.restructureMode}}
     <h6 class='mb-3 mt-3'><strong>Gitlab Credentials</strong></h6>
     <div class='ml-3'>
-      <label for='token'>API Token:</label>
-      <div class='d-flex justify-content-between'>
-        <input
-          id='token'
-          class='form-control mr-2'
-          oninput={{this.updateToken}}
-          value={{this.token}}
-        />
+      <label for='token-select'>API Token:</label>
+      <div class='d-flex justify-content-between mr-2'>
+        <PowerSelect
+          class='form-control'
+          @placeholder='Please select one API Token'
+          @options={{@userApiTokens}}
+          @onChange={{this.updateToken}}
+          @selected={{this.token}}
+          as |token|
+        >
+          {{token.name}}
+        </PowerSelect>
       </div>
       <ul></ul>
+      <label for='token-select'>GitLab Project:</label>
+      <div class='mr-2'>
+        <PowerSelect
+          class='form-control'
+          @options={{this.gitLabProjects}}
+          @onOpen={{this.loadProjects}}
+          @placeholder='Select Gitlab Project'
+          @onChange={{this.onSelect}}
+          @disabled={{this.disabledSelectProject}}
+          @selected={{this.project}}
+          as |project|
+        >
+          {{project.name}}
+        </PowerSelect>
+      </div>
+      {{!-- <ul></ul>
       <label for='issueURL'>Gitlab Issue Link:</label>
       <div class='d-flex justify-content-between'>
         <input
@@ -39,17 +59,7 @@
           oninput={{this.updateIssueURL}}
           value={{this.issueURL}}
         />
-      </div>
-      <ul></ul>
-      <label for='uploadURL'>Gitlab Upload Link:</label>
-      <div class='d-flex justify-content-between'>
-        <input
-          id='uploadURL'
-          class='form-control mr-2'
-          oninput={{this.updateUploadURL}}
-          value={{this.uploadURL}}
-        />
-      </div>
+      </div> --}}
       <ul></ul>
       <div class='d-flex justify-content-between'>
         <BsButton
@@ -284,6 +294,12 @@
             title='Take a Screenshot'
             onclick={{fn this.screenshotCanvas index}}
           >{{svg-jar 'device-camera-16' class='octicon align-right'}}</button>
+          <button
+            type='button'
+            class='btn btn-light'
+            title='Create Snapshot'
+            onclick={{fn this.openSnapshotModal index}}
+          >{{svg-jar 'image-16' class='octicon align-right'}}</button>
         </div>
         <ul></ul>
         <ul
@@ -303,12 +319,22 @@
             </li>
           {{/each}}
         </ul>
+        <ul></ul>
+        <BsButton
+          title='Upload Issue to Gitlab'
+          {{on 'click' (fn this.uploadIssueToGitLab index)}}
+          @type='secondary'
+          @outline={{true}}
+          disabled={{this.saveCredBtnDisabled}}
+        >
+          Upload to Gitlab
+        </BsButton>
+
       </div>
       <ul></ul>
     {{/each}}
-
-    <div class='ml-3'>
-      <div class='d-flex justify-content-between'>
+    <div class='ml-3 mt-2'>
+      <div class='d-flex justify-content-between mt-3'>
         <BsButton
           title='Create Issue'
           {{on 'click' this.createIssue}}
@@ -317,22 +343,70 @@
         >
           Create Issue
         </BsButton>
-
-        {{#if this.issues.length}}
-          <BsButton
-            title='Upload Issue to Gitlab'
-            {{on 'click' this.uploadIssueToGitLab}}
-            @type='secondary'
-            @outline={{true}}
-            disabled={{this.uploadIssueBtnDisabled}}
-          >
-            Upload to Gitlab
-          </BsButton>
-        {{/if}}
       </div>
       <ul></ul>
 
     </div>
   {{/if}}
+</div>
+<div>
+  <BsModal
+    @open={{this.snapshotModal}}
+    @onHidden={{this.closeSnapshotMenu}}
+    as |modal|
+  >
+    <modal.header>
+      <h4 class='modal-title'>Create Snapshot</h4>
+    </modal.header>
+    <modal.body>
+      <label for='name'>Snapshot Name:</label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='name'
+          class='form-control mr-2'
+          oninput={{this.updateName}}
+          value={{this.snapshotName}}
+        />
+      </div>
+      <label class='mt-2' for='date'>Expires <i>- Optional:</i> </label>
+      <div class='d-flex justify-content-between'>
+        <input
+          id='date'
+          class='form-control mr-2'
+          type='date'
+          min={{this.today}}
+          oninput={{this.updateExpDate}}
+          {{!-- value={{this.expDate}} --}}
+        />
+      </div>
+      <div class='mt-2 d-flex'>
+        <div>
+          <label class='mr-3' for='personalSnapshot'>Duplicate as Personal
+            Snapshot:</label>
+        </div>
+        <div>
+          <input
+            id='personalSnapshot'
+            type='checkbox'
+            oninput={{this.updatePersonalSnapshot}}
+          />
+        </div>
+      </div>
+    </modal.body>
+    <modal.footer>
+      <BsButton
+        @outline={{true}}
+        @type='danger'
+        @onClick={{this.closeSnaphshotModal}}
+      >Cancel</BsButton>
+      <BsButton
+        title='Save'
+        @type='secondary'
+        @outline={{true}}
+        @onClick={{this.createSnapshot}}
+        disabled={{this.saveSnaphotBtnDisabled}}
+      >Save</BsButton>
+    </modal.footer>
 
+  </BsModal>
 </div>

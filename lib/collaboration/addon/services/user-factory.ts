@@ -30,9 +30,7 @@ export default class UserFactory extends Service.extend({}) {
     const remoteUser = new RemoteUser({
       userName,
       userId,
-      color: new THREE.Color(
-        `rgb(${color.red}, ${color.green}, ${color.blue})`
-      ),
+      color: new THREE.Color(color.red, color.green, color.blue),
       state: 'online',
       localUser: this.localUser,
     });

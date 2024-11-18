@@ -5,7 +5,7 @@
         <TokenSelection
           @openTokenCreationModal={{this.openTokenCreationModal}}
           @selectToken={{this.selectToken}}
-          @tokens={{@model}}
+          @tokens={{@model.landscapeTokens}}
           @deleteToken={{this.deleteToken}}
           @reload={{this.reload}}
         />
@@ -13,6 +13,13 @@
     </tab.pane>
     <tab.pane @id='room-tab' @title='Rooms'>
       <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
+    </tab.pane>
+    <tab.pane @id='snapshot-tab' @title='Snapshots'>
+      <SnapshotSelection
+        @snapshotInfo={{@model.snapshotInfo}}
+        @selectPersonalToken={{this.selectPersonalSnapshot}}
+        @selectSharedToken={{this.selectSharedSnapshot}}
+      />
     </tab.pane>
   </BsTab>
 </div>

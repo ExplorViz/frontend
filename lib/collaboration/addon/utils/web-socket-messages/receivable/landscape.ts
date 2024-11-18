@@ -23,6 +23,21 @@ type DetachedMenu = {
   scale: Scale;
 };
 
+type Annotation = {
+  objectId: string | null;
+  annotationId: number;
+  userId: string;
+  sharedBy: string;
+  entityId: string | undefined;
+  menuId: string | null | undefined;
+  annotationText: string;
+  annotationTitle: string;
+  owner: string;
+  shared: boolean;
+  inEdit: boolean;
+  lastEditor: string;
+};
+
 type App = {
   id: string;
   position: Position;
@@ -46,6 +61,7 @@ export type InitialLandscapeMessage = {
   landscape: Landscape;
   detachedMenus: DetachedMenu[];
   highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
+  annotations: Annotation[];
 };
 
 function isHighlightedComponent(comp: any): comp is HighlightedComponent {

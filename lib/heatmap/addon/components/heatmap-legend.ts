@@ -13,7 +13,7 @@ interface Args {
 }
 
 export default class HeatmapLegend extends Component<Args> {
-  debug = debugLogger('HeatmapLegend');
+  debug = debugLogger();
 
   @service('heatmap-configuration')
   heatmapConfiguration!: HeatmapConfiguration;

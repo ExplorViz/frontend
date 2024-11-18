@@ -6,6 +6,7 @@ export type SettingGroup =
   | 'Highlighting'
   | 'Effects'
   | 'Popups'
+  | 'Annotations'
   | 'Virtual Reality'
   | 'Debugging';
 
@@ -59,6 +60,8 @@ export type ApplicationDebugSettingId =
 
 export type ApplicationPopupSettingId = 'hidePopupDelay';
 
+export type ApplicationAnnotationSettingId = 'enableCustomAnnotationPosition';
+
 export type ApplicationSettingId =
   | ApplicationColorSettingId
   | ApplicationControlSettingId
@@ -68,17 +71,18 @@ export type ApplicationSettingId =
   | ApplicationDebugSettingId
   | ApplicationCameraSettingId
   | ApplicationXRSettingId
-  | ApplicationPopupSettingId;
-
-export type ApplicationControlSettings = {
-  enableGamepadControls: FlagSetting;
-  selectedGamepadIndex: RangeSetting;
-};
+  | ApplicationPopupSettingId
+  | ApplicationAnnotationSettingId;
 
 export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
   ColorSetting
 >;
+
+export type ApplicationControlSettings = {
+  enableGamepadControls: FlagSetting;
+  selectedGamepadIndex: RangeSetting;
+};
 
 export type ApplicationHighlightingSettings = {
   applyHighlightingOnHover: FlagSetting;
@@ -111,6 +115,11 @@ export type ApplicationPopupSettings = {
   hidePopupDelay: RangeSetting;
 };
 
+export type ApplicationAnnotationSettings = Record<
+  ApplicationAnnotationSettingId,
+  FlagSetting
+>;
+
 export type ApplicationCameraSettings = {
   cameraNear: RangeSetting;
   cameraFar: RangeSetting;
@@ -125,6 +134,7 @@ export type ApplicationSettings = ApplicationColorSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &
   ApplicationPopupSettings &
+  ApplicationAnnotationSettings &
   ApplicationCameraSettings &
   ApplicationXRSettings &
   ApplicationCommunicationSettings;

@@ -18,10 +18,11 @@ import LocalUser from 'collaboration/services/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 
 interface IArgs {
+  addAnnotationForPopup(popup: PopupData): void;
+  pinPopup(popup: PopupData): void;
   popupData: PopupData;
   popupHandler: PopupHandler;
   removePopup(entityId: string): void;
-  pinPopup(popup: PopupData): void;
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
 }
@@ -66,7 +67,7 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (!userId) {
       return '';
     }
-    return this.collaborationSession.getCssColor(userId);
+    return this.collaborationSession.getColor(userId);
   }
 
   @action
@@ -176,6 +177,10 @@ export default class PopupCoordinator extends Component<IArgs> {
 
     let popupTopPosition = popupData.mouseY - popupTopOffset;
     let popupLeftPosition = popupData.mouseX - popupLeftOffset;
+
+    //console.log('mouse', popupData.mouseX);
+    //console.log('popupLeftPosition', popupLeftPosition);
+    //console.log('popupLeftOffset', popupLeftOffset);
 
     // Prevent popup positioning on top of rendering canvas =>
     // position under mouse cursor
