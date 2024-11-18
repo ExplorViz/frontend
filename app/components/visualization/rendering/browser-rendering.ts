@@ -239,24 +239,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
-      {
-        title: 'Create Annotation',
-        action: (mouseOnCanvas: Position2D) => {
-          this.annotationHandler.addAnnotation({
-            annotationId: undefined,
-            mesh: undefined,
-            position: mouseOnCanvas,
-            hovered: false,
-            annotationTitle: '',
-            annotationText: '',
-            sharedBy: '',
-            owner: this.auth.user!.name,
-            shared: false,
-            inEdit: true,
-            lastEditor: undefined,
-          });
-        },
-      },
     ];
   }
 

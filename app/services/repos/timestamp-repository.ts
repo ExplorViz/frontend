@@ -164,7 +164,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   // #region Helper functions
 
-  private getTimestampsForCommitId(commitId: string): Timestamp[] {
+  getTimestampsForCommitId(commitId: string): Timestamp[] {
     const timestampsForCommitId = this.commitToTimestampMap.get(commitId);
     if (timestampsForCommitId) {
       return [...timestampsForCommitId.values()];

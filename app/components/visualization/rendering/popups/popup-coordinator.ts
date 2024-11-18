@@ -18,13 +18,13 @@ import LocalUser from 'collaboration/services/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 
 interface IArgs {
+  addAnnotationForPopup(popup: PopupData): void;
+  pinPopup(popup: PopupData): void;
   popupData: PopupData;
   popupHandler: PopupHandler;
   removePopup(entityId: string): void;
-  pinPopup(popup: PopupData): void;
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
-  addAnnotationForPopup(popup: PopupData): void;
 }
 
 export default class PopupCoordinator extends Component<IArgs> {

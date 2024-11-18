@@ -3,7 +3,6 @@ import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import RoomSerializer from 'collaboration/services/room-serializer';
-import { LandscapeData } from 'explorviz-frontend/controllers/visualization';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService, {
@@ -14,6 +13,7 @@ import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import LocalUser from 'collaboration/services/local-user';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
 interface Args {
   landscapeData: LandscapeData;
@@ -77,9 +77,8 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       true
     );
 
-    const timestamps = this.timestampRepo.getTimestamps(
-      this.args.landscapeToken.value
-    );
+    const timestamps =
+      this.timestampRepo.getTimestampsForCommitId('cross-commit');
 
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
@@ -119,9 +118,8 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       true
     );
 
-    const timestamps = this.timestampRepo.getTimestamps(
-      this.args.landscapeToken.value
-    );
+    const timestamps =
+      this.timestampRepo.getTimestampsForCommitId('cross-commit');
 
     const content: SnapshotToken = {
       owner: this.auth.user!.sub,
