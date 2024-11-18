@@ -1,9 +1,9 @@
 import gsap from 'gsap';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
+import { MapControls } from '../controls/MapControls';
 
 export default class CameraControls {
   @service('user-settings')
@@ -31,7 +31,6 @@ export default class CameraControls {
     this.perspectiveCameraControls.minDistance = 0.1;
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
-    this.perspectiveCameraControls.mouseButtons.MIDDLE = undefined;
   }
 
   private fitCamerasToBox(

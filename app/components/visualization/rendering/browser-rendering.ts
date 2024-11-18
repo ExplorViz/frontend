@@ -49,6 +49,7 @@ import * as THREE from 'three';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
+import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -134,6 +135,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   controls!: MapControls;
 
   cameraControls!: CameraControls;
+
+  gamepadControls: GamepadControls | null = null;
 
   initDone: boolean = false;
 
@@ -306,6 +309,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.setSize(width, height);
     this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
+
+    // Gamepad controls
+    this.gamepadControls = new GamepadControls(
+      this.camera,
+      this.scene,
+      this.cameraControls.perspectiveCameraControls,
+      {
+        lookAt: this.handleMouseMove,
+        select: this.handleSingleClick,
+        interact: this.handleDoubleClick,
+        inspect: this.handleMouseStop,
+        ping: this.localUser.ping.bind(this.localUser),
+      }
+    );
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
@@ -666,6 +683,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @action
   updateColors() {
     updateColors(this.scene, this.userSettings.applicationColors);
+  }
+
+  @action
+  setGamepadSupport(enabled: boolean) {
+    if (this.gamepadControls) {
+      this.gamepadControls.setGamepadSupport(enabled);
+    }
   }
 
   @action

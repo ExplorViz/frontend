@@ -1,6 +1,7 @@
 export type SettingGroup =
   | 'Camera'
   | 'Colors'
+  | 'Controls'
   | 'Communication'
   | 'Highlighting'
   | 'Effects'
@@ -21,6 +22,11 @@ export type ApplicationColorSettingId =
   | 'communicationColor'
   | 'communicationArrowColor'
   | 'backgroundColor';
+
+export type ApplicationControlSettingId =
+  | 'enableGamepadControls'
+  | 'selectedGamepadIndex';
+
 
 export type ApplicationHighlightingSettingId =
   | 'applyHighlightingOnHover'
@@ -59,6 +65,7 @@ export type ApplicationAnnotationSettingId = 'enableCustomAnnotationPosition';
 
 export type ApplicationSettingId =
   | ApplicationColorSettingId
+  | ApplicationControlSettingId
   | ApplicationHighlightingSettingId
   | ApplicationHoveringSettingId
   | ApplicationCommunicationSettingId
@@ -72,6 +79,11 @@ export type ApplicationColorSettings = Record<
   ApplicationColorSettingId,
   ColorSetting
 >;
+
+export type ApplicationControlSettings = {
+  enableGamepadControls: FlagSetting;
+  selectedGamepadIndex: RangeSetting;
+};
 
 export type ApplicationHighlightingSettings = {
   applyHighlightingOnHover: FlagSetting;
@@ -118,6 +130,7 @@ export type ApplicationCameraSettings = {
 export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
+  ApplicationControlSettings &
   ApplicationHighlightingSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &
