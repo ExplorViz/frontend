@@ -371,12 +371,12 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isRangeSetting: true,
   },
   version2: {
-    value: false,
+    value: true,
     orderNumber: 3,
     group: 'Minimap',
-    displayName: 'Change minimap marker calculation',
+    displayName: 'Use Camera Position',
     description:
-      'If off, calculate minimap-position via intersection of camera with ground plane. Else, use camera position',
+      'If off, calculate minimap position via intersection of camera with ground plane.',
     isFlagSetting: true,
   },
   layer1: {
