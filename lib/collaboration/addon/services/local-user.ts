@@ -10,6 +10,9 @@ import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import ChatService from 'explorviz-frontend/services/chat';
+import collaborationSession from 'explorviz-frontend/services/collaboration-session';
 import {
   EntityMesh,
   isEntityMesh,
@@ -32,6 +35,15 @@ export default class LocalUser extends Service.extend({
   @service
   applicationRenderer!: ApplicationRenderer;
 
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
+
+  @service('chat')
+  chatService!: ChatService;
+
+  @service('collaboration-session')
+  collaborationSession!: collaborationSession;
+
   userId!: string;
 
   @tracked
@@ -42,9 +54,6 @@ export default class LocalUser extends Service.extend({
 
   @tracked
   defaultCamera!: THREE.PerspectiveCamera;
-
-  @tracked
-  orthographicCamera!: THREE.OrthographicCamera;
 
   @tracked
   minimapCamera!: THREE.OrthographicCamera;
@@ -68,17 +77,19 @@ export default class LocalUser extends Service.extend({
 
   xr?: WebXRManager;
 
+  @tracked
+  isHost!: boolean;
+
   init() {
     super.init();
 
     this.userId = 'unknown';
-
+    this.isHost = false;
     this.userGroup = new THREE.Group();
 
     // Initialize camera. The default aspect ratio is not known at this point
     // and must be updated when the canvas is inserted.
     this.defaultCamera = new THREE.PerspectiveCamera();
-    this.orthographicCamera = new THREE.OrthographicCamera();
     this.minimapCamera = new THREE.OrthographicCamera();
     // this.defaultCamera.position.set(0, 1, 2);
     if (this.xr?.isPresenting) {
@@ -95,9 +106,6 @@ export default class LocalUser extends Service.extend({
   get camera() {
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
-    }
-    if (this.settings.applicationSettings.useOrthographicCamera.value) {
-      return this.orthographicCamera;
     }
     return this.defaultCamera;
   }
@@ -238,13 +246,54 @@ export default class LocalUser extends Service.extend({
       this.applicationRenderer.openParents(obj, app3D.getModelId());
     }
 
+    const replay = false;
+
     this.mousePing.ping.perform({
       parentObj: app3D,
       position: pingPosition,
       durationInMs,
+      replay,
     });
 
     this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
+    this.chatService.sendChatMessage(
+      this.userId,
+      `${this.userName}(${this.userId}) pinged ${obj.dataModel.name}`,
+      true,
+      'ping',
+      [app3D.getModelId(), pingPosition.toArray(), durationInMs]
+    );
+  }
+
+  pingReplay(
+    userId: string,
+    modelId: string,
+    position: number[],
+    durationInMs: number,
+    replay: boolean = true
+  ) {
+    const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
+
+    const applicationObj = this.applicationRenderer.getApplicationById(modelId);
+
+    const point = new THREE.Vector3().fromArray(position);
+    if (applicationObj) {
+      if (remoteUser) {
+        remoteUser.mousePing.ping.perform({
+          parentObj: applicationObj,
+          position: point,
+          durationInMs,
+          replay,
+        });
+      } else {
+        this.mousePing.ping.perform({
+          parentObj: applicationObj,
+          position: point,
+          durationInMs,
+          replay,
+        });
+      }
+    }
   }
 
   /*

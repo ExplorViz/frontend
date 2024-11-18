@@ -33,7 +33,6 @@ interface NamedArgs {
   mousePositionX: number;
   rendererResolutionMultiplier: number;
   camera: THREE.Camera;
-  orthographicCamera: THREE.OrthographicCamera;
   raycastObjects: Object3D | Object3D[];
   mouseEnter?(): void;
   mouseLeave?(): void;
@@ -158,11 +157,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   get camera(): THREE.Camera {
-    if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
-      return this.namedArgs.orthographicCamera;
-    } else {
-      return this.namedArgs.camera;
-    }
+    return this.namedArgs.camera;
   }
 
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {

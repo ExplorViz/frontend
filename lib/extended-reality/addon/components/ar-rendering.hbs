@@ -41,7 +41,6 @@
 
       {{#each this.popupHandler.popupData as |d|}}
         <Visualization::Rendering::Popups::PopupCoordinator
-          @isMovable='true'
           @popupData={{d}}
           @pinPopup={{this.popupHandler.pinPopup}}
           @sharePopup={{this.popupHandler.sharePopup}}
@@ -172,39 +171,78 @@
     </div>
   </div>
   {{#if @showSettingsSidebar}}
-    <div class='sidebar right col-8' id='dataselection'>
+    <div class='sidebar right col-8' id='settingsSidebar'>
       <div class='mt-6 d-flex flex-row w-100'>
-        <Visualization::PageSetup::Sidebar::Customizationbar::DataSelection
-          @closeDataSelection={{@closeDataSelection}}
+        <Visualization::PageSetup::Sidebar::Customizationbar::SettingsSidebar
+          @closeSettingsSidebar={{@closeSettingsSidebar}}
         >
-          <div class='explorviz-visualization-navbar foreground'>
+          <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
+              <Visualization::PageSetup::Navbar::ArSettingsOpener
+                @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Navbar::ArSettingsOpener
+              <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
+                @openedComponent={{@openedSettingComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
+              <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsOpener
+                @openedComponent={{@openedSettingComponent}}
+                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              />
+              <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingsOpener
+                @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
             </ul>
           </div>
-          {{#each @components as |componentId|}}
+          {{#if @openedSettingComponent}}
             <Visualization::PageSetup::Sidebar::SidebarComponent
-              @componentId={{componentId}}
+              @componentId={{@openedSettingComponent}}
             >
-              {{#if (eq componentId 'Collaboration')}}
+              {{#if (eq @openedSettingComponent 'Collaboration')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
                 />
               {{/if}}
-              {{#if (eq componentId 'AR-Settings')}}
+              {{#if (eq @openedSettingComponent 'AR-Settings')}}
                 <Visualization::PageSetup::Sidebar::ArSettingsSelector
                   @updateView={{this.updateColors}}
                   @updateCameraResolution={{this.initArJs}}
                   @updateRendererResolution={{this.updateRendererResolution}}
                 />
               {{/if}}
+              {{#if (eq @openedSettingComponent 'Metrics')}}
+                <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsViewer
+                />
+              {{/if}}
+              {{#if (eq @openedSettingComponent 'trace-selection')}}
+                {{#if this.selectedApplicationObject3D}}
+                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                    @highlightTrace={{this.highlightTrace}}
+                    @moveCameraTo={{this.moveCameraTo}}
+                    @removeHighlighting={{this.removeHighlighting}}
+                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                    @structureData={{@landscapeData.structureLandscapeData}}
+                    @application={{this.selectedApplicationObject3D.dataModel}}
+                  />
+                {{else}}
+                  Please select an application to use the trace overview.
+                {{/if}}
+              {{/if}}
+              {{#if (eq @openedSettingComponent 'Settings')}}
+                <Visualization::PageSetup::Sidebar::Customizationbar::Settings::Settings
+                  @enterFullscreen={{this.enterFullscreen}}
+                  @popups={{this.popupHandler.popupData}}
+                  @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
+                  @resetSettings={{this.userSettings.applyDefaultApplicationSettings}}
+                  @setGamepadSupport={{this.setGamepadSupport}}
+                  @updateColors={{this.updateColors}}
+                  @updateHighlighting={{this.highlightingService.updateHighlighting}}
+                />
+              {{/if}}
             </Visualization::PageSetup::Sidebar::SidebarComponent>
-          {{/each}}
-        </Visualization::PageSetup::Sidebar::Customizationbar::DataSelection>
+          {{/if}}
+        </Visualization::PageSetup::Sidebar::Customizationbar::SettingsSidebar>
       </div>
     </div>
   {{/if}}

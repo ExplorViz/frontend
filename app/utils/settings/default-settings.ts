@@ -161,6 +161,14 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
+  castShadows: {
+    value: false,
+    orderNumber: 3,
+    group: 'Effects',
+    displayName: 'Cast Shadows',
+    description: 'Enable casting shadows from light (can be expensive)',
+    isFlagSetting: true,
+  },
   // Communication Settings
   commThickness: {
     value: 0.5,
@@ -203,24 +211,46 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
-  // Popup Settings
-  enableCustomPopupPosition: {
-    value: true,
+  // Popup settings
+  hidePopupDelay: {
+    value: 1.0,
+    range: {
+      min: 0.0,
+      max: 3.0,
+      step: 0.25,
+    },
     orderNumber: 1,
     group: 'Popups',
-    displayName: 'Enable Custom Popup Positioning',
-    description:
-      'If enabled, popups can be dragged to a prefered, fixed position',
-    isFlagSetting: true,
+    displayName: 'Hide Popups After',
+    description: 'Determines how many seconds popups stay on screen',
+    isRangeSetting: true,
   },
-  // Camera Settings
-  useOrthographicCamera: {
-    value: false,
+  // Camera settings
+  cameraNear: {
+    value: 0.1,
+    range: {
+      min: 0.01,
+      max: 5.0,
+      step: 0.01,
+    },
     orderNumber: 1,
     group: 'Camera',
-    displayName: 'Use Orthographic Camera Instead of Perspective',
-    description: 'Switch between orthographic and perspective camera',
-    isFlagSetting: true,
+    displayName: 'Render Near',
+    description: 'Determines near render distance',
+    isRangeSetting: true,
+  },
+  cameraFar: {
+    value: 100,
+    range: {
+      min: 5.0,
+      max: 150.0,
+      step: 1.0,
+    },
+    orderNumber: 2,
+    group: 'Camera',
+    displayName: 'Render Far',
+    description: 'Determines far render distance',
+    isRangeSetting: true,
   },
   cameraFov: {
     value: 75,
@@ -229,7 +259,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 150.0,
       step: 5.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Camera',
     displayName: 'Field of View',
     description: 'Set field of view for the perspective camera',
@@ -237,7 +267,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // VR Settings
   showVrButton: {
-    value: true,
+    value: false,
     orderNumber: 1,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
@@ -245,7 +275,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   showVrOnClick: {
-    value: false,
+    value: true,
     orderNumber: 2,
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',

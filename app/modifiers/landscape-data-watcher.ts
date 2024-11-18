@@ -317,7 +317,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           );
         }
       );
-      calculateHeatmap(applicationData.heatmapData, results[1]);
+      calculateHeatmap(applicationData.applicationMetrics, results[1]);
       this.applicationRepo.add(applicationData);
 
       return applicationData;

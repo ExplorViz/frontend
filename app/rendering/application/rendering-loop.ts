@@ -13,7 +13,6 @@ const clock = new Clock();
 
 interface Args {
   camera: THREE.Camera;
-  orthographicCamera: THREE.OrthographicCamera | undefined;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   updatables: any[];
@@ -40,8 +39,6 @@ export default class RenderingLoop {
 
   camera: THREE.Camera;
 
-  orthographicCamera: THREE.OrthographicCamera | undefined;
-
   minimapCamera: THREE.OrthographicCamera;
 
   scene: THREE.Scene;
@@ -62,7 +59,6 @@ export default class RenderingLoop {
   constructor(owner: any, args: Args) {
     setOwner(this, owner);
     this.camera = args.camera;
-    this.orthographicCamera = args.orthographicCamera;
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.updatables = args.updatables;
@@ -93,15 +89,8 @@ export default class RenderingLoop {
       // tell every animated object to tick forward one frame
       this.tick(frame);
 
-      // render a frame
-      if (
-        this.orthographicCamera &&
-        this.userSettings.applicationSettings.useOrthographicCamera.value
-      ) {
-        this.renderer.render(this.scene, this.orthographicCamera);
-      } else {
-        this.renderer.render(this.scene, this.camera);
-      }
+      // Render a frame
+      this.renderer.render(this.scene, this.camera);
 
       if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
         // must be run after normal render

@@ -4,6 +4,7 @@ import { action } from '@ember/object';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
+import RenderingService from 'explorviz-frontend/services/rendering-service';
 
 export default class Navbar extends Component {
   @service('landscape-token')
@@ -14,6 +15,9 @@ export default class Navbar extends Component {
 
   @service('auth')
   auth!: Auth;
+
+  @service('rendering-service')
+  renderingService!: RenderingService;
 
   @action
   logout() {
@@ -30,12 +34,22 @@ export default class Navbar extends Component {
 
   @action
   goToVisualization() {
-    this.tokenService.setToken(this.tokenService.latestToken!);
     this.router.transitionTo('visualization', {
       queryParams: {
-        landscapeToken: this.tokenService.latestToken!.value,
+        landscapeToken: this.tokenService.token!.value,
       },
     });
+  }
+
+  get renderingMode() {
+    let currentRenderingMode = this.renderingService.visualizationMode;
+
+    currentRenderingMode =
+      'Active mode: ' +
+      currentRenderingMode.charAt(0).toUpperCase() +
+      currentRenderingMode.slice(1);
+
+    return currentRenderingMode;
   }
 
   get isSingleLandscapeMode() {

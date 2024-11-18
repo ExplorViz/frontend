@@ -16,6 +16,8 @@ import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import { Mesh } from 'three';
 
 interface Args {
   enterFullscreen?(): void;
@@ -42,6 +44,9 @@ export default class Settings extends Component<Args> {
 
   @service('room-serializer')
   private roomSerializer!: RoomSerializer;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
 
   @service('toast-handler')
   private toastHandlerService!: ToastHandlerService;
@@ -125,6 +130,16 @@ export default class Settings extends Component<Args> {
           this.args.updateHighlighting();
         }
         break;
+      case 'cameraNear':
+        this.localUser.defaultCamera.near =
+          this.userSettings.applicationSettings.cameraNear.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
+      case 'cameraFar':
+        this.localUser.defaultCamera.far =
+          this.userSettings.applicationSettings.cameraFar.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
       case 'cameraFov':
         this.localUser.defaultCamera.fov =
           this.userSettings.applicationSettings.cameraFov.value;
@@ -201,6 +216,30 @@ export default class Settings extends Component<Args> {
         default:
           break;
       }
+    }
+
+    const scene = this.sceneRepo.getScene();
+    const directionalLight = scene.getObjectByName('DirectionalLight');
+    const spotLight = scene.getObjectByName('SpotLight');
+
+    switch (settingId) {
+      case 'applyHighlightingOnHover':
+        if (this.args.updateHighlighting) {
+          this.args.updateHighlighting();
+        }
+        break;
+      case 'castShadows':
+        if (directionalLight) directionalLight.castShadow = value;
+        if (spotLight) spotLight.castShadow = value;
+        // Update shadow casting on objects
+        scene.traverse((child) => {
+          if (child instanceof Mesh) child.material.needsUpdate = true;
+        });
+        break;
+      case 'enableGamepadControls':
+        this.args.setGamepadSupport(value);
+        break;
+      default:
     }
   }
 

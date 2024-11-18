@@ -120,8 +120,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   hoveredObject: EntityMesh | null = null;
 
-  private frustumSize = 5;
-
   cameraControls!: CameraControls;
 
   gamepadControls: GamepadControls | null = null;
@@ -156,7 +154,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
-    this.debug('Constructor called');
+
     // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
@@ -262,8 +260,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   canvasInserted(canvas: HTMLCanvasElement) {
-    this.debug('Canvas inserted');
-
     this.canvas = canvas;
     this.landscapeRestructure.canvas = canvas;
 
@@ -283,17 +279,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.setSize(width, height);
     this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
-
-    this.localUser.ortographicCamera.left =
-      (this.frustumSize * newAspectRatio) / -2;
-    this.localUser.ortographicCamera.right =
-      (this.frustumSize * newAspectRatio) / 2;
-    this.localUser.ortographicCamera.top = this.frustumSize / 2;
-    this.localUser.ortographicCamera.bottom = -this.frustumSize / 2;
-
-    this.localUser.ortographicCamera.userData.aspect = newAspectRatio;
-
-    this.localUser.ortographicCamera.updateProjectionMatrix();
   }
 
   // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
@@ -320,42 +305,24 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   private initCameras() {
     const aspectRatio = this.canvas.width / this.canvas.height;
-    // camera
+    const settings = this.userSettings.applicationSettings;
+
+    // Camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      this.userSettings.applicationSettings.cameraFov.value,
+      settings.cameraFov.value,
       aspectRatio,
-      0.1,
-      100
+      settings.cameraNear.value,
+      settings.cameraFar.value
     );
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.camera);
 
-    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
-      -aspectRatio * this.frustumSize,
-      aspectRatio * this.frustumSize,
-      this.frustumSize,
-      -this.frustumSize,
-      0.1,
-      100
-    );
-
-    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
-
-    this.localUser.ortographicCamera.position.setFromSphericalCoords(
-      10,
-      Math.PI / 3,
-      Math.PI / 4
-    );
-    this.localUser.ortographicCamera.lookAt(this.scene.position);
-
-    // controls
+    // Controls
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
-      this.localUser.ortographicCamera,
       this.canvas
     );
-
     this.spectateUserService.cameraControls = this.cameraControls;
     this.localUser.cameraControls = this.cameraControls;
     this.updatables.push(this.localUser);
@@ -390,9 +357,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
     this.debug('Renderer set up');
+
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      orthographicCamera: this.localUser.ortographicCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
@@ -531,9 +498,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
+    this.popupHandler.handleMouseMove(event);
     if (intersection) {
       this.mousePosition.copy(intersection.point);
-      this.handleMouseMoveOnMesh(intersection.object, event);
+      this.handleMouseMoveOnMesh(intersection.object);
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
@@ -557,7 +525,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined, event: MouseEvent) {
+  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
     const { value: enableAppHoverEffects } =
       this.appSettings.enableHoverEffects;
 
@@ -574,20 +542,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject = mesh;
       mesh.applyHoverEffect();
     }
-
-    // Hide popups when mouse moves
-    if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
   }
 
   @action
   removePopup(entityId: string) {
-    if (!this.appSettings.enableCustomPopupPosition.value) {
-      this.popupHandler.clearPopups();
-    } else {
-      this.popupHandler.removePopup(entityId);
-    }
+    this.popupHandler.removePopup(entityId);
 
     // remove potential toggle effect
     const mesh = this.applicationRenderer.getMeshById(entityId);
@@ -597,11 +556,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseOut(event: PointerEvent) {
+  handleMouseOut(/*event: PointerEvent*/) {
     this.popupHandler.handleHoverOnMesh();
-    if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
   }
 
   @action
@@ -610,7 +566,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.popupHandler.addPopup({
         mesh: intersection.object,
         position: mouseOnCanvas,
-        replace: !this.appSettings.enableCustomPopupPosition.value,
         hovered: true,
       });
     }

@@ -2,6 +2,7 @@ import { module, test } from 'qunit';
 import { setupRenderingTest } from 'ember-qunit';
 import { render } from '@ember/test-helpers';
 import hbs from 'htmlbars-inline-precompile';
+import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 
 module(
   'Integration | Component | visualization/page-setup/bottom-bar/runtime/plotly-timeline',
@@ -12,7 +13,9 @@ module(
       // Set any properties with this.set('myProperty', 'value');
       // Handle any actions with this.set('myAction', function(val) { ... });
 
-      this.set('timelineDataObject', {timestamps: []});
+      const payload = new TimelineDataObjectHandler();
+
+      this.set('timelineDataObject', payload.timelineDataObject);
 
       await render(hbs`<Visualization::PageSetup::BottomBar::Runtime::PlotlyTimeline @timelineDataObject={{this.timelineDataObject}} />`);
 

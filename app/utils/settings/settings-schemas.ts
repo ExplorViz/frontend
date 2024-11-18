@@ -35,7 +35,8 @@ export type ApplicationHighlightingSettingId =
 
 export type ApplicationHoveringSettingId =
   | 'enableHoverEffects'
-  | 'enableAnimations';
+  | 'enableAnimations'
+  | 'castShadows';
 
 export type ApplicationCommunicationSettingId =
   | 'commThickness'
@@ -53,7 +54,10 @@ export type ApplicationMinimapSettingId =
   | 'layer6'
   | 'layer7';
 
-export type ApplicationCameraSettingId = 'useOrthographicCamera' | 'cameraFov';
+export type ApplicationCameraSettingId =
+  | 'cameraNear'
+  | 'cameraFar'
+  | 'cameraFov';
 
 export type ApplicationXRSettingId = 'showVrButton' | 'showVrOnClick';
 
@@ -65,7 +69,7 @@ export type ApplicationDebugSettingId =
   | 'syncRoomState'
   | 'resetToDefaults';
 
-export type ApplicationPopupSettingId = 'enableCustomPopupPosition';
+export type ApplicationPopupSettingId = 'hidePopupDelay';
 
 export type ApplicationSettingId =
   | ApplicationColorSettingId
@@ -116,13 +120,13 @@ export type ApplicationDebugSettings = {
   resetToDefaults: ButtonSetting;
 };
 
-export type ApplicationPopupSettings = Record<
-  ApplicationPopupSettingId,
-  FlagSetting
->;
+export type ApplicationPopupSettings = {
+  hidePopupDelay: RangeSetting;
+};
 
 export type ApplicationCameraSettings = {
-  useOrthographicCamera: FlagSetting;
+  cameraNear: RangeSetting;
+  cameraFar: RangeSetting;
   cameraFov: RangeSetting;
 };
 

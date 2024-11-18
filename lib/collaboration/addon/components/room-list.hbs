@@ -30,13 +30,19 @@
       {{else}}
         There are no open rooms at the moment.
       {{/each}}
+      <tr>
+        <td colspan='4' class='p-1'>
+          <div class='d-flex flex-row justify-content-center'>
+            <BsButton
+              @type='primary'
+              class='align-self-center pt-2 px-3'
+              @onClick={{this.loadRooms}}
+            >
+              {{svg-jar 'sync-16' class='octicon'}}
+            </BsButton>
+          </div>
+        </td>
+      </tr>
     </tbody>
   </table>
 </div>
-<BsButton
-  @type='primary'
-  class='align-self-center pt-2 px-3'
-  @onClick={{this.loadRooms}}
->
-  {{svg-jar 'sync-16' class='octicon'}}
-</BsButton>

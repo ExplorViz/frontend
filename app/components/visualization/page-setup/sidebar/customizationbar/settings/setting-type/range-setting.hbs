@@ -1,4 +1,4 @@
-<div class='mb-3'>
+<div class='setting-container'>
   <HelpTooltip @title={{@setting.description}} />
   <label class='m-0' for={{@setting.name}}>{{@setting.displayName}}</label>
   <div class='range-slider--container'>
@@ -11,6 +11,7 @@
         type='range'
         step={{@setting.range.step}}
         class='form-control mr-2'
+        style='height:1rem'
         {{on 'change' @onChange}}
       />
       <div class='range-slider--values'>

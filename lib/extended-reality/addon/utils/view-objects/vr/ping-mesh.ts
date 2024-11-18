@@ -19,6 +19,8 @@ export default class PingMesh extends THREE.Mesh {
 
   private isPinging: boolean;
 
+  material: THREE.MeshBasicMaterial;
+
   constructor({
     animationMixer,
     color,
@@ -41,14 +43,23 @@ export default class PingMesh extends THREE.Mesh {
     this.action = animationMixer.clipAction(PING_ANIMATION_CLIP, this);
   }
 
-  startPinging() {
+  startPinging(replay?: boolean) {
     this.isPinging = true;
     this.startAnimation();
+    if (replay) {
+      this.material.transparent = true;
+      this.material.opacity = 0.5;
+    } else {
+      this.material.transparent = false;
+      this.material.opacity = 1;
+    }
   }
 
   stopPinging() {
     this.isPinging = false;
     this.stopAnimation();
+    this.material.transparent = false;
+    this.material.opacity = 1;
   }
 
   private startAnimation() {

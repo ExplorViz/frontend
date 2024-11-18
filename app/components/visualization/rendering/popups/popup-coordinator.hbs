@@ -7,71 +7,69 @@
   {{did-insert this.setPopupPosition}}
   hover={{@popupData.hovered}}
 >
-  {{#if @isMovable}}
-    {{#if @popupData.wasMoved}}
-      {{#if @popupData.isPinned}}
-        <BsButton @type='secondary' @outline='true' disabled='true'>
-          {{svg-jar 'pin-16' class='octicon align-right'}}
-          <BsTooltip @placement='top' @triggerEvents='hover'>
-            Popup is pinned
-          </BsTooltip>
-        </BsButton>
-      {{else}}
-        <BsButton @type='primary' @onClick={{fn @pinPopup @popupData}}>
-          {{svg-jar 'pin-16' class='octicon align-right'}}
-          <BsTooltip @placement='top' @triggerEvents='hover'>
-            Pin Popup
-          </BsTooltip>
-        </BsButton>
-      {{/if}}
-
-      {{#if @popupData.sharedBy}}
-        <BsButton @type='secondary' @outline='true' disabled='true'>
-          {{svg-jar 'share-android-16' class='octicon align-right'}}
-          <BsTooltip @placement='top' @triggerEvents='hover'>
-            Popup is shared
-          </BsTooltip>
-        </BsButton>
-      {{else if (and this.collaborationSession.isOnline @popupData.isPinned)}}
-        <BsButton @type='primary' @onClick={{fn @sharePopup @popupData}}>
-          {{svg-jar 'share-android-16' class='octicon align-middle'}}
-          <BsTooltip @placement='top' @triggerEvents='hover'>
-            Share popup with other users.
-          </BsTooltip>
-        </BsButton>
-      {{/if}}
-
-      <BsButton @type={{'primary'}} @onClick={{this.highlight}}>
-        {{svg-jar 'paintbrush-16' class='octicon align-middle'}}
+  {{#if @popupData.wasMoved}}
+    {{#if @popupData.isPinned}}
+      <BsButton @type='secondary' @outline='true' disabled='true'>
+        {{svg-jar 'pin-16' class='octicon align-right'}}
         <BsTooltip @placement='top' @triggerEvents='hover'>
-          Highlight
+          Popup is pinned
         </BsTooltip>
       </BsButton>
-
-      <BsButton
-        class='popup-close-button'
-        @type='secondary'
-        @outline='true'
-        @onClick={{fn @removePopup @popupData.entity.id}}
-      >
-        X
-      </BsButton>
     {{else}}
-      <BsButton
-        @type='secondary'
-        size='extra-small'
-        @outline='true'
-        disabled='true'
-      >
-        Shift + Mouse to Drag
+      <BsButton @type='primary' @onClick={{fn @pinPopup @popupData}}>
+        {{svg-jar 'pin-16' class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+          Pin Popup
+        </BsTooltip>
       </BsButton>
     {{/if}}
+
+    {{#if @popupData.sharedBy}}
+      <BsButton @type='secondary' @outline='true' disabled='true'>
+        {{svg-jar 'share-android-16' class='octicon align-right'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+          Popup is shared
+        </BsTooltip>
+      </BsButton>
+    {{else if (and this.collaborationSession.isOnline @popupData.isPinned)}}
+      <BsButton @type='primary' @onClick={{fn @sharePopup @popupData}}>
+        {{svg-jar 'share-android-16' class='octicon align-middle'}}
+        <BsTooltip @placement='top' @triggerEvents='hover'>
+          Share popup with other users.
+        </BsTooltip>
+      </BsButton>
+    {{/if}}
+
+    <BsButton @type={{'primary'}} @onClick={{this.highlight}}>
+      {{svg-jar 'paintbrush-16' class='octicon align-middle'}}
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Highlight
+      </BsTooltip>
+    </BsButton>
+
+    <BsButton
+      class='popup-close-button'
+      @type='secondary'
+      @outline='true'
+      @onClick={{fn @removePopup @popupData.entity.id}}
+    >
+      X
+    </BsButton>
+  {{else}}
+    <BsButton
+      @type='secondary'
+      size='extra-small'
+      @outline='true'
+      disabled='true'
+    >
+      Drag with Mouse
+    </BsButton>
   {{/if}}
 
   {{#if (eq this.entityType 'application')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Foundation::FoundationPopup
       @restructureMode={{this.landscapeRestructure.restructureMode}}
-      @application={{@popupData.entity}}
+      @popupData={{@popupData}}
     />
   {{/if}}
 
@@ -79,20 +77,19 @@
   {{#if (eq this.entityType 'package')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Component::ComponentPopup
       @restructureMode={{this.landscapeRestructure.restructureMode}}
-      @component={{@popupData.entity}}
+      @popupData={{@popupData}}
     />
   {{/if}}
   {{#if (eq this.entityType 'class')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Clazz::ClazzPopup
       @restructureMode={{this.landscapeRestructure.restructureMode}}
-      @clazz={{@popupData.entity}}
-      @applicationId={{@popupData.applicationId}}
+      @popupData={{@popupData}}
     />
   {{/if}}
   {{#if (eq this.entityType 'classCommunication')}}
     <Visualization::Rendering::Popups::ApplicationPopups::Communication::CommunicationPopup
       @restructureMode={{this.landscapeRestructure.restructureMode}}
-      @communication={{@popupData.entity}}
+      @popupData={{@popupData}}
       @showApplication={{@showApplication}}
       @toggleHighlightById={{@toggleHighlightById}}
       @openParents={{@openParents}}
