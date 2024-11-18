@@ -50,6 +50,7 @@ import AnnotationHandlerService from 'explorviz-frontend/services/annotation-han
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import PopupData from './popups/popup-data';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -575,6 +576,27 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject = mesh;
       mesh.applyHoverEffect();
     }
+  }
+
+  @action
+  addAnnotationForPopup(popup: PopupData) {
+    const mesh = this.applicationRenderer.getMeshById(popup.entity.id);
+    if (!mesh) return;
+
+    this.annotationHandler.addAnnotation({
+      annotationId: undefined,
+      mesh: mesh,
+      position: { x: 250, y: 100 },
+      hovered: true,
+      annotationTitle: '',
+      annotationText: '',
+      sharedBy: '',
+      owner: this.auth.user!.name,
+      shared: false,
+      inEdit: true,
+      lastEditor: undefined,
+      wasMoved: true,
+    });
   }
 
   @action

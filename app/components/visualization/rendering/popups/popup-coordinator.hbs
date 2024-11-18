@@ -47,6 +47,13 @@
       </BsTooltip>
     </BsButton>
 
+    <BsButton @type={{'primary'}} @onClick={{fn @addAnnotationForPopup @popupData}}>
+      {{svg-jar 'comment-16' class='octicon align-middle'}}
+      <BsTooltip @placement='top' @triggerEvents='hover'>
+        Annotate
+      </BsTooltip>
+    </BsButton>
+
     <BsButton
       class='popup-close-button'
       @type='secondary'

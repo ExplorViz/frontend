@@ -24,6 +24,7 @@ interface IArgs {
   pinPopup(popup: PopupData): void;
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
+  addAnnotationForPopup(popup: PopupData): void;
 }
 
 export default class PopupCoordinator extends Component<IArgs> {

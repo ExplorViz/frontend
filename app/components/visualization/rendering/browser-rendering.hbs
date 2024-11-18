@@ -74,15 +74,16 @@
       {{! popup(s) }}
       {{#each this.popupHandler.popupData as |data|}}
         <Visualization::Rendering::Popups::PopupCoordinator
-          @popupData={{data}}
-          @pinPopup={{this.popupHandler.pinPopup}}
-          @sharePopup={{this.popupHandler.sharePopup}}
-          @updateMeshReference={{this.popupHandler.updateMeshReference}}
-          @removePopup={{this.removePopup}}
-          @structureData={{@landscapeData.structureLandscapeData}}
-          @showApplication={{this.showApplication}}
-          @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
+          @addAnnotationForPopup={{this.addAnnotationForPopup}}
           @openParents={{this.applicationRenderer.openParents}}
+          @pinPopup={{this.popupHandler.pinPopup}}
+          @popupData={{data}}
+          @removePopup={{this.removePopup}}
+          @sharePopup={{this.popupHandler.sharePopup}}
+          @showApplication={{this.showApplication}}
+          @structureData={{@landscapeData.structureLandscapeData}}
+          @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
+          @updateMeshReference={{this.popupHandler.updateMeshReference}}
         />
       {{/each}}
 
