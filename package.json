@@ -25,6 +25,13 @@
     "test:ember": "ember test",
     "prepare": "node .husky/install.mjs"
   },
+  "engines": {
+    "node": "^22.5.0",
+    "npm": "^10.8.0"
+  },
+  "ember": {
+    "edition": "octane"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.9",
     "@babel/eslint-parser": "^7.23.10",
@@ -119,13 +126,6 @@
     "webpack": "^5.90.1",
     "yuidoc-bootstrap-theme": "^1.0.6",
     "yuidocjs": "^0.10.2"
-  },
-  "engines": {
-    "node": "^20.11.0",
-    "npm": "^10.2.4"
-  },
-  "ember": {
-    "edition": "octane"
   },
   "dependencies": {
     "@embroider/compat": "^3.4.4",
