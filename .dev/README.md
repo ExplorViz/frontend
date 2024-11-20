@@ -16,8 +16,8 @@ You will need the following things properly installed on your computer.
 ## Running / Development
 
 - Copy configuration file for environment variables: `cp .env .env-custom`
-- In `.env-custom`: change value of `AUTH0_ENABLED` to _false_ (such that no login is required)
-- Start the application: `npm run dev`
+- `.env-custom` is ignored by Git, change environment variables if necessary
+- Start the application with custom env file: `npm run dev`
 - (Update mocked backend stack: `cd .dev && docker compose pull`)
 - Start mocked backend: `cd .dev && docker compose up -d`
 - Open frontend at [http://localhost:4200](http://localhost:4200)
