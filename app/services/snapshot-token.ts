@@ -100,7 +100,9 @@ export default class SnapshotTokenService extends Service {
             sharedSnapshots: [],
             subsricedSnapshots: [],
           });
-          this.toastHandler.showErrorToastMessage('Server not available.');
+          this.toastHandler.showErrorToastMessage(
+            'Server for snapshots not available.'
+          );
         });
     });
   }
@@ -175,7 +177,9 @@ export default class SnapshotTokenService extends Service {
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+        this.toastHandler.showErrorToastMessage(
+          'Snapshot server could not be reached.'
+        );
       });
 
     if (name !== undefined) {
@@ -196,7 +200,9 @@ export default class SnapshotTokenService extends Service {
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+        this.toastHandler.showErrorToastMessage(
+          'Snapshot server could not be reached.'
+        );
       });
   }
 
@@ -238,7 +244,9 @@ export default class SnapshotTokenService extends Service {
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+        this.toastHandler.showErrorToastMessage(
+          'Snapshot server could not be reached.'
+        );
       });
 
     this.router.refresh('landscapes');
@@ -285,7 +293,7 @@ export default class SnapshotTokenService extends Service {
         })
         .catch(async () => {
           this.toastHandler.showErrorToastMessage(
-            'Server could not be reached.'
+            'Snapshot server could not be reached.'
           );
         });
     }

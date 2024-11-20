@@ -49,7 +49,9 @@ export default class UserApiTokenService extends Service {
         })
         .catch(async () => {
           resolve([]);
-          this.toastHandler.showErrorToastMessage('Server not available.');
+          this.toastHandler.showErrorToastMessage(
+            'Server for Git APIs not available.'
+          );
         });
     });
   }

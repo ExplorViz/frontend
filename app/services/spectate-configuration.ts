@@ -47,7 +47,9 @@ export default class SpectateConfigurationService extends Service {
         })
         .catch(async () => {
           resolve([]);
-          this.toastHandler.showErrorToastMessage('Server not available.');
+          this.toastHandler.showErrorToastMessage(
+            'Server for spectate configuration not available.'
+          );
         });
     });
   }
@@ -72,7 +74,9 @@ export default class SpectateConfigurationService extends Service {
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+        this.toastHandler.showErrorToastMessage(
+          'Spectate config server not reachable..'
+        );
       });
   }
 
@@ -108,7 +112,9 @@ export default class SpectateConfigurationService extends Service {
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+        this.toastHandler.showErrorToastMessage(
+          'Spectate config server not reachable..'
+        );
       });
   }
 
@@ -144,7 +150,9 @@ export default class SpectateConfigurationService extends Service {
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage('Server could not be reached.');
+        this.toastHandler.showErrorToastMessage(
+          'Spectate config server not reachable..'
+        );
       });
   }
 }
