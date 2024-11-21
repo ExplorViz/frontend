@@ -360,7 +360,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   zoom: {
     value: 1,
     range: {
-      min: 1.0,
+      min: 0.5,
       max: 3.0,
       step: 0.1,
     },
