@@ -5,7 +5,9 @@ import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer, {
+  LayoutData,
+} from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
@@ -29,6 +31,9 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import layoutCity, {
+  convertElkToLayoutData,
+} from 'explorviz-frontend/utils/city-layouter';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -280,10 +285,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         structure: application,
         dynamic: this.dynamicLandscapeData,
       };
-      const cityLayout = this.worker.postMessage(
-        'city-layouter',
-        workerPayload
-      );
+
+      const layoutedGraph = await layoutCity(application);
+      const layoutMap = new Map<string, LayoutData>();
+      convertElkToLayoutData(layoutedGraph, layoutMap);
+
+      // const cityLayout = this.worker.postMessage(
+      //   'city-layouter',
+      //   workerPayload
+      // );
       const heatmapMetrics = this.worker.postMessage(
         'metrics-worker',
         workerPayload
@@ -295,19 +305,19 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
 
       const results = (await all([
-        cityLayout,
+        // cityLayout,
         heatmapMetrics,
         flatData,
       ])) as any[];
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, results[0], results[2]);
+        applicationData.updateApplication(application, layoutMap, results[1]);
       } else {
         applicationData = new ApplicationData(
           application,
-          results[0],
-          results[2]
+          layoutMap,
+          results[1]
         );
       }
       applicationData.classCommunications = classCommunication.filter(
@@ -318,7 +328,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           );
         }
       );
-      calculateHeatmap(applicationData.applicationMetrics, results[1]);
+      calculateHeatmap(applicationData.applicationMetrics, results[0]);
       this.applicationRepo.add(applicationData);
 
       return applicationData;
