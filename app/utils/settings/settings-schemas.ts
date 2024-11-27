@@ -4,6 +4,7 @@ export type SettingGroup =
   | 'Colors'
   | 'Controls'
   | 'Communication'
+  | 'Heatmap'
   | 'Highlighting'
   | 'Effects'
   | 'Popups'
@@ -12,21 +13,23 @@ export type SettingGroup =
   | 'Debugging';
 
 export type ApplicationColorSettingId =
-  | 'foundationColor'
-  | 'componentOddColor'
-  | 'componentEvenColor'
+  | 'backgroundColor'
   | 'clazzColor'
-  | 'highlightedEntityColor'
-  | 'componentTextColor'
   | 'clazzTextColor'
-  | 'foundationTextColor'
-  | 'communicationColor'
   | 'communicationArrowColor'
-  | 'backgroundColor';
+  | 'communicationColor'
+  | 'componentEvenColor'
+  | 'componentOddColor'
+  | 'componentTextColor'
+  | 'foundationColor'
+  | 'foundationTextColor'
+  | 'highlightedEntityColor';
 
 export type ApplicationControlSettingId =
   | 'enableGamepadControls'
   | 'selectedGamepadIndex';
+
+export type ApplicationHeatmapSettingId = 'heatmapEnabled';
 
 export type ApplicationHighlightingSettingId =
   | 'applyHighlightingOnHover'
@@ -77,6 +80,7 @@ export type ApplicationAnnotationSettingId = 'enableCustomAnnotationPosition';
 export type ApplicationSettingId =
   | ApplicationColorSettingId
   | ApplicationControlSettingId
+  | ApplicationHeatmapSettingId
   | ApplicationHighlightingSettingId
   | ApplicationHoveringSettingId
   | ApplicationCommunicationSettingId
@@ -95,6 +99,10 @@ export type ApplicationColorSettings = Record<
 export type ApplicationControlSettings = {
   enableGamepadControls: FlagSetting;
   selectedGamepadIndex: RangeSetting;
+};
+
+export type ApplicationHeatmapSettings = {
+  heatmapEnabled: FlagSetting;
 };
 
 export type ApplicationHighlightingSettings = {
@@ -155,6 +163,7 @@ export type ApplicationXRSettings = Record<ApplicationXRSettingId, FlagSetting>;
 
 export type ApplicationSettings = ApplicationColorSettings &
   ApplicationControlSettings &
+  ApplicationHeatmapSettings &
   ApplicationHighlightingSettings &
   ApplicationHoveringSettings &
   ApplicationDebugSettings &

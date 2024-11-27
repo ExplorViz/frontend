@@ -52,6 +52,7 @@ import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-c
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
+import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -113,6 +114,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('auth')
   private auth!: Auth;
+
+  @service
+  private worker!: any;
 
   private ideWebsocket: IdeWebsocket;
 
@@ -224,12 +228,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const commButtonTitle = this.configuration.isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
-    const heatmapButtonTitle = this.heatmapConf.heatmapActive
-      ? 'Disable Heatmap'
-      : 'Enable Heatmap';
-    const pauseItemtitle = this.args.visualizationPaused
-      ? 'Resume Visualization'
-      : 'Pause Visualization';
 
     return [
       { title: 'Reset View', action: this.resetView },
@@ -241,9 +239,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         title: commButtonTitle,
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
-      { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
-      { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
     ];
   }
@@ -484,11 +479,24 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.args.toggleVisualizationUpdating();
   }
 
-  selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+  async selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+    if (applicationObject3D.dataModel.applicationMetrics.metrics.length === 0) {
+      const workerPayload = {
+        structure: applicationObject3D.dataModel.application,
+        dynamic: this.args.landscapeData?.dynamicLandscapeData,
+      };
+
+      calculateHeatmap(
+        applicationObject3D.dataModel.applicationMetrics,
+        await this.worker.postMessage('metrics-worker', workerPayload)
+      );
+    }
+
     if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
+
     applicationObject3D.updateMatrixWorld();
     this.applicationRenderer.updateLinks?.();
   }
