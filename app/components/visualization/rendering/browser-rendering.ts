@@ -228,9 +228,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const commButtonTitle = this.configuration.isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
-    const pauseItemtitle = this.args.visualizationPaused
-      ? 'Resume Visualization'
-      : 'Pause Visualization';
 
     return [
       { title: 'Reset View', action: this.resetView },
@@ -242,8 +239,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         title: commButtonTitle,
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
-      { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
     ];
   }
