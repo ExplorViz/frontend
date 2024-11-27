@@ -228,9 +228,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const commButtonTitle = this.configuration.isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
-    const heatmapButtonTitle = this.heatmapConf.heatmapActive
-      ? 'Disable Heatmap'
-      : 'Enable Heatmap';
     const pauseItemtitle = this.args.visualizationPaused
       ? 'Resume Visualization'
       : 'Pause Visualization';
@@ -245,7 +242,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         title: commButtonTitle,
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
-      { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
       { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
       { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },

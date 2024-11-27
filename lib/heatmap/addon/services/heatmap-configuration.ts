@@ -66,8 +66,8 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   @action
-  toggleHeatmap() {
-    this.heatmapActive = !this.heatmapActive;
+  setActive(isActive: boolean) {
+    this.heatmapActive = isActive;
   }
 
   @action

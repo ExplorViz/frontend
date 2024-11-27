@@ -217,7 +217,7 @@ export default class Settings extends Component<Args> {
           this.args.setGamepadSupport(value);
           break;
         case 'heatmapEnabled':
-          this.heatmapConf.toggleHeatmap();
+          this.heatmapConf.setActive(value);
           break;
         case 'minimap':
           this.minimapService.minimapEnabled = value;
