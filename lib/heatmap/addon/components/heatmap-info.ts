@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { Metric } from 'heatmap/services/heatmap-configuration';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import { Metric } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 
 interface HeatmapInfoArgs {
   metrics: Metric[];
