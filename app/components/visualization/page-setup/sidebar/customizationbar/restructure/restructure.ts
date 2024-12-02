@@ -8,7 +8,7 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
 import { format } from 'date-fns';
 import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
@@ -18,9 +18,9 @@ import AnnotationData from 'explorviz-frontend/components/visualization/renderin
 import SnapshotTokenService, {
   SnapshotToken,
 } from 'explorviz-frontend/services/snapshot-token';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import { ApiToken } from 'explorviz-frontend/services/user-api-token';
@@ -64,16 +64,16 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
   @service('repos/timestamp-repository')
   timestampRepo!: TimestampRepository;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
   // @tracked

@@ -16,7 +16,6 @@ module.exports = (defaults) => {
     sassOptions: {
       implementation: sass,
       includePaths: [
-        'lib/collaboration/addon/styles',
         'lib/extended-reality/addon/styles',
         'lib/heatmap/addon/styles',
       ],

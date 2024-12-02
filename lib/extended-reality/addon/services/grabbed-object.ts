@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
-import MessageSender from 'collaboration/services/message-sender';
-import WebSocketService from 'collaboration/services/web-socket';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import * as THREE from 'three';
 import { GrabbableObject } from 'extended-reality/utils/view-objects/interfaces/grabbable-object';
 import {
@@ -12,10 +12,10 @@ import {
   ObjectGrabbedMessage,
 } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/object-grabbed';
 export default class GrabbedObjectService extends Service {
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
   /**

@@ -6,14 +6,14 @@ import { inject as service } from '@ember/service';
 import * as THREE from 'three';
 import { SIZE_RESOLUTION_FACTOR } from '../../ui-menu';
 import VRControllerButtonBinding from 'extended-reality/utils/vr-controller/vr-controller-button-binding';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { setOwner } from '@ember/application';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,
 } from '../detail-info-menu';
-import { EntityType } from 'collaboration/utils/web-socket-messages/types/entity-type';
+import { EntityType } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
   owner: any;
@@ -26,10 +26,10 @@ export default class SpectateViewMenu
   extends InteractiveMenu
   implements DetachableMenu
 {
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   target!: THREE.WebGLRenderTarget;

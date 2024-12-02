@@ -20,7 +20,7 @@ import {
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,
   EntityType,
-} from 'collaboration/utils/web-socket-messages/types/entity-type';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type DetailedInfo = {
   title: string;

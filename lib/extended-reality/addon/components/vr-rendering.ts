@@ -3,8 +3,8 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
@@ -24,7 +24,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
 import GrabbedObjectService from 'extended-reality/services/grabbed-object';
-import SpectateUser from 'collaboration/services/spectate-user';
+import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import VrMenuFactoryService from 'extended-reality/services/vr-menu-factory';
 import {
   findGrabbableObject,
@@ -60,13 +60,13 @@ import DisconnectButton from 'extended-reality/utils/view-objects/vr/disconnect-
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import gsap from 'gsap';
-import MessageSender from 'collaboration/services/message-sender';
-import WebSocketService from 'collaboration/services/web-socket';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
   ControllerId,
-} from 'collaboration/utils/web-socket-messages/types/controller-id';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/controller-id';
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
@@ -75,7 +75,7 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { MenuDetachedForwardMessage } from 'extended-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   OBJECT_MOVED_EVENT,
@@ -88,7 +88,7 @@ import {
 import {
   PING_UPDATE_EVENT,
   PingUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/ping-update';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/ping-update';
 import { JOIN_VR_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
 import { MENU_DETACHED_EVENT } from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -112,10 +112,10 @@ export default class VrRendering extends Component<Args> {
   @service('grabbed-object')
   private grabbedObjectService!: GrabbedObjectService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('spectate-user')
+  @service('collaboration/spectate-user')
   private spectateUserService!: SpectateUser;
 
   @service('application-renderer')
@@ -124,16 +124,16 @@ export default class VrRendering extends Component<Args> {
   @service('vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
   @service('detached-menu-renderer')
   private detachedMenuRenderer!: DetachedMenuRenderer;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
   @service('highlighting-service')

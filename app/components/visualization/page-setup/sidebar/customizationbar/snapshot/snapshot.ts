@@ -2,7 +2,7 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService, {
@@ -11,7 +11,7 @@ import SnapshotTokenService, {
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
@@ -27,7 +27,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
   @service('auth')
   auth!: Auth;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
   @service('snapshot-token')
@@ -36,7 +36,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   @service('repos/timestamp-repository')

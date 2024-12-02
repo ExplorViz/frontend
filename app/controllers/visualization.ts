@@ -6,39 +6,39 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser, {
   VisualizationMode,
-} from 'collaboration/services/local-user';
+} from 'explorviz-frontend/services/collaboration/local-user';
 
-import RoomSerializer from 'collaboration/services/room-serializer';
-import SpectateUser from 'collaboration/services/spectate-user';
-import WebSocketService from 'collaboration/services/web-socket';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
+import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/landscape';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/landscape';
 import {
   TIMESTAMP_UPDATE_TIMER_EVENT,
   TimestampUpdateTimerMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
   // SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
-} from 'collaboration/utils/web-socket-messages/types/serialized-room';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
@@ -142,16 +142,16 @@ export default class VisualizationController extends Controller {
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
   @service('timestamp')
   timestampService!: TimestampService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
   @service('application-renderer')
@@ -166,7 +166,7 @@ export default class VisualizationController extends Controller {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('spectate-user')
+  @service('collaboration/spectate-user')
   spectateUser!: SpectateUser;
 
   @service('user-api-token')

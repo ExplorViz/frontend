@@ -2,10 +2,10 @@ import { setOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import LocalUser from 'collaboration/services/local-user';
-import WebSocketService from 'collaboration/services/web-socket';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
-import { SerializedPopup } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { SerializedPopup } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -44,13 +44,13 @@ export default class PopupHandler {
   @service('detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
   @tracked

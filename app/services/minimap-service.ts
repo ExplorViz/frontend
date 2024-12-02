@@ -1,11 +1,11 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as THREE from 'three';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
-import RemoteUser from 'collaboration/utils/remote-user';
+import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 
 export enum SceneLayers {
@@ -28,7 +28,7 @@ export default class MinimapService extends Service {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('user-settings')

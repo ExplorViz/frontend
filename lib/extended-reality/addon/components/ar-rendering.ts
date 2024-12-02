@@ -3,9 +3,9 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
-import MessageSender from 'collaboration/services/message-sender';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
@@ -51,10 +51,10 @@ interface Args {
 export default class ArRendering extends Component<Args> {
   // #region CLASS FIELDS AND GETTERS
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('heatmap-configuration')
@@ -69,7 +69,7 @@ export default class ArRendering extends Component<Args> {
   @service('repos/scene-repository')
   private sceneRepo!: SceneRepository;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
   @service('application-renderer')

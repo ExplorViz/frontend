@@ -1,8 +1,8 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import LocalUser from 'collaboration/services/local-user';
-import collaborationSession from 'explorviz-frontend/services/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import ChatService from 'explorviz-frontend/services/chat';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -16,10 +16,10 @@ interface chatUser {
 }
 
 export default class ChatBox extends Component {
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   collaborationSession!: collaborationSession;
 
   @service('chat')

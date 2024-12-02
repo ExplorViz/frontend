@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import MessageSender from 'collaboration/services/message-sender';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 import VRController from 'extended-reality/utils/vr-controller';
 import VRControllerButtonBinding from 'extended-reality/utils/vr-controller/vr-controller-button-binding';

@@ -22,12 +22,12 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
@@ -56,7 +56,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('configuration')
   configuration!: Configuration;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
   @service('heatmap-configuration')
@@ -68,7 +68,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   @service('highlighting-service')

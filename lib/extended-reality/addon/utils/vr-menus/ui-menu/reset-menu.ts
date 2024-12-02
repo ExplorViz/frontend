@@ -1,4 +1,4 @@
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import TextItem from '../items/text-item';
 import TextbuttonItem from '../items/textbutton-item';
@@ -16,7 +16,7 @@ export type ResetMenuArgs = UiMenuArgs & {
 };
 
 export default class ResetMenu extends UiMenu {
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   @service('application-renderer')

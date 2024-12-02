@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
@@ -26,7 +26,7 @@ export default class SearchListItem
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('highlighting-service')

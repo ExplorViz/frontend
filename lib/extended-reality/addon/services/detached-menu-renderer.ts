@@ -7,13 +7,13 @@ import {
 } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import DetachedMenuGroupsService from './detached-menu-groups';
 import VrMenuFactoryService from './vr-menu-factory';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   SerializedAnnotation,
   SerializedDetachedMenu,
   SerializedPopup,
-} from 'collaboration/utils/web-socket-messages/types/serialized-room';
-import { SPECTATE_VIEW_ENTITY_TYPE } from 'collaboration/utils/web-socket-messages/types/entity-type';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SPECTATE_VIEW_ENTITY_TYPE } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
 
 export default class DetachedMenuRenderer extends Service.extend(Evented) {
   @service('application-renderer')
@@ -22,7 +22,7 @@ export default class DetachedMenuRenderer extends Service.extend(Evented) {
   @service('detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('vr-menu-factory')

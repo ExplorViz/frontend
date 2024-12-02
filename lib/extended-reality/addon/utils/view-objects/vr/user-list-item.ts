@@ -3,9 +3,9 @@ import { IntersectableObject } from '../interfaces/intersectable-object';
 import * as THREE from 'three';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import OnlineMenu2 from 'extended-reality/utils/vr-menus/ui-menu/connection/online-menu2';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,
@@ -22,10 +22,10 @@ export default class UserListItem
   extends ThreeMeshUI.Block
   implements IntersectableObject
 {
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   isHovered = false;

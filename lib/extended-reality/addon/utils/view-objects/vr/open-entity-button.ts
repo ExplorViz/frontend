@@ -5,7 +5,7 @@ import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 
 export type OpenEntityButtonArgs = ThreeMeshUI.BlockOptions & {
@@ -25,7 +25,7 @@ export default class OpenEntityButton
   @service('highlighting-service')
   highlightingService!: HighlightingService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   isHovered = false;

@@ -1,8 +1,8 @@
 import { getOwner } from '@ember/application';
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
-import RemoteUser from 'collaboration/utils/remote-user';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
@@ -40,8 +40,8 @@ import VRController from 'extended-reality/utils/vr-controller';
 import SpectateViewMenu from 'extended-reality/utils/vr-menus/ui-menu/connection/spectate-view-menu';
 import OnlineMenu2 from 'extended-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 import InteractiveMenu from 'extended-reality/utils/vr-menus/interactive-menu';
-import MessageSender from 'collaboration/services/message-sender';
-import RoomService from 'collaboration/services/room-service';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import RoomService from 'explorviz-frontend/services/collaboration/room-service';
 
 export default class VrMenuFactoryService extends Service {
   @service('detached-menu-groups')
@@ -50,19 +50,19 @@ export default class VrMenuFactoryService extends Service {
   @service('grabbed-object')
   private grabbedObjectService!: GrabbedObjectService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
-  @service('spectate-user')
+  @service('collaboration/spectate-user')
   private spectateUserService!: SpectateUser;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
-  @service('room-service')
+  @service('collaboration/room-service')
   private roomService!: RoomService;
 
   @service('timestamp')

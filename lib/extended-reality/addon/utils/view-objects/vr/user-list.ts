@@ -1,8 +1,8 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { inject as service } from '@ember/service';
 import UserListItem, { BLOCK_OPTIONS_LIST_ITEM } from './user-list-item';
-import LocalUser from 'collaboration/services/local-user';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { setOwner } from '@ember/application';
 import OnlineMenu2 from 'extended-reality/utils/vr-menus/ui-menu/connection/online-menu2';
 export type UserListArgs = ThreeMeshUI.BlockOptions & {
@@ -12,10 +12,10 @@ export type UserListArgs = ThreeMeshUI.BlockOptions & {
 };
 
 export default class UserList extends ThreeMeshUI.Block {
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   menu: OnlineMenu2;
