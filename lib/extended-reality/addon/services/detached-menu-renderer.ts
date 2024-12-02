@@ -12,8 +12,8 @@ import {
   SerializedAnnotation,
   SerializedDetachedMenu,
   SerializedPopup,
-} from 'collaboration/utils/web-socket-messages/types/serialized-room';
-import { SPECTATE_VIEW_ENTITY_TYPE } from 'collaboration/utils/web-socket-messages/types/entity-type';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SPECTATE_VIEW_ENTITY_TYPE } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
 
 export default class DetachedMenuRenderer extends Service.extend(Evented) {
   @service('application-renderer')

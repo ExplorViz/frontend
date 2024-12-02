@@ -1,4 +1,4 @@
-import { EntityType } from 'collaboration/utils/web-socket-messages/types/entity-type';
+import { EntityType } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
 import BaseMenu from './base-menu';
 
 export interface DetachableMenu extends BaseMenu {

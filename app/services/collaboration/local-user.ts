@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import MousePing from 'collaboration/utils/mouse-ping-helper';
+import MousePing from 'explorviz-frontend/utils/collaboration/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
@@ -12,7 +12,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ChatService from 'explorviz-frontend/services/chat';
-import collaborationSession from 'explorviz-frontend/services/collaboration-session';
+import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import {
   EntityMesh,
   isEntityMesh,
@@ -258,7 +258,7 @@ export default class LocalUser extends Service.extend({
     this.sender.sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
     this.chatService.sendChatMessage(
       this.userId,
-      `${this.userName}(${this.userId}) pinged ${obj.dataModel.name}`,
+      `${this.userName}(${this.userId}) pinged ${obj.name}`, //${obj.dataModel.name}`,
       true,
       'ping',
       [app3D.getModelId(), pingPosition.toArray(), durationInMs]

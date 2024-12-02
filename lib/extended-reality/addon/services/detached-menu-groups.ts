@@ -1,5 +1,5 @@
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';

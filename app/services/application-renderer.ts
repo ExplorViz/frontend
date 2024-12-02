@@ -1,7 +1,7 @@
 // #region Imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { task } from 'ember-concurrency';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
@@ -32,9 +32,9 @@ import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
-import MessageSender from 'collaboration/services/message-sender';
-import RoomSerializer from 'collaboration/services/room-serializer';
-import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
+import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import {
   EntityMesh,
   isEntityMesh,

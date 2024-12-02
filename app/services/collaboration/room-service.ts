@@ -5,13 +5,13 @@ import RoomSerializer from './room-serializer';
 import {
   RoomListRecord,
   isRoomListRecord,
-} from 'collaboration/utils/room-payload/receivable/room-list';
-import { RoomCreatedResponse } from 'collaboration/utils/room-payload/receivable/room-created';
-import { InitialRoomPayload } from 'collaboration/utils/room-payload/sendable/initial-room';
+} from 'explorviz-frontend/utils/collaboration/room-payload/receivable/room-list';
+import { RoomCreatedResponse } from 'explorviz-frontend/utils/collaboration/room-payload/receivable/room-created';
+import { InitialRoomPayload } from 'explorviz-frontend/utils/collaboration/room-payload/sendable/initial-room';
 import {
   LobbyJoinedResponse,
   isLobbyJoinedResponse,
-} from 'collaboration/utils/room-payload/receivable/lobby-joined';
+} from 'explorviz-frontend/utils/collaboration/room-payload/receivable/lobby-joined';
 const { collaborationService } = ENV.backendAddresses;
 
 export default class RoomService extends Service {

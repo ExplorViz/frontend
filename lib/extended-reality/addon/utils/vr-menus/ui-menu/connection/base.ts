@@ -1,6 +1,6 @@
 import CollaborationSession, {
   ConnectionStatus,
-} from 'collaboration/services/collaboration-session';
+} from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import UiMenu, { UiMenuArgs } from '../../ui-menu';
 

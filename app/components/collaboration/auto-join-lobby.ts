@@ -1,6 +1,6 @@
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import debugLogger from 'ember-debug-logger';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 

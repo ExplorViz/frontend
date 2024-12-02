@@ -3,7 +3,7 @@ import { setOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
 import { inject as service } from '@ember/service';
 import * as THREE from 'three';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import UserList from 'extended-reality/utils/view-objects/vr/user-list';
 import { UiMenuArgs } from '../../ui-menu';
 import VRControllerThumbpadBinding, {

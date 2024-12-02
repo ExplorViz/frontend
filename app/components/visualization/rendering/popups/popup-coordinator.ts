@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import Configuration from 'explorviz-frontend/services/configuration';

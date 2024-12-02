@@ -10,16 +10,16 @@ import LocalUser from 'collaboration/services/local-user';
 import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/chat-message';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/chat-message';
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
-} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/delete-message';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 
 export interface ChatMessageInterface {
   msgId: number;

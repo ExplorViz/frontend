@@ -10,9 +10,9 @@ import {
   HEATMAP_UPDATE_EVENT,
   HeatmapUpdateArgs,
   HeatmapUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/heatmap-update';
-import WebSocketService from 'collaboration/services/web-socket';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/heatmap-update';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 import equal from 'fast-deep-equal';
 
 function cleanup(instance: SyncStateModifier) {

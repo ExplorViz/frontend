@@ -1,17 +1,17 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
-import RemoteUser from 'collaboration/utils/remote-user';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   USER_DISCONNECTED_EVENT,
   UserDisconnectedMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/user-disconnect';
 import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/spectating-update';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/spectating-update';
 import debugLogger from 'ember-debug-logger';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import * as VrPoses from 'extended-reality/utils/vr-helpers/vr-poses';
@@ -51,6 +51,8 @@ export default class SpectateUser extends Service {
 
   init() {
     super.init();
+
+    console.log('\n\n\nICH BIN AN\n\n\n');
 
     this.debug('Initializing collaboration session');
     this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);

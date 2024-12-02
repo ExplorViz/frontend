@@ -8,7 +8,7 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
 import { format } from 'date-fns';
 import convertDate from 'explorviz-frontend/utils/helpers/time-convter';

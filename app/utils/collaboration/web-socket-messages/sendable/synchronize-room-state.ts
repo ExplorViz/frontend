@@ -2,7 +2,7 @@ import {
   InitialRoomApp,
   InitialRoomDetachedMenu,
   InitialRoomLandscape,
-} from 'collaboration/utils/room-payload/sendable/initial-room';
+} from 'explorviz-frontend/utils/collaboration/room-payload/sendable/initial-room';
 import {
   SerializedAnnotation,
   SerializedHighlightedExternLink,

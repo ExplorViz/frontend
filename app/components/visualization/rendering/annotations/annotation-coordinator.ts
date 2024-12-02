@@ -3,14 +3,14 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import Configuration from 'explorviz-frontend/services/configuration';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import AnnotationData from './annotation-data';
 import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import * as THREE from 'three';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 
 interface IArgs {
   isMovable: boolean;
