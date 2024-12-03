@@ -36,7 +36,7 @@ function mapNode(
     ...params,
     children: children,
     label: node.name,
-    color: 0xff70aa,
+    color: 0x03045e,
     popupData: {
       title: node.name,
       entries: [
@@ -67,7 +67,7 @@ function mapNs(
     children: children,
     label: ns.name,
     group: g,
-    color: 0xff90cc,
+    color: 0x0077b6,
     popupData: {
       title: ns.name,
       entries: [
@@ -97,7 +97,7 @@ function mapDeployment(
     children: children,
     label: d.name,
     group: g,
-    color: 0xcc90cc,
+    color: 0x00b4d8,
     popupData: {
       title: d.name,
       entries: [
@@ -126,7 +126,7 @@ function mapPod(
     label: p.name,
     children: p.applications.map(appToApp3d),
     group: g,
-    color: 0xcc70cc,
+    color: 0x90e0ef,
     popupData: {
       title: p.name,
       entries: [
