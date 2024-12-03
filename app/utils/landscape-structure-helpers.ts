@@ -259,6 +259,14 @@ export function combineStructureLandscapeData(
     }
   }
 
+  // TODO: Combine properly
+  for (const node of structureA.k8sNodes) {
+    structure.k8sNodes.push(node);
+  }
+  for (const node of structureB.k8sNodes) {
+    structure.k8sNodes.push(node);
+  }
+
   return structure;
 }
 function findCommonMethod(
