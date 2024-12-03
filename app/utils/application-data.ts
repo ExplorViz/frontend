@@ -1,11 +1,9 @@
 import { tracked } from '@glimmer/tracking';
 import { LayoutData } from 'explorviz-frontend/services/application-renderer';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import {
-  ApplicationHeatmapData,
-  Metric,
-} from 'heatmap/services/heatmap-configuration';
 import ClassCommunication from './landscape-schemes/dynamic/class-communication';
+import { ApplicationMetrics, Metric } from './metric-schemes/metric-data';
+import { FlatData } from './flat-data-schemes/flat-data';
 
 export default class ApplicationData {
   application: Application;
@@ -13,29 +11,23 @@ export default class ApplicationData {
 
   layoutData: Map<string, LayoutData>;
 
-  flatData: {
-    hashCodeClassMap: Map<string, any>;
-    packageNameModelMap: Map<string, any>;
-  };
+  flatData: FlatData;
 
   @tracked
-  heatmapData: ApplicationHeatmapData;
+  applicationMetrics: ApplicationMetrics;
 
   classCommunications: ClassCommunication[] = [];
 
   constructor(
     application: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: {
-      hashCodeClassMap: Map<string, any>;
-      packageNameModelMap: Map<string, any>;
-    },
+    flatData: FlatData,
     k8sData: K8sData | null
   ) {
     this.application = application;
     this.layoutData = layoutData;
     this.flatData = flatData;
-    this.heatmapData = {
+    this.applicationMetrics = {
       metrics: [],
       latestClazzMetricScores: [],
       metricsArray: [[]],
@@ -48,10 +40,7 @@ export default class ApplicationData {
   updateApplication(
     newApplication: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: {
-      hashCodeClassMap: Map<string, any>;
-      packageNameModelMap: Map<string, any>;
-    }
+    flatData: FlatData
   ) {
     this.application = newApplication;
     this.layoutData = layoutData;

@@ -131,17 +131,18 @@ function composeClazzContent(
     return null;
   }
   // TODO refactor, duplicated from clazz-popup
-  const currentApplicationHeatmapData = applicationRepo.getById(
+  const applicationMetricsForCurrentApplication = applicationRepo.getById(
     application.getModelId()
-  )?.heatmapData;
+  )?.applicationMetrics;
 
   const content: DetailedInfo = {
     title: trimString(clazz.name, 40),
     entries: [],
   };
 
-  if (currentApplicationHeatmapData) {
-    const metrics = currentApplicationHeatmapData.latestClazzMetricScores;
+  if (applicationMetricsForCurrentApplication) {
+    const metrics =
+      applicationMetricsForCurrentApplication.latestClazzMetricScores;
     metrics.forEach((metric) => {
       content.entries.push({
         key: metric.name,

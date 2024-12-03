@@ -26,42 +26,27 @@ export default class LandscapeTokenService extends Service {
   @tracked
   token: LandscapeToken | null = null;
 
-  // Used in landscape selection to go back to last selected token
-  @tracked
-  latestToken: LandscapeToken | null = null;
-
   constructor() {
     super(...arguments);
 
-    this.restoreToken();
+    this.restoreSingleLandscapeToken();
   }
 
-  restoreToken() {
-    let parsedToken;
-
-    if (tokenToShow && tokenToShow !== 'change-token') {
-      parsedToken = {
-        value: tokenToShow,
-        ownerId: 'github|123456',
-        created: 1589876888000,
-        alias: '',
-        sharedUsersIds: [],
-      };
-    } else {
-      const currentLandscapeTokenJSON = localStorage.getItem(
-        'currentLandscapeToken'
-      );
-
-      if (currentLandscapeTokenJSON === null) {
-        this.set('token', null);
-        return;
-      }
-
-      parsedToken = JSON.parse(currentLandscapeTokenJSON);
+  restoreSingleLandscapeToken() {
+    if (!tokenToShow || tokenToShow === 'change-token') {
+      return;
     }
 
-    if (this.isValidToken(parsedToken)) {
-      this.set('token', parsedToken);
+    const singleLandscapeToken = {
+      value: tokenToShow,
+      ownerId: 'github|123456',
+      created: 1589876888000,
+      alias: '',
+      sharedUsersIds: [],
+    };
+
+    if (this.isValidToken(singleLandscapeToken)) {
+      this.token = singleLandscapeToken;
     } else {
       this.removeToken();
     }
@@ -98,12 +83,6 @@ export default class LandscapeTokenService extends Service {
       return;
     }
 
-    // Update references to landscape tokens
-    localStorage.setItem('currentLandscapeToken', JSON.stringify(token));
-    if (this.token) {
-      this.latestToken = this.token;
-    }
-
     this.token = token;
 
     if (token) {
@@ -120,8 +99,7 @@ export default class LandscapeTokenService extends Service {
   }
 
   removeToken() {
-    localStorage.removeItem('currentLandscapeToken');
-    this.set('token', null);
+    this.token = null;
   }
 
   private isValidToken(token: unknown): token is LandscapeToken {

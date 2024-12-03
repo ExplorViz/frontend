@@ -5,12 +5,14 @@ import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
+import MinimapService, {
+  SceneLayers,
+} from 'explorviz-frontend/services/minimap-service';
 
 export function defaultRaycastFilter(
   intersection: THREE.Intersection
 ): boolean {
   return !(
-    !intersection.object.visible ||
     intersection.object instanceof LabelMesh ||
     intersection.object instanceof LogoMesh ||
     intersection.object.parent instanceof CommunicationArrowMesh ||
@@ -28,6 +30,8 @@ function isChildOfText(intersection: THREE.Intersection) {
   return isChild;
 }
 
+const TARGET_Y_VALUE = 0.165;
+
 export default class Raycaster extends THREE.Raycaster {
   /**
    * Calculate objects which intersect the ray - given by coordinates and camera
@@ -36,6 +40,27 @@ export default class Raycaster extends THREE.Raycaster {
    * @param camera Camera - contains view information
    * @param possibleObjects Objects to check for raycasting
    */
+
+  minimapService?: MinimapService;
+
+  groundPlane = new THREE.Plane();
+
+  cam: THREE.Camera | null = null;
+
+  minimapCam: THREE.OrthographicCamera | undefined;
+
+  boundingBox!: THREE.Box3;
+
+  constructor(
+    minimap?: THREE.OrthographicCamera,
+    minimapService?: MinimapService
+  ) {
+    super();
+    this.minimapCam = minimap;
+    this.minimapService = minimapService;
+    this.groundPlane.set(new THREE.Vector3(0, TARGET_Y_VALUE, 0), 0);
+  }
+
   raycasting(
     coords: { x: number; y: number },
     camera: THREE.Camera,
@@ -43,7 +68,6 @@ export default class Raycaster extends THREE.Raycaster {
     raycastFilter?: (object: THREE.Intersection) => boolean
   ) {
     this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
-
     // Calculate objects intersecting the picking ray
     const intersections = this.intersectObjects(possibleObjects, true);
 
@@ -73,5 +97,38 @@ export default class Raycaster extends THREE.Raycaster {
 
     // Return null to indicate that no object was found
     return null;
+  }
+
+  raycastMinimapMarkers(
+    camera: THREE.OrthographicCamera,
+    coords: { x: number; y: number },
+    userList: THREE.Mesh[]
+  ) {
+    this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
+    userList.forEach((mesh: THREE.Mesh) => {
+      mesh.layers.enable(SceneLayers.Default);
+    });
+    const intersections = this.intersectObjects(userList, false);
+    userList.forEach((mesh: THREE.Mesh) => {
+      mesh.layers.disable(SceneLayers.Default);
+    });
+    if (intersections.length > 0) {
+      return intersections[0];
+    }
+    return null;
+  }
+
+  raycastToCameraTarget(camera: THREE.Camera, box: THREE.Box3) {
+    this.cam = camera;
+    this.boundingBox = box;
+
+    // Set up the raycaster with the camera's position and the calculated direction
+    this.setFromCamera(new THREE.Vector2(0, 0), this.cam);
+
+    // Calculate the intersection point with the ground plane
+    const intersectionPoint = new THREE.Vector3();
+    this.ray.intersectPlane(this.groundPlane, intersectionPoint);
+
+    return intersectionPoint;
   }
 }

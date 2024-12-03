@@ -8,22 +8,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import revertKey from '../utils/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from '../utils/simple-heatmap';
-
-export type Metric = {
-  name: string;
-  description: string;
-  min: number;
-  max: number;
-  values: Map<string, number>;
-};
-
-export interface ApplicationHeatmapData {
-  metrics: Metric[];
-  latestClazzMetricScores: Metric[];
-  metricsArray: [Metric[]];
-  differenceMetricScores: Map<string, Metric[]>;
-  aggregatedMetricScores: Map<string, Metric>;
-}
+import { Metric } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 
 export type HeatmapMode =
   | 'snapshotHeatmap'
@@ -73,7 +58,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   simpleHeatGradient = getSimpleDefaultGradient();
 
-  debug = debugLogger('HeatmapConfiguration');
+  debug = debugLogger();
 
   @action
   toggleShared() {
@@ -81,8 +66,8 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   @action
-  toggleHeatmap() {
-    this.heatmapActive = !this.heatmapActive;
+  setActive(isActive: boolean) {
+    this.heatmapActive = isActive;
   }
 
   @action
@@ -97,7 +82,10 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   }
 
   get latestClazzMetricScores() {
-    return this.currentApplicationHeatmapData?.latestClazzMetricScores || [];
+    return (
+      this.applicationMetricsForEncompassingApplication
+        ?.latestClazzMetricScores || []
+    );
   }
 
   setActiveApplication(applicationObject3D: ApplicationObject3D) {
@@ -115,14 +103,14 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     }
   }
 
-  get currentApplicationHeatmapData() {
+  get applicationMetricsForEncompassingApplication() {
     if (!this.currentApplication) {
       return undefined;
     }
     const applicationData = this.applicationRepo.getById(
       this.currentApplication.getModelId()
     );
-    return applicationData?.heatmapData;
+    return applicationData?.applicationMetrics;
   }
 
   get selectedMetric() {
@@ -130,40 +118,45 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       return undefined;
     }
     let chosenMetric = null;
-    const applicationHeatmapData = this.currentApplicationHeatmapData;
+    const applicationMetricsForCurrentApplication =
+      this.applicationMetricsForEncompassingApplication;
     const latestClazzMetricScores =
-      this.currentApplicationHeatmapData?.latestClazzMetricScores;
-    if (!applicationHeatmapData || !latestClazzMetricScores) {
+      this.applicationMetricsForEncompassingApplication
+        ?.latestClazzMetricScores;
+    if (!applicationMetricsForCurrentApplication || !latestClazzMetricScores) {
       this.toastHandlerService.showErrorToastMessage('No heatmap found');
       return undefined;
     }
 
     switch (this.selectedMode) {
       case 'snapshotHeatmap':
-        if (applicationHeatmapData.latestClazzMetricScores) {
-          chosenMetric = applicationHeatmapData.latestClazzMetricScores.find(
-            (metric) => metric.name === this.selectedMetricName
-          );
+        if (applicationMetricsForCurrentApplication.latestClazzMetricScores) {
+          chosenMetric =
+            applicationMetricsForCurrentApplication.latestClazzMetricScores.find(
+              (metric) => metric.name === this.selectedMetricName
+            );
           if (chosenMetric) {
             return chosenMetric;
           }
         }
         break;
       case 'aggregatedHeatmap':
-        if (applicationHeatmapData.aggregatedMetricScores) {
-          chosenMetric = applicationHeatmapData.aggregatedMetricScores.get(
-            this.selectedMetricName
-          );
+        if (applicationMetricsForCurrentApplication.aggregatedMetricScores) {
+          chosenMetric =
+            applicationMetricsForCurrentApplication.aggregatedMetricScores.get(
+              this.selectedMetricName
+            );
           if (chosenMetric) {
             return chosenMetric;
           }
         }
         break;
       case 'windowedHeatmap':
-        if (applicationHeatmapData.differenceMetricScores) {
-          chosenMetric = applicationHeatmapData.differenceMetricScores.get(
-            this.selectedMetricName
-          );
+        if (applicationMetricsForCurrentApplication.differenceMetricScores) {
+          chosenMetric =
+            applicationMetricsForCurrentApplication.differenceMetricScores.get(
+              this.selectedMetricName
+            );
           if (chosenMetric && chosenMetric[chosenMetric.length - 1]) {
             return chosenMetric[chosenMetric.length - 1];
           }

@@ -21,7 +21,6 @@ export default class ComponentLabelMesh extends LabelMesh {
     super(font, labelText, textColor);
 
     this.renderOrder = 1;
-    this.receiveShadow = true;
 
     this.minHeight = minHeight;
     this.minLength = minLength;

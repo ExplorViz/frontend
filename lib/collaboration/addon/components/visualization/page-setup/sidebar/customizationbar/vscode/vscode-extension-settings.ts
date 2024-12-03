@@ -4,30 +4,16 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 import { inject as service } from '@ember/service';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
-import debugLogger from 'ember-debug-logger';
 
-interface VscodeExtensionSettingsArgs {
-  removeComponent(componentPath: string): void;
-}
-
-//const { vsCodeService } = ENV.backendAddresses;
-
-export default class VscodeExtensionSettings extends Component<VscodeExtensionSettingsArgs> {
+export default class VscodeExtensionSettings extends Component {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  debug = debugLogger('VscodeExtensionSettings');
-
-  constructor(owner: any, args: VscodeExtensionSettingsArgs) {
+  constructor(owner: any, args: any) {
     super(owner, args);
-  }
-
-  @action
-  close() {
-    this.args.removeComponent('vscode-extension-settings');
   }
 
   @action
@@ -40,6 +26,8 @@ export default class VscodeExtensionSettings extends Component<VscodeExtensionSe
 
   @action
   monitoring() {
+    console.log('monitoring');
+
     const payload = {
       fqn: 'org.springframework.samples.petclinic.model.Person',
       description: 'Test by akr',
@@ -51,7 +39,7 @@ export default class VscodeExtensionSettings extends Component<VscodeExtensionSe
 
   @action
   connectToIDE() {
-    this.debug('connectToIDE');
+    console.log('connectToIDE');
     this.toastHandlerService.showInfoToastMessage('Connect to IDE');
     this.ideWebsocketFacade.restartConnection();
   }

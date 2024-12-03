@@ -5,12 +5,18 @@ self.addEventListener(
     const structureData = e.data.structure;
     const dynamicData = e.data.dynamic;
 
-    const flatDataObject = { hashCodeClassMap: {}, packageNameModelMap: {} };
+    const flatDataObject = {
+      hashCodeClassMap: {},
+      packageNameModelMap: {},
+      fqnToModelMap: {},
+    };
 
     flatDataObject.hashCodeClassMap = calculateHashCodeClassMap(structureData);
 
     flatDataObject.packageNameModelMap =
       calculatePackageNameModelMap(structureData);
+
+    flatDataObject.fqnToModelMap = calculateFqnToModelMap(structureData);
 
     postMessage(flatDataObject);
   },
@@ -57,6 +63,66 @@ function calculatePackageNameModelMap(application) {
         ),
       ]);
     });
+    return packageNameModelMap;
+  }
+}
+
+function calculateFqnToModelMap(application) {
+  const topLevelPackages = application.packages;
+
+  let returnValue = new Map();
+
+  for (const package of topLevelPackages) {
+    returnValue = new Map([
+      ...returnValue,
+      ...calculatePackageNameModelMapForPackageAndChildren(package),
+    ]);
+  }
+
+  return returnValue;
+
+  function calculatePackageNameModelMapForPackageAndChildren(
+    subpackage,
+    parentFqn
+  ) {
+    let packageNameModelMap = new Map();
+
+    const currentName = parentFqn
+      ? parentFqn + '.' + subpackage.name
+      : subpackage.name;
+
+    // Add the package itself
+    packageNameModelMap.set(currentName, {
+      applicationName: `${application.name}`,
+      applicationModelId: `${application.id}`,
+      fqn: currentName,
+      modelId: subpackage.id,
+      model: subpackage,
+    });
+
+    // Add the classes in the package
+    for (const cls of subpackage.classes) {
+      const classFqn = currentName + '.' + cls.name;
+      packageNameModelMap.set(classFqn, {
+        applicationName: `${application.name}`,
+        applicationModelId: `${application.id}`,
+        fqn: classFqn,
+        modelId: cls.id,
+        model: cls,
+      });
+    }
+
+    // Recurse into subPackages
+    subpackage.subPackages.forEach((subPack) => {
+      packageNameModelMap = new Map([
+        ...packageNameModelMap,
+        ...calculatePackageNameModelMapForPackageAndChildren(
+          subPack,
+          currentName
+        ),
+      ]);
+    });
+
     return packageNameModelMap;
   }
 }

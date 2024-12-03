@@ -658,7 +658,6 @@ export default class VrRendering extends Component<Args> {
     // Start main loop.
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
@@ -696,9 +695,9 @@ export default class VrRendering extends Component<Args> {
     this.vrSessionActive = true;
 
     session.addEventListener('inputsourceschange', (event) => {
-      this.debug(event);
+      console.log(event);
       for (const inputSource of event.added) {
-        this.debug('Input source:', inputSource);
+        console.log('Input source:', inputSource);
       }
     });
   }

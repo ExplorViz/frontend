@@ -15,6 +15,10 @@ import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import { Mesh } from 'three';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
 interface Args {
   enterFullscreen?(): void;
@@ -36,17 +40,26 @@ export default class Settings extends Component<Args> {
   @service('local-user')
   private localUser!: LocalUser;
 
+  @service('heatmap-configuration')
+  private heatmapConf!: HeatmapConfiguration;
+
   @service('message-sender')
   private sender!: MessageSender;
 
   @service('room-serializer')
   private roomSerializer!: RoomSerializer;
 
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
+
   @service('toast-handler')
   private toastHandlerService!: ToastHandlerService;
 
   @service('user-settings')
   private userSettings!: UserSettings;
+
+  @service('minimap-service')
+  private minimapService!: MinimapService;
 
   colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
@@ -63,12 +76,15 @@ export default class Settings extends Component<Args> {
       ApplicationSettingId[]
     > = {
       Camera: [],
+      Minimap: [],
       Colors: [],
       Controls: [],
       Communication: [],
+      Heatmap: [],
       Highlighting: [],
       Effects: [],
       Popups: [],
+      Annotations: [],
       'Virtual Reality': [],
       Debugging: [],
     };
@@ -120,10 +136,23 @@ export default class Settings extends Component<Args> {
           this.args.updateHighlighting();
         }
         break;
+      case 'cameraNear':
+        this.localUser.defaultCamera.near =
+          this.userSettings.applicationSettings.cameraNear.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
+      case 'cameraFar':
+        this.localUser.defaultCamera.far =
+          this.userSettings.applicationSettings.cameraFar.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
       case 'cameraFov':
         this.localUser.defaultCamera.fov =
           this.userSettings.applicationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
+      case 'zoom':
+        this.minimapService.updateSphereRadius();
         break;
       default:
         break;
@@ -160,12 +189,47 @@ export default class Settings extends Component<Args> {
 
   @action
   updateFlagSetting(name: ApplicationSettingId, value: boolean) {
-    const settingId = name as ApplicationSettingId;
+    const settingId = name;
+    const settingString = settingId as string;
     try {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
+    if (settingString.startsWith('layer')) {
+      const layerNumber = parseInt(settingString.slice(5), 10); // Extract the layer number from settingId
+      if (!isNaN(layerNumber)) {
+        // Ensure it's a valid number
+        if (value || value === undefined) {
+          this.localUser.minimapCamera.layers.enable(layerNumber);
+        } else {
+          this.localUser.minimapCamera.layers.disable(layerNumber);
+        }
+      }
+    } else {
+      switch (settingId) {
+        case 'applyHighlightingOnHover':
+          if (this.args.updateHighlighting) {
+            this.args.updateHighlighting();
+          }
+          break;
+        case 'enableGamepadControls':
+          this.args.setGamepadSupport(value);
+          break;
+        case 'heatmapEnabled':
+          this.heatmapConf.setActive(value);
+          break;
+        case 'minimap':
+          this.minimapService.minimapEnabled = value;
+          break;
+        default:
+          break;
+      }
+    }
+
+    const scene = this.sceneRepo.getScene();
+    const directionalLight = scene.getObjectByName('DirectionalLight');
+    const spotLight = scene.getObjectByName('SpotLight');
 
     switch (settingId) {
       case 'applyHighlightingOnHover':
@@ -173,10 +237,19 @@ export default class Settings extends Component<Args> {
           this.args.updateHighlighting();
         }
         break;
+      case 'castShadows':
+        if (directionalLight) directionalLight.castShadow = value;
+        if (spotLight) spotLight.castShadow = value;
+        // Update shadow casting on objects
+        scene.traverse((child) => {
+          if (child instanceof Mesh) child.material.needsUpdate = true;
+        });
+        break;
       case 'enableGamepadControls':
         this.args.setGamepadSupport(value);
         break;
       default:
+        break;
     }
   }
 

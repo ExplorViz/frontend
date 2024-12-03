@@ -6,6 +6,7 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
+  TypeOfAnalysis,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import LandscapeHttpRequestUtil from './landscape-http-request-util';
 import { getOwner } from '@ember/application';
@@ -14,7 +15,7 @@ export default class ReloadHandler extends Service.extend(Evented) {
   landscapeHttpRequestUtil: LandscapeHttpRequestUtil =
     new LandscapeHttpRequestUtil(getOwner(this));
 
-  debug = debugLogger('ReloadHandler');
+  debug = debugLogger();
 
   /**
    * Loads a landscape from the backend and triggers a visualization update
@@ -33,7 +34,8 @@ export default class ReloadHandler extends Service.extend(Evented) {
         dynamicDataPromise.status === 'fulfilled'
       ) {
         const structure = preProcessAndEnhanceStructureLandscape(
-          structureDataPromise.value
+          structureDataPromise.value,
+          TypeOfAnalysis.Dynamic
         );
 
         const dynamic = dynamicDataPromise.value;
@@ -55,6 +57,30 @@ export default class ReloadHandler extends Service.extend(Evented) {
     } catch (e) {
       throw Error(e);
     }
+  }
+
+  async loadLandscapeByTimestampSnapshot(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ) {
+    const structure = preProcessAndEnhanceStructureLandscape(
+      structureData,
+      TypeOfAnalysis.Dynamic
+    );
+    const dynamic = dynamicData;
+
+    for (const t of dynamic) {
+      const traceId = t.traceId;
+
+      for (const s of t.spanList) {
+        s.traceId = traceId;
+      }
+    }
+
+    return [structure, dynamic] as [
+      StructureLandscapeData,
+      DynamicLandscapeData,
+    ];
   }
 }
 

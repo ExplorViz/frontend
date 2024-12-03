@@ -102,6 +102,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Index of the gamepad to be used for navigation',
     isRangeSetting: true,
   },
+  // Heatmap Settings
+  heatmapEnabled: {
+    value: false,
+    orderNumber: 1,
+    group: 'Heatmap',
+    displayName: 'Show Heatmap',
+    description: 'Toggle visibility of the heatmap',
+    isFlagSetting: true,
+  },
   // Highlighting Settings
   applyHighlightingOnHover: {
     value: true,
@@ -157,8 +166,16 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: true,
     orderNumber: 2,
     group: 'Effects',
-    displayName: 'Enable Package Animations',
+    displayName: 'Enable Animations',
     description: 'Toggle animations for opening and closing components',
+    isFlagSetting: true,
+  },
+  castShadows: {
+    value: false,
+    orderNumber: 3,
+    group: 'Effects',
+    displayName: 'Cast Shadows',
+    description: 'Enable casting shadows from light (can be expensive)',
     isFlagSetting: true,
   },
   // Communication Settings
@@ -203,24 +220,56 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
-  // Popup Settings
-  enableCustomPopupPosition: {
-    value: true,
+  // Popup settings
+  hidePopupDelay: {
+    value: 1.0,
+    range: {
+      min: 0.0,
+      max: 3.0,
+      step: 0.25,
+    },
     orderNumber: 1,
     group: 'Popups',
-    displayName: 'Enable Custom Popup Positioning',
+    displayName: 'Hide Popups After',
+    description: 'Determines how many seconds popups stay on screen',
+    isRangeSetting: true,
+  },
+  // Annotation Settings
+  enableCustomAnnotationPosition: {
+    value: true,
+    orderNumber: 1,
+    group: 'Annotations',
+    displayName: 'Enable Custom Annotation Positioning',
     description:
-      'If enabled, popups can be dragged to a prefered, fixed position',
+      'If enabled, annotations can be dragged to a prefered, fixed position',
     isFlagSetting: true,
   },
-  // Camera Settings
-  useOrthographicCamera: {
-    value: false,
+  // Camera settings
+  cameraNear: {
+    value: 0.1,
+    range: {
+      min: 0.01,
+      max: 5.0,
+      step: 0.01,
+    },
     orderNumber: 1,
     group: 'Camera',
-    displayName: 'Use Orthographic Camera Instead of Perspective',
-    description: 'Switch between orthographic and perspective camera',
-    isFlagSetting: true,
+    displayName: 'Render Near',
+    description: 'Determines near render distance',
+    isRangeSetting: true,
+  },
+  cameraFar: {
+    value: 100,
+    range: {
+      min: 5.0,
+      max: 150.0,
+      step: 1.0,
+    },
+    orderNumber: 2,
+    group: 'Camera',
+    displayName: 'Render Far',
+    description: 'Determines far render distance',
+    isRangeSetting: true,
   },
   cameraFov: {
     value: 75,
@@ -229,7 +278,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 150.0,
       step: 5.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Camera',
     displayName: 'Field of View',
     description: 'Set field of view for the perspective camera',
@@ -237,7 +286,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // VR Settings
   showVrButton: {
-    value: true,
+    value: false,
     orderNumber: 1,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
@@ -245,7 +294,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   showVrOnClick: {
-    value: false,
+    value: true,
     orderNumber: 2,
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',
@@ -307,5 +356,85 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Reset all settings to default values',
     buttonText: 'Reset',
     isButtonSetting: true,
+  },
+  // Minimap Settings
+  minimap: {
+    value: false,
+    orderNumber: 1,
+    group: 'Minimap',
+    displayName: 'Enable Minimap',
+    description: 'Toggle visibility of the minimap',
+    isFlagSetting: true,
+  },
+  zoom: {
+    value: 1,
+    range: {
+      min: 0.5,
+      max: 3.0,
+      step: 0.1,
+    },
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Zoom of Minimap',
+    description: 'Set zoom of the minimap',
+    isRangeSetting: true,
+  },
+  version2: {
+    value: true,
+    orderNumber: 3,
+    group: 'Minimap',
+    displayName: 'Use Camera Position',
+    description:
+      'If off, calculate minimap position via intersection of camera with ground plane.',
+    isFlagSetting: true,
+  },
+  layer1: {
+    value: true,
+    orderNumber: 4,
+    group: 'Minimap',
+    displayName: 'Enable foundation visibility',
+    description: 'Toggle foundation visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer2: {
+    value: true,
+    orderNumber: 5,
+    group: 'Minimap',
+    displayName: 'Enable component visibility',
+    description: 'Toggle component visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer3: {
+    value: true,
+    orderNumber: 6,
+    group: 'Minimap',
+    displayName: 'Enable clazz visibility',
+    description: 'Toggle clazz visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer4: {
+    value: true,
+    orderNumber: 7,
+    group: 'Minimap',
+    displayName: 'Enable communication visibility',
+    description: 'Toggle communication visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer6: {
+    value: true,
+    orderNumber: 8,
+    group: 'Minimap',
+    displayName: 'Enable labels visibility',
+    description: 'Toggle labels visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer7: {
+    value: true,
+    orderNumber: 9,
+    group: 'Minimap',
+    displayName: 'Enable visibility of different user-markers',
+    description:
+      'Toggle the different users position markers visibility for the minimap',
+    isFlagSetting: true,
   },
 };

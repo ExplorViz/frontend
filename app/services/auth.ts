@@ -4,29 +4,42 @@ import { Auth0Error, Auth0UserProfile } from 'auth0-js';
 import Auth0Lock from 'auth0-lock';
 import debugLogger from 'ember-debug-logger';
 import Evented from '@ember/object/evented';
+import { tracked } from '@glimmer/tracking';
 
 export default class Auth extends Service.extend(Evented) {
-  private debug = debugLogger('Auth');
+  private debug = debugLogger();
 
   @service('router')
   router!: any;
 
   private lock: Auth0LockStatic | null = null;
 
+  @tracked
   user: Auth0UserProfile | undefined = undefined;
 
   accessToken: string | undefined = undefined;
 
-  constructor() {
-    super(...arguments);
+  async initAuthentication() {
+    // No auth in dev mode
+    const noAuth = await this.isDevMode();
 
-    if (ENV.auth0.enabled === 'false') {
-      // no-auth
-      this.set('user', ENV.auth0.profile);
-      this.set('accessToken', ENV.auth0.accessToken);
-      return;
+    if (noAuth) {
+      this.user = ENV.auth0.profile;
+      this.accessToken = ENV.auth0.accessToken;
+      this.trigger('user_authenticated', this.user);
+    } else {
+      this.initAuthLock();
     }
+  }
 
+  async isDevMode() {
+    return (
+      ENV.auth0.enabled === 'false' ||
+      sessionStorage.getItem('no-auth') === 'true'
+    );
+  }
+
+  initAuthLock() {
     this.lock = new Auth0Lock(ENV.auth0.clientId, ENV.auth0.domain, {
       auth: {
         redirectUrl: ENV.auth0.callbackUrl,
@@ -49,7 +62,8 @@ export default class Auth extends Service.extend(Evented) {
 
     this.lock.on('authenticated', async (authResult) => {
       await this.setUser(authResult.accessToken);
-      this.set('accessToken', authResult.accessToken);
+
+      this.accessToken = authResult.accessToken;
       this.router.transitionTo(ENV.auth0.routeAfterLogin);
     });
   }
@@ -61,12 +75,12 @@ export default class Auth extends Service.extend(Evented) {
     // Since testem seems to enter routes but not render their templates,
     // the login container does not necessarily exist, which results in an error
     if (!document.getElementById('auth0-login-container')) {
+      this.router.transitionTo('login');
       return;
     }
     if (this.lock) {
       this.lock.show();
     } else {
-      // no-auth
       this.router.transitionTo(ENV.auth0.routeAfterLogin);
     }
   }
@@ -75,7 +89,7 @@ export default class Auth extends Service.extend(Evented) {
    * Use the token to set our user
    */
   setUser(token: string) {
-    // once we have a token, we are able to go get the users information
+    // Once we have a token, we are able to go get the users information
     return new Promise<Auth0UserProfile>((resolve, reject) => {
       if (this.lock) {
         this.lock.getUserInfo(
@@ -85,7 +99,7 @@ export default class Auth extends Service.extend(Evented) {
               reject(_err);
             } else {
               this.debug('User set', profile);
-              this.set('user', profile);
+              this.user = profile;
               resolve(profile);
             }
           }
@@ -101,7 +115,11 @@ export default class Auth extends Service.extend(Evented) {
   /**
    * Check if we are authenticated using the auth0 library's checkSession
    */
-  checkLogin() {
+  async checkLogin() {
+    if (!this.user) {
+      await this.initAuthentication();
+    }
+
     // check to see if a user is authenticated, we'll get a token back
     return new Promise((resolve, reject) => {
       if (this.lock) {
@@ -118,7 +136,7 @@ export default class Auth extends Service.extend(Evented) {
           } else {
             try {
               await this.setUser(authResult.accessToken);
-              this.set('accessToken', authResult.accessToken);
+              this.accessToken = authResult.accessToken;
               resolve(authResult);
               this.trigger('user_authenticated', this.user);
             } catch (e) {
@@ -127,7 +145,7 @@ export default class Auth extends Service.extend(Evented) {
           }
         });
       } else {
-        // no-auth
+        // No authentication
         this.set('user', ENV.auth0.profile);
         this.set('accessToken', ENV.auth0.accessToken);
         resolve({});
@@ -139,16 +157,16 @@ export default class Auth extends Service.extend(Evented) {
    * Get rid of everything in sessionStorage that identifies this user
    */
   logout() {
-    this.set('user', undefined);
-    this.set('accessToken', undefined);
+    this.user = undefined;
+    this.accessToken = undefined;
+    sessionStorage.setItem('no-auth', 'false');
     if (this.lock) {
       this.lock.logout({
         clientID: ENV.auth0.clientId,
         returnTo: ENV.auth0.logoutReturnUrl,
       });
     } else {
-      // no-auth
-      this.router.transitionTo('/');
+      this.router.transitionTo('login');
     }
   }
 }

@@ -34,10 +34,14 @@ export default class RoomList extends Component<RoomListArgs> {
 
   @action
   async loadRooms(alert = true) {
-    if (alert) {
-      this.toastHandlerService.showSuccessToastMessage('Reloading Rooms');
+    let rooms: RoomListRecord[] = [];
+    try {
+      rooms = await this.roomService.listRooms();
+    } catch (error) {
+      this.toastHandlerService.showErrorToastMessage('Could not load rooms');
+      return;
     }
-    const rooms = await this.roomService.listRooms();
+
     rooms.forEach((room) => {
       room.alias = this.args.tokens.find(
         (elem) => elem.value == room.landscapeToken
@@ -48,6 +52,10 @@ export default class RoomList extends Component<RoomListArgs> {
         this.args.tokens.find((elem) => elem.value == room.landscapeToken) !==
         undefined
     );
+
+    if (alert) {
+      this.toastHandlerService.showSuccessToastMessage('Updated room list');
+    }
   }
 
   @action

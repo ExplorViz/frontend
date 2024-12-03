@@ -6,6 +6,7 @@ import LocalUser from './local-user';
 import { Color } from 'collaboration/utils/web-socket-messages/types/color';
 import { Position } from 'collaboration/utils/web-socket-messages/types/position';
 import { Quaternion } from 'collaboration/utils/web-socket-messages/types/quaternion';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 export default class UserFactory extends Service.extend({}) {
   @service('hmd-service')
@@ -13,6 +14,9 @@ export default class UserFactory extends Service.extend({}) {
 
   @service('local-user')
   localUser!: LocalUser;
+
+  @service('minimap-service')
+  minimapService!: MinimapService;
 
   createUser({
     userName,
@@ -30,11 +34,10 @@ export default class UserFactory extends Service.extend({}) {
     const remoteUser = new RemoteUser({
       userName,
       userId,
-      color: new THREE.Color(
-        `rgb(${color.red}, ${color.green}, ${color.blue})`
-      ),
+      color: new THREE.Color(color.red, color.green, color.blue),
       state: 'online',
       localUser: this.localUser,
+      minimapService: this.minimapService,
     });
     this.hmdService.headsetModel.then((hmd) =>
       remoteUser.initCamera(hmd.clone(true), { position, quaternion })

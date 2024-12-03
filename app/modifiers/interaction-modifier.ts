@@ -4,8 +4,10 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
+import RemoteUser from 'collaboration/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import { Object3D, Vector2 } from 'three';
@@ -31,7 +33,6 @@ interface NamedArgs {
   mousePositionX: number;
   rendererResolutionMultiplier: number;
   camera: THREE.Camera;
-  orthographicCamera: THREE.OrthographicCamera;
   raycastObjects: Object3D | Object3D[];
   mouseEnter?(): void;
   mouseLeave?(): void;
@@ -86,6 +87,9 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('minimap-service')
+  minimapService!: MinimapService;
 
   isMouseOnCanvas = false;
 
@@ -153,16 +157,12 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   get camera(): THREE.Camera {
-    if (this.userSettings.applicationSettings.useOrthographicCamera.value) {
-      return this.namedArgs.orthographicCamera;
-    } else {
-      return this.namedArgs.camera;
-    }
+    return this.namedArgs.camera;
   }
 
   constructor(owner: any, args: ArgsFor<InteractionModifierArgs>) {
     super(owner, args);
-    this.raycaster = new Raycaster();
+    this.raycaster = new Raycaster(this.localUser.minimapCamera);
   }
 
   @action
@@ -230,9 +230,15 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.onTouchMove(event);
     } else if (this.pointers.length === 1) {
       this.handleMouseMovePan(event);
+    } else if (this.minimapService.makeFullsizeMinimap) {
+      const intersectedViewObj = this.minimapService.raycastForObjects(
+        event,
+        this.localUser.minimapCamera,
+        this.raycastObjects
+      );
+      this.namedArgs.mouseMove?.(intersectedViewObj, event);
     } else {
       const intersectedViewObj = this.raycast(event);
-
       this.namedArgs.mouseMove?.(intersectedViewObj, event);
     }
   }
@@ -301,6 +307,29 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
     event: MouseEvent,
     intersectedViewObj: THREE.Intersection | null
   ) {
+    // check for click on Minimap
+    let intersectedViewObjectCopy = intersectedViewObj;
+    const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
+    const rayMarkers = this.minimapService.raycastForMarkers(event);
+    // if rayMarkers are present, it means that the click was on a marker
+    if (rayMarkers) {
+      this.handleMinimapOnLeftClick(isOnMinimap, rayMarkers);
+      return;
+    } else if (this.minimapService.makeFullsizeMinimap && isOnMinimap) {
+      const rayObjects = this.minimapService.raycastForObjects(
+        event,
+        this.localUser.minimapCamera,
+        this.raycastObjects
+      );
+
+      intersectedViewObjectCopy = rayObjects;
+    } else if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
+      this.minimapService.toggleFullsizeMinimap(false);
+      return;
+    } else if (isOnMinimap) {
+      this.handleMinimapOnLeftClick(isOnMinimap, rayMarkers);
+      return;
+    }
     // Treat shift + single click as double click
     if (event.shiftKey) {
       this.onDoubleClick(event);
@@ -313,7 +342,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.latestSingleClickTimestamp = event.timeStamp;
       this.timer = setTimeout(() => {
         this.mouseClickCounter = 0;
-        this.namedArgs.singleClick?.(intersectedViewObj);
+        this.namedArgs.singleClick?.(intersectedViewObjectCopy);
       }, this.DOUBLE_CLICK_TIME_MS);
     }
 
@@ -321,6 +350,42 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.mouseClickCounter = 0;
       this.onDoubleClick(event);
     }
+  }
+  /**
+   * Handler Function if the click was on the minimap
+   * @param isOnMinimap indicates if the click was on the minimap
+   * @param ray indicates the object that was hit by the ray
+   */
+  private handleMinimapOnLeftClick(
+    isOnMinimap: boolean,
+    ray: THREE.Intersection | null
+  ) {
+    if (this.minimapService.makeFullsizeMinimap && !isOnMinimap) {
+      this.minimapService.toggleFullsizeMinimap(false);
+    } else if (isOnMinimap) {
+      if (ray) {
+        this.minimapService.handleHit(
+          this.collaborativeSession.getUserById(ray.object.name) as RemoteUser
+        );
+      } else {
+        this.minimapService.toggleFullsizeMinimap(true);
+      }
+    }
+  }
+  /**
+   * Handler Function for double click on minimap
+   * @param event Mouse event of the click
+   * @returns The object that was hit by the ray
+   */
+  private handleMinimapDoubleClick(event: MouseEvent) {
+    if (this.minimapService.isClickInsideMinimap(event)) {
+      return this.minimapService.raycastForObjects(
+        event,
+        this.localUser.minimapCamera,
+        this.raycastObjects
+      );
+    }
+    return null;
   }
 
   @action
@@ -334,9 +399,14 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   onDoubleClick(event: MouseEvent) {
     clearTimeout(this.timer);
 
-    const intersectedViewObj = this.raycast(event);
-    if (intersectedViewObj) {
-      this.namedArgs.doubleClick?.(intersectedViewObj);
+    const minimapViewObj = this.handleMinimapDoubleClick(event);
+    if (minimapViewObj) {
+      this.namedArgs.doubleClick?.(minimapViewObj);
+    } else {
+      const intersectedViewObj = this.raycast(event);
+      if (intersectedViewObj) {
+        this.namedArgs.doubleClick?.(intersectedViewObj);
+      }
     }
   }
 
@@ -353,7 +423,6 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.raycastObjects instanceof Object3D
         ? [this.raycastObjects]
         : this.raycastObjects;
-
     return this.raycaster.raycasting(origin, this.camera, possibleObjects);
   }
 

@@ -76,7 +76,7 @@ type OrderTuple = {
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 
-const debug = debugLogger('IdeCrossCommunication');
+const log = debugLogger('ide-websocket');
 
 export default class IdeCrossCommunication {
   @service('ide-websocket-facade')
@@ -132,8 +132,8 @@ export default class IdeCrossCommunication {
             break;
 
           case 'doubleClickOnMesh':
-            debug('vizDataOrderTuple:', vizDataOrderTuple);
-            debug('data: ', data);
+            console.log('vizDataOrderTuple:', vizDataOrderTuple);
+            console.log('data: ', data);
             //this.openObjects(vizDataOrderTuple, data.fqn);
             OpenObject(
               this.handleDoubleClickOnMesh,
@@ -182,7 +182,7 @@ export default class IdeCrossCommunication {
 
       const classCommunications = applicationData?.classCommunications;
 
-      debug(classCommunications);
+      // console.log(classCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
       if (classCommunications && classCommunications.length != 0) {
@@ -203,7 +203,7 @@ export default class IdeCrossCommunication {
       }
     });
 
-    debug('communicationLinks', communicationLinks);
+    // console.log("communicationLinks", communicationLinks)
     return {
       applicationObject3D: openApplications,
       communicationLinks: communicationLinks,
@@ -234,7 +234,7 @@ export default class IdeCrossCommunication {
     );
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
 
-    debug('Send new data to ide');
+    log('Send new data to ide');
     emitToBackend({
       action: IDEApiActions.Refresh,
       data: vizDataOrderTuple,
@@ -246,7 +246,7 @@ export default class IdeCrossCommunication {
   }
 
   dispose() {
-    debug('Dispose Cross Communication');
+    log('Dispose Cross Communication');
   }
 }
 
@@ -298,7 +298,7 @@ function parentPackage(
 
 function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
   const temp: ParentOrder[] = [];
-  debug(classes);
+  // console.log(classes)
   if (classes.length === 0) {
     return temp;
   }
@@ -375,7 +375,7 @@ function OpenObject(
   orderTuple.forEach((ot) => {
     const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
 
-    debug('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
+    console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
     recursivelyOpenObjects(
       doSomethingOnMesh,
       lookAtMesh,
@@ -403,7 +403,7 @@ function recursivelyOpenObjects(
       methods: [],
     };
     if (element.methods.length != 0) {
-      debug('Methods elem: ', element);
+      console.log('Methods elem: ', element);
     } else if (isInParentOrder(element, toOpen)) {
       doSomethingOnMesh(element.meshid);
       if (toOpen == element.fqn) {
@@ -465,7 +465,7 @@ function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzCommunicationMesh) {
     // console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
-    debug(mesh.dataModel);
+    // console.log(mesh.dataModel);
     return mesh.dataModel.id;
     // return 'Not implemented ClazzCommunicationMesh';
   } else if (mesh instanceof CommunicationArrowMesh) {

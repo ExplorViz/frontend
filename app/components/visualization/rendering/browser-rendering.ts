@@ -33,7 +33,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import SpectateUser from 'collaboration/services/spectate-user';
 import {
   EntityMesh,
@@ -44,13 +44,23 @@ import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communicatio
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import RoomSerializer from 'collaboration/services/room-serializer';
+import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
+import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
+import Auth from 'explorviz-frontend/services/auth';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
+import Raycaster from 'explorviz-frontend/utils/raycaster';
+import PopupData from './popups/popup-data';
+import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
   readonly visualizationPaused: boolean;
   readonly isDisplayed: boolean;
+  readonly snapshot: boolean | undefined | null;
+  readonly snapshotReload: SnapshotToken | undefined | null;
   openSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
@@ -90,15 +100,30 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
+  @service('room-serializer')
+  roomSerializer!: RoomSerializer;
+
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+  @service('minimap-service')
+  minimapService!: MinimapService;
+
+  @service('annotation-handler')
+  annotationHandler!: AnnotationHandlerService;
+
+  @service('auth')
+  private auth!: Auth;
+
+  @service
+  private worker!: any;
 
   private ideWebsocket: IdeWebsocket;
 
   private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
-  readonly graph: ThreeForceGraph;
+  readonly graph: ForceGraph;
 
   @tracked
   readonly scene: THREE.Scene;
@@ -116,7 +141,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   hoveredObject: EntityMesh | null = null;
 
-  private frustumSize = 5;
+  controls!: MapControls;
 
   cameraControls!: CameraControls;
 
@@ -152,7 +177,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   constructor(owner: any, args: BrowserRenderingArgs) {
     super(owner, args);
-    this.debug('Constructor called');
+
     // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
@@ -161,7 +186,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph.graph;
+    this.graph = forceGraph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this);
@@ -169,8 +194,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // Spectate
     this.updatables.push(this.spectateUserService);
 
+    // Minimap
+    this.updatables.push(this.minimapService);
+
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.applicationRenderer.forceGraph = this.graph;
+    this.applicationRenderer.forceGraph = this.graph.graph;
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
@@ -191,7 +219,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.collaborationSession.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
-
     if (this.initDone && this.linkRenderer.flag) {
       this.linkRenderer.flag = false;
     }
@@ -201,12 +228,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const commButtonTitle = this.configuration.isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
-    const heatmapButtonTitle = this.heatmapConf.heatmapActive
-      ? 'Disable Heatmap'
-      : 'Enable Heatmap';
-    const pauseItemtitle = this.args.visualizationPaused
-      ? 'Resume Visualization'
-      : 'Pause Visualization';
 
     return [
       { title: 'Reset View', action: this.resetView },
@@ -218,9 +239,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         title: commButtonTitle,
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
-      { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
-      { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
     ];
   }
@@ -256,8 +274,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   canvasInserted(canvas: HTMLCanvasElement) {
-    this.debug('Canvas inserted');
-
     this.canvas = canvas;
     this.landscapeRestructure.canvas = canvas;
 
@@ -278,25 +294,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.aspect = newAspectRatio;
     this.camera.updateProjectionMatrix();
 
-    this.localUser.ortographicCamera.left =
-      (this.frustumSize * newAspectRatio) / -2;
-    this.localUser.ortographicCamera.right =
-      (this.frustumSize * newAspectRatio) / 2;
-    this.localUser.ortographicCamera.top = this.frustumSize / 2;
-    this.localUser.ortographicCamera.bottom = -this.frustumSize / 2;
-
-    this.localUser.ortographicCamera.userData.aspect = newAspectRatio;
-
-    this.localUser.ortographicCamera.updateProjectionMatrix();
-  }
-
-  // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
-  @action
-  async outerDivInserted(outerDiv: HTMLElement) {
-    this.initCameras();
-    this.initRenderer();
-    this.resize(outerDiv);
-
     // Gamepad controls
     this.gamepadControls = new GamepadControls(
       this.camera,
@@ -312,47 +309,50 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
   }
 
+  // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
+  @action
+  async outerDivInserted(outerDiv: HTMLElement) {
+    this.initCameras();
+    this.initRenderer();
+    this.resize(outerDiv);
+  }
+
   private initCameras() {
     const aspectRatio = this.canvas.width / this.canvas.height;
-    // camera
+    const settings = this.userSettings.applicationSettings;
+
+    // Camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
-      this.userSettings.applicationSettings.cameraFov.value,
+      settings.cameraFov.value,
       aspectRatio,
-      0.1,
-      100
+      settings.cameraNear.value,
+      settings.cameraFar.value
     );
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.camera);
 
-    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
-      -aspectRatio * this.frustumSize,
-      aspectRatio * this.frustumSize,
-      this.frustumSize,
-      -this.frustumSize,
-      0.1,
-      100
-    );
-
-    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
-
-    this.localUser.ortographicCamera.position.setFromSphericalCoords(
-      10,
-      Math.PI / 3,
-      Math.PI / 4
-    );
-    this.localUser.ortographicCamera.lookAt(this.scene.position);
-    // controls
+    // Controls
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
-      this.localUser.ortographicCamera,
       this.canvas
     );
-
     this.spectateUserService.cameraControls = this.cameraControls;
-
+    this.localUser.cameraControls = this.cameraControls;
     this.updatables.push(this.localUser);
     this.updatables.push(this.cameraControls);
+
+    // initialize minimap
+    this.minimapService.initializeMinimap(
+      this.scene,
+      this.graph,
+      this.cameraControls
+    );
+
+    this.minimapService.raycaster = new Raycaster(
+      this.localUser.minimapCamera,
+      this.minimapService
+    );
   }
 
   /**
@@ -374,25 +374,37 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      orthographicCamera: this.localUser.ortographicCamera,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
     });
     this.renderingLoop.start();
 
-    this.graph.onFinishUpdate(() => {
-      if (!this.initDone && this.graph.graphData().nodes.length > 0) {
-        this.debug('initdone!');
-        setTimeout(() => {
-          this.cameraControls.resetCameraFocusOn(
-            1.2,
-            ...this.applicationRenderer.getOpenApplications()
-          );
-        }, 200);
-        this.initDone = true;
-      }
-    });
+    // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
+    if (this.args.snapshot || this.args.snapshotReload) {
+      this.graph.graph.onFinishUpdate(() => {
+        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+          this.debug('initdone!');
+          setTimeout(() => {
+            this.applicationRenderer.getOpenApplications();
+          }, 200);
+          this.initDone = true;
+        }
+      });
+    } else {
+      this.graph.graph.onFinishUpdate(() => {
+        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+          this.debug('initdone!');
+          setTimeout(() => {
+            this.cameraControls.resetCameraFocusOn(
+              1.2,
+              ...this.applicationRenderer.getOpenApplications()
+            );
+          }, 200);
+          this.initDone = true;
+        }
+      });
+    }
   }
 
   @action
@@ -444,7 +456,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    // nothing to do atm
+    // nothin to do atm
   }
 
   @action
@@ -467,11 +479,24 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.args.toggleVisualizationUpdating();
   }
 
-  selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+  async selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+    if (applicationObject3D.dataModel.applicationMetrics.metrics.length === 0) {
+      const workerPayload = {
+        structure: applicationObject3D.dataModel.application,
+        dynamic: this.args.landscapeData?.dynamicLandscapeData,
+      };
+
+      calculateHeatmap(
+        applicationObject3D.dataModel.applicationMetrics,
+        await this.worker.postMessage('metrics-worker', workerPayload)
+      );
+    }
+
     if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
+
     applicationObject3D.updateMatrixWorld();
     this.applicationRenderer.updateLinks?.();
   }
@@ -513,14 +538,18 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleMouseMove(intersection: THREE.Intersection, event: MouseEvent) {
+    this.popupHandler.handleMouseMove(event);
+    this.annotationHandler.handleMouseMove(event);
+
     if (intersection) {
       this.mousePosition.copy(intersection.point);
-      this.handleMouseMoveOnMesh(intersection.object, event);
+      this.handleMouseMoveOnMesh(intersection.object);
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
     }
     this.popupHandler.handleHoverOnMesh(intersection?.object);
+    this.annotationHandler.handleHoverOnMesh(intersection?.object);
 
     if (!event.altKey)
       this.highlightingService.updateHighlightingOnHover(
@@ -539,7 +568,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined, event: MouseEvent) {
+  handleMouseMoveOnMesh(mesh: THREE.Object3D | undefined) {
     const { value: enableAppHoverEffects } =
       this.appSettings.enableHoverEffects;
 
@@ -556,20 +585,32 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.hoveredObject = mesh;
       mesh.applyHoverEffect();
     }
+  }
 
-    // Hide popups when mouse moves
-    if (!this.appSettings.enableCustomPopupPosition.value || !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
-    }
+  @action
+  addAnnotationForPopup(popup: PopupData) {
+    const mesh = this.applicationRenderer.getMeshById(popup.entity.id);
+    if (!mesh) return;
+
+    this.annotationHandler.addAnnotation({
+      annotationId: undefined,
+      mesh: mesh,
+      position: { x: popup.mouseX + 400, y: popup.mouseY },
+      hovered: true,
+      annotationTitle: '',
+      annotationText: '',
+      sharedBy: '',
+      owner: this.auth.user!.name,
+      shared: false,
+      inEdit: true,
+      lastEditor: undefined,
+      wasMoved: true,
+    });
   }
 
   @action
   removePopup(entityId: string) {
-    if (!this.appSettings.enableCustomPopupPosition.value) {
-      this.popupHandler.clearPopups();
-    } else {
-      this.popupHandler.removePopup(entityId);
-    }
+    this.popupHandler.removePopup(entityId);
 
     // remove potential toggle effect
     const mesh = this.applicationRenderer.getMeshById(entityId);
@@ -579,11 +620,38 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   @action
-  handleMouseOut(event: PointerEvent) {
-    this.popupHandler.handleHoverOnMesh();
-    if (!this.appSettings.enableCustomPopupPosition.value && !event.shiftKey) {
-      this.popupHandler.removeUnmovedPopups();
+  hideAnnotation(annotationId: number) {
+    this.annotationHandler.hideAnnotation(annotationId);
+  }
+
+  @action
+  minimizeAnnotation(annotationId: number) {
+    this.annotationHandler.minimizeAnnotation(annotationId);
+  }
+
+  @action
+  editAnnotation(annotationId: number) {
+    this.annotationHandler.editAnnotation(annotationId);
+  }
+
+  @action
+  updateAnnotation(annotationId: number) {
+    this.annotationHandler.updateAnnotation(annotationId);
+  }
+
+  @action
+  removeAnnotation(annotationId: number) {
+    if (!this.appSettings.enableCustomAnnotationPosition.value) {
+      this.annotationHandler.clearAnnotations();
+    } else {
+      this.annotationHandler.removeAnnotation(annotationId);
     }
+  }
+
+  @action
+  handleMouseOut(/*event: PointerEvent*/) {
+    this.popupHandler.handleHoverOnMesh();
+    this.annotationHandler.handleHoverOnMesh();
   }
 
   @action
@@ -592,8 +660,21 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.popupHandler.addPopup({
         mesh: intersection.object,
         position: mouseOnCanvas,
-        replace: !this.appSettings.enableCustomPopupPosition.value,
         hovered: true,
+      });
+
+      this.annotationHandler.addAnnotation({
+        annotationId: undefined,
+        mesh: intersection.object,
+        position: { x: mouseOnCanvas.x + 250, y: mouseOnCanvas.y },
+        hovered: true,
+        annotationTitle: '',
+        annotationText: '',
+        sharedBy: '',
+        owner: this.auth.user!.name,
+        shared: false,
+        inEdit: true,
+        lastEditor: undefined,
       });
     }
   }
@@ -658,6 +739,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.renderingLoop.stop();
     this.configuration.isCommRendered = true;
     this.popupHandler.willDestroy();
+    this.annotationHandler.willDestroy();
     // this.graph.graphData([]);
 
     this.debug('Cleaned up application rendering');

@@ -25,6 +25,13 @@
     "test:ember": "ember test",
     "prepare": "node .husky/install.mjs"
   },
+  "engines": {
+    "node": "^22.5.0",
+    "npm": "^10.8.0"
+  },
+  "ember": {
+    "edition": "octane"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.9",
     "@babel/eslint-parser": "^7.23.10",
@@ -94,7 +101,7 @@
     "ember-resolver": "^11.0.1",
     "ember-source": "~5.4.0",
     "ember-style-modifier": "^4.2.0",
-    "ember-svg-jar": "^2.4.8",
+    "ember-svg-jar": "^2.5.0",
     "ember-template-imports": "^4.1.1",
     "ember-template-lint": "^5.13.0",
     "ember-try": "^3.0.0",
@@ -111,7 +118,7 @@
     "husky": "^9.0.11",
     "loader.js": "^4.7.0",
     "prettier": "^3.3.2",
-    "prettier-plugin-ember-template-tag": "^2.0.2",
+    "prettier-plugin-ember-template-tag": "^2.0.4",
     "qunit": "^2.20.0",
     "qunit-dom": "^3.0.0",
     "tracked-built-ins": "^3.3.0",
@@ -120,27 +127,21 @@
     "yuidoc-bootstrap-theme": "^1.0.6",
     "yuidocjs": "^0.10.2"
   },
-  "engines": {
-    "node": "^20.11.0",
-    "npm": "^10.2.4"
-  },
-  "ember": {
-    "edition": "octane"
-  },
   "dependencies": {
     "@embroider/compat": "^3.4.4",
     "@embroider/core": "^3.4.4",
     "@embroider/webpack": "^3.2.2",
     "@popperjs/core": "^2.11.8",
-    "@primer/octicons": "^19.8.0",
+    "@primer/octicons": "^19.11.0",
     "@webxr-input-profiles/motion-controllers": "^1.0.0",
     "3d-force-graph": "^1.73.0",
     "auth0-js": "^9.24.1",
-    "auth0-lock": "^12.4.0",
+    "auth0-lock": "^13.0.0",
     "chart.js": "^4.4.1",
     "colors": "^1.4.0",
     "crypto-js": "^4.2.0",
     "d3-force-3d": "^3.0.5",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "dotenv-expand": "^11.0.6",
     "ember-ajax": "^5.1.2",

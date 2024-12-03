@@ -1,11 +1,5 @@
 import gsap from 'gsap';
-import {
-  Box3,
-  Object3D,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Vector3,
-} from 'three';
+import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
@@ -16,21 +10,17 @@ export default class CameraControls {
   userSettings!: UserSettings;
 
   private perspectiveCamera: PerspectiveCamera;
-  private orthographicCamera: OrthographicCamera | undefined;
 
   perspectiveCameraControls: MapControls;
-  orthographicCameraControls: MapControls | undefined;
   enabled: boolean = true;
 
   constructor(
     owner: any,
     perspectiveCamera: PerspectiveCamera,
-    orthographicCamera: OrthographicCamera | undefined,
     canvas: HTMLCanvasElement
   ) {
     setOwner(this, owner);
     this.perspectiveCamera = perspectiveCamera;
-    this.orthographicCamera = orthographicCamera;
 
     this.perspectiveCameraControls = new MapControls(
       this.perspectiveCamera,
@@ -41,19 +31,6 @@ export default class CameraControls {
     this.perspectiveCameraControls.minDistance = 0.1;
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
-
-    if (orthographicCamera) {
-      this.orthographicCameraControls = new MapControls(
-        this.orthographicCamera!,
-        canvas
-      );
-
-      this.orthographicCameraControls.enableDamping = true;
-      this.orthographicCameraControls.dampingFactor = 0.3;
-      this.orthographicCameraControls.minDistance = 0.1;
-      this.orthographicCameraControls.maxDistance = 1000;
-      this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
-    }
   }
 
   private fitCamerasToBox(
@@ -65,31 +42,31 @@ export default class CameraControls {
     const center = new Vector3();
     box.getSize(size);
     box.getCenter(center);
+    const labelerHeightAdjustment = 1.3;
+    center.y -= labelerHeightAdjustment;
+
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
 
     // fit perspective camera
 
-    let fitHeightDistance =
+    const fitHeightDistance =
       maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
-    let fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
+    const fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
 
-    let distance =
+    const distance =
       0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
 
-    let origin = keepCameraPerspective
+    const origin = keepCameraPerspective
       ? this.perspectiveCamera.position
       : new Vector3(1, 1, 1);
-    let direction = center
+    const direction = center
       .clone()
       .sub(origin)
       .normalize()
       .multiplyScalar(distance);
 
-    // camera.near = distance / 100;
-    // camera.far = distance * 100;
-
-    let position = center.clone().sub(direction);
+    const position = center.clone().sub(direction);
     if (duration > 0) {
       this.panCameraTo(
         position,
@@ -101,45 +78,6 @@ export default class CameraControls {
     } else {
       this.perspectiveCamera.position.copy(position);
       this.perspectiveCameraControls.target.copy(center);
-    }
-
-    // fit ortho camera
-
-    if (this.orthographicCamera && this.orthographicCameraControls) {
-      fitHeightDistance =
-        maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
-
-      fitWidthDistance =
-        fitHeightDistance / this.orthographicCamera.userData.aspect;
-
-      distance =
-        0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
-
-      origin = keepCameraPerspective
-        ? this.orthographicCamera.position
-        : new Vector3(1, 1, 1);
-      direction = center
-        .clone()
-        .sub(origin)
-        .normalize()
-        .multiplyScalar(distance);
-
-      // camera.near = distance / 100;
-      // camera.far = distance * 100;
-
-      position = center.clone().sub(direction);
-      if (duration > 0) {
-        this.panCameraTo(
-          position,
-          center,
-          duration,
-          this.orthographicCamera,
-          this.orthographicCameraControls
-        );
-      } else {
-        this.orthographicCamera.position.copy(position);
-        this.orthographicCameraControls.target.copy(center);
-      }
     }
   }
 
@@ -168,7 +106,7 @@ export default class CameraControls {
     position: Vector3,
     target: Vector3,
     duration: number,
-    camera: PerspectiveCamera | OrthographicCamera,
+    camera: PerspectiveCamera,
     cameraControls: MapControls
   ) {
     gsap.to(camera.position, {
@@ -195,9 +133,6 @@ export default class CameraControls {
   tick() {
     if (this.enabled) {
       this.perspectiveCameraControls.update();
-      if (this.orthographicCameraControls) {
-        this.orthographicCameraControls.update();
-      }
     }
   }
 }

@@ -6,16 +6,14 @@ import {
   AppNameCommitTreeMap,
   Branch,
   Commit,
+  CROSS_COMMIT_IDENTIFIER,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
-import { SelectedCommit } from 'explorviz-frontend/utils/commit-tree/commit-tree-handler';
 
 interface IArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
   selectedAppName: string;
   selectedCommits: Map<string, SelectedCommit[]>;
-  triggerVizRenderingForSelectedCommits(
-    commitsToBeVisualized: Map<string, SelectedCommit[]>
-  ): void;
+  triggerVizRenderingForSelectedCommits(): void;
   setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>): void;
   getCloneOfAppNameAndBranchNameToColorMap(): Map<string, string>;
   setAppNameAndBranchNameToColorMap(
@@ -26,7 +24,7 @@ interface IArgs {
 export default class PlotlyCommitTree extends Component<IArgs> {
   private readonly debug = debugLogger('PlotlyCommitTree');
 
-  private MAX_COMMIT_SELECTION_PER_APP = 1;
+  private MAX_COMMIT_SELECTION_PER_APP = 2;
   private COMMIT_UNSELECTED_SIZE = 8;
   private COMMIT_SELECTED_SIZE = 15;
 
@@ -98,11 +96,19 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   }
 
   private setupPlotlyListener() {
-    //const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
+    const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
     const plotlyDiv = this.commitTreeDiv;
 
     if (plotlyDiv && plotlyDiv.layout) {
       const self: PlotlyCommitTree = this;
+
+      plotlyDiv.on('plotly_hover', () => {
+        dragLayer.style.cursor = 'pointer';
+      });
+
+      plotlyDiv.on('plotly_unhover', () => {
+        dragLayer.style.cursor = '';
+      });
 
       // #region Click Event
 
@@ -115,8 +121,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
           return;
         }
 
-        //console.log('data.points', data.points);
-
         const pn = data.points[0].pointNumber;
         let colors = data.points[0].fullData.marker.color;
         let sizes = data.points[0].fullData.marker.size;
@@ -124,15 +128,10 @@ export default class PlotlyCommitTree extends Component<IArgs> {
 
         const commitId = getCommitId(branchName, pn);
         const selectedCommit: Commit = { commitId, branchName };
-        //console.log('selectedCommit', selectedCommit);
 
         let selectedCommitsForApp =
           this.selectedCommits.get(this.selectedAppName) || [];
         const { highlightedMarkerColor } = self;
-
-        //console.log('selectedCommitsForApp', selectedCommitsForApp);
-
-        //console.log('before unselect selectedCommits', selectedCommits);
 
         if (
           isCommitAlreadySelected(
@@ -151,8 +150,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
           }
         }
 
-        //console.log('before click selectedCommits', selectedCommits);
-
         // Filter out empty selections and remove empty applications
         for (const [app, commits] of this.selectedCommits.entries()) {
           if (commits.length === 0) {
@@ -161,7 +158,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         }
 
         this.args.setSelectedCommits(this.selectedCommits);
-        this.args.triggerVizRenderingForSelectedCommits(this.selectedCommits);
+        this.args.triggerVizRenderingForSelectedCommits();
 
         function getCommitId(branchName: string, pointNumber: number): string {
           const commitTreeForSelectedAppName = self.appNameCommitTreeMap.get(
@@ -175,7 +172,7 @@ export default class PlotlyCommitTree extends Component<IArgs> {
               }
             }
           }
-          return '';
+          return CROSS_COMMIT_IDENTIFIER;
         }
 
         function isCommitAlreadySelected(
@@ -222,9 +219,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
           selectedCommitsForApp = selectedCommitsForApp.filter(
             (c) => c.commitId !== commit.commitId
           );
-
-          //console.log('unselect selectedCommitsForApp', selectedCommitsForApp);
-
           colors[pointNumber] = data.points[0].fullData.line.color;
           sizes[pointNumber] = self.COMMIT_UNSELECTED_SIZE;
           if (selectedCommitsForApp.length === 0) {
@@ -527,6 +521,8 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     minRangeY: number,
     maxRangeY: number
   ): {
+    hovermode: string;
+    hoverdistance: number;
     dragmode: string;
     margin: {
       b: number;
@@ -557,9 +553,9 @@ export default class PlotlyCommitTree extends Component<IArgs> {
     annotations: any[];
   } {
     return {
+      hovermode: 'closests',
+      hoverdistance: 3,
       dragmode: 'pan',
-      //   hoverdistance: 10,
-      //   hovermode: 'closest',
       margin: {
         b: 120,
         pad: 5,

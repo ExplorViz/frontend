@@ -10,6 +10,7 @@ import PopupData from 'explorviz-frontend/components/visualization/rendering/pop
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
@@ -54,6 +55,14 @@ export default class PopupHandler {
 
   @tracked
   popupData: PopupData[] = [];
+
+  latestMousePosition: { timestamp: number; x: number; y: number } = {
+    timestamp: 0,
+    x: 0,
+    y: 0,
+  };
+
+  isShiftPressed = false;
 
   constructor(owner: any) {
     setOwner(this, owner);
@@ -164,6 +173,15 @@ export default class PopupHandler {
     );
   }
 
+  handleMouseMove(event: MouseEvent) {
+    this.latestMousePosition = {
+      timestamp: Date.now(),
+      x: event.pageX,
+      y: event.pageY,
+    };
+    this.isShiftPressed = event.shiftKey;
+  }
+
   @action
   handleHoverOnMesh(mesh?: THREE.Object3D) {
     if (isEntityMesh(mesh)) {
@@ -183,7 +201,6 @@ export default class PopupHandler {
     position,
     wasMoved,
     pinned,
-    replace,
     menuId,
     sharedBy,
     hovered,
@@ -192,12 +209,11 @@ export default class PopupHandler {
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
-    replace?: boolean;
     menuId?: string | null;
     sharedBy?: string;
     hovered?: boolean;
   }) {
-    if (!isEntityMesh(mesh)) {
+    if (!isEntityMesh(mesh) || getStoredSettings().hidePopupDelay.value == 0) {
       return;
     }
     let popupPosition = position;
@@ -224,12 +240,6 @@ export default class PopupHandler {
       sharedBy: sharedBy || '',
       hovered: hovered || false,
     });
-
-    // Replace all existing popups with new popup
-    if (replace) {
-      this.popupData = [newPopup];
-      return;
-    }
 
     // Check if popup for entity already exists and update it if so
     const maybePopup = this.popupData.find(
@@ -258,10 +268,50 @@ export default class PopupHandler {
         newPopup.wasMoved = true;
       }
     }
+
+    this.removePopupAfterTimeout(newPopup);
+  }
+
+  private removePopupAfterTimeout(popup: PopupData) {
+    const latestMousePosition = this.latestMousePosition;
+    // Store popup position
+    const mouseX = popup.mouseX;
+    const mouseY = popup.mouseY;
+
+    setTimeout(() => {
+      const maybePopup = this.popupData.find(
+        (pd) => pd.entity.id === popup.entity.id
+      );
+
+      // Popup no longer available
+      if (!maybePopup || maybePopup.wasMoved || popup.isPinned) {
+        return;
+      }
+
+      // Do not remove popup when mouse stayed (recently) on target entity or shift is pressed
+      if (
+        this.isShiftPressed ||
+        (latestMousePosition.x == this.latestMousePosition.x &&
+          latestMousePosition.y == this.latestMousePosition.y)
+      ) {
+        this.removePopupAfterTimeout(popup);
+        return;
+      }
+
+      // Popup did not move (was not updated)
+      if (maybePopup.mouseX == mouseX && maybePopup.mouseY == mouseY) {
+        this.removePopup(popup.entity.id);
+        return;
+      }
+
+      this.removePopupAfterTimeout(popup);
+    }, getStoredSettings().hidePopupDelay.value * 1000);
   }
 
   private updateExistingPopup(popup: PopupData, newPopup: PopupData) {
     popup.wasMoved = popup.wasMoved || newPopup.wasMoved;
+    popup.mouseX = newPopup.mouseX;
+    popup.mouseY = newPopup.mouseY;
     popup.isPinned = popup.isPinned || newPopup.isPinned;
     popup.sharedBy = newPopup.sharedBy;
     this.updateMeshReference(popup);
@@ -291,6 +341,7 @@ export default class PopupHandler {
 
     for (const popup of popups) {
       const mesh = this.applicationRenderer.getMeshById(popup.entityId);
+
       if (!mesh) {
         continue;
       }

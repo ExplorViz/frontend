@@ -18,7 +18,7 @@ module(
       if (textContent === null) {
         assert.ok(null, 'textContent is null');
       } else {
-        assert.equal(textContent.trim(), 'Settings');
+        assert.equal(textContent.trim(), 'AR Settings');
       }
     });
   }

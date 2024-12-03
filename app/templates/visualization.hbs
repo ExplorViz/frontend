@@ -46,13 +46,13 @@
       @id='ar-rendering'
       @landscapeData={{this.renderingService.landscapeData}}
       @switchToOnScreenMode={{this.switchToOnScreenMode}}
-      @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
       @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
       @visualizationPaused={{this.renderingService.visualizationPaused}}
-      @components={{this.sidebarHandler.components}}
-      @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
-      @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
+      @openedSettingComponent={{this.sidebarHandler.openedSettingComponent}}
+      @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
       @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
+      @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
+      @closeSettingsSidebar={{this.sidebarHandler.closeSettingsSidebar}}
     />
 
   {{else}}
@@ -67,31 +67,39 @@
 
     {{else}}
       <Visualization::Rendering::BrowserRendering
+        @addComponent={{this.addComponent}}
+        @applicationArgs={{this.applicationArgs}}
+        @closeDataSelection={{this.closeDataSelection}}
+        @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+        @closeSettingsSidebar={{this.sidebarHandler.closeSettingsSidebar}}
+        @components={{this.components}}
+        @componentsToolsSidebar={{this.componentsToolsSidebar}}
         @id='browser-rendering'
         @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
         @landscapeData={{this.renderingService.landscapeData}}
-        @components={{this.sidebarHandler.components}}
-        @addComponent={{this.sidebarHandler.addComponent}}
-        @componentsToolsSidebar={{this.sidebarHandler.componentsToolsSidebar}}
-        @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
-        @closeDataSelection={{this.sidebarHandler.closeDataSelection}}
-        @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+        @landscapeToken={{this.landscapeTokenService.token}}
+        @openedSettingComponent={{this.sidebarHandler.openedSettingComponent}}
+        @openedToolComponent={{this.sidebarHandler.openedToolComponent}}
         @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
         @openToolsSidebar={{this.sidebarHandler.openToolsSidebar}}
+        @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
+        @removeTimestampListener={{this.removeTimestampListener}}
+        @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
+        @restructureLandscape={{this.restructureLandscape}}
         @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
         @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
+        @snapshot={{this.snapshotTokenService.snapshotSelected}}
+        @snapshotReload={{this.snapshotTokenService.snapshotToken}}
+        @switchToAR={{this.switchToAR}}
+        @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
         @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
         @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
         @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
-        @pauseVisualizationUpdating={{this.renderingService.pauseVisualizationUpdating}}
-        @visualizationPaused={{this.renderingService.visualizationPaused}}
-        @removeTimestampListener={{this.removeTimestampListener}}
-        @restructureLandscape={{this.restructureLandscape}}
-        @switchToAR={{this.switchToAR}}
-        @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
+        @updateLandscape={{this.updateLandscape}}
+        @userApiTokens={{this.userApiTokens}}
+        @visualizationPaused={{this.visualizationPaused}}
       />
     {{/if}}
-
   {{/if}}
 </div>
 
@@ -109,7 +117,7 @@
     >
 
       {{#unless this.isBottomBarMaximized}}
-        <span class='pr-1'>Show Bottom Bar</span>
+        <span class='pr-1'>Bottom Bar</span>
       {{/unless}}
       {{svg-jar
         'chevron-up-16'
@@ -152,6 +160,7 @@
 
       <div id='bottom-bar-chart-button-div'>
         <BsButton
+          id='bottom-bar-toggle-chart-button'
           @onClick={{this.toggleBottomChart}}
           @outline={{true}}
           class='bottom-bar-chart-button'
@@ -169,19 +178,25 @@
       {{/if}}
 
       {{#if this.isCommitTreeSelected}}
-        <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
-          @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
-          @setSelectedAppName={{this.commitTreeHandler.setCurrentSelectedApplicationName}}
-        />
+        <div class='row justify-content-md-center'>
+          <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
+            @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
+            @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
+            @setSelectedAppName={{this.commitTreeStateService.setCurrentSelectedApplicationName}}
+          />
+          <Visualization::PageSetup::BottomBar::Evolution::EvolutionRenderingButtons
+            @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
+            @selectedCommits={{this.commitTreeStateService.selectedCommits}}
+          />
+        </div>
         <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
           @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-          @triggerVizRenderingForSelectedCommits={{this.evolutionDataRepository.fetchAndUpdateAllStructureLandscapeDataForSelectedCommits}}
-          @selectedAppName={{this.commitTreeHandler.currentSelectedApplicationName}}
-          @selectedCommits={{this.commitTreeHandler.selectedCommits}}
-          @setSelectedCommits={{this.commitTreeHandler.setSelectedCommits}}
-          @getCloneOfAppNameAndBranchNameToColorMap={{this.commitTreeHandler.getCloneOfAppNameAndBranchNameToColorMap}}
-          @setAppNameAndBranchNameToColorMap={{this.commitTreeHandler.setAppNameAndBranchNameToColorMap}}
+          @triggerVizRenderingForSelectedCommits={{this.renderingService.triggerRenderingForSelectedCommits}}
+          @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
+          @selectedCommits={{this.commitTreeStateService.selectedCommits}}
+          @setSelectedCommits={{this.commitTreeStateService.setSelectedCommits}}
+          @getCloneOfAppNameAndBranchNameToColorMap={{this.commitTreeStateService.getCloneOfAppNameAndBranchNameToColorMap}}
+          @setAppNameAndBranchNameToColorMap={{this.commitTreeStateService.setAppNameAndBranchNameToColorMap}}
         />
       {{/if}}
 

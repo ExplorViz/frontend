@@ -9,6 +9,8 @@ export default class ClazzCommuMeshDataModel {
 
   application: Application;
 
+  originOfData: string = 'dynamic';
+
   targetApplication?: Application;
 
   constructor(

@@ -86,7 +86,7 @@ let socket: Socket<DefaultEventsMap, DefaultEventsMap> | undefined = undefined;
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 
-const debug = debugLogger('IdeWebsocket');
+const log = debugLogger('ide-websocket');
 
 export default class IdeWebsocket {
   @service('auth')
@@ -163,16 +163,20 @@ export default class IdeWebsocket {
 
     socket!.on('connect_error', () => {
       this.toastHandlerService.showErrorToastMessage(
-        'IDE connection was unexpectedly closed. Will try to reconnect.'
+        'IDE connection was unexpectedly closed. Will try to reconnect'
       );
     });
 
     socket!.on('reconnect_error', (error) => {
-      console.error(`IDE reconnection failed: ${error.message}`);
+      console.log(`error due to ${error.message}`);
+    });
+
+    socket!.on('reconnect_error', (error) => {
+      console.log(`error due to ${error.message}`);
     });
 
     socket!.on('reconnect_failed', () => {
-      console.error(`ICE reconnect failed.`);
+      console.log(`reconnect failed`);
     });
 
     // Handling the event an IDE successfully connects.
@@ -188,8 +192,8 @@ export default class IdeWebsocket {
           break;
 
         case 'doubleClickOnMesh':
-          debug('vizDataOrderTuple:', vizDataOrderTuple);
-          debug('data: ', data);
+          console.log('vizDataOrderTuple:', vizDataOrderTuple);
+          console.log('data: ', data);
           //this.openObjects(vizDataOrderTuple, data.fqn);
           OpenObject(
             this.handleDoubleClickOnMesh,
@@ -219,12 +223,12 @@ export default class IdeWebsocket {
           this.toastHandlerService.showSuccessToastMessage(
             'An IDE has successfully connected to this room.'
           );
-          debug('An IDE has successfully connected.');
+          log('An IDE has successfully connected.');
           this.ideWebsocketFacade.numConnectedIDEs++;
           break;
 
         case 'disconnectIDE':
-          debug('An IDE has disconnected.');
+          log('An IDE has disconnected.');
           this.toastHandlerService.showSuccessToastMessage(
             'An IDE has disconnected.'
           );
@@ -252,7 +256,7 @@ export default class IdeWebsocket {
 
       const classCommunications = applicationData?.classCommunications;
 
-      debug(classCommunications);
+      // console.log(classCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
       if (classCommunications && classCommunications.length != 0) {
@@ -273,7 +277,7 @@ export default class IdeWebsocket {
       }
     });
 
-    debug('communicationLinks', communicationLinks);
+    // console.log("communicationLinks", communicationLinks)
     return {
       applicationObject3D: openApplications,
       communicationLinks: communicationLinks,
@@ -312,7 +316,7 @@ export default class IdeWebsocket {
     );
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
 
-    debug('Send new data to ide');
+    log('Send new data to ide');
     emitToBackend(IDEApiDest.IDEDo, {
       action: IDEApiActions.Refresh,
       data: vizDataOrderTuple,
@@ -324,7 +328,7 @@ export default class IdeWebsocket {
   }
 
   dispose() {
-    debug('Disconnecting socket');
+    log('Disconnecting socket');
     if (socket) {
       socket.disconnect();
       this.ideWebsocketFacade.isConnected = false;
@@ -337,7 +341,7 @@ export default class IdeWebsocket {
       socket.disconnect();
       this.ideWebsocketFacade.isConnected = false;
     }
-    debug('Restarting socket with: ', newHttpSocket);
+    log('Restarting socket with: ', newHttpSocket);
     socket = io(newHttpSocket, {
       path: '/v2/ide/',
     });
@@ -392,7 +396,7 @@ function parentPackage(
 
 function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
   const temp: ParentOrder[] = [];
-  debug(classes);
+  // console.log(classes)
   if (classes.length === 0) {
     return temp;
   }
@@ -469,7 +473,7 @@ function OpenObject(
   orderTuple.forEach((ot) => {
     const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
 
-    debug('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
+    console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
     recursivelyOpenObjects(
       doSomethingOnMesh,
       lookAtMesh,
@@ -497,7 +501,7 @@ function recursivelyOpenObjects(
       methods: [],
     };
     if (element.methods.length != 0) {
-      debug('Methods element: ', element);
+      console.log('Methods element: ', element);
     } else if (isInParentOrder(element, toOpen)) {
       doSomethingOnMesh(element.meshId);
       if (toOpen == element.fqn) {
@@ -550,7 +554,7 @@ export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
 
 export function sendMonitoringData(monitoringData: MonitoringData[]) {
   // emitToBackend(IDEApiDest.VizDo, { action: IDEApiActions.DoubleClickOnMesh, fqn: "org.springframework.samples.petclinic.model.Person", data: vizDataGlobal, meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", occurrenceID: 0 })
-  debug('monitoringData: ', monitoringData);
+  console.log('monitoringData: ', monitoringData);
   socket!.emit(IDEApiDest.IDEDo, {
     action: IDEApiActions.JumpToMonitoringClass,
     monitoringData: monitoringData,
@@ -576,7 +580,7 @@ function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzCommunicationMesh) {
     console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
-    debug(mesh.dataModel);
+    console.log(mesh.dataModel);
     return mesh.dataModel.id;
     // return 'Not implemented ClazzCommunicationMesh';
   } else if (mesh instanceof CommunicationArrowMesh) {

@@ -15,6 +15,18 @@ import {
   PingUpdateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/ping-update';
 import {
+  CHAT_MESSAGE_EVENT,
+  ChatMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/chat-message';
+import {
+  CHAT_SYNC_EVENT,
+  ChatSynchronizeMessage,
+} from 'collaboration/utils/web-socket-messages/sendable/chat-syncronization';
+import {
+  USER_MUTE_EVENT,
+  UserMuteUpdate,
+} from 'collaboration/utils/web-socket-messages/sendable/mute-update';
+import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/share-settings';
@@ -109,10 +121,22 @@ import {
   SyncRoomStateMessage,
 } from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
 import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import {
+  USER_KICK_EVENT,
+  UserKickEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/kick-user';
+import {
+  MESSAGE_DELETE_EVENT,
+  MessageDeleteEvent,
+} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
 
 export default class MessageSender extends Service {
   @service('web-socket')
   private webSocket!: WebSocketService;
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   /**
    * Gets the next request identifier.
@@ -487,6 +511,7 @@ export default class MessageSender extends Service {
       highlightedExternCommunicationLinks:
         room.highlightedExternCommunicationLinks,
       popups: room.popups.map(({ ...popup }) => popup),
+      annotations: room.annotations!.map(({ ...annotation }) => annotation),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
     });
   }
@@ -573,6 +598,54 @@ export default class MessageSender extends Service {
     this.webSocket.send<TimestampUpdateMessage>(TIMESTAMP_UPDATE_EVENT, {
       event: 'timestamp_update',
       timestamp,
+    });
+  }
+
+  sendChatMessage(
+    userId: string,
+    msg: string,
+    userName: string,
+    timestamp: string,
+    isEvent: boolean,
+    eventType: string,
+    eventData: any[]
+  ) {
+    this.webSocket.send<ChatMessage>(CHAT_MESSAGE_EVENT, {
+      event: 'chat_message',
+      userId,
+      msg,
+      userName,
+      timestamp,
+      isEvent,
+      eventType,
+      eventData,
+    });
+  }
+
+  sendChatSynchronize() {
+    this.webSocket.send<ChatSynchronizeMessage>(CHAT_SYNC_EVENT, {
+      event: 'chat_synchronization',
+    });
+  }
+
+  sendUserMuteUpdate(userId: string) {
+    this.webSocket.send<UserMuteUpdate>(USER_MUTE_EVENT, {
+      event: 'user_mute_update',
+      userId,
+    });
+  }
+
+  sendKickUser(userId: string) {
+    this.webSocket.send<UserKickEvent>(USER_KICK_EVENT, {
+      event: 'user_kick_event',
+      userId,
+    });
+  }
+
+  sendMessageDelete(msgId: number[]) {
+    this.webSocket.send<MessageDeleteEvent>(MESSAGE_DELETE_EVENT, {
+      event: 'message_delete_event',
+      msgIds: msgId,
     });
   }
 }

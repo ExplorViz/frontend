@@ -10,30 +10,22 @@
   />
   {{#unless this.isSingleLandscapeMode}}
     {{#if this.tokenService.token}}
-      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
-        <span
-          class='d-flex-center'
-          type='button'
-          {{on 'click' this.goToLandscapeSelection}}
-        >
-          {{svg-jar
-            'key-16'
-            class='octicon'
-          }}&nbsp;{{this.tokenService.token.alias}}
-        </span>
-      </div>
-    {{else if this.tokenService.latestToken}}
-      <div class='navbar-token-link pointer-events-all d-none d-md-block'>
-        <span
-          class='d-flex-center'
-          type='button'
-          {{on 'click' this.goToVisualization}}
-        >
-          {{svg-jar
-            'iterations-16'
-            class='octicon'
-          }}&nbsp;{{this.tokenService.latestToken.alias}}
-        </span>
+      <div class='navbar-middle-row pointer-events-all d-none d-md-block'>
+        <div class='navbar-token-link text-center'>
+          <span
+            class='d-flex-center'
+            type='button'
+            {{on 'click' this.goToLandscapeSelection}}
+          >
+            {{svg-jar
+              'undo-16'
+              class='octicon'
+            }}&nbsp;{{this.tokenService.token.alias}}
+          </span>
+        </div>
+        <div class='navbar-rendering-mode text-center'>
+          {{this.renderingMode}}
+        </div>
       </div>
     {{/if}}
   {{/unless}}
@@ -84,6 +76,16 @@
             </button>
           </li>
         {{/if}}
+        <li>
+          <button
+            class='dropdown-item'
+            type='button'
+            {{on 'click' this.goToSettings}}
+          >
+            {{svg-jar 'git-branch-16' class='octicon'}}
+            Git API Token
+          </button>
+        </li>
         <li>
           <button
             class='dropdown-item'

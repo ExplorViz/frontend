@@ -2,6 +2,7 @@ import { timeout, task } from 'ember-concurrency';
 import * as THREE from 'three';
 import { AnimationMixer } from 'three';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class MousePing {
   mesh: PingMesh;
@@ -16,6 +17,7 @@ export default class MousePing {
       animationMixer,
       color,
     });
+    this.mesh.layers.enable(SceneLayers.Ping);
   }
 
   ping = task(
@@ -24,10 +26,12 @@ export default class MousePing {
       parentObj,
       position,
       durationInMs,
+      replay,
     }: {
       parentObj: THREE.Object3D;
       position: THREE.Vector3;
       durationInMs: number;
+      replay: boolean;
     }) => {
       if (this.mesh) {
         this.mesh.parent?.remove(this.mesh);
@@ -42,7 +46,7 @@ export default class MousePing {
 
       this.mesh.position.copy(position);
       parentObj.add(this.mesh);
-      this.mesh.startPinging();
+      this.mesh.startPinging(replay);
       await timeout(durationInMs);
       this.mesh.stopPinging();
 

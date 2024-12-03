@@ -5,12 +5,18 @@ import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import TimestampRepository from './repos/timestamp-repository';
+import SnapshotTokenService from './snapshot-token';
+import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import { SelectedCommit } from './commit-tree-state';
 
 const { spanService } = ENV.backendAddresses;
 
 export default class TimestampPollingService extends Service {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
 
   @service('auth')
   auth!: Auth;
@@ -19,56 +25,101 @@ export default class TimestampPollingService extends Service {
   timestampRepo!: TimestampRepository;
 
   private timer: NodeJS.Timeout | null = null;
-  private debug = debugLogger('TimestampPollingService');
+  private debug = debugLogger();
 
   async initTimestampPollingWithCallback(
-    callback: (timestamps: Timestamp[]) => void
+    commits: SelectedCommit[],
+    callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
   ) {
-    this.startTimestampPolling(callback);
+    this.startTimestampPolling(commits, callback);
   }
 
   resetPolling() {
-    this.debug('Stopping timestamp polling.');
     if (this.timer) {
+      this.debug('Stopping timestamp polling.');
       clearTimeout(this.timer);
     }
   }
 
-  private startTimestampPolling(callback: (timestamps: Timestamp[]) => void) {
+  private startTimestampPolling(
+    commits: SelectedCommit[],
+    callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
+  ) {
     function setIntervalImmediately(func: () => void, interval: number) {
       func();
       return setInterval(func, interval);
     }
 
     this.timer = setIntervalImmediately(async () => {
-      this.pollTimestamps(callback);
+      this.pollTimestamps(commits, callback);
     }, 10 * 1000);
 
     this.debug('Timestamp timer started');
   }
 
-  private pollTimestamps(callback: (timestamps: Timestamp[]) => void) {
-    // Check if we already have a timestamp that acts as base point
-    const landscapeToken = this.tokenService.token?.value;
+  private async pollTimestamps(
+    commits: SelectedCommit[],
+    callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
+  ) {
+    // if (this.snapshotService.snapshotToken) {
+    //   const timestamps =
+    //     this.snapshotService.snapshotToken.timestamps.timestamps;
+    //   callback(timestamps);
+    // }
 
-    if (!landscapeToken) {
-      console.error('No landscape token to pull timestamps.');
+    const polledCommitToTimestampMap: Map<string, Timestamp[]> = new Map();
+
+    if (commits.length === 0) {
+      // No commit selected -> get all runtime behavior regardless of commit
+      const commitId = CROSS_COMMIT_IDENTIFIER;
+      const newestLocalTimestamp =
+        this.timestampRepo.getLatestTimestamp(commitId);
+      const allCommitsTimestampPromise = this.httpFetchTimestamps(
+        undefined,
+        newestLocalTimestamp
+      );
+
+      await allCommitsTimestampPromise
+        .then((timestamps: Timestamp[]) => {
+          polledCommitToTimestampMap.set(commitId, timestamps);
+        })
+        .catch((error: Error) => {
+          console.error(`Error on fetch of timestamps: ${error}`);
+          callback(new Map([[CROSS_COMMIT_IDENTIFIER, []]]));
+          return;
+        });
+      callback(polledCommitToTimestampMap);
       return;
+    } else {
+      for (const selectedCommit of commits) {
+        const newestLocalTimestampForCommit =
+          this.timestampRepo.getLatestTimestamp(selectedCommit.commitId);
+
+        const promise = this.httpFetchTimestamps(
+          selectedCommit,
+          newestLocalTimestampForCommit
+        );
+
+        await promise
+          .then((timestamps: Timestamp[]) => {
+            polledCommitToTimestampMap.set(selectedCommit.commitId, timestamps);
+          })
+          .catch((error: Error) => {
+            console.error(`Error on fetch of timestamps: ${error}`);
+            polledCommitToTimestampMap.set(selectedCommit.commitId, []);
+          });
+      }
+      callback(polledCommitToTimestampMap);
     }
-
-    const newestLocalTimestamp = this.timestampRepo.getLatestTimestamp();
-
-    const timestampPromise = this.httpFetchTimestamps(newestLocalTimestamp);
-
-    timestampPromise
-      .then((timestamps: Timestamp[]) => callback(timestamps))
-      .catch((error: Error) => {
-        console.error(`Error on fetch of timestamps: ${error}`);
-      });
   }
 
-  private httpFetchTimestamps(newestLocalTimestamp?: Timestamp | undefined) {
-    this.debug('Polling timestamps');
+  private httpFetchTimestamps(
+    commit?: SelectedCommit,
+    newestLocalTimestamp?: Timestamp
+  ) {
+    this.debug(
+      'Polling timestamps for commitId: ' + (commit?.commitId ?? 'cross-commit')
+    );
     return new Promise<Timestamp[]>((resolve, reject) => {
       if (this.tokenService.token === null) {
         reject(new Error('No landscape token selected'));
@@ -79,6 +130,14 @@ export default class TimestampPollingService extends Service {
 
       if (newestLocalTimestamp) {
         url += `?newest=${newestLocalTimestamp.epochMilli}`;
+
+        if (commit) {
+          url += `&commit=${commit.commitId}`;
+        }
+      }
+
+      if (commit && !newestLocalTimestamp) {
+        url += `?commit=${commit.commitId}`;
       }
 
       fetch(url, {

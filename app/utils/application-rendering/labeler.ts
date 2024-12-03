@@ -8,7 +8,9 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
 import { getStoredSettings } from '../settings/local-storage-settings';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -84,6 +86,7 @@ export function addApplicationLabels(
         addBoxTextLabel(mesh, font, componentTextColor);
       } else if (mesh instanceof FoundationMesh) {
         addBoxTextLabel(mesh, font, foundationTextColor);
+        addMinimapTextLabel(mesh, font, foundationTextColor);
       }
     }
   });
@@ -157,4 +160,64 @@ export function addClazzTextLabel(
   labelMesh.rotation.z = -(Math.PI / 3);
 
   clazzMesh.add(labelMesh);
+}
+
+/**
+ * Adds a label to a foundation mesh for the minimap
+ * @param foundationMesh The mesh which shall be labeled
+ * @param font The font of the text
+ * @param color The color of the text
+ * @param size The size of the text
+ * @param heigth The height of the text
+ */
+export function addMinimapTextLabel(
+  foundationMesh: FoundationMesh,
+  font: Font,
+  color: THREE.Color,
+  size = 0.1,
+  heigth = 100
+) {
+  const text = foundationMesh.dataModel.name;
+
+  const minimapLabelMesh = new MinimapLabelMesh(font, text, color, size);
+  minimapLabelMesh.computeLabel(text, size);
+  foundationMesh.minimapLabelMesh = minimapLabelMesh;
+
+  minimapLabelMesh.geometry.center();
+  minimapLabelMesh.position.y = heigth;
+
+  // Rotate text
+  minimapLabelMesh.rotation.x = -(Math.PI / 2);
+  minimapLabelMesh.rotation.z = -(Math.PI / 2);
+
+  minimapLabelMesh.layers.set(SceneLayers.MinimapLabel);
+
+  foundationMesh.add(minimapLabelMesh);
+}
+
+export function updateBoxTextLabel(
+  boxMesh: ComponentMesh | FoundationMesh,
+  font: Font,
+  color: THREE.Color,
+  label: string,
+  minHeight = 1.5,
+  minLength = 4,
+  scalar = 1
+) {
+  const labelMesh = new ComponentLabelMesh(
+    boxMesh,
+    font,
+    color,
+    minHeight,
+    minLength
+  );
+
+  boxMesh.remove(boxMesh.labelMesh!);
+
+  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name + label, scalar);
+
+  boxMesh.labelMesh = labelMesh;
+  boxMesh.add(labelMesh);
+
+  positionBoxLabel(boxMesh);
 }

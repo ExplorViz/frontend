@@ -3,6 +3,8 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ComponentLabelMesh from './component-label-mesh';
+import MinimapLabelMesh from './minimap-label-mesh';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class FoundationMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -14,6 +16,7 @@ export default class FoundationMesh<
   dataModel: Application;
 
   labelMesh: ComponentLabelMesh | null = null;
+  minimapLabelMesh: MinimapLabelMesh | null = null;
 
   constructor(
     layout: BoxLayout,
@@ -29,6 +32,8 @@ export default class FoundationMesh<
     this.geometry = geometry;
     this.setDefaultMaterial();
     this.dataModel = foundation;
+
+    this.layers.enable(SceneLayers.Foundation);
   }
 
   setDefaultMaterial() {
