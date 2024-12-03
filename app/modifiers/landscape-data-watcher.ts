@@ -11,7 +11,9 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
+import ApplicationData, {
+  K8sData,
+} from 'explorviz-frontend/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
@@ -29,6 +31,11 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import FontRepository from 'explorviz-frontend/services/repos/font-repository';
+import { Object3D } from 'three';
+import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
 interface NamedArgs {
@@ -79,6 +86,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('user-settings')
   userSettings!: UserSettings;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
+
+  @service('repos/font-repository')
+  fontRepo!: FontRepository;
 
   @service
   private worker!: any;
@@ -135,13 +148,20 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // This is done for all applications to have accurate heatmap data.
 
     let { nodes: graphNodes } = this.graph.graphData();
-    const { nodes } = this.structureLandscapeData;
+    const { nodes, k8sNodes } = this.structureLandscapeData;
+
+    const allAppsInNodes = [
+      ...nodes.flatMap((n) => n.applications),
+      ...k8sNodes
+        .flatMap((n) => n.k8sNamespaces)
+        .flatMap((ns) => ns.k8sDeployments)
+        .flatMap((d) => d.k8sPods)
+        .flatMap((p) => p.applications),
+    ];
 
     // Filter out any nodes that are no longer present in the new landscape data
     graphNodes = graphNodes.filter((node: GraphNode) => {
-      const appears = nodes.some((n) => {
-        return n.applications.some((app) => app.id === node.id);
-      });
+      const appears = allAppsInNodes.some((n) => n.id === node.id);
 
       if (!appears) {
         // also delete from application renderer so it can be rerendered if it existent again
@@ -157,6 +177,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const application = node.applications[j];
         const applicationData = await this.updateApplicationData.perform(
           application,
+          null,
           classCommunications
         );
 
@@ -187,6 +208,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             id: applicationData.application.id,
             fy: 0,
             collisionRadius,
+            __threeObj: app as Object3D,
           } as GraphNode);
         }
 
@@ -202,6 +224,86 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         });
       }
     }
+
+    const k8sApps = this.landscapeData.structureLandscapeData.k8sNodes.flatMap(
+      (n) =>
+        n.k8sNamespaces.flatMap((ns) =>
+          ns.k8sDeployments.flatMap((d) =>
+            d.k8sPods.flatMap((p) =>
+              p.applications.map((app) => {
+                return {
+                  k8sNode: n,
+                  k8sNamespace: ns,
+                  k8sDeployment: d,
+                  k8sPod: p,
+                  app: app,
+                };
+              })
+            )
+          )
+        )
+    );
+
+    // add k8sApps
+    const promises = k8sApps.map(async (k8sApp) => {
+      const applicationData = await this.updateApplicationData.perform(
+        k8sApp.app,
+        {
+          k8sNode: k8sApp.k8sNode.name,
+          k8sNamespace: k8sApp.k8sNamespace.name,
+          k8sDeployment: k8sApp.k8sDeployment.name,
+          k8sPod: k8sApp.k8sPod.name,
+        },
+        classCommunications
+      );
+
+      const app =
+        await this.applicationRenderer.addApplicationTask.perform(
+          applicationData
+        );
+
+      // fix previously existing nodes to position (if present) and calculate collision size
+      const graphNode = graphNodes.find(
+        (node) => node.id === applicationData.application.id
+      ) as GraphNode;
+
+      if (!app.foundationMesh) {
+        console.error('No foundation mesh, this should not happen');
+        return;
+      }
+
+      const { x, z } = app.foundationMesh.scale;
+      const collisionRadius = Math.hypot(x, z) / 2 + 3;
+      if (graphNode) {
+        graphNode.collisionRadius = collisionRadius;
+        // graphNode.fx = graphNode.x;
+        // graphNode.fz = graphNode.z;
+      } else {
+        graphNodes.push({
+          id: applicationData.application.id,
+          x: 0, // without this property, the arrows will not be displayed
+          collisionRadius,
+          __threeObj: app as Object3D,
+        } as GraphNode);
+      }
+
+      return app;
+    });
+
+    const apps = (await Promise.all(promises)) as ApplicationObject3D[];
+
+    const baseParams = {
+      font: this.fontRepo.font,
+    };
+    const rootParents = visualizeK8sLandscape(
+      this.landscapeData.structureLandscapeData.k8sNodes,
+      baseParams,
+      (app) => {
+        return apps.find(
+          (a) => a.dataModel.application.id === app.id
+        ) as ApplicationObject3D;
+      }
+    );
 
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
@@ -222,9 +324,19 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       ),
       communicationData: communication,
     }));
-
     const gData = {
-      nodes: graphNodes,
+      nodes: [
+        ...rootParents.map((p) => {
+          const d = p.dimensions;
+          const collisionRadius = Math.hypot(d.x, d.z) / 2 + 3;
+          return {
+            __threeObj: p,
+            fy: 0, // positions all nodes on the same height
+            collisionRadius,
+          };
+        }),
+        ...graphNodes.filter((n) => !apps.includes((n as any).__threeObj)),
+      ],
       links: [...communicationLinks, ...nodeLinks],
     };
 
@@ -279,6 +391,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   updateApplicationData = task(
     async (
       application: Application,
+      k8sData: K8sData | null,
       classCommunication: ClassCommunication[]
     ) => {
       const workerPayload = {
@@ -305,7 +418,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         applicationData = new ApplicationData(
           application,
           results[0],
-          results[1]
+          results[1],
+          k8sData
         );
       }
 

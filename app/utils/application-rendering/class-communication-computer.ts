@@ -200,9 +200,17 @@ function createLookupMaps(
   const hashCodeToClassMap = new Map<string, Class>();
   const classToApplicationMap = new Map<Class, Application>();
 
-  const allApplications = structureData.nodes
+  const allNormalApplications = structureData.nodes
     .map((node) => node.applications)
     .flat();
+
+  const allK8sApplications = structureData.k8sNodes
+    .flatMap((n) => n.k8sNamespaces)
+    .flatMap((ns) => ns.k8sDeployments)
+    .flatMap((d) => d.k8sPods)
+    .flatMap((p) => p.applications);
+
+  const allApplications = [...allNormalApplications, ...allK8sApplications];
 
   for (const application of allApplications) {
     const classes = getAllClassesInApplication(application);

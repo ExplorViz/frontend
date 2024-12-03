@@ -102,4 +102,9 @@
       @openParents={{@openParents}}
     />
   {{/if}}
+  {{#if (eq this.entityType 'simpleParentMesh')}}
+    <Visualization::Rendering::Popups::GenericPopup
+      @data={{@this.popupData.mesh.popupData}}
+    />
+  {{/if}}
 </div>
