@@ -75,16 +75,17 @@ export default class Settings extends Component<Args> {
       SettingGroup,
       VisualizationSettingId[]
     > = {
+      Annotations: [],
       Camera: [],
-      Minimap: [],
       Colors: [],
-      Controls: [],
       Communication: [],
+      Controls: [],
+      Effects: [],
       Heatmap: [],
       Highlighting: [],
-      Effects: [],
+      Layout: [],
+      Minimap: [],
       Popups: [],
-      Annotations: [],
       'Virtual Reality': [],
       Debugging: [],
     };
@@ -123,6 +124,15 @@ export default class Settings extends Component<Args> {
     }
 
     switch (settingId) {
+      case 'applicationAspectRatio':
+      case 'packageAspectRatio':
+      case 'classFootprint':
+      case 'classMargin':
+      case 'appLabelMargin':
+      case 'appMargin':
+      case 'packageLabelMargin':
+      case 'packageMargin':
+        break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();

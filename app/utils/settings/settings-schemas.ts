@@ -1,16 +1,29 @@
 export type SettingGroup =
+  | 'Annotations'
   | 'Camera'
-  | 'Minimap'
   | 'Colors'
-  | 'Controls'
   | 'Communication'
+  | 'Controls'
+  | 'Debugging'
+  | 'Effects'
   | 'Heatmap'
   | 'Highlighting'
-  | 'Effects'
+  | 'Layout'
+  | 'Minimap'
   | 'Popups'
-  | 'Annotations'
-  | 'Virtual Reality'
-  | 'Debugging';
+  | 'Virtual Reality';
+
+export type AnnotationSettingId = 'enableCustomAnnotationPosition';
+
+export type AnnotationSettings = Record<AnnotationSettingId, FlagSetting>;
+
+export type CameraSettingId = 'cameraNear' | 'cameraFar' | 'cameraFov';
+
+export type CameraSettings = {
+  cameraNear: RangeSetting;
+  cameraFar: RangeSetting;
+  cameraFov: RangeSetting;
+};
 
 export type ColorSettingId =
   | 'backgroundColor'
@@ -25,40 +38,24 @@ export type ColorSettingId =
   | 'foundationTextColor'
   | 'highlightedEntityColor';
 
-export type ControlSettingId = 'enableGamepadControls' | 'selectedGamepadIndex';
+export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
-export type HeatmapSettingId = 'heatmapEnabled';
-
-export type HighlightingSettingId =
-  | 'applyHighlightingOnHover'
-  | 'keepHighlightingOnOpenOrClose'
-  | 'transparencyIntensity'
-  | 'enableMultipleHighlighting';
-
-export type HoveringSettingId =
-  | 'enableHoverEffects'
-  | 'enableAnimations'
-  | 'castShadows';
+export type ControlSettings = {
+  enableGamepadControls: FlagSetting;
+  selectedGamepadIndex: RangeSetting;
+};
 
 export type CommunicationSettingId =
   | 'commThickness'
   | 'commArrowSize'
   | 'curvyCommHeight';
 
-export type MinimapSettingId =
-  | 'minimap'
-  | 'zoom'
-  | 'version2'
-  | 'layer1'
-  | 'layer2'
-  | 'layer3'
-  | 'layer4'
-  | 'layer6'
-  | 'layer7';
+export type CommunicationSettings = Record<
+  CommunicationSettingId,
+  RangeSetting
+>;
 
-export type CameraSettingId = 'cameraNear' | 'cameraFar' | 'cameraFov';
-
-export type XrSettingId = 'showVrButton' | 'showVrOnClick';
+export type ControlSettingId = 'enableGamepadControls' | 'selectedGamepadIndex';
 
 export type DebugSettingId =
   | 'showFpsCounter'
@@ -67,49 +64,6 @@ export type DebugSettingId =
   | 'fullscreen'
   | 'syncRoomState'
   | 'resetToDefaults';
-
-export type PopupSettingId = 'hidePopupDelay';
-
-export type AnnotationSettingId = 'enableCustomAnnotationPosition';
-
-export type VisualizationSettingId =
-  | ColorSettingId
-  | ControlSettingId
-  | HeatmapSettingId
-  | HighlightingSettingId
-  | HoveringSettingId
-  | CommunicationSettingId
-  | DebugSettingId
-  | CameraSettingId
-  | XrSettingId
-  | PopupSettingId
-  | MinimapSettingId
-  | AnnotationSettingId;
-
-export type ColorSettings = Record<ColorSettingId, ColorSetting>;
-
-export type ControlSettings = {
-  enableGamepadControls: FlagSetting;
-  selectedGamepadIndex: RangeSetting;
-};
-
-export type HeatmapSettings = {
-  heatmapEnabled: FlagSetting;
-};
-
-export type HighlightingSettings = {
-  applyHighlightingOnHover: FlagSetting;
-  keepHighlightingOnOpenOrClose: FlagSetting;
-  transparencyIntensity: RangeSetting;
-  enableMultipleHighlighting: FlagSetting;
-};
-
-export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
-
-export type CommunicationSettings = Record<
-  CommunicationSettingId,
-  RangeSetting
->;
 
 export type DebugSettings = {
   showFpsCounter: FlagSetting;
@@ -121,17 +75,54 @@ export type DebugSettings = {
   resetToDefaults: ButtonSetting;
 };
 
-export type PopupSettings = {
-  hidePopupDelay: RangeSetting;
+export type HeatmapSettingId = 'heatmapEnabled';
+
+export type HeatmapSettings = {
+  heatmapEnabled: FlagSetting;
 };
 
-export type AnnotationSettings = Record<AnnotationSettingId, FlagSetting>;
+export type HighlightingSettingId =
+  | 'applyHighlightingOnHover'
+  | 'keepHighlightingOnOpenOrClose'
+  | 'transparencyIntensity'
+  | 'enableMultipleHighlighting';
 
-export type CameraSettings = {
-  cameraNear: RangeSetting;
-  cameraFar: RangeSetting;
-  cameraFov: RangeSetting;
+export type HighlightingSettings = {
+  applyHighlightingOnHover: FlagSetting;
+  keepHighlightingOnOpenOrClose: FlagSetting;
+  transparencyIntensity: RangeSetting;
+  enableMultipleHighlighting: FlagSetting;
 };
+
+export type HoveringSettingId =
+  | 'enableHoverEffects'
+  | 'enableAnimations'
+  | 'castShadows';
+
+export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
+
+export type LayoutSettingId =
+  | 'applicationAspectRatio'
+  | 'packageAspectRatio'
+  | 'classFootprint'
+  | 'classMargin'
+  | 'appLabelMargin'
+  | 'appMargin'
+  | 'packageLabelMargin'
+  | 'packageMargin';
+
+export type LayoutSettings = Record<LayoutSettingId, RangeSetting>;
+
+export type MinimapSettingId =
+  | 'minimap'
+  | 'zoom'
+  | 'version2'
+  | 'layer1'
+  | 'layer2'
+  | 'layer3'
+  | 'layer4'
+  | 'layer6'
+  | 'layer7';
 
 export type MinimapSettings = {
   minimap: FlagSetting;
@@ -145,20 +136,44 @@ export type MinimapSettings = {
   layer7: FlagSetting;
 };
 
+export type PopupSettingId = 'hidePopupDelay';
+
+export type PopupSettings = {
+  hidePopupDelay: RangeSetting;
+};
+
+export type XrSettingId = 'showVrButton' | 'showVrOnClick';
+
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
-export type VisualizationSettings = ColorSettings &
+export type VisualizationSettingId =
+  | AnnotationSettingId
+  | CameraSettingId
+  | ColorSettingId
+  | CommunicationSettingId
+  | ControlSettingId
+  | DebugSettingId
+  | HeatmapSettingId
+  | HighlightingSettingId
+  | HoveringSettingId
+  | LayoutSettingId
+  | MinimapSettingId
+  | PopupSettingId
+  | XrSettingId;
+
+export type VisualizationSettings = AnnotationSettings &
+  CameraSettings &
+  CommunicationSettings &
   ControlSettings &
+  DebugSettings &
   HeatmapSettings &
   HighlightingSettings &
   HoveringSettings &
-  DebugSettings &
+  LayoutSettings &
+  MinimapSettings &
   PopupSettings &
-  AnnotationSettings &
-  CameraSettings &
   XrSettings &
-  CommunicationSettings &
-  MinimapSettings;
+  ColorSettings;
 
 export interface Setting<T> {
   value: T;

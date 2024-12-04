@@ -220,6 +220,114 @@ export const defaultVizSettings: VisualizationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
+  // Layout settings
+  applicationAspectRatio: {
+    value: 1.0,
+    range: {
+      min: 0.25,
+      max: 2.0,
+      step: 0.25,
+    },
+    orderNumber: 1,
+    group: 'Layout',
+    displayName: 'App Aspect Ratio',
+    description: 'Determines a preferred aspect ratio for applications',
+    isRangeSetting: true,
+  },
+  packageAspectRatio: {
+    value: 1.25,
+    range: {
+      min: 0.25,
+      max: 2.0,
+      step: 0.25,
+    },
+    orderNumber: 2,
+    group: 'Layout',
+    displayName: 'Package Aspect Ratio',
+    description: 'Determines a preferred aspect ratio for packages',
+    isRangeSetting: true,
+  },
+  classFootprint: {
+    value: 5.0,
+    range: {
+      min: 0.5,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 3,
+    group: 'Layout',
+    displayName: 'Class Footprint',
+    description: 'Determines width and depth of classes',
+    isRangeSetting: true,
+  },
+  classMargin: {
+    value: 10.0,
+    range: {
+      min: 0.0,
+      max: 30.0,
+      step: 1.0,
+    },
+    orderNumber: 4,
+    group: 'Layout',
+    displayName: 'Class Margin',
+    description:
+      'Determines distance between classes and to surrounding package',
+    isRangeSetting: true,
+  },
+  appLabelMargin: {
+    value: 5.0,
+    range: {
+      min: 1.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 5,
+    group: 'Layout',
+    displayName: 'App Label Margin',
+    description:
+      'Determines how much space (height) an application label may occupy',
+    isRangeSetting: true,
+  },
+  appMargin: {
+    value: 5.0,
+    range: {
+      min: 1.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 6,
+    group: 'Layout',
+    displayName: 'App Margin',
+    description: 'Determines margin of applications',
+    isRangeSetting: true,
+  },
+  packageLabelMargin: {
+    value: 5.0,
+    range: {
+      min: 1.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 7,
+    group: 'Layout',
+    displayName: 'Package Label Margin',
+    description:
+      'Determines how much space (height) a package label may occupy',
+    isRangeSetting: true,
+  },
+  packageMargin: {
+    value: 5.0,
+    range: {
+      min: 1.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 8,
+    group: 'Layout',
+    displayName: 'Package Margin',
+    description: 'Determines margin of packages',
+    isRangeSetting: true,
+  },
   // Popup settings
   hidePopupDelay: {
     value: 1.0,
