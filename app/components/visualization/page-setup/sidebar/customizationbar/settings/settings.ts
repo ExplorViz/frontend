@@ -18,6 +18,7 @@ import PopupData from '../../../../rendering/popups/popup-data';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { Mesh } from 'three';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 
 interface Args {
   enterFullscreen?(): void;
@@ -38,6 +39,9 @@ export default class Settings extends Component<Args> {
 
   @service('local-user')
   private localUser!: LocalUser;
+
+  @service('heatmap-configuration')
+  private heatmapConf!: HeatmapConfiguration;
 
   @service('message-sender')
   private sender!: MessageSender;
@@ -76,6 +80,7 @@ export default class Settings extends Component<Args> {
       Colors: [],
       Controls: [],
       Communication: [],
+      Heatmap: [],
       Highlighting: [],
       Effects: [],
       Popups: [],
@@ -210,6 +215,9 @@ export default class Settings extends Component<Args> {
           break;
         case 'enableGamepadControls':
           this.args.setGamepadSupport(value);
+          break;
+        case 'heatmapEnabled':
+          this.heatmapConf.setActive(value);
           break;
         case 'minimap':
           this.minimapService.minimapEnabled = value;

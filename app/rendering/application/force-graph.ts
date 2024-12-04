@@ -8,9 +8,9 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
+import { Object3D } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import * as THREE from 'three';
 export interface GraphNode {
@@ -24,7 +24,7 @@ export interface GraphNode {
   fx: number;
   fy: number;
   fz: number;
-  __threeObj: ApplicationObject3D;
+  __threeObj: Object3D;
 }
 
 export interface GraphLink {
@@ -66,9 +66,9 @@ export default class ForceGraph {
     setOwner(this, owner);
     this.graph = new GrabbableForceGraph()
       .graphData({ nodes: [], links: [] })
-      .nodeThreeObject(
-        ({ id }) => this.applicationRenderer.getApplicationById(id as string)!
-      )
+      .nodeThreeObject((obj) => {
+        return obj.__threeObj;
+      })
       .warmupTicks(100)
       .linkColor(
         () =>

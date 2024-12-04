@@ -253,6 +253,8 @@ export default class VisualizationController extends Controller {
     return (
       this.renderingService.landscapeData !== null &&
       this.renderingService.landscapeData.structureLandscapeData?.nodes
+        .length === 0 &&
+      this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
         .length === 0
     );
   }
@@ -260,8 +262,10 @@ export default class VisualizationController extends Controller {
   get allLandscapeDataExistsAndNotEmpty() {
     return (
       this.renderingService.landscapeData !== null &&
-      this.renderingService.landscapeData.structureLandscapeData?.nodes.length >
-        0
+      (this.renderingService.landscapeData.structureLandscapeData?.nodes
+        .length > 0 ||
+        this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
+          .length > 0)
     );
   }
 

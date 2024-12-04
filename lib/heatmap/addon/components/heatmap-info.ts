@@ -1,7 +1,9 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { Metric } from 'heatmap/services/heatmap-configuration';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
+import { Metric } from 'explorviz-frontend/utils/metric-schemes/metric-data';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import { inject as service } from '@ember/service';
 
 interface HeatmapInfoArgs {
   metrics: Metric[];
@@ -10,6 +12,9 @@ interface HeatmapInfoArgs {
 }
 
 export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
+  @service('user-settings')
+  userSettings!: UserSettings;
+
   element!: HTMLElement;
 
   lastMousePosition: Position2D = {
@@ -81,8 +86,10 @@ export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
     const containerDiv = this.element.parentElement as HTMLElement;
 
     this.element.style.top = '100px';
-    this.element.style.left = `${
-      containerDiv.clientWidth - this.element.clientWidth - 15
-    }px`;
+    this.element.style.left = `${containerDiv.clientWidth / 2}px`;
+  }
+
+  willDestroy(): void {
+    this.userSettings.updateApplicationSetting('heatmapEnabled', false);
   }
 }

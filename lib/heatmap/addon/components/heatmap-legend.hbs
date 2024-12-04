@@ -1,10 +1,10 @@
 <div id='heatmap-legend-container' class='d-flex flex-column p-2'>
   <div id='legend-header'>
-    {{!--<div>
-      <span id="legend-header-content">Heatmap</span>
-      {{#if (eq this.heatmapConfiguration.selectedMode "aggregatedHeatmap")}}
+    {{!-- <div>
+      <span id='legend-header-content'>Heatmap</span>
+      {{#if (eq this.heatmapConfiguration.selectedMode 'aggregatedHeatmap')}}
         <HelpTooltip @title={{this.descriptions.aggregatedHeatmap}} />
-      {{else if (eq this.heatmapConfiguration.selectedMode "windowedHeatmap")}}
+      {{else if (eq this.heatmapConfiguration.selectedMode 'windowedHeatmap')}}
         <HelpTooltip @title={{this.descriptions.windowedHeatmap}} />
       {{else}}
         <HelpTooltip @title={{this.descriptions.snapshotHeatmap}} />
@@ -12,16 +12,16 @@
     </div>
     <div>
       <button
-        class="button-svg-with-hover"
-        type="button"
-        {{on "click" this.switchHeatMapMode}}
+        class='button-svg-with-hover'
+        type='button'
+        {{on 'click' this.switchHeatMapMode}}
       >
-        {{svg-jar "arrow-switch-16" class="octicon align-middle"}}
-        <BsTooltip @placement="bottom" @triggerEvents="hover">
+        {{svg-jar 'arrow-switch-16' class='octicon align-middle'}}
+        <BsTooltip @placement='bottom' @triggerEvents='hover'>
           Switch Heat Map Mode.
         </BsTooltip>
       </button>
-    </div>--}}
+    </div> --}}
 
     <div>
       <BsButton

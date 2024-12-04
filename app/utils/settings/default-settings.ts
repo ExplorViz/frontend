@@ -102,6 +102,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Index of the gamepad to be used for navigation',
     isRangeSetting: true,
   },
+  // Heatmap Settings
+  heatmapEnabled: {
+    value: false,
+    orderNumber: 1,
+    group: 'Heatmap',
+    displayName: 'Show Heatmap',
+    description: 'Toggle visibility of the heatmap',
+    isFlagSetting: true,
+  },
   // Highlighting Settings
   applyHighlightingOnHover: {
     value: true,
