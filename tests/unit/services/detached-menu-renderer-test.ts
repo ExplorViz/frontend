@@ -6,7 +6,7 @@ module('Unit | Service | detached-menu-renderer', function (hooks) {
 
   // Replace this with your real tests.
   test('it exists', function (assert) {
-    const service = this.owner.lookup('service:detached-menu-renderer');
+    const service = this.owner.lookup('service:extended-reality/detached-menu-renderer');
     assert.ok(service);
   });
 });
