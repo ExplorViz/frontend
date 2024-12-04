@@ -2,19 +2,19 @@ import Service, { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import {
-  classicApplicationColors,
+  classicColors,
   ColorSchemeId,
-  darkApplicationColors,
-  defaultApplicationColors,
-  blueApplicationColors,
+  darkColors,
+  defaultColors,
+  blueColors,
   ColorScheme,
 } from 'explorviz-frontend/utils/settings/color-schemes';
-import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
+import { defaultVizSettings } from 'explorviz-frontend/utils/settings/default-settings';
 import {
-  ApplicationColorSettingId,
-  ApplicationColorSettings,
-  ApplicationSettingId,
-  ApplicationSettings,
+  ColorSettingId,
+  ColorSettings,
+  VisualizationSettingId,
+  VisualizationSettings,
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
@@ -49,128 +49,125 @@ export default class UserSettings extends Service {
   private highlightingService!: HighlightingService;
 
   @tracked
-  applicationSettings!: ApplicationSettings;
+  visualizationSettings!: VisualizationSettings;
 
   /**
-   * Colors for application visualization
+   * Colors for visualization
    *
-   * @property applicationColors
-   * @type ApplicationColors
+   * @property colors
+   * @type ExplorVizColors
    */
   @tracked
-  applicationColors!: ApplicationColors;
+  colors!: ExplorVizColors;
 
   constructor() {
     super(...arguments);
 
-    this.applicationSettings = getStoredSettings();
+    this.visualizationSettings = getStoredSettings();
     this.setColorsFromSettings();
     this.updateColors();
   }
 
   @action
-  applyDefaultApplicationSettings(saveToLocalStorage = true) {
-    this.applicationSettings = JSON.parse(
-      JSON.stringify(defaultApplicationSettings)
-    );
+  applyDefaultSettings(saveToLocalStorage = true) {
+    this.visualizationSettings = JSON.parse(JSON.stringify(defaultVizSettings));
 
     this.updateColors();
 
     if (saveToLocalStorage) {
-      saveSettings(this.applicationSettings);
+      saveSettings(this.visualizationSettings);
     }
   }
 
-  shareApplicationSettings() {
-    this.sender.sendSharedSettings(this.applicationSettings);
+  shareSettings() {
+    this.sender.sendSharedSettings(this.visualizationSettings);
   }
 
-  updateSettings(settings: ApplicationSettings) {
-    this.applicationSettings = settings;
+  updateSettings(settings: VisualizationSettings) {
+    this.visualizationSettings = settings;
 
     this.updateColors();
     this.applicationRenderer.addCommunicationForAllApplications();
     this.highlightingService.updateHighlighting();
-    this.localUser.defaultCamera.fov = this.applicationSettings.cameraFov.value;
+    this.localUser.defaultCamera.fov =
+      this.visualizationSettings.cameraFov.value;
     this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
-  updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
-    const setting = this.applicationSettings[name];
+  updateSetting(name: VisualizationSettingId, value?: unknown) {
+    const setting = this.visualizationSettings[name];
 
-    const newValue = value ?? defaultApplicationSettings[name].value;
+    const newValue = value ?? defaultVizSettings[name].value;
 
     if (isRangeSetting(setting) && typeof newValue === 'number') {
       validateRangeSetting(setting, newValue);
-      this.applicationSettings = {
-        ...this.applicationSettings,
+      this.visualizationSettings = {
+        ...this.visualizationSettings,
         [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
       };
     } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
-      this.applicationSettings = {
-        ...this.applicationSettings,
+      this.visualizationSettings = {
+        ...this.visualizationSettings,
         [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
       };
     } else if (isColorSetting(setting) && typeof newValue === 'string') {
       setting.value = newValue;
     }
 
-    saveSettings(this.applicationSettings);
+    saveSettings(this.visualizationSettings);
   }
 
   setColorScheme(schemeId: ColorSchemeId, saveToLocalStorage = true) {
-    let scheme = defaultApplicationColors;
+    let scheme = defaultColors;
 
     switch (schemeId) {
       case 'classic':
-        scheme = classicApplicationColors;
+        scheme = classicColors;
         break;
       case 'blue':
-        scheme = blueApplicationColors;
+        scheme = blueColors;
         break;
       case 'dark':
-        scheme = darkApplicationColors;
+        scheme = darkColors;
         break;
       default:
         break;
     }
 
-    let settingId: keyof ApplicationColorSettings;
-    for (settingId in this.applicationColors) {
-      this.applicationSettings[settingId].value = scheme[settingId];
+    let settingId: keyof ColorSettings;
+    for (settingId in this.colors) {
+      this.visualizationSettings[settingId].value = scheme[settingId];
     }
 
     this.updateColors(scheme);
 
     if (saveToLocalStorage) {
-      saveSettings(this.applicationSettings);
+      saveSettings(this.visualizationSettings);
     }
   }
 
   updateColors(updatedColors?: ColorScheme) {
-    if (!this.applicationColors) {
+    if (!this.colors) {
       this.setColorsFromSettings();
       return;
     }
 
-    let settingId: keyof ApplicationColorSettings;
-    for (settingId in this.applicationColors) {
+    let settingId: keyof ColorSettings;
+    for (settingId in this.colors) {
       if (updatedColors) {
-        this.applicationColors[settingId].set(updatedColors[settingId]);
+        this.colors[settingId].set(updatedColors[settingId]);
       } else {
-        this.applicationColors[settingId].set(
-          this.applicationSettings[settingId].value
-        );
+        this.colors[settingId].set(this.visualizationSettings[settingId].value);
       }
     }
 
-    updateColors(this.sceneRepo.getScene(), this.applicationColors);
+    updateColors(this.sceneRepo.getScene(), this.colors);
   }
 
   setColorsFromSettings() {
-    const { applicationSettings } = this;
+    const { visualizationSettings: applicationSettings } = this;
 
-    this.applicationColors = {
+    this.colors = {
       foundationColor: new THREE.Color(
         applicationSettings.foundationColor.value
       ),
@@ -204,7 +201,7 @@ export default class UserSettings extends Service {
   }
 }
 
-export type ApplicationColors = Record<ApplicationColorSettingId, THREE.Color>;
+export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {

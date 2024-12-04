@@ -325,7 +325,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       ) as GraphNode,
       value: calculateLineThickness(
         communication,
-        this.userSettings.applicationSettings
+        this.userSettings.visualizationSettings
       ),
       communicationData: communication,
     }));
@@ -450,7 +450,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
 
       if (
-        this.userSettings.applicationSettings.heatmapEnabled &&
+        this.userSettings.visualizationSettings.heatmapEnabled &&
         this.heatmapConf.currentApplication?.dataModel.application.id ===
           application.id
       ) {

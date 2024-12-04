@@ -170,7 +170,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   debug = debugLogger('BrowserRendering');
@@ -180,7 +180,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
-    this.scene.background = this.userSettings.applicationColors.backgroundColor;
+    this.scene.background = this.userSettings.colors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
@@ -319,7 +319,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   private initCameras() {
     const aspectRatio = this.canvas.width / this.canvas.height;
-    const settings = this.userSettings.applicationSettings;
+    const settings = this.userSettings.visualizationSettings;
 
     // Camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
@@ -512,7 +512,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
       if (
-        !this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose
+        !this.userSettings.visualizationSettings.keepHighlightingOnOpenOrClose
           .value
       ) {
         const applicationObject3D = mesh.parent;
@@ -699,7 +699,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   updateColors() {
-    updateColors(this.scene, this.userSettings.applicationColors);
+    updateColors(this.scene, this.userSettings.colors);
   }
 
   @action

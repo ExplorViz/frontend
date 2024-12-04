@@ -1,80 +1,80 @@
-import { defaultApplicationColors } from './color-schemes';
-import { ApplicationSettings } from './settings-schemas';
+import { defaultColors } from './color-schemes';
+import { VisualizationSettings } from './settings-schemas';
 
-export const defaultApplicationSettings: ApplicationSettings = {
+export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   foundationColor: {
-    value: defaultApplicationColors.foundationColor,
+    value: defaultColors.foundationColor,
     orderNumber: 1,
     group: 'Colors',
     displayName: 'Foundation',
     isColorSetting: true,
   },
   componentOddColor: {
-    value: defaultApplicationColors.componentOddColor,
+    value: defaultColors.componentOddColor,
     orderNumber: 2,
     group: 'Colors',
     displayName: 'Component Odd',
     isColorSetting: true,
   },
   componentEvenColor: {
-    value: defaultApplicationColors.componentEvenColor,
+    value: defaultColors.componentEvenColor,
     orderNumber: 3,
     group: 'Colors',
     displayName: 'Component Even',
     isColorSetting: true,
   },
   clazzColor: {
-    value: defaultApplicationColors.clazzColor,
+    value: defaultColors.clazzColor,
     orderNumber: 4,
     group: 'Colors',
     displayName: 'Class',
     isColorSetting: true,
   },
   highlightedEntityColor: {
-    value: defaultApplicationColors.highlightedEntityColor,
+    value: defaultColors.highlightedEntityColor,
     orderNumber: 5,
     group: 'Colors',
     displayName: 'Highlighted Entity',
     isColorSetting: true,
   },
   componentTextColor: {
-    value: defaultApplicationColors.componentTextColor,
+    value: defaultColors.componentTextColor,
     orderNumber: 6,
     group: 'Colors',
     displayName: 'Component Label',
     isColorSetting: true,
   },
   clazzTextColor: {
-    value: defaultApplicationColors.clazzTextColor,
+    value: defaultColors.clazzTextColor,
     orderNumber: 7,
     group: 'Colors',
     displayName: 'Class Label',
     isColorSetting: true,
   },
   foundationTextColor: {
-    value: defaultApplicationColors.foundationTextColor,
+    value: defaultColors.foundationTextColor,
     orderNumber: 8,
     group: 'Colors',
     displayName: 'Foundation Label',
     isColorSetting: true,
   },
   communicationColor: {
-    value: defaultApplicationColors.communicationColor,
+    value: defaultColors.communicationColor,
     orderNumber: 9,
     group: 'Colors',
     displayName: 'Communication',
     isColorSetting: true,
   },
   communicationArrowColor: {
-    value: defaultApplicationColors.communicationArrowColor,
+    value: defaultColors.communicationArrowColor,
     orderNumber: 10,
     group: 'Colors',
     displayName: 'Communication Arrow',
     isColorSetting: true,
   },
   backgroundColor: {
-    value: defaultApplicationColors.backgroundColor,
+    value: defaultColors.backgroundColor,
     orderNumber: 11,
     group: 'Colors',
     displayName: 'Background',

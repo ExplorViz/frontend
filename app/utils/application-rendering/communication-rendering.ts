@@ -13,7 +13,7 @@ import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
-import { ApplicationSettings } from '../settings/settings-schemas';
+import { VisualizationSettings } from '../settings/settings-schemas';
 
 export default class CommunicationRendering {
   // Service to access preferences
@@ -34,7 +34,7 @@ export default class CommunicationRendering {
   }
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {
@@ -61,7 +61,7 @@ export default class CommunicationRendering {
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
     const arrowColorHex =
-      this.userSettings.applicationColors.communicationArrowColor.getHex();
+      this.userSettings.colors.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(
@@ -87,7 +87,7 @@ export default class CommunicationRendering {
    */
   addCommunication(
     applicationObject3D: ApplicationObject3D,
-    settings: ApplicationSettings
+    settings: VisualizationSettings
   ) {
     if (!this.configuration.isCommRendered) return;
 
@@ -126,7 +126,7 @@ export default class CommunicationRendering {
 
     // Retrieve color preferences
     const { communicationColor, highlightedEntityColor } =
-      this.userSettings.applicationColors;
+      this.userSettings.colors;
 
     const componentCommunicationMap = new Map<string, ComponentCommunication>();
 
@@ -183,7 +183,7 @@ export default class CommunicationRendering {
 
             commLayout.lineThickness = calculateLineThickness(
               componentCommunication,
-              this.userSettings.applicationSettings
+              this.userSettings.visualizationSettings
             );
             // Create new component communication
           } else {

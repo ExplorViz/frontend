@@ -16,7 +16,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
 import { getStoredSettings } from '../settings/local-storage-settings';
 
 /**
@@ -401,7 +401,7 @@ export function moveCameraTo(
 
 export function updateColors(
   scene: THREE.Scene,
-  applicationColors: ApplicationColors
+  applicationColors: ExplorVizColors
 ) {
   scene.traverse((object3D) => {
     if (object3D instanceof BaseMesh) {

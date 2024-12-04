@@ -132,7 +132,7 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   get font() {
@@ -253,7 +253,7 @@ export default class ApplicationRenderer extends Service.extend() {
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.userSettings.applicationColors
+          this.userSettings.colors
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
@@ -268,7 +268,7 @@ export default class ApplicationRenderer extends Service.extend() {
         Labeler.addApplicationLabels(
           applicationObject3D,
           this.font,
-          this.userSettings.applicationColors
+          this.userSettings.colors
         );
       }
 
@@ -292,8 +292,9 @@ export default class ApplicationRenderer extends Service.extend() {
       // reset highlights -------------------
 
       const currentSetting =
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value;
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        this.userSettings.visualizationSettings.enableMultipleHighlighting
+          .value;
+      this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
@@ -303,7 +304,7 @@ export default class ApplicationRenderer extends Service.extend() {
           );
         }
       );
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
         currentSetting;
       // ----------------------------------------
 
@@ -342,7 +343,7 @@ export default class ApplicationRenderer extends Service.extend() {
       | FoundationMesh;
 
     const { componentTextColor, foundationTextColor } =
-      this.userSettings.applicationColors;
+      this.userSettings.colors;
 
     if (boxMesh instanceof ComponentMesh) {
       Labeler.updateBoxTextLabel(boxMesh, this.font, componentTextColor, label);
@@ -362,7 +363,7 @@ export default class ApplicationRenderer extends Service.extend() {
   addCommunication(applicationObject3D: ApplicationObject3D) {
     this._appCommRendering.addCommunication(
       applicationObject3D,
-      this.userSettings.applicationSettings
+      this.userSettings.visualizationSettings
     );
   }
 
@@ -393,7 +394,7 @@ export default class ApplicationRenderer extends Service.extend() {
     Labeler.addApplicationLabels(
       applicationObject3D,
       this.font,
-      this.userSettings.applicationColors
+      this.userSettings.colors
     );
     // Update links
     this.updateLinks?.();
@@ -536,7 +537,7 @@ export default class ApplicationRenderer extends Service.extend() {
       if (this.arSettings.renderCommunication) {
         this._appCommRendering.addCommunication(
           application,
-          this.userSettings.applicationSettings
+          this.userSettings.visualizationSettings
         );
       } else {
         application.removeAllCommunication();

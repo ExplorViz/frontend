@@ -6,7 +6,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
@@ -66,7 +66,7 @@ export function updateMeshVisiblity(
 export function addComponentAndChildrenToScene(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ApplicationColors,
+  applicationColors: ExplorVizColors,
   componentLevel = 1
 ) {
   const application = applicationObject3D.dataModel.application;
@@ -138,7 +138,7 @@ export function addComponentAndChildrenToScene(
  */
 export function addFoundationAndChildrenToApplication(
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ApplicationColors
+  applicationColors: ExplorVizColors
 ) {
   const application = applicationObject3D.dataModel.application;
   const applicationLayout = applicationObject3D.layout;
