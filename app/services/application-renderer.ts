@@ -228,8 +228,10 @@ export default class ApplicationRenderer extends Service.extend() {
       let layoutChanged = true;
       if (applicationObject3D) {
         // Maps cannot be compared directly. Thus, we compare their size.
-        layoutChanged =
-          boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
+        // TODO: Do a proper map comparison here:
+        // layoutChanged =
+        // boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
+        layoutChanged = true;
 
         applicationObject3D.boxLayoutMap = boxLayoutMap;
       } else {

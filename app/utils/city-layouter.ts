@@ -1,20 +1,27 @@
 import ELK from 'elkjs/lib/elk.bundled';
 import { Application, Package } from './landscape-schemes/structure-data';
+import { getStoredSettingValueById } from './settings/local-storage-settings';
 
-const APP_ASPECT_RATIO = 1;
-const PACKAGE_ASPECT_RATIO = 1.25;
-
-const CLASS_FOOTPRINT = 5;
-const CLASS_MARGIN = 10;
-
-const APP_LABEL_MARGIN = 15;
-const APP_MARGIN = 6;
-
-const PACKAGE_LABEL_MARGIN = 13;
-const PACKAGE_MARGIN = 6;
+let APP_ASPECT_RATIO = getStoredSettingValueById('applicationAspectRatio');
+let PACKAGE_ASPECT_RATIO = getStoredSettingValueById('packageAspectRatio');
+let CLASS_FOOTPRINT = getStoredSettingValueById('classFootprint');
+let CLASS_MARGIN = getStoredSettingValueById('classMargin');
+let APP_LABEL_MARGIN = getStoredSettingValueById('appLabelMargin');
+let APP_MARGIN = getStoredSettingValueById('appMargin');
+let PACKAGE_LABEL_MARGIN = getStoredSettingValueById('packageLabelMargin');
+let PACKAGE_MARGIN = getStoredSettingValueById('packageMargin');
 
 export default async function layoutCity(application: Application) {
   const elk = new ELK();
+
+  APP_ASPECT_RATIO = getStoredSettingValueById('applicationAspectRatio');
+  PACKAGE_ASPECT_RATIO = getStoredSettingValueById('packageAspectRatio');
+  CLASS_FOOTPRINT = getStoredSettingValueById('classFootprint');
+  CLASS_MARGIN = getStoredSettingValueById('classMargin');
+  APP_LABEL_MARGIN = getStoredSettingValueById('appLabelMargin');
+  APP_MARGIN = getStoredSettingValueById('appMargin');
+  PACKAGE_LABEL_MARGIN = getStoredSettingValueById('packageLabelMargin');
+  PACKAGE_MARGIN = getStoredSettingValueById('packageMargin');
 
   const graph = {
     id: 'applc' + application.id,

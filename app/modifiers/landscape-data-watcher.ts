@@ -408,10 +408,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const layoutMap = new Map<string, LayoutData>();
       convertElkToLayoutData(layoutedGraph, layoutMap);
 
-      // const cityLayout = this.worker.postMessage(
-      //   'city-layouter',
-      //   workerPayload
-      // );
       const heatmapMetrics = this.worker.postMessage(
         'metrics-worker',
         workerPayload
@@ -422,11 +418,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         workerPayload
       );
 
-      const results = (await all([
-        // cityLayout,
-        heatmapMetrics,
-        flatData,
-      ])) as any[];
+      const results = (await all([heatmapMetrics, flatData])) as any[];
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {

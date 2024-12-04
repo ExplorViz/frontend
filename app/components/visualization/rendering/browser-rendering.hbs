@@ -54,7 +54,11 @@
           spaceDown=this.handleSpaceBar
         }}
         {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
+        {{landscape-data-watcher
+          landscapeData=@landscapeData
+          graph=this.graph
+          updateLayout=this.updateLayout
+        }}
         {{collaborative-modifier
           raycastObject3D=this.raycastObjects
           camera=this.localUser.camera
@@ -259,7 +263,8 @@
                   @enterFullscreen={{this.enterFullscreen}}
                   @popups={{this.popupHandler.popupData}}
                   @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
-                  @resetSettings={{this.userSettings.applyDefaultApplicationSettings}}
+                  @resetSettings={{this.userSettings.applyDefaultSettings}}
+                  @triggerLayoutUpdate={{this.triggerLayoutUpdate}}
                   @updateColors={{this.updateColors}}
                   @updateHighlighting={{this.highlightingService.updateHighlighting}}
                 />

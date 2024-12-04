@@ -125,6 +125,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   readonly graph: ForceGraph;
 
+  // Determines if landscape needs to be fully re-computed
+  @tracked
+  updateLayout = false;
+
   @tracked
   readonly scene: THREE.Scene;
 
@@ -405,6 +409,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         }
       });
     }
+  }
+
+  @action
+  triggerLayoutUpdate() {
+    this.graph = this.graph;
   }
 
   @action

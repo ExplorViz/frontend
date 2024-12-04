@@ -24,8 +24,9 @@ interface Args {
   enterFullscreen?(): void;
   popups: PopupData[];
   redrawCommunication?(): void;
-  resetSettings?(): void;
+  resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
+  triggerLayoutUpdate(): void;
   updateColors?(): void;
   updateHighlighting?(): void;
 }
@@ -132,6 +133,7 @@ export default class Settings extends Component<Args> {
       case 'appMargin':
       case 'packageLabelMargin':
       case 'packageMargin':
+        this.args.triggerLayoutUpdate();
         break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
@@ -282,13 +284,14 @@ export default class Settings extends Component<Args> {
   @action
   resetSettings() {
     if (this.args.resetSettings) {
-      this.args.resetSettings();
+      this.args.resetSettings(true);
       this.args.updateColors?.();
       this.applicationRenderer.addCommunicationForAllApplications();
       this.highlightingService.updateHighlighting();
       this.localUser.defaultCamera.fov =
         this.userSettings.visualizationSettings.cameraFov.value;
       this.localUser.defaultCamera.updateProjectionMatrix();
+      this.args.triggerLayoutUpdate();
     }
   }
 }

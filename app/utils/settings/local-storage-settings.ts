@@ -1,11 +1,13 @@
 import isObject, { objectsHaveSameKeys } from '../object-helpers';
 import { defaultVizSettings } from './default-settings';
-import { VisualizationSettings, RangeSetting } from './settings-schemas';
+import {
+  VisualizationSettings,
+  RangeSetting,
+  VisualizationSettingId,
+} from './settings-schemas';
 
 export function getStoredSettings(): VisualizationSettings {
-  const userApplicationSettingsJSON = localStorage.getItem(
-    'userApplicationSettings'
-  );
+  const userApplicationSettingsJSON = localStorage.getItem('ExplorVizSettings');
 
   if (userApplicationSettingsJSON === null) {
     return defaultVizSettings;
@@ -16,9 +18,16 @@ export function getStoredSettings(): VisualizationSettings {
   if (areValidApplicationSettings(parsedApplicationSettings)) {
     return parsedApplicationSettings;
   } else {
-    localStorage.removeItem('userApplicationSettings');
+    localStorage.removeItem('ExplorVizSettings');
     return defaultVizSettings;
   }
+}
+
+export function getStoredSettingValueById(id: VisualizationSettingId) {
+  console.log('get stored Setting');
+
+  const settings = getStoredSettings();
+  return settings[id].value;
 }
 
 export function areValidApplicationSettings(maybeSettings: unknown) {
@@ -42,7 +51,7 @@ export function validateRangeSetting(
 
 export function saveSettings(applicationSettings: VisualizationSettings) {
   localStorage.setItem(
-    'userApplicationSettings',
+    'ExplorVizSettings',
     JSON.stringify(applicationSettings)
   );
 }

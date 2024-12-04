@@ -226,7 +226,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: {
       min: 0.25,
       max: 2.0,
-      step: 0.25,
+      step: 0.05,
     },
     orderNumber: 1,
     group: 'Layout',
@@ -235,11 +235,11 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   packageAspectRatio: {
-    value: 1.25,
+    value: 1.0,
     range: {
       min: 0.25,
       max: 2.0,
-      step: 0.25,
+      step: 0.05,
     },
     orderNumber: 2,
     group: 'Layout',
@@ -275,9 +275,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   appLabelMargin: {
-    value: 5.0,
+    value: 15.0,
     range: {
-      min: 1.0,
+      min: 0.0,
       max: 20.0,
       step: 0.5,
     },
@@ -289,9 +289,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   appMargin: {
-    value: 5.0,
+    value: 6.0,
     range: {
-      min: 1.0,
+      min: 0.0,
       max: 20.0,
       step: 0.5,
     },
@@ -302,9 +302,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   packageLabelMargin: {
-    value: 5.0,
+    value: 13.0,
     range: {
-      min: 1.0,
+      min: 0.0,
       max: 20.0,
       step: 0.5,
     },
@@ -316,9 +316,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   packageMargin: {
-    value: 5.0,
+    value: 6.0,
     range: {
-      min: 1.0,
+      min: 0.0,
       max: 20.0,
       step: 0.5,
     },
