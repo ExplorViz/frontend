@@ -6,12 +6,12 @@ import AnnotationData from 'explorviz-frontend/components/visualization/renderin
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import { SerializedAnnotation } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
-import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
@@ -30,7 +30,7 @@ import {
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import Auth from './auth';
 import {
@@ -57,7 +57,7 @@ export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('detached-menu-renderer')
+  @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
   @service('toast-handler')

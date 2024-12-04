@@ -11,7 +11,7 @@ module(
     test('it renders', async function (assert) {
       this.set('openAllComponents', () => {});
 
-      await render(hbs`<Visualization::PageSetup::Navbar::ArSettingsOpener />`);
+      await render(hbs`<ExtendedReality::Visualization::PageSetup::Navbar::ArSettingsOpener />`);
 
       const { textContent } = this.element;
 

@@ -12,11 +12,11 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
+import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import {
   DetachableMenu,
   isDetachableMenu,
-} from 'extended-reality/utils/vr-menus/detachable-menu';
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
 import {
   SerializedAnnotation,
   SerializedApp,
@@ -33,7 +33,7 @@ export default class RoomSerializer extends Service {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('detached-menu-groups')
+  @service('extended-reality/detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
 
   @service('landscape-token')

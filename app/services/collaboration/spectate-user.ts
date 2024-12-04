@@ -14,8 +14,8 @@ import {
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/spectating-update';
 import debugLogger from 'ember-debug-logger';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
-import * as VrPoses from 'extended-reality/utils/vr-helpers/vr-poses';
-import { VrPose } from 'extended-reality/utils/vr-helpers/vr-poses';
+import * as VrPoses from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
+import { VrPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';

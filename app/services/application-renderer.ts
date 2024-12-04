@@ -22,8 +22,8 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import ArSettings from 'extended-reality/services/ar-settings';
-import VrApplicationObject3D from 'extended-reality/utils/view-objects/application/vr-application-object-3d';
+import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
+import VrApplicationObject3D from 'explorviz-frontend/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -38,7 +38,7 @@ import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socke
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
@@ -63,7 +63,7 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('configuration')
   private configuration!: Configuration;
 
-  @service('ar-settings')
+  @service('extended-reality/ar-settings')
   private arSettings!: ArSettings;
 
   @service('user-settings')

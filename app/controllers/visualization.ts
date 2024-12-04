@@ -59,7 +59,7 @@ import UserApiTokenService, {
 } from 'explorviz-frontend/services/user-api-token';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
-import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import * as THREE from 'three';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
@@ -139,7 +139,7 @@ export default class VisualizationController extends Controller {
   @service('reload-handler')
   reloadHandler!: ReloadHandler;
 
-  @service('detached-menu-renderer')
+  @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
   @service('collaboration/room-serializer')

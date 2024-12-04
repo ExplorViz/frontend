@@ -89,7 +89,7 @@ import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
 import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import WaypointIndicator from 'extended-reality/utils/view-objects/vr/waypoint-indicator';
+import WaypointIndicator from 'explorviz-frontend/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 

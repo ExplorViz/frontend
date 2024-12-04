@@ -184,8 +184,7 @@
   },
   "ember-addon": {
     "paths": [
-      "lib/heatmap",
-      "lib/extended-reality"
+      "lib/heatmap"
     ]
   }
 }

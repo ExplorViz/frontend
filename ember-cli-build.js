@@ -15,10 +15,7 @@ module.exports = (defaults) => {
     tests: IS_TEST,
     sassOptions: {
       implementation: sass,
-      includePaths: [
-        'lib/extended-reality/addon/styles',
-        'lib/heatmap/addon/styles',
-      ],
+      includePaths: ['lib/heatmap/addon/styles'],
     },
 
     'ember-cli-babel': {

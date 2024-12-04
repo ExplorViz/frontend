@@ -4,7 +4,7 @@ import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
-import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
+import ArZoomHandler from 'explorviz-frontend/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import MinimapService from 'explorviz-frontend/services/minimap-service';

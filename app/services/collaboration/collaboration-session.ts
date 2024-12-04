@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
@@ -28,7 +28,7 @@ import {
 import {
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,

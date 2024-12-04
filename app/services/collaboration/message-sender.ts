@@ -41,31 +41,31 @@ import {
 } from 'explorviz-frontend/utils/restructure-helper';
 import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import { default as VRController } from 'extended-reality/utils/vr-controller';
-import { getControllerPose } from 'extended-reality/utils/vr-helpers/vr-poses';
-import { JoinVrMessage } from 'extended-reality/utils/vr-web-wocket-messages/sendable/join-vr';
+import { default as VRController } from 'explorviz-frontend/utils/extended-reality/vr-controller';
+import { getControllerPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
+import { JoinVrMessage } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import {
   OBJECT_MOVED_EVENT,
   ObjectMovedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-moved';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
 import {
   OBJECT_RELEASED_EVENT,
   ObjectReleasedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/object-released';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/object-released';
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-connect';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
 import {
   USER_CONTROLLER_DISCONNECT_EVENT,
   UserControllerDisconnectMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-controller-disconnect';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import {
   ControllerPose,
   Pose,
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import * as THREE from 'three';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import {

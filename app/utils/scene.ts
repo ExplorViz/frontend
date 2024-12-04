@@ -1,6 +1,6 @@
 import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
 import * as THREE from 'three';
-import FloorMesh from 'extended-reality/utils/view-objects/vr/floor-mesh';
+import FloorMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/floor-mesh';
 import { getStoredSettings } from './settings/local-storage-settings';
 
 const FLOOR_SIZE = 1000;

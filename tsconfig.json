@@ -22,24 +22,12 @@
     "module": "es6",
     "skipLibCheck": true,
     "paths": {
-      "explorviz-frontend/*": [
-        "app/*",
-        "lib/heatmap/app/*",
-        "lib/extended-reality/app/*"
-      ],
+      "explorviz-frontend/*": ["app/*", "lib/heatmap/app/*"],
       "explorviz-frontend/tests/*": ["tests/*"],
       "heatmap": ["lib/heatmap/addon"],
       "heatmap/*": ["lib/heatmap/addon/*"],
       "heatmap/test-support": ["lib/heatmap/addon-test-support"],
       "heatmap/test-support/*": ["lib/heatmap/addon-test-support/*"],
-      "extended-reality": ["lib/extended-reality/addon"],
-      "extended-reality/*": ["lib/extended-reality/addon/*"],
-      "extended-reality/test-support": [
-        "lib/extended-reality/addon-test-support"
-      ],
-      "extended-reality/test-support/*": [
-        "lib/extended-reality/addon-test-support/*"
-      ],
       "*": ["types/*"]
     }
   },
@@ -51,7 +39,6 @@
     "app",
     "config",
     "types",
-    "lib/extended-reality",
     "lib/heatmap"
   ],
   "exclude": ["tests/*"]

@@ -13,35 +13,35 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
-import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
-import { MenuDetachedForwardMessage } from 'extended-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import { MenuDetachedForwardMessage } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   MenuDetachedResponse,
   isMenuDetachedResponse,
-} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import * as THREE from 'three';
 
 export default class PopupHandler {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('detached-menu-renderer')
+  @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
   @service('collaboration/local-user')

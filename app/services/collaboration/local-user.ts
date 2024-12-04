@@ -4,8 +4,8 @@ import MousePing from 'explorviz-frontend/utils/collaboration/mouse-ping-helper'
 import Configuration from 'explorviz-frontend/services/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
-import VRController from 'extended-reality/utils/vr-controller';
-import { getPoses } from 'extended-reality/utils/vr-helpers/vr-poses';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
+import { getPoses } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -16,7 +16,7 @@ import collaborationSession from 'explorviz-frontend/services/collaboration/coll
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
