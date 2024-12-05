@@ -248,10 +248,10 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   classMargin: {
-    value: 10.0,
+    value: 20.0,
     range: {
       min: 0.0,
-      max: 30.0,
+      max: 50.0,
       step: 1.0,
     },
     orderNumber: 4,

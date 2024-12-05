@@ -46,6 +46,7 @@ function populateGraph(application: Application, graph: any) {
       layoutOptions: {
         algorithm: 'rectpacking',
         aspectRatio: ASPECT_RATIO,
+        'spacing.nodeNode': CLASS_MARGIN,
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
@@ -73,7 +74,7 @@ function populatePackage(component: Package, children: any[]) {
       layoutOptions: {
         algorithm: 'rectpacking',
         aspectRatio: ASPECT_RATIO,
-        'spacing.node': CLASS_MARGIN,
+        'spacing.nodeNode': CLASS_MARGIN,
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
