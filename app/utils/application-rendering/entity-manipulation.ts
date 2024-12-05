@@ -127,19 +127,29 @@ export function closeComponentMesh(
     return;
   }
 
+  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'openedComponentHeight'
+  );
+
+  const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'closedComponentHeight'
+  );
+
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
       duration: 0.5,
-      height: mesh.layout.height,
+      height: CLOSED_COMPONENT_HEIGHT,
     });
 
     gsap.to(mesh.position, {
       duration: 0.5,
-      y: mesh.layout.positionY + 0.75,
+      y:
+        mesh.layout.positionY +
+        (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2,
     });
   } else {
-    mesh.height = mesh.layout.height;
-    mesh.position.y = mesh.layout.positionY + 0.75;
+    mesh.height = mesh.layout.height + CLOSED_COMPONENT_HEIGHT;
+    mesh.position.y = mesh.layout.positionY + CLOSED_COMPONENT_HEIGHT / 2;
   }
 
   mesh.opened = false;

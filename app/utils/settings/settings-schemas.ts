@@ -110,7 +110,8 @@ export type LayoutSettingId =
   | 'appMargin'
   | 'packageLabelMargin'
   | 'packageMargin'
-  | 'openedComponentHeight';
+  | 'openedComponentHeight'
+  | 'closedComponentHeight';
 
 export type LayoutSettings = Record<LayoutSettingId, RangeSetting>;
 

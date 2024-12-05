@@ -332,7 +332,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 1.5,
     range: {
       min: 0.1,
-      max: 5.0,
+      max: 10.0,
       step: 0.1,
     },
     orderNumber: 9,
@@ -340,6 +340,20 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Opened Component Height',
     description:
       'Height of opened components (i.e. when contained classes are visible)',
+    isRangeSetting: true,
+  },
+  closedComponentHeight: {
+    value: 6,
+    range: {
+      min: 0.1,
+      max: 20.0,
+      step: 0.1,
+    },
+    orderNumber: 10,
+    group: 'Layout',
+    displayName: 'Closed Component Height',
+    description:
+      'Height of closed components (i.e. when contained classes are hidden)',
     isRangeSetting: true,
   },
   // Popup settings

@@ -60,13 +60,13 @@ export function updateMeshVisiblity(
  *
  * @param component Data model for the component which shall be added to the scene
  * @param applicationObject3D Object to which the component mesh and its children are added
- * @param applicationColors Contains color objects for components and clazzes
+ * @param colors Contains color objects for components and clazzes
  * @param componentLevel
  */
 export function addComponentAndChildrenToScene(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ExplorVizColors,
+  colors: ExplorVizColors,
   componentLevel = 1
 ) {
   const application = applicationObject3D.dataModel.application;
@@ -82,7 +82,7 @@ export function addComponentAndChildrenToScene(
     componentEvenColor,
     clazzColor,
     highlightedEntityColor,
-  } = applicationColors;
+  } = colors;
 
   // Set color alternating (e.g. light and dark green) according to component level
   const color =
@@ -122,7 +122,7 @@ export function addComponentAndChildrenToScene(
     addComponentAndChildrenToScene(
       child,
       applicationObject3D,
-      applicationColors,
+      colors,
       componentLevel + 1
     );
   });
