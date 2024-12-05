@@ -116,11 +116,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   async modify(
     _element: any,
     _positionalArgs: any[],
-    { landscapeData, graph, layoutUpdateCounter }: any
+    { landscapeData, graph }: any
   ) {
     this.landscapeData = landscapeData;
     this.graph = graph.graph;
-    this.debug(`Updated layout counter: ${layoutUpdateCounter}`);
     this.handleUpdatedLandscapeData.perform();
   }
 

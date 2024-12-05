@@ -133,9 +133,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   readonly scene: THREE.Scene;
 
   @tracked
-  layoutUpdateCounter = 0;
-
-  @tracked
   canvas!: HTMLCanvasElement;
 
   popupHandler: PopupHandler;
@@ -412,11 +409,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         }
       });
     }
-  }
-
-  @action
-  triggerLayoutUpdate() {
-    this.layoutUpdateCounter++;
   }
 
   @action

@@ -9,7 +9,9 @@ import {
   VisualizationSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
-import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer, {
+  LayoutData,
+} from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
@@ -19,6 +21,9 @@ import MinimapService from 'explorviz-frontend/services/minimap-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { Mesh } from 'three';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import layoutCity, {
+  convertElkToLayoutData,
+} from 'explorviz-frontend/utils/city-layouter';
 
 interface Args {
   enterFullscreen?(): void;
@@ -26,7 +31,6 @@ interface Args {
   redrawCommunication?(): void;
   resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
-  triggerLayoutUpdate(): void;
   updateColors?(): void;
   updateHighlighting?(): void;
 }
@@ -134,7 +138,7 @@ export default class Settings extends Component<Args> {
       case 'packageMargin':
       case 'openedComponentHeight':
       case 'closedComponentHeight':
-        this.args.triggerLayoutUpdate();
+        this.updateApplicationLayout();
         break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
@@ -283,16 +287,33 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  resetSettings() {
+  async resetSettings() {
     if (this.args.resetSettings) {
       this.args.resetSettings(true);
       this.args.updateColors?.();
-      this.applicationRenderer.addCommunicationForAllApplications();
       this.highlightingService.updateHighlighting();
       this.localUser.defaultCamera.fov =
         this.userSettings.visualizationSettings.cameraFov.value;
       this.localUser.defaultCamera.updateProjectionMatrix();
-      this.args.triggerLayoutUpdate();
+      this.updateApplicationLayout();
+      this.applicationRenderer.addCommunicationForAllApplications();
     }
+  }
+
+  async updateApplicationLayout() {
+    this.applicationRenderer.openApplications.forEach((application) => {
+      const layoutGraph = layoutCity(application.dataModel.application);
+      layoutGraph.then((value) => {
+        const layoutMap = new Map<string, LayoutData>();
+        convertElkToLayoutData(value, layoutMap);
+
+        application.dataModel.layoutData = layoutMap;
+        application.boxLayoutMap =
+          this.applicationRenderer.convertToBoxLayoutMap(layoutMap);
+        application.updateLayout();
+      });
+    });
+
+    // TODO: Layout application nodes and communication
   }
 }

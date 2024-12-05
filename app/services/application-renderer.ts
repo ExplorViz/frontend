@@ -776,7 +776,7 @@ export default class ApplicationRenderer extends Service.extend() {
     });
   }
 
-  private convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
+  convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
     const boxLayoutMap: Map<string, BoxLayout> = new Map();
 
     layoutedApplication.forEach((value, key) => {
