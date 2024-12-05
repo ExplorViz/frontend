@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ComponentLabelMesh from './component-label-mesh';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -35,6 +36,19 @@ export default class ComponentMesh extends BoxMesh {
     this.dataModel = component;
 
     this.layers.enable(SceneLayers.Component);
+  }
+
+  updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
+    super.updateLayout(layout, offset);
+
+    if (!this.opened) {
+      const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');
+      const CLOSED_HEIGHT = getStoredNumberSetting('closedComponentHeight');
+
+      this.height = CLOSED_HEIGHT;
+      this.position.y =
+        this.layout.positionY + (CLOSED_HEIGHT - OPENED_HEIGHT) / 2;
+    }
   }
 
   getModelId() {

@@ -225,13 +225,11 @@ export default class ApplicationRenderer extends Service.extend() {
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let applicationObject3D = this.getApplicationById(applicationModel.id);
 
-      let layoutChanged = true;
+      let addedClasses = true;
       if (applicationObject3D) {
-        // Maps cannot be compared directly. Thus, we compare their size.
-        // TODO: Do a proper map comparison here:
-        // layoutChanged =
-        // boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
-        layoutChanged = true;
+        // Check if new classes have been discovered
+        addedClasses =
+          boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
 
         applicationObject3D.boxLayoutMap = boxLayoutMap;
       } else {
@@ -243,13 +241,13 @@ export default class ApplicationRenderer extends Service.extend() {
       }
 
       const applicationState =
-        Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
+        Object.keys(addApplicationArgs).length === 0 && isOpen && addedClasses
           ? this.roomSerializer.serializeToAddApplicationArgs(
               applicationObject3D
             )
           : addApplicationArgs;
 
-      if (layoutChanged) {
+      if (addedClasses) {
         applicationObject3D.removeAllEntities();
 
         // Add new meshes to application
@@ -272,6 +270,9 @@ export default class ApplicationRenderer extends Service.extend() {
           this.font,
           this.userSettings.colors
         );
+      } else {
+        // Layout may have been changed in settings
+        applicationObject3D.updateLayout();
       }
 
       this.addCommunication(applicationObject3D);

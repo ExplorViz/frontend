@@ -82,6 +82,21 @@ export default class ApplicationObject3D
     );
   }
 
+  updateLayout() {
+    this.children.forEach((mesh) => {
+      if (
+        mesh instanceof FoundationMesh ||
+        mesh instanceof ComponentMesh ||
+        mesh instanceof ClazzMesh
+      ) {
+        const boxLayout = this.getBoxLayout(mesh.dataModel.id);
+        if (boxLayout) {
+          mesh.updateLayout(boxLayout, this.layout.center);
+        }
+      }
+    });
+  }
+
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
   tick(_delta: number): void {
     // will be overriden

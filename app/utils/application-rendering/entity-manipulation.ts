@@ -148,8 +148,10 @@ export function closeComponentMesh(
         (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2,
     });
   } else {
-    mesh.height = mesh.layout.height + CLOSED_COMPONENT_HEIGHT;
-    mesh.position.y = mesh.layout.positionY + CLOSED_COMPONENT_HEIGHT / 2;
+    mesh.height = CLOSED_COMPONENT_HEIGHT;
+    mesh.position.y =
+      mesh.layout.positionY +
+      (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2;
   }
 
   mesh.opened = false;

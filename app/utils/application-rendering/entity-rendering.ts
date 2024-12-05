@@ -87,14 +87,14 @@ export function addComponentAndChildrenToScene(
   // Set color alternating (e.g. light and dark green) according to component level
   const color =
     componentLevel % 2 === 0 ? componentEvenColor : componentOddColor;
-  const mesh = new ComponentMesh(
+  const componentMesh = new ComponentMesh(
     componentLayout,
     component,
     color,
     highlightedEntityColor
   );
-  addMeshToApplication(mesh, applicationObject3D);
-  updateMeshVisiblity(mesh, applicationObject3D);
+  addMeshToApplication(componentMesh, applicationObject3D);
+  updateMeshVisiblity(componentMesh, applicationObject3D);
 
   const clazzes = component.classes;
   const children = component.subPackages;
@@ -134,11 +134,11 @@ export function addComponentAndChildrenToScene(
  * are added to the application.
  *
  * @param applicationObject3D Object which shall contain all application meshes
- * @param applicationColors Object which defines the colors for different application entities
+ * @param colors Object which defines the colors for different application entities
  */
 export function addFoundationAndChildrenToApplication(
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ExplorVizColors
+  colors: ExplorVizColors
 ) {
   const application = applicationObject3D.dataModel.application;
   const applicationLayout = applicationObject3D.layout;
@@ -147,24 +147,20 @@ export function addFoundationAndChildrenToApplication(
     return;
   }
 
-  const { foundationColor, highlightedEntityColor } = applicationColors;
+  const { foundationColor, highlightedEntityColor } = colors;
 
-  const mesh = new FoundationMesh(
+  const foundationMesh = new FoundationMesh(
     applicationLayout,
     application,
     foundationColor,
     highlightedEntityColor
   );
-  addMeshToApplication(mesh, applicationObject3D);
+  addMeshToApplication(foundationMesh, applicationObject3D);
 
   const children = application.packages;
 
   children.forEach((child: Package) => {
-    addComponentAndChildrenToScene(
-      child,
-      applicationObject3D,
-      applicationColors
-    );
+    addComponentAndChildrenToScene(child, applicationObject3D, colors);
   });
 }
 
