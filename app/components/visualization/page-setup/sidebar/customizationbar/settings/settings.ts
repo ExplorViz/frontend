@@ -301,19 +301,28 @@ export default class Settings extends Component<Args> {
   }
 
   async updateApplicationLayout() {
+    const elkPromises: any[] = [];
     this.applicationRenderer.openApplications.forEach((application) => {
-      const layoutGraph = layoutCity(application.dataModel.application);
-      layoutGraph.then((value) => {
-        const layoutMap = new Map<string, LayoutData>();
-        convertElkToLayoutData(value, layoutMap);
-
-        application.dataModel.layoutData = layoutMap;
-        application.boxLayoutMap =
-          this.applicationRenderer.convertToBoxLayoutMap(layoutMap);
-        application.updateLayout();
-      });
+      elkPromises.push(layoutCity(application.dataModel.application));
     });
 
-    // TODO: Layout application nodes and communication
+    const layoutGraphs = await Promise.all(elkPromises);
+    layoutGraphs.forEach((graph) => {
+      const layoutMap = new Map<string, LayoutData>();
+      convertElkToLayoutData(graph, layoutMap);
+
+      const application = this.applicationRenderer.getApplicationById(
+        graph.id.substring(5)
+      );
+
+      if (!application) return;
+
+      application.dataModel.layoutData = layoutMap;
+      application.boxLayoutMap =
+        this.applicationRenderer.convertToBoxLayoutMap(layoutMap);
+      application.updateLayout();
+    });
+
+    this.applicationRenderer.addCommunicationForAllApplications();
   }
 }
