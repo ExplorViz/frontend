@@ -92,7 +92,7 @@ export function convertElkToLayoutData(
   layoutMap: any,
   xOffset = 0,
   zOffset = 0,
-  depth = 1
+  depth = 0
 ): void {
   const SCALAR = 0.3;
 
