@@ -103,7 +103,6 @@ export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 
 export type LayoutSettingId =
   | 'applicationAspectRatio'
-  | 'packageAspectRatio'
   | 'classFootprint'
   | 'classMargin'
   | 'appLabelMargin'

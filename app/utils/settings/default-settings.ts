@@ -234,19 +234,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines a preferred aspect ratio for applications',
     isRangeSetting: true,
   },
-  packageAspectRatio: {
-    value: 1.0,
-    range: {
-      min: 0.25,
-      max: 2.0,
-      step: 0.05,
-    },
-    orderNumber: 2,
-    group: 'Layout',
-    displayName: 'Package Aspect Ratio',
-    description: 'Determines a preferred aspect ratio for packages',
-    isRangeSetting: true,
-  },
   classFootprint: {
     value: 5.0,
     range: {

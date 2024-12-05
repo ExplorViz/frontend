@@ -2,8 +2,7 @@ import ELK from 'elkjs/lib/elk.bundled';
 import { Application, Package } from './landscape-schemes/structure-data';
 import { getStoredNumberSetting } from './settings/local-storage-settings';
 
-let APP_ASPECT_RATIO: number;
-let PACKAGE_ASPECT_RATIO: number;
+let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
 let CLASS_MARGIN: number;
 let APP_LABEL_MARGIN: number;
@@ -15,8 +14,7 @@ let COMPONENT_HEIGHT: number;
 export default async function layoutCity(application: Application) {
   const elk = new ELK();
 
-  APP_ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
-  PACKAGE_ASPECT_RATIO = getStoredNumberSetting('packageAspectRatio');
+  ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
   CLASS_FOOTPRINT = getStoredNumberSetting('classFootprint');
   CLASS_MARGIN = getStoredNumberSetting('classMargin');
   APP_LABEL_MARGIN = getStoredNumberSetting('appLabelMargin');
@@ -29,7 +27,7 @@ export default async function layoutCity(application: Application) {
     id: 'applc' + application.id,
     children: [],
     layoutOptions: {
-      aspectRatio: APP_ASPECT_RATIO.toString(),
+      aspectRatio: ASPECT_RATIO.toString(),
       algorithm: 'rectpacking',
       'elk.padding': `[top=${APP_MARGIN},left=${APP_LABEL_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
     },
@@ -47,7 +45,7 @@ function populateGraph(application: Application, graph: any) {
       children: [],
       layoutOptions: {
         algorithm: 'rectpacking',
-        aspectRatio: PACKAGE_ASPECT_RATIO,
+        aspectRatio: ASPECT_RATIO,
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
@@ -74,7 +72,7 @@ function populatePackage(component: Package, children: any[]) {
       children: [],
       layoutOptions: {
         algorithm: 'rectpacking',
-        aspectRatio: PACKAGE_ASPECT_RATIO,
+        aspectRatio: ASPECT_RATIO,
         'spacing.node': CLASS_MARGIN,
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
       },

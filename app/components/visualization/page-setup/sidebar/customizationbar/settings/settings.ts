@@ -126,7 +126,6 @@ export default class Settings extends Component<Args> {
 
     switch (settingId) {
       case 'applicationAspectRatio':
-      case 'packageAspectRatio':
       case 'classFootprint':
       case 'classMargin':
       case 'appLabelMargin':
