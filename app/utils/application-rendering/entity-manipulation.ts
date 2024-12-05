@@ -17,7 +17,10 @@ import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
-import { getStoredSettings } from '../settings/local-storage-settings';
+import {
+  getStoredNumberSetting,
+  getStoredSettings,
+} from '../settings/local-storage-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -67,7 +70,9 @@ export function openComponentMesh(
     return;
   }
 
-  const OPENED_COMPONENT_HEIGHT = 1.5;
+  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'openedComponentHeight'
+  );
 
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {

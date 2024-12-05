@@ -328,6 +328,20 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines margin of packages',
     isRangeSetting: true,
   },
+  openedComponentHeight: {
+    value: 1.5,
+    range: {
+      min: 0.1,
+      max: 5.0,
+      step: 0.1,
+    },
+    orderNumber: 9,
+    group: 'Layout',
+    displayName: 'Opened Component Height',
+    description:
+      'Height of opened components (i.e. when contained classes are visible)',
+    isRangeSetting: true,
+  },
   // Popup settings
   hidePopupDelay: {
     value: 1.0,

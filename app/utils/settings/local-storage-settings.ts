@@ -24,10 +24,18 @@ export function getStoredSettings(): VisualizationSettings {
 }
 
 export function getStoredSettingValueById(id: VisualizationSettingId) {
-  console.log('get stored Setting');
-
   const settings = getStoredSettings();
   return settings[id].value;
+}
+
+export function getStoredNumberSetting(id: VisualizationSettingId): number {
+  const settings = getStoredSettings();
+  if (typeof settings[id].value === 'number') {
+    return settings[id].value;
+  } else {
+    console.error('Error in getStoredNumberSetting for setting', settings[id]);
+    return 1;
+  }
 }
 
 export function areValidApplicationSettings(maybeSettings: unknown) {

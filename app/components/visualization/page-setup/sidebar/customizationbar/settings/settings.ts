@@ -133,6 +133,7 @@ export default class Settings extends Component<Args> {
       case 'appMargin':
       case 'packageLabelMargin':
       case 'packageMargin':
+      case 'openedComponentHeight':
         this.args.triggerLayoutUpdate();
         break;
       case 'transparencyIntensity':

@@ -1,27 +1,29 @@
 import ELK from 'elkjs/lib/elk.bundled';
 import { Application, Package } from './landscape-schemes/structure-data';
-import { getStoredSettingValueById } from './settings/local-storage-settings';
+import { getStoredNumberSetting } from './settings/local-storage-settings';
 
-let APP_ASPECT_RATIO = getStoredSettingValueById('applicationAspectRatio');
-let PACKAGE_ASPECT_RATIO = getStoredSettingValueById('packageAspectRatio');
-let CLASS_FOOTPRINT = getStoredSettingValueById('classFootprint');
-let CLASS_MARGIN = getStoredSettingValueById('classMargin');
-let APP_LABEL_MARGIN = getStoredSettingValueById('appLabelMargin');
-let APP_MARGIN = getStoredSettingValueById('appMargin');
-let PACKAGE_LABEL_MARGIN = getStoredSettingValueById('packageLabelMargin');
-let PACKAGE_MARGIN = getStoredSettingValueById('packageMargin');
+let APP_ASPECT_RATIO: number;
+let PACKAGE_ASPECT_RATIO: number;
+let CLASS_FOOTPRINT: number;
+let CLASS_MARGIN: number;
+let APP_LABEL_MARGIN: number;
+let APP_MARGIN: number;
+let PACKAGE_LABEL_MARGIN: number;
+let PACKAGE_MARGIN: number;
+let COMPONENT_HEIGHT: number;
 
 export default async function layoutCity(application: Application) {
   const elk = new ELK();
 
-  APP_ASPECT_RATIO = getStoredSettingValueById('applicationAspectRatio');
-  PACKAGE_ASPECT_RATIO = getStoredSettingValueById('packageAspectRatio');
-  CLASS_FOOTPRINT = getStoredSettingValueById('classFootprint');
-  CLASS_MARGIN = getStoredSettingValueById('classMargin');
-  APP_LABEL_MARGIN = getStoredSettingValueById('appLabelMargin');
-  APP_MARGIN = getStoredSettingValueById('appMargin');
-  PACKAGE_LABEL_MARGIN = getStoredSettingValueById('packageLabelMargin');
-  PACKAGE_MARGIN = getStoredSettingValueById('packageMargin');
+  APP_ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
+  PACKAGE_ASPECT_RATIO = getStoredNumberSetting('packageAspectRatio');
+  CLASS_FOOTPRINT = getStoredNumberSetting('classFootprint');
+  CLASS_MARGIN = getStoredNumberSetting('classMargin');
+  APP_LABEL_MARGIN = getStoredNumberSetting('appLabelMargin');
+  APP_MARGIN = getStoredNumberSetting('appMargin');
+  PACKAGE_LABEL_MARGIN = getStoredNumberSetting('packageLabelMargin');
+  PACKAGE_MARGIN = getStoredNumberSetting('packageMargin');
+  COMPONENT_HEIGHT = getStoredNumberSetting('openedComponentHeight');
 
   const graph = {
     id: 'applc' + application.id,
@@ -76,14 +78,6 @@ function populatePackage(component: Package, children: any[]) {
         'spacing.node': CLASS_MARGIN,
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
-      /*
-      layoutOptions:
-        subPackage.classes.length > 0
-          ? {}
-          : {
-              'elk.padding': '[top=0.0,left=0.0,bottom=0.0,right=0.0]',
-            },
-      */
     };
     children.push(node);
 
@@ -101,12 +95,12 @@ export function convertElkToLayoutData(
   depth = 1
 ): void {
   const SCALAR = 0.3;
-  const COMPONENT_HEIGHT = 1.5;
 
   let height = COMPONENT_HEIGHT;
   if (elkGraph.id.startsWith('class')) {
     height = 5;
   }
+
   layoutMap.set(elkGraph.id.substring(5), {
     height: height,
     width: elkGraph.width! * SCALAR,
