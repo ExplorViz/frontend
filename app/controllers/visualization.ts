@@ -68,7 +68,7 @@ import RenderingService, {
   VisualizationMode as RenderingVisualizationMode,
 } from 'explorviz-frontend/services/rendering-service';
 import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
@@ -128,7 +128,7 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-token')

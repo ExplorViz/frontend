@@ -29,7 +29,7 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -59,7 +59,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-restructure')

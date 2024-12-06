@@ -18,7 +18,7 @@ import PopupData from '../../../../rendering/popups/popup-data';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { Mesh } from 'three';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface Args {
   enterFullscreen?(): void;
@@ -40,7 +40,7 @@ export default class Settings extends Component<Args> {
   @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
   @service('collaboration/message-sender')

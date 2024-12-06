@@ -4,7 +4,7 @@ import { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HeatmapConfiguration, {
   HeatmapMode,
-} from 'heatmap/services/heatmap-configuration';
+} from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import debugLogger from 'ember-debug-logger';
 import {
   HEATMAP_UPDATE_EVENT,
@@ -27,7 +27,7 @@ export default class SyncStateModifier extends Modifier {
   @service('collaboration/web-socket')
   webSocket!: WebSocketService;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
   @service('application-renderer')

@@ -5,7 +5,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
 import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
@@ -71,7 +71,7 @@ export default class VrMenuFactoryService extends Service {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConfiguration!: HeatmapConfiguration;
 
   // TODO the factory should no be a singleton, but instantiated on each rendering.

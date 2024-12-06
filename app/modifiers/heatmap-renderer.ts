@@ -7,7 +7,7 @@ import { Metric } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import applySimpleHeatOnFoundation, {
   addHeatmapHelperLine,
   computeHeatMapViewPos,
@@ -35,7 +35,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
   lastApplicationObject3D: ApplicationObject3D | undefined | null;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
   get applicationObject3D() {

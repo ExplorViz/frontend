@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { EmptyObject } from '@glimmer/component/-private/component';
@@ -11,7 +11,7 @@ interface HeatmapMode {
 }
 
 export default class HeatmapSettings extends Component {
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
   heatmapModes: HeatmapMode[] = [

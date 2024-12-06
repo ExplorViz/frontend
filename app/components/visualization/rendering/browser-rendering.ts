@@ -30,7 +30,7 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
@@ -91,7 +91,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('collaboration/spectate-user')
   private spectateUserService!: SpectateUser;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
   @service('collaboration/collaboration-session')

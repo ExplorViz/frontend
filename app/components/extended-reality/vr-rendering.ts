@@ -16,7 +16,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
@@ -139,7 +139,7 @@ export default class VrRendering extends Component<Args> {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
   @service('user-settings')

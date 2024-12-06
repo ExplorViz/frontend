@@ -26,7 +26,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
@@ -57,7 +57,7 @@ export default class ArRendering extends Component<Args> {
   @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
   @service('highlighting-service')

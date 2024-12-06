@@ -1,5 +1,5 @@
 import { action } from '@ember/object';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import { DetachableMenu } from '../detachable-menu';
 import RectangleItem from '../items/rectangle-item';

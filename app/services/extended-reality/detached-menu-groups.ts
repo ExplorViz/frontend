@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import * as THREE from 'three';
 import ActionIcon from 'explorviz-frontend/utils/extended-reality/view-objects/vr/action-icon';
 import HeatmapMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/heatmap-menu';
@@ -41,7 +41,7 @@ export default class DetachedMenuGroupsService extends Service {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
   private detachedMenuGroups: Set<DetachedMenuGroup>;

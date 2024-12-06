@@ -233,6 +233,6 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {
-    'heatmap-configuration': HeatmapConfiguration;
+    'heatmap/heatmap-configuration': HeatmapConfiguration;
   }
 }

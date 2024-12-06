@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 
@@ -15,7 +15,7 @@ interface Args {
 export default class HeatmapLegend extends Component<Args> {
   debug = debugLogger();
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConfiguration!: HeatmapConfiguration;
 
   canvas!: HTMLCanvasElement;
