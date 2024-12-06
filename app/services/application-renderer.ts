@@ -51,7 +51,7 @@ import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
 import layoutCity, {
-  convertElkToLayoutData,
+  convertElkToBoxLayout,
 } from 'explorviz-frontend/utils/city-layouter';
 // #endregion imports
 
@@ -221,10 +221,7 @@ export default class ApplicationRenderer extends Service.extend() {
       addApplicationArgs: AddApplicationArgs = {}
     ) => {
       const applicationModel = applicationData.application;
-      const boxLayoutMap = this.convertToBoxLayoutMap(
-        applicationData.layoutData
-      );
-
+      const boxLayoutMap = applicationData.boxLayoutMap;
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let applicationObject3D = this.getApplicationById(applicationModel.id);
 
@@ -233,13 +230,8 @@ export default class ApplicationRenderer extends Service.extend() {
         // Check if new classes have been discovered
         addedClasses =
           boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
-
-        applicationObject3D.boxLayoutMap = boxLayoutMap;
       } else {
-        applicationObject3D = new VrApplicationObject3D(
-          applicationData,
-          boxLayoutMap
-        );
+        applicationObject3D = new VrApplicationObject3D(applicationData);
         this._openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
 
@@ -619,16 +611,15 @@ export default class ApplicationRenderer extends Service.extend() {
 
     // Apply layout to each application
     layoutGraphs.forEach((graph) => {
-      const layoutMap = new Map<string, LayoutData>();
-      convertElkToLayoutData(graph, layoutMap);
+      const boxLayoutMap = new Map<string, BoxLayout>();
+      convertElkToBoxLayout(graph, boxLayoutMap);
 
       // Ids in ELK must not start with numbers, therefore we added 5 letters
       const application = this.getApplicationById(graph.id.substring(5));
 
       if (!application) return;
 
-      application.dataModel.layoutData = layoutMap;
-      application.boxLayoutMap = this.convertToBoxLayoutMap(layoutMap);
+      application.dataModel.boxLayoutMap = boxLayoutMap;
       application.updateLayout();
     });
 
@@ -806,24 +797,6 @@ export default class ApplicationRenderer extends Service.extend() {
       }
     });
   }
-
-  convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
-    const boxLayoutMap: Map<string, BoxLayout> = new Map();
-
-    layoutedApplication.forEach((value, key) => {
-      const boxLayout = new BoxLayout();
-      boxLayout.positionX = value.positionX;
-      boxLayout.positionY = value.positionY;
-      boxLayout.positionZ = value.positionZ;
-      boxLayout.width = value.width;
-      boxLayout.height = value.height;
-      boxLayout.depth = value.depth;
-      boxLayoutMap.set(key, boxLayout);
-    });
-
-    return boxLayoutMap;
-  }
-
   //#endregion
 
   //#region Cleanup

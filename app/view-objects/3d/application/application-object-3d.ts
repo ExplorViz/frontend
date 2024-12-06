@@ -32,8 +32,6 @@ export default class ApplicationObject3D
    */
   dataModel: ApplicationData;
 
-  boxLayoutMap: Map<string, BoxLayout>;
-
   /**
    * Map to store all box shaped meshes (i.e., Clazz, Component, Foundation)
    */
@@ -58,11 +56,10 @@ export default class ApplicationObject3D
 
   classCommunicationSet: Set<ClassCommunication> = new Set();
 
-  constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
+  constructor(data: ApplicationData) {
     super();
 
     this.dataModel = data;
-    this.boxLayoutMap = boxLayoutMap;
   }
 
   get layout() {
@@ -80,6 +77,10 @@ export default class ApplicationObject3D
       this.layout.height,
       this.layout.depth
     );
+  }
+
+  get boxLayoutMap() {
+    return this.dataModel.boxLayoutMap;
   }
 
   updateLayout() {

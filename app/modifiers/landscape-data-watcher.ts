@@ -5,9 +5,7 @@ import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
-import ApplicationRenderer, {
-  LayoutData,
-} from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
@@ -34,7 +32,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import layoutCity, {
-  convertElkToLayoutData,
+  convertElkToBoxLayout,
 } from 'explorviz-frontend/utils/city-layouter';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -42,6 +40,7 @@ import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -405,8 +404,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       };
 
       const layoutedGraph = await layoutCity(application);
-      const layoutMap = new Map<string, LayoutData>();
-      convertElkToLayoutData(layoutedGraph, layoutMap);
+      const boxLayoutMap = new Map<string, BoxLayout>();
+      convertElkToBoxLayout(layoutedGraph, boxLayoutMap);
 
       const heatmapMetrics = this.worker.postMessage(
         'metrics-worker',
@@ -422,11 +421,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, layoutMap, results[1]);
+        applicationData.updateApplication(
+          application,
+          boxLayoutMap,
+          results[1]
+        );
       } else {
         applicationData = new ApplicationData(
           application,
-          layoutMap,
+          boxLayoutMap,
           results[1],
           k8sData
         );

@@ -1,6 +1,7 @@
 import ELK from 'elkjs/lib/elk.bundled';
 import { Application, Package } from './landscape-schemes/structure-data';
 import { getStoredNumberSetting } from './settings/local-storage-settings';
+import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
@@ -86,9 +87,9 @@ function populatePackage(component: Package, children: any[]) {
   });
 }
 
-export function convertElkToLayoutData(
+export function convertElkToBoxLayout(
   elkGraph: any,
-  layoutMap: any,
+  layoutMap: Map<string, BoxLayout>,
   xOffset = 0,
   zOffset = 0,
   depth = 0
@@ -100,18 +101,19 @@ export function convertElkToLayoutData(
     height = 5;
   }
 
+  const boxLayout = new BoxLayout();
+  boxLayout.positionX = (xOffset + elkGraph.x!) * SCALAR;
+  boxLayout.positionY = COMPONENT_HEIGHT * depth;
+  boxLayout.positionZ = (zOffset + elkGraph.y!) * SCALAR;
+  boxLayout.width = elkGraph.width! * SCALAR;
+  boxLayout.height = height;
+  boxLayout.depth = elkGraph.height! * SCALAR;
+
   // Ids in ELK must not start with numbers, therefore we added 5 letters
-  layoutMap.set(elkGraph.id.substring(5), {
-    height: height,
-    width: elkGraph.width! * SCALAR,
-    depth: elkGraph.height! * SCALAR,
-    positionX: (xOffset + elkGraph.x!) * SCALAR,
-    positionY: COMPONENT_HEIGHT * depth,
-    positionZ: (zOffset + elkGraph.y!) * SCALAR,
-  });
+  layoutMap.set(elkGraph.id.substring(5), boxLayout);
 
   elkGraph.children?.forEach((child: any) => {
-    convertElkToLayoutData(
+    convertElkToBoxLayout(
       child,
       layoutMap,
       xOffset + elkGraph.x!,
