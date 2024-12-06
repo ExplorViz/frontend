@@ -6,7 +6,7 @@
       {{did-resize this.resize debounce=100}}
     >
       {{#if this.heatmapConf.heatmapActive}}
-        <HeatmapInfo
+        <Heatmap::HeatmapInfo
           @metrics={{this.heatmapConf.metrics}}
           @updateMetric={{this.heatmapConf.updateMetric}}
           @selectedMetric={{this.heatmapConf.selectedMetric}}

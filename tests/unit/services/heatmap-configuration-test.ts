@@ -6,7 +6,7 @@ module('Unit | Service | heatmap-configuration', function (hooks) {
 
   // Replace this with your real tests.
   test('it exists', function (assert) {
-    const service = this.owner.lookup('service:heatmap-configuration');
+    const service = this.owner.lookup('service:heatmap/heatmap-configuration');
     assert.ok(service);
   });
 });

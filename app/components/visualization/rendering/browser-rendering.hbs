@@ -33,7 +33,7 @@
       {{/unless}}
 
       {{#if this.heatmapConf.heatmapActive}}
-        <HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
+        <Heatmap::HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
       {{/if}}
 
       <canvas

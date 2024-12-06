@@ -22,12 +22,8 @@
     "module": "es6",
     "skipLibCheck": true,
     "paths": {
-      "explorviz-frontend/*": ["app/*", "lib/heatmap/app/*"],
+      "explorviz-frontend/*": ["app/*"],
       "explorviz-frontend/tests/*": ["tests/*"],
-      "heatmap": ["lib/heatmap/addon"],
-      "heatmap/*": ["lib/heatmap/addon/*"],
-      "heatmap/test-support": ["lib/heatmap/addon-test-support"],
-      "heatmap/test-support/*": ["lib/heatmap/addon-test-support/*"],
       "*": ["types/*"]
     }
   },
@@ -38,8 +34,7 @@
     "ember-cli-build.js",
     "app",
     "config",
-    "types",
-    "lib/heatmap"
+    "types"
   ],
   "exclude": ["tests/*"]
 }

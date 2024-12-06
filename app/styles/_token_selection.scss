@@ -60,12 +60,11 @@
   }
 }
 
-
 @media only screen and (max-width: 600px) {
-.token-header-row,
-.token-timestamp-cell,
-.token-button-cell,
-#landscape-selection-header {
-  display: none !important;
-}
+  .token-header-row,
+  .token-timestamp-cell,
+  .token-button-cell,
+  #landscape-selection-header {
+    display: none !important;
+  }
 }

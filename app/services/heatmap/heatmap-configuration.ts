@@ -6,8 +6,8 @@ import debugLogger from 'ember-debug-logger';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import revertKey from '../utils/heatmap-generator';
-import { getDefaultGradient as getSimpleDefaultGradient } from '../utils/simple-heatmap';
+import revertKey from 'explorviz-frontend/utils/heatmap/heatmap-generator';
+import { getDefaultGradient as getSimpleDefaultGradient } from 'explorviz-frontend/utils/heatmap/simple-heatmap';
 import { Metric } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 
 export type HeatmapMode =
