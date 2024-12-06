@@ -1,11 +1,11 @@
 import Service, { inject as service } from '@ember/service';
-import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
+import RemoteUser from 'collaboration/utils/remote-user';
 import * as THREE from 'three';
 import HmdService from 'extended-reality/services/hmd-service';
 import LocalUser from './local-user';
-import { Color } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/color';
-import { Position } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/position';
-import { Quaternion } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/quaternion';
+import { Color } from 'collaboration/utils/web-socket-messages/types/color';
+import { Position } from 'collaboration/utils/web-socket-messages/types/position';
+import { Quaternion } from 'collaboration/utils/web-socket-messages/types/quaternion';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 export default class UserFactory extends Service.extend({}) {

@@ -12,7 +12,7 @@
       </div>
     </tab.pane>
     <tab.pane @id='room-tab' @title='Rooms'>
-      <Collaboration::RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
+      <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
     </tab.pane>
     <tab.pane @id='snapshot-tab' @title='Snapshots'>
       <SnapshotSelection

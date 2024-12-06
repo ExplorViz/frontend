@@ -10,23 +10,23 @@ import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-comp
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
-import { SerializedAnnotation } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SerializedAnnotation } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import WebSocketService from 'collaboration/services/web-socket';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import {
   ANNOTATION_OPENED_EVENT,
   AnnotationOpenedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-opened';
+} from 'collaboration/utils/web-socket-messages/sendable/annotation-opened';
 import {
   ANNOTATION_CLOSED_EVENT,
   AnnotationClosedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-closed';
-import { AnnotationForwardMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/annotation-forward';
+} from 'collaboration/utils/web-socket-messages/sendable/annotation-closed';
+import { AnnotationForwardMessage } from 'collaboration/utils/web-socket-messages/receivable/annotation-forward';
 import {
   AnnotationResponse,
   isAnnotationResponse,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
+} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-response';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
@@ -36,21 +36,21 @@ import Auth from './auth';
 import {
   ANNOTATION_UPDATED_EVENT,
   AnnotationUpdatedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-updated';
+} from 'collaboration/utils/web-socket-messages/sendable/annotation-updated';
 import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
-import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
+} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-updated-response';
+import { AnnotationUpdatedForwardMessage } from 'collaboration/utils/web-socket-messages/receivable/annotation-updated-forward';
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-edit';
+} from 'collaboration/utils/web-socket-messages/sendable/annotation-edit';
 import {
   AnnotationEditResponse,
   isAnnotationEditResponse,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
-import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-edit-response';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 export default class AnnotationHandlerService extends Service {

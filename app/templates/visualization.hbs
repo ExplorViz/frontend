@@ -21,9 +21,9 @@
 
 {{did-insert this.initRenderingAndSetupListeners}}
 
-<Collaboration::AutoJoinLobby @roomId={{this.roomId}} />
+<AutoJoinLobby @roomId={{this.roomId}} />
 
-<div id='vizspace' {{collaboration/sync-state}}>
+<div id='vizspace' {{sync-state}}>
 
   {{! Loading screen }}
   {{#unless this.allLandscapeDataExistsAndNotEmpty}}

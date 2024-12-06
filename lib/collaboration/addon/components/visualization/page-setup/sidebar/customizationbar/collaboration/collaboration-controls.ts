@@ -2,12 +2,12 @@ import { action, computed } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
-import RoomService from 'explorviz-frontend/services/collaboration/room-service';
-import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
-import { RoomListRecord } from 'explorviz-frontend/utils/collaboration/room-payload/receivable/room-list';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
+import MessageSender from 'collaboration/services/message-sender';
+import RoomService from 'collaboration/services/room-service';
+import SpectateUser from 'collaboration/services/spectate-user';
+import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Auth from 'explorviz-frontend/services/auth';
 import LandscapeTokenService, {

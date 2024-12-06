@@ -4,9 +4,9 @@ import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
-import RoomService from 'explorviz-frontend/services/collaboration/room-service';
-import { RoomListRecord } from 'explorviz-frontend/utils/collaboration/room-payload/receivable/room-list';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import RoomService from 'collaboration/services/room-service';
+import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
 
 interface RoomListArgs {
   tokens: LandscapeToken[];

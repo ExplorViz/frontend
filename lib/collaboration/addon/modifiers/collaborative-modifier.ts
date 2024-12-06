@@ -1,37 +1,37 @@
 import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
-import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import LocalUser from 'collaboration/services/local-user';
+import WebSocketService from 'collaboration/services/web-socket';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
 import {
   APP_OPENED_EVENT,
   AppOpenedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/app-opened';
+} from 'collaboration/utils/web-socket-messages/sendable/app-opened';
 import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/change-landscape';
+} from 'collaboration/utils/web-socket-messages/sendable/change-landscape';
 import {
   CHANGELOG_REMOVE_ENTRY_EVENT,
   CHANGELOG_RESTORE_ENTRIES_EVENT,
   ChangeLogRemoveEntryMessage,
   ChangeLogRestoreEntriesMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/changelog-update';
+} from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
 import {
   COMPONENT_UPDATE_EVENT,
   ComponentUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/component-update';
+} from 'collaboration/utils/web-socket-messages/sendable/component-update';
 import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/highlighting-update';
+} from 'collaboration/utils/web-socket-messages/sendable/highlighting-update';
 import {
   MOUSE_PING_UPDATE_EVENT,
   MousePingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
+} from 'collaboration/utils/web-socket-messages/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -58,11 +58,11 @@ import {
   RestructureRestoreClassMessage,
   RestructureRestorePackageMessage,
   RestructureUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/restructure-update';
+} from 'collaboration/utils/web-socket-messages/sendable/restructure-update';
 import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/share-settings';
+} from 'collaboration/utils/web-socket-messages/sendable/share-settings';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -349,8 +349,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this.onRestructureDuplicateApp
     );
   }
-
-  // TODO: openApplicationTask doesnt exist in ApplicationRenderer
 
   async onAppOpened({
     originalMessage: { id, position, quaternion, scale },
@@ -719,7 +717,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         parentObj: applicationObj,
         position: point,
         durationInMs: 5000,
-        replay: false, // was missing -> false as placeholder
       });
     }
 

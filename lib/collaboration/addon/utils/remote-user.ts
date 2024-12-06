@@ -1,4 +1,4 @@
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import * as THREE from 'three';
 import NameTagSprite from 'extended-reality/utils/view-objects/vr/name-tag-sprite';
 import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';

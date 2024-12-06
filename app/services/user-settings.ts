@@ -22,10 +22,10 @@ import {
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
-import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 import HighlightingService from './highlighting-service';
 import ApplicationRenderer from './application-renderer';
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import LocalUser from 'collaboration/services/local-user';
 import {
   getStoredSettings,
   saveSettings,

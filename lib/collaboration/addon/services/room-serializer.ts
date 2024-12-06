@@ -25,7 +25,7 @@ import {
   SerializedLandscape,
   SerializedPopup,
   SerializedRoom,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+} from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 

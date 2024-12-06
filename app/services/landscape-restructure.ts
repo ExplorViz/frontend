@@ -73,7 +73,7 @@ import {
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import MessageSender from 'collaboration/services/message-sender';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;

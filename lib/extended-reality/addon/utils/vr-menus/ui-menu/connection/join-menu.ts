@@ -3,7 +3,7 @@ import TextItem from '../../items/text-item';
 import TextbuttonItem from '../../items/textbutton-item';
 import TitleItem from '../../items/title-item';
 import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
-import { RoomListRecord } from 'explorviz-frontend/utils/collaboration/room-payload/receivable/room-list';
+import { RoomListRecord } from 'collaboration/utils/room-payload/receivable/room-list';
 
 /**
  * Time in seconds before the new room list should be fetched.

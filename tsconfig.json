@@ -24,10 +24,13 @@
     "paths": {
       "explorviz-frontend/*": [
         "app/*",
+        "lib/collaboration/app/*",
         "lib/heatmap/app/*",
         "lib/extended-reality/app/*"
       ],
       "explorviz-frontend/tests/*": ["tests/*"],
+      "collaboration": ["lib/collaboration/addon"],
+      "collaboration/*": ["lib/collaboration/addon/*"],
       "collaboration/test-support": ["lib/collaboration/addon-test-support"],
       "collaboration/test-support/*": [
         "lib/collaboration/addon-test-support/*"
@@ -55,6 +58,7 @@
     "app",
     "config",
     "types",
+    "lib/collaboration",
     "lib/extended-reality",
     "lib/heatmap"
   ],

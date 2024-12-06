@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import debugLogger from 'ember-debug-logger';

@@ -1,40 +1,40 @@
 import Service, { inject as service } from '@ember/service';
-import { AllHighlightsResetMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
+import { AllHighlightsResetMessage } from 'collaboration/utils/web-socket-messages/sendable/all-highlights-reset';
 import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/change-landscape';
+} from 'collaboration/utils/web-socket-messages/sendable/change-landscape';
 import {
   CHANGELOG_REMOVE_ENTRY_EVENT,
   CHANGELOG_RESTORE_ENTRIES_EVENT,
   ChangeLogRemoveEntryMessage,
   ChangeLogRestoreEntriesMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/changelog-update';
+} from 'collaboration/utils/web-socket-messages/sendable/changelog-update';
 import {
   PING_UPDATE_EVENT,
   PingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/ping-update';
+} from 'collaboration/utils/web-socket-messages/sendable/ping-update';
 import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/chat-message';
+} from 'collaboration/utils/web-socket-messages/sendable/chat-message';
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/chat-syncronization';
+} from 'collaboration/utils/web-socket-messages/sendable/chat-syncronization';
 import {
   USER_MUTE_EVENT,
   UserMuteUpdate,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/mute-update';
+} from 'collaboration/utils/web-socket-messages/sendable/mute-update';
 import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/share-settings';
+} from 'collaboration/utils/web-socket-messages/sendable/share-settings';
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
-import { ControllerId } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/controller-id';
+} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
+import { ControllerId } from 'collaboration/utils/web-socket-messages/types/controller-id';
 import {
   EntityType,
   RestructureAction,
@@ -67,23 +67,23 @@ import {
   UserPositionsMessage,
 } from 'extended-reality/utils/vr-web-wocket-messages/sendable/user-positions';
 import * as THREE from 'three';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import WebSocketService from '../services/web-socket';
 import {
   APP_OPENED_EVENT,
   AppOpenedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/app-opened';
+} from '../utils/web-socket-messages/sendable/app-opened';
 import {
   COMPONENT_UPDATE_EVENT,
   ComponentUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/component-update';
+} from '../utils/web-socket-messages/sendable/component-update';
 import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/highlighting-update';
+} from '../utils/web-socket-messages/sendable/highlighting-update';
 import {
   MOUSE_PING_UPDATE_EVENT,
   MousePingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
+} from '../utils/web-socket-messages/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -111,25 +111,25 @@ import {
   RestructureRestoreClassMessage,
   RestructureRestorePackageMessage,
   RestructureUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/restructure-update';
+} from '../utils/web-socket-messages/sendable/restructure-update';
 import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/spectating-update';
+} from '../utils/web-socket-messages/sendable/spectating-update';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
-import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+} from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
+import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import {
   USER_KICK_EVENT,
   UserKickEvent,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/kick-user';
+} from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/delete-message';
+} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
 
 export default class MessageSender extends Service {
   @service('web-socket')

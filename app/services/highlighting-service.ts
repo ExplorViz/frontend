@@ -1,6 +1,6 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import CollaborationSession from 'collaboration/services/collaboration-session';
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
 import debugLogger from 'ember-debug-logger';

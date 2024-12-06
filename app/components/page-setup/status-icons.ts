@@ -1,7 +1,7 @@
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
-import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+import CollaborationSession from 'collaboration/services/collaboration-session';
+import SpectateUser from 'collaboration/services/spectate-user';
 import Configuration from 'explorviz-frontend/services/configuration';
 
 export default class StatusIcons extends Component {

@@ -1,32 +1,30 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
+import RemoteUser from 'collaboration/utils/remote-user';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import * as THREE from 'three';
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import UserFactory from 'explorviz-frontend/services/collaboration/user-factory';
+import LocalUser from './local-user';
+import UserFactory from './user-factory';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import WebSocketService, {
-  SELF_DISCONNECTED_EVENT,
-} from 'explorviz-frontend/services/collaboration/web-socket';
-import RoomService from 'explorviz-frontend/services/collaboration/room-service';
+import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import RoomService from './room-service';
 import {
   SELF_CONNECTED_EVENT,
   SelfConnectedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/self-connected';
+} from 'collaboration/utils/web-socket-messages/receivable/self-connected';
 import {
   USER_CONNECTED_EVENT,
   UserConnectedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/user-connected';
+} from 'collaboration/utils/web-socket-messages/receivable/user-connected';
 import {
   USER_DISCONNECTED_EVENT,
   UserDisconnectedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/user-disconnect';
+} from 'collaboration/utils/web-socket-messages/receivable/user-disconnect';
 import {
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
@@ -34,14 +32,14 @@ import {
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/controller-id';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+} from 'collaboration/utils/web-socket-messages/types/controller-id';
+import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import {
   USER_KICK_EVENT,
   UserKickEvent,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/kick-user';
+} from 'collaboration/utils/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
@@ -328,7 +326,7 @@ export default class CollaborationSession extends Service.extend({
     this.removeAllRemoteUsers();
 
     this.highlightingService.resetColorsOfHighlightedEntities();
-    // this.userSettings.restoreApplicationSettings(); #TODO: Die restoreApplicationSettings existiert nicht mehr? Was tun?
+    this.userSettings.restoreApplicationSettings();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();
