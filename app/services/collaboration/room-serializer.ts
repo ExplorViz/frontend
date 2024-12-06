@@ -276,6 +276,6 @@ export default class RoomSerializer extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'room-serializer': RoomSerializer;
+    'collaboration/room-serializer': RoomSerializer;
   }
 }

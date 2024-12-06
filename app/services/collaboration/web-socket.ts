@@ -293,6 +293,6 @@ export default class WebSocketService extends Service.extend(Evented) {
 
 declare module '@ember/service' {
   interface Registry {
-    'web-socket': WebSocketService;
+    'collaboration/web-socket': WebSocketService;
   }
 }

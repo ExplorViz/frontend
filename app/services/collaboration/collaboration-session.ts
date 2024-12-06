@@ -485,6 +485,6 @@ export default class CollaborationSession extends Service.extend({
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {
-    'collaboration-session': CollaborationSession;
+    'collaboration/collaboration-session': CollaborationSession;
   }
 }
