@@ -1,6 +1,6 @@
 import { ForceGraph3DInstance } from '3d-force-graph';
 import { inject as service } from '@ember/service';
-import { task, all } from 'ember-concurrency';
+import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
@@ -178,6 +178,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
         const application = node.applications[j];
+
         const applicationData = await this.updateApplicationData.perform(
           application,
           null,
@@ -405,30 +406,19 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const layoutedGraph = await layoutCity(application);
       const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
 
-      const heatmapMetrics = this.worker.postMessage(
-        'metrics-worker',
-        workerPayload
-      );
-
-      const flatData = this.worker.postMessage(
+      const flatData = await this.worker.postMessage(
         'flat-data-worker',
         workerPayload
       );
 
-      const results = (await all([heatmapMetrics, flatData])) as any[];
-
       let applicationData = this.applicationRepo.getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(
-          application,
-          boxLayoutMap,
-          results[1]
-        );
+        applicationData.updateApplication(application, boxLayoutMap, flatData);
       } else {
         applicationData = new ApplicationData(
           application,
           boxLayoutMap,
-          results[1],
+          flatData,
           k8sData
         );
       }
