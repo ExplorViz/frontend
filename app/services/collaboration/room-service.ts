@@ -93,6 +93,6 @@ export default class RoomService extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'room-service': RoomService;
+    'collaboration/room-service': RoomService;
   }
 }

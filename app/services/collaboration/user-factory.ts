@@ -49,6 +49,6 @@ export default class UserFactory extends Service.extend({}) {
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {
-    'user-factory': UserFactory;
+    'collaboration/user-factory': UserFactory;
   }
 }

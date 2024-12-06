@@ -299,6 +299,6 @@ export default class SpectateUser extends Service {
 
 declare module '@ember/service' {
   interface Registry {
-    'spectate-user': SpectateUser;
+    'collaboration/spectate-user': SpectateUser;
   }
 }

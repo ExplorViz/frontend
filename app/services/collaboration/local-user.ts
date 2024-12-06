@@ -407,6 +407,6 @@ export default class LocalUser extends Service.extend({
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {
   interface Registry {
-    'local-user': LocalUser;
+    'collaboration/local-user': LocalUser;
   }
 }
