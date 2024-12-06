@@ -19,7 +19,6 @@ import {
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'extended-reality/services/ar-settings';
@@ -611,8 +610,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
     // Apply layout to each application
     layoutGraphs.forEach((graph) => {
-      const boxLayoutMap = new Map<string, BoxLayout>();
-      convertElkToBoxLayout(graph, boxLayoutMap);
+      const boxLayoutMap = convertElkToBoxLayout(graph);
 
       // Ids in ELK must not start with numbers, therefore we added 5 letters
       const application = this.getApplicationById(graph.id.substring(5));

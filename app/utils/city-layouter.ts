@@ -89,11 +89,11 @@ function populatePackage(component: Package, children: any[]) {
 
 export function convertElkToBoxLayout(
   elkGraph: any,
-  layoutMap: Map<string, BoxLayout>,
+  layoutMap = new Map<string, BoxLayout>(),
   xOffset = 0,
   zOffset = 0,
   depth = 0
-): void {
+): Map<string, BoxLayout> {
   const SCALAR = 0.3;
 
   let height = COMPONENT_HEIGHT;
@@ -121,4 +121,6 @@ export function convertElkToBoxLayout(
       depth + 1
     );
   });
+
+  return layoutMap;
 }

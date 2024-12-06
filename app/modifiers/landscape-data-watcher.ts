@@ -40,7 +40,6 @@ import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -404,8 +403,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       };
 
       const layoutedGraph = await layoutCity(application);
-      const boxLayoutMap = new Map<string, BoxLayout>();
-      convertElkToBoxLayout(layoutedGraph, boxLayoutMap);
+      const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
 
       const heatmapMetrics = this.worker.postMessage(
         'metrics-worker',
