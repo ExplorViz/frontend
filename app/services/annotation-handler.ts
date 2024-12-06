@@ -736,23 +736,6 @@ export default class AnnotationHandlerService extends Service {
       }
     }
   }
-
-  willDestroy() {
-    this.annotationData = [];
-    this.minimizedAnnotations = [];
-    this.webSocket.off(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
-    this.webSocket.off(ANNOTATION_CLOSED_EVENT, this, this.onMenuClosed);
-    this.webSocket.off(
-      ANNOTATION_UPDATED_EVENT,
-      this,
-      this.onUpdatedAnnotation
-    );
-    this.detachedMenuRenderer.off(
-      'restore_annotations',
-      this,
-      this.onRestoreAnnotations
-    );
-  }
 }
 
 // Don't remove this declaration: this is what enables TypeScript to resolve
