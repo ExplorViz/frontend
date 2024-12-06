@@ -7,6 +7,7 @@ import { FlatData } from './flat-data-schemes/flat-data';
 
 export default class ApplicationData {
   application: Application;
+  k8sData: K8sData | null;
 
   layoutData: Map<string, LayoutData>;
 
@@ -20,7 +21,8 @@ export default class ApplicationData {
   constructor(
     application: Application,
     layoutData: Map<string, LayoutData>,
-    flatData: FlatData
+    flatData: FlatData,
+    k8sData: K8sData | null
   ) {
     this.application = application;
     this.layoutData = layoutData;
@@ -32,6 +34,7 @@ export default class ApplicationData {
       differenceMetricScores: new Map<string, Metric[]>(),
       aggregatedMetricScores: new Map<string, Metric>(),
     };
+    this.k8sData = k8sData;
   }
 
   updateApplication(
@@ -47,4 +50,10 @@ export default class ApplicationData {
   getId() {
     return this.application.id;
   }
+}
+export interface K8sData {
+  k8sNode: string;
+  k8sNamespace: string;
+  k8sDeployment: string;
+  k8sPod: string;
 }

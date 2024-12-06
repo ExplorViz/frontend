@@ -39,6 +39,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import SceneRepository from './repos/scene-repository';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
@@ -87,6 +88,9 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
+
   @service('texture-service')
   private textureService!: TextureService;
 
@@ -110,6 +114,11 @@ export default class ApplicationRenderer extends Service.extend() {
       this.userSettings,
       this.localUser
     );
+
+    // const geometry = new THREE.BoxGeometry(1, 1, 1);
+    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    // const cube = new THREE.Mesh(geometry, material);
+    // this.sceneRepo.getScene().add(cube);
   }
 
   // #region Get / Set
