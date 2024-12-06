@@ -50,6 +50,9 @@ import {
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
+import layoutCity, {
+  convertElkToLayoutData,
+} from 'explorviz-frontend/utils/city-layouter';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -603,6 +606,34 @@ export default class ApplicationRenderer extends Service.extend() {
       });
     }
     this.highlightingService.updateHighlighting();
+  }
+
+  async updateApplicationLayout() {
+    const elkPromises: any[] = [];
+
+    // Compute layout asynchronously
+    this.openApplications.forEach((application) => {
+      elkPromises.push(layoutCity(application.dataModel.application));
+    });
+    const layoutGraphs = await Promise.all(elkPromises);
+
+    // Apply layout to each application
+    layoutGraphs.forEach((graph) => {
+      const layoutMap = new Map<string, LayoutData>();
+      convertElkToLayoutData(graph, layoutMap);
+
+      // Ids in ELK must not start with numbers, therefore we added 5 letters
+      const application = this.getApplicationById(graph.id.substring(5));
+
+      if (!application) return;
+
+      application.dataModel.layoutData = layoutMap;
+      application.boxLayoutMap = this.convertToBoxLayoutMap(layoutMap);
+      application.updateLayout();
+    });
+
+    // Update communication since position of classes may have changed
+    this.addCommunicationForAllApplications();
   }
 
   // #endregion

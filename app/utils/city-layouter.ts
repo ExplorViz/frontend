@@ -100,6 +100,7 @@ export function convertElkToLayoutData(
     height = 5;
   }
 
+  // Ids in ELK must not start with numbers, therefore we added 5 letters
   layoutMap.set(elkGraph.id.substring(5), {
     height: height,
     width: elkGraph.width! * SCALAR,

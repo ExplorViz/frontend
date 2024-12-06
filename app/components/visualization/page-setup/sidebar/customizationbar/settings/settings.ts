@@ -9,9 +9,7 @@ import {
   VisualizationSettings,
   SettingGroup,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
-import ApplicationRenderer, {
-  LayoutData,
-} from 'explorviz-frontend/services/application-renderer';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LocalUser from 'collaboration/services/local-user';
 import MessageSender from 'collaboration/services/message-sender';
@@ -21,9 +19,6 @@ import MinimapService from 'explorviz-frontend/services/minimap-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { Mesh } from 'three';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
-import layoutCity, {
-  convertElkToLayoutData,
-} from 'explorviz-frontend/utils/city-layouter';
 
 interface Args {
   enterFullscreen?(): void;
@@ -138,7 +133,7 @@ export default class Settings extends Component<Args> {
       case 'packageMargin':
       case 'openedComponentHeight':
       case 'closedComponentHeight':
-        this.updateApplicationLayout();
+        this.applicationRenderer.updateApplicationLayout();
         break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
@@ -295,34 +290,8 @@ export default class Settings extends Component<Args> {
       this.localUser.defaultCamera.fov =
         this.userSettings.visualizationSettings.cameraFov.value;
       this.localUser.defaultCamera.updateProjectionMatrix();
-      this.updateApplicationLayout();
+      this.applicationRenderer.updateApplicationLayout();
       this.applicationRenderer.addCommunicationForAllApplications();
     }
-  }
-
-  async updateApplicationLayout() {
-    const elkPromises: any[] = [];
-    this.applicationRenderer.openApplications.forEach((application) => {
-      elkPromises.push(layoutCity(application.dataModel.application));
-    });
-
-    const layoutGraphs = await Promise.all(elkPromises);
-    layoutGraphs.forEach((graph) => {
-      const layoutMap = new Map<string, LayoutData>();
-      convertElkToLayoutData(graph, layoutMap);
-
-      const application = this.applicationRenderer.getApplicationById(
-        graph.id.substring(5)
-      );
-
-      if (!application) return;
-
-      application.dataModel.layoutData = layoutMap;
-      application.boxLayoutMap =
-        this.applicationRenderer.convertToBoxLayoutMap(layoutMap);
-      application.updateLayout();
-    });
-
-    this.applicationRenderer.addCommunicationForAllApplications();
   }
 }
