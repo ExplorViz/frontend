@@ -58,31 +58,5 @@ module.exports = (defaults) => {
   //app.import('node_modules/crypto-js/crypto-js.js');
 
   //return app.toTree();
-  return require('@embroider/compat').compatBuild(app, Webpack, {
-    staticAddonTestSupportTrees: true,
-    staticAddonTrees: true,
-    // staticHelpers: true,
-    // staticModifiers: true,
-    // staticComponents: true,
-    packagerOptions: {
-      webpackConfig: {
-        module: {
-          rules: [
-            {
-              test: /\.tsx/,
-              use: {
-                loader: 'babel-loader',
-                options: {
-                  presets: [
-                    ['@babel/preset.react', { runtime: 'automatic' }],
-                    '@babel/preset-typescript',
-                  ],
-                },
-              },
-            },
-          ],
-        },
-      },
-    },
-  });
+  return require('@embroider/compat').compatBuild(app, Webpack);
 };
