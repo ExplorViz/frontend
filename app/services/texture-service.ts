@@ -3,7 +3,7 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import { Texture, TextureLoader } from 'three';
 import Service from '@ember/service';
 

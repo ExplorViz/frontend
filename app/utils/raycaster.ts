@@ -2,7 +2,7 @@ import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/applicati
 import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
-import PingMesh from 'extended-reality/utils/view-objects/vr/ping-mesh';
+import PingMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
 import MinimapService, {

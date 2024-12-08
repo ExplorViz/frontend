@@ -5,12 +5,12 @@
 .chat-thread {
   border: 2px;
   border-color: #000000;
-	margin: 24px auto 0 auto;
-	padding: 0 20px 0 0;
-	list-style: none;
+  margin: 24px auto 0 auto;
+  padding: 0 20px 0 0;
+  list-style: none;
   height: 400px;
   max-height: 400px;
-	overflow-y: scroll;
+  overflow-y: scroll;
   overflow-x: hidden;
 }
 
@@ -23,7 +23,9 @@
   align-items: flex-start;
   padding: 16px 20px;
   margin: 0 0 20px 0;
-  font: 16px/20px 'Noto Sans', sans-serif;
+  font:
+    16px/20px 'Noto Sans',
+    sans-serif;
   border-radius: 10px;
   background-color: rgba(59, 170, 114, 0.2);
   overflow-x: hidden;
@@ -58,32 +60,33 @@
 }
 
 .chat-timestamp {
-    font-size: 0.75em;
-    color: #888;
-    align-self: flex-end;
-    margin-left: 10px;
-    position: absolute;
-    right: 10px;
-    bottom: 0px;
+  font-size: 0.75em;
+  color: #888;
+  align-self: flex-end;
+  margin-left: 10px;
+  position: absolute;
+  right: 10px;
+  bottom: 0px;
 }
 
 .chat-button-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .filter-box {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .chat-right-buttons {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
-.chat-synchronize, .chat-download {
-    margin-right: 10px;
+.chat-synchronize,
+.chat-download {
+  margin-right: 10px;
 }
 
 .message-input {
@@ -120,7 +123,6 @@
   width: 100%;
 }
 
-
 .delete-checkbox {
   position: absolute;
   top: 5px;
@@ -139,10 +141,10 @@
 }
 
 .radio-buttons-chat {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .radio-buttons-chat label {
-    margin: 5px 0;
+  margin: 5px 0;
 }

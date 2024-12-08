@@ -11,7 +11,7 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import MessageSender from 'collaboration/services/message-sender';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';

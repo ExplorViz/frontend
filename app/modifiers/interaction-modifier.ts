@@ -2,9 +2,9 @@ import { assert } from '@ember/debug';
 import { registerDestructor } from '@ember/destroyable';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
-import RemoteUser from 'collaboration/utils/remote-user';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
@@ -79,10 +79,10 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
 
   debug = debugLogger('InteractionModifier');
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   collaborativeSession!: CollaborationSession;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('user-settings')

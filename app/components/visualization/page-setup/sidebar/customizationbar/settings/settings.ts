@@ -11,14 +11,14 @@ import {
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import LocalUser from 'collaboration/services/local-user';
-import MessageSender from 'collaboration/services/message-sender';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { Mesh } from 'three';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface Args {
   enterFullscreen?(): void;
@@ -37,16 +37,16 @@ export default class Settings extends Component<Args> {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   private roomSerializer!: RoomSerializer;
 
   @service('repos/scene-repository')

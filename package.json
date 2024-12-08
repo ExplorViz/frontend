@@ -181,12 +181,5 @@
   },
   "overrides": {
     "ember-cli-ifa": "~0.10.0"
-  },
-  "ember-addon": {
-    "paths": [
-      "lib/collaboration",
-      "lib/heatmap",
-      "lib/extended-reality"
-    ]
   }
 }

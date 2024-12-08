@@ -63,7 +63,10 @@ export default class ReloadHandler extends Service.extend(Evented) {
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) {
-    const structure = preProcessAndEnhanceStructureLandscape(structureData);
+    const structure = preProcessAndEnhanceStructureLandscape(
+      structureData,
+      TypeOfAnalysis.Dynamic
+    );
     const dynamic = dynamicData;
 
     for (const t of dynamic) {
