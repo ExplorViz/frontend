@@ -100,9 +100,7 @@ export default class SnapshotTokenService extends Service {
             sharedSnapshots: [],
             subsricedSnapshots: [],
           });
-          this.toastHandler.showErrorToastMessage(
-            'Server for snapshots not available.'
-          );
+          console.error('Server for snapshots not available.');
         });
     });
   }
