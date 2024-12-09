@@ -86,7 +86,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getPackageById } from 'explorviz-frontend/utils/package-helpers';
-import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
+import { VisualizationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import WaypointIndicator from 'extended-reality/utils/view-objects/vr/waypoint-indicator';
@@ -444,7 +444,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     userId,
     originalMessage: { settings },
   }: ForwardedMessage<ShareSettingsMessage>): void {
-    this.userSettings.updateSettings(settings as ApplicationSettings);
+    this.userSettings.updateSettings(settings as VisualizationSettings);
 
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     this.toastHandlerService.showInfoToastMessage(

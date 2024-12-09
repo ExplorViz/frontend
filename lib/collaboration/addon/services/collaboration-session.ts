@@ -213,7 +213,7 @@ export default class CollaborationSession extends Service.extend({
     });
 
     // Ensure same settings for all users in collaboration session
-    this.userSettings.applyDefaultApplicationSettings(false);
+    this.userSettings.applyDefaultSettings(false);
 
     if (this.userCount === 1) {
       this.localUser.isHost = true;

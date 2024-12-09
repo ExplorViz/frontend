@@ -90,6 +90,6 @@ export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
   }
 
   willDestroy(): void {
-    this.userSettings.updateApplicationSetting('heatmapEnabled', false);
+    this.userSettings.updateSetting('heatmapEnabled', false);
   }
 }
