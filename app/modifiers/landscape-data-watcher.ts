@@ -263,7 +263,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     );
 
     // add k8sApps
-    const promises = k8sApps.map(async (k8sApp) => {
+    const k8sAppPromises = k8sApps.map(async (k8sApp) => {
       const applicationData = await this.updateApplicationData.perform(
         k8sApp.app,
         {
@@ -273,7 +273,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           k8sPod: k8sApp.k8sPod.name,
         },
         classCommunications,
-        convertElkToBoxLayout(await graphLayoutMap.get(k8sApp.id))
+        convertElkToBoxLayout(await graphLayoutMap.get(k8sApp.app.id))
       );
 
       const app =
@@ -309,7 +309,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return app;
     });
 
-    const apps = (await Promise.all(promises)) as ApplicationObject3D[];
+    const apps = (await Promise.all(k8sAppPromises)) as ApplicationObject3D[];
 
     const baseParams = {
       font: this.fontRepo.font,
