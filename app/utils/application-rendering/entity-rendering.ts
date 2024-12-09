@@ -135,12 +135,12 @@ export function addComponentAndChildrenToScene(
     //updateApplicationObject3DAfterUpdate(applicationObject3D);
     updateApplicationObject3DAfterUpdate(
       applicationObject3D,
-      SemanticZoomManager.instance.appCommRendering,
+      SemanticZoomManager.instance.appCommRendering!,
       true,
-      SemanticZoomManager.instance.userSettings?.applicationSettings,
-      SemanticZoomManager.instance.userSettings,
-      SemanticZoomManager.instance.font,
-      SemanticZoomManager.instance.updateLinks
+      SemanticZoomManager.instance.userSettings!.applicationSettings!,
+      SemanticZoomManager.instance.userSettings!,
+      SemanticZoomManager.instance.font!,
+      SemanticZoomManager.instance.updateLinks!
     );
   };
   mesh.setAppearence(1, triggerOpen);
@@ -155,12 +155,12 @@ export function addComponentAndChildrenToScene(
     closeComponentMesh(mesh, applicationObject3D, false);
     updateApplicationObject3DAfterUpdate(
       applicationObject3D,
-      SemanticZoomManager.instance.appCommRendering,
+      SemanticZoomManager.instance.appCommRendering!,
       true,
-      SemanticZoomManager.instance.userSettings?.applicationSettings,
-      SemanticZoomManager.instance.userSettings,
-      SemanticZoomManager.instance.font,
-      SemanticZoomManager.instance.updateLinks
+      SemanticZoomManager.instance.userSettings!.applicationSettings!,
+      SemanticZoomManager.instance.userSettings!,
+      SemanticZoomManager.instance.font!,
+      SemanticZoomManager.instance.updateLinks!
     );
   });
   // const recipe = new Recipe();

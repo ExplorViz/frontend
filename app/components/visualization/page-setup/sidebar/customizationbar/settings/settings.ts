@@ -105,46 +105,29 @@ export default class Settings extends Component<Args> {
   cleanArray(
     targets: Array<RangeSetting>,
     inverse: boolean = false,
-    alreadyreversed: boolean = false
+    alreadyReversed: boolean = false
   ) {
-    if (inverse == false) {
-      targets.reduce((prev, now, idx) => {
+    if (!inverse) {
+      targets.reduce((prev, now, index) => {
         if (prev.value > now.value) {
-          targets[idx - 1].value = now.value - 1;
+          targets[index - 1].value = now.value - 1;
           this.cleanArray(targets, inverse, false);
         }
-        //  else if (targets[idx + 1].value < now.value) {
-        //   targets[idx + 1].value = now.value + 1;
-        //   //this.cleanArray(targets, inverse);
-        // }
         return now;
       }, targets[0]);
     } else {
-      if (alreadyreversed == false) targets.reverse();
-      targets.reduce((prev, now, idx) => {
+      if (!alreadyReversed) targets.reverse();
+      targets.reduce((prev, now, index) => {
         if (prev.value < now.value) {
-          targets[idx - 1].value = now.value + 1;
+          targets[index - 1].value = now.value + 1;
           this.cleanArray(targets, inverse, true);
         }
-        //     //else if (targets[idx + 1].value > now.value) {
-        //     //   targets[idx + 1].value = now.value - 1;
-        //     //   //this.cleanArray(targets, inverse);
-        //     // }
         return now;
       }, targets[0]);
-      // targets[0] can still be used, since the inplace reverse happens before!
 
       // Reverse order back to normal
-      if (alreadyreversed == false) targets.reverse();
+      if (alreadyReversed == false) targets.reverse();
     }
-
-    // targets.reverse().reduce((prev, now, idx) => {
-    //   if (prev.value < now.value) {
-    //     targets[idx + 1].value = now.value + 1;
-    //     this.cleanArray(targets);
-    //   }
-    //   return now;
-    // }, targets[0]);
   }
 
   @action
@@ -187,7 +170,7 @@ export default class Settings extends Component<Args> {
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'distancePreSet':
-        this.semanticZoomPreSetsetter(input, valueArray);
+        this.semanticZoomPreSetSetter(input!, valueArray);
         this.userSettings.updateApplicationSetting(
           'usePredefinedSet' as ApplicationSettingId,
           true
@@ -214,21 +197,16 @@ export default class Settings extends Component<Args> {
             false
           );
         }
-        // cleanArray resorts the user settings such that the condtion of increasing is satisfied.
-        //this.cleanArray(valueArray, false);
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
         );
-        //console.log(this.userSettings.applicationSettings.distanceLevel1.value);
+
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       case 'clusterBasedOnMembers':
         SemanticZoomManager.instance.cluster(
           this.userSettings.applicationSettings.clusterBasedOnMembers.value
         );
-        // SemanticZoomManager.instance.clusterManager?.setNumberOfClusters(
-        //   this.userSettings.applicationSettings.clusterBasedOnMembers.value
-        // );
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       default:
@@ -291,21 +269,18 @@ export default class Settings extends Component<Args> {
       case 'semanticZoomState':
         if (SemanticZoomManager.instance.isEnabled == false && value == true) {
           SemanticZoomManager.instance.activate();
-          //this.userSettings.updateApplicationSetting('semanticZoomState', true);
         } else if (
           SemanticZoomManager.instance.isEnabled == true &&
           value == false
         ) {
-          //this.userSettings.updateApplicationSetting('semanticZoomState', false);
           SemanticZoomManager.instance.deactivate();
         }
         this.configuration.semanticZoomManagerState =
           SemanticZoomManager.instance.isEnabled;
         break;
       case 'usePredefinedSet':
-        //this.userSettings.applicationSettings.distancePreSet.value
         // Set the value of the Slider distancePreSet to the same value again, to trigger the update routine!
-        this.semanticZoomPreSetsetter(
+        this.semanticZoomPreSetSetter(
           this.userSettings.applicationSettings.distancePreSet.value,
           valueArray
         );
@@ -324,8 +299,6 @@ export default class Settings extends Component<Args> {
         );
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
-      // case 'useOrthographicCamera':
-      //   break;
       default:
     }
   }
@@ -358,7 +331,7 @@ export default class Settings extends Component<Args> {
       this.localUser.defaultCamera.updateProjectionMatrix();
     }
   }
-  private semanticZoomPreSetsetter(targetPreset: number, valueArray: any) {
+  private semanticZoomPreSetSetter(targetPreset: number, valueArray: any) {
     if (targetPreset == 1) {
       valueArray[0].value = 5;
       valueArray[1].value = 30;

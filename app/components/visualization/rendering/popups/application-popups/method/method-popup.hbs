@@ -4,7 +4,9 @@
 }}
   <h3 class='popover-header'>
     <div class='text-center text-break font-weight-bold pl-1'>
-      Method: {{vars.method.name}}, type {{vars.method.type}}
+      Method:
+      {{vars.method.name}}, type
+      {{vars.method.type}}
     </div>
   </h3>
   <Visualization::Rendering::Popups::PopupTabs
@@ -22,25 +24,14 @@
           <th>Type</th>
         </thead>
         <tbody>
-      {{#each vars.method.parameters as |params|}}
-        <tr>
-          <td>{{params.name}}</td>
-          <td>{{params.type}}</td>
-        </tr>
-      {{/each}}
+          {{#each vars.method.parameters as |params|}}
+            <tr>
+              <td>{{params.name}}</td>
+              <td>{{params.type}}</td>
+            </tr>
+          {{/each}}
         </tbody>
       </table>
     </:runtimeTab>
-    {{!-- <:codeTab>
-      <Visualization::Rendering::Popups::ApplicationPopups::Clazz::ClazzPopupCode
-        @popupData={{@popupData}}
-      />
-    </:codeTab>
-    <:restructureTab>
-      <Visualization::Rendering::Popups::ApplicationPopups::Clazz::ClazzPopupRestructure
-        @clazz={{vars.clazz}}
-        @applicationId={{vars.applicationId}}
-      />
-    </:restructureTab> --}}
   </Visualization::Rendering::Popups::PopupTabs>
 {{/let}}

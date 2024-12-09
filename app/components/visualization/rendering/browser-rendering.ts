@@ -304,22 +304,23 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   toggleSemanticZoom() {
-    if (SemanticZoomManager.instance.isEnabled == false) {
+    if (!SemanticZoomManager.instance.isEnabled) {
       SemanticZoomManager.instance.activate();
-      this.userSettings.updateApplicationSetting('semanticZoomState', true);
     } else {
-      this.userSettings.updateApplicationSetting('semanticZoomState', false);
       SemanticZoomManager.instance.deactivate();
     }
+    this.userSettings.updateApplicationSetting(
+      'semanticZoomState',
+      SemanticZoomManager.instance.isEnabled
+    );
     this.configuration.semanticZoomManagerState =
       SemanticZoomManager.instance.isEnabled;
-    //this.semanticZoomToggle = !this.semanticZoomToggle;
   }
 
   @action
   showSemanticZoomClusterCenters() {
     if (SemanticZoomManager.instance.isEnabled == true) {
-      // remove previouse center Points from scene
+      // Remove previous center points from scene
       const prevCenterPointList = this.scene.children.filter(
         (preCenterPoint) => preCenterPoint.name == 'centerPoints'
       );
@@ -353,7 +354,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
           this.scene.add(xGroup);
         });
     }
-    //this.semanticZoomToggle = !this.semanticZoomToggle;
   }
 
   /**

@@ -1,6 +1,5 @@
 import debugLogger from 'ember-debug-logger';
 import { createScene } from 'explorviz-frontend/utils/scene';
-// import THREE from 'three';
 import * as THREE from 'three';
 import RenderingLoop from './rendering-loop';
 import { MapControls } from 'explorviz-frontend/utils/controls/MapControls';
