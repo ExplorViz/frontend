@@ -1,4 +1,4 @@
-import ELK from 'elkjs/lib/elk-api';
+import ELK from 'elkjs/lib/elk.bundled.js';
 import { Application, Package } from './landscape-schemes/structure-data';
 import { getStoredNumberSetting } from './settings/local-storage-settings';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
@@ -13,7 +13,7 @@ let PACKAGE_MARGIN: number;
 let COMPONENT_HEIGHT: number;
 
 export default async function layoutCity(application: Application) {
-  const elk = new ELK({ workerUrl: 'elk-worker.min.js' });
+  const elk = new ELK();
 
   ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
   CLASS_FOOTPRINT = getStoredNumberSetting('classFootprint');

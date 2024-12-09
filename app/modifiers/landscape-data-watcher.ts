@@ -129,6 +129,17 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     this.debug('Update Visualization');
 
+    // Init computation of layout for applications
+    const graphLayoutMap = new Map();
+    const { nodes, k8sNodes } = this.structureLandscapeData;
+    for (let i = 0; i < nodes.length; ++i) {
+      const node = nodes[i];
+      for (let j = 0; j < node.applications.length; ++j) {
+        const application = node.applications[j];
+        graphLayoutMap.set(application.id, layoutCity(application));
+      }
+    }
+
     // ToDo: This can take quite some time. Optimize.
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
@@ -151,7 +162,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // This is done for all applications to have accurate heatmap data.
 
     let { nodes: graphNodes } = this.graph.graphData();
-    const { nodes, k8sNodes } = this.structureLandscapeData;
 
     const allAppsInNodes = [
       ...nodes.flatMap((n) => n.applications),
@@ -178,11 +188,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
         const application = node.applications[j];
+        const boxLayout = convertElkToBoxLayout(
+          await graphLayoutMap.get(application.id)
+        );
 
         const applicationData = await this.updateApplicationData.perform(
           application,
           null,
-          classCommunications
+          classCommunications,
+          boxLayout
         );
 
         // create or update applicationObject3D
@@ -258,7 +272,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           k8sDeployment: k8sApp.k8sDeployment.name,
           k8sPod: k8sApp.k8sPod.name,
         },
-        classCommunications
+        classCommunications,
+        convertElkToBoxLayout(await graphLayoutMap.get(k8sApp.id))
       );
 
       const app =
@@ -396,15 +411,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     async (
       application: Application,
       k8sData: K8sData | null,
-      classCommunication: ClassCommunication[]
+      classCommunication: ClassCommunication[],
+      boxLayoutMap: any
     ) => {
       const workerPayload = {
         structure: application,
         dynamic: this.dynamicLandscapeData,
       };
-
-      const layoutedGraph = await layoutCity(application);
-      const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
 
       const flatData = await this.worker.postMessage(
         'flat-data-worker',
