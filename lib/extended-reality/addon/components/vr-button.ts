@@ -33,7 +33,7 @@ export default class VrButton extends Component<VrButtonArgs> {
 
       if (this.vrSupported) {
         this.buttonText = 'Enter VR';
-      } else if (window.isSecureContext === false) {
+      } else if (!window.isSecureContext) {
         this.buttonText = 'WEBXR NEEDS HTTPS';
       } else {
         this.buttonText = 'WEBXR NOT AVAILABLE';

@@ -87,7 +87,7 @@ export default abstract class BaseMesh<
     let fromBeginning: boolean = fromBeginningOrig;
     let includeOrignal: boolean = includeOrignalOrig;
 
-    if (this.visible == false && this.overrideVisibility == false) {
+    if (!this.visible && !this.overrideVisibility) {
       return true;
     }
 
@@ -104,7 +104,7 @@ export default abstract class BaseMesh<
     if (targetApNumber == 0 && this.originalAppearence != undefined) {
       // return to default look
       this.callBeforeAppearenceZero(this);
-      if (this.canUseOrignal == true) {
+      if (this.canUseOrignal) {
         this.restoreOriginalAppearence();
       }
       this.appearencesMap.forEach((v, k) => {
@@ -114,7 +114,7 @@ export default abstract class BaseMesh<
       return true;
     } else if (targetApNumber == 0 && this.originalAppearence == undefined) {
       // Save Orignal
-      if (this.canUseOrignal == true) {
+      if (this.canUseOrignal) {
         this.saveOriginalAppearence();
       }
       this.appearenceLevel = targetApNumber;
@@ -146,8 +146,7 @@ export default abstract class BaseMesh<
     this.callBeforeAppearenceAboveZero(this);
 
     // Start with Original Appearence
-    if (includeOrignal == true && this.canUseOrignal == true)
-      this.restoreOriginalAppearence();
+    if (includeOrignal && this.canUseOrignal) this.restoreOriginalAppearence();
 
     // Make sure to return to default Appearence first
     //this.restoreOriginalAppearence();
@@ -158,7 +157,7 @@ export default abstract class BaseMesh<
       });
     } else {
       //console.log(`Calling Function with Level: ${i}`);
-      if (fromBeginning == true || this.appearenceLevel > targetApNumber) {
+      if (fromBeginning || this.appearenceLevel > targetApNumber) {
         this.appearencesMap.forEach((v, idx) => {
           if (idx < targetApNumber) {
             if (v instanceof Appearence) v.activate();

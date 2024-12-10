@@ -10,7 +10,7 @@ export default function hitTest(
     const referenceSpace = renderer.xr.getReferenceSpace();
     const session = renderer.xr.getSession();
 
-    if (hitTestSourceRequested === false && session) {
+    if (!hitTestSourceRequested && session) {
       session.requestReferenceSpace('viewer').then((space) => {
         // Note: requestHitTestSource() is experimental and has limited browser support
         session.requestHitTestSource!({ space })?.then((source) => {

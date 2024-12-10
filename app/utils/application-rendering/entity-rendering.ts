@@ -10,7 +10,6 @@ import UserSettings, {
   ApplicationColors,
 } from 'explorviz-frontend/services/user-settings';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
-//import { createClazzTextLabelForZoomLevel as createClazzTextLabelForZoomLevel } from './labeler';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import {
   closeComponentMesh,
@@ -122,9 +121,9 @@ export function addComponentAndChildrenToScene(
   mesh.prio = 1;
   // Define function
   const triggerOpen = () => {
-    if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;
+    if (!SemanticZoomManager.instance.autoOpenCloseFeature) return;
     //Open parents first
-    if (mesh.opened == true) return;
+    if (mesh.opened) return;
     openComponentAndAncestor(component, applicationObject3D);
     //Open itsself
     openComponentMesh(mesh, applicationObject3D);
@@ -149,8 +148,9 @@ export function addComponentAndChildrenToScene(
   // mesh.setAppearence(4, triggerOpen);
 
   mesh.setCallBeforeAppearenceZero(() => {
-    if (SemanticZoomManager.instance.autoOpenCloseFeature == false) return;
-    if (mesh.opened == false) return;
+    if (!SemanticZoomManager.instance.autoOpenCloseFeature) return;
+    if (!mesh.opened) return;
+
     closeComponentsRecursively(component, applicationObject3D, undefined);
     closeComponentMesh(mesh, applicationObject3D, false);
     updateApplicationObject3DAfterUpdate(
@@ -163,13 +163,6 @@ export function addComponentAndChildrenToScene(
       SemanticZoomManager.instance.updateLinks!
     );
   });
-  // const recipe = new Recipe();
-  // //recipe.setColor(new THREE.Color(255, 0, 0));
-  // //recipe.setPositionY(2);
-  // const appearenceForOne = new AppearenceExtension();
-  // appearenceForOne.setRecipe(recipe);
-
-  // mesh.setAppearence(1, appearenceForOne);
 
   addMeshToApplication(mesh, applicationObject3D);
   updateMeshVisiblity(mesh, applicationObject3D);
@@ -193,88 +186,8 @@ export function addComponentAndChildrenToScene(
       highlightedEntityColor
     );
 
-    // Set the basic height changing recipe as the new appearence and register it as Level 1
-
-    // Change the Geometry to a Sphere
-    //recipe.setGeometry(new THREE.SphereGeometry(1, 8, 8));
-
-    // appearenceHeight.setRecipe(recipe);
-    // clazzMesh.setAppearence(1, appearenceHeight);
-
-    // Create another mesh for an extended Appearence as Level 2
-    // const geometry = new THREE.SphereGeometry(1, 8, 8);
-    // const material = new THREE.MeshBasicMaterial({ color: 0xff0a00 });
-
-    // const sph = new THREE.Mesh(geometry, material);
-    // and register it
-    // const appearenceMethodProportion = new AppearenceExtension();
-    // // applay the height change aswell
-    // appearenceMethodProportion.setRecipe(recipe);
-    // //appearenceMethodProportion.addMesh(sph);
-    // clazzMesh.setAppearence(2, appearenceMethodProportion);
-
-    // Add different Text Levels
-
-    // Long Text with small font
-    // const textclose = createClazzTextLabelForZoomLevel(
-    //   clazzMesh,
-    //   applicationFont,
-    //   new THREE.Color(0xffffff),
-    //   0.66,
-    //   20
-    // );
-    // // Change position to the top of the Box. Move it up by the half of the parent size
-    // textclose?.position.setY(orignalHeight / 2 + 0.02);
-    // // Shorter Text with larger font
-    // const textintermedian = createClazzTextLabelForZoomLevel(
-    //   clazzMesh,
-    //   applicationFont,
-    //   new THREE.Color(0xffffff),
-    //   1,
-    //   10
-    // );
-    // // Change position to the top of the Box. Move it up by the half of the parent size
-    // textintermedian?.position.setY(orignalHeight / 2 + 0.02);
-
-    // if (textclose) appearenceMethodProportion.addMesh(textclose, true);
-    // if (textintermedian) appearenceHeight.addMesh(textintermedian, true);
-
-    // if (clazzMesh instanceof ClazzMesh) {
-    //   appearenceClassForOne.callBeforeActivation = (cu) => {
-    //     cu.labelMesh.visible = false;
-    //   };
-    //   appearenceClassForOne.callAfterDeactivation = (cu) => {
-    //     cu.labelMesh.visible = true;
-    //   };
-
-    //   lodLayer2.callBeforeActivation = (cu) => {
-    //     cu.labelMesh.visible = false;
-    //   };
-    //   lodLayer2.callAfterDeactivation = (cu) => {
-    //     cu.labelMesh.visible = true;
-    //   };
-    // }
-
-    // // Playground to extend the extended Appearence by another Mesh
-    // // like a sub sub Appearence
-    // const subgeometry = new THREE.SphereGeometry(1, 8, 8);
-    // const submaterial = new THREE.MeshBasicMaterial({ color: 0xff0a00 });
-
-    // const subsph = new THREE.Mesh(subgeometry, submaterial);
-    // const sublodLayer2 = new AppearenceExtension();
-    // sublodLayer2.addMesh(subsph);
-
-    // sph.setAppearence()
-
     addMeshToApplication(clazzMesh, applicationObject3D);
     updateMeshVisiblity(clazzMesh, applicationObject3D);
-    // if (orignalHeight) {
-    //   recipe.changeAxisSizeAccordingToCurrentPosition(
-    //     clazzMesh,
-    //     orignalHeight,
-    //     'y'
-    //   );
-    // }
   });
 
   // Add components with alternating colors (e.g. dark and light green)
@@ -353,7 +266,6 @@ export function addGlobeToApplication(
   centerPoint.sub(applicationCenter);
 
   mesh.position.copy(centerPoint);
-  // mesh.rotateY(-2.45);
 
   appObject3D.add(mesh);
 
@@ -381,28 +293,16 @@ export function updateApplicationObject3DAfterUpdate(
   font: Font,
   linkUpdater: () => void
 ) {
-  // Render communication
-  // if (
-  //   this.localUser.visualizationMode !== 'ar' ||
-  //   this.arSettings.renderCommunication
-  // )
-  if (renderComm == true) {
-    appCommRendering.addCommunication(
-      applicationObject3D,
-      applicationSettings //this.userSettings.applicationSettings
-    );
+  if (renderComm) {
+    appCommRendering.addCommunication(applicationObject3D, applicationSettings);
   }
 
   // Update labels
   Labeler.addApplicationLabels(
     applicationObject3D,
     font,
-    userSettings.applicationColors //this.userSettings.applicationColors
+    userSettings.applicationColors
   );
   // Update links
   linkUpdater?.();
-  //this.updateLinks?.();
-  // Update highlighting
-  // TODO reactivate !
-  //this.highlightingService.updateHighlighting(); // needs to be after update links
 }

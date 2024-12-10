@@ -247,7 +247,7 @@ export class ImmersiveView {
     }
     // const lastMouseOver =
     //   this.mouseOverHistory[this.mouseOverHistory.length - 1];
-    // if (this.insideImmersiveViewActive == true) {
+    // if (this.insideImmersiveViewActive) {
     //   debugger;
     //   if (this.actionHistory.length < 10) return;
     //   // we are inside an active immersive view. Check if the view shell be ended.

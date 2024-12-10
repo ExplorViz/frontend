@@ -291,7 +291,7 @@ export default class ChatService extends Service {
           break;
         case 'Events':
           this.filteredChatMessages = this.chatMessages.filter(
-            (msg) => msg.isEvent === true
+            (msg) => msg.isEvent
           );
           break;
         default:

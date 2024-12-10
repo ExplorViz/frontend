@@ -27,7 +27,7 @@ export default class StatusIcons extends Component {
   }
 
   get isSemanticZoomEnabled() {
-    return this.configuration.semanticZoomManagerState;
+    return this.configuration.semanticZoomEnabled;
   }
 
   get users() {

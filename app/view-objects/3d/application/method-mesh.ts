@@ -88,12 +88,12 @@ export class MethodMesh extends BaseMesh {
     this.dataModel = dataModel;
   }
   applyHoverEffect(arg?: VisualizationMode | number): void {
-    if (arg === 'vr' && this.isHovered === false) {
+    if (arg === 'vr' && !this.isHovered) {
       this.scaleAll = 3;
       super.applyHoverEffect();
-    } else if (typeof arg === 'number' && this.isHovered === false) {
+    } else if (typeof arg === 'number' && !this.isHovered) {
       super.applyHoverEffect(arg);
-    } else if (this.isHovered === false) {
+    } else if (!this.isHovered) {
       super.applyHoverEffect(1.5);
     }
   }
@@ -272,12 +272,12 @@ export class MethodGroupMesh extends THREE.Group {
 //   }
 
 //   applyHoverEffect(arg?: VisualizationMode | number): void {
-//     if (arg === 'vr' && this.isHovered === false) {
+//     if (arg === 'vr' && !this.isHovered) {
 //       this.scaleAll = 3;
 //       super.applyHoverEffect();
-//     } else if (typeof arg === 'number' && this.isHovered === false) {
+//     } else if (typeof arg === 'number' && !this.isHovered) {
 //       super.applyHoverEffect(arg);
-//     } else if (this.isHovered === false) {
+//     } else if (!this.isHovered) {
 //       super.applyHoverEffect();
 //     }
 //   }

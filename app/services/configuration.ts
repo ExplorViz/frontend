@@ -13,7 +13,7 @@ export default class Configuration extends Service {
   isCommRendered = true;
 
   @tracked
-  semanticZoomManagerState: boolean = false;
+  semanticZoomEnabled: boolean = false;
 
   commCurveHeightDependsOnDistance = true;
 

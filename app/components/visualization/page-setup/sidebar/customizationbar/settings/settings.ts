@@ -126,7 +126,7 @@ export default class Settings extends Component<Args> {
       }, targets[0]);
 
       // Reverse order back to normal
-      if (alreadyReversed == false) targets.reverse();
+      if (!alreadyReversed) targets.reverse();
     }
   }
 
@@ -267,15 +267,12 @@ export default class Settings extends Component<Args> {
         this.args.setGamepadSupport(value);
         break;
       case 'semanticZoomState':
-        if (SemanticZoomManager.instance.isEnabled == false && value == true) {
+        if (!SemanticZoomManager.instance.isEnabled && value) {
           SemanticZoomManager.instance.activate();
-        } else if (
-          SemanticZoomManager.instance.isEnabled == true &&
-          value == false
-        ) {
+        } else if (SemanticZoomManager.instance.isEnabled && !value) {
           SemanticZoomManager.instance.deactivate();
         }
-        this.configuration.semanticZoomManagerState =
+        this.configuration.semanticZoomEnabled =
           SemanticZoomManager.instance.isEnabled;
         break;
       case 'usePredefinedSet':

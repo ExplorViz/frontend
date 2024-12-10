@@ -412,7 +412,7 @@ export default class VisualizationController extends Controller {
 
       if (this.vrSupported) {
         this.vrButtonText = 'Enter VR';
-      } else if (window.isSecureContext === false) {
+      } else if (!window.isSecureContext) {
         this.vrButtonText = 'WEBXR NEEDS HTTPS';
       } else {
         this.vrButtonText = 'WEBXR NOT AVAILABLE';

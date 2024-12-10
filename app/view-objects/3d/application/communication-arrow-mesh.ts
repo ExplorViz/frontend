@@ -102,7 +102,7 @@ class CommunicationArrowMeshPrivate extends THREE.ArrowHelper {
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
     // Apply hover effect in VR for increased readability
-    if (arg === 'vr' && this.isHovered === false) {
+    if (arg === 'vr' && !this.isHovered) {
       this.isHovered = true;
       this.position.y += this.HOVER_Y_TRANSLATION;
       this.scale.set(

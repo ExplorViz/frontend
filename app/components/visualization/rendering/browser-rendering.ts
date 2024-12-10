@@ -169,7 +169,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
-    this.configuration.semanticZoomManagerState =
+    this.configuration.semanticZoomEnabled =
       SemanticZoomManager.instance.isEnabled;
 
     // Force graph
@@ -263,7 +263,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const pauseItemTitle = this.args.visualizationPaused
       ? 'Resume Visualization'
       : 'Pause Visualization';
-    const semanticZoomButtonTitle = this.configuration.semanticZoomManagerState
+    const semanticZoomButtonTitle = this.configuration.semanticZoomEnabled
       ? 'Semantic Zoom disable (Beta)'
       : 'Semantic Zoom enable (Beta)';
 
@@ -313,13 +313,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       'semanticZoomState',
       SemanticZoomManager.instance.isEnabled
     );
-    this.configuration.semanticZoomManagerState =
+    this.configuration.semanticZoomEnabled =
       SemanticZoomManager.instance.isEnabled;
   }
 
   @action
   showSemanticZoomClusterCenters() {
-    if (SemanticZoomManager.instance.isEnabled == true) {
+    if (SemanticZoomManager.instance.isEnabled) {
       // Remove previous center points from scene
       const prevCenterPointList = this.scene.children.filter(
         (preCenterPoint) => preCenterPoint.name == 'centerPoints'
@@ -524,12 +524,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             ...this.applicationRenderer.getOpenApplications()
           );
           if (
-            SemanticZoomManager.instance.isEnabled == true ||
+            SemanticZoomManager.instance.isEnabled ||
             this.userSettings.applicationSettings.semanticZoomState.value ==
               true
           ) {
             SemanticZoomManager.instance.activate();
-            this.configuration.semanticZoomManagerState =
+            this.configuration.semanticZoomEnabled =
               SemanticZoomManager.instance.isEnabled;
           }
         }, 200);

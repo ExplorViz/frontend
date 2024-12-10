@@ -336,7 +336,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.add(arrow);
       // debugger;
       // arrow.saveTheParent();
-      if (SemanticZoomManager.instance.isEnabled == true) {
+      if (SemanticZoomManager.instance.isEnabled) {
         arrow.line.layers.disableAll();
         arrow.cone.layers.disableAll();
         //this.remove(arrow);
@@ -389,7 +389,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
-    if (arg === 'vr' && this.isHovered === false) {
+    if (arg === 'vr' && !this.isHovered) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
@@ -398,7 +398,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.getArrowMeshes().forEach((arrowMesh) => {
         arrowMesh.applyHoverEffect(arg);
       });
-    } else if (this.isHovered === false) {
+    } else if (!this.isHovered) {
       super.applyHoverEffect();
     }
   }

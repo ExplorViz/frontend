@@ -62,7 +62,7 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
       let fromBeginning: boolean = fromBeginningOrig;
       let includeOrignal: boolean = includeOrignalOrig;
 
-      if (this.visible == false && this.overrideVisibility == false) {
+      if (!this.visible && !this.overrideVisibility) {
         return true;
       }
 
@@ -114,7 +114,7 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
       this.callBeforeAppearenceAboveZero(this);
 
       // Start with Original Appearence
-      if (includeOrignal == true) this.restoreOriginalAppearence();
+      if (includeOrignal) this.restoreOriginalAppearence();
 
       // Make sure to return to default Appearence first
       //this.restoreOriginalAppearence();
@@ -125,7 +125,7 @@ export function SemanticZoomableObjectBaseMixin<Base extends Constructor>(
         });
       } else {
         //console.log(`Calling Function with Level: ${i}`);
-        if (fromBeginning == true || this.appearenceLevel > targetApNumber) {
+        if (fromBeginning || this.appearenceLevel > targetApNumber) {
           this.appearencesMap.forEach((v, idx) => {
             if (idx < targetApNumber) {
               if (v instanceof Appearence) v.activate();
@@ -303,13 +303,13 @@ export class Appearence {
     // Select between Vector add and override
 
     // Task 1 set visibility
-    if (this.recipe.modifiedParams[0] == true)
+    if (this.recipe.modifiedParams[0])
       this.originObject3D.visible = this.recipe.visible;
 
     // Task 2 set position X
     // Task 3 set position Y
     // Task 4 set position Z
-    if (this.recipe.valuesAreAbs == false) {
+    if (!this.recipe.valuesAreAbs) {
       this.originObject3D.position.add(
         new THREE.Vector3(
           this.recipe.positionX,
@@ -319,13 +319,13 @@ export class Appearence {
       );
     } else {
       this.originObject3D.position.set(
-        this.recipe.modifiedParams[1] == true
+        this.recipe.modifiedParams[1]
           ? this.recipe.positionX
           : this.originObject3D.position.x,
-        this.recipe.modifiedParams[2] == true
+        this.recipe.modifiedParams[2]
           ? this.recipe.positionY
           : this.originObject3D.position.y,
-        this.recipe.modifiedParams[3] == true
+        this.recipe.modifiedParams[3]
           ? this.recipe.positionZ
           : this.originObject3D.position.z
       );
@@ -335,17 +335,17 @@ export class Appearence {
     // Task 6 set height
     // Task 7 set depth
     if (
-      this.recipe.valuesAreAbs == false &&
+      !this.recipe.valuesAreAbs &&
       this.originObject3D.geometry instanceof THREE.BoxGeometry
     ) {
       const new_geometry = new THREE.BoxGeometry(
-        this.recipe.modifiedParams[4] == true
+        this.recipe.modifiedParams[4]
           ? this.recipe.width + this.originObject3D.geometry.parameters.width
           : this.originObject3D.geometry.parameters.width,
-        this.recipe.modifiedParams[5] == true
+        this.recipe.modifiedParams[5]
           ? this.recipe.height + this.originObject3D.geometry.parameters.height
           : this.originObject3D.geometry.parameters.height,
-        this.recipe.modifiedParams[6] == true
+        this.recipe.modifiedParams[6]
           ? this.recipe.depth + this.originObject3D.geometry.parameters.depth
           : this.originObject3D.geometry.parameters.depth
       );
@@ -353,13 +353,13 @@ export class Appearence {
       this.originObject3D.geometry = new_geometry;
     } else if (this.originObject3D.geometry instanceof THREE.BoxGeometry) {
       const new_geometry = new THREE.BoxGeometry(
-        this.recipe.modifiedParams[4] == true
+        this.recipe.modifiedParams[4]
           ? this.recipe.width
           : this.originObject3D.geometry.parameters.width,
-        this.recipe.modifiedParams[5] == true
+        this.recipe.modifiedParams[5]
           ? this.recipe.height
           : this.originObject3D.geometry.parameters.height,
-        this.recipe.modifiedParams[6] == true
+        this.recipe.modifiedParams[6]
           ? this.recipe.depth
           : this.originObject3D.geometry.parameters.depth
       );
@@ -367,13 +367,13 @@ export class Appearence {
       this.originObject3D.geometry = new_geometry;
 
       // this.originObject3D.scale.set(
-      //   this.recipe.modifiedParams[4] == true
+      //   this.recipe.modifiedParams[4]
       //     ? this.recipe.width
       //     : this.originObject3D.scale.x,
-      //   this.recipe.modifiedParams[5] == true
+      //   this.recipe.modifiedParams[5]
       //     ? this.recipe.height
       //     : this.originObject3D.scale.y,
-      //   this.recipe.modifiedParams[6] == true
+      //   this.recipe.modifiedParams[6]
       //     ? this.recipe.depth
       //     : this.originObject3D.scale.z
       // );
@@ -381,7 +381,7 @@ export class Appearence {
     // Task 8 set width
     // Task 9 set height
     // Task 10 set depth
-    if (this.recipe.valuesAreAbs == false) {
+    if (!this.recipe.valuesAreAbs) {
       this.originObject3D.scale.add(
         new THREE.Vector3(
           this.recipe.scalewidth,
@@ -391,13 +391,13 @@ export class Appearence {
       );
     } else {
       this.originObject3D.scale.set(
-        this.recipe.modifiedParams[7] == true
+        this.recipe.modifiedParams[7]
           ? this.recipe.scalewidth
           : this.originObject3D.scale.x,
-        this.recipe.modifiedParams[8] == true
+        this.recipe.modifiedParams[8]
           ? this.recipe.scaleheight
           : this.originObject3D.scale.y,
-        this.recipe.modifiedParams[9] == true
+        this.recipe.modifiedParams[9]
           ? this.recipe.scaledepth
           : this.originObject3D.scale.z
       );
@@ -405,7 +405,7 @@ export class Appearence {
 
     // Task 11 set color
     // TODO Fix coloring Problem
-    if (this.recipe.modifiedParams[10] == true) {
+    if (this.recipe.modifiedParams[10]) {
       throw new Error('Color changing is not yet implemented');
     }
     //this.object3D.material.color.set(this.recipe.color);
@@ -415,24 +415,15 @@ export class Appearence {
     // TODO Only for Circles
 
     //Task 13
-    if (
-      this.recipe.modifiedParams[12] == true &&
-      this.recipe.geometry != undefined
-    ) {
+    if (this.recipe.modifiedParams[12] && this.recipe.geometry != undefined) {
       this.originObject3D.geometry = this.recipe.geometry;
     }
     //Task 14
-    if (
-      this.recipe.modifiedParams[13] == true &&
-      this.recipe.material != undefined
-    ) {
+    if (this.recipe.modifiedParams[13] && this.recipe.material != undefined) {
       this.originObject3D.material = this.recipe.material;
     }
     // Task 15 Restore Childs
-    if (
-      this.recipe.modifiedParams[14] == true &&
-      this.originObject3D != undefined
-    ) {
+    if (this.recipe.modifiedParams[14] && this.originObject3D != undefined) {
       while (this.originObject3D.children.length) {
         this.originObject3D.remove(this.originObject3D.children[0]);
       }
@@ -641,8 +632,7 @@ export class AppearenceExtension extends Appearence {
   public activate(): boolean {
     const parentResults = super.activate();
     this.objects3D.forEach((foreignOjects, idx) => {
-      if (this.objects3Drescale[idx] == true)
-        this.counterParentScaling(foreignOjects);
+      if (this.objects3Drescale[idx]) this.counterParentScaling(foreignOjects);
       return this.originObject3D?.add(foreignOjects);
     });
     return parentResults || this.objects3D.length > 0 ? true : false;
@@ -758,7 +748,7 @@ export default class SemanticZoomManager {
     this._biggestMap.clear();
     this._smallestMap.clear();
     this._distinctMeshClassNames.clear();
-    // if (this.isEnabled == true) {
+    // if (this.isEnabled ) {
     //   this.activate();
     // }
   }
@@ -786,7 +776,7 @@ export default class SemanticZoomManager {
     const appSettings: ApplicationSettings = getStoredSettings();
     const useKmeans: boolean = appSettings.useKmeansInsteadOfMeanShift.value;
     // k-Means Clustering
-    if (useKmeans == true) {
+    if (useKmeans) {
       this.clusterManager = new KMeansClusteringAlg();
       this.clusterManager.setNumberOfClusters(
         Math.round((this.zoomableObjects.length * k) / 100)
@@ -807,7 +797,7 @@ export default class SemanticZoomManager {
   validateZoomLevelMap(zoomlevelarray: Array<number> = this.zoomLevelMap) {
     const result = zoomlevelarray.reduce(
       (prev, now) => {
-        if ((prev[0] as number) >= now && (prev[1] as boolean) == true)
+        if ((prev[0] as number) >= now && (prev[1] as boolean))
           return [now, true];
         return [now, false];
       },
@@ -1004,7 +994,7 @@ export default class SemanticZoomManager {
     this.zoomableObjects.push(obj3d);
     // Trigger reClustering!
     // fastAddToCluster
-    if (this.isEnabled == true && this.preClustered != undefined) {
+    if (this.isEnabled && this.preClustered != undefined) {
       if (
         this.clusterManager?.counterSinceLastReclusteringOccured < 50 ||
         new Date().getTime() - this.lastAddToCluster.getTime() < 5000
@@ -1072,7 +1062,7 @@ export default class SemanticZoomManager {
     this.zoomableObjects.forEach((element) => {
       //element.
       if (onlyIfVisible) {
-        if (element.visible == false) return;
+        if (!element.visible) return;
       }
       element.showAppearence(level, true, true);
     });
@@ -1086,8 +1076,8 @@ export default class SemanticZoomManager {
    * @returns level decision
    */
   triggerLevelDecision(cam: THREE.Camera): void {
-    if (this.isEnabled == false) return;
-    if (this.alreadyCreatedZoomLevelMap == false) {
+    if (!this.isEnabled) return;
+    if (!this.alreadyCreatedZoomLevelMap) {
       //console.log('Start calculating ZoomLevelMap');
       //this.createZoomLevelMap(cam);
       this.zoomLevelMap.push(1.5);
@@ -1095,6 +1085,7 @@ export default class SemanticZoomManager {
       this.zoomLevelMap.push(0.6);
       this.alreadyCreatedZoomLevelMap = true;
     }
+
     const distances: Array<number> = [];
     this.zoomableObjects.forEach((element) => {
       //TODO position not in SemanticlyZoomableObject
@@ -1102,7 +1093,7 @@ export default class SemanticZoomManager {
       //if (element instanceof ComponentMesh) return;
       //if (element instanceof FoundationMesh) return;
       //if (element instanceof ClazzCommunicationMesh) return;
-      if (element.visible == false) return;
+      if (!element.visible) return;
       const worldPos = element.getPoI();
       const distance = cam.position.distanceTo(worldPos[0]);
       distances.push(distance);
@@ -1136,7 +1127,7 @@ export default class SemanticZoomManager {
    */
   triggerLevelDecision2WithDebounce(cam: THREE.Camera | undefined) {
     //if (this.busyTill > Date.now()) return;
-    if (this.stillBusy == true) {
+    if (this.stillBusy) {
       this.debug('# Semantic Zoom update still running!!!');
       return;
     }
@@ -1162,11 +1153,11 @@ export default class SemanticZoomManager {
     let cam: THREE.Camera | undefined = camO;
     if (cam == undefined) cam = this.currentCam;
     if (cam == undefined) return;
-    if (this.isEnabled == false) return;
+    if (!this.isEnabled) return;
     this.debug('## Semantic Zoom update started...');
     this.stillBusy = true;
     const alreadyAccessed: Array<SemanticZoomableObject> = [];
-    if (this.alreadyCreatedZoomLevelMap == false) {
+    if (!this.alreadyCreatedZoomLevelMap) {
       //console.log('Start calculating ZoomLevelMap');
       this.createZoomLevelMapDependingOnMeshTypes(cam);
       this.alreadyCreatedZoomLevelMap = true;
@@ -1231,8 +1222,8 @@ export default class SemanticZoomManager {
       // Loop over unpriviledged members of that cluster and trigger the target appearence
       unpriviledegedClusterMembers.forEach((semanticZoomableObject, idx) => {
         // if (
-        //   semanticZoomableObject.visible == false &&
-        //   semanticZoomableObject.overrideVisibility == false
+        //   !semanticZoomableObject.visible &&
+        //   !semanticZoomableObject.overrideVisibility
         // )
         //   return;
 
