@@ -6,7 +6,7 @@ module('Unit | Service | spectate-user', function (hooks) {
 
   // Replace this with your real tests.
   test('it exists', function (assert) {
-    const service = this.owner.lookup('service:spectate-user');
+    const service = this.owner.lookup('service:collaboration/spectate-user');
     assert.ok(service);
   });
 });

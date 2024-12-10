@@ -13,7 +13,7 @@ module(
       // Handle any actions with this.set('myAction', function(val) { ... });
 
       await render(
-        hbs`<Visualization::PageSetup::Sidebar::ArSettingsSelector />`
+        hbs`<ExtendedReality::Visualization::PageSetup::Sidebar::ArSettingsSelector />`
       );
 
       const { textContent } = this.element;

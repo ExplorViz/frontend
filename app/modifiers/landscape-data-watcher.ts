@@ -23,13 +23,13 @@ import {
   Application,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
-import LocalUser from 'collaboration/services/local-user';
+import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import layoutCity, {
   convertElkToBoxLayout,
@@ -39,7 +39,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -60,16 +60,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('detached-menu-renderer')
+  @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
   @service('configuration')
   configuration!: Configuration;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-restructure')
@@ -78,7 +78,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   @service('highlighting-service')

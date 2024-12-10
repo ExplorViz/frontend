@@ -15,7 +15,7 @@ import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/u
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { ChildMesh } from './simple-parent-mesh';
 import { Vector3 } from 'three';
-import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 
 /**
  * This extended Object3D adds additional functionality to

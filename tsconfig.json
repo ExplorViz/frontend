@@ -22,31 +22,8 @@
     "module": "es6",
     "skipLibCheck": true,
     "paths": {
-      "explorviz-frontend/*": [
-        "app/*",
-        "lib/collaboration/app/*",
-        "lib/heatmap/app/*",
-        "lib/extended-reality/app/*"
-      ],
+      "explorviz-frontend/*": ["app/*"],
       "explorviz-frontend/tests/*": ["tests/*"],
-      "collaboration": ["lib/collaboration/addon"],
-      "collaboration/*": ["lib/collaboration/addon/*"],
-      "collaboration/test-support": ["lib/collaboration/addon-test-support"],
-      "collaboration/test-support/*": [
-        "lib/collaboration/addon-test-support/*"
-      ],
-      "heatmap": ["lib/heatmap/addon"],
-      "heatmap/*": ["lib/heatmap/addon/*"],
-      "heatmap/test-support": ["lib/heatmap/addon-test-support"],
-      "heatmap/test-support/*": ["lib/heatmap/addon-test-support/*"],
-      "extended-reality": ["lib/extended-reality/addon"],
-      "extended-reality/*": ["lib/extended-reality/addon/*"],
-      "extended-reality/test-support": [
-        "lib/extended-reality/addon-test-support"
-      ],
-      "extended-reality/test-support/*": [
-        "lib/extended-reality/addon-test-support/*"
-      ],
       "*": ["types/*"]
     }
   },
@@ -57,10 +34,7 @@
     "ember-cli-build.js",
     "app",
     "config",
-    "types",
-    "lib/collaboration",
-    "lib/extended-reality",
-    "lib/heatmap"
+    "types"
   ],
   "exclude": ["tests/*"]
 }

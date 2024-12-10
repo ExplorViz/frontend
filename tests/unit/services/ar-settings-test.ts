@@ -6,7 +6,7 @@ module('Unit | Service | ar-settings', function (hooks) {
 
   // Replace this with your real tests.
   test('it exists', function (assert) {
-    const service = this.owner.lookup('service:ar-settings');
+    const service = this.owner.lookup('service:extended-reality/ar-settings');
     assert.ok(service);
   });
 });

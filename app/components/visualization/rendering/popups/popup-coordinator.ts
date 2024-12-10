@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -14,7 +14,7 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 
@@ -29,7 +29,7 @@ interface IArgs {
 }
 
 export default class PopupCoordinator extends Component<IArgs> {
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
   @service('configuration')
@@ -41,7 +41,7 @@ export default class PopupCoordinator extends Component<IArgs> {
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   element!: HTMLDivElement;

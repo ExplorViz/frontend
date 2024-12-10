@@ -3,8 +3,8 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -30,21 +30,21 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import SpectateUser from 'collaboration/services/spectate-user';
+import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
@@ -82,25 +82,25 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('spectate-user')
+  @service('collaboration/spectate-user')
   private spectateUserService!: SpectateUser;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
   @service('repos/scene-repository')

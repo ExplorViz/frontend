@@ -21,9 +21,9 @@
 
 {{did-insert this.initRenderingAndSetupListeners}}
 
-<AutoJoinLobby @roomId={{this.roomId}} />
+<Collaboration::AutoJoinLobby @roomId={{this.roomId}} />
 
-<div id='vizspace' {{sync-state}}>
+<div id='vizspace' {{collaboration/sync-state}}>
 
   {{! Loading screen }}
   {{#unless this.allLandscapeDataExistsAndNotEmpty}}
@@ -42,7 +42,7 @@
 
   {{! Rendering mode }}
   {{#if this.showAR}}
-    <ArRendering
+    <ExtendedReality::ArRendering
       @id='ar-rendering'
       @landscapeData={{this.renderingService.landscapeData}}
       @switchToOnScreenMode={{this.switchToOnScreenMode}}
@@ -58,7 +58,7 @@
   {{else}}
     {{#if this.showVR}}
 
-      <VrRendering
+      <ExtendedReality::VrRendering
         @id='vr-rendering'
         @landscapeData={{this.renderingService.landscapeData}}
         @switchToOnScreenMode={{this.switchToOnScreenMode}}

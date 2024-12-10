@@ -13,7 +13,7 @@ module(
       // Handle any actions with this.set('myAction', function(val) { ... });
 
       await render(
-        hbs`<Visualization::Rendering::Popups::ArPopupCoordinator />`
+        hbs`<ExtendedReality::Visualization::Rendering::Popups::ArPopupCoordinator />`
       );
 
       assert.equal(this.element.textContent?.trim(), '');
