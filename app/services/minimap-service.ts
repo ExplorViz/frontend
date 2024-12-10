@@ -270,9 +270,6 @@ export default class MinimapService extends Service {
     this.makeFullsizeMinimap = value;
     this.cameraControls.enabled = !value;
     this.cameraControls.perspectiveCameraControls.enabled = !value;
-    if (this.cameraControls.orthographicCameraControls) {
-      this.cameraControls.orthographicCameraControls.enabled = !value;
-    }
   }
 
   /**

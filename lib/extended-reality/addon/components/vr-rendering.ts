@@ -19,7 +19,6 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
@@ -190,7 +189,7 @@ export default class VrRendering extends Component<Args> {
   scene: THREE.Scene;
 
   @tracked
-  readonly graph: ThreeForceGraph;
+  readonly graph: ForceGraph;
 
   // #endregion CLASS FIELDS
   //
@@ -214,7 +213,7 @@ export default class VrRendering extends Component<Args> {
     this.applicationRenderer.getOpenApplications().clear();
 
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph.graph;
+    this.graph = forceGraph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
@@ -302,7 +301,6 @@ export default class VrRendering extends Component<Args> {
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
-      undefined,
       this.canvas
     );
     this.updatables.push(this.cameraControls);
@@ -1195,7 +1193,7 @@ export default class VrRendering extends Component<Args> {
     const x = new THREE.Vector3();
     x.fromArray(position);
     x.y += 15;
-    this.graph.localToWorld(x);
+    this.graph.graph.localToWorld(x);
     this.detachedMenuRenderer.restoreDetachedMenu({
       objectId,
       entityType,
