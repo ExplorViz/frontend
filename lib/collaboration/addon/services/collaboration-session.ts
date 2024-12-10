@@ -326,7 +326,6 @@ export default class CollaborationSession extends Service.extend({
     this.removeAllRemoteUsers();
 
     this.highlightingService.resetColorsOfHighlightedEntities();
-    this.userSettings.restoreApplicationSettings();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();
