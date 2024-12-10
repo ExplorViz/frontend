@@ -19,11 +19,13 @@
   this.renderingService.toggleVisualizationUpdating
 }}
 
-{{did-insert this.initRenderingAndSetupListeners}}
-
 <Collaboration::AutoJoinLobby @roomId={{this.roomId}} />
 
-<div id='vizspace' {{collaboration/sync-state}}>
+<div
+  id='vizspace'
+  {{did-insert this.initRenderingAndSetupListeners}}
+  {{collaboration/sync-state}}
+>
 
   {{! Loading screen }}
   {{#unless this.allLandscapeDataExistsAndNotEmpty}}
