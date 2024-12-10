@@ -1,80 +1,80 @@
-import { defaultApplicationColors } from './color-schemes';
-import { ApplicationSettings } from './settings-schemas';
+import { defaultColors } from './color-schemes';
+import { VisualizationSettings } from './settings-schemas';
 
-export const defaultApplicationSettings: ApplicationSettings = {
+export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   foundationColor: {
-    value: defaultApplicationColors.foundationColor,
+    value: defaultColors.foundationColor,
     orderNumber: 1,
     group: 'Colors',
     displayName: 'Foundation',
     isColorSetting: true,
   },
   componentOddColor: {
-    value: defaultApplicationColors.componentOddColor,
+    value: defaultColors.componentOddColor,
     orderNumber: 2,
     group: 'Colors',
     displayName: 'Component Odd',
     isColorSetting: true,
   },
   componentEvenColor: {
-    value: defaultApplicationColors.componentEvenColor,
+    value: defaultColors.componentEvenColor,
     orderNumber: 3,
     group: 'Colors',
     displayName: 'Component Even',
     isColorSetting: true,
   },
   clazzColor: {
-    value: defaultApplicationColors.clazzColor,
+    value: defaultColors.clazzColor,
     orderNumber: 4,
     group: 'Colors',
     displayName: 'Class',
     isColorSetting: true,
   },
   highlightedEntityColor: {
-    value: defaultApplicationColors.highlightedEntityColor,
+    value: defaultColors.highlightedEntityColor,
     orderNumber: 5,
     group: 'Colors',
     displayName: 'Highlighted Entity',
     isColorSetting: true,
   },
   componentTextColor: {
-    value: defaultApplicationColors.componentTextColor,
+    value: defaultColors.componentTextColor,
     orderNumber: 6,
     group: 'Colors',
     displayName: 'Component Label',
     isColorSetting: true,
   },
   clazzTextColor: {
-    value: defaultApplicationColors.clazzTextColor,
+    value: defaultColors.clazzTextColor,
     orderNumber: 7,
     group: 'Colors',
     displayName: 'Class Label',
     isColorSetting: true,
   },
   foundationTextColor: {
-    value: defaultApplicationColors.foundationTextColor,
+    value: defaultColors.foundationTextColor,
     orderNumber: 8,
     group: 'Colors',
     displayName: 'Foundation Label',
     isColorSetting: true,
   },
   communicationColor: {
-    value: defaultApplicationColors.communicationColor,
+    value: defaultColors.communicationColor,
     orderNumber: 9,
     group: 'Colors',
     displayName: 'Communication',
     isColorSetting: true,
   },
   communicationArrowColor: {
-    value: defaultApplicationColors.communicationArrowColor,
+    value: defaultColors.communicationArrowColor,
     orderNumber: 10,
     group: 'Colors',
     displayName: 'Communication Arrow',
     isColorSetting: true,
   },
   backgroundColor: {
-    value: defaultApplicationColors.backgroundColor,
+    value: defaultColors.backgroundColor,
     orderNumber: 11,
     group: 'Colors',
     displayName: 'Background',
@@ -218,6 +218,129 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Curviness Factor of the Communication Lines',
     description:
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
+    isRangeSetting: true,
+  },
+  // Layout settings
+  applicationAspectRatio: {
+    value: 1.0,
+    range: {
+      min: 0.25,
+      max: 2.0,
+      step: 0.05,
+    },
+    orderNumber: 1,
+    group: 'Layout',
+    displayName: 'App Aspect Ratio',
+    description: 'Determines a preferred aspect ratio for applications',
+    isRangeSetting: true,
+  },
+  classFootprint: {
+    value: 5.0,
+    range: {
+      min: 0.5,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 3,
+    group: 'Layout',
+    displayName: 'Class Footprint',
+    description: 'Determines width and depth of classes',
+    isRangeSetting: true,
+  },
+  classMargin: {
+    value: 20.0,
+    range: {
+      min: 0.0,
+      max: 50.0,
+      step: 1.0,
+    },
+    orderNumber: 4,
+    group: 'Layout',
+    displayName: 'Class Margin',
+    description:
+      'Determines distance between classes and to surrounding package',
+    isRangeSetting: true,
+  },
+  appLabelMargin: {
+    value: 15.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 5,
+    group: 'Layout',
+    displayName: 'App Label Margin',
+    description:
+      'Determines how much space (height) an application label may occupy',
+    isRangeSetting: true,
+  },
+  appMargin: {
+    value: 6.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 6,
+    group: 'Layout',
+    displayName: 'App Margin',
+    description: 'Determines margin of applications',
+    isRangeSetting: true,
+  },
+  packageLabelMargin: {
+    value: 13.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 7,
+    group: 'Layout',
+    displayName: 'Package Label Margin',
+    description:
+      'Determines how much space (height) a package label may occupy',
+    isRangeSetting: true,
+  },
+  packageMargin: {
+    value: 6.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 8,
+    group: 'Layout',
+    displayName: 'Package Margin',
+    description: 'Determines margin of packages',
+    isRangeSetting: true,
+  },
+  openedComponentHeight: {
+    value: 1.5,
+    range: {
+      min: 0.1,
+      max: 10.0,
+      step: 0.1,
+    },
+    orderNumber: 9,
+    group: 'Layout',
+    displayName: 'Opened Component Height',
+    description:
+      'Height of opened components (i.e. when contained classes are visible)',
+    isRangeSetting: true,
+  },
+  closedComponentHeight: {
+    value: 6,
+    range: {
+      min: 0.1,
+      max: 20.0,
+      step: 0.1,
+    },
+    orderNumber: 10,
+    group: 'Layout',
+    displayName: 'Closed Component Height',
+    description:
+      'Height of closed components (i.e. when contained classes are hidden)',
     isRangeSetting: true,
   },
   // Popup settings

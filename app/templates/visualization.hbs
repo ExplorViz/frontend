@@ -62,7 +62,7 @@
         @id='vr-rendering'
         @landscapeData={{this.renderingService.landscapeData}}
         @switchToOnScreenMode={{this.switchToOnScreenMode}}
-        @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
+        @debugMode={{this.userSettings.visualizationSettings.showVrOnClick.value}}
       />
 
     {{else}}
@@ -133,7 +133,7 @@
     {{! VR Button}}
     {{#if
       (and
-        this.userSettings.applicationSettings.showVrButton.value
+        this.userSettings.visualizationSettings.showVrButton.value
         (not this.showVR)
       )
     }}

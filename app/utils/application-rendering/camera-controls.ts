@@ -67,6 +67,13 @@ export default class CameraControls {
       .multiplyScalar(distance);
 
     const position = center.clone().sub(direction);
+
+    // This y-position is usually still above the classes
+    position.y = size.y / 2;
+
+    // Center to turn camera around should always be on ground level
+    center.y = 0;
+
     if (duration > 0) {
       this.panCameraTo(
         position,

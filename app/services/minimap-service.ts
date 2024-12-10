@@ -68,7 +68,7 @@ export default class MinimapService extends Service {
     graph: ForceGraph,
     cameraControls: CameraControls
   ) {
-    this.minimapEnabled = this.settings.applicationSettings.minimap.value;
+    this.minimapEnabled = this.settings.visualizationSettings.minimap.value;
     this.userPosition = new THREE.Vector3(0, 0, 0);
     this.makeFullsizeMinimap = false;
     this.minimapSize = 4;
@@ -130,7 +130,7 @@ export default class MinimapService extends Service {
    */
   private getCurrentPosition() {
     const userPosition = new THREE.Vector3();
-    if (!this.settings.applicationSettings.version2.value) {
+    if (!this.settings.visualizationSettings.version2.value) {
       userPosition.copy(this.cameraControls.perspectiveCameraControls.target);
     } else {
       userPosition.copy(this.localUser.camera.position);
@@ -270,9 +270,6 @@ export default class MinimapService extends Service {
     this.makeFullsizeMinimap = value;
     this.cameraControls.enabled = !value;
     this.cameraControls.perspectiveCameraControls.enabled = !value;
-    if (this.cameraControls.orthographicCameraControls) {
-      this.cameraControls.orthographicCameraControls.enabled = !value;
-    }
   }
 
   /**
@@ -347,7 +344,7 @@ export default class MinimapService extends Service {
     if (this.makeFullsizeMinimap) {
       this.distance = 1;
     } else {
-      this.distance = this.userSettings.applicationSettings.zoom.value;
+      this.distance = this.userSettings.visualizationSettings.zoom.value;
     }
 
     this.localUser.minimapCamera.left = -boundingBoxWidth / 2 / this.distance;
@@ -357,7 +354,7 @@ export default class MinimapService extends Service {
       -boundingBoxHeight / 2 / this.distance;
 
     if (
-      this.userSettings.applicationSettings.zoom.value != 1 &&
+      this.userSettings.visualizationSettings.zoom.value != 1 &&
       !this.makeFullsizeMinimap
     ) {
       this.localUser.minimapCamera.position.set(
@@ -378,7 +375,7 @@ export default class MinimapService extends Service {
   }
 
   calculateDistanceFactor(): number {
-    return 0.2 / this.settings.applicationSettings.zoom.value;
+    return 0.2 / this.settings.visualizationSettings.zoom.value;
   }
 
   updateSphereRadius() {

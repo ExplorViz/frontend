@@ -10,11 +10,11 @@ import {
 } from '../landscape-schemes/structure-data';
 import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
-import { ApplicationSettings } from '../settings/settings-schemas';
+import { VisualizationSettings } from '../settings/settings-schemas';
 
 export function calculateLineThickness(
   communication: ClassCommunication | ComponentCommunication,
-  settings: ApplicationSettings
+  settings: VisualizationSettings
 ) {
   // Normalized request count might be above 1 for component communication
   const normalizedRequestCount = clamp(
@@ -37,7 +37,7 @@ export function clamp(value: number, min: number, max: number) {
 // Communication Layouting //
 export default function applyCommunicationLayout(
   applicationObject3D: ApplicationObject3D,
-  settings: ApplicationSettings
+  settings: VisualizationSettings
 ) {
   const { application, classCommunications } = applicationObject3D.dataModel;
   const boxLayoutMap = applicationObject3D.boxLayoutMap;
@@ -113,7 +113,7 @@ export default function applyCommunicationLayout(
   /**
    * Calculates start and end positions for all class communications
    */
-  function layoutEdges(settings: ApplicationSettings) {
+  function layoutEdges(settings: VisualizationSettings) {
     if (classCommunications.length === 0) {
       return;
     }

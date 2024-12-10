@@ -6,7 +6,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
@@ -60,13 +60,13 @@ export function updateMeshVisiblity(
  *
  * @param component Data model for the component which shall be added to the scene
  * @param applicationObject3D Object to which the component mesh and its children are added
- * @param applicationColors Contains color objects for components and clazzes
+ * @param colors Contains color objects for components and clazzes
  * @param componentLevel
  */
 export function addComponentAndChildrenToScene(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ApplicationColors,
+  colors: ExplorVizColors,
   componentLevel = 1
 ) {
   const application = applicationObject3D.dataModel.application;
@@ -82,19 +82,19 @@ export function addComponentAndChildrenToScene(
     componentEvenColor,
     clazzColor,
     highlightedEntityColor,
-  } = applicationColors;
+  } = colors;
 
   // Set color alternating (e.g. light and dark green) according to component level
   const color =
     componentLevel % 2 === 0 ? componentEvenColor : componentOddColor;
-  const mesh = new ComponentMesh(
+  const componentMesh = new ComponentMesh(
     componentLayout,
     component,
     color,
     highlightedEntityColor
   );
-  addMeshToApplication(mesh, applicationObject3D);
-  updateMeshVisiblity(mesh, applicationObject3D);
+  addMeshToApplication(componentMesh, applicationObject3D);
+  updateMeshVisiblity(componentMesh, applicationObject3D);
 
   const clazzes = component.classes;
   const children = component.subPackages;
@@ -122,7 +122,7 @@ export function addComponentAndChildrenToScene(
     addComponentAndChildrenToScene(
       child,
       applicationObject3D,
-      applicationColors,
+      colors,
       componentLevel + 1
     );
   });
@@ -134,11 +134,11 @@ export function addComponentAndChildrenToScene(
  * are added to the application.
  *
  * @param applicationObject3D Object which shall contain all application meshes
- * @param applicationColors Object which defines the colors for different application entities
+ * @param colors Object which defines the colors for different application entities
  */
 export function addFoundationAndChildrenToApplication(
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ApplicationColors
+  colors: ExplorVizColors
 ) {
   const application = applicationObject3D.dataModel.application;
   const applicationLayout = applicationObject3D.layout;
@@ -147,24 +147,20 @@ export function addFoundationAndChildrenToApplication(
     return;
   }
 
-  const { foundationColor, highlightedEntityColor } = applicationColors;
+  const { foundationColor, highlightedEntityColor } = colors;
 
-  const mesh = new FoundationMesh(
+  const foundationMesh = new FoundationMesh(
     applicationLayout,
     application,
     foundationColor,
     highlightedEntityColor
   );
-  addMeshToApplication(mesh, applicationObject3D);
+  addMeshToApplication(foundationMesh, applicationObject3D);
 
   const children = application.packages;
 
   children.forEach((child: Package) => {
-    addComponentAndChildrenToScene(
-      child,
-      applicationObject3D,
-      applicationColors
-    );
+    addComponentAndChildrenToScene(child, applicationObject3D, colors);
   });
 }
 

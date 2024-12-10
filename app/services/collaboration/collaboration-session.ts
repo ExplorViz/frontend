@@ -213,7 +213,7 @@ export default class CollaborationSession extends Service.extend({
     });
 
     // Ensure same settings for all users in collaboration session
-    this.userSettings.applyDefaultApplicationSettings(false);
+    this.userSettings.applyDefaultSettings(false);
 
     if (this.userCount === 1) {
       this.localUser.isHost = true;
@@ -326,7 +326,6 @@ export default class CollaborationSession extends Service.extend({
     this.removeAllRemoteUsers();
 
     this.highlightingService.resetColorsOfHighlightedEntities();
-    this.userSettings.restoreApplicationSettings();
 
     // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
     this.highlightingService.updateHighlighting();

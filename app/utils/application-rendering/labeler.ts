@@ -7,7 +7,7 @@ import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/found
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
 import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
 import { getStoredSettings } from '../settings/local-storage-settings';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
@@ -68,7 +68,7 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
 export function addApplicationLabels(
   application: ApplicationObject3D,
   font: Font,
-  colors: ApplicationColors,
+  colors: ExplorVizColors,
   labelAll: boolean = false
 ) {
   /**

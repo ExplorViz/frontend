@@ -23,10 +23,11 @@ export default class EditMesh extends Component<Args> {
   userSettings!: UserSettings;
 
   @tracked
-  packageColor = this.userSettings.applicationSettings.componentOddColor.value;
+  packageColor =
+    this.userSettings.visualizationSettings.componentOddColor.value;
 
   @tracked
-  clazzColor = this.userSettings.applicationSettings.clazzColor.value;
+  clazzColor = this.userSettings.visualizationSettings.clazzColor.value;
 
   get isEntityApplication() {
     return isApplication(this.args.entity);
