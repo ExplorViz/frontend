@@ -8,7 +8,7 @@ export default class FloorMesh
   constructor(
     width: number,
     length: number,
-    path = 'images/materials/floor.jpg'
+    path = 'extended-reality/images/materials/floor.jpg'
   ) {
     super();
 
