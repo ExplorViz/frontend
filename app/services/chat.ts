@@ -3,23 +3,23 @@ import { registerDestructor } from '@ember/destroyable';
 import { tracked } from '@glimmer/tracking';
 import ToastHandlerService from './toast-handler';
 import collaborationSession from 'explorviz-frontend/services/collaboration-session';
-import WebSocketService from 'collaboration/services/web-socket';
-import MessageSender from 'collaboration/services/message-sender';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import * as THREE from 'three';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/chat-message';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/chat-message';
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/chat-syncronization';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
-} from 'collaboration/utils/web-socket-messages/sendable/delete-message';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/delete-message';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 
 export interface ChatMessageInterface {
   msgId: number;
@@ -46,16 +46,16 @@ export default class ChatService extends Service {
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   collaborationSession!: collaborationSession;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
   @tracked

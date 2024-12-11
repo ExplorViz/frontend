@@ -6,7 +6,7 @@ module('Unit | Service | hmd-service', function (hooks) {
 
   // Replace this with your real tests.
   test('it exists', function (assert) {
-    const service = this.owner.lookup('service:hmd-service');
+    const service = this.owner.lookup('service:extended-reality/hmd-service');
     assert.ok(service);
   });
 });

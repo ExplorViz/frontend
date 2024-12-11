@@ -12,7 +12,7 @@ module(
       // Set any properties with this.set('myProperty', 'value');
       // Handle any actions with this.set('myAction', function(val) { ... });
 
-      await render(hbs`<Visualization::Rendering::Popups::PopupWrapper />`);
+      await render(hbs`<ExtendedReality::Visualization::Rendering::Popups::PopupWrapper />`);
       assert.equal(this.element.textContent?.trim(), '');
     });
   }

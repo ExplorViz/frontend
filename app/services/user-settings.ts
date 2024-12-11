@@ -22,10 +22,10 @@ import {
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
-import MessageSender from 'collaboration/services/message-sender';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import HighlightingService from './highlighting-service';
 import ApplicationRenderer from './application-renderer';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   getStoredSettings,
   saveSettings,
@@ -36,13 +36,13 @@ export default class UserSettings extends Service {
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
   @service('highlighting-service')

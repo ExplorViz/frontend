@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import CommunicationLayout from '../../layout-models/communication-layout';
 import BaseMesh from '../base-mesh';
 import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
-import { VisualizationMode } from 'collaboration/services/local-user';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import CommunicationArrowMesh from './communication-arrow-mesh';
+import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class ClazzCommunicationMesh extends BaseMesh {

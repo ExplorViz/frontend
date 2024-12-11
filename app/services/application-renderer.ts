@@ -1,7 +1,7 @@
 // #region Imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { task } from 'ember-concurrency';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
@@ -21,8 +21,8 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import ArSettings from 'extended-reality/services/ar-settings';
-import VrApplicationObject3D from 'extended-reality/utils/view-objects/application/vr-application-object-3d';
+import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
+import VrApplicationObject3D from 'explorviz-frontend/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -31,13 +31,13 @@ import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
-import MessageSender from 'collaboration/services/message-sender';
-import RoomSerializer from 'collaboration/services/room-serializer';
-import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
+import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import SceneRepository from './repos/scene-repository';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
@@ -62,19 +62,19 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('repos/evolution-data-repository')
   private evolutionDataRepository!: EvolutionDataRepository;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('configuration')
   private configuration!: Configuration;
 
-  @service('ar-settings')
+  @service('extended-reality/ar-settings')
   private arSettings!: ArSettings;
 
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
   @service('repos/application-repository')
@@ -83,7 +83,7 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('repos/font-repository')
   private fontRepo!: FontRepository;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   private roomSerializer!: RoomSerializer;
 
   @service('link-renderer')

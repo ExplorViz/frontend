@@ -1,5 +1,5 @@
 import ThreeForceGraph from 'three-forcegraph';
-import { GrabbableObject } from 'extended-reality/utils/view-objects/interfaces/grabbable-object';
+import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-objects/interfaces/grabbable-object';
 
 export default class GrabbableForceGraph
   extends ThreeForceGraph

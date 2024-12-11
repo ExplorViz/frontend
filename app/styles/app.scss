@@ -14,14 +14,10 @@
 @import '_annotation';
 @import '_play_pause';
 @import '_landscapes';
-// located in lib/extended-reality/addon/styles
 @import '_augmented_reality';
-// located in lib/extended-reality/addon/styles
 @import '_virtual_reality';
 
-// located in lib/heatmap/addon/styles
 @import '_heatmap';
-// located in lib/collaborative_mode/addon/styles
 @import '_collaboration.scss';
 @import 'ember-bootstrap/bootstrap';
 @import 'ember-right-click-menu';

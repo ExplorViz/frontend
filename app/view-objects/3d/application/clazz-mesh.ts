@@ -3,7 +3,6 @@ import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout'
 import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ClazzLabelMesh from './clazz-label-mesh';
-import { VisualizationMode } from 'collaboration/services/local-user';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import {
   ImmersiveView,
@@ -12,6 +11,7 @@ import {
 import gsap from 'gsap';
 import ImmsersiveClassScene from 'explorviz-frontend/utils/class-immersive-scene';
 import { MethodGroupMesh } from './method-mesh';
+import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export class _ClazzMesh extends BoxMesh {

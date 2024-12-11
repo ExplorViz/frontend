@@ -33,12 +33,12 @@
       {{/unless}}
 
       {{#if this.heatmapConf.heatmapActive}}
-        <HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
+        <Heatmap::HeatmapInfo @updateMetric={{this.heatmapConf.updateMetric}} />
       {{/if}}
 
       <canvas
         class='webgl {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
-        {{sync-state}}
+        {{collaboration/sync-state}}
         {{interaction-modifier
           raycastObjects=this.raycastObjects
           camera=this.localUser.camera
@@ -55,7 +55,7 @@
         }}
         {{heatmap-renderer camera=this.camera scene=this.scene}}
         {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
-        {{collaborative-modifier
+        {{collaboration/collaborative-modifier
           raycastObject3D=this.raycastObjects
           camera=this.localUser.camera
         }}
@@ -174,11 +174,11 @@
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
+              <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
                 @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
-              <Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettingsOpener
+              <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettingsOpener
                 @openedComponent={{@openedSettingComponent}}
                 @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
               />
@@ -204,13 +204,13 @@
               @componentId={{@openedSettingComponent}}
             >
               {{#if (eq @openedSettingComponent 'Collaboration')}}
-                <Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
+                <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
                 />
                 <Visualization::PageSetup::Sidebar::Customizationbar::Chat::ChatBox
                 />
               {{/if}}
               {{#if (eq @openedSettingComponent 'VSCode-Extension-Settings')}}
-                <Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettings
+                <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettings
                 />
               {{/if}}
               {{#if (eq @openedSettingComponent 'Restructure-Landscape')}}

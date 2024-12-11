@@ -6,7 +6,7 @@ module('Unit | Service | web-socket', function (hooks) {
 
   // Replace this with your real tests.
   test('it exists', function (assert) {
-    const service = this.owner.lookup('service:web-socket');
+    const service = this.owner.lookup('service:collaboration/web-socket');
     assert.ok(service);
   });
 });
