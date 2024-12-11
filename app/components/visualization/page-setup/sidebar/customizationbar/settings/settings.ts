@@ -25,13 +25,14 @@ import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-co
 import { defaultVizSettings } from 'explorviz-frontend/utils/settings/default-settings';
 
 interface Args {
-  enterFullscreen?(): void;
+  enterFullscreen(): void;
   popups: PopupData[];
-  redrawCommunication?(): void;
+  redrawCommunication(): void;
   resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
-  updateColors?(): void;
-  updateHighlighting?(): void;
+  showSemanticZoomClusterCenters(): void;
+  updateColors(): void;
+  updateHighlighting(): void;
 }
 
 export default class Settings extends Component<Args> {
@@ -256,6 +257,9 @@ export default class Settings extends Component<Args> {
             this.roomSerializer.serializeRoom(this.args.popups)
           );
         }
+        break;
+      case 'showSemanticZoomCenterPoints':
+        this.args.showSemanticZoomClusterCenters();
         break;
       case 'fullscreen':
         if (this.args.enterFullscreen) {

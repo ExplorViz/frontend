@@ -450,9 +450,19 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Visualizes the Directional Light',
     isFlagSetting: true,
   },
+  showSemanticZoomCenterPoints: {
+    value: false,
+    orderNumber: 5,
+    type: 'primary',
+    group: 'Debugging',
+    displayName: 'Semantic Zoom',
+    description: 'Show (or hide) center points of semantic zoom',
+    buttonText: 'Show Center Points',
+    isButtonSetting: true,
+  },
   fullscreen: {
     value: false,
-    orderNumber: 4,
+    orderNumber: 6,
     type: 'primary',
     group: 'Debugging',
     displayName: 'Fullscreen',
@@ -463,7 +473,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   syncRoomState: {
     value: false,
-    orderNumber: 5,
+    orderNumber: 7,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Synchronize Room State',
@@ -473,7 +483,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   resetToDefaults: {
     value: false,
-    orderNumber: 6,
+    orderNumber: 8,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Reset Settings to Default',

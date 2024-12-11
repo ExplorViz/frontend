@@ -64,6 +64,7 @@ export type DebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
+  | 'showSemanticZoomCenterPoints'
   | 'fullscreen'
   | 'syncRoomState'
   | 'resetToDefaults';
@@ -72,7 +73,7 @@ export type DebugSettings = {
   showFpsCounter: FlagSetting;
   showAxesHelper: FlagSetting;
   showLightHelper: FlagSetting;
-  showVrOnClick: FlagSetting;
+  showSemanticZoomCenterPoints: ButtonSetting;
   fullscreen: ButtonSetting;
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;

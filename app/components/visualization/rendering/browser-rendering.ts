@@ -291,9 +291,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const commButtonTitle = this.configuration.isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
-    const semanticZoomButtonTitle = this.configuration.semanticZoomEnabled
-      ? 'Semantic Zoom disable (Beta)'
-      : 'Semantic Zoom enable (Beta)';
 
     return [
       { title: 'Reset View', action: this.resetView },
@@ -319,11 +316,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
       { title: 'Enter AR', action: this.args.switchToAR },
-      { title: semanticZoomButtonTitle, action: this.toggleSemanticZoom },
-      {
-        title: 'Show SemanticZoom Center Points',
-        action: this.showSemanticZoomClusterCenters,
-      },
     ];
   }
 
@@ -344,41 +336,44 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   showSemanticZoomClusterCenters() {
-    if (SemanticZoomManager.instance.isEnabled) {
-      // Remove previous center points from scene
-      const prevCenterPointList = this.scene.children.filter(
-        (preCenterPoint) => preCenterPoint.name == 'centerPoints'
-      );
-      prevCenterPointList.forEach((preCenterPoint) => {
-        this.scene.remove(preCenterPoint);
-      });
-      // Poll Center Vectors
-      SemanticZoomManager.instance
-        .getClusterCentroids()
-        .forEach((centerPoint) => {
-          // Create red material
-          const xGroup = new THREE.Group();
-          xGroup.name = 'centerPoints';
-          const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    // Remove previous center points from scene
+    const prevCenterPointList = this.scene.children.filter(
+      (preCenterPoint) => preCenterPoint.name == 'centerPoints'
+    );
+    prevCenterPointList.forEach((preCenterPoint) => {
+      this.scene.remove(preCenterPoint);
+    });
 
-          // Create the first part of the "X" (a thin rectangle)
-          const geometry = new THREE.BoxGeometry(0.1, 0.01, 0.01); // A long thin box
-          const part1 = new THREE.Mesh(geometry, redMaterial);
-          part1.rotation.z = Math.PI / 4; // Rotate 45 degrees
-
-          // Create the second part of the "X"
-          const part2 = new THREE.Mesh(geometry, redMaterial);
-          part2.rotation.z = -Math.PI / 4; // Rotate -45 degrees
-
-          // Add both parts to the scene
-          xGroup.add(part1);
-          xGroup.add(part2);
-
-          // Set Position of X Group
-          xGroup.position.copy(centerPoint);
-          this.scene.add(xGroup);
-        });
+    if (!SemanticZoomManager.instance.isEnabled) {
+      return;
     }
+
+    // Poll Center Vectors
+    SemanticZoomManager.instance
+      .getClusterCentroids()
+      .forEach((centerPoint) => {
+        // Create red material
+        const xGroup = new THREE.Group();
+        xGroup.name = 'centerPoints';
+        const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+        // Create the first part of the "X" (a thin rectangle)
+        const geometry = new THREE.BoxGeometry(0.1, 0.01, 0.01); // A long thin box
+        const part1 = new THREE.Mesh(geometry, redMaterial);
+        part1.rotation.z = Math.PI / 4; // Rotate 45 degrees
+
+        // Create the second part of the "X"
+        const part2 = new THREE.Mesh(geometry, redMaterial);
+        part2.rotation.z = -Math.PI / 4; // Rotate -45 degrees
+
+        // Add both parts to the scene
+        xGroup.add(part1);
+        xGroup.add(part2);
+
+        // Set Position of X Group
+        xGroup.position.copy(centerPoint);
+        this.scene.add(xGroup);
+      });
   }
 
   /**
