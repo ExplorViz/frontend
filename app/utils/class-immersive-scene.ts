@@ -6,7 +6,6 @@ import {
   Parameters,
   Variable,
 } from './landscape-schemes/structure-data';
-import { skylight } from './scene';
 import * as THREE from 'three';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 
@@ -64,8 +63,6 @@ export default class ImmsersiveClassScene {
 
   fillScene(camera: THREE.Camera) {
     // Add basic light
-    this.scene.add(skylight());
-    //scene.add(light());
     // White Background!
     this.scene.background = new THREE.Color(1, 1, 1);
 
@@ -133,7 +130,7 @@ export default class ImmsersiveClassScene {
 
       // Store the TextLabel on the surface of the previously created box mesh
       const nameTextGeometry = new TextGeometry(variable.name, {
-        font: ImmersiveView.instance.font,
+        font: ImmersiveView.instance.font!,
         size: 0.2,
         height: 0.1,
         depth: 0.01,
@@ -173,7 +170,7 @@ export default class ImmsersiveClassScene {
 
       // Write return Type Label on the Box
       const returnTypeTextGeometry = new TextGeometry(variable.type, {
-        font: ImmersiveView.instance.font,
+        font: ImmersiveView.instance.font!,
         size: 0.15,
         height: 0.1,
         depth: 0.01,

@@ -22,6 +22,7 @@ import {
   EntityType,
 } from 'collaboration/utils/web-socket-messages/types/entity-type';
 import { MethodMesh } from 'explorviz-frontend/view-objects/3d/application/method-mesh';
+import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 
 export type DetailedInfo = {
   title: string;
@@ -258,7 +259,8 @@ export type EntityMesh =
   | ComponentMesh
   | ClazzMesh
   | ClazzCommunicationMesh
-  | FoundationMesh;
+  | FoundationMesh
+  | SimpleParentMesh;
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
@@ -266,6 +268,7 @@ export function isEntityMesh(object: any): object is EntityMesh {
     object instanceof MethodMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
+    object instanceof SimpleParentMesh ||
     object instanceof FoundationMesh
   );
 }

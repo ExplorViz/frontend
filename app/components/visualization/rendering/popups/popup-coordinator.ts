@@ -17,13 +17,14 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/applicat
 import PopupData from './popup-data';
 import LocalUser from 'collaboration/services/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
+import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 
 interface IArgs {
-  isMovable: boolean;
+  addAnnotationForPopup(popup: PopupData): void;
+  pinPopup(popup: PopupData): void;
   popupData: PopupData;
   popupHandler: PopupHandler;
   removePopup(entityId: string): void;
-  pinPopup(popup: PopupData): void;
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
 }
@@ -68,7 +69,7 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (!userId) {
       return '';
     }
-    return this.collaborationSession.getCssColor(userId);
+    return this.collaborationSession.getColor(userId);
   }
 
   @action
@@ -81,9 +82,7 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   dragMouseDown(event: MouseEvent) {
-    if (!this.args.isMovable) {
-      return;
-    }
+    this.args.popupData.wasMoved = true;
 
     //this line makes it impossible to interact with input fields
     //event.preventDefault();
@@ -97,8 +96,6 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @action
   elementDrag(event: MouseEvent) {
-    this.args.popupData.wasMoved = true;
-
     event.preventDefault();
     // Calculate delta of cursor position:
     const diffX = this.lastMousePosition.x - event.clientX;
@@ -183,6 +180,10 @@ export default class PopupCoordinator extends Component<IArgs> {
     let popupTopPosition = popupData.mouseY - popupTopOffset;
     let popupLeftPosition = popupData.mouseX - popupLeftOffset;
 
+    //console.log('mouse', popupData.mouseX);
+    //console.log('popupLeftPosition', popupLeftPosition);
+    //console.log('popupLeftOffset', popupLeftOffset);
+
     // Prevent popup positioning on top of rendering canvas =>
     // position under mouse cursor
     if (popupTopPosition < 0) {
@@ -231,6 +232,9 @@ export default class PopupCoordinator extends Component<IArgs> {
     }
     if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
       return 'classCommunication';
+    }
+    if (this.args.popupData.mesh instanceof SimpleParentMesh) {
+      return 'simpleParentMesh';
     }
     return '';
   }

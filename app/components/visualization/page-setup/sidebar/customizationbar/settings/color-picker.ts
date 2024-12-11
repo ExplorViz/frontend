@@ -2,23 +2,23 @@ import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import UserSettings, {
-  ApplicationColors,
+  ExplorVizColors,
 } from 'explorviz-frontend/services/user-settings';
 import {
-  ApplicationColorSettingId,
+  ColorSettingId,
   ColorSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import Picker from 'vanilla-picker';
 
 interface Args {
-  id: ApplicationColorSettingId;
+  id: ColorSettingId;
   setting: ColorSetting;
   updateColors(): void;
 }
 
 interface ColorPickerObjectApplication {
   colorObject: THREE.Color;
-  colorName: keyof ApplicationColors;
+  colorName: keyof ExplorVizColors;
 }
 
 export default class ColorPicker extends Component<Args> {
@@ -27,10 +27,10 @@ export default class ColorPicker extends Component<Args> {
 
   @action
   setupApplicationColorpicker(
-    colorName: keyof ApplicationColors,
+    colorName: keyof ExplorVizColors,
     element: HTMLElement
   ) {
-    const colorObject = this.userSettings.applicationColors[colorName];
+    const colorObject = this.userSettings.colors[colorName];
     this.setupColorpicker(element, {
       colorObject,
       colorName,
@@ -65,10 +65,7 @@ export default class ColorPicker extends Component<Args> {
       const inputColor = color.hex.substring(0, 7);
 
       colorPickerObject.colorObject.set(inputColor);
-      this.userSettings.updateApplicationSetting(
-        colorPickerObject.colorName,
-        inputColor
-      );
+      this.userSettings.updateSetting(colorPickerObject.colorName, inputColor);
       this.args.updateColors();
     };
   }

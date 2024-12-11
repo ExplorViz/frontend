@@ -6,7 +6,12 @@ module.exports = {
     sourceType: 'module',
     project: './tsconfig.json',
   },
-  plugins: ['@typescript-eslint', 'import', 'prettier'],
+  plugins: [
+    // 'ember',
+    'prettier',
+    '@typescript-eslint',
+    'import',
+  ],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/eslint-recommended',
@@ -24,13 +29,18 @@ module.exports = {
     auth0: false,
   },
   rules: {
+    'prettier/prettier': 'error',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-inferrable-types': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/ban-ts-comment': [
       'error',
       { 'ts-ignore': 'allow-with-description' },
     ],
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-inferrable-types': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/type-annotation-spacing': ['error'],
+    'linebreak-style': 'off',
+    'class-methods-use-this': 'off',
+    'import/no-unresolved': 'off',
     '@typescript-eslint/no-this-alias': [
       'error',
       {
@@ -38,33 +48,27 @@ module.exports = {
         allowedNames: ['self'],
       },
     ],
-    '@typescript-eslint/type-annotation-spacing': ['error'],
-    'class-methods-use-this': 'off',
+    'require-yield': 'off',
+    'no-plusplus': 'off',
+    'import/no-cycle': 'off',
+    'prefer-rest-params': 'off',
     'ember/no-mixins': 'off',
     'ember/require-computed-property-dependencies': 'off',
-    'func-names': ['error', 'always', { generators: 'never' }],
-    'import/no-cycle': 'off',
-    'import/no-unresolved': 'off',
-    'linebreak-style': 'off',
-    'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-param-reassign': ['error', { props: false }],
-    'no-plusplus': 'off',
-    'prefer-rest-params': 'off',
-    'prettier/prettier': 'error',
-    'require-yield': 'off',
+    'func-names': ['error', 'always', { generators: 'never' }],
   },
   overrides: [
     // node files
     {
       files: [
-        'config/**/*.js',
         'ember-cli-build.js',
-        'lib/*/index.js',
         'testem.js',
+        'config/**/*.js',
+        'lib/*/index.js',
       ],
       parserOptions: {
-        ecmaVersion: 2015,
         sourceType: 'script',
+        ecmaVersion: 2015,
       },
       env: {
         browser: false,

@@ -11,6 +11,14 @@ export type InitialRoomDetachedMenu = {
   scale: Scale;
 };
 
+export type InitialAnnotations = {
+  entityId: string | undefined;
+  menuId: string | null | undefined;
+  annotationText: string;
+  annotationTitle: string;
+  owner: string;
+};
+
 export type InitialRoomApp = {
   id: string;
   position: Position;
@@ -29,4 +37,5 @@ export type InitialRoomPayload = {
   landscape: InitialRoomLandscape;
   openApps: InitialRoomApp[];
   detachedMenus: InitialRoomDetachedMenu[];
+  annotations: InitialAnnotations[];
 };

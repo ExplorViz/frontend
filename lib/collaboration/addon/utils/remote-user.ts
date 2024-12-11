@@ -15,6 +15,7 @@ import {
   CONTROLLER_2_ID,
   ControllerId,
 } from './web-socket-messages/types/controller-id';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 type Camera = {
   model: THREE.Object3D;
@@ -29,6 +30,8 @@ type Controller = {
 };
 
 export default class RemoteUser extends THREE.Object3D {
+  minimapService: MinimapService;
+
   userName: string;
 
   userId: string;
@@ -47,7 +50,7 @@ export default class RemoteUser extends THREE.Object3D {
 
   nameTag: NameTagSprite | null;
 
-  private localUser: LocalUser;
+  localUser: LocalUser;
 
   constructor({
     userName,
@@ -55,12 +58,14 @@ export default class RemoteUser extends THREE.Object3D {
     color,
     state,
     localUser,
+    minimapService,
   }: {
     userName: string;
     userId: string;
     color: THREE.Color;
     state: string;
     localUser: LocalUser;
+    minimapService: MinimapService;
   }) {
     super();
     this.userName = userName;
@@ -76,12 +81,18 @@ export default class RemoteUser extends THREE.Object3D {
     this.nameTag = null;
 
     this.localUser = localUser;
+    this.minimapService = minimapService;
+    this.minimapService.initializeUserMinimapMarker(
+      this.color,
+      new THREE.Vector3(0, 0, 0),
+      this.userId
+    );
   }
 
   /**
    * Updates the camera model's position and rotation.
    *
-   * @param Object containing the new camera position and quaterion.
+   * @param Object containing the new camera position and quaternion.
    */
   updateCamera(pose: Pose) {
     if (this.camera) {
@@ -170,6 +181,20 @@ export default class RemoteUser extends THREE.Object3D {
     this.removeController(CONTROLLER_2_ID);
     this.removeCamera();
     this.removeNameTag();
+    this.removeMinimapMarker(); // Remove minimap marker
+  }
+
+  /**
+   * Remove the minimap marker from the scene.
+   */
+  removeMinimapMarker() {
+    const minimapMarker = this.minimapService.minimapUserMarkers.get(
+      this.userId
+    );
+    if (minimapMarker) {
+      minimapMarker.parent?.remove(minimapMarker);
+      this.minimapService.deleteUserMinimapMarker(this.userId);
+    }
   }
 
   togglePing(controllerId: ControllerId, isPinging: boolean) {
@@ -184,12 +209,11 @@ export default class RemoteUser extends THREE.Object3D {
   }
 
   getVisualizationMode(): string {
-    // TODO: refactoring! this method won't return the remote user's localUser instance! It is always our own
     return this.localUser.visualizationMode;
   }
 
   /**
-   * Updates the the remote user once per frame.
+   * Updates the remote user once per frame.
    *
    * @param delta The time since the last update.
    */

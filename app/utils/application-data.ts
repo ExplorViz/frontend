@@ -1,14 +1,15 @@
 import { tracked } from '@glimmer/tracking';
-import { LayoutData } from 'explorviz-frontend/services/application-renderer';
 import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ClassCommunication from './landscape-schemes/dynamic/class-communication';
 import { ApplicationMetrics, Metric } from './metric-schemes/metric-data';
 import { FlatData } from './flat-data-schemes/flat-data';
+import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 export default class ApplicationData {
   application: Application;
+  k8sData: K8sData | null;
 
-  layoutData: Map<string, LayoutData>;
+  boxLayoutMap: Map<string, BoxLayout>;
 
   flatData: FlatData;
 
@@ -19,11 +20,12 @@ export default class ApplicationData {
 
   constructor(
     application: Application,
-    layoutData: Map<string, LayoutData>,
-    flatData: FlatData
+    boxLayoutMap: Map<string, BoxLayout>,
+    flatData: FlatData,
+    k8sData: K8sData | null
   ) {
     this.application = application;
-    this.layoutData = layoutData;
+    this.boxLayoutMap = boxLayoutMap;
     this.flatData = flatData;
     this.applicationMetrics = {
       metrics: [],
@@ -32,19 +34,26 @@ export default class ApplicationData {
       differenceMetricScores: new Map<string, Metric[]>(),
       aggregatedMetricScores: new Map<string, Metric>(),
     };
+    this.k8sData = k8sData;
   }
 
   updateApplication(
     newApplication: Application,
-    layoutData: Map<string, LayoutData>,
+    boxLayoutMap: Map<string, BoxLayout>,
     flatData: FlatData
   ) {
     this.application = newApplication;
-    this.layoutData = layoutData;
+    this.boxLayoutMap = boxLayoutMap;
     this.flatData = flatData;
   }
 
   getId() {
     return this.application.id;
   }
+}
+export interface K8sData {
+  k8sNode: string;
+  k8sNamespace: string;
+  k8sDeployment: string;
+  k8sPod: string;
 }

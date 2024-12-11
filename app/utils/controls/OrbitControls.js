@@ -1,5 +1,4 @@
 // Copied for modification from: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/controls/OrbitControls.js
-
 import {
   EventDispatcher,
   MOUSE,
@@ -234,7 +233,6 @@ class OrbitControls extends EventDispatcher {
         spherical.makeSafe();
 
         // move target to panned location
-
         if (scope.enableDamping === true) {
           scope.target.addScaledVector(panOffset, scope.dampingFactor);
         } else {
@@ -746,7 +744,6 @@ class OrbitControls extends EventDispatcher {
           needsUpdate = true;
           break;
       }
-
       if (needsUpdate) {
         // prevent the browser from scrolling on cursor keys
         event.preventDefault();

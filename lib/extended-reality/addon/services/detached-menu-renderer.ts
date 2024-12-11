@@ -9,6 +9,7 @@ import DetachedMenuGroupsService from './detached-menu-groups';
 import VrMenuFactoryService from './vr-menu-factory';
 import LocalUser from 'collaboration/services/local-user';
 import {
+  SerializedAnnotation,
   SerializedDetachedMenu,
   SerializedPopup,
 } from 'collaboration/utils/web-socket-messages/types/serialized-room';
@@ -49,6 +50,13 @@ export default class DetachedMenuRenderer extends Service.extend(Evented) {
         this.restoreDetachedMenu(detachedMenu);
       });
     }
+  }
+
+  restoreAnnotations(annotations: SerializedAnnotation[]) {
+    for (const an of annotations) {
+      an.menuId = an.objectId;
+    }
+    this.trigger('restore_annotations', annotations);
   }
 
   restoreDetachedMenus(detachedMenus: SerializedDetachedMenu[]) {

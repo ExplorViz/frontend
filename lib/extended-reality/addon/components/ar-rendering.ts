@@ -28,7 +28,6 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'extended-reality/services/ar-settings';
 import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
 import {
@@ -114,7 +113,7 @@ export default class ArRendering extends Component<Args> {
   scene: THREE.Scene;
 
   @tracked
-  readonly graph: ThreeForceGraph;
+  readonly graph: ForceGraph;
 
   private renderer!: THREE.WebGLRenderer;
 
@@ -131,7 +130,7 @@ export default class ArRendering extends Component<Args> {
   configuration!: Configuration;
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   get rightClickMenuItems() {
@@ -174,8 +173,8 @@ export default class ArRendering extends Component<Args> {
 
     this.applicationRenderer.getOpenApplications().clear();
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph.graph;
-    this.graph.visible = false;
+    this.graph = forceGraph;
+    this.graph.graph.visible = false;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
@@ -183,7 +182,7 @@ export default class ArRendering extends Component<Args> {
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.applicationRenderer.forceGraph = this.graph;
+    this.applicationRenderer.forceGraph = this.graph.graph;
   }
 
   get camera() {
@@ -212,7 +211,6 @@ export default class ArRendering extends Component<Args> {
     );
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
@@ -277,32 +275,32 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handlePinching(_intersection: THREE.Intersection, delta: number) {
-    this.graph.scale.multiplyScalar(delta);
+    this.graph.graph.scale.multiplyScalar(delta);
   }
 
   @action
   handleRotate(_intersection: THREE.Intersection, delta: number) {
-    this.graph.rotateY(delta);
+    this.graph.graph.rotateY(delta);
   }
 
   @action
   increaseSize() {
-    this.graph.scale.multiplyScalar(1.1);
+    this.graph.graph.scale.multiplyScalar(1.1);
   }
 
   @action
   decreaseSize() {
-    this.graph.scale.multiplyScalar(0.9);
+    this.graph.graph.scale.multiplyScalar(0.9);
   }
 
   @action
   rotateLeft() {
-    this.graph.rotateY((12.5 * Math.PI) / 180);
+    this.graph.graph.rotateY((12.5 * Math.PI) / 180);
   }
 
   @action
   rotateRight() {
-    this.graph.rotateY((-12.5 * Math.PI) / 180);
+    this.graph.graph.rotateY((-12.5 * Math.PI) / 180);
   }
 
   @action
@@ -427,8 +425,8 @@ export default class ArRendering extends Component<Args> {
 
   @action
   resetView() {
-    this.graph.scale.setScalar(0.02);
-    this.graph.visible = false;
+    this.graph.graph.scale.setScalar(0.02);
+    this.graph.graph.visible = false;
   }
 
   @action
@@ -442,8 +440,8 @@ export default class ArRendering extends Component<Args> {
     const intersection = this.raycastCenter();
     if (intersection) {
       this.handlePrimaryInputOn(intersection);
-    } else if (this.reticle.visible && !this.graph.visible) {
-      const mesh = this.graph;
+    } else if (this.reticle.visible && !this.graph.graph.visible) {
+      const mesh = this.graph.graph;
       this.reticle.matrix.decompose(
         mesh.position,
         mesh.quaternion,
@@ -560,7 +558,6 @@ export default class ArRendering extends Component<Args> {
     this.popupHandler.addPopup({
       mesh,
       position,
-      replace: !this.arSettings.stackPopups,
       hovered: true,
     });
   }
@@ -646,7 +643,7 @@ export default class ArRendering extends Component<Args> {
     }
 
     if (this.renderer.xr.enabled) {
-      if (!this.graph.visible || this.reticle.visible) {
+      if (!this.graph.graph.visible || this.reticle.visible) {
         hitTest(this.renderer, this.reticle, frame);
       }
     }
@@ -714,7 +711,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   updateColors() {
-    updateColors(this.scene, this.userSettings.applicationColors);
+    updateColors(this.scene, this.userSettings.colors);
   }
 
   // #endregion UTILS

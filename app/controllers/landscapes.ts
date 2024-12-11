@@ -8,12 +8,18 @@ import Auth from 'explorviz-frontend/services/auth';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
+import SnapshotTokenService, {
+  TinySnapshot,
+} from 'explorviz-frontend/services/snapshot-token';
 
 const { userService } = ENV.backendAddresses;
 
 export default class Landscapes extends Controller {
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
+
+  @service('snapshot-token')
+  snapShotTokenService!: SnapshotTokenService;
 
   @service('router')
   router!: any;
@@ -45,8 +51,39 @@ export default class Landscapes extends Controller {
   @action
   selectToken(token: LandscapeToken) {
     this.tokenService.setToken(token);
+    this.snapShotTokenService.latestSnapshotToken = null;
     this.router.transitionTo('visualization', {
       queryParams: { landscapeToken: token.value },
+    });
+  }
+
+  @action
+  selectPersonalSnapshot(token: TinySnapshot) {
+    this.snapShotTokenService.setToken(null);
+    this.snapShotTokenService.snapshotSelected = true;
+    this.tokenService.setToken(null);
+    this.router.transitionTo('visualization', {
+      queryParams: {
+        landscapeToken: token.landscapeToken.value,
+        sharedSnapshot: false,
+        owner: token.owner,
+        createdAt: token.createdAt,
+      },
+    });
+  }
+
+  @action
+  selectSharedSnapshot(token: TinySnapshot) {
+    // this.snapShotTokenService.setToken(null);
+    this.snapShotTokenService.snapshotSelected = true;
+    this.tokenService.setToken(null);
+    this.router.transitionTo('visualization', {
+      queryParams: {
+        landscapeToken: token.landscapeToken.value,
+        sharedSnapshot: true,
+        owner: token.owner,
+        createdAt: token.createdAt,
+      },
     });
   }
 

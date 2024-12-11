@@ -37,10 +37,10 @@ export default class LinkRenderer extends Service.extend({}) {
 
   private _flag = false;
 
-  readonly debug = debugLogger('LinkRenderer');
+  readonly debug = debugLogger();
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   get flag() {
@@ -77,6 +77,10 @@ export default class LinkRenderer extends Service.extend({}) {
 
     line.visible = this.isLinkVisible(link);
 
+    let rootElement = link.source.__threeObj;
+    while (rootElement.parent?.type !== 'Scene') {
+      rootElement = rootElement?.parent || rootElement;
+    }
     const forceGraph = sourceApp.parent!;
     const sourceClass = findFirstOpen(
       sourceApp,
@@ -87,6 +91,8 @@ export default class LinkRenderer extends Service.extend({}) {
     if (sourceMesh) {
       start = sourceMesh.getWorldPosition(new THREE.Vector3());
       forceGraph.worldToLocal(start);
+      start = sourceMesh.getWorldPosition(new THREE.Vector3());
+      rootElement.worldToLocal(start);
     } else {
       this.debug('Source mesh not found');
     }
@@ -101,6 +107,8 @@ export default class LinkRenderer extends Service.extend({}) {
     if (targetMesh) {
       end = targetMesh.getWorldPosition(new THREE.Vector3());
       forceGraph.worldToLocal(end);
+      end = targetMesh.getWorldPosition(new THREE.Vector3());
+      rootElement.worldToLocal(end);
     } else {
       this.debug('Target mesh not found');
     }
@@ -111,7 +119,7 @@ export default class LinkRenderer extends Service.extend({}) {
     commLayout.endPoint = end;
     commLayout.lineThickness = calculateLineThickness(
       classCommunication,
-      this.userSettings.applicationSettings
+      this.userSettings.visualizationSettings
     );
     line.layout = commLayout;
     line.geometry.dispose();
@@ -122,7 +130,7 @@ export default class LinkRenderer extends Service.extend({}) {
     // to move particles and arrow
     const curve = (line.geometry as THREE.TubeGeometry).parameters.path;
     link.__curve = curve;
-    line.children.forEach((child) =>
+    line.children.forEach((child: unknown) =>
       SemanticZoomManager.instance.remove(child as SemanticZoomableObject)
     );
     line.children.clear();
@@ -136,7 +144,7 @@ export default class LinkRenderer extends Service.extend({}) {
   @action
   createMeshFromLink(link: GraphLink): ClazzCommunicationMesh {
     const classCommunication = link.communicationData;
-    const applicationObject3D = link.source.__threeObj;
+    const applicationObject3D = link.source.__threeObj as ApplicationObject3D;
     const { id } = classCommunication;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
@@ -145,7 +153,7 @@ export default class LinkRenderer extends Service.extend({}) {
       id
     );
     const { communicationColor, highlightedEntityColor } =
-      this.userSettings.applicationColors;
+      this.userSettings.colors;
 
     const existingMesh = this.linkIdToMesh.get(classCommunication.id);
     if (existingMesh) {
@@ -215,7 +223,7 @@ export default class LinkRenderer extends Service.extend({}) {
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
     const arrowColorHex =
-      this.userSettings.applicationColors.communicationArrowColor.getHex();
+      this.userSettings.colors.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(

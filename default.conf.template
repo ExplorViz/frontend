@@ -15,6 +15,12 @@ server {
     proxy_set_header Host $host;
   }
 
+  location /snapshot {
+    proxy_pass ${USER_URL};
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
   # END User-Service
 
   # BEGIN Dynamic-Data

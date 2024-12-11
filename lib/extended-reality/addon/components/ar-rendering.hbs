@@ -41,7 +41,6 @@
 
       {{#each this.popupHandler.popupData as |d|}}
         <Visualization::Rendering::Popups::PopupCoordinator
-          @isMovable='true'
           @popupData={{d}}
           @pinPopup={{this.popupHandler.pinPopup}}
           @sharePopup={{this.popupHandler.sharePopup}}
@@ -235,7 +234,7 @@
                   @enterFullscreen={{this.enterFullscreen}}
                   @popups={{this.popupHandler.popupData}}
                   @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
-                  @resetSettings={{this.userSettings.applyDefaultApplicationSettings}}
+                  @resetSettings={{this.userSettings.applyDefaultSettings}}
                   @setGamepadSupport={{this.setGamepadSupport}}
                   @updateColors={{this.updateColors}}
                   @updateHighlighting={{this.highlightingService.updateHighlighting}}

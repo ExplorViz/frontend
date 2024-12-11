@@ -15,7 +15,7 @@ export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
   @service('toast-handler')
   toast!: ToastHandlerService;
 
-  private readonly debug = debugLogger('AutoJoinLobby');
+  private readonly debug = debugLogger('auto-join-lobby');
 
   constructor(owner: unknown, args: AutoJoinLobbyArgs) {
     super(owner, args);

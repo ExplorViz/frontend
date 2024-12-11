@@ -1,11 +1,5 @@
 import gsap from 'gsap';
-import {
-  Box3,
-  Object3D,
-  OrthographicCamera,
-  PerspectiveCamera,
-  Vector3,
-} from 'three';
+import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
@@ -18,10 +12,8 @@ export default class CameraControls {
   userSettings!: UserSettings;
 
   private perspectiveCamera: PerspectiveCamera;
-  private orthographicCamera: OrthographicCamera | undefined;
 
   perspectiveCameraControls: MapControls;
-  orthographicCameraControls: MapControls | undefined;
   enabled: boolean = true;
 
   lastTargetPosition: THREE.Vector3;
@@ -32,12 +24,10 @@ export default class CameraControls {
   constructor(
     owner: any,
     perspectiveCamera: PerspectiveCamera,
-    orthographicCamera: OrthographicCamera | undefined,
     canvas: HTMLCanvasElement
   ) {
     setOwner(this, owner);
     this.perspectiveCamera = perspectiveCamera;
-    this.orthographicCamera = orthographicCamera;
 
     this.perspectiveCameraControls = new MapControls(
       this.perspectiveCamera,
@@ -51,14 +41,9 @@ export default class CameraControls {
     // Semantic Zoom trigger Level Decision
     SemanticZoomManager.instance.registerCam(this.perspectiveCamera);
     this.perspectiveCameraControls.addEventListener('end', () => {
-      if (
-        this.userSettings.applicationSettings.useOrthographicCamera.value ==
-        false
-      ) {
-        SemanticZoomManager.instance.triggerLevelDecision2WithDebounce(
-          this.perspectiveCamera
-        );
-      }
+      SemanticZoomManager.instance.triggerLevelDecision2WithDebounce(
+        this.perspectiveCamera
+      );
     });
     //
     // ImmersiveView Tracker
@@ -110,35 +95,6 @@ export default class CameraControls {
     });
 
     ImmersiveView.instance.registerMapControl(this.perspectiveCameraControls);
-    if (orthographicCamera) {
-      this.orthographicCameraControls = new MapControls(
-        this.orthographicCamera!,
-        canvas
-      );
-
-      //this.orthographicCameraControls.enabled = false;
-      this.orthographicCameraControls.enableDamping = true;
-      this.orthographicCameraControls.dampingFactor = 0.3;
-      this.orthographicCameraControls.minDistance = 0.1;
-      this.orthographicCameraControls.maxDistance = 1000;
-      this.orthographicCameraControls.maxPolarAngle = Math.PI / 2;
-      //
-      // Semantic Zoom trigger Level Decision
-      this.orthographicCameraControls.addEventListener('end', () => {
-        if (
-          this.userSettings.applicationSettings.useOrthographicCamera.value ==
-          true
-        ) {
-          SemanticZoomManager.instance.triggerLevelDecision2WithDebounce(
-            this.orthographicCamera
-          );
-        }
-      });
-      // TODO find a way toi determine the current active camera and only register it.
-      // ImmersiveView.instance.registerMapControl(
-      //   this.orthographicCameraControls
-      // );
-    }
   }
 
   private fitCamerasToBox(
@@ -150,31 +106,38 @@ export default class CameraControls {
     const center = new Vector3();
     box.getSize(size);
     box.getCenter(center);
+    const labelerHeightAdjustment = 1.3;
+    center.y -= labelerHeightAdjustment;
+
     const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
 
     // fit perspective camera
 
-    let fitHeightDistance =
+    const fitHeightDistance =
       maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
-    let fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
+    const fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
 
-    let distance =
+    const distance =
       0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
 
-    let origin = keepCameraPerspective
+    const origin = keepCameraPerspective
       ? this.perspectiveCamera.position
       : new Vector3(1, 1, 1);
-    let direction = center
+    const direction = center
       .clone()
       .sub(origin)
       .normalize()
       .multiplyScalar(distance);
 
-    // camera.near = distance / 100;
-    // camera.far = distance * 100;
+    const position = center.clone().sub(direction);
 
-    let position = center.clone().sub(direction);
+    // This y-position is usually still above the classes
+    position.y = size.y / 2;
+
+    // Center to turn camera around should always be on ground level
+    center.y = 0;
+
     if (duration > 0) {
       this.panCameraTo(
         position,
@@ -186,45 +149,6 @@ export default class CameraControls {
     } else {
       this.perspectiveCamera.position.copy(position);
       this.perspectiveCameraControls.target.copy(center);
-    }
-
-    // fit ortho camera
-
-    if (this.orthographicCamera && this.orthographicCameraControls) {
-      fitHeightDistance =
-        maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
-
-      fitWidthDistance =
-        fitHeightDistance / this.orthographicCamera.userData.aspect;
-
-      distance =
-        0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
-
-      origin = keepCameraPerspective
-        ? this.orthographicCamera.position
-        : new Vector3(1, 1, 1);
-      direction = center
-        .clone()
-        .sub(origin)
-        .normalize()
-        .multiplyScalar(distance);
-
-      // camera.near = distance / 100;
-      // camera.far = distance * 100;
-
-      position = center.clone().sub(direction);
-      if (duration > 0) {
-        this.panCameraTo(
-          position,
-          center,
-          duration,
-          this.orthographicCamera,
-          this.orthographicCameraControls
-        );
-      } else {
-        this.orthographicCamera.position.copy(position);
-        this.orthographicCameraControls.target.copy(center);
-      }
     }
   }
 
@@ -253,7 +177,7 @@ export default class CameraControls {
     position: Vector3,
     target: Vector3,
     duration: number,
-    camera: PerspectiveCamera | OrthographicCamera,
+    camera: PerspectiveCamera,
     cameraControls: MapControls
   ) {
     gsap.to(camera.position, {
@@ -279,15 +203,7 @@ export default class CameraControls {
 
   tick() {
     if (this.enabled) {
-      if (
-        this.orthographicCameraControls?.enabled &&
-        this.userSettings.applicationSettings.useOrthographicCamera.value ==
-          true
-      ) {
-        this.orthographicCameraControls.update();
-      } else {
-        this.perspectiveCameraControls.update();
-      }
+      this.perspectiveCameraControls.update();
     }
   }
 }

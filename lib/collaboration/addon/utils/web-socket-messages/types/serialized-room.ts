@@ -8,12 +8,28 @@ export type SerializedRoom = {
   openApps: SerializedApp[];
   highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
   popups: SerializedPopup[];
+  annotations?: SerializedAnnotation[];
   detachedMenus: SerializedDetachedMenu[];
 };
 
 export type SerializedLandscape = {
   landscapeToken: string | undefined;
   timestamp: number;
+};
+
+export type SerializedK8sNode = {
+  name: string;
+  namespaces: SerializedK8sNamespace[];
+};
+
+export type SerializedK8sNamespace = {
+  name: string;
+  pods: SerializedK8sPod[];
+};
+
+export type SerializedK8sPod = {
+  name: string;
+  applicationIds: string[];
 };
 
 export type SerializedApp = {
@@ -48,6 +64,20 @@ export type SerializedPopup = {
   userId: string | null;
   entityId: string;
   menuId: string | null | undefined;
+};
+
+export type SerializedAnnotation = {
+  objectId: string | null;
+  annotationId: number;
+  userId: string;
+  entityId: string | undefined;
+  menuId: string | null | undefined;
+  annotationText: string;
+  annotationTitle: string;
+  owner: string;
+  shared: boolean;
+  inEdit: boolean;
+  lastEditor: string;
 };
 
 export type SerializedDetachedMenu = {

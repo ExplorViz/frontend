@@ -19,11 +19,18 @@ export default class BaseRoute extends Route {
   }
 
   @action
-  error(error: Auth0Error) {
-    if (error.description) {
+  error(error: Auth0Error | undefined) {
+    if (error && error.description) {
       this.toastHandlerService.showErrorToastMessage(error.description);
     }
-    if (error.statusCode !== 429) {
+    if (error && Object.keys(error).length === 0) {
+      // Network error -> timeout
+      setTimeout(() => {
+        this.auth.logout();
+      }, 5000);
+      return true;
+    }
+    if (!error || error?.statusCode !== 429) {
       this.auth.logout();
     }
     return true;

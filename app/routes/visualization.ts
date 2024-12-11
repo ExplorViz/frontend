@@ -7,6 +7,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { action } from '@ember/object';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import BaseRoute from './base-route';
+import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 
 /**
  * TODO
@@ -18,6 +19,9 @@ export default class VisualizationRoute extends BaseRoute {
   @service('landscape-token')
   landscapeToken!: LandscapeTokenService;
 
+  @service('snapshot-token')
+  snapshotService!: SnapshotTokenService;
+
   @service('router')
   router!: any;
 
@@ -27,10 +31,14 @@ export default class VisualizationRoute extends BaseRoute {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  debug = debugLogger('VisualizationRoute');
+  debug = debugLogger();
 
   async beforeModel() {
-    if (this.landscapeToken.token === null) {
+    if (
+      this.landscapeToken.token === null &&
+      this.snapshotService.snapshotToken === null &&
+      !this.snapshotService.snapshotSelected
+    ) {
       this.router.transitionTo('landscapes');
       return Promise.resolve();
     }

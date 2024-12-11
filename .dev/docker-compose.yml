@@ -1,6 +1,6 @@
 services:
   collaboration-service-js:
-    image: explorviz/collaboration-service-js:latest
+    image: explorviz/collaboration-service
     ports:
       - ${COLLABORATION_PORT}:4444
     environment:

@@ -5,10 +5,10 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
 import {
-  ApplicationSettingId,
-  ApplicationSettings,
-  RangeSetting,
+  VisualizationSettingId,
+  VisualizationSettings,
   SettingGroup,
+  RangeSetting,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -17,14 +17,18 @@ import MessageSender from 'collaboration/services/message-sender';
 import RoomSerializer from 'collaboration/services/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
-import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
 import Configuration from 'explorviz-frontend/services/configuration';
+import MinimapService from 'explorviz-frontend/services/minimap-service';
+import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import { Mesh } from 'three';
+import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import { defaultVizSettings } from 'explorviz-frontend/utils/settings/default-settings';
 
 interface Args {
   enterFullscreen?(): void;
   popups: PopupData[];
   redrawCommunication?(): void;
-  resetSettings?(): void;
+  resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
   updateColors?(): void;
   updateHighlighting?(): void;
@@ -40,11 +44,17 @@ export default class Settings extends Component<Args> {
   @service('local-user')
   private localUser!: LocalUser;
 
+  @service('heatmap-configuration')
+  private heatmapConf!: HeatmapConfiguration;
+
   @service('message-sender')
   private sender!: MessageSender;
 
   @service('room-serializer')
   private roomSerializer!: RoomSerializer;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
 
   @service('toast-handler')
   private toastHandlerService!: ToastHandlerService;
@@ -55,6 +65,9 @@ export default class Settings extends Component<Args> {
   @service('user-settings')
   private userSettings!: UserSettings;
 
+  @service('minimap-service')
+  private minimapService!: MinimapService;
+
   colorSchemes: { name: string; id: ColorSchemeId }[] = [
     { name: 'Default', id: 'default' },
     { name: 'Classic (Initial)', id: 'classic' },
@@ -62,26 +75,30 @@ export default class Settings extends Component<Args> {
     { name: 'Dark', id: 'dark' },
   ];
 
-  get applicationSettingsSortedByGroup() {
-    const { applicationSettings } = this.userSettings;
+  get settingsSortedByGroup() {
+    const { visualizationSettings: applicationSettings } = this.userSettings;
 
     const settingGroupToSettingIds: Record<
       SettingGroup,
-      ApplicationSettingId[]
+      VisualizationSettingId[]
     > = {
+      Annotations: [],
       Camera: [],
       Colors: [],
-      Controls: [],
       Communication: [],
-      Highlighting: [],
+      Controls: [],
       Effects: [],
+      Heatmap: [],
+      Highlighting: [],
+      Layout: [],
+      Minimap: [],
       Popups: [],
+      'Semantic Zoom': [],
       'Virtual Reality': [],
       Debugging: [],
-      'Semantic Zoom': [],
     };
 
-    let settingId: keyof ApplicationSettings;
+    let settingId: keyof VisualizationSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in applicationSettings) {
       const setting = applicationSettings[settingId];
@@ -131,26 +148,36 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateRangeSetting(name: ApplicationSettingId, event?: Event) {
+  updateRangeSetting(name: VisualizationSettingId, event?: Event) {
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;
-    const pre_input: string | number | boolean =
-      defaultApplicationSettings[name].value;
-    const settingId = name as ApplicationSettingId;
+    const pre_input: string | number | boolean = defaultVizSettings[name].value;
+    const settingId = name as VisualizationSettingId;
     try {
-      this.userSettings.updateApplicationSetting(settingId, input);
+      this.userSettings.updateSetting(settingId, input);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
     const valueArray = [
-      this.userSettings.applicationSettings.distanceLevel1,
-      this.userSettings.applicationSettings.distanceLevel2,
-      this.userSettings.applicationSettings.distanceLevel3,
-      this.userSettings.applicationSettings.distanceLevel4,
-      this.userSettings.applicationSettings.distanceLevel5,
+      this.userSettings.visualizationSettings.distanceLevel1,
+      this.userSettings.visualizationSettings.distanceLevel2,
+      this.userSettings.visualizationSettings.distanceLevel3,
+      this.userSettings.visualizationSettings.distanceLevel4,
+      this.userSettings.visualizationSettings.distanceLevel5,
     ];
     switch (settingId) {
+      case 'applicationAspectRatio':
+      case 'classFootprint':
+      case 'classMargin':
+      case 'appLabelMargin':
+      case 'appMargin':
+      case 'packageLabelMargin':
+      case 'packageMargin':
+      case 'openedComponentHeight':
+      case 'closedComponentHeight':
+        this.applicationRenderer.updateApplicationLayout();
+        break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();
@@ -164,17 +191,24 @@ export default class Settings extends Component<Args> {
           this.args.updateHighlighting();
         }
         break;
+      case 'cameraNear':
+        this.localUser.defaultCamera.near =
+          this.userSettings.visualizationSettings.cameraNear.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
+      case 'cameraFar':
+        this.localUser.defaultCamera.far =
+          this.userSettings.visualizationSettings.cameraFar.value;
+        this.localUser.defaultCamera.updateProjectionMatrix();
+        break;
       case 'cameraFov':
         this.localUser.defaultCamera.fov =
-          this.userSettings.applicationSettings.cameraFov.value;
+          this.userSettings.visualizationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'distancePreSet':
         this.semanticZoomPreSetSetter(input!, valueArray);
-        this.userSettings.updateApplicationSetting(
-          'usePredefinedSet' as ApplicationSettingId,
-          true
-        );
+        this.userSettings.updateSetting('usePredefinedSet', true);
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
         );
@@ -192,10 +226,7 @@ export default class Settings extends Component<Args> {
           //   'distancePreSet' as ApplicationSettingId,
           //   0
           // );
-          this.userSettings.updateApplicationSetting(
-            'usePredefinedSet' as ApplicationSettingId,
-            false
-          );
+          this.userSettings.updateSetting('usePredefinedSet', false);
         }
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
@@ -205,9 +236,12 @@ export default class Settings extends Component<Args> {
         break;
       case 'clusterBasedOnMembers':
         SemanticZoomManager.instance.cluster(
-          this.userSettings.applicationSettings.clusterBasedOnMembers.value
+          this.userSettings.visualizationSettings.clusterBasedOnMembers.value
         );
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
+        break;
+      case 'zoom':
+        this.minimapService.updateSphereRadius();
         break;
       default:
         break;
@@ -215,7 +249,7 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateButtonSetting(settingId: ApplicationSettingId) {
+  updateButtonSetting(settingId: VisualizationSettingId) {
     switch (settingId) {
       case 'syncRoomState':
         if (
@@ -243,25 +277,69 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateFlagSetting(name: ApplicationSettingId, value: boolean) {
-    const settingId = name as ApplicationSettingId;
+  updateFlagSetting(name: VisualizationSettingId, value: boolean) {
+    const settingId = name;
+    const settingString = settingId as string;
     try {
-      this.userSettings.updateApplicationSetting(settingId, value);
+      this.userSettings.updateSetting(settingId, value);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
     const valueArray = [
-      this.userSettings.applicationSettings.distanceLevel1,
-      this.userSettings.applicationSettings.distanceLevel2,
-      this.userSettings.applicationSettings.distanceLevel3,
-      this.userSettings.applicationSettings.distanceLevel4,
-      this.userSettings.applicationSettings.distanceLevel5,
+      this.userSettings.visualizationSettings.distanceLevel1,
+      this.userSettings.visualizationSettings.distanceLevel2,
+      this.userSettings.visualizationSettings.distanceLevel3,
+      this.userSettings.visualizationSettings.distanceLevel4,
+      this.userSettings.visualizationSettings.distanceLevel5,
     ];
+    if (settingString.startsWith('layer')) {
+      const layerNumber = parseInt(settingString.slice(5), 10); // Extract the layer number from settingId
+      if (!isNaN(layerNumber)) {
+        // Ensure it's a valid number
+        if (value || value === undefined) {
+          this.localUser.minimapCamera.layers.enable(layerNumber);
+        } else {
+          this.localUser.minimapCamera.layers.disable(layerNumber);
+        }
+      }
+    } else {
+      switch (settingId) {
+        case 'applyHighlightingOnHover':
+          if (this.args.updateHighlighting) {
+            this.args.updateHighlighting();
+          }
+          break;
+        case 'enableGamepadControls':
+          this.args.setGamepadSupport(value);
+          break;
+        case 'heatmapEnabled':
+          this.heatmapConf.setActive(value);
+          break;
+        case 'minimap':
+          this.minimapService.minimapEnabled = value;
+          break;
+        default:
+          break;
+      }
+    }
+
+    const scene = this.sceneRepo.getScene();
+    const directionalLight = scene.getObjectByName('DirectionalLight');
+    const spotLight = scene.getObjectByName('SpotLight');
+
     switch (settingId) {
       case 'applyHighlightingOnHover':
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();
         }
+        break;
+      case 'castShadows':
+        if (directionalLight) directionalLight.castShadow = value;
+        if (spotLight) spotLight.castShadow = value;
+        // Update shadow casting on objects
+        scene.traverse((child) => {
+          if (child instanceof Mesh) child.material.needsUpdate = true;
+        });
         break;
       case 'enableGamepadControls':
         this.args.setGamepadSupport(value);
@@ -278,7 +356,7 @@ export default class Settings extends Component<Args> {
       case 'usePredefinedSet':
         // Set the value of the Slider distancePreSet to the same value again, to trigger the update routine!
         this.semanticZoomPreSetSetter(
-          this.userSettings.applicationSettings.distancePreSet.value,
+          this.userSettings.visualizationSettings.distancePreSet.value,
           valueArray
         );
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
@@ -292,19 +370,20 @@ export default class Settings extends Component<Args> {
         break;
       case 'useKmeansInsteadOfMeanShift':
         SemanticZoomManager.instance.cluster(
-          this.userSettings.applicationSettings.clusterBasedOnMembers.value
+          this.userSettings.visualizationSettings.clusterBasedOnMembers.value
         );
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       default:
+        break;
     }
   }
 
   @action
-  updateColorSetting(name: ApplicationSettingId, value: string) {
-    const settingId = name as ApplicationSettingId;
+  updateColorSetting(name: VisualizationSettingId, value: string) {
+    const settingId = name as VisualizationSettingId;
     try {
-      this.userSettings.updateApplicationSetting(settingId, value);
+      this.userSettings.updateSetting(settingId, value);
     } catch (e) {
       this.toastHandlerService.showErrorToastMessage(e.message);
     }
@@ -317,15 +396,16 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  resetSettings() {
+  async resetSettings() {
     if (this.args.resetSettings) {
-      this.args.resetSettings();
+      this.args.resetSettings(true);
       this.args.updateColors?.();
-      this.applicationRenderer.addCommunicationForAllApplications();
       this.highlightingService.updateHighlighting();
       this.localUser.defaultCamera.fov =
-        this.userSettings.applicationSettings.cameraFov.value;
+        this.userSettings.visualizationSettings.cameraFov.value;
       this.localUser.defaultCamera.updateProjectionMatrix();
+      this.applicationRenderer.updateApplicationLayout();
+      this.applicationRenderer.addCommunicationForAllApplications();
     }
   }
   private semanticZoomPreSetSetter(targetPreset: number, valueArray: any) {
@@ -369,8 +449,8 @@ export default class Settings extends Component<Args> {
     // Update all the values and save them to the storage
     for (let index = 0; index < valueArray.length; index++) {
       const targetValue = valueArray[index].value;
-      this.userSettings.updateApplicationSetting(
-        ('distanceLevel' + (index + 1).toString()) as ApplicationSettingId,
+      this.userSettings.updateSetting(
+        ('distanceLevel' + (index + 1).toString()) as VisualizationSettingId,
         targetValue
       );
     }

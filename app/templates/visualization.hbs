@@ -62,34 +62,44 @@
         @id='vr-rendering'
         @landscapeData={{this.renderingService.landscapeData}}
         @switchToOnScreenMode={{this.switchToOnScreenMode}}
-        @debugMode={{this.userSettings.applicationSettings.showVrOnClick.value}}
+        @debugMode={{this.userSettings.visualizationSettings.showVrOnClick.value}}
       />
 
     {{else}}
       <Visualization::Rendering::BrowserRendering
+        @addComponent={{this.addComponent}}
+        @applicationArgs={{this.applicationArgs}}
+        @closeDataSelection={{this.closeDataSelection}}
+        @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+        @closeSettingsSidebar={{this.sidebarHandler.closeSettingsSidebar}}
+        @components={{this.components}}
+        @componentsToolsSidebar={{this.componentsToolsSidebar}}
         @id='browser-rendering'
         @isDisplayed={{this.allLandscapeDataExistsAndNotEmpty}}
         @landscapeData={{this.renderingService.landscapeData}}
-        @closeSettingsSidebar={{this.sidebarHandler.closeSettingsSidebar}}
-        @closeToolsSidebar={{this.sidebarHandler.closeToolsSidebar}}
+        @landscapeToken={{this.landscapeTokenService.token}}
         @openedSettingComponent={{this.sidebarHandler.openedSettingComponent}}
         @openedToolComponent={{this.sidebarHandler.openedToolComponent}}
         @openSettingsSidebar={{this.sidebarHandler.openSettingsSidebar}}
         @openToolsSidebar={{this.sidebarHandler.openToolsSidebar}}
-        @pauseVisualizationUpdating={{this.renderingService.pauseVisualizationUpdating}}
+        @pauseVisualizationUpdating={{this.pauseVisualizationUpdating}}
         @removeTimestampListener={{this.removeTimestampListener}}
+        @removeToolsSidebarComponent={{this.sidebarHandler.removeToolsSidebarComponent}}
         @restructureLandscape={{this.restructureLandscape}}
         @showSettingsSidebar={{this.sidebarHandler.showSettingsSidebar}}
         @showToolsSidebar={{this.sidebarHandler.showToolsSidebar}}
+        @snapshot={{this.snapshotTokenService.snapshotSelected}}
+        @snapshotReload={{this.snapshotTokenService.snapshotToken}}
         @switchToAR={{this.switchToAR}}
+        @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
         @toggleSettingsSidebarComponent={{this.sidebarHandler.toggleSettingsSidebarComponent}}
         @toggleToolsSidebarComponent={{this.sidebarHandler.toggleToolsSidebarComponent}}
         @toggleVisualizationUpdating={{this.renderingService.toggleVisualizationUpdating}}
-        @triggerRenderingForGivenLandscapeData={{this.renderingService.triggerRenderingForGivenLandscapeData}}
-        @visualizationPaused={{this.renderingService.visualizationPaused}}
+        @updateLandscape={{this.updateLandscape}}
+        @userApiTokens={{this.userApiTokens}}
+        @visualizationPaused={{this.visualizationPaused}}
       />
     {{/if}}
-
   {{/if}}
 </div>
 
@@ -107,7 +117,7 @@
     >
 
       {{#unless this.isBottomBarMaximized}}
-        <span class='pr-1'>Show Bottom Bar</span>
+        <span class='pr-1'>Bottom Bar</span>
       {{/unless}}
       {{svg-jar
         'chevron-up-16'
@@ -123,7 +133,7 @@
     {{! VR Button}}
     {{#if
       (and
-        this.userSettings.applicationSettings.showVrButton.value
+        this.userSettings.visualizationSettings.showVrButton.value
         (not this.showVR)
       )
     }}

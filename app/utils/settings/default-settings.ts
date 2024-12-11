@@ -1,80 +1,80 @@
-import { defaultApplicationColors } from './color-schemes';
-import { ApplicationSettings } from './settings-schemas';
+import { defaultColors } from './color-schemes';
+import { VisualizationSettings } from './settings-schemas';
 
-export const defaultApplicationSettings: ApplicationSettings = {
+export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   foundationColor: {
-    value: defaultApplicationColors.foundationColor,
+    value: defaultColors.foundationColor,
     orderNumber: 1,
     group: 'Colors',
     displayName: 'Foundation',
     isColorSetting: true,
   },
   componentOddColor: {
-    value: defaultApplicationColors.componentOddColor,
+    value: defaultColors.componentOddColor,
     orderNumber: 2,
     group: 'Colors',
     displayName: 'Component Odd',
     isColorSetting: true,
   },
   componentEvenColor: {
-    value: defaultApplicationColors.componentEvenColor,
+    value: defaultColors.componentEvenColor,
     orderNumber: 3,
     group: 'Colors',
     displayName: 'Component Even',
     isColorSetting: true,
   },
   clazzColor: {
-    value: defaultApplicationColors.clazzColor,
+    value: defaultColors.clazzColor,
     orderNumber: 4,
     group: 'Colors',
     displayName: 'Class',
     isColorSetting: true,
   },
   highlightedEntityColor: {
-    value: defaultApplicationColors.highlightedEntityColor,
+    value: defaultColors.highlightedEntityColor,
     orderNumber: 5,
     group: 'Colors',
     displayName: 'Highlighted Entity',
     isColorSetting: true,
   },
   componentTextColor: {
-    value: defaultApplicationColors.componentTextColor,
+    value: defaultColors.componentTextColor,
     orderNumber: 6,
     group: 'Colors',
     displayName: 'Component Label',
     isColorSetting: true,
   },
   clazzTextColor: {
-    value: defaultApplicationColors.clazzTextColor,
+    value: defaultColors.clazzTextColor,
     orderNumber: 7,
     group: 'Colors',
     displayName: 'Class Label',
     isColorSetting: true,
   },
   foundationTextColor: {
-    value: defaultApplicationColors.foundationTextColor,
+    value: defaultColors.foundationTextColor,
     orderNumber: 8,
     group: 'Colors',
     displayName: 'Foundation Label',
     isColorSetting: true,
   },
   communicationColor: {
-    value: defaultApplicationColors.communicationColor,
+    value: defaultColors.communicationColor,
     orderNumber: 9,
     group: 'Colors',
     displayName: 'Communication',
     isColorSetting: true,
   },
   communicationArrowColor: {
-    value: defaultApplicationColors.communicationArrowColor,
+    value: defaultColors.communicationArrowColor,
     orderNumber: 10,
     group: 'Colors',
     displayName: 'Communication Arrow',
     isColorSetting: true,
   },
   backgroundColor: {
-    value: defaultApplicationColors.backgroundColor,
+    value: defaultColors.backgroundColor,
     orderNumber: 11,
     group: 'Colors',
     displayName: 'Background',
@@ -101,6 +101,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Selected Gamepad Index',
     description: 'Index of the gamepad to be used for navigation',
     isRangeSetting: true,
+  },
+  // Heatmap Settings
+  heatmapEnabled: {
+    value: false,
+    orderNumber: 1,
+    group: 'Heatmap',
+    displayName: 'Show Heatmap',
+    description: 'Toggle visibility of the heatmap',
+    isFlagSetting: true,
   },
   // Highlighting Settings
   applyHighlightingOnHover: {
@@ -157,8 +166,16 @@ export const defaultApplicationSettings: ApplicationSettings = {
     value: true,
     orderNumber: 2,
     group: 'Effects',
-    displayName: 'Enable Package Animations',
+    displayName: 'Enable Animations',
     description: 'Toggle animations for opening and closing components',
+    isFlagSetting: true,
+  },
+  castShadows: {
+    value: false,
+    orderNumber: 3,
+    group: 'Effects',
+    displayName: 'Cast Shadows',
+    description: 'Enable casting shadows from light (can be expensive)',
     isFlagSetting: true,
   },
   // Communication Settings
@@ -203,24 +220,179 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
-  // Popup Settings
-  enableCustomPopupPosition: {
-    value: true,
+  // Layout settings
+  applicationAspectRatio: {
+    value: 1.0,
+    range: {
+      min: 0.25,
+      max: 2.0,
+      step: 0.05,
+    },
+    orderNumber: 1,
+    group: 'Layout',
+    displayName: 'App Aspect Ratio',
+    description: 'Determines a preferred aspect ratio for applications',
+    isRangeSetting: true,
+  },
+  classFootprint: {
+    value: 5.0,
+    range: {
+      min: 0.5,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 3,
+    group: 'Layout',
+    displayName: 'Class Footprint',
+    description: 'Determines width and depth of classes',
+    isRangeSetting: true,
+  },
+  classMargin: {
+    value: 20.0,
+    range: {
+      min: 0.0,
+      max: 50.0,
+      step: 1.0,
+    },
+    orderNumber: 4,
+    group: 'Layout',
+    displayName: 'Class Margin',
+    description:
+      'Determines distance between classes and to surrounding package',
+    isRangeSetting: true,
+  },
+  appLabelMargin: {
+    value: 15.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 5,
+    group: 'Layout',
+    displayName: 'App Label Margin',
+    description:
+      'Determines how much space (height) an application label may occupy',
+    isRangeSetting: true,
+  },
+  appMargin: {
+    value: 6.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 6,
+    group: 'Layout',
+    displayName: 'App Margin',
+    description: 'Determines margin of applications',
+    isRangeSetting: true,
+  },
+  packageLabelMargin: {
+    value: 13.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 7,
+    group: 'Layout',
+    displayName: 'Package Label Margin',
+    description:
+      'Determines how much space (height) a package label may occupy',
+    isRangeSetting: true,
+  },
+  packageMargin: {
+    value: 6.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 8,
+    group: 'Layout',
+    displayName: 'Package Margin',
+    description: 'Determines margin of packages',
+    isRangeSetting: true,
+  },
+  openedComponentHeight: {
+    value: 1.5,
+    range: {
+      min: 0.1,
+      max: 10.0,
+      step: 0.1,
+    },
+    orderNumber: 9,
+    group: 'Layout',
+    displayName: 'Opened Component Height',
+    description:
+      'Height of opened components (i.e. when contained classes are visible)',
+    isRangeSetting: true,
+  },
+  closedComponentHeight: {
+    value: 6,
+    range: {
+      min: 0.1,
+      max: 20.0,
+      step: 0.1,
+    },
+    orderNumber: 10,
+    group: 'Layout',
+    displayName: 'Closed Component Height',
+    description:
+      'Height of closed components (i.e. when contained classes are hidden)',
+    isRangeSetting: true,
+  },
+  // Popup settings
+  hidePopupDelay: {
+    value: 1.0,
+    range: {
+      min: 0.0,
+      max: 3.0,
+      step: 0.25,
+    },
     orderNumber: 1,
     group: 'Popups',
-    displayName: 'Enable Custom Popup Positioning',
+    displayName: 'Hide Popups After',
+    description: 'Determines how many seconds popups stay on screen',
+    isRangeSetting: true,
+  },
+  // Annotation Settings
+  enableCustomAnnotationPosition: {
+    value: true,
+    orderNumber: 1,
+    group: 'Annotations',
+    displayName: 'Enable Custom Annotation Positioning',
     description:
-      'If enabled, popups can be dragged to a prefered, fixed position',
+      'If enabled, annotations can be dragged to a prefered, fixed position',
     isFlagSetting: true,
   },
-  // Camera Settings
-  useOrthographicCamera: {
-    value: false,
+  // Camera settings
+  cameraNear: {
+    value: 0.1,
+    range: {
+      min: 0.01,
+      max: 5.0,
+      step: 0.01,
+    },
     orderNumber: 1,
     group: 'Camera',
-    displayName: 'Use Orthographic Camera Instead of Perspective',
-    description: 'Switch between orthographic and perspective camera',
-    isFlagSetting: true,
+    displayName: 'Render Near',
+    description: 'Determines near render distance',
+    isRangeSetting: true,
+  },
+  cameraFar: {
+    value: 100,
+    range: {
+      min: 5.0,
+      max: 150.0,
+      step: 1.0,
+    },
+    orderNumber: 2,
+    group: 'Camera',
+    displayName: 'Render Far',
+    description: 'Determines far render distance',
+    isRangeSetting: true,
   },
   cameraFov: {
     value: 75,
@@ -229,7 +401,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
       max: 150.0,
       step: 5.0,
     },
-    orderNumber: 2,
+    orderNumber: 3,
     group: 'Camera',
     displayName: 'Field of View',
     description: 'Set field of view for the perspective camera',
@@ -237,7 +409,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   // VR Settings
   showVrButton: {
-    value: true,
+    value: false,
     orderNumber: 1,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
@@ -245,7 +417,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     isFlagSetting: true,
   },
   showVrOnClick: {
-    value: false,
+    value: true,
     orderNumber: 2,
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',
@@ -443,5 +615,85 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description:
       'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
+  },
+  layer1: {
+    value: true,
+    orderNumber: 4,
+    group: 'Minimap',
+    displayName: 'Enable foundation visibility',
+    description: 'Toggle foundation visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer2: {
+    value: true,
+    orderNumber: 5,
+    group: 'Minimap',
+    displayName: 'Enable component visibility',
+    description: 'Toggle component visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer3: {
+    value: true,
+    orderNumber: 6,
+    group: 'Minimap',
+    displayName: 'Enable clazz visibility',
+    description: 'Toggle clazz visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer4: {
+    value: true,
+    orderNumber: 7,
+    group: 'Minimap',
+    displayName: 'Enable communication visibility',
+    description: 'Toggle communication visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer6: {
+    value: true,
+    orderNumber: 8,
+    group: 'Minimap',
+    displayName: 'Enable labels visibility',
+    description: 'Toggle labels visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer7: {
+    value: true,
+    orderNumber: 9,
+    group: 'Minimap',
+    displayName: 'Enable visibility of different user-markers',
+    description:
+      'Toggle the different users position markers visibility for the minimap',
+    isFlagSetting: true,
+  },
+  // Minimap Settings
+  minimap: {
+    value: false,
+    orderNumber: 1,
+    group: 'Minimap',
+    displayName: 'Enable Minimap',
+    description: 'Toggle visibility of the minimap',
+    isFlagSetting: true,
+  },
+  zoom: {
+    value: 1,
+    range: {
+      min: 0.5,
+      max: 3.0,
+      step: 0.1,
+    },
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Zoom of Minimap',
+    description: 'Set zoom of the minimap',
+    isRangeSetting: true,
+  },
+  version2: {
+    value: true,
+    orderNumber: 3,
+    group: 'Minimap',
+    displayName: 'Use Camera Position',
+    description:
+      'If off, calculate minimap position via intersection of camera with ground plane.',
+    isFlagSetting: true,
   },
 };

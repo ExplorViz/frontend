@@ -18,7 +18,7 @@
             {{on 'click' this.goToLandscapeSelection}}
           >
             {{svg-jar
-              'key-16'
+              'undo-16'
               class='octicon'
             }}&nbsp;{{this.tokenService.token.alias}}
           </span>
@@ -76,6 +76,16 @@
             </button>
           </li>
         {{/if}}
+        <li>
+          <button
+            class='dropdown-item'
+            type='button'
+            {{on 'click' this.goToSettings}}
+          >
+            {{svg-jar 'git-branch-16' class='octicon'}}
+            Git API Token
+          </button>
+        </li>
         <li>
           <button
             class='dropdown-item'

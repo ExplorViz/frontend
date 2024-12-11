@@ -12,6 +12,7 @@ import {
 import gsap from 'gsap';
 import ImmsersiveClassScene from 'explorviz-frontend/utils/class-immersive-scene';
 import { MethodGroupMesh } from './method-mesh';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
@@ -69,6 +70,7 @@ export class _ClazzMesh extends BoxMesh {
     this.setAppearence(3, this.showMethodMesh);
 
     // Immersive View
+    this.layers.enable(SceneLayers.Clazz);
   }
 
   getModelId() {
@@ -96,7 +98,7 @@ export class _ClazzMesh extends BoxMesh {
   }
 
   setHeightAccordingToClassSize = () => {
-    if (this.geometry == undefined) return;
+    if (!(this.geometry instanceof THREE.BoxGeometry)) return;
 
     // Scale Position Fix
     this.position.y =
@@ -123,12 +125,8 @@ export class _ClazzMesh extends BoxMesh {
    * DEPRECATED used to show the MethodMesh as part of the classmesh
    */
   showMethodMeshDeprecated = () => {
-    // Add Methods lengths
-    // Example with 3 Function
-    // Function 1 -> 33 Line of Code
-    // Function 2 -> 67 LOC
-    // Function 3 -> 12 LOC
-    if (!this.geometry) return;
+    if (!(this.geometry instanceof THREE.BoxGeometry)) return;
+
     const functionSeperation: Array<number> = [];
     this.dataModel.methods.forEach(() => {
       // Add each method with a default loc of 1
@@ -194,7 +192,9 @@ export class _ClazzMesh extends BoxMesh {
     //this.addEventListenerToExitWhenScrollingOut();
 
     // Register Exit when camera is at minimum zoom level
-    this.addEventListenerToExitWhenMinZoomLevelReached();
+
+    // TODO: This might be activated by addident
+    // this.addEventListenerToExitWhenMinZoomLevelReached();
 
     // Apply Data to new Scene
     const classimmersive = new ImmsersiveClassScene(this.dataModel, scene);
@@ -220,7 +220,7 @@ export class _ClazzMesh extends BoxMesh {
   addEventListenerToExitWhenScrollingOut = () => {
     ImmersiveView.instance.currentCameraControl?.domElement.addEventListener(
       'wheel',
-      (event) => {
+      (event: any) => {
         // break when zooming in
         if (event.deltaY < 0) return;
         // continue when zooming out
@@ -275,6 +275,8 @@ export class _ClazzMesh extends BoxMesh {
     this.pulseAnimation();
   };
   pulseAnimation() {
+    if (!(this.material instanceof THREE.MeshLambertMaterial)) return;
+
     const targetColor = new THREE.Color(0xff0000); // Green
     gsap.to(this.material.color, {
       r: targetColor.r,

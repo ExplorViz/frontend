@@ -19,7 +19,6 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'extended-reality/services/detached-menu-groups';
 import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
@@ -191,7 +190,7 @@ export default class VrRendering extends Component<Args> {
   scene: THREE.Scene;
 
   @tracked
-  readonly graph: ThreeForceGraph;
+  readonly graph: ForceGraph;
 
   // #endregion CLASS FIELDS
   //
@@ -199,7 +198,7 @@ export default class VrRendering extends Component<Args> {
     super(owner, args);
 
     this.scene = this.sceneRepo.getScene('vr', true);
-    this.scene.background = this.userSettings.applicationColors.backgroundColor;
+    this.scene.background = this.userSettings.colors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       75,
@@ -215,7 +214,7 @@ export default class VrRendering extends Component<Args> {
     this.applicationRenderer.getOpenApplications().clear();
 
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph.graph;
+    this.graph = forceGraph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
@@ -224,7 +223,7 @@ export default class VrRendering extends Component<Args> {
 
     this.scene.add(this.detachedMenuGroups.container);
 
-    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+    this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
       true;
   }
 
@@ -303,7 +302,6 @@ export default class VrRendering extends Component<Args> {
     this.cameraControls = new CameraControls(
       getOwner(this),
       this.camera,
-      undefined,
       this.canvas
     );
     this.updatables.push(this.cameraControls);
@@ -659,7 +657,6 @@ export default class VrRendering extends Component<Args> {
     // Start main loop.
     this.renderingLoop = new RenderingLoop(getOwner(this), {
       camera: this.camera,
-      orthographicCamera: undefined,
       scene: this.scene,
       renderer: this.renderer,
       updatables: this.updatables,
@@ -698,9 +695,9 @@ export default class VrRendering extends Component<Args> {
     this.vrSessionActive = true;
 
     session.addEventListener('inputsourceschange', (event) => {
-      this.debug(event);
+      console.log(event);
       for (const inputSource of event.added) {
-        this.debug('Input source:', inputSource);
+        console.log('Input source:', inputSource);
       }
     });
   }
@@ -710,7 +707,7 @@ export default class VrRendering extends Component<Args> {
     this.debug('WebXRSession ended');
     this.vrSessionActive = false;
 
-    if (!this.userSettings.applicationSettings.showVrOnClick.value)
+    if (!this.userSettings.visualizationSettings.showVrOnClick.value)
       this.localUser.visualizationMode = 'browser'; // TODO
 
     const outerDiv = this.canvas?.parentElement;
@@ -1198,7 +1195,7 @@ export default class VrRendering extends Component<Args> {
     const x = new THREE.Vector3();
     x.fromArray(position);
     x.y += 15;
-    this.graph.localToWorld(x);
+    this.graph.graph.localToWorld(x);
     this.detachedMenuRenderer.restoreDetachedMenu({
       objectId,
       entityType,

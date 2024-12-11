@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import BoxMesh from './box-mesh';
 import ComponentLabelMesh from './component-label-mesh';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -12,7 +14,7 @@ export default class ComponentMesh extends BoxMesh {
 
   dataModel: Package;
 
-  opened: boolean = false;
+  opened: boolean = true;
 
   // Set by labeler
   private _labelMesh: ComponentLabelMesh | null = null;
@@ -49,6 +51,20 @@ export default class ComponentMesh extends BoxMesh {
     this.useOrignalAppearence(false);
     // Register multiple levels
     this.setAppearence(1, () => {});
+    this.layers.enable(SceneLayers.Component);
+  }
+
+  updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
+    super.updateLayout(layout, offset);
+
+    if (!this.opened) {
+      const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');
+      const CLOSED_HEIGHT = getStoredNumberSetting('closedComponentHeight');
+
+      this.height = CLOSED_HEIGHT;
+      this.position.y =
+        this.layout.positionY + (CLOSED_HEIGHT - OPENED_HEIGHT) / 2;
+    }
   }
 
   getModelId() {

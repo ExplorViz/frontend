@@ -39,7 +39,7 @@ import {
   EntityType,
   RestructureAction,
 } from 'explorviz-frontend/utils/restructure-helper';
-import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
+import { VisualizationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { default as VRController } from 'extended-reality/utils/vr-controller';
 import { getControllerPose } from 'extended-reality/utils/vr-helpers/vr-poses';
@@ -263,7 +263,7 @@ export default class MessageSender extends Service {
     });
   }
 
-  sendSharedSettings(settings: ApplicationSettings) {
+  sendSharedSettings(settings: VisualizationSettings) {
     this.webSocket.send<ShareSettingsMessage>(SHARE_SETTINGS_EVENT, {
       event: SHARE_SETTINGS_EVENT,
       settings,
@@ -511,6 +511,7 @@ export default class MessageSender extends Service {
       highlightedExternCommunicationLinks:
         room.highlightedExternCommunicationLinks,
       popups: room.popups.map(({ ...popup }) => popup),
+      annotations: room.annotations!.map(({ ...annotation }) => annotation),
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
     });
   }

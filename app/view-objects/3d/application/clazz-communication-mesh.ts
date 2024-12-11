@@ -5,6 +5,7 @@ import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model
 import { VisualizationMode } from 'collaboration/services/local-user';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import CommunicationArrowMesh from './communication-arrow-mesh';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -32,7 +33,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       color: defaultColor,
     });
     this.material.transparent = true;
-    this.castShadow = true;
     SemanticZoomManager.instance.add(this);
     this.saveCurrentlyActiveLayout();
     // this.setCallBeforeAppearenceZero(() => {
@@ -83,6 +83,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   saveCurrentlyActiveLayout() {
     this._layout_original = this.layout.copy();
+
+    this.layers.enable(SceneLayers.Communication);
   }
 
   getModelId() {
