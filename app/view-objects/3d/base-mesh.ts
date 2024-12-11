@@ -307,15 +307,19 @@ export default abstract class BaseMesh<
       this.material instanceof MeshLineMaterial
     ) {
       this.material.color = new THREE.Color('yellow');
-    } else {
-      return;
     }
 
     setTimeout(() => {
-      if (this.highlighted) {
-        this.material.color = this.highlightingColor;
-      } else {
-        this.material.color = this.defaultColor;
+      if (
+        this.material instanceof THREE.MeshLambertMaterial ||
+        this.material instanceof THREE.MeshBasicMaterial ||
+        this.material instanceof MeshLineMaterial
+      ) {
+        if (this.highlighted) {
+          this.material.color = this.highlightingColor;
+        } else {
+          this.material.color = this.defaultColor;
+        }
       }
     }, duration);
   }

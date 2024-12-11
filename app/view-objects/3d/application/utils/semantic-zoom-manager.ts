@@ -4,10 +4,10 @@ import * as THREE from 'three';
 import { Mesh } from 'three';
 import Configuration from 'explorviz-frontend/services/configuration';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import LocalUser from 'collaboration/services/local-user';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { VisualizationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 
 // Mixin Version for SemanticZoomableObject that implement the Interface `SemanticZoomableObject` with basic functionality
 
