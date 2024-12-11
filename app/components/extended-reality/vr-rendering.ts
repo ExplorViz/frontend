@@ -91,6 +91,7 @@ import {
 import { JOIN_VR_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import { MENU_DETACHED_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 
 interface Args {
   readonly id: string;
@@ -660,6 +661,7 @@ export default class VrRendering extends Component<Args> {
       renderer: this.renderer,
       updatables: this.updatables,
     });
+    ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.scene.add(this.collaborationSession.remoteUserGroup);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();

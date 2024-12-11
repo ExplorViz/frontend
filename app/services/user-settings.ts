@@ -165,37 +165,39 @@ export default class UserSettings extends Service {
   }
 
   setColorsFromSettings() {
-    const { visualizationSettings: applicationSettings } = this;
+    const { visualizationSettings } = this;
 
     this.colors = {
       foundationColor: new THREE.Color(
-        applicationSettings.foundationColor.value
+        visualizationSettings.foundationColor.value
       ),
       componentOddColor: new THREE.Color(
-        applicationSettings.componentOddColor.value
+        visualizationSettings.componentOddColor.value
       ),
       componentEvenColor: new THREE.Color(
-        applicationSettings.componentEvenColor.value
+        visualizationSettings.componentEvenColor.value
       ),
-      clazzColor: new THREE.Color(applicationSettings.clazzColor.value),
+      clazzColor: new THREE.Color(visualizationSettings.clazzColor.value),
       highlightedEntityColor: new THREE.Color(
-        applicationSettings.highlightedEntityColor.value
+        visualizationSettings.highlightedEntityColor.value
       ),
       componentTextColor: new THREE.Color(
-        applicationSettings.componentTextColor.value
+        visualizationSettings.componentTextColor.value
       ),
-      clazzTextColor: new THREE.Color(applicationSettings.clazzTextColor.value),
+      clazzTextColor: new THREE.Color(
+        visualizationSettings.clazzTextColor.value
+      ),
       foundationTextColor: new THREE.Color(
-        applicationSettings.foundationTextColor.value
+        visualizationSettings.foundationTextColor.value
       ),
       communicationColor: new THREE.Color(
-        applicationSettings.communicationColor.value
+        visualizationSettings.communicationColor.value
       ),
       communicationArrowColor: new THREE.Color(
-        applicationSettings.communicationArrowColor.value
+        visualizationSettings.communicationArrowColor.value
       ),
       backgroundColor: new THREE.Color(
-        applicationSettings.backgroundColor.value
+        visualizationSettings.backgroundColor.value
       ),
     };
   }

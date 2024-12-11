@@ -2,8 +2,9 @@ import { VisualizationMode } from 'explorviz-frontend/services/collaboration/loc
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
+import { SemanticZoomableObjectBaseMixin } from './utils/semantic-zoom-manager';
 
-export default class CommunicationArrowMesh extends THREE.ArrowHelper {
+class CommunicationArrowMeshPrivate extends THREE.ArrowHelper {
   dataModel: ClassCommunication | ComponentCommunication;
 
   isHovered = false;
@@ -101,7 +102,7 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
     // Apply hover effect in VR for increased readability
-    if (arg === 'vr' && this.isHovered === false) {
+    if (arg === 'vr' && !this.isHovered) {
       this.isHovered = true;
       this.position.y += this.HOVER_Y_TRANSLATION;
       this.scale.set(
@@ -134,5 +135,52 @@ export default class CommunicationArrowMesh extends THREE.ArrowHelper {
    */
   turnOpaque() {
     this.changeOpacity(1);
+  }
+}
+
+// export const CommunicationArrowMesh = SemanticZoomableObjectBaseMixin(
+//   CommunicationArrowMeshPrivate
+// );
+// export type CommunicationArrowMesh = InstanceType<
+//   typeof CommunicationArrowMesh
+// >;
+
+export default class CommunicationArrowMesh extends SemanticZoomableObjectBaseMixin(
+  CommunicationArrowMeshPrivate
+) {
+  constructor(
+    dataModel: ClassCommunication | ComponentCommunication,
+    dir: THREE.Vector3,
+    origin: THREE.Vector3,
+    length: number,
+    color: number,
+    headLength: number,
+    headWidth: number
+  ) {
+    super(dataModel, dir, origin, length, color, headLength, headWidth);
+    // this.saveTheParent = () => {
+    //   this.savedParent = this.parent;
+    // };
+    // this.originalLength = length;
+    // this.originalHeadLength = headLength;
+    // this.originalHeadWidth = headWidth;
+    //this.saveOriginalAppearence();
+    this.setCallBeforeAppearenceZero(() => {
+      // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
+      // .setLength (length : Number, headLength : Number, headWidth : Number)
+      this.setLength(length, headLength, headWidth);
+      //this.parent?.remove(this);
+      this.line.layers.disableAll();
+      this.cone.layers.disableAll();
+      //this.hideme();
+    });
+    this.setAppearence(2, () => {
+      // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
+      // .setLength (length : Number, headLength : Number, headWidth : Number)
+      this.setLength(length / 2, headLength / 2, headWidth / 2);
+      //if (this.savedParent != undefined) this.savedParent.add(this);
+      this.line.layers.enable(0);
+      this.cone.layers.enable(0);
+    });
   }
 }

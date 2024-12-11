@@ -56,6 +56,7 @@ export default class PopupHandler {
   @tracked
   popupData: PopupData[] = [];
 
+  deactivated: boolean = false;
   latestMousePosition: { timestamp: number; x: number; y: number } = {
     timestamp: 0,
     x: 0,
@@ -216,6 +217,8 @@ export default class PopupHandler {
     if (!isEntityMesh(mesh) || getStoredSettings().hidePopupDelay.value == 0) {
       return;
     }
+    if (this.deactivated) return;
+
     let popupPosition = position;
 
     // Popups shared by other users have no position information
@@ -309,6 +312,7 @@ export default class PopupHandler {
   }
 
   private updateExistingPopup(popup: PopupData, newPopup: PopupData) {
+    if (this.deactivated) return;
     popup.wasMoved = popup.wasMoved || newPopup.wasMoved;
     popup.mouseX = newPopup.mouseX;
     popup.mouseY = newPopup.mouseY;
@@ -326,6 +330,7 @@ export default class PopupHandler {
     if (!mesh) {
       return;
     }
+    if (this.deactivated) return;
 
     this.addPopup({
       mesh,
@@ -337,6 +342,7 @@ export default class PopupHandler {
   }
 
   onRestorePopups(popups: SerializedPopup[]) {
+    if (this.deactivated) return;
     this.popupData = [];
 
     for (const popup of popups) {

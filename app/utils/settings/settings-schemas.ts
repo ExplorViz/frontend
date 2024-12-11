@@ -11,6 +11,9 @@ export type SettingGroup =
   | 'Layout'
   | 'Minimap'
   | 'Popups'
+  | 'Virtual Reality'
+  | 'Semantic Zoom'
+  | 'Debugging'
   | 'Virtual Reality';
 
 export type AnnotationSettingId = 'enableCustomAnnotationPosition';
@@ -40,6 +43,8 @@ export type ColorSettingId =
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
+export type ControlSettingId = 'enableGamepadControls' | 'selectedGamepadIndex';
+
 export type ControlSettings = {
   enableGamepadControls: FlagSetting;
   selectedGamepadIndex: RangeSetting;
@@ -55,12 +60,11 @@ export type CommunicationSettings = Record<
   RangeSetting
 >;
 
-export type ControlSettingId = 'enableGamepadControls' | 'selectedGamepadIndex';
-
 export type DebugSettingId =
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
+  | 'showSemanticZoomCenterPoints'
   | 'fullscreen'
   | 'syncRoomState'
   | 'resetToDefaults';
@@ -69,7 +73,7 @@ export type DebugSettings = {
   showFpsCounter: FlagSetting;
   showAxesHelper: FlagSetting;
   showLightHelper: FlagSetting;
-  showVrOnClick: FlagSetting;
+  showSemanticZoomCenterPoints: ButtonSetting;
   fullscreen: ButtonSetting;
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
@@ -143,6 +147,33 @@ export type PopupSettings = {
   hidePopupDelay: RangeSetting;
 };
 
+export type SemanticZoomSettingId =
+  | 'semanticZoomState'
+  | 'usePredefinedSet'
+  | 'distancePreSet'
+  | 'distanceLevel1'
+  | 'distanceLevel2'
+  | 'distanceLevel3'
+  | 'distanceLevel4'
+  | 'distanceLevel5'
+  | 'autoOpenCloseFeature'
+  | 'useKmeansInsteadOfMeanShift'
+  | 'clusterBasedOnMembers';
+
+export type SemanticZoomSettings = {
+  usePredefinedSet: FlagSetting;
+  semanticZoomState: FlagSetting;
+  distancePreSet: RangeSetting;
+  distanceLevel1: RangeSetting;
+  distanceLevel2: RangeSetting;
+  distanceLevel3: RangeSetting;
+  distanceLevel4: RangeSetting;
+  distanceLevel5: RangeSetting;
+  clusterBasedOnMembers: RangeSetting;
+  autoOpenCloseFeature: FlagSetting;
+  useKmeansInsteadOfMeanShift: FlagSetting;
+};
+
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
 
 export type XrSettings = Record<XrSettingId, FlagSetting>;
@@ -160,6 +191,7 @@ export type VisualizationSettingId =
   | LayoutSettingId
   | MinimapSettingId
   | PopupSettingId
+  | SemanticZoomSettingId
   | XrSettingId;
 
 export type VisualizationSettings = AnnotationSettings &
@@ -173,6 +205,7 @@ export type VisualizationSettings = AnnotationSettings &
   LayoutSettings &
   MinimapSettings &
   PopupSettings &
+  SemanticZoomSettings &
   XrSettings &
   ColorSettings;
 

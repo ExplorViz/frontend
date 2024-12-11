@@ -3,6 +3,7 @@ import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers
 import {
   Application,
   Class,
+  Method,
   Node,
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -31,7 +32,13 @@ export default class PopupData {
   @tracked
   wasMoved: boolean;
 
-  entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;
+  entity:
+    | Node
+    | Application
+    | Package
+    | Class
+    | ClazzCommuMeshDataModel
+    | Method;
 
   mesh: EntityMesh;
 

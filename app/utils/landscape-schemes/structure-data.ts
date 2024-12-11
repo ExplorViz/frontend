@@ -1,6 +1,28 @@
 import sha256 from 'crypto-js/sha256';
 import isObject from '../object-helpers';
 
+export interface Variable {
+  private: boolean;
+  name: string;
+  type: string;
+}
+export interface Parameters {
+  name: string;
+  type: string;
+}
+export type Method = {
+  id: string;
+  name: string;
+  type: string;
+  private: boolean;
+  methodHash: string;
+  parameters: Parameters[];
+};
+export interface Interface {
+  name: string;
+  methods: Method[];
+  variables: Variable[];
+}
 export enum TypeOfAnalysis {
   Dynamic = 'dynamic',
   Static = 'static',
@@ -9,15 +31,16 @@ export enum TypeOfAnalysis {
 
 export type BaseModel = {
   id: string;
+  name: string;
+  methods: Method[];
+  parent: Package;
+  variables?: Variable[];
+  extends?: Class[];
+  implements?: Interface[];
 };
 
 type OriginOfData = {
   originOfData: TypeOfAnalysis;
-};
-
-export type Method = {
-  name: string;
-  methodHash: string;
 };
 
 export type Class = BaseModel &

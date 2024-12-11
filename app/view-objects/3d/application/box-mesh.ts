@@ -61,6 +61,18 @@ export default abstract class BoxMesh<
     }
   }
 
+  private setterHelper(fn: () => void) {
+    // Semantic Zoom Injection
+    //if (this instanceof BaseMesh) this.restoreOriginalAppearence();
+
+    fn();
+
+    // Save new Original
+    //if (this instanceof BaseMesh) {
+    //  this.saveOriginalAppearence();
+    //  this.restoreAppearence();
+  }
+
   updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
     this.layout = layout;
     const layoutPosition = this.layout.position;
@@ -85,7 +97,7 @@ export default abstract class BoxMesh<
   }
 
   set width(width: number) {
-    this.scale.x = width;
+    this.setterHelper(() => (this.scale.x = width));
   }
 
   get height() {
@@ -93,7 +105,7 @@ export default abstract class BoxMesh<
   }
 
   set height(height: number) {
-    this.scale.y = height;
+    this.setterHelper(() => (this.scale.y = height));
   }
 
   get depth() {
@@ -101,6 +113,6 @@ export default abstract class BoxMesh<
   }
 
   set depth(depth: number) {
-    this.scale.z = depth;
+    this.setterHelper(() => (this.scale.z = depth));
   }
 }

@@ -49,6 +49,8 @@ import {
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import layoutCity, {
   convertElkToBoxLayout,
 } from 'explorviz-frontend/utils/city-layouter';
@@ -116,6 +118,18 @@ export default class ApplicationRenderer extends Service.extend() {
       this.userSettings,
       this.localUser
     );
+    try {
+      SemanticZoomManager.instance.configuration = this.configuration;
+      SemanticZoomManager.instance.userSettings = this.userSettings;
+      SemanticZoomManager.instance.localUser = this.localUser;
+      SemanticZoomManager.instance.appCommRendering = this._appCommRendering;
+      SemanticZoomManager.instance.font = this.font;
+      ImmersiveView.instance.font = this.font;
+    } catch (error) {
+      console.error(
+        'Semantic Zoom Manger did not get any Settings by the Service Renderer. Zoom features are limited: {$error}'
+      );
+    }
 
     // const geometry = new THREE.BoxGeometry(1, 1, 1);
     // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -247,7 +261,8 @@ export default class ApplicationRenderer extends Service.extend() {
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.userSettings.colors
+          this.userSettings.colors,
+          this.font
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)

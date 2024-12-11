@@ -16,6 +16,17 @@ export default class BoxLayout {
   get position() {
     return new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
   }
+  // Copy function
+  copy(): BoxLayout {
+    const copy = new BoxLayout();
+    copy.positionX = this.positionX;
+    copy.positionY = this.positionY;
+    copy.positionZ = this.positionZ;
+    copy.width = this.width;
+    copy.height = this.height;
+    copy.depth = this.depth;
+    return copy;
+  }
 
   set position(position: THREE.Vector3) {
     this.positionX = position.x;

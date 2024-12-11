@@ -16,6 +16,7 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import { ChildMesh } from './simple-parent-mesh';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import SemanticZoomManager from './utils/semantic-zoom-manager';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -480,6 +481,7 @@ export default class ApplicationObject3D
    */
   removeAllCommunication() {
     this.getCommMeshes().forEach((mesh) => {
+      SemanticZoomManager.instance.remove(mesh);
       mesh.disposeRecursively();
       mesh.deleteFromParent();
     });
@@ -491,6 +493,7 @@ export default class ApplicationObject3D
    */
   removeAllEntities() {
     this.getAllMeshes().forEach((mesh) => {
+      SemanticZoomManager.instance.remove(mesh);
       mesh.disposeRecursively();
       mesh.deleteFromParent();
     });

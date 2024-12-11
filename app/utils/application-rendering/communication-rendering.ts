@@ -13,6 +13,7 @@ import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from '../link-helper';
 import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { VisualizationSettings } from '../settings/settings-schemas';
 
 export default class CommunicationRendering {
@@ -180,6 +181,7 @@ export default class CommunicationRendering {
             clazzCommuMeshData = mesh.dataModel;
             mesh.geometry.dispose();
             applicationObject3D.remove(mesh);
+            SemanticZoomManager.instance.remove(mesh);
 
             commLayout.lineThickness = calculateLineThickness(
               componentCommunication,
@@ -233,6 +235,7 @@ export default class CommunicationRendering {
         if (classCommunication.isBidirectional) {
           this.addBidirectionalArrow(pipe);
         }
+        pipe.saveOriginalAppearence();
       }
     );
 

@@ -49,6 +49,10 @@ import AnnotationHandlerService from 'explorviz-frontend/services/annotation-han
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
@@ -106,6 +110,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
 
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
+
   @service('minimap-service')
   minimapService!: MinimapService;
 
@@ -159,6 +166,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   selectedApplicationId: string = '';
 
+  toggleForceAppearenceLayer: boolean = false;
+
+  semanticZoomToggle: boolean = false;
+
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
@@ -188,6 +199,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
+    this.configuration.semanticZoomEnabled =
+      SemanticZoomManager.instance.isEnabled;
+
     // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
     this.graph = forceGraph;
@@ -202,6 +216,51 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.minimapService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
+    ImmersiveView.instance.callbackOnEntering = () => {
+      this.popupHandler.deactivated = true;
+      this.popupHandler.clearPopups();
+    };
+    ImmersiveView.instance.callbackOnExit = () => {
+      this.popupHandler.deactivated = false;
+    };
+    this.applicationRenderer.forceGraph = this.graph.graph;
+    // Semantic Zoom Manager shows/removes all communication arrows, due to heigh rendering time.
+    // If the Semantic zoom feature is enabled, all previously generated arrows are hidden. After that
+    // the manager decides on which level to show.
+    // If it gets disabled, alle previous arrows get restored.
+    // All this is done by shifting layers.
+    SemanticZoomManager.instance.registerActivationCallback((onOff) => {
+      this.linkRenderer
+        .getAllLinks()
+        .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.cone.layers.disableAll();
+              arrow.line.layers.disableAll();
+            } else {
+              arrow.cone.layers.set(0);
+              arrow.line.layers.set(0);
+            }
+          });
+        });
+      this.applicationRenderer.getOpenApplications().forEach((ap) => {
+        ap.getCommMeshes().forEach((currentCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.cone.layers.disableAll();
+              arrow.line.layers.disableAll();
+            } else {
+              arrow.cone.layers.set(0);
+              arrow.line.layers.set(0);
+            }
+          });
+        });
+      });
+    });
+    // Loads the AutoOpenClose activation state from the settings.
+    SemanticZoomManager.instance.toggleAutoOpenClose(
+      this.userSettings.visualizationSettings.autoOpenCloseFeature.value
+    );
     this.applicationRenderer.forceGraph = this.graph.graph;
 
     // IDE Websocket
@@ -237,7 +296,20 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       { title: 'Reset View', action: this.resetView },
       {
         title: 'Open All Components',
-        action: this.applicationRenderer.openAllComponentsOfAllApplications,
+        action: () => {
+          if (
+            this.userSettings.visualizationSettings.autoOpenCloseFeature
+              .value == true &&
+            this.userSettings.visualizationSettings.semanticZoomState.value ==
+              true
+          ) {
+            this.toastHandlerService.showErrorToastMessage(
+              'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
+            );
+            return;
+          }
+          this.applicationRenderer.openAllComponentsOfAllApplications();
+        },
       },
       {
         title: commButtonTitle,
@@ -245,6 +317,63 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       },
       { title: 'Enter AR', action: this.args.switchToAR },
     ];
+  }
+
+  @action
+  toggleSemanticZoom() {
+    if (!SemanticZoomManager.instance.isEnabled) {
+      SemanticZoomManager.instance.activate();
+    } else {
+      SemanticZoomManager.instance.deactivate();
+    }
+    this.userSettings.updateSetting(
+      'semanticZoomState',
+      SemanticZoomManager.instance.isEnabled
+    );
+    this.configuration.semanticZoomEnabled =
+      SemanticZoomManager.instance.isEnabled;
+  }
+
+  @action
+  showSemanticZoomClusterCenters() {
+    // Remove previous center points from scene
+    const prevCenterPointList = this.scene.children.filter(
+      (preCenterPoint) => preCenterPoint.name == 'centerPoints'
+    );
+    prevCenterPointList.forEach((preCenterPoint) => {
+      this.scene.remove(preCenterPoint);
+    });
+
+    if (!SemanticZoomManager.instance.isEnabled) {
+      return;
+    }
+
+    // Poll Center Vectors
+    SemanticZoomManager.instance
+      .getClusterCentroids()
+      .forEach((centerPoint) => {
+        // Create red material
+        const xGroup = new THREE.Group();
+        xGroup.name = 'centerPoints';
+        const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+        // Create the first part of the "X" (a thin rectangle)
+        const geometry = new THREE.BoxGeometry(0.1, 0.01, 0.01); // A long thin box
+        const part1 = new THREE.Mesh(geometry, redMaterial);
+        part1.rotation.z = Math.PI / 4; // Rotate 45 degrees
+
+        // Create the second part of the "X"
+        const part2 = new THREE.Mesh(geometry, redMaterial);
+        part2.rotation.z = -Math.PI / 4; // Rotate -45 degrees
+
+        // Add both parts to the scene
+        xGroup.add(part1);
+        xGroup.add(part2);
+
+        // Set Position of X Group
+        xGroup.position.copy(centerPoint);
+        this.scene.add(xGroup);
+      });
   }
 
   /**
@@ -335,6 +464,29 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.camera);
 
+    // Add Camera to ImmersiveView manager
+    ImmersiveView.instance.registerCamera(this.camera);
+    ImmersiveView.instance.registerScene(this.scene);
+    ImmersiveView.instance.registerCanvas(this.canvas);
+
+    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
+      -aspectRatio * 1,
+      aspectRatio * 1,
+      1,
+      -1,
+      0.1,
+      100
+    );
+
+    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
+
+    this.localUser.ortographicCamera.position.setFromSphericalCoords(
+      10,
+      Math.PI / 3,
+      Math.PI / 4
+    );
+    this.localUser.ortographicCamera.lookAt(this.scene.position);
+
     // Controls
     this.cameraControls = new CameraControls(
       getOwner(this),
@@ -382,8 +534,30 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       renderer: this.renderer,
       updatables: this.updatables,
     });
+    ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.renderingLoop.start();
 
+    this.graph.graph.onFinishUpdate(() => {
+      if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+        this.debug('initdone!');
+        setTimeout(() => {
+          this.cameraControls.resetCameraFocusOn(
+            1.2,
+            ...this.applicationRenderer.getOpenApplications()
+          );
+          if (
+            SemanticZoomManager.instance.isEnabled ||
+            this.userSettings.visualizationSettings.semanticZoomState.value ==
+              true
+          ) {
+            SemanticZoomManager.instance.activate();
+            this.configuration.semanticZoomEnabled =
+              SemanticZoomManager.instance.isEnabled;
+          }
+        }, 200);
+        this.initDone = true;
+      }
+    });
     // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
     if (this.args.snapshot || this.args.snapshotReload) {
       this.graph.graph.onFinishUpdate(() => {
@@ -460,7 +634,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    // nothin to do atm
+    SemanticZoomManager.instance.logCurrentState();
+    // nothing to do atm
   }
 
   @action
@@ -538,6 +713,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.applicationRenderer.closeAllComponents(applicationObject3D);
       }
     }
+    if (ImmersiveView.instance.isImmersiveViewCapable(mesh)) {
+      ImmersiveView.instance.triggerObject(mesh);
+    }
   }
 
   @action
@@ -548,10 +726,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
+      ImmersiveView.instance.takeHistory(intersection.object);
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
+      ImmersiveView.instance.takeHistory(null);
     }
+
     this.popupHandler.handleHoverOnMesh(intersection?.object);
     this.annotationHandler.handleHoverOnMesh(intersection?.object);
 
