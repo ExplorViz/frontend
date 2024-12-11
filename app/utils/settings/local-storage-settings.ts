@@ -7,16 +7,16 @@ import {
 } from './settings-schemas';
 
 export function getStoredSettings(): VisualizationSettings {
-  const userApplicationSettingsJSON = localStorage.getItem('ExplorVizSettings');
+  const settingsJson = localStorage.getItem('ExplorVizSettings');
 
-  if (userApplicationSettingsJSON === null) {
+  if (settingsJson === null) {
     return defaultVizSettings;
   }
 
-  const parsedApplicationSettings = JSON.parse(userApplicationSettingsJSON);
+  const parsedSettings = JSON.parse(settingsJson);
 
-  if (areValidApplicationSettings(parsedApplicationSettings)) {
-    return parsedApplicationSettings;
+  if (areValidSettings(parsedSettings)) {
+    return parsedSettings;
   } else {
     localStorage.removeItem('ExplorVizSettings');
     return defaultVizSettings;
@@ -38,7 +38,7 @@ export function getStoredNumberSetting(id: VisualizationSettingId): number {
   }
 }
 
-export function areValidApplicationSettings(maybeSettings: unknown) {
+export function areValidSettings(maybeSettings: unknown) {
   return (
     isObject(maybeSettings) &&
     objectsHaveSameKeys(maybeSettings, defaultVizSettings)
@@ -57,9 +57,9 @@ export function validateRangeSetting(
   }
 }
 
-export function saveSettings(applicationSettings: VisualizationSettings) {
+export function saveSettings(visualizationSettings: VisualizationSettings) {
   localStorage.setItem(
     'ExplorVizSettings',
-    JSON.stringify(applicationSettings)
+    JSON.stringify(visualizationSettings)
   );
 }

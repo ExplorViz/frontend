@@ -76,7 +76,7 @@ export default class Settings extends Component<Args> {
   ];
 
   get settingsSortedByGroup() {
-    const { visualizationSettings: applicationSettings } = this.userSettings;
+    const { visualizationSettings } = this.userSettings;
 
     const settingGroupToSettingIds: Record<
       SettingGroup,
@@ -100,8 +100,8 @@ export default class Settings extends Component<Args> {
 
     let settingId: keyof VisualizationSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingId in applicationSettings) {
-      const setting = applicationSettings[settingId];
+    for (settingId in visualizationSettings) {
+      const setting = visualizationSettings[settingId];
       settingGroupToSettingIds[setting.group].push(settingId);
     }
 
@@ -111,8 +111,8 @@ export default class Settings extends Component<Args> {
       const settingArray = settingGroupToSettingIds[settingGroupId];
       settingArray.sort(
         (settingId1, settingId2) =>
-          applicationSettings[settingId1].orderNumber -
-          applicationSettings[settingId2].orderNumber
+          visualizationSettings[settingId1].orderNumber -
+          visualizationSettings[settingId2].orderNumber
       );
     }
 
@@ -221,11 +221,6 @@ export default class Settings extends Component<Args> {
       case 'distanceLevel5':
         if (pre_input != undefined && input != undefined) {
           this.cleanArray(valueArray, (pre_input as number) < input, false);
-          // Set `distancePreSet` to Custom Settings
-          // this.userSettings.updateApplicationSetting(
-          //   'distancePreSet' as ApplicationSettingId,
-          //   0
-          // );
           this.userSettings.updateSetting('usePredefinedSet', false);
         }
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(

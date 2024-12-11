@@ -1,6 +1,5 @@
 import debugLogger from 'ember-debug-logger';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
-import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { Mesh } from 'three';
 import Configuration from 'explorviz-frontend/services/configuration';
@@ -8,6 +7,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import LocalUser from 'collaboration/services/local-user';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { VisualizationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 
 // Mixin Version for SemanticZoomableObject that implement the Interface `SemanticZoomableObject` with basic functionality
 
@@ -773,7 +773,7 @@ export default class SemanticZoomManager {
   cluster(k: number) {
     this.lastReclustering = new Date();
     this.lastAddToCluster = new Date();
-    const appSettings: ApplicationSettings = getStoredSettings();
+    const appSettings: VisualizationSettings = getStoredSettings();
     const useKmeans: boolean = appSettings.useKmeansInsteadOfMeanShift.value;
     // k-Means Clustering
     if (useKmeans) {
@@ -811,7 +811,7 @@ export default class SemanticZoomManager {
   }
 
   createZoomLevelMap(cam: THREE.Camera) {
-    const appSettings: ApplicationSettings = getStoredSettings();
+    const appSettings: VisualizationSettings = getStoredSettings();
     const d1: number = appSettings.distanceLevel1.value;
     const d2: number = appSettings.distanceLevel2.value;
     const d3: number = appSettings.distanceLevel3.value;
@@ -884,7 +884,7 @@ export default class SemanticZoomManager {
     return [distinctMeshClassNames, smallestMap, biggestMap];
   }
   createZoomLevelMapDependingOnMeshTypes(cam: THREE.Camera) {
-    const appSettings: ApplicationSettings = getStoredSettings();
+    const appSettings: VisualizationSettings = getStoredSettings();
     const d1: number = appSettings.distanceLevel1.value;
     const d2: number = appSettings.distanceLevel2.value;
     const d3: number = appSettings.distanceLevel3.value;
