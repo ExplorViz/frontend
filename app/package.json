@@ -125,6 +125,8 @@
     "prettier-plugin-ember-template-tag": "^2.0.4",
     "qunit": "^2.20.0",
     "qunit-dom": "^3.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tracked-built-ins": "^3.3.0",
     "typescript": "5.3.3",
     "webpack": "^5.90.1",
@@ -182,6 +184,11 @@
     "three-forcegraph": "^1.41.10",
     "three-mesh-ui": "^6.5.4",
     "vanilla-picker": "^2.12.2"
+  },
+  "dependenciesMeta": {
+    "react-lib": {
+      "injected": true
+    }
   },
   "overrides": {
     "ember-cli-ifa": "~0.10.0"
