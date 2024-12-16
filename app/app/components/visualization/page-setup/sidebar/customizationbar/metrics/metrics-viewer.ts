@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
-import { Metrics } from 'explorviz-frontend/utils/landscape-schemes/metrics-data';
+import { Metrics } from 'react-lib/src/utils/landscape-schemes/metrics-data';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { tracked } from '@glimmer/tracking';
 import TimestampService from 'explorviz-frontend/services/timestamp';

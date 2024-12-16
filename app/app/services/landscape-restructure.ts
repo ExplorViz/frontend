@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import {
   addFoundationToLandscape,
   addMethodToClass,

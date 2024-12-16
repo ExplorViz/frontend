@@ -6,7 +6,7 @@ import {
   Package,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
 import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
 import { inject as service } from '@ember/service';

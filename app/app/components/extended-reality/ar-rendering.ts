@@ -7,7 +7,7 @@ import CollaborationSession from 'explorviz-frontend/services/collaboration/coll
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import debugLogger from 'ember-debug-logger';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';

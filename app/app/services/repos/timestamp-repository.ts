@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { tracked } from '@glimmer/tracking';
 import TimestampPollingService from '../timestamp-polling';
 import RenderingService from '../rendering-service';

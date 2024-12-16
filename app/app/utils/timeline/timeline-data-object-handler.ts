@@ -1,5 +1,5 @@
 import { tracked } from '@glimmer/tracking';
-import { Timestamp } from '../landscape-schemes/timestamp';
+import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';
 import RenderingService from 'explorviz-frontend/services/rendering-service';

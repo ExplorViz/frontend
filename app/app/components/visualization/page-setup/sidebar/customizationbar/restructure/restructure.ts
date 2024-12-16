@@ -6,7 +6,7 @@ import { tracked } from '@glimmer/tracking';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';

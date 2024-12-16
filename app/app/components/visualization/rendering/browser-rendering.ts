@@ -6,7 +6,7 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import debugLogger from 'ember-debug-logger';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';

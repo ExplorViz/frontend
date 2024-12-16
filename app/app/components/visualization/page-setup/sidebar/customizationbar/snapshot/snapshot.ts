@@ -13,7 +13,7 @@ import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 
 interface Args {
   landscapeData: LandscapeData;

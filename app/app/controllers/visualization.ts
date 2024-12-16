@@ -58,7 +58,7 @@ import UserApiTokenService, {
   ApiToken,
 } from 'explorviz-frontend/services/user-api-token';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import * as THREE from 'three';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
@@ -70,7 +70,7 @@ import RenderingService, {
 import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'

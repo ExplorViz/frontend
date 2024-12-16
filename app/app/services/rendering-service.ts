@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
@@ -10,7 +10,7 @@ import {
 import ReloadHandler from './reload-handler';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { tracked } from '@glimmer/tracking';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import debugLogger from 'ember-debug-logger';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import TimestampService from './timestamp';
