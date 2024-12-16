@@ -3,7 +3,7 @@ import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { setOwner } from '@ember/application';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
-import { MapControls } from '../controls/MapControls';
+import { MapControls } from 'react-lib/src/utils/controls/MapControls';
 
 export default class CameraControls {
   @service('user-settings')

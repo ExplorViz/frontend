@@ -1,7 +1,7 @@
 // Copied for modification from: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/controls/MapControls.js
 
 import { MOUSE, TOUCH } from 'three';
-import { OrbitControls } from './OrbitControls.js';
+import { OrbitControls } from 'react-lib/src/utils/controls/OrbitControls.js';
 
 // MapControls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).

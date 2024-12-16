@@ -3,7 +3,12 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
-import { gamepadMappings } from './gamepad-mappings';
+import { gamepadMappings } from 'react-lib/src/utils/controls/gamepad/gamepad-mappings';
+
+/**
+ * TODO: Migration Comment
+ * Migrate after all imports are migrated.
+ */
 
 /**
  * Checks an axis position against a fixed threshold to filter out small disturbances
