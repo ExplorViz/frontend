@@ -1,6 +1,6 @@
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
+import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 export default class ClazzCommuMeshDataModel {
   communication: ClassCommunication | ComponentCommunication;

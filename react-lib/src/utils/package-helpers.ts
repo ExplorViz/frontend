@@ -1,9 +1,9 @@
-import { getAllPackagesInApplication } from './application-helpers';
+import { getAllPackagesInApplication } from 'react-lib/src/utils/application-helpers';
 import {
   Package,
   Class,
   StructureLandscapeData,
-} from './landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 /**
  * Returns the package's classes

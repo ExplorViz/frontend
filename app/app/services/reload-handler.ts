@@ -2,12 +2,12 @@ import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 
 import debugLogger from 'ember-debug-logger';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import LandscapeHttpRequestUtil from './landscape-http-request-util';
 import { getOwner } from '@ember/application';
 

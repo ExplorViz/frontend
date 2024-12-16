@@ -8,11 +8,11 @@ import {
   getAllMethodHashesOfLandscapeStructureData,
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ReloadHandler from './reload-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import debugLogger from 'ember-debug-logger';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import TimestampService from './timestamp';
 import ToastHandlerService from './toast-handler';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';

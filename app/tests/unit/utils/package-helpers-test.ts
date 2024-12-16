@@ -1,11 +1,11 @@
 import {
   Class,
   Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getClassesInPackage,
   getSubPackagesOfPackage,
-} from 'explorviz-frontend/utils/package-helpers';
+} from 'react-lib/src/utils/package-helpers';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | package-helpers', function () {

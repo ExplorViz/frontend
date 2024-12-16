@@ -2,20 +2,19 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'explorviz-frontend/utils/application-helpers';
-import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/application-helpers';
+import { Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getSubPackagesOfPackage,
   getClassesInPackage,
-} from 'explorviz-frontend/utils/package-helpers';
+} from 'react-lib/src/utils/package-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import {
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,

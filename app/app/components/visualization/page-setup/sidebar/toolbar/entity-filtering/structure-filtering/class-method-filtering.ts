@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { inject as service } from '@ember/service';
 import TimestampService, {
   NEW_SELECTED_TIMESTAMP_EVENT,

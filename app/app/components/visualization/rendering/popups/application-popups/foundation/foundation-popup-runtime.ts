@@ -2,11 +2,11 @@ import Component from '@glimmer/component';
 import {
   Application,
   TypeOfAnalysis,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getAllClassesInApplicationForGivenOrigin,
   getAllPackagesInApplicationForGivenOrigin,
-} from 'explorviz-frontend/utils/application-helpers';
+} from 'react-lib/src/utils/application-helpers';
 
 interface Args {
   application: Application;

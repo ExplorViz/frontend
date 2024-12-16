@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import { tracked } from '@glimmer/tracking';
 import { earthTexture } from 'explorviz-frontend/controllers/visualization';
@@ -10,10 +10,9 @@ import ClazzCommunicationMesh from './clazz-communication-mesh';
 import BaseMesh from '../base-mesh';
 import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
-import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import { ChildMesh } from './simple-parent-mesh';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import { ChildMesh } from './simple-parent-mesh';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 

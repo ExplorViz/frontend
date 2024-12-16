@@ -1,4 +1,4 @@
-import { TypeOfAnalysis } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { TypeOfAnalysis } from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 export default function isValidPopupSection(
   typeOfPopup: string,

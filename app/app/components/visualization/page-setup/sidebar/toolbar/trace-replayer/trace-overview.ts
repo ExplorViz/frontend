@@ -2,7 +2,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 
 interface Args {
   readonly dynamicData: DynamicLandscapeData;

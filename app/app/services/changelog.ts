@@ -5,12 +5,12 @@ import {
   Class,
   Package,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   RestructureAction,
   EntityType,
 } from 'explorviz-frontend/utils/restructure-helper';
-import { getAncestorPackages } from 'explorviz-frontend/utils/package-helpers';
+import { getAncestorPackages } from 'react-lib/src/utils/package-helpers';
 import {
   AppChangeLogEntry,
   BaseChangeLogEntry,
@@ -20,8 +20,7 @@ import {
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
 import { tracked } from '@glimmer/tracking';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 
 export default class Changelog extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here

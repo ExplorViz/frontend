@@ -1,6 +1,6 @@
 import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/component-communication';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
 
 export default class CommunicationArrowMesh extends THREE.ArrowHelper {

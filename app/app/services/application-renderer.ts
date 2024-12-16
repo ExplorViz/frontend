@@ -15,7 +15,7 @@ import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler
 import {
   Class,
   Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -30,7 +30,7 @@ import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
+import { getSubPackagesOfPackage } from 'react-lib/src/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
@@ -46,7 +46,7 @@ import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evo
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'explorviz-frontend/utils/application-helpers';
+} from 'react-lib/src/utils/application-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';

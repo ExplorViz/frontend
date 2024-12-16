@@ -8,7 +8,7 @@ import {
   ClassMetricCode,
 } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 import PopupData from '../../popup-data';
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { calculateFqn } from 'explorviz-frontend/utils/landscape-structure-helpers';
 
 interface Args {

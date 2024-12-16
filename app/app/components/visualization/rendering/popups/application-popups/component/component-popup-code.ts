@@ -2,7 +2,7 @@ import GlimmerComponent from '@glimmer/component';
 import {
   Package,
   TypeOfAnalysis,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 interface Args {
   component: Package;

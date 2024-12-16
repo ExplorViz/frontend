@@ -7,7 +7,7 @@ import {
   K8sNamespace,
   K8sNode,
   K8sPod,
-} from './landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { GenericPopupEntiresFromObject } from 'explorviz-frontend/components/visualization/rendering/popups/generic-popup';
 

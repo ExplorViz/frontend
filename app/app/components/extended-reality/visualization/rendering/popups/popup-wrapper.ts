@@ -5,7 +5,7 @@ import {
   Application,
   Class,
   Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 
 interface PopupWrapperArgs {

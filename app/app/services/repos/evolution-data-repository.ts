@@ -6,7 +6,7 @@ import {
   AppNameCommitTreeMap,
   CommitComparison,
 } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,

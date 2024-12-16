@@ -7,9 +7,9 @@ import {
   Application,
   Class,
   Package,
-} from '../landscape-schemes/structure-data';
-import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from '../landscape-schemes/dynamic/component-communication';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import { ApplicationSettings } from '../settings/settings-schemas';
 
 export function calculateLineThickness(

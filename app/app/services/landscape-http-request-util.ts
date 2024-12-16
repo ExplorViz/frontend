@@ -1,6 +1,6 @@
 import { inject as service } from '@ember/service';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import LandscapeTokenService from './landscape-token';

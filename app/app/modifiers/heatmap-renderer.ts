@@ -2,7 +2,7 @@ import { inject as service } from '@ember/service';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { Metric } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';

@@ -22,15 +22,14 @@ import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import {
   Application,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import UserSettings from 'explorviz-frontend/services/user-settings';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';

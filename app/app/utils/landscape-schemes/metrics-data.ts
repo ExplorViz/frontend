@@ -1,4 +1,4 @@
-import isObject from '../object-helpers';
+import isObject from 'react-lib/src/utils/object-helpers';
 
 export type Metric = {
   idk: string; //idk means here I don't know, since Influx always transmitts one empty key-value pair that is catched by this dummy variable

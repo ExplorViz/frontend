@@ -1,5 +1,5 @@
 import sha256 from 'crypto-js/sha256';
-import isObject from '../object-helpers';
+import isObject from 'react-lib/src/utils/object-helpers';
 
 export enum TypeOfAnalysis {
   Dynamic = 'dynamic',

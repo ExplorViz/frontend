@@ -1,4 +1,4 @@
-import isObject, { objectsHaveSameKeys } from '../object-helpers';
+import isObject, { objectsHaveSameKeys } from 'react-lib/src/utils/object-helpers';
 import { defaultApplicationSettings } from './default-settings';
 import { ApplicationSettings, RangeSetting } from './settings-schemas';
 

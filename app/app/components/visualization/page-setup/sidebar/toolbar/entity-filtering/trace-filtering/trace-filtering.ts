@@ -2,9 +2,9 @@ import Component from '@glimmer/component';
 import {
   DynamicLandscapeData,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
-import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';

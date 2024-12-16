@@ -5,11 +5,11 @@ import { inject as service } from '@ember/service';
 import {
   Span,
   Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
 import {
   getApplicationFromClass,

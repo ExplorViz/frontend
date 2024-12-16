@@ -5,7 +5,7 @@ import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
-import { Class, Package } from '../landscape-schemes/structure-data';
+import { Class, Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 
 /**

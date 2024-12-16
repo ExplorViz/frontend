@@ -9,7 +9,7 @@ import {
   isPackage,
   Node,
   Package,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 interface Args {
   popupData: {

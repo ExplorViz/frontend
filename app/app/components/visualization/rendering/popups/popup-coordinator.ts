@@ -11,7 +11,7 @@ import {
   isClass,
   isNode,
   isPackage,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';

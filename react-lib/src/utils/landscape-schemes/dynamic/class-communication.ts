@@ -1,5 +1,8 @@
-import { Application, Class } from '../structure-data';
-import MethodCall from './method-call';
+import {
+  Application,
+  Class,
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
+import MethodCall from 'react-lib/src/utils/landscape-schemes/dynamic/method-call';
 
 export default class ClassCommunication {
   id: string = '';

@@ -7,14 +7,14 @@ import {
   getAllClassesInApplication,
   getAllClassIdsInApplication,
   getAllPackagesInApplication,
-} from '../application-helpers';
+} from 'react-lib/src/utils/application-helpers';
 import { getClassAncestorPackages } from '../class-helpers';
-import ClassCommunication from '../landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   isTrace,
   Span,
   Trace,
-} from '../landscape-schemes/dynamic/dynamic-data';
+} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   isApplication,
@@ -22,9 +22,9 @@ import {
   isPackage,
   Package,
   StructureLandscapeData,
-} from '../landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from '../landscape-structure-helpers';
-import { getClassesInPackage } from '../package-helpers';
+import { getClassesInPackage } from 'react-lib/src/utils/package-helpers';
 
 // #region Add/Update/Remove Highlighting
 

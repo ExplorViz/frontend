@@ -1,14 +1,14 @@
 import Component from '@glimmer/component';
-import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import {
   Class,
   Package,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
-import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
+import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
 import { inject as service } from '@ember/service';
 import TimestampService, {
   NEW_SELECTED_TIMESTAMP_EVENT,

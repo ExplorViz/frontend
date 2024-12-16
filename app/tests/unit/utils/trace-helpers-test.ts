@@ -1,4 +1,4 @@
-import { Trace } from 'explorviz-frontend/utils/landscape-schemes/dynamic-data';
+import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   sortTracesByDuration,
   sortTracesById,

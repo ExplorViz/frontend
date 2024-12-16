@@ -1,7 +1,7 @@
 import { tracked } from '@glimmer/tracking';
 import { LayoutData } from 'explorviz-frontend/services/application-renderer';
-import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import ClassCommunication from './landscape-schemes/dynamic/class-communication';
+import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import { ApplicationMetrics, Metric } from './metric-schemes/metric-data';
 import { FlatData } from './flat-data-schemes/flat-data';
 

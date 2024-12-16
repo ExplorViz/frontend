@@ -13,7 +13,7 @@ import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
 import { SelectedCommit } from './commit-tree-state';
 

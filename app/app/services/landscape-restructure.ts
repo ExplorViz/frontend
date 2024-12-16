@@ -34,7 +34,7 @@ import {
   isClass,
   isPackage,
   StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getApplicationFromClass,
   getApplicationFromPackage,
@@ -47,7 +47,7 @@ import {
   getClassesInPackage,
   getPackageById,
   getSubPackagesOfPackage,
-} from 'explorviz-frontend/utils/package-helpers';
+} from 'react-lib/src/utils/package-helpers';
 import { getClassById } from 'explorviz-frontend/utils/class-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
@@ -61,7 +61,7 @@ import * as THREE from 'three';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'explorviz-frontend/utils/application-helpers';
+} from 'react-lib/src/utils/application-helpers';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from './user-settings';
 import {
@@ -72,8 +72,7 @@ import {
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/utils/changelog-entry';
-import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
