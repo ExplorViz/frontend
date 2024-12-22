@@ -16,9 +16,9 @@ import ApplicationData, {
 } from 'explorviz-frontend/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
-} from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
+} from 'react-lib/src/utils/application-rendering/class-communication-computer';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
-import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
 import {
   Application,
   StructureLandscapeData,
@@ -27,7 +27,8 @@ import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/d
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import UserSettings from 'explorviz-frontend/services/user-settings';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';

@@ -76,14 +76,15 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
-import { getClassById } from 'explorviz-frontend/utils/class-helpers';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import {
+import { getClassById } from 'react-lib/src/utils/class-helpers';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import {
   Application,
   Class,
   Package,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getApplicationInLandscapeById } from 'react-lib/src/utils/landscape-structure-helpers';
 import { getPackageById } from 'react-lib/src/utils/package-helpers';
 import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';

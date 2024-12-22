@@ -11,8 +11,8 @@ import {
   Class,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
-import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
+import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
+import { getSortedTraceSpans } from 'react-lib/src/utils/trace-helpers';
 
 interface Args {
   moveCameraTo(emberModel: Class | Span): void;

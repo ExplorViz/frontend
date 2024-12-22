@@ -6,10 +6,10 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import {
   ApplicationMetricsCode,
   ClassMetricCode,
-} from 'explorviz-frontend/utils/metric-schemes/metric-data';
+} from 'react-lib/src/utils/metric-schemes/metric-data';
 import PopupData from '../../popup-data';
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { calculateFqn } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { calculateFqn } from 'react-lib/src/utils/landscape-structure-helpers';
 
 interface Args {
   popupData: PopupData;

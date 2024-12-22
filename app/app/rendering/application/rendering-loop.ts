@@ -1,6 +1,6 @@
 import { setOwner } from '@ember/application';
 import { Clock } from 'three';
-import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
+import THREEPerformance from 'react-lib/src/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';

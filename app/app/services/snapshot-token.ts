@@ -4,7 +4,7 @@ import Auth from './auth';
 import ToastHandlerService from './toast-handler';
 import { LandscapeToken } from './landscape-token';
 import { tracked } from '@glimmer/tracking';
-import { getCircularReplacer } from 'explorviz-frontend/utils/circularReplacer';
+import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';

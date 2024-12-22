@@ -7,14 +7,14 @@ import {
   Commit,
   CommitComparison,
   CommitTree,
-} from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+} from 'react-lib/src/utils/evolution-schemes/evolution-data';
 
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
+import { ApplicationMetricsCode } from 'react-lib/src/utils/metric-schemes/metric-data';
 import { SelectedCommit } from './commit-tree-state';
 
 const { codeService } = ENV.backendAddresses;

@@ -42,7 +42,7 @@ import {
 import SceneRepository from './repos/scene-repository';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
-import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+import { CommitComparison } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,

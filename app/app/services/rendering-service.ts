@@ -6,7 +6,7 @@ import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
   getAllMethodHashesOfLandscapeStructureData,
-} from 'explorviz-frontend/utils/landscape-structure-helpers';
+} from 'react-lib/src/utils/landscape-structure-helpers';
 import ReloadHandler from './reload-handler';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { tracked } from '@glimmer/tracking';
@@ -16,8 +16,8 @@ import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/st
 import TimestampService from './timestamp';
 import ToastHandlerService from './toast-handler';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
-import { animatePlayPauseIcon } from 'explorviz-frontend/utils/animate';
-import { combineDynamicLandscapeData } from 'explorviz-frontend/utils/landscape-dynamic-helpers';
+import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
+import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { SelectedCommit } from './commit-tree-state';
 import TimestampRepository from './repos/timestamp-repository';

@@ -4,8 +4,8 @@ import { action } from '@ember/object';
 import {
   AppNameCommitTreeMap,
   Commit,
-} from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
-import { findAppNameAndBranchNameForCommit } from 'explorviz-frontend/utils/evolution-data-helpers';
+} from 'react-lib/src/utils/evolution-schemes/evolution-data';
+import { findAppNameAndBranchNameForCommit } from 'react-lib/src/utils/evolution-data-helpers';
 
 export type SelectedCommit = Commit;
 

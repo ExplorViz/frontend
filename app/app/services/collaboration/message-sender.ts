@@ -38,7 +38,7 @@ import { ControllerId } from 'explorviz-frontend/utils/collaboration/web-socket-
 import {
   EntityType,
   RestructureAction,
-} from 'explorviz-frontend/utils/restructure-helper';
+} from 'react-lib/src/utils/restructure-helper';
 import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { default as VRController } from 'explorviz-frontend/utils/extended-reality/vr-controller';

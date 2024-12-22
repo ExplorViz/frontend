@@ -52,7 +52,7 @@ import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-c
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
-import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
 
 interface BrowserRenderingArgs {
   readonly id: string;

@@ -7,7 +7,7 @@ import {
   Branch,
   Commit,
   CROSS_COMMIT_IDENTIFIER,
-} from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+} from 'react-lib/src/utils/evolution-schemes/evolution-data';
 
 interface IArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;

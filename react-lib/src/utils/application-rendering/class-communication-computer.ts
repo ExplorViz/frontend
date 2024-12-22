@@ -8,7 +8,7 @@ import {
   Class,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getTraceIdToSpanTreeMap } from '../trace-helpers';
+import { getTraceIdToSpanTreeMap } from 'react-lib/src/utils/trace-helpers';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
 

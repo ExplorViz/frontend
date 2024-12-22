@@ -18,8 +18,8 @@ import SceneRepository from 'explorviz-frontend/services/repos/scene-repository'
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import { addSpheres } from 'explorviz-frontend/utils/application-rendering/spheres';
-import hitTest from 'explorviz-frontend/utils/hit-test';
+import { addSpheres } from 'react-lib/src/utils/application-rendering/spheres';
+import hitTest from 'react-lib/src/utils/hit-test';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';

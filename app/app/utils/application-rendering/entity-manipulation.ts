@@ -8,7 +8,7 @@ import {
   isSpan,
   Span,
 } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { spanIdToClass } from '../landscape-structure-helpers';
+import { spanIdToClass } from 'react-lib/src/utils/landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';

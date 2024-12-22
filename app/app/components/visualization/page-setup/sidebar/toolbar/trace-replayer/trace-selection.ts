@@ -10,13 +10,13 @@ import {
   Application,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
 import {
   calculateDuration,
   getSortedTraceSpans,
   sortTracesByDuration,
   sortTracesById,
-} from 'explorviz-frontend/utils/trace-helpers';
+} from 'react-lib/src/utils/trace-helpers';
 
 export type TimeUnit = 'ns' | 'ms' | 's';
 

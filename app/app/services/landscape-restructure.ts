@@ -24,7 +24,7 @@ import {
   pastePackage,
   pasteClass,
   duplicateApplication,
-} from 'explorviz-frontend/utils/restructure-helper';
+} from 'react-lib/src/utils/restructure-helper';
 import ApplicationRenderer from './application-renderer';
 import {
   Application,
@@ -40,7 +40,7 @@ import {
   getApplicationFromPackage,
   getApplicationFromSubPackage,
   getApplicationInLandscapeById,
-} from 'explorviz-frontend/utils/landscape-structure-helpers';
+} from 'react-lib/src/utils/landscape-structure-helpers';
 import ApplicationRepository from './repos/application-repository';
 import Changelog from './changelog';
 import {
@@ -48,12 +48,12 @@ import {
   getPackageById,
   getSubPackagesOfPackage,
 } from 'react-lib/src/utils/package-helpers';
-import { getClassById } from 'explorviz-frontend/utils/class-helpers';
+import { getClassById } from 'react-lib/src/utils/class-helpers';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import {
   RestructureAction,
   EntityType,
-} from 'explorviz-frontend/utils/restructure-helper';
+} from 'react-lib/src/utils/restructure-helper';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import LinkRenderer from './link-renderer';

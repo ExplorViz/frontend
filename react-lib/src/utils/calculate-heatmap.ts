@@ -1,4 +1,7 @@
-import { ApplicationMetrics, Metric } from './metric-schemes/metric-data';
+import {
+  ApplicationMetrics,
+  Metric,
+} from 'react-lib/src/utils/metric-schemes/metric-data';
 
 const windowSize = 9;
 

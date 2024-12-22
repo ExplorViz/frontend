@@ -3,7 +3,7 @@ import {
   sortTracesByDuration,
   sortTracesById,
   sortSpanArrayByTime,
-} from 'explorviz-frontend/utils/trace-helpers';
+} from 'react-lib/src/utils/trace-helpers';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | trace-helpers', function () {

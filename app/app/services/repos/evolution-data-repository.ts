@@ -5,13 +5,13 @@ import {
   CommitTree,
   AppNameCommitTreeMap,
   CommitComparison,
-} from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
+} from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-structure-helpers';
-import { ApplicationMetricsCode } from 'explorviz-frontend/utils/metric-schemes/metric-data';
+} from 'react-lib/src/utils/landscape-structure-helpers';
+import { ApplicationMetricsCode } from 'react-lib/src/utils/metric-schemes/metric-data';
 import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
 import CommitTreeStateService, { SelectedCommit } from '../commit-tree-state';
 

@@ -7,7 +7,7 @@ import { action } from '@ember/object';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
-import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
 import { inject as service } from '@ember/service';
 import TimestampService, {
   NEW_SELECTED_TIMESTAMP_EVENT,

@@ -10,12 +10,12 @@ import {
   Class,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
+import { getSortedTraceSpans } from 'react-lib/src/utils/trace-helpers';
 import {
   getApplicationFromClass,
   getHashCodeToClassMap,
   spanIdToClass,
-} from 'explorviz-frontend/utils/landscape-structure-helpers';
+} from 'react-lib/src/utils/landscape-structure-helpers';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 

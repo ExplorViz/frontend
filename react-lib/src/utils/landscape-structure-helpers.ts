@@ -13,8 +13,14 @@ import {
   Method,
   Package,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getAncestorPackages, getPackageById } from 'react-lib/src/utils/package-helpers';
-import { getTraceIdToSpanTree, SpanTree } from './trace-helpers';
+import {
+  getAncestorPackages,
+  getPackageById,
+} from 'react-lib/src/utils/package-helpers';
+import {
+  getTraceIdToSpanTree,
+  SpanTree,
+} from 'react-lib/src/utils/trace-helpers';
 
 export function getAllApplicationsInLandscape(
   landscapeStructure: StructureLandscapeData

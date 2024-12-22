@@ -1,4 +1,4 @@
-import { RestructureAction } from './restructure-helper';
+import { RestructureAction } from 'react-lib/src/utils/restructure-helper';
 import {
   Application,
   Class,
@@ -9,7 +9,7 @@ import {
 import {
   getApplicationFromPackage,
   getApplicationFromSubPackage,
-} from './landscape-structure-helpers';
+} from 'react-lib/src/utils/landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import { tracked } from '@glimmer/tracking';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';

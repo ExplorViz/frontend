@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import { Metric } from 'explorviz-frontend/utils/metric-schemes/metric-data';
+import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 
