@@ -1,6 +1,6 @@
 import isObject, { objectsHaveSameKeys } from 'react-lib/src/utils/object-helpers';
-import { defaultApplicationSettings } from './default-settings';
-import { ApplicationSettings, RangeSetting } from './settings-schemas';
+import { defaultApplicationSettings } from 'react-lib/src/utils/settings/default-settings';
+import { ApplicationSettings, RangeSetting } from 'react-lib/src/utils/settings/settings-schemas';
 
 export function getStoredSettings(): ApplicationSettings {
   const userApplicationSettingsJSON = localStorage.getItem(

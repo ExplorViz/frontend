@@ -17,7 +17,7 @@ import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
-import { getStoredSettings } from '../settings/local-storage-settings';
+import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.

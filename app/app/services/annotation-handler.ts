@@ -51,7 +51,7 @@ import {
   isAnnotationEditResponse,
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
-import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')

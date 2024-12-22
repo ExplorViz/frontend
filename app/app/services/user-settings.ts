@@ -8,8 +8,8 @@ import {
   defaultApplicationColors,
   blueApplicationColors,
   ColorScheme,
-} from 'explorviz-frontend/utils/settings/color-schemes';
-import { defaultApplicationSettings } from 'explorviz-frontend/utils/settings/default-settings';
+} from 'react-lib/src/utils/settings/color-schemes';
+import { defaultApplicationSettings } from 'react-lib/src/utils/settings/default-settings';
 import {
   ApplicationColorSettingId,
   ApplicationColorSettings,
@@ -18,7 +18,7 @@ import {
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
-} from 'explorviz-frontend/utils/settings/settings-schemas';
+} from 'react-lib/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import SceneRepository from './repos/scene-repository';
@@ -30,7 +30,7 @@ import {
   getStoredSettings,
   saveSettings,
   validateRangeSetting,
-} from 'explorviz-frontend/utils/settings/local-storage-settings';
+} from 'react-lib/src/utils/settings/local-storage-settings';
 
 export default class UserSettings extends Service {
   @service('application-renderer')

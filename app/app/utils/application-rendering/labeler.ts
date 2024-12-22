@@ -9,7 +9,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
-import { getStoredSettings } from '../settings/local-storage-settings';
+import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 /**

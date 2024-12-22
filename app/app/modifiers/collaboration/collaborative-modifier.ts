@@ -86,7 +86,7 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'react-lib/src/utils/landscape-structure-helpers';
 import { getPackageById } from 'react-lib/src/utils/package-helpers';
-import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
+import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import WaypointIndicator from 'explorviz-frontend/utils/extended-reality/view-objects/vr/waypoint-indicator';

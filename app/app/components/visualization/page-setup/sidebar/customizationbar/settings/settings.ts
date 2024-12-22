@@ -3,12 +3,12 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
+import { ColorSchemeId } from 'react-lib/src/utils/settings/color-schemes';
 import {
   ApplicationSettingId,
   ApplicationSettings,
   SettingGroup,
-} from 'explorviz-frontend/utils/settings/settings-schemas';
+} from 'react-lib/src/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';

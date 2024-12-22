@@ -1,4 +1,4 @@
-import { ApplicationSettings } from 'explorviz-frontend/utils/settings/settings-schemas';
+import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 
 export const SHARE_SETTINGS_EVENT = 'share_settings';
 

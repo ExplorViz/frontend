@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
 import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
-import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import { gamepadMappings } from 'react-lib/src/utils/controls/gamepad/gamepad-mappings';
 
 /**

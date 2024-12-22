@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { ColorSchemeId } from 'explorviz-frontend/utils/settings/color-schemes';
+import { ColorSchemeId } from 'react-lib/src/utils/settings/color-schemes';
 
 interface Args {
   colorSchemes: { name: string; action: () => void };

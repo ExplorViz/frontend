@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { ButtonSetting as ButtonSettingObj } from 'explorviz-frontend/utils/settings/settings-schemas';
+import { ButtonSetting as ButtonSettingObj } from 'react-lib/src/utils/settings/settings-schemas';
 
 interface Args {
   setting: ButtonSettingObj;

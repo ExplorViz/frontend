@@ -1,5 +1,5 @@
-import { defaultApplicationColors } from './color-schemes';
-import { ApplicationSettings } from './settings-schemas';
+import { defaultApplicationColors } from 'react-lib/src/utils/settings/color-schemes';
+import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 
 export const defaultApplicationSettings: ApplicationSettings = {
   // Color Settings
