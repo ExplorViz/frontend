@@ -6,7 +6,7 @@ import UserApiTokenService, {
   ApiToken,
 } from 'explorviz-frontend/services/user-api-token';
 import { format } from 'date-fns';
-import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
+import convertDate from 'react-lib/src/utils/helpers/time-convter';
 
 export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');

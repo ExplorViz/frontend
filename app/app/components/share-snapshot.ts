@@ -7,7 +7,7 @@ import SnapshotTokenService, {
   TinySnapshot,
 } from 'explorviz-frontend/services/snapshot-token';
 import { tracked } from '@glimmer/tracking';
-import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
+import convertDate from 'react-lib/src/utils/helpers/time-convter';
 
 export default class ShareSnapshotComponent extends Component<TinySnapshot> {
   @service('auth')

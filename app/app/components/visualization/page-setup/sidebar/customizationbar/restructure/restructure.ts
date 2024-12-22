@@ -11,7 +11,7 @@ import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dyna
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import Changelog from 'explorviz-frontend/services/changelog';
 import { format } from 'date-fns';
-import convertDate from 'explorviz-frontend/utils/helpers/time-convter';
+import convertDate from 'react-lib/src/utils/helpers/time-convter';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';

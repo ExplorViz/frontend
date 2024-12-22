@@ -1,4 +1,4 @@
-import { areArraysEqual } from './array-helpers';
+import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
 
 export function areMapsEqual(
   mapA: Map<any, any[]> | null,

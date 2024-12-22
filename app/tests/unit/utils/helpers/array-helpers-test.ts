@@ -1,4 +1,4 @@
-import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
+import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | helpers/array-helpers', function () {

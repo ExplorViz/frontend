@@ -6,7 +6,7 @@ import TimestampPollingService from '../timestamp-polling';
 import RenderingService from '../rendering-service';
 import TimestampService from '../timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
-import { areArraysEqual } from 'explorviz-frontend/utils/helpers/array-helpers';
+import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
 import { SelectedCommit } from '../commit-tree-state';
 
 /**
