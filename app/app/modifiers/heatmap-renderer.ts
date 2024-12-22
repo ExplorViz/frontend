@@ -13,7 +13,7 @@ import applySimpleHeatOnFoundation, {
   computeHeatMapViewPos,
   removeHeatmapHelperLines,
 } from 'explorviz-frontend/utils/heatmap/heatmap-helper';
-import simpleHeatmap from 'explorviz-frontend/utils/heatmap/simple-heatmap';
+import simpleHeatmap from 'react-lib/src/utils/heatmap/simple-heatmap';
 import * as THREE from 'three';
 
 interface NamedArgs {

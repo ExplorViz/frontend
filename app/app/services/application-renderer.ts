@@ -48,7 +48,7 @@ import {
   getAllPackagesInApplication,
 } from 'react-lib/src/utils/application-helpers';
 import { MeshLineMaterial } from 'meshline';
-import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
+import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
 // #endregion imports
 
