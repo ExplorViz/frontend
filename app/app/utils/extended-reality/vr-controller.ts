@@ -1,5 +1,5 @@
 import debugLogger from 'ember-debug-logger';
-import { defaultRaycastFilter } from 'explorviz-frontend/utils/raycaster';
+import { defaultRaycastFilter } from 'react-lib/src/utils/raycaster';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import * as THREE from 'three';
 import { canIntersectAllParentObjects } from './view-objects/interfaces/intersectable-object';

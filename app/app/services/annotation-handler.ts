@@ -8,7 +8,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
+import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import { SerializedAnnotation } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';

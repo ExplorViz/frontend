@@ -1,5 +1,5 @@
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import CrosshairMesh from 'explorviz-frontend/view-objects/3d/crosshair-mesh';
+import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
+import CrosshairMesh from 'react-lib/src/view-objects/3d/crosshair-mesh.ts';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
 import PingMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/ping-mesh';

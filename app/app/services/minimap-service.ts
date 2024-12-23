@@ -4,7 +4,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as THREE from 'three';
-import Raycaster from 'explorviz-frontend/utils/raycaster';
+import Raycaster from 'react-lib/src/utils/raycaster';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 

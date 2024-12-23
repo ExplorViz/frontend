@@ -15,7 +15,7 @@ import MessageSender from 'explorviz-frontend/services/collaboration/message-sen
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 

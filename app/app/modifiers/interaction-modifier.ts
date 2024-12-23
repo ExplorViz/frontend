@@ -9,7 +9,7 @@ import debugLogger from 'ember-debug-logger';
 import Modifier, { ArgsFor } from 'ember-modifier';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import Raycaster from 'explorviz-frontend/utils/raycaster';
+import Raycaster from 'react-lib/src/utils/raycaster';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
 

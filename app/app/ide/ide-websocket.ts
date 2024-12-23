@@ -11,7 +11,7 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
+import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import debugLogger from 'ember-debug-logger';

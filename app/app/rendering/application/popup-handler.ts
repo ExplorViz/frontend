@@ -12,7 +12,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
+import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import {
   getTypeOfEntity,

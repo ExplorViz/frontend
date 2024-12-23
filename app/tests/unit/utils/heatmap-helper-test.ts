@@ -1,4 +1,4 @@
-// import heatmapHelper from 'explorviz-frontend/utils/heatmap-helper';
+// import heatmapHelper from 'react-lib/src/utils/heatmap/heatmap-helper';
 import { module, test } from 'qunit';
 
 module('Unit | Utility | heatmap-helper', function (/* hooks */) {

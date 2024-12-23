@@ -1,4 +1,4 @@
-// import raycaster from 'explorviz-frontend/utils/raycaster';
+// import raycaster from 'react-lib/src/utils/raycaster';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 

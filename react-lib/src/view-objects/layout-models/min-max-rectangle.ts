@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import PlaneLayout from './plane-layout';
+import PlaneLayout from 'react-lib/src/view-objects/layout-models/plane-layout';
 
 /**
  * Rectangle which can keep track of the smallest min x- or y-Position

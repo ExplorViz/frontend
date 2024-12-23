@@ -4,14 +4,14 @@ import applyCommunicationLayout, {
 } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import CommunicationLayout from 'explorviz-frontend/view-objects/layout-models/communication-layout';
+import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
-import { findFirstOpen } from '../link-helper';
+import { findFirstOpen } from 'react-lib/src/utils/link-helper';
 import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import { ApplicationSettings } from '../settings/settings-schemas';
 

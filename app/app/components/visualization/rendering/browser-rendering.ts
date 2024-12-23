@@ -50,7 +50,7 @@ import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
-import Raycaster from 'explorviz-frontend/utils/raycaster';
+import Raycaster from 'react-lib/src/utils/raycaster';
 import PopupData from './popups/popup-data';
 import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
 

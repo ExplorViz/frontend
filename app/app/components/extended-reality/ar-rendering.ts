@@ -20,7 +20,7 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'react-lib/src/utils/application-rendering/spheres';
 import hitTest from 'react-lib/src/utils/hit-test';
-import Raycaster from 'explorviz-frontend/utils/raycaster';
+import Raycaster from 'react-lib/src/utils/raycaster';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
