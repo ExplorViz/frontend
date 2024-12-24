@@ -10,7 +10,7 @@ import {
   HEATMAP_UPDATE_EVENT,
   HeatmapUpdateArgs,
   HeatmapUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration//web-socket-messages/sendable/heatmap-update';
+} from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/heatmap-update';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import equal from 'fast-deep-equal';

@@ -18,7 +18,7 @@ import {
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/delete-message';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/delete-message';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 
 export interface ChatMessageInterface {

@@ -17,11 +17,11 @@ import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-m
 import {
   ANNOTATION_OPENED_EVENT,
   AnnotationOpenedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-opened';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-opened';
 import {
   ANNOTATION_CLOSED_EVENT,
   AnnotationClosedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-closed';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-closed';
 import { AnnotationForwardMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
 import {
   AnnotationResponse,
@@ -36,7 +36,7 @@ import Auth from './auth';
 import {
   ANNOTATION_UPDATED_EVENT,
   AnnotationUpdatedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-updated';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-updated';
 import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
@@ -45,7 +45,7 @@ import { AnnotationUpdatedForwardMessage } from 'react-lib/src/utils/collaborati
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-edit';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-edit';
 import {
   AnnotationEditResponse,
   isAnnotationEditResponse,

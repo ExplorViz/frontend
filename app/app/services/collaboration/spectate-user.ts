@@ -11,7 +11,7 @@ import {
 import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/spectating-update';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
 import debugLogger from 'ember-debug-logger';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
 import * as VrPoses from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';

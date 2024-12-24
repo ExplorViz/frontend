@@ -23,11 +23,11 @@ import {
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,

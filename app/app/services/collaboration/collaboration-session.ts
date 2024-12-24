@@ -39,7 +39,7 @@ import MinimapService from 'explorviz-frontend/services/minimap-service';
 import {
   USER_KICK_EVENT,
   UserKickEvent,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/kick-user';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';

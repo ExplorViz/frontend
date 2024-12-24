@@ -88,7 +88,7 @@ import {
 import {
   PING_UPDATE_EVENT,
   PingUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/ping-update';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/ping-update';
 import { JOIN_VR_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import { MENU_DETACHED_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
