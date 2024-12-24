@@ -7,7 +7,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import RoomService from 'explorviz-frontend/services/collaboration/room-service';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
-import { RoomListRecord } from 'explorviz-frontend/utils/collaboration/room-payload/receivable/room-list';
+import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Auth from 'explorviz-frontend/services/auth';
 import LandscapeTokenService, {

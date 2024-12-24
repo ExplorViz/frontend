@@ -6,7 +6,7 @@ import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import RoomService from 'explorviz-frontend/services/collaboration/room-service';
-import { RoomListRecord } from 'explorviz-frontend/utils/collaboration/room-payload/receivable/room-list';
+import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
 
 interface RoomListArgs {
   tokens: LandscapeToken[];
