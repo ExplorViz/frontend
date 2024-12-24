@@ -3,11 +3,11 @@ import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   USER_DISCONNECTED_EVENT,
   UserDisconnectedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/user-disconnect';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/user-disconnect';
 import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,

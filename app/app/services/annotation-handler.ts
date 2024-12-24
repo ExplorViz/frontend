@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { SerializedAnnotation } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   ANNOTATION_OPENED_EVENT,
   AnnotationOpenedMessage,
@@ -22,11 +22,11 @@ import {
   ANNOTATION_CLOSED_EVENT,
   AnnotationClosedMessage,
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-closed';
-import { AnnotationForwardMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/annotation-forward';
+import { AnnotationForwardMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
 import {
   AnnotationResponse,
   isAnnotationResponse,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
@@ -40,8 +40,8 @@ import {
 import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
-import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
+import { AnnotationUpdatedForwardMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,
@@ -49,7 +49,7 @@ import {
 import {
   AnnotationEditResponse,
   isAnnotationEditResponse,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 

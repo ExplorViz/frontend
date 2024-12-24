@@ -12,7 +12,7 @@ import {
   HeatmapUpdateMessage,
 } from 'explorviz-frontend/utils/collaboration//web-socket-messages/sendable/heatmap-update';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import equal from 'fast-deep-equal';
 
 function cleanup(instance: SyncStateModifier) {

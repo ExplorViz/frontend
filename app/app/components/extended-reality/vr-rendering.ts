@@ -75,7 +75,7 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { MenuDetachedForwardMessage } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   OBJECT_MOVED_EVENT,

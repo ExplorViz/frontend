@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import { registerDestructor } from '@ember/destroyable';
 import { tracked } from '@glimmer/tracking';
 import ToastHandlerService from './toast-handler';
-import collaborationSession from 'explorviz-frontend/services/collaboration-session';
+import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import * as THREE from 'three';
@@ -10,16 +10,16 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/chat-message';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/chat-message';
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/delete-message';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 
 export interface ChatMessageInterface {
   msgId: number;

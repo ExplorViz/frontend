@@ -16,15 +16,15 @@ import RoomService from './room-service';
 import {
   SELF_CONNECTED_EVENT,
   SelfConnectedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/self-connected';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/self-connected';
 import {
   USER_CONNECTED_EVENT,
   UserConnectedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/user-connected';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/user-connected';
 import {
   USER_DISCONNECTED_EVENT,
   UserDisconnectedMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/user-disconnect';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/user-disconnect';
 import {
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
@@ -33,7 +33,7 @@ import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import {

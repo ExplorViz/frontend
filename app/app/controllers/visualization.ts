@@ -11,15 +11,15 @@ import LocalUser, {
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/landscape';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/landscape';
 import {
   TIMESTAMP_UPDATE_TIMER_EVENT,
   TimestampUpdateTimerMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,

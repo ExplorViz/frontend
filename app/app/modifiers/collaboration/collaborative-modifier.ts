@@ -4,7 +4,7 @@ import { inject as service } from '@ember/service';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { ALL_HIGHLIGHTS_RESET_EVENT } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
 import {
   APP_OPENED_EVENT,
