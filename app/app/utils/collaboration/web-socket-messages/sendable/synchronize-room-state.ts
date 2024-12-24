@@ -7,7 +7,7 @@ import {
   SerializedAnnotation,
   SerializedHighlightedExternLink,
   SerializedPopup,
-} from '../types/serialized-room';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 
 export const SYNC_ROOM_STATE_EVENT = 'sync_room_state';
 

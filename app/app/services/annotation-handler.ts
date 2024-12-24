@@ -10,7 +10,7 @@ import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpe
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
-import { SerializedAnnotation } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SerializedAnnotation } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';

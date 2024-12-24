@@ -1,7 +1,7 @@
 import {
   Nonce,
   isNonce,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/nonce';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/nonce';
 
 export const DETACHED_MENU_CLOSED_EVENT = 'detached_menu_closed';
 

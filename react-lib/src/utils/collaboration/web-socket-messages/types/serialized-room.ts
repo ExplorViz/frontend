@@ -1,7 +1,7 @@
-import { EntityType } from './entity-type';
-import { Position } from './position';
-import { Quaternion } from './quaternion';
-import { Scale } from './Scale';
+import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
+import { Position } from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+import { Quaternion } from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
+import { Scale } from 'react-lib/src/utils/collaboration/web-socket-messages/types/Scale';
 
 export type SerializedRoom = {
   landscape: SerializedLandscape;

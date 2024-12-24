@@ -1,4 +1,7 @@
-import { Position, isPosition } from '../types/position';
+import {
+  Position,
+  isPosition,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
 
 export const POPUP_OPENED_EVENT = 'popup_opened';
 

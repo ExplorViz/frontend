@@ -28,7 +28,7 @@ import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/applicati
 import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   EntityType,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type DetailInfoMenuArgs = BaseMenuArgs & {
   owner: any;

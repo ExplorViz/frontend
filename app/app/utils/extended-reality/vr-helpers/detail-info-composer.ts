@@ -19,7 +19,7 @@ import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/cl
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,
   EntityType,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
 
 export type DetailedInfo = {

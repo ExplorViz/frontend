@@ -25,7 +25,7 @@ import { SHARE_SETTINGS_EVENT } from 'explorviz-frontend/utils/collaboration//we
 import { SPECTATING_UPDATE_EVENT } from 'explorviz-frontend/utils/collaboration//web-socket-messages/sendable/spectating-update';
 import { SYNC_ROOM_STATE_EVENT } from 'explorviz-frontend/utils/collaboration//web-socket-messages/sendable/synchronize-room-state';
 import { TIMESTAMP_UPDATE_EVENT } from 'explorviz-frontend/utils/collaboration//web-socket-messages/sendable/timetsamp-update';
-import { Nonce } from 'explorviz-frontend/utils/collaboration//web-socket-messages/types/nonce';
+import { Nonce } from 'react-lib/src/utils/collaboration//web-socket-messages/types/nonce';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
 import { MENU_DETACHED_RESPONSE_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';

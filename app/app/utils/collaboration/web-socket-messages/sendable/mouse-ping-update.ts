@@ -1,4 +1,7 @@
-import { Position, isPosition } from '../types/position';
+import {
+  Position,
+  isPosition,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
 
 export const MOUSE_PING_UPDATE_EVENT = 'mouse_ping_update';
 

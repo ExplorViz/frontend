@@ -1,7 +1,7 @@
-import { Scale } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/Scale';
-import { EntityType } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
-import { Position } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/position';
-import { Quaternion } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/quaternion';
+import { Scale } from 'react-lib/src/utils/collaboration/web-socket-messages/types/Scale';
+import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
+import { Position } from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+import { Quaternion } from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export type InitialRoomDetachedMenu = {
   entityId: string;

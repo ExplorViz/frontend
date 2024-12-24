@@ -1,4 +1,7 @@
-import { ControllerId, isControllerId } from '../types/controller-id';
+import {
+  ControllerId,
+  isControllerId,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 
 export const PING_UPDATE_EVENT = 'ping_update';
 

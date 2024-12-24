@@ -32,7 +32,7 @@ import {
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/controller-id';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import MinimapService from 'explorviz-frontend/services/minimap-service';

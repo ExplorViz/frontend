@@ -1,7 +1,19 @@
-import { Color, isColor } from '../types/color';
-import { Controller, isController } from '../types/controller';
-import { Position, isPosition } from '../types/position';
-import { Quaternion, isQuaternion } from '../types/quaternion';
+import {
+  Color,
+  isColor,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/color';
+import {
+  Controller,
+  isController,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller';
+import {
+  Position,
+  isPosition,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+import {
+  Quaternion,
+  isQuaternion,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const SELF_CONNECTED_EVENT = 'self_connected';
 

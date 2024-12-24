@@ -5,7 +5,7 @@ import { DetachableMenu } from '../detachable-menu';
 import RectangleItem from '../items/rectangle-item';
 import TextItem from '../items/text-item';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
-import { EntityType } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
+import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type HeatmapMenuArgs = UiMenuArgs & {
   heatmapConfiguration: HeatmapConfiguration;

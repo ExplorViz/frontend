@@ -38,7 +38,7 @@ import {
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';

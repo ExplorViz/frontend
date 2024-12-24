@@ -14,7 +14,7 @@ import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
   ControllerId,
-} from './web-socket-messages/types/controller-id';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 type Camera = {

@@ -66,7 +66,7 @@ import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
   ControllerId,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/controller-id';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,

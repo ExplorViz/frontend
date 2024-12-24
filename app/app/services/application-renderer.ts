@@ -34,7 +34,7 @@ import { getSubPackagesOfPackage } from 'react-lib/src/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
-import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import {
   EntityMesh,
   isEntityMesh,

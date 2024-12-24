@@ -1,4 +1,7 @@
-import { Nonce, isNonce } from '../types/nonce';
+import {
+  Nonce,
+  isNonce,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/nonce';
 
 export const ANNOTATION_OPENED_EVENT = 'annotation';
 

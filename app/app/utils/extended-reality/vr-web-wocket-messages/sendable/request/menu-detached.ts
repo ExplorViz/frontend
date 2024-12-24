@@ -1,23 +1,23 @@
 import {
   Scale,
   isScale,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/Scale';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/Scale';
 import {
   EntityType,
   isEntityType,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 import {
   Nonce,
   isNonce,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/nonce';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/nonce';
 import {
   Position,
   isPosition,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/position';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/quaternion';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const MENU_DETACHED_EVENT = 'menu_detached';
 

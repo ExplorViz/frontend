@@ -7,7 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 

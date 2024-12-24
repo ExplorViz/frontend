@@ -13,7 +13,7 @@ import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,
 } from '../detail-info-menu';
-import { EntityType } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/entity-type';
+import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {
   owner: any;

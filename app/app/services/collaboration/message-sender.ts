@@ -34,7 +34,7 @@ import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
-import { ControllerId } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/controller-id';
+import { ControllerId } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 import {
   EntityType,
   RestructureAction,
@@ -120,7 +120,7 @@ import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
-import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import {
   USER_KICK_EVENT,

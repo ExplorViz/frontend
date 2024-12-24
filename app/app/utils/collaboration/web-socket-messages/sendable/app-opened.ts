@@ -1,6 +1,15 @@
-import { Scale, isScale } from '../types/Scale';
-import { Position, isPosition } from '../types/position';
-import { Quaternion, isQuaternion } from '../types/quaternion';
+import {
+  Scale,
+  isScale,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/Scale';
+import {
+  Position,
+  isPosition,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+import {
+  Quaternion,
+  isQuaternion,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const APP_OPENED_EVENT = 'app_opened';
 

@@ -1,6 +1,15 @@
-import { Color, isColor } from '../types/color';
-import { Position, isPosition } from '../types/position';
-import { Quaternion, isQuaternion } from '../types/quaternion';
+import {
+  Color,
+  isColor,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/color';
+import {
+  Position,
+  isPosition,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+import {
+  Quaternion,
+  isQuaternion,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const USER_CONNECTED_EVENT = 'user_connected';
 
