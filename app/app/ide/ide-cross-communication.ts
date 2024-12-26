@@ -15,7 +15,7 @@ import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import IdeCrossCommunicationEvent from './ide-cross-communication-event';
+import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event';
 import { Object3DEventMap } from 'three';
 
 export enum IDEApiDest {
