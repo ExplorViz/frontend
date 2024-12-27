@@ -75,7 +75,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import { BaseChangeLogEntry } from 'explorviz-frontend/utils/changelog-entry';
+import { BaseChangeLogEntry } from 'react-lib/src/utils/changelog-entry';
 import { getClassById } from 'react-lib/src/utils/class-helpers';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import {
