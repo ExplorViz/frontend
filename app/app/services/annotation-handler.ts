@@ -30,7 +30,7 @@ import {
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import Auth from './auth';
 import {

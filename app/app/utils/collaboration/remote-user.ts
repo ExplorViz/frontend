@@ -9,7 +9,7 @@ import MousePing from './mouse-ping-helper';
 import {
   ControllerPose,
   Pose,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,

@@ -43,29 +43,29 @@ import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schem
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { default as VRController } from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import { getControllerPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
-import { JoinVrMessage } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
+import { JoinVrMessage } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import {
   OBJECT_MOVED_EVENT,
   ObjectMovedMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
 import {
   OBJECT_RELEASED_EVENT,
   ObjectReleasedMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/object-released';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-released';
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
 import {
   USER_CONTROLLER_DISCONNECT_EVENT,
   UserControllerDisconnectMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import {
   ControllerPose,
   Pose,
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import * as THREE from 'three';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import {

@@ -3,7 +3,7 @@ import VRController from '../vr-controller';
 import {
   ControllerPose,
   Pose,
-} from '../vr-web-wocket-messages/sendable/user-positions';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 
 export interface VrPose {
   camera: Pose;

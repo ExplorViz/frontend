@@ -6,11 +6,11 @@ import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-
 import {
   ObjectGrabbedResponse,
   isObjectGrabbedResponse,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-grabbed';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-grabbed';
 import {
   OBJECT_GRABBED_EVENT,
   ObjectGrabbedMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/object-grabbed';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/object-grabbed';
 export default class GrabbedObjectService extends Service {
   @service('collaboration/message-sender')
   private sender!: MessageSender;

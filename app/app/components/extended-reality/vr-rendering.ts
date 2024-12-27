@@ -70,27 +70,27 @@ import {
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
 import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { MenuDetachedForwardMessage } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
+import { MenuDetachedForwardMessage } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   OBJECT_MOVED_EVENT,
   ObjectMovedMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
 import {
   USER_CONTROLLER_DISCONNECT_EVENT,
   UserControllerDisconnectMessage,
-} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
+} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import {
   PING_UPDATE_EVENT,
   PingUpdateMessage,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/ping-update';
-import { JOIN_VR_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
-import { MENU_DETACHED_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import { JOIN_VR_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
+import { MENU_DETACHED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 
 interface Args {
