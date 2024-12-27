@@ -1,7 +1,7 @@
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import * as THREE from 'three';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
-import { IntersectableObject } from '../interfaces/intersectable-object';
+import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import { BLOCK_OPTIONS_CONTAINER } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/detail-info-menu';
 
 export type CloseIconTextures = {

@@ -5,8 +5,8 @@ import VRControllerThumbpadBinding, {
 } from '../vr-controller/vr-controller-thumbpad-binding';
 import { BaseMenuArgs } from './base-menu';
 import InteractiveMenu from './interactive-menu';
-import InteractiveItem from './items/interactive-item';
-import Item from './items/item';
+import InteractiveItem from 'react-lib/src/utils/extended-reality/vr-menus/items/interactive-item';
+import Item from 'react-lib/src/utils/extended-reality/vr-menus/items/item';
 
 export const DEFAULT_MENU_RESOLUTION = 512;
 

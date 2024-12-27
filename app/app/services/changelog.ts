@@ -18,9 +18,10 @@ import {
   CommunicationChangeLogEntry,
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
-} from 'explorviz-frontend/utils/changelog-entry';
+} from 'react-lib/src/utils/changelog-entry';
 import { tracked } from '@glimmer/tracking';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 
 export default class Changelog extends Service.extend(Evented, {
   // anything which *must* be merged to prototype here

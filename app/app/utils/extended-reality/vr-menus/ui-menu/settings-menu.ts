@@ -1,8 +1,8 @@
 import VRControllerLabelGroup from '../../vr-controller/vr-controller-label-group';
-import CheckboxItem from '../items/checkbox-item';
-import TextItem from '../items/text-item';
-import TextbuttonItem from '../items/textbutton-item';
-import TitleItem from '../items/title-item';
+import CheckboxItem from 'react-lib/src/utils/extended-reality/vr-menus/items/checkbox-item';
+import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
 
 export type SettingsMenuArgs = UiMenuArgs & {

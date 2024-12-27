@@ -1,7 +1,7 @@
 import RoomService from 'explorviz-frontend/services/collaboration/room-service';
-import TextItem from '../../items/text-item';
-import TextbuttonItem from '../../items/textbutton-item';
-import TitleItem from '../../items/title-item';
+import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
 

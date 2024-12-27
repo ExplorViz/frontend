@@ -7,13 +7,13 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
-import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-objects/interfaces/grabbable-object';
+import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import DisableInputMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-less-menu/disable-input-menu';
 import GrabMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-less-menu/grab-menu';
 import PingMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-less-menu/ping-menu';
 import ScaleMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-less-menu/scale-menu';
-import SharedScaleMenuState from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-less-menu/scale-menu/shared-state';
+import SharedScaleMenuState from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/scale-menu/shared-state';
 import CameraMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/camera-menu';
 import ConnectionBaseMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/connection/base';
 import JoinMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/connection/join-menu';

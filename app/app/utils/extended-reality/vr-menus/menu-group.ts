@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
-import FloorMesh from '../view-objects/vr/floor-mesh';
+import FloorMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/floor-mesh';
 import VRController from '../vr-controller';
 import VRControllerBindings from '../vr-controller/vr-controller-bindings';
 import BaseMenu from './base-menu';

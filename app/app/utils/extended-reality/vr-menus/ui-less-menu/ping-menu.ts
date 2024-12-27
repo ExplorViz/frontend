@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
-import PingMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/ping-mesh';
+import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import AnimatedMenu from '../animated-menu';

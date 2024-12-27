@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
-import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-objects/interfaces/grabbable-object';
+import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';

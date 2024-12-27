@@ -71,8 +71,9 @@ import {
   CommunicationChangeLogEntry,
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
-} from 'explorviz-frontend/utils/changelog-entry';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+} from 'react-lib/src/utils/changelog-entry';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
