@@ -1,4 +1,4 @@
-import Item, { ItemArgs } from './item';
+import Item, { ItemArgs } from 'react-lib/src/utils/extended-reality/vr-menus/items/item';
 
 /**
  * A canvas 2D rendering context that is used to measure the bounding box of

@@ -12,7 +12,8 @@ import BoxMesh from './box-mesh';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'react-lib/src/utils/link-helper';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import { ChildMesh } from './simple-parent-mesh';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import { ChildMesh } from './simple-parent-mesh';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 

@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import * as THREE from 'three';
-import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-objects/interfaces/grabbable-object';
+import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import {
   ObjectGrabbedResponse,
   isObjectGrabbedResponse,

@@ -1,5 +1,5 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import { IntersectableObject } from '../interfaces/intersectable-object';
+import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';

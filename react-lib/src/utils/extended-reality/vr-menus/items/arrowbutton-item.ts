@@ -1,4 +1,4 @@
-import InteractiveItem, { InteractiveItemArgs } from './interactive-item';
+import InteractiveItem, { InteractiveItemArgs } from 'react-lib/src/utils/extended-reality/vr-menus/items/interactive-item';
 
 const DEFAULT_ARROW_BUTTON_COLOR = '#ffc338';
 const DEFAULT_ARROW_BUTTON_HOVER_COLOR = '#00e5ff';

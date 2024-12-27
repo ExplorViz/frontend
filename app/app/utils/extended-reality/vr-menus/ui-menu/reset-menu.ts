@@ -1,8 +1,8 @@
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
-import TextItem from '../items/text-item';
-import TextbuttonItem from '../items/textbutton-item';
-import TitleItem from '../items/title-item';
+import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
 import { inject as service } from '@ember/service';
 import { setOwner } from '@ember/application';

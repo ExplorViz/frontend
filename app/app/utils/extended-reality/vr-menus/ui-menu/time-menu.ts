@@ -3,10 +3,10 @@ import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
 } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import ArrowbuttonItem from '../items/arrowbutton-item';
-import TextItem from '../items/text-item';
-import TextbuttonItem from '../items/textbutton-item';
-import TitleItem from '../items/title-item';
+import ArrowbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/arrowbutton-item';
+import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
 
 const MS_PER_SECOND = 1000;

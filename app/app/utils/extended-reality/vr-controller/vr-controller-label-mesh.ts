@@ -1,6 +1,6 @@
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import * as THREE from 'three';
-import TextTexture from '../vr-helpers/text-texture';
+import TextTexture from 'react-lib/src/utils/extended-reality/vr-helpers/text-texture';
 import { VRControllerLabelPosition } from './vr-controller-label-positions';
 
 const SIZE_PER_PIXEL = 0.15 / 500;

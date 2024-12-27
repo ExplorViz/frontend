@@ -2,16 +2,16 @@ import debugLogger from 'ember-debug-logger';
 import { defaultRaycastFilter } from 'react-lib/src/utils/raycaster';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import * as THREE from 'three';
-import { canIntersectAllParentObjects } from './view-objects/interfaces/intersectable-object';
-import TeleportMesh from './view-objects/vr/teleport-mesh';
+import { canIntersectAllParentObjects } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import TeleportMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/teleport-mesh';
 import VRControllerBindingsList from './vr-controller/vr-controller-bindings-list';
 import VRControllerLabelGroup from './vr-controller/vr-controller-label-group';
-import VrControllerModel from './vr-controller/vr-controller-model';
-import VrControllerModelFactory from './vr-controller/vr-controller-model-factory';
+import VrControllerModel from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model';
+import VrControllerModelFactory from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
 import {
   displayAsSolidObject,
   displayAsWireframe,
-} from './vr-helpers/wireframe';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/wireframe';
 import MenuGroup from './vr-menus/menu-group';
 import { ControllerId } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 /**

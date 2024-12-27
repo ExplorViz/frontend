@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { IntersectableObject } from './intersectable-object';
+import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 
 export interface GrabbableObject extends IntersectableObject {
   getGrabId(): string | null;

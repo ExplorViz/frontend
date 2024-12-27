@@ -1,5 +1,5 @@
-import TextbuttonItem from '../items/textbutton-item';
-import TitleItem from '../items/title-item';
+import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
 
 export default class MainMenu extends UiMenu {

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import HudMenu from '../../hud-menu';
-import TextItem from '../../items/text-item';
+import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../../ui-menu';
 
 const OPEN_ANIMATION_CLIP = new THREE.AnimationClip('open-animation', 0.75, [

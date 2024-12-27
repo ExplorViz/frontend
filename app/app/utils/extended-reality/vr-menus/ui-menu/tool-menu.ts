@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import TextTexture from 'explorviz-frontend/utils/extended-reality/vr-helpers/text-texture';
+import TextTexture from 'react-lib/src/utils/extended-reality/vr-helpers/text-texture';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,

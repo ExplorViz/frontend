@@ -2,10 +2,10 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import VRController from '../../vr-controller';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from '../../vr-controller/vr-controller-thumbpad-binding';
-import ArrowbuttonItem from '../items/arrowbutton-item';
-import TextItem from '../items/text-item';
-import TextbuttonItem from '../items/textbutton-item';
-import TitleItem from '../items/title-item';
+import ArrowbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/arrowbutton-item';
+import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
 
 /**

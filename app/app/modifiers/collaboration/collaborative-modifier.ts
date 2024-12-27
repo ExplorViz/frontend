@@ -89,7 +89,7 @@ import { getPackageById } from 'react-lib/src/utils/package-helpers';
 import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import WaypointIndicator from 'explorviz-frontend/utils/extended-reality/view-objects/vr/waypoint-indicator';
+import WaypointIndicator from 'react-lib/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 

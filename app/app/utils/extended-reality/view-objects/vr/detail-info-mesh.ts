@@ -1,6 +1,6 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import ScrollUpButton from './scroll-up-button';
-import ScrollDownButton from './scroll-down-button';
+import ScrollUpButton from 'react-lib/src/utils/extended-reality/view-objects/vr/scroll-up-button';
+import ScrollDownButton from 'react-lib/src/utils/extended-reality/view-objects/vr/scroll-down-button';
 import OpenEntityButton from './open-entity-button';
 import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from './detail-info-scrollarea';

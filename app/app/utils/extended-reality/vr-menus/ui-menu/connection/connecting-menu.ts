@@ -1,6 +1,6 @@
-import TextbuttonItem from '../../items/textbutton-item';
+import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
-import TitleItem from '../../items/title-item';
+import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 
 export default class ConnectingMenu extends ConnectionBaseMenu {
   constructor(args: ConnectionBaseMenuArgs) {

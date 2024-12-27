@@ -30,10 +30,10 @@ import {
   findGrabbableObject,
   GrabbableObjectWrapper,
   isGrabbableObject,
-} from 'explorviz-frontend/utils/extended-reality/view-objects/interfaces/grabbable-object';
+} from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import ActionIcon from 'explorviz-frontend/utils/extended-reality/view-objects/vr/action-icon';
 import CloseIcon from 'explorviz-frontend/utils/extended-reality/view-objects/vr/close-icon';
-import FloorMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/floor-mesh';
+import FloorMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/floor-mesh';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import VRControllerBindings from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-bindings';
 import VRControllerBindingsList from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-bindings-list';
@@ -48,8 +48,8 @@ import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/
 import MenuGroup from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-group';
 import MenuQueue from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-queue';
 import HintMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/hud/hint-menu';
-import ScrollDownButton from 'explorviz-frontend/utils/extended-reality/view-objects/vr/scroll-down-button';
-import ScrollUpButton from 'explorviz-frontend/utils/extended-reality/view-objects/vr/scroll-up-button';
+import ScrollDownButton from 'react-lib/src/utils/extended-reality/view-objects/vr/scroll-down-button';
+import ScrollUpButton from 'react-lib/src/utils/extended-reality/view-objects/vr/scroll-up-button';
 import DetailInfoScrollarea from 'explorviz-frontend/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
 import KeyboardMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/keyboard-mesh';
 import SearchListItem from 'explorviz-frontend/utils/extended-reality/view-objects/vr/search-list-item';

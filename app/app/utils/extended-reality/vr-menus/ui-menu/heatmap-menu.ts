@@ -2,8 +2,8 @@ import { action } from '@ember/object';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
 import { DetachableMenu } from '../detachable-menu';
-import RectangleItem from '../items/rectangle-item';
-import TextItem from '../items/text-item';
+import RectangleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/rectangle-item';
+import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
 import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
