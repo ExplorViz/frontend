@@ -441,6 +441,9 @@ importers:
       yuidocjs:
         specifier: ^0.10.2
         version: 0.10.2
+      zustand:
+        specifier: ^5.0.2
+        version: 5.0.2(@types/react@18.3.16)(react@19.0.0)
     dependenciesMeta:
       react-lib:
         injected: true
@@ -459,6 +462,10 @@ importers:
       typescript:
         specifier: '5'
         version: 5.3.3
+    devDependencies:
+      zustand:
+        specifier: ^5.0.2
+        version: 5.0.2(@types/react@18.3.16)(react@18.3.1)
 
 packages:
 
@@ -9444,6 +9451,24 @@ packages:
     resolution: {integrity: sha512-g0ZrXsaCmQL9zsvkgD+RxWDsMNkHne5tK72iWYodro9JQlfKxePcV1dwbGhKMy/fl1XCIW3R3erZudohU+PcEw==}
     engines: {node: '>=0.10.0'}
     hasBin: true
+
+  zustand@5.0.2:
+    resolution: {integrity: sha512-8qNdnJVJlHlrKXi50LDqqUNmUbuBjoKLrYQBnoChIbVph7vni+sY+YpvdjXG9YLd/Bxr6scMcR+rm5H3aSqPaw==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
 
 snapshots:
 
@@ -21312,3 +21337,13 @@ snapshots:
       yui: 3.18.1
     transitivePeerDependencies:
       - supports-color
+
+  zustand@5.0.2(@types/react@18.3.16)(react@18.3.1):
+    optionalDependencies:
+      '@types/react': 18.3.16
+      react: 18.3.1
+
+  zustand@5.0.2(@types/react@18.3.16)(react@19.0.0):
+    optionalDependencies:
+      '@types/react': 18.3.16
+      react: 19.0.0

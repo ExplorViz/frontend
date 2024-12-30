@@ -14,5 +14,8 @@
         "@types/react-dom": "18",
         "react": "18",
         "typescript": "5"
+    },
+    "devDependencies": {
+        "zustand": "^5.0.2"
     }
 }
