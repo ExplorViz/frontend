@@ -17,5 +17,11 @@
     },
     "devDependencies": {
         "zustand": "^5.0.2"
+    },
+    "dependencies": {
+        "@primer/octicons-react": "^19.14.0",
+        "bootstrap": "^4.6.2",
+        "react-bootstrap": "^2.10.7",
+        "react-select": "^5.9.0"
     }
 }
