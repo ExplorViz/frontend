@@ -28,6 +28,8 @@ export default class DetachedMenuRenderer extends Service.extend(Evented) {
   @service('extended-reality/vr-menu-factory')
   private menuFactory!: VrMenuFactoryService;
 
+  // TODO: Check if anything to store is necessary
+
   restore(popups: SerializedPopup[], detachedMenus: SerializedDetachedMenu[]) {
     if (this.localUser.visualizationMode === 'browser') {
       const popupsFromMenu: SerializedPopup[] = detachedMenus.map(

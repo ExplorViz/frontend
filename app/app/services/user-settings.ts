@@ -1,6 +1,5 @@
 import Service, { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import { tracked } from '@glimmer/tracking';
 import {
   classicApplicationColors,
   ColorSchemeId,
@@ -31,6 +30,7 @@ import {
   saveSettings,
   validateRangeSetting,
 } from 'react-lib/src/utils/settings/local-storage-settings';
+import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 
 export default class UserSettings extends Service {
   @service('application-renderer')
@@ -48,8 +48,15 @@ export default class UserSettings extends Service {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @tracked
-  applicationSettings!: ApplicationSettings;
+  // @tracked
+  // applicationSettings!: ApplicationSettings;
+  get applicationSettings(): ApplicationSettings {
+    return useUserSettingsStore.getState().applicationSettings;
+  }
+
+  set applicationSettings(value: ApplicationSettings) {
+    useUserSettingsStore.setState({ applicationSettings: value });
+  }
 
   /**
    * Colors for application visualization
@@ -57,8 +64,15 @@ export default class UserSettings extends Service {
    * @property applicationColors
    * @type ApplicationColors
    */
-  @tracked
-  applicationColors!: ApplicationColors;
+  // @tracked
+  // applicationColors!: ApplicationColors;
+  get applicationColors(): ApplicationColors | undefined {
+    return useUserSettingsStore.getState().applicationColors;
+  }
+
+  set applicationColors(value: ApplicationColors) {
+    useUserSettingsStore.setState({ applicationColors: value });
+  }
 
   constructor() {
     super(...arguments);

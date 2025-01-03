@@ -2,6 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
+import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 
 export default class ArSettings extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -12,22 +13,64 @@ export default class ArSettings extends Service.extend({
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @tracked
-  landscapeOpacity: number;
+  // @tracked
+  // landscapeOpacity: number;
+  get landscapeOpacity(): number {
+    return useARSettingsStore.getState().landscapeOpacity;
+  }
 
-  @tracked
-  applicationOpacity: number;
+  set landscapeOpacity(value: number) {
+    useARSettingsStore.setState({ landscapeOpacity: value });
+  }
 
-  sidebarWidthInPercent: number | undefined;
+  // @tracked
+  // applicationOpacity: number;
+  get applicationOpacity(): number {
+    return useARSettingsStore.getState().applicationOpacity;
+  }
 
-  @tracked
-  renderCommunication = true;
+  set applicationOpacity(value: number) {
+    useARSettingsStore.setState({ applicationOpacity: value });
+  }
 
-  @tracked
-  zoomLevel = 3;
+  // sidebarWidthInPercent: number | undefined;
+  get sidebarWidthInPercent(): number | undefined {
+    return useARSettingsStore.getState().sidebarWidthInPercent;
+  }
 
-  @tracked
-  stackPopups = true;
+  set sidebarWidthInPercent(value: number | undefined) {
+    useARSettingsStore.setState({ sidebarWidthInPercent: value });
+  }
+
+  // @tracked
+  // renderCommunication = true;
+  get renderCommunication(): boolean {
+    return useARSettingsStore.getState().renderCommunication;
+  }
+
+  set renderCommunication(value: boolean) {
+    useARSettingsStore.setState({ renderCommunication: value });
+  }
+
+  // @tracked
+  // zoomLevel = 3;
+  get zoomLevel(): number {
+    return useARSettingsStore.getState().zoomLevel;
+  }
+
+  set zoomLevel(value: number) {
+    useARSettingsStore.setState({ zoomLevel: value });
+  }
+
+  // @tracked
+  // stackPopups = true;
+  get stackPopups(): boolean {
+    return useARSettingsStore.getState().stackPopups;
+  }
+
+  set stackPopups(value: boolean) {
+    useARSettingsStore.setState({ stackPopups: value });
+  }
 
   constructor() {
     super(...arguments);

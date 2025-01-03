@@ -5,6 +5,7 @@ import Auth0Lock from 'auth0-lock';
 import debugLogger from 'ember-debug-logger';
 import Evented from '@ember/object/evented';
 import { tracked } from '@glimmer/tracking';
+// import { useAuthStore } from 'react-lib/src/stores/auth';
 
 export default class Auth extends Service.extend(Evented) {
   private debug = debugLogger();
@@ -12,12 +13,34 @@ export default class Auth extends Service.extend(Evented) {
   @service('router')
   router!: any;
 
+  // TODO: Clarify why page header disappears when using stores.
   private lock: Auth0LockStatic | null = null;
+  // get lock(): Auth0LockStatic | null {
+  //   return useAuthStore.getState().lock;
+  // }
+
+  // set lock(value: Auth0LockStatic | null) {
+  //   useAuthStore.setState({ lock: value });
+  // }
 
   @tracked
   user: Auth0UserProfile | undefined = undefined;
+  // get user(): Auth0UserProfile | undefined {
+  //   return useAuthStore.getState().user;
+  // }
+
+  // set user(value: Auth0UserProfile | undefined) {
+  //   useAuthStore.setState({ user: value });
+  // }
 
   accessToken: string | undefined = undefined;
+  // get accessToken(): string | undefined {
+  //   return useAuthStore.getState().accessToken;
+  // }
+
+  // set accessToken(value: string | undefined) {
+  //   useAuthStore.setState({ accessToken: value });
+  // }
 
   async initAuthentication() {
     // No auth in dev mode

@@ -25,6 +25,7 @@ import {
   getAllAncestorComponents,
   openComponentsByList,
 } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 
@@ -57,7 +58,18 @@ export default class HighlightingService extends Service.extend({
 
   debug = debugLogger('HighlightingService');
 
-  hoveredOnHighlightedMesh = false;
+  // TODO: Getter also have to get migrated into states
+  //        as soon as it is possible to use the corresponding
+  //        services in react-lib
+
+  // hoveredOnHighlightedMesh = false;
+  get hoveredOnHighlightedMesh(): boolean {
+    return useHighlightingStore.getState().hoveredOnHighlightedMesh;
+  }
+
+  set hoveredOnHighlightedMesh(value: boolean) {
+    useHighlightingStore.setState({ hoveredOnHighlightedMesh: value });
+  }
 
   get applyHighlightingOnHover() {
     return this.userSettings.applicationSettings.applyHighlightingOnHover.value;
@@ -71,7 +83,7 @@ export default class HighlightingService extends Service.extend({
     if (this.collaborationSession.isOnline) {
       return this.localUser.color;
     } else {
-      return this.userSettings.applicationColors.highlightedEntityColor;
+      return this.userSettings.applicationColors!.highlightedEntityColor;
     }
   }
 
