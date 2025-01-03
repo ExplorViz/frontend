@@ -1,9 +1,9 @@
 import Service from '@ember/service';
 import { service } from '@ember/service';
 import Auth from './auth';
-import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
 import ToastHandlerService from './toast-handler';
+import { useSpectateConfigurationStore } from 'react-lib/src/stores/spectate-configuration';
 
 export type SpectateConfig = {
   id: string;
@@ -20,8 +20,15 @@ export default class SpectateConfigurationService extends Service {
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
-  @tracked
-  spectateConfig: SpectateConfig | null = null;
+  // @tracked
+  // spectateConfig: SpectateConfig | null = null;
+  get specateConfig(): SpectateConfig | null {
+    return useSpectateConfigurationStore.getState().spectateConfig;
+  }
+
+  set spectateConfig(value: SpectateConfig | null) {
+    useSpectateConfigurationStore.setState({ spectateConfig: value });
+  }
 
   retrieveConfigs() {
     return new Promise<SpectateConfig[]>((resolve) => {

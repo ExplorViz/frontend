@@ -3,11 +3,19 @@ import * as THREE from 'three';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { TGALoader } from 'three/examples/jsm/loaders/TGALoader';
+import { useHMDStore } from 'react-lib/src/stores/extended-reality/hmd';
 
 export default class HmdService extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  headsetModel!: Promise<THREE.Group>;
+  // headsetModel!: Promise<THREE.Group>;
+  get headsetModel(): Promise<THREE.Group> {
+    return useHMDStore.getState().headsetModel;
+  }
+
+  set headsetModel(value: Promise<THREE.Group>) {
+    useHMDStore.setState({ headsetModel: value });
+  }
 
   init() {
     super.init();

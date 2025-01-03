@@ -44,6 +44,8 @@ export default class DetachedMenuGroupsService extends Service {
   @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
+  // TODO: After migration of the corresponding utils -> add stores
+
   private detachedMenuGroups: Set<DetachedMenuGroup>;
 
   private detachedMenuGroupsById: Map<string, DetachedMenuGroup>;

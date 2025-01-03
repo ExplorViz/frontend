@@ -1,27 +1,52 @@
 import Service from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import {
   AppNameCommitTreeMap,
   Commit,
 } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import { findAppNameAndBranchNameForCommit } from 'react-lib/src/utils/evolution-data-helpers';
+import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
 
 export type SelectedCommit = Commit;
 
 export default class CommitTreeStateService extends Service {
   // #region Properties and getter
-  @tracked
-  private _selectedCommits: Map<string, SelectedCommit[]> = new Map(); //<appName, SelectedCommit[]>
+  // @tracked
+  // private _selectedCommits: Map<string, SelectedCommit[]> = new Map(); //<appName, SelectedCommit[]>
+  get _selectedCommits(): Map<string, SelectedCommit[]> {
+    return useCommitTreeStateStore.getState()._selectedCommits;
+  }
+
+  set _selectedCommits(value: Map<string, SelectedCommit[]>) {
+    useCommitTreeStateStore.setState({ _selectedCommits: value });
+  }
 
   get selectedCommits() {
     return this._selectedCommits;
   }
 
-  private _appNameAndBranchNameToColorMap: Map<string, string> = new Map();
+  // private _appNameAndBranchNameToColorMap: Map<string, string> = new Map();
+  get _appNameAndBranchNameToColorMap(): Map<string, string> {
+    return useCommitTreeStateStore.getState()._appNameAndBranchNameToColorMap;
+  }
 
-  @tracked
-  private _currentSelectedApplicationName: string = '';
+  set _appNameAndBranchNameToColorMap(value: Map<string, string>) {
+    useCommitTreeStateStore.setState({
+      _appNameAndBranchNameToColorMap: value,
+    });
+  }
+
+  // @tracked
+  // private _currentSelectedApplicationName: string = '';
+  get _currentSelectedApplicationName(): string {
+    return useCommitTreeStateStore.getState()._currentSelectedApplicationName;
+  }
+
+  set _currentSelectedApplicationName(value: string) {
+    useCommitTreeStateStore.setState({
+      _currentSelectedApplicationName: value,
+    });
+  }
 
   get currentSelectedApplicationName() {
     return this._currentSelectedApplicationName;

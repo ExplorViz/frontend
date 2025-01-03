@@ -131,7 +131,8 @@
     "typescript": "5.3.3",
     "webpack": "^5.90.1",
     "yuidoc-bootstrap-theme": "^1.0.6",
-    "yuidocjs": "^0.10.2"
+    "yuidocjs": "^0.10.2",
+    "zustand": "^5.0.2"
   },
   "dependencies": {
     "3d-force-graph": "^1.73.0",
