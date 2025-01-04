@@ -1,9 +1,12 @@
 import Component from '@glimmer/component';
 import { FlagSetting as FlagSettingObject } from 'react-lib/src/utils/settings/settings-schemas';
+import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 
 interface Args {
   setting: FlagSettingObject;
   onChange(value: boolean): void;
 }
 
-export default class FlagSetting extends Component<Args> {}
+export default class FlagSetting extends Component<Args> {
+  helpTooltipComponent = HelpTooltip;
+}

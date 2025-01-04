@@ -3,11 +3,23 @@
     {{!-- <div>
       <span id='legend-header-content'>Heatmap</span>
       {{#if (eq this.heatmapConfiguration.selectedMode 'aggregatedHeatmap')}}
-        <HelpTooltip @title={{this.descriptions.aggregatedHeatmap}} />
+        <div
+        {{react
+          this.helpTooltipComponent
+          title=this.descriptions.aggregatedHeatmap
+        }}/>
       {{else if (eq this.heatmapConfiguration.selectedMode 'windowedHeatmap')}}
-        <HelpTooltip @title={{this.descriptions.windowedHeatmap}} />
+        <div
+        {{react
+          this.helpTooltipComponent
+          title=this.descriptions.windowedHeatmap
+        }}/>
       {{else}}
-        <HelpTooltip @title={{this.descriptions.snapshotHeatmap}} />
+        <div
+        {{react
+          this.helpTooltipComponent
+          title=this.descriptions.snapshotHeatmap
+        }}/>
       {{/if}}
     </div>
     <div>
@@ -37,8 +49,11 @@
           Share heatmap with other users? Green: Yes, Grey: No
         </BsTooltip>
       </BsButton>
-      <HelpTooltip
-        @title='Select an application by clicking on its foundation'
+      <div
+        {{react
+          this.helpTooltipComponent
+          title='Select an application by clicking on its foundation'
+        }}
       />
     </div>
     <div>

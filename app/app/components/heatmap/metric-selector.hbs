@@ -9,5 +9,11 @@
   as |metric|
 >
   {{metric.name}}
-  {{!-- <HelpTooltipRight @title={{metric.description}}/> --}}
+  <div
+    {{react
+      this.helpTooltipComponent
+      title=metric.description
+      placement='right'
+    }}
+  />
 </PowerSelect>

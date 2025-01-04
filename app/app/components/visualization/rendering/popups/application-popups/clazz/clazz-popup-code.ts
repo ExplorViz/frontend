@@ -10,12 +10,15 @@ import {
 import PopupData from '../../popup-data';
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { calculateFqn } from 'react-lib/src/utils/landscape-structure-helpers';
+import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 
 interface Args {
   popupData: PopupData;
 }
 
 export default class ClazzPopup extends Component<Args> {
+  helpTooltipComponent = HelpTooltip;
+
   @service('repos/evolution-data-repository')
   evolutionDataRepository!: EvolutionDataRepository;
 

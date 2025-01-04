@@ -6,6 +6,7 @@ import { inject as service } from '@ember/service';
 import TimestampService, {
   NEW_SELECTED_TIMESTAMP_EVENT,
 } from 'explorviz-frontend/services/timestamp';
+import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 
 interface Args {
   readonly traces: DynamicLandscapeData;
@@ -14,6 +15,8 @@ interface Args {
 }
 
 export default class TraceDuration extends Component<Args> {
+  helpTooltipComponent = HelpTooltip;
+
   @service('timestamp')
   timestampService!: TimestampService;
 

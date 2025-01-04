@@ -18,8 +18,11 @@
             }}
               <th class='text-left'>{{this.shortCommitIdentifierForTable
                   index
-                }}<HelpTooltip
-                  @title={{commitAndClassMetricsObject.commitId}}
+                }}<div
+                  {{react
+                    this.helpTooltipComponent
+                    title=commitAndClassMetricsObject.commitId
+                  }}
                 /></th>
             {{/each}}
           </tr>

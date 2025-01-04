@@ -5,9 +5,12 @@
     <div class='d-flex justify-content-between pr-1'>
       <div>
         Choose heatmap type
-        <HelpTooltip
-          @title={{this.descriptions.heatmapMode}}
-          @placement='right'
+        <div
+          {{react
+            this.helpTooltipComponent
+            title=this.descriptions.heatmapMode
+            placement='right'
+          }}
         />
       </div>
       <div class='align-items-end'>
@@ -30,9 +33,12 @@
     <div class='d-flex justify-content-between'>
       <div>
         Set heatmap point radius
-        <HelpTooltip
-          @title={{this.descriptions.heatmapRadius}}
-          @placement='right'
+        <div
+          {{react
+            this.helpTooltipComponent
+            title=this.descriptions.heatmapRadius
+            placement='right'
+          }}
         />
       </div>
       <BsForm model={{this}} as |form|>
@@ -51,9 +57,12 @@
     <div class='d-flex justify-content-between'>
       <div>
         Set heatmap blur radius
-        <HelpTooltip
-          @title={{this.descriptions.blurRadius}}
-          @placement='right'
+        <div
+          {{react
+            this.helpTooltipComponent
+            title=this.descriptions.blurRadius
+            placement='right'
+          }}
         />
       </div>
       <BsForm model={{this}} as |form|>
@@ -72,9 +81,12 @@
     <div class='d-flex justify-content-between pr-3'>
       <div>
         Show helper lines
-        <HelpTooltip
-          @title={{this.descriptions.helperLines}}
-          @placement='right'
+        <div
+          {{react
+            this.helpTooltipComponent
+            title=this.descriptions.helperLines
+            placement='right'
+          }}
         />
       </div>
       <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
@@ -88,9 +100,12 @@
     <div class='d-flex justify-content-between pr-3'>
       <div>
         Show legend values
-        <HelpTooltip
-          @title={{this.descriptions.showLegendValues}}
-          @placement='right'
+        <div
+          {{react
+            this.helpTooltipComponent
+            title=this.descriptions.showLegendValues
+            placement='right'
+          }}
         />
       </div>
       <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
@@ -104,9 +119,12 @@
     <div>
       <h4>
         Simpleheat gradient configuration
-        <HelpTooltip
-          @title={{this.descriptions.shGradient}}
-          @placement='right'
+        <div
+          {{react
+            this.helpTooltipComponent
+            title=this.descriptions.shGradient
+            placement='right'
+          }}
         />
       </h4>
     </div>

@@ -1,6 +1,6 @@
 <div class='setting-container d-flex justify-content-between'>
   <div>
-    <HelpTooltip @title={{@setting.description}} />
+    <div {{react this.helpTooltipComponent title=@setting.description}} />
     {{@setting.displayName}}
   </div>
   <div class='d-flex align-self-center'>

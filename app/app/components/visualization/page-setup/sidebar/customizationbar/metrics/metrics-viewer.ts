@@ -8,10 +8,13 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { tracked } from '@glimmer/tracking';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 
 const { metricsService } = ENV.backendAddresses;
 
 export default class MetricDataComponent extends Component {
+  helpTooltipComponent = HelpTooltip;
+
   @service('auth')
   auth!: Auth;
 

@@ -4,6 +4,7 @@ import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-co
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { EmptyObject } from '@glimmer/component/-private/component';
+import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 
 interface HeatmapMode {
   name: string;
@@ -11,6 +12,8 @@ interface HeatmapMode {
 }
 
 export default class HeatmapSettings extends Component {
+  helpTooltipComponent = HelpTooltip;
+
   @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 

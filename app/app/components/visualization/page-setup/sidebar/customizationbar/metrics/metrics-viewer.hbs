@@ -18,7 +18,9 @@
     {{#each this.metrics as |metric|}}
       <tr>
         <td>
-          <HelpTooltip @title='{{metric.description}}' />{{metric.name}}
+          <div
+            {{react this.helpTooltipComponent title=metric.description}}
+          />{{metric.name}}
         </td>
         <td>{{format-date metric.timestamp}}</td>
         <td>{{metric.value}}</td>

@@ -1,10 +1,10 @@
 import { on } from '@ember/modifier';
 import { fn } from '@ember/helper';
-import HelpTooltip from 'explorviz-frontend/components/help-tooltip';
+import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 import stringComparison from 'explorviz-frontend/helpers/string-comparison';
 
 <template>
-  <HelpTooltip @title={{@setting.description}} />
+  <div {{react HelpTooltip title=@setting.description}} />
   <span>{{@setting.displayName}}:</span>
   <div style='margin-left: 1.5rem'>
     {{#each @setting.values as |value|}}

@@ -3,6 +3,7 @@ import debugLogger from 'ember-debug-logger';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
+import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 
 interface Args {
   descriptions?: {
@@ -13,6 +14,8 @@ interface Args {
 }
 
 export default class HeatmapLegend extends Component<Args> {
+  helpTooltipComponent = HelpTooltip;
+
   debug = debugLogger();
 
   @service('heatmap/heatmap-configuration')
