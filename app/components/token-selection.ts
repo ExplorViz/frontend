@@ -40,7 +40,7 @@ export default class TokenSelection extends Component<Args> {
   }
 
   @action
-  downloadJson(token: LandscapeToken, event: MouseEvent) {
+  downloadDemoSupplierFiles(token: LandscapeToken, event: MouseEvent) {
     event?.stopPropagation();
     this.downloadJSONFile(
       `${spanService}/v2/landscapes/${token.value}/structure`,
