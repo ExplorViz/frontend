@@ -66,10 +66,10 @@ export default class TokenSelection extends Component<Args> {
       }
 
       // Parse the response as JSON
-      await response.json();
+      const data = await response.json();
 
       // Convert the JSON data to a Blob
-      const jsonBlob = new Blob([], {
+      const jsonBlob = new Blob([JSON.stringify(data, null, 2)], {
         type: 'application/json',
       });
 
