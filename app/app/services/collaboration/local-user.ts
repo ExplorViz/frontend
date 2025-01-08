@@ -17,6 +17,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -44,70 +45,133 @@ export default class LocalUser extends Service.extend({
   @service('collaboration/collaboration-session')
   collaborationSession!: collaborationSession;
 
-  userId!: string;
+  get userId(): string {
+    return useLocalUserStore.getState().userId;
+  }
 
-  @tracked
-  userName = 'You';
+  set userId(value) {
+    useLocalUserStore.setState({ userId: value });
+  }
 
-  @tracked
-  color: THREE.Color = new THREE.Color('red');
+  // @tracked
+  get userName(): string {
+    return useLocalUserStore.getState().userName;
+  }
 
-  @tracked
-  defaultCamera!: THREE.PerspectiveCamera;
+  set userName(value) {
+    useLocalUserStore.setState({ userName: value });
+  }
 
-  @tracked
-  minimapCamera!: THREE.OrthographicCamera;
+  // @tracked
+  get color(): THREE.Color {
+    return useLocalUserStore.getState().color;
+  }
 
-  @tracked
-  visualizationMode: VisualizationMode = 'browser';
+  set color(value) {
+    useLocalUserStore.setState({ color: value });
+  }
+
+  // @tracked
+  get defaultCamera(): THREE.PerspectiveCamera {
+    return useLocalUserStore.getState().defaultCamera;
+  }
+
+  set defaultCamera(value) {
+    useLocalUserStore.setState({ defaultCamera: value });
+  }
+
+  // @tracked
+  get minimapCamera(): THREE.OrthographicCamera {
+    return useLocalUserStore.getState().minimapCamera;
+  }
+
+  set minimapCamera(value) {
+    useLocalUserStore.setState({ minimapCamera: value });
+  }
+
+  // @tracked
+  get visualizationMode(): VisualizationMode {
+    return useLocalUserStore.getState().visualizationMode;
+  }
+
+  set visualizationMode(value) {
+    useLocalUserStore.setState({ visualizationMode: value });
+  }
 
   mousePing!: MousePing;
 
-  userGroup!: THREE.Group;
+  get userGroup(): THREE.Group {
+    return useLocalUserStore.getState().userGroup;
+  }
 
-  task: any;
+  set userGroup(value) {
+    useLocalUserStore.setState({ userGroup: value });
+  }
+
+  // TODO check if this is used anywhere???
+  get task(): any {
+    return useLocalUserStore.getState().task;
+  }
+
+  set task(value) {
+    useLocalUserStore.setState({ task: value });
+  }
 
   controller1: VRController | undefined;
 
   controller2: VRController | undefined;
 
-  panoramaSphere: THREE.Object3D | undefined;
+  get panoramaSphere(): THREE.Object3D | undefined {
+    return useLocalUserStore.getState().panoramaSphere;
+  }
 
-  animationMixer!: THREE.AnimationMixer;
+  set panoramaSphere(value) {
+    useLocalUserStore.setState({ panoramaSphere: value });
+  }
 
-  xr?: WebXRManager;
+  get animationMixer(): THREE.AnimationMixer {
+    return useLocalUserStore.getState().animationMixer;
+  }
 
-  @tracked
-  isHost!: boolean;
+  set animationMixer(value) {
+    useLocalUserStore.setState({ animationMixer: value });
+  }
+
+  get xr(): WebXRManager | undefined {
+    return useLocalUserStore.getState().xr;
+  }
+
+  set xr(value) {
+    useLocalUserStore.setState({ xr: value });
+  }
+
+  // @tracked
+  get isHost(): boolean {
+    return useLocalUserStore.getState().isHost;
+  }
+
+  set isHost(value) {
+    useLocalUserStore.setState({ isHost: value });
+  }
 
   init() {
     super.init();
 
-    this.userId = 'unknown';
-    this.isHost = false;
-    this.userGroup = new THREE.Group();
-
-    // Initialize camera. The default aspect ratio is not known at this point
-    // and must be updated when the canvas is inserted.
-    this.defaultCamera = new THREE.PerspectiveCamera();
-    this.minimapCamera = new THREE.OrthographicCamera();
-    // this.defaultCamera.position.set(0, 1, 2);
+    // What to do with this? Can xr even be initialized at this point?
+    // Always adding defaultCamera to userGroup currently in store.
     if (this.xr?.isPresenting) {
       return this.xr.getCamera();
     } else {
       this.userGroup.add(this.defaultCamera);
     }
-    this.animationMixer = new THREE.AnimationMixer(this.userGroup);
+
     this.mousePing = new MousePing(new THREE.Color('red'), this.animationMixer);
 
     return undefined;
   }
 
   get camera() {
-    if (this.xr?.isPresenting) {
-      return this.xr.getCamera();
-    }
-    return this.defaultCamera;
+    return useLocalUserStore.getState().getCamera();
   }
 
   tick(delta: number) {
@@ -151,14 +215,8 @@ export default class LocalUser extends Service.extend({
     this.userGroup.add(controller2);
   }
 
-  setPanoramaShere(panoramaSphere: THREE.Object3D) {
-    this.removePanoramaShere();
-    this.panoramaSphere = panoramaSphere;
-    this.userGroup.add(panoramaSphere);
-  }
-
-  private removePanoramaShere() {
-    if (this.panoramaSphere) this.userGroup.remove(this.panoramaSphere);
+  setPanoramaSphere(panoramaSphere: THREE.Object3D) {
+    useLocalUserStore.getState().setPanoramaSphere(panoramaSphere);
   }
 
   updateControllers(delta: number) {
@@ -167,7 +225,7 @@ export default class LocalUser extends Service.extend({
   }
 
   updateCameraAspectRatio(width: number, height: number) {
-    this.renderer.setSize(width, height);
+    this.renderer.setSize(width, height); // Should this be this.applicationRenderer?
     this.defaultCamera.aspect = width / height;
     this.defaultCamera.updateProjectionMatrix();
   }
@@ -301,38 +359,19 @@ export default class LocalUser extends Service.extend({
    *  the new position
    */
   teleportToPosition(position: THREE.Vector3) {
-    const worldPos = this.xr?.getCamera().getWorldPosition(new THREE.Vector3());
-
-    if (!(worldPos?.x || worldPos?.z)) {
-      return;
-    }
-
-    const offsetPosition = {
-      x: position.x - worldPos.x,
-      y: position.y,
-      z: position.z - worldPos.z,
-      w: 1,
-    };
-    const offsetRotation = new THREE.Quaternion();
-    const transform = new XRRigidTransform(offsetPosition, offsetRotation)
-      .inverse;
-    const teleportSpaceOffset = this.xr
-      ?.getReferenceSpace()
-      ?.getOffsetReferenceSpace(transform);
-
-    if (teleportSpaceOffset) this.xr?.setReferenceSpace(teleportSpaceOffset);
+    useLocalUserStore.getState().teleportToPosition(position);
   }
 
   getCameraWorldPosition() {
-    return this.camera.getWorldPosition(new THREE.Vector3());
+    return useLocalUserStore.getState().getCameraWorldPosition();
   }
 
   get cameraHeight(): number {
-    return this.userGroup.position.y;
+    return useLocalUserStore.getState().getCameraHeight();
   }
 
   set cameraHeight(cameraHeight: number) {
-    this.userGroup.position.y = cameraHeight;
+    useLocalUserStore.getState().setCameraHeight(cameraHeight);
   }
 
   /**
@@ -346,41 +385,25 @@ export default class LocalUser extends Service.extend({
       enableZ = true,
     }: { enableX?: boolean; enableY?: boolean; enableZ?: boolean }
   ) {
-    // Convert direction from the camera's object space to world coordinates.
-    const distance = direction.length();
-    const worldDirection = direction
-      .clone()
-      .normalize()
-      .transformDirection(this.defaultCamera.matrix);
-
-    // Remove disabled components.
-    if (!enableX) worldDirection.x = 0;
-    if (!enableY) worldDirection.y = 0;
-    if (!enableZ) worldDirection.z = 0;
-
-    // Convert the direction back to object space before applying the translation.
-    const localDirection = worldDirection
-      .normalize()
-      .transformDirection(this.userGroup.matrix.clone().invert());
-    this.userGroup.translateOnAxis(localDirection, distance);
+    useLocalUserStore.getState().moveInCameraDirection(direction, {
+      enableX,
+      enableY,
+      enableZ,
+    });
   }
 
   /**
    * Rotates the camera around the local x and world y axis.
    */
   rotateCamera(x: number, y: number) {
-    const xAxis = new THREE.Vector3(1, 0, 0);
-    const yAxis = new THREE.Vector3(0, 1, 0);
-    this.camera.rotateOnAxis(xAxis, x);
-    this.camera.rotateOnWorldAxis(yAxis, y);
+    useLocalUserStore.getState().rotateCamera(x, y);
   }
 
   /*
    * This method is used to adapt the users view to the initial position
    */
   resetPositionAndRotation() {
-    this.teleportToPosition(new THREE.Vector3(0, 0, 0));
-    this.defaultCamera.rotation.set(0, 0, 0);
+    useLocalUserStore.getState().resetPositionAndRotation();
   }
 
   reset() {

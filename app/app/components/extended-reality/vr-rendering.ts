@@ -769,7 +769,7 @@ export default class VrRendering extends Component<Args> {
                 side: THREE.BackSide,
                 displacementScale: -4.0,
               });
-              this.localUser.setPanoramaShere(
+              this.localUser.setPanoramaSphere(
                 new THREE.Mesh(geometry, material)
               );
               resolve(null);
