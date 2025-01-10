@@ -10,7 +10,7 @@ import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-d
 import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
@@ -300,7 +300,6 @@ export default class VrRendering extends Component<Args> {
     this.localUser.xr = this.renderer.xr;
 
     this.cameraControls = new CameraControls(
-      getOwner(this),
       this.camera,
       undefined,
       this.canvas

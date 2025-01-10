@@ -2,14 +2,17 @@ import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/compon
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import { Class, Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import {
+  Class,
+  Package,
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   DynamicLandscapeData,
   isSpan,
   Span,
 } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { spanIdToClass } from 'react-lib/src/utils/landscape-structure-helpers';
-import CameraControls from './camera-controls';
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import { removeHighlighting } from './highlighting';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';

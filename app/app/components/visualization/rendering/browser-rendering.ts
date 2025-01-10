@@ -17,7 +17,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import {
   moveCameraTo,
   updateColors,
@@ -332,11 +332,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.scene.add(this.camera);
 
     // Controls
-    this.cameraControls = new CameraControls(
-      getOwner(this),
-      this.camera,
-      this.canvas
-    );
+    this.cameraControls = new CameraControls(this.camera, this.canvas);
     this.spectateUserService.cameraControls = this.cameraControls;
     this.localUser.cameraControls = this.cameraControls;
     this.updatables.push(this.localUser);

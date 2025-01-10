@@ -6,7 +6,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as THREE from 'three';
 import Raycaster from 'react-lib/src/utils/raycaster';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 
 export enum SceneLayers {
   Default = 0,

@@ -13,7 +13,7 @@ import {
   SpectatingUpdateMessage,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
 import debugLogger from 'ember-debug-logger';
-import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import * as VrPoses from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import { VrPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
