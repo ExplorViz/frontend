@@ -186,7 +186,7 @@ export function spanIdToClass(
 }
 
 export function createEmptyStructureLandscapeData(): StructureLandscapeData {
-  return { landscapeToken: '', nodes: [] };
+  return { landscapeToken: '', nodes: [], k8sNodes: [] };
 }
 
 export function calculateFqn(classInstance: Class, delimiter: string): string {
@@ -225,6 +225,7 @@ export function combineStructureLandscapeData(
   const structure: StructureLandscapeData = {
     landscapeToken: structureA.landscapeToken,
     nodes: [],
+    k8sNodes: [],
   };
 
   for (const nodeA of structureA.nodes) {
@@ -256,6 +257,14 @@ export function combineStructureLandscapeData(
     if (!nodeA) {
       structure.nodes.push(nodeB);
     }
+  }
+
+  // TODO: Combine properly
+  for (const node of structureA.k8sNodes) {
+    structure.k8sNodes.push(node);
+  }
+  for (const node of structureB.k8sNodes) {
+    structure.k8sNodes.push(node);
   }
 
   return structure;

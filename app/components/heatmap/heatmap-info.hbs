@@ -1,0 +1,11 @@
+{{! template-lint-disable no-pointer-down-event-binding }}
+<div
+  id='heatmapInfo'
+  class='foreground'
+  style='position: absolute; cursor: move'
+  {{on 'pointerdown' this.dragMouseDown}}
+  {{did-insert this.setPopupPosition}}
+>
+  <Heatmap::HeatmapLegend />
+  <Heatmap::MetricSelector @selectMetric={{@updateMetric}} />
+</div>

@@ -14,7 +14,7 @@ module(
 
       /*
     this.set('dummyAction', function () {});
-    await render(hbs`<Visualization::PageSetup::ArButtons::PrimaryInteractionButton
+    await render(hbs`<ExtendedReality::Visualization::PageSetup::ArButtons::PrimaryInteractionButton
       @handlePrimaryCrosshairInteraction={{@dummyAction}}
       @openAllComponents={{@dummyAction}}
     />`);

@@ -1,8 +1,8 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
-import MessageSender from 'collaboration/services/message-sender';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -19,7 +19,7 @@ import ChatService from './chat';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 import {
   getAllAncestorComponents,
@@ -34,16 +34,16 @@ export default class HighlightingService extends Service.extend({
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
   @service('link-renderer')
   private linkRenderer!: LinkRenderer;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
   @service('user-settings')
@@ -60,18 +60,19 @@ export default class HighlightingService extends Service.extend({
   hoveredOnHighlightedMesh = false;
 
   get applyHighlightingOnHover() {
-    return this.userSettings.applicationSettings.applyHighlightingOnHover.value;
+    return this.userSettings.visualizationSettings.applyHighlightingOnHover
+      .value;
   }
 
   get opacity() {
-    return this.userSettings.applicationSettings.transparencyIntensity.value;
+    return this.userSettings.visualizationSettings.transparencyIntensity.value;
   }
 
   get highlightingColor() {
     if (this.collaborationSession.isOnline) {
       return this.localUser.color;
     } else {
-      return this.userSettings.applicationColors.highlightedEntityColor;
+      return this.userSettings.colors.highlightedEntityColor;
     }
   }
 
@@ -284,7 +285,7 @@ export default class HighlightingService extends Service.extend({
     options?: HighlightOptions
   ) {
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      !this.userSettings.visualizationSettings.enableMultipleHighlighting.value
     ) {
       this.removeHighlightingForAllApplications(false);
     }
@@ -304,7 +305,7 @@ export default class HighlightingService extends Service.extend({
         this.getEntityType(mesh),
         mesh.getModelId(),
         mesh.highlighted,
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+        this.userSettings.visualizationSettings.enableMultipleHighlighting.value
       );
       if (highlighted) {
         this.chatService.sendChatMessage(
@@ -362,7 +363,7 @@ export default class HighlightingService extends Service.extend({
         entityType,
         entityId,
         object.highlighted,
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+        this.userSettings.visualizationSettings.enableMultipleHighlighting.value
       );
       if (highlighted) {
         this.chatService.sendChatMessage(
@@ -395,7 +396,7 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor = color || this.highlightingColor;
 
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      !this.userSettings.visualizationSettings.enableMultipleHighlighting.value
     ) {
       this.removeHighlightingForAllApplications(false);
     }

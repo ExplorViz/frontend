@@ -1,7 +1,7 @@
 // #region Imports
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { task } from 'ember-concurrency';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
@@ -19,11 +19,10 @@ import {
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
-import ArSettings from 'extended-reality/services/ar-settings';
-import VrApplicationObject3D from 'extended-reality/utils/view-objects/application/vr-application-object-3d';
+import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
+import VrApplicationObject3D from 'explorviz-frontend/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
@@ -32,13 +31,14 @@ import UserSettings from './user-settings';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { getSubPackagesOfPackage } from 'explorviz-frontend/utils/package-helpers';
 import HighlightingService from './highlighting-service';
-import MessageSender from 'collaboration/services/message-sender';
-import RoomSerializer from 'collaboration/services/room-serializer';
-import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
+import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import SceneRepository from './repos/scene-repository';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { CommitComparison } from 'explorviz-frontend/utils/evolution-schemes/evolution-data';
@@ -49,6 +49,11 @@ import {
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
+import layoutCity, {
+  convertElkToBoxLayout,
+} from 'explorviz-frontend/utils/city-layouter';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -57,19 +62,19 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('repos/evolution-data-repository')
   private evolutionDataRepository!: EvolutionDataRepository;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('configuration')
   private configuration!: Configuration;
 
-  @service('ar-settings')
+  @service('extended-reality/ar-settings')
   private arSettings!: ArSettings;
 
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('message-sender')
+  @service('collaboration/message-sender')
   private sender!: MessageSender;
 
   @service('repos/application-repository')
@@ -78,7 +83,7 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('repos/font-repository')
   private fontRepo!: FontRepository;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   private roomSerializer!: RoomSerializer;
 
   @service('link-renderer')
@@ -86,6 +91,9 @@ export default class ApplicationRenderer extends Service.extend() {
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
+
+  @service('repos/scene-repository')
+  sceneRepo!: SceneRepository;
 
   @service('texture-service')
   private textureService!: TextureService;
@@ -110,6 +118,23 @@ export default class ApplicationRenderer extends Service.extend() {
       this.userSettings,
       this.localUser
     );
+    try {
+      SemanticZoomManager.instance.configuration = this.configuration;
+      SemanticZoomManager.instance.userSettings = this.userSettings;
+      SemanticZoomManager.instance.localUser = this.localUser;
+      SemanticZoomManager.instance.appCommRendering = this._appCommRendering;
+      SemanticZoomManager.instance.font = this.font;
+      ImmersiveView.instance.font = this.font;
+    } catch (error) {
+      console.error(
+        'Semantic Zoom Manger did not get any Settings by the Service Renderer. Zoom features are limited: {$error}'
+      );
+    }
+
+    // const geometry = new THREE.BoxGeometry(1, 1, 1);
+    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    // const cube = new THREE.Mesh(geometry, material);
+    // this.sceneRepo.getScene().add(cube);
   }
 
   // #region Get / Set
@@ -123,7 +148,7 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   get font() {
@@ -209,42 +234,35 @@ export default class ApplicationRenderer extends Service.extend() {
       addApplicationArgs: AddApplicationArgs = {}
     ) => {
       const applicationModel = applicationData.application;
-      const boxLayoutMap = this.convertToBoxLayoutMap(
-        applicationData.layoutData
-      );
-
+      const boxLayoutMap = applicationData.boxLayoutMap;
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let applicationObject3D = this.getApplicationById(applicationModel.id);
 
-      let layoutChanged = true;
+      let addedClasses = true;
       if (applicationObject3D) {
-        // Maps cannot be compared directly. Thus, we compare their size.
-        layoutChanged =
+        // Check if new classes have been discovered
+        addedClasses =
           boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
-
-        applicationObject3D.boxLayoutMap = boxLayoutMap;
       } else {
-        applicationObject3D = new VrApplicationObject3D(
-          applicationData,
-          boxLayoutMap
-        );
+        applicationObject3D = new VrApplicationObject3D(applicationData);
         this._openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
 
       const applicationState =
-        Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
+        Object.keys(addApplicationArgs).length === 0 && isOpen && addedClasses
           ? this.roomSerializer.serializeToAddApplicationArgs(
               applicationObject3D
             )
           : addApplicationArgs;
 
-      if (layoutChanged) {
+      if (addedClasses) {
         applicationObject3D.removeAllEntities();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.userSettings.applicationColors
+          this.userSettings.colors,
+          this.font
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
@@ -259,8 +277,11 @@ export default class ApplicationRenderer extends Service.extend() {
         Labeler.addApplicationLabels(
           applicationObject3D,
           this.font,
-          this.userSettings.applicationColors
+          this.userSettings.colors
         );
+      } else {
+        // Layout may have been changed in settings
+        applicationObject3D.updateLayout();
       }
 
       this.addCommunication(applicationObject3D);
@@ -283,8 +304,9 @@ export default class ApplicationRenderer extends Service.extend() {
       // reset highlights -------------------
 
       const currentSetting =
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value;
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        this.userSettings.visualizationSettings.enableMultipleHighlighting
+          .value;
+      this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
@@ -294,7 +316,7 @@ export default class ApplicationRenderer extends Service.extend() {
           );
         }
       );
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
         currentSetting;
       // ----------------------------------------
 
@@ -333,7 +355,7 @@ export default class ApplicationRenderer extends Service.extend() {
       | FoundationMesh;
 
     const { componentTextColor, foundationTextColor } =
-      this.userSettings.applicationColors;
+      this.userSettings.colors;
 
     if (boxMesh instanceof ComponentMesh) {
       Labeler.updateBoxTextLabel(boxMesh, this.font, componentTextColor, label);
@@ -353,7 +375,7 @@ export default class ApplicationRenderer extends Service.extend() {
   addCommunication(applicationObject3D: ApplicationObject3D) {
     this._appCommRendering.addCommunication(
       applicationObject3D,
-      this.userSettings.applicationSettings
+      this.userSettings.visualizationSettings
     );
   }
 
@@ -384,7 +406,7 @@ export default class ApplicationRenderer extends Service.extend() {
     Labeler.addApplicationLabels(
       applicationObject3D,
       this.font,
-      this.userSettings.applicationColors
+      this.userSettings.colors
     );
     // Update links
     this.updateLinks?.();
@@ -527,7 +549,7 @@ export default class ApplicationRenderer extends Service.extend() {
       if (this.arSettings.renderCommunication) {
         this._appCommRendering.addCommunication(
           application,
-          this.userSettings.applicationSettings
+          this.userSettings.visualizationSettings
         );
       } else {
         application.removeAllCommunication();
@@ -590,6 +612,32 @@ export default class ApplicationRenderer extends Service.extend() {
       });
     }
     this.highlightingService.updateHighlighting();
+  }
+
+  async updateApplicationLayout() {
+    const elkPromises: any[] = [];
+
+    // Compute layout asynchronously
+    this.openApplications.forEach((application) => {
+      elkPromises.push(layoutCity(application.dataModel.application));
+    });
+    const layoutGraphs = await Promise.all(elkPromises);
+
+    // Apply layout to each application
+    layoutGraphs.forEach((graph) => {
+      const boxLayoutMap = convertElkToBoxLayout(graph);
+
+      // Ids in ELK must not start with numbers, therefore we added 5 letters
+      const application = this.getApplicationById(graph.id.substring(5));
+
+      if (!application) return;
+
+      application.dataModel.boxLayoutMap = boxLayoutMap;
+      application.updateLayout();
+    });
+
+    // Update communication since position of classes may have changed
+    this.addCommunicationForAllApplications();
   }
 
   // #endregion
@@ -762,24 +810,6 @@ export default class ApplicationRenderer extends Service.extend() {
       }
     });
   }
-
-  private convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
-    const boxLayoutMap: Map<string, BoxLayout> = new Map();
-
-    layoutedApplication.forEach((value, key) => {
-      const boxLayout = new BoxLayout();
-      boxLayout.positionX = value.positionX;
-      boxLayout.positionY = value.positionY;
-      boxLayout.positionZ = value.positionZ;
-      boxLayout.width = value.width;
-      boxLayout.height = value.height;
-      boxLayout.depth = value.depth;
-      boxLayoutMap.set(key, boxLayout);
-    });
-
-    return boxLayoutMap;
-  }
-
   //#endregion
 
   //#region Cleanup

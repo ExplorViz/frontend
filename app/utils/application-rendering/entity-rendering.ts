@@ -6,7 +6,21 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import AnimationMesh from 'explorviz-frontend/view-objects/3d/animation-mesh';
 import { Class, Package } from '../landscape-schemes/structure-data';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
+import UserSettings from 'explorviz-frontend/services/user-settings';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import {
+  closeComponentMesh,
+  closeComponentsRecursively,
+  openComponentAndAncestor,
+  openComponentMesh,
+  openComponentsRecursively,
+} from './entity-manipulation';
+
+import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
+import CommunicationRendering from './communication-rendering';
+import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
+import { VisualizationSettings } from '../settings/settings-schemas';
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.
@@ -30,7 +44,9 @@ export function addMeshToApplication(
   centerPoint.sub(applicationCenter);
 
   mesh.position.copy(centerPoint);
+  mesh.saveOriginalAppearence();
   applicationObject3D.add(mesh);
+  SemanticZoomManager.instance.add(mesh);
 }
 
 /**
@@ -60,13 +76,14 @@ export function updateMeshVisiblity(
  *
  * @param component Data model for the component which shall be added to the scene
  * @param applicationObject3D Object to which the component mesh and its children are added
- * @param applicationColors Contains color objects for components and clazzes
+ * @param colors Contains color objects for components and clazzes
  * @param componentLevel
  */
 export function addComponentAndChildrenToScene(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ApplicationColors,
+  colors: ExplorVizColors,
+  font: Font,
   componentLevel = 1
 ) {
   const application = applicationObject3D.dataModel.application;
@@ -82,19 +99,72 @@ export function addComponentAndChildrenToScene(
     componentEvenColor,
     clazzColor,
     highlightedEntityColor,
-  } = applicationColors;
+  } = colors;
 
   // Set color alternating (e.g. light and dark green) according to component level
   const color =
     componentLevel % 2 === 0 ? componentEvenColor : componentOddColor;
-  const mesh = new ComponentMesh(
+  const componentMesh = new ComponentMesh(
     componentLayout,
     component,
     color,
     highlightedEntityColor
   );
-  addMeshToApplication(mesh, applicationObject3D);
-  updateMeshVisiblity(mesh, applicationObject3D);
+
+  // automatically open packages when zooming in.
+  // mesh.callBeforeAppearenceZero = () => {
+  //   console.log('Return home Component!!!');
+  // };
+  //mesh.overrideVisibility = true;
+  // Alter the prio to VIP, such that it gets triggered first and without a delay.
+  componentMesh.prio = 1;
+  // Define function
+  const triggerOpen = () => {
+    if (!SemanticZoomManager.instance.autoOpenCloseFeature) return;
+    //Open parents first
+    if (componentMesh.opened) return;
+    openComponentAndAncestor(component, applicationObject3D);
+    //Open itsself
+    openComponentMesh(componentMesh, applicationObject3D);
+    //Open its childs
+    openComponentsRecursively(component, applicationObject3D, undefined);
+
+    // Rewritten update method
+    //updateApplicationObject3DAfterUpdate(applicationObject3D);
+    updateApplicationObject3DAfterUpdate(
+      applicationObject3D,
+      SemanticZoomManager.instance.appCommRendering!,
+      true,
+      SemanticZoomManager.instance.userSettings!.visualizationSettings!,
+      SemanticZoomManager.instance.userSettings!,
+      SemanticZoomManager.instance.font!,
+      SemanticZoomManager.instance.updateLinks!
+    );
+  };
+  componentMesh.setAppearence(1, triggerOpen);
+  // mesh.setAppearence(2, triggerOpen);
+  // mesh.setAppearence(3, triggerOpen);
+  // mesh.setAppearence(4, triggerOpen);
+
+  componentMesh.setCallBeforeAppearenceZero(() => {
+    if (!SemanticZoomManager.instance.autoOpenCloseFeature) return;
+    if (!componentMesh.opened) return;
+
+    closeComponentsRecursively(component, applicationObject3D, undefined);
+    closeComponentMesh(componentMesh, applicationObject3D, false);
+    updateApplicationObject3DAfterUpdate(
+      applicationObject3D,
+      SemanticZoomManager.instance.appCommRendering!,
+      true,
+      SemanticZoomManager.instance.userSettings!.visualizationSettings!,
+      SemanticZoomManager.instance.userSettings!,
+      SemanticZoomManager.instance.font!,
+      SemanticZoomManager.instance.updateLinks!
+    );
+  });
+
+  addMeshToApplication(componentMesh, applicationObject3D);
+  updateMeshVisiblity(componentMesh, applicationObject3D);
 
   const clazzes = component.classes;
   const children = component.subPackages;
@@ -107,12 +177,14 @@ export function addComponentAndChildrenToScene(
       return;
     }
 
+    // Create class mesh
     const clazzMesh = new ClazzMesh(
       clazzLayout,
       clazz,
       clazzColor,
       highlightedEntityColor
     );
+
     addMeshToApplication(clazzMesh, applicationObject3D);
     updateMeshVisiblity(clazzMesh, applicationObject3D);
   });
@@ -122,7 +194,8 @@ export function addComponentAndChildrenToScene(
     addComponentAndChildrenToScene(
       child,
       applicationObject3D,
-      applicationColors,
+      colors,
+      font,
       componentLevel + 1
     );
   });
@@ -134,11 +207,12 @@ export function addComponentAndChildrenToScene(
  * are added to the application.
  *
  * @param applicationObject3D Object which shall contain all application meshes
- * @param applicationColors Object which defines the colors for different application entities
+ * @param colors Object which defines the colors for different application entities
  */
 export function addFoundationAndChildrenToApplication(
   applicationObject3D: ApplicationObject3D,
-  applicationColors: ApplicationColors
+  colors: ExplorVizColors,
+  font: Font
 ) {
   const application = applicationObject3D.dataModel.application;
   const applicationLayout = applicationObject3D.layout;
@@ -147,24 +221,20 @@ export function addFoundationAndChildrenToApplication(
     return;
   }
 
-  const { foundationColor, highlightedEntityColor } = applicationColors;
+  const { foundationColor, highlightedEntityColor } = colors;
 
-  const mesh = new FoundationMesh(
+  const foundationMesh = new FoundationMesh(
     applicationLayout,
     application,
     foundationColor,
     highlightedEntityColor
   );
-  addMeshToApplication(mesh, applicationObject3D);
+  addMeshToApplication(foundationMesh, applicationObject3D);
 
   const children = application.packages;
 
   children.forEach((child: Package) => {
-    addComponentAndChildrenToScene(
-      child,
-      applicationObject3D,
-      applicationColors
-    );
+    addComponentAndChildrenToScene(child, applicationObject3D, colors, font);
   });
 }
 
@@ -189,7 +259,6 @@ export function addGlobeToApplication(
   centerPoint.sub(applicationCenter);
 
   mesh.position.copy(centerPoint);
-  // mesh.rotateY(-2.45);
 
   appObject3D.add(mesh);
 
@@ -206,4 +275,23 @@ export function repositionGlobeToApplication(
   centerPoint.sub(applicationCenter);
 
   globe.position.copy(centerPoint);
+}
+
+export function updateApplicationObject3DAfterUpdate(
+  applicationObject3D: ApplicationObject3D,
+  appCommRendering: CommunicationRendering,
+  renderComm: boolean,
+  vizSettings: VisualizationSettings,
+  userSettings: UserSettings,
+  font: Font,
+  linkUpdater: () => void
+) {
+  if (renderComm) {
+    appCommRendering.addCommunication(applicationObject3D, vizSettings);
+  }
+
+  // Update labels
+  Labeler.addApplicationLabels(applicationObject3D, font, userSettings.colors);
+  // Update links
+  linkUpdater?.();
 }

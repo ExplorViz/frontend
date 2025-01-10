@@ -6,39 +6,34 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser, {
   VisualizationMode,
-} from 'collaboration/services/local-user';
-
-import RoomSerializer from 'collaboration/services/room-serializer';
-import SpectateUser from 'collaboration/services/spectate-user';
-import WebSocketService from 'collaboration/services/web-socket';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+} from 'explorviz-frontend/services/collaboration/local-user';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
+import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/landscape';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/landscape';
 import {
   TIMESTAMP_UPDATE_TIMER_EVENT,
   TimestampUpdateTimerMessage,
-} from 'collaboration/utils/web-socket-messages/receivable/timestamp-update-timer';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/synchronize-room-state';
-import {
-  TIMESTAMP_UPDATE_EVENT,
-  TimestampUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/timetsamp-update';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
+import { TIMESTAMP_UPDATE_EVENT } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/visualization-mode-update';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
   // SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
-} from 'collaboration/utils/web-socket-messages/types/serialized-room';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import { timeout } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
@@ -59,7 +54,7 @@ import UserApiTokenService, {
 } from 'explorviz-frontend/services/user-api-token';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
-import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import * as THREE from 'three';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
@@ -68,7 +63,8 @@ import RenderingService, {
   VisualizationMode as RenderingVisualizationMode,
 } from 'explorviz-frontend/services/rendering-service';
 import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
@@ -130,7 +126,7 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-token')
@@ -141,19 +137,19 @@ export default class VisualizationController extends Controller {
   @service('reload-handler')
   reloadHandler!: ReloadHandler;
 
-  @service('detached-menu-renderer')
+  @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
   @service('timestamp')
   timestampService!: TimestampService;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
   @service('application-renderer')
@@ -168,7 +164,7 @@ export default class VisualizationController extends Controller {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('spectate-user')
+  @service('collaboration/spectate-user')
   spectateUser!: SpectateUser;
 
   @service('user-api-token')
@@ -255,6 +251,8 @@ export default class VisualizationController extends Controller {
     return (
       this.renderingService.landscapeData !== null &&
       this.renderingService.landscapeData.structureLandscapeData?.nodes
+        .length === 0 &&
+      this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
         .length === 0
     );
   }
@@ -262,8 +260,10 @@ export default class VisualizationController extends Controller {
   get allLandscapeDataExistsAndNotEmpty() {
     return (
       this.renderingService.landscapeData !== null &&
-      this.renderingService.landscapeData.structureLandscapeData?.nodes.length >
-        0
+      (this.renderingService.landscapeData.structureLandscapeData?.nodes
+        .length > 0 ||
+        this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
+          .length > 0)
     );
   }
 
@@ -313,6 +313,12 @@ export default class VisualizationController extends Controller {
 
     this.sidebarHandler = new SidebarHandler();
     this.renderingService.visualizationPaused = false;
+
+    // start main loop
+    this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
+
+    // Delete all Semantic Zoom Objects and its tables
+    SemanticZoomManager.instance.reset();
 
     // fetch applications for evolution mode
     await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
@@ -409,23 +415,28 @@ export default class VisualizationController extends Controller {
     };
 
     this.highlightingService.updateHighlighting();
-    await this.renderingService.triggerRenderingForGivenTimestamp(
-      landscape.timestamp
-    );
+    // TODO
+    // await this.renderingService.triggerRenderingForGivenTimestamp(
+    //   landscape.timestamp
+    // );
     // Disable polling. It is now triggerd by the websocket.
   }
 
-  async onTimestampUpdate({
-    originalMessage: { timestamp },
-  }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
-    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
+  async onTimestampUpdate(/* {
+    originalMessage: {
+      timestamp
+    },
+  }: ForwardedMessage<TimestampUpdateMessage> */): Promise<void> {
+    // TODO
+    // this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onTimestampUpdateTimer({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
     await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
-    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
+    // TODO
+    // this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onSyncRoomState(event: {
@@ -532,7 +543,7 @@ export default class VisualizationController extends Controller {
 
       if (this.vrSupported) {
         this.vrButtonText = 'Enter VR';
-      } else if (window.isSecureContext === false) {
+      } else if (!window.isSecureContext) {
         this.vrButtonText = 'WEBXR NEEDS HTTPS';
       } else {
         this.vrButtonText = 'WEBXR NOT AVAILABLE';

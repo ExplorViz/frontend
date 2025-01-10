@@ -25,6 +25,23 @@ export default class CommunicationLayout {
     this.model = model;
   }
 
+  // Copy function
+  copy(): CommunicationLayout {
+    const copy = new CommunicationLayout(this.model);
+    copy.model = this.model; // Assuming shallow copy is sufficient, otherwise you need to handle deep copy based on the actual structure of ClassCommunication or ComponentCommunication
+    copy.startX = this.startX;
+    copy.startY = this.startY;
+    copy.startZ = this.startZ;
+    copy.endX = this.endX;
+    copy.endY = this.endY;
+    copy.endZ = this.endZ;
+    copy.lineThickness = this.lineThickness;
+    copy.pointsFor3D = this.pointsFor3D.map(
+      (point) => new THREE.Vector3(point.x, point.y, point.z)
+    );
+    return copy;
+  }
+
   get startPoint() {
     return new THREE.Vector3(this.startX, this.startY, this.startZ);
   }

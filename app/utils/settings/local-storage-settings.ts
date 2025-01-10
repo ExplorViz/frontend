@@ -1,30 +1,47 @@
 import isObject, { objectsHaveSameKeys } from '../object-helpers';
-import { defaultApplicationSettings } from './default-settings';
-import { ApplicationSettings, RangeSetting } from './settings-schemas';
+import { defaultVizSettings } from './default-settings';
+import {
+  VisualizationSettings,
+  RangeSetting,
+  VisualizationSettingId,
+} from './settings-schemas';
 
-export function getStoredSettings(): ApplicationSettings {
-  const userApplicationSettingsJSON = localStorage.getItem(
-    'userApplicationSettings'
-  );
+export function getStoredSettings(): VisualizationSettings {
+  const settingsJson = localStorage.getItem('ExplorVizSettings');
 
-  if (userApplicationSettingsJSON === null) {
-    return defaultApplicationSettings;
+  if (settingsJson === null) {
+    return defaultVizSettings;
   }
 
-  const parsedApplicationSettings = JSON.parse(userApplicationSettingsJSON);
+  const parsedSettings = JSON.parse(settingsJson);
 
-  if (areValidApplicationSettings(parsedApplicationSettings)) {
-    return parsedApplicationSettings;
+  if (areValidSettings(parsedSettings)) {
+    return parsedSettings;
   } else {
-    localStorage.removeItem('userApplicationSettings');
-    return defaultApplicationSettings;
+    localStorage.removeItem('ExplorVizSettings');
+    return defaultVizSettings;
   }
 }
 
-export function areValidApplicationSettings(maybeSettings: unknown) {
+export function getStoredSettingValueById(id: VisualizationSettingId) {
+  const settings = getStoredSettings();
+  return settings[id].value;
+}
+
+export function getStoredNumberSetting(id: VisualizationSettingId): number {
+  const settings = getStoredSettings();
+  if (typeof settings[id].value === 'number') {
+    return settings[id].value;
+  } else {
+    console.error('Error in getStoredNumberSetting for setting', settings[id]);
+    return 1;
+  }
+}
+
+export function areValidSettings(maybeSettings: unknown) {
   return (
     isObject(maybeSettings) &&
-    objectsHaveSameKeys(maybeSettings, defaultApplicationSettings)
+    objectsHaveSameKeys(maybeSettings, defaultVizSettings)
   );
 }
 
@@ -40,9 +57,9 @@ export function validateRangeSetting(
   }
 }
 
-export function saveSettings(applicationSettings: ApplicationSettings) {
+export function saveSettings(visualizationSettings: VisualizationSettings) {
   localStorage.setItem(
-    'userApplicationSettings',
-    JSON.stringify(applicationSettings)
+    'ExplorVizSettings',
+    JSON.stringify(visualizationSettings)
   );
 }

@@ -3,8 +3,8 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import CollaborationSession from 'collaboration/services/collaboration-session';
-import LocalUser from 'collaboration/services/local-user';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
@@ -30,28 +30,33 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'heatmap/services/heatmap-configuration';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
-import SpectateUser from 'collaboration/services/spectate-user';
+import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
-import RoomSerializer from 'collaboration/services/room-serializer';
+import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
+import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -81,29 +86,32 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('spectate-user')
+  @service('collaboration/spectate-user')
   private spectateUserService!: SpectateUser;
 
-  @service('heatmap-configuration')
+  @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('room-serializer')
+  @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
   @service('repos/scene-repository')
   sceneRepo!: SceneRepository;
+
+  @service('toast-handler')
+  toastHandlerService!: ToastHandlerService;
 
   @service('minimap-service')
   minimapService!: MinimapService;
@@ -114,12 +122,19 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('auth')
   private auth!: Auth;
 
+  @service
+  private worker!: any;
+
   private ideWebsocket: IdeWebsocket;
 
   private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
   readonly graph: ForceGraph;
+
+  // Determines if landscape needs to be fully re-computed
+  @tracked
+  updateLayout = false;
 
   @tracked
   readonly scene: THREE.Scene;
@@ -151,6 +166,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @tracked
   selectedApplicationId: string = '';
 
+  toggleForceAppearenceLayer: boolean = false;
+
+  semanticZoomToggle: boolean = false;
+
   get selectedApplicationObject3D() {
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
@@ -166,7 +185,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   debug = debugLogger('BrowserRendering');
@@ -176,9 +195,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
-    this.scene.background = this.userSettings.applicationColors.backgroundColor;
+    this.scene.background = this.userSettings.colors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
+
+    this.configuration.semanticZoomEnabled =
+      SemanticZoomManager.instance.isEnabled;
 
     // Force graph
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
@@ -194,6 +216,51 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.updatables.push(this.minimapService);
 
     this.popupHandler = new PopupHandler(getOwner(this));
+    ImmersiveView.instance.callbackOnEntering = () => {
+      this.popupHandler.deactivated = true;
+      this.popupHandler.clearPopups();
+    };
+    ImmersiveView.instance.callbackOnExit = () => {
+      this.popupHandler.deactivated = false;
+    };
+    this.applicationRenderer.forceGraph = this.graph.graph;
+    // Semantic Zoom Manager shows/removes all communication arrows, due to heigh rendering time.
+    // If the Semantic zoom feature is enabled, all previously generated arrows are hidden. After that
+    // the manager decides on which level to show.
+    // If it gets disabled, alle previous arrows get restored.
+    // All this is done by shifting layers.
+    SemanticZoomManager.instance.registerActivationCallback((onOff) => {
+      this.linkRenderer
+        .getAllLinks()
+        .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.cone.layers.disableAll();
+              arrow.line.layers.disableAll();
+            } else {
+              arrow.cone.layers.set(0);
+              arrow.line.layers.set(0);
+            }
+          });
+        });
+      this.applicationRenderer.getOpenApplications().forEach((ap) => {
+        ap.getCommMeshes().forEach((currentCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.cone.layers.disableAll();
+              arrow.line.layers.disableAll();
+            } else {
+              arrow.cone.layers.set(0);
+              arrow.line.layers.set(0);
+            }
+          });
+        });
+      });
+    });
+    // Loads the AutoOpenClose activation state from the settings.
+    SemanticZoomManager.instance.toggleAutoOpenClose(
+      this.userSettings.visualizationSettings.autoOpenCloseFeature.value
+    );
     this.applicationRenderer.forceGraph = this.graph.graph;
 
     // IDE Websocket
@@ -224,28 +291,89 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     const commButtonTitle = this.configuration.isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
-    const heatmapButtonTitle = this.heatmapConf.heatmapActive
-      ? 'Disable Heatmap'
-      : 'Enable Heatmap';
-    const pauseItemtitle = this.args.visualizationPaused
-      ? 'Resume Visualization'
-      : 'Pause Visualization';
 
     return [
       { title: 'Reset View', action: this.resetView },
       {
         title: 'Open All Components',
-        action: this.applicationRenderer.openAllComponentsOfAllApplications,
+        action: () => {
+          if (
+            this.userSettings.visualizationSettings.autoOpenCloseFeature
+              .value == true &&
+            this.userSettings.visualizationSettings.semanticZoomState.value ==
+              true
+          ) {
+            this.toastHandlerService.showErrorToastMessage(
+              'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
+            );
+            return;
+          }
+          this.applicationRenderer.openAllComponentsOfAllApplications();
+        },
       },
       {
         title: commButtonTitle,
         action: this.applicationRenderer.toggleCommunicationRendering,
       },
-      { title: heatmapButtonTitle, action: this.heatmapConf.toggleHeatmap },
-      { title: pauseItemtitle, action: this.args.toggleVisualizationUpdating },
-      { title: 'Open Sidebar', action: this.args.openSettingsSidebar },
       { title: 'Enter AR', action: this.args.switchToAR },
     ];
+  }
+
+  @action
+  toggleSemanticZoom() {
+    if (!SemanticZoomManager.instance.isEnabled) {
+      SemanticZoomManager.instance.activate();
+    } else {
+      SemanticZoomManager.instance.deactivate();
+    }
+    this.userSettings.updateSetting(
+      'semanticZoomState',
+      SemanticZoomManager.instance.isEnabled
+    );
+    this.configuration.semanticZoomEnabled =
+      SemanticZoomManager.instance.isEnabled;
+  }
+
+  @action
+  showSemanticZoomClusterCenters() {
+    // Remove previous center points from scene
+    const prevCenterPointList = this.scene.children.filter(
+      (preCenterPoint) => preCenterPoint.name == 'centerPoints'
+    );
+    prevCenterPointList.forEach((preCenterPoint) => {
+      this.scene.remove(preCenterPoint);
+    });
+
+    if (!SemanticZoomManager.instance.isEnabled) {
+      return;
+    }
+
+    // Poll Center Vectors
+    SemanticZoomManager.instance
+      .getClusterCentroids()
+      .forEach((centerPoint) => {
+        // Create red material
+        const xGroup = new THREE.Group();
+        xGroup.name = 'centerPoints';
+        const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+        // Create the first part of the "X" (a thin rectangle)
+        const geometry = new THREE.BoxGeometry(0.1, 0.01, 0.01); // A long thin box
+        const part1 = new THREE.Mesh(geometry, redMaterial);
+        part1.rotation.z = Math.PI / 4; // Rotate 45 degrees
+
+        // Create the second part of the "X"
+        const part2 = new THREE.Mesh(geometry, redMaterial);
+        part2.rotation.z = -Math.PI / 4; // Rotate -45 degrees
+
+        // Add both parts to the scene
+        xGroup.add(part1);
+        xGroup.add(part2);
+
+        // Set Position of X Group
+        xGroup.position.copy(centerPoint);
+        this.scene.add(xGroup);
+      });
   }
 
   /**
@@ -324,7 +452,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   private initCameras() {
     const aspectRatio = this.canvas.width / this.canvas.height;
-    const settings = this.userSettings.applicationSettings;
+    const settings = this.userSettings.visualizationSettings;
 
     // Camera
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
@@ -335,6 +463,29 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
     this.camera.position.set(5, 5, 5);
     this.scene.add(this.camera);
+
+    // Add Camera to ImmersiveView manager
+    ImmersiveView.instance.registerCamera(this.camera);
+    ImmersiveView.instance.registerScene(this.scene);
+    ImmersiveView.instance.registerCanvas(this.canvas);
+
+    this.localUser.ortographicCamera = new THREE.OrthographicCamera(
+      -aspectRatio * 1,
+      aspectRatio * 1,
+      1,
+      -1,
+      0.1,
+      100
+    );
+
+    this.localUser.ortographicCamera.userData.aspect = aspectRatio;
+
+    this.localUser.ortographicCamera.position.setFromSphericalCoords(
+      10,
+      Math.PI / 3,
+      Math.PI / 4
+    );
+    this.localUser.ortographicCamera.lookAt(this.scene.position);
 
     // Controls
     this.cameraControls = new CameraControls(
@@ -383,8 +534,30 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       renderer: this.renderer,
       updatables: this.updatables,
     });
+    ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.renderingLoop.start();
 
+    this.graph.graph.onFinishUpdate(() => {
+      if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+        this.debug('initdone!');
+        setTimeout(() => {
+          this.cameraControls.resetCameraFocusOn(
+            1.2,
+            ...this.applicationRenderer.getOpenApplications()
+          );
+          if (
+            SemanticZoomManager.instance.isEnabled ||
+            this.userSettings.visualizationSettings.semanticZoomState.value ==
+              true
+          ) {
+            SemanticZoomManager.instance.activate();
+            this.configuration.semanticZoomEnabled =
+              SemanticZoomManager.instance.isEnabled;
+          }
+        }, 200);
+        this.initDone = true;
+      }
+    });
     // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
     if (this.args.snapshot || this.args.snapshotReload) {
       this.graph.graph.onFinishUpdate(() => {
@@ -461,7 +634,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   handleStrgDown() {
-    // nothin to do atm
+    SemanticZoomManager.instance.logCurrentState();
+    // nothing to do atm
   }
 
   @action
@@ -484,11 +658,24 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.args.toggleVisualizationUpdating();
   }
 
-  selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+  async selectActiveApplication(applicationObject3D: ApplicationObject3D) {
+    if (applicationObject3D.dataModel.applicationMetrics.metrics.length === 0) {
+      const workerPayload = {
+        structure: applicationObject3D.dataModel.application,
+        dynamic: this.args.landscapeData?.dynamicLandscapeData,
+      };
+
+      calculateHeatmap(
+        applicationObject3D.dataModel.applicationMetrics,
+        await this.worker.postMessage('metrics-worker', workerPayload)
+      );
+    }
+
     if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();
       this.heatmapConf.setActiveApplication(applicationObject3D);
     }
+
     applicationObject3D.updateMatrixWorld();
     this.applicationRenderer.updateLinks?.();
   }
@@ -504,7 +691,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
       if (
-        !this.userSettings.applicationSettings.keepHighlightingOnOpenOrClose
+        !this.userSettings.visualizationSettings.keepHighlightingOnOpenOrClose
           .value
       ) {
         const applicationObject3D = mesh.parent;
@@ -526,6 +713,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         this.applicationRenderer.closeAllComponents(applicationObject3D);
       }
     }
+    if (ImmersiveView.instance.isImmersiveViewCapable(mesh)) {
+      ImmersiveView.instance.triggerObject(mesh);
+    }
   }
 
   @action
@@ -536,10 +726,13 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (intersection) {
       this.mousePosition.copy(intersection.point);
       this.handleMouseMoveOnMesh(intersection.object);
+      ImmersiveView.instance.takeHistory(intersection.object);
     } else if (this.hoveredObject) {
       this.hoveredObject.resetHoverEffect();
       this.hoveredObject = null;
+      ImmersiveView.instance.takeHistory(null);
     }
+
     this.popupHandler.handleHoverOnMesh(intersection?.object);
     this.annotationHandler.handleHoverOnMesh(intersection?.object);
 
@@ -691,7 +884,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   updateColors() {
-    updateColors(this.scene, this.userSettings.applicationColors);
+    updateColors(this.scene, this.userSettings.colors);
   }
 
   @action

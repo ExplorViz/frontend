@@ -13,7 +13,10 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { ChildMesh } from './simple-parent-mesh';
+import { Vector3 } from 'three';
+import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import SemanticZoomManager from './utils/semantic-zoom-manager';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -21,13 +24,14 @@ import { EntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-compos
  * some functionality to easily remove child meshes and dispose
  * all their THREE.Geometry's and THREE.Material's.
  */
-export default class ApplicationObject3D extends THREE.Object3D {
+export default class ApplicationObject3D
+  extends THREE.Object3D
+  implements ChildMesh
+{
   /**
    * The underlying application data model
    */
   dataModel: ApplicationData;
-
-  boxLayoutMap: Map<string, BoxLayout>;
 
   /**
    * Map to store all box shaped meshes (i.e., Clazz, Component, Foundation)
@@ -53,11 +57,10 @@ export default class ApplicationObject3D extends THREE.Object3D {
 
   classCommunicationSet: Set<ClassCommunication> = new Set();
 
-  constructor(data: ApplicationData, boxLayoutMap: Map<string, BoxLayout>) {
+  constructor(data: ApplicationData) {
     super();
 
     this.dataModel = data;
-    this.boxLayoutMap = boxLayoutMap;
   }
 
   get layout() {
@@ -67,6 +70,33 @@ export default class ApplicationObject3D extends THREE.Object3D {
     }
 
     return new BoxLayout();
+  }
+
+  get dimensions() {
+    return new Vector3(
+      this.layout.width,
+      this.layout.height,
+      this.layout.depth
+    );
+  }
+
+  get boxLayoutMap() {
+    return this.dataModel.boxLayoutMap;
+  }
+
+  updateLayout() {
+    this.children.forEach((mesh) => {
+      if (
+        mesh instanceof FoundationMesh ||
+        mesh instanceof ComponentMesh ||
+        mesh instanceof ClazzMesh
+      ) {
+        const boxLayout = this.getBoxLayout(mesh.dataModel.id);
+        if (boxLayout) {
+          mesh.updateLayout(boxLayout, this.layout.center);
+        }
+      }
+    });
   }
 
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
@@ -451,6 +481,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   removeAllCommunication() {
     this.getCommMeshes().forEach((mesh) => {
+      SemanticZoomManager.instance.remove(mesh);
       mesh.disposeRecursively();
       mesh.deleteFromParent();
     });
@@ -462,6 +493,7 @@ export default class ApplicationObject3D extends THREE.Object3D {
    */
   removeAllEntities() {
     this.getAllMeshes().forEach((mesh) => {
+      SemanticZoomManager.instance.remove(mesh);
       mesh.disposeRecursively();
       mesh.deleteFromParent();
     });

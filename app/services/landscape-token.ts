@@ -4,6 +4,7 @@ import debugLogger from 'ember-debug-logger';
 import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
+import ToastHandlerService from './toast-handler';
 const { userService } = ENV.backendAddresses;
 
 export type LandscapeToken = {
@@ -22,6 +23,9 @@ export default class LandscapeTokenService extends Service {
 
   @service('auth')
   private auth!: Auth;
+
+  @service('toast-handler')
+  toastHandler!: ToastHandlerService;
 
   @tracked
   token: LandscapeToken | null = null;
@@ -74,6 +78,9 @@ export default class LandscapeTokenService extends Service {
         })
         .catch(async (e) => {
           reject(e);
+          this.toastHandler.showErrorToastMessage(
+            'Server for landscapes not available.'
+          );
         });
     });
   }

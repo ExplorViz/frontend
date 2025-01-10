@@ -2,10 +2,10 @@ import { setOwner } from '@ember/application';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import LocalUser from 'collaboration/services/local-user';
-import WebSocketService from 'collaboration/services/web-socket';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
-import { SerializedPopup } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { SerializedPopup } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -13,49 +13,50 @@ import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
-import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
+import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'extended-reality/utils/vr-helpers/detail-info-composer';
-import { MenuDetachedForwardMessage } from 'extended-reality/utils/vr-web-wocket-messages/receivable/menu-detached-forward';
+} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import { MenuDetachedForwardMessage } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   MenuDetachedResponse,
   isMenuDetachedResponse,
-} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/menu-detached';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
-} from 'extended-reality/utils/vr-web-wocket-messages/sendable/request/menu-detached';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import * as THREE from 'three';
 
 export default class PopupHandler {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('detached-menu-renderer')
+  @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
   @tracked
   popupData: PopupData[] = [];
 
+  deactivated: boolean = false;
   latestMousePosition: { timestamp: number; x: number; y: number } = {
     timestamp: 0,
     x: 0,
@@ -216,6 +217,8 @@ export default class PopupHandler {
     if (!isEntityMesh(mesh) || getStoredSettings().hidePopupDelay.value == 0) {
       return;
     }
+    if (this.deactivated) return;
+
     let popupPosition = position;
 
     // Popups shared by other users have no position information
@@ -309,6 +312,7 @@ export default class PopupHandler {
   }
 
   private updateExistingPopup(popup: PopupData, newPopup: PopupData) {
+    if (this.deactivated) return;
     popup.wasMoved = popup.wasMoved || newPopup.wasMoved;
     popup.mouseX = newPopup.mouseX;
     popup.mouseY = newPopup.mouseY;
@@ -326,6 +330,7 @@ export default class PopupHandler {
     if (!mesh) {
       return;
     }
+    if (this.deactivated) return;
 
     this.addPopup({
       mesh,
@@ -337,6 +342,7 @@ export default class PopupHandler {
   }
 
   onRestorePopups(popups: SerializedPopup[]) {
+    if (this.deactivated) return;
     this.popupData = [];
 
     for (const popup of popups) {

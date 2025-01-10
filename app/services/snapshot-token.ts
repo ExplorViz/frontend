@@ -7,7 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import { getCircularReplacer } from 'explorviz-frontend/utils/circularReplacer';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { SerializedRoom } from 'collaboration/utils/web-socket-messages/types/serialized-room';
+import { SerializedRoom } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 
@@ -100,9 +100,7 @@ export default class SnapshotTokenService extends Service {
             sharedSnapshots: [],
             subsricedSnapshots: [],
           });
-          this.toastHandler.showErrorToastMessage(
-            'Server for snapshots not available.'
-          );
+          console.error('Server for snapshots not available.');
         });
     });
   }

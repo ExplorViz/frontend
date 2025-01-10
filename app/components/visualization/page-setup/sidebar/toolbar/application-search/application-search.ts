@@ -8,11 +8,11 @@ import { htmlSafe } from '@ember/template';
 import { tracked } from '@glimmer/tracking';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent {
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   @service('highlighting-service')

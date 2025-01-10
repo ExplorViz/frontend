@@ -1,80 +1,80 @@
-import { defaultApplicationColors } from './color-schemes';
-import { ApplicationSettings } from './settings-schemas';
+import { defaultColors } from './color-schemes';
+import { VisualizationSettings } from './settings-schemas';
 
-export const defaultApplicationSettings: ApplicationSettings = {
+export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   foundationColor: {
-    value: defaultApplicationColors.foundationColor,
+    value: defaultColors.foundationColor,
     orderNumber: 1,
     group: 'Colors',
     displayName: 'Foundation',
     isColorSetting: true,
   },
   componentOddColor: {
-    value: defaultApplicationColors.componentOddColor,
+    value: defaultColors.componentOddColor,
     orderNumber: 2,
     group: 'Colors',
     displayName: 'Component Odd',
     isColorSetting: true,
   },
   componentEvenColor: {
-    value: defaultApplicationColors.componentEvenColor,
+    value: defaultColors.componentEvenColor,
     orderNumber: 3,
     group: 'Colors',
     displayName: 'Component Even',
     isColorSetting: true,
   },
   clazzColor: {
-    value: defaultApplicationColors.clazzColor,
+    value: defaultColors.clazzColor,
     orderNumber: 4,
     group: 'Colors',
     displayName: 'Class',
     isColorSetting: true,
   },
   highlightedEntityColor: {
-    value: defaultApplicationColors.highlightedEntityColor,
+    value: defaultColors.highlightedEntityColor,
     orderNumber: 5,
     group: 'Colors',
     displayName: 'Highlighted Entity',
     isColorSetting: true,
   },
   componentTextColor: {
-    value: defaultApplicationColors.componentTextColor,
+    value: defaultColors.componentTextColor,
     orderNumber: 6,
     group: 'Colors',
     displayName: 'Component Label',
     isColorSetting: true,
   },
   clazzTextColor: {
-    value: defaultApplicationColors.clazzTextColor,
+    value: defaultColors.clazzTextColor,
     orderNumber: 7,
     group: 'Colors',
     displayName: 'Class Label',
     isColorSetting: true,
   },
   foundationTextColor: {
-    value: defaultApplicationColors.foundationTextColor,
+    value: defaultColors.foundationTextColor,
     orderNumber: 8,
     group: 'Colors',
     displayName: 'Foundation Label',
     isColorSetting: true,
   },
   communicationColor: {
-    value: defaultApplicationColors.communicationColor,
+    value: defaultColors.communicationColor,
     orderNumber: 9,
     group: 'Colors',
     displayName: 'Communication',
     isColorSetting: true,
   },
   communicationArrowColor: {
-    value: defaultApplicationColors.communicationArrowColor,
+    value: defaultColors.communicationArrowColor,
     orderNumber: 10,
     group: 'Colors',
     displayName: 'Communication Arrow',
     isColorSetting: true,
   },
   backgroundColor: {
-    value: defaultApplicationColors.backgroundColor,
+    value: defaultColors.backgroundColor,
     orderNumber: 11,
     group: 'Colors',
     displayName: 'Background',
@@ -101,6 +101,15 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Selected Gamepad Index',
     description: 'Index of the gamepad to be used for navigation',
     isRangeSetting: true,
+  },
+  // Heatmap Settings
+  heatmapEnabled: {
+    value: false,
+    orderNumber: 1,
+    group: 'Heatmap',
+    displayName: 'Show Heatmap',
+    description: 'Toggle visibility of the heatmap',
+    isFlagSetting: true,
   },
   // Highlighting Settings
   applyHighlightingOnHover: {
@@ -211,6 +220,129 @@ export const defaultApplicationSettings: ApplicationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
+  // Layout settings
+  applicationAspectRatio: {
+    value: 1.0,
+    range: {
+      min: 0.25,
+      max: 2.0,
+      step: 0.05,
+    },
+    orderNumber: 1,
+    group: 'Layout',
+    displayName: 'App Aspect Ratio',
+    description: 'Determines a preferred aspect ratio for applications',
+    isRangeSetting: true,
+  },
+  classFootprint: {
+    value: 5.0,
+    range: {
+      min: 0.5,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 3,
+    group: 'Layout',
+    displayName: 'Class Footprint',
+    description: 'Determines width and depth of classes',
+    isRangeSetting: true,
+  },
+  classMargin: {
+    value: 20.0,
+    range: {
+      min: 0.0,
+      max: 50.0,
+      step: 1.0,
+    },
+    orderNumber: 4,
+    group: 'Layout',
+    displayName: 'Class Margin',
+    description:
+      'Determines distance between classes and to surrounding package',
+    isRangeSetting: true,
+  },
+  appLabelMargin: {
+    value: 15.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 5,
+    group: 'Layout',
+    displayName: 'App Label Margin',
+    description:
+      'Determines how much space (height) an application label may occupy',
+    isRangeSetting: true,
+  },
+  appMargin: {
+    value: 6.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 6,
+    group: 'Layout',
+    displayName: 'App Margin',
+    description: 'Determines margin of applications',
+    isRangeSetting: true,
+  },
+  packageLabelMargin: {
+    value: 13.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 7,
+    group: 'Layout',
+    displayName: 'Package Label Margin',
+    description:
+      'Determines how much space (height) a package label may occupy',
+    isRangeSetting: true,
+  },
+  packageMargin: {
+    value: 6.0,
+    range: {
+      min: 0.0,
+      max: 20.0,
+      step: 0.5,
+    },
+    orderNumber: 8,
+    group: 'Layout',
+    displayName: 'Package Margin',
+    description: 'Determines margin of packages',
+    isRangeSetting: true,
+  },
+  openedComponentHeight: {
+    value: 1.5,
+    range: {
+      min: 0.1,
+      max: 10.0,
+      step: 0.1,
+    },
+    orderNumber: 9,
+    group: 'Layout',
+    displayName: 'Opened Component Height',
+    description:
+      'Height of opened components (i.e. when contained classes are visible)',
+    isRangeSetting: true,
+  },
+  closedComponentHeight: {
+    value: 6,
+    range: {
+      min: 0.1,
+      max: 20.0,
+      step: 0.1,
+    },
+    orderNumber: 10,
+    group: 'Layout',
+    displayName: 'Closed Component Height',
+    description:
+      'Height of closed components (i.e. when contained classes are hidden)',
+    isRangeSetting: true,
+  },
   // Popup settings
   hidePopupDelay: {
     value: 1.0,
@@ -292,6 +424,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Shows the VR room in the browser after joining',
     isFlagSetting: true,
   },
+
   // Debug Settings
   showFpsCounter: {
     value: false,
@@ -317,9 +450,19 @@ export const defaultApplicationSettings: ApplicationSettings = {
     description: 'Visualizes the Directional Light',
     isFlagSetting: true,
   },
+  showSemanticZoomCenterPoints: {
+    value: false,
+    orderNumber: 5,
+    type: 'primary',
+    group: 'Debugging',
+    displayName: 'Semantic Zoom',
+    description: 'Show (or hide) center points of semantic zoom',
+    buttonText: 'Show Center Points',
+    isButtonSetting: true,
+  },
   fullscreen: {
     value: false,
-    orderNumber: 4,
+    orderNumber: 6,
     type: 'primary',
     group: 'Debugging',
     displayName: 'Fullscreen',
@@ -330,7 +473,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   syncRoomState: {
     value: false,
-    orderNumber: 5,
+    orderNumber: 7,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Synchronize Room State',
@@ -340,7 +483,7 @@ export const defaultApplicationSettings: ApplicationSettings = {
   },
   resetToDefaults: {
     value: false,
-    orderNumber: 6,
+    orderNumber: 8,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Reset Settings to Default',
@@ -348,36 +491,140 @@ export const defaultApplicationSettings: ApplicationSettings = {
     buttonText: 'Reset',
     isButtonSetting: true,
   },
-  // Minimap Settings
-  minimap: {
+  // Semantic Zoom Settings
+  semanticZoomState: {
     value: false,
     orderNumber: 1,
-    group: 'Minimap',
-    displayName: 'Enable Minimap',
-    description: 'Toggle visibility of the minimap',
+    group: 'Semantic Zoom',
+    displayName: 'Semantic Zoom',
+    description:
+      'This switch enables the semantic zoom feature, that hides/shows additional information based on the distance between the user and the object.',
     isFlagSetting: true,
   },
-  zoom: {
-    value: 1,
-    range: {
-      min: 0.5,
-      max: 3.0,
-      step: 0.1,
-    },
+  autoOpenCloseFeature: {
+    value: false,
     orderNumber: 2,
-    group: 'Minimap',
-    displayName: 'Zoom of Minimap',
-    description: 'Set zoom of the minimap',
+    group: 'Semantic Zoom',
+    displayName: 'Auto Open/Close of Components',
+    description:
+      "Enable or disable the feature to open/close components automatically. Only applies if 'Semantic Zoom' feature is enabled via context menu.",
+    isFlagSetting: true,
+  },
+  useKmeansInsteadOfMeanShift: {
+    value: true,
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Use k-Means instead of Shift-Mean',
+    description:
+      "If on, it uses k-Means clustering with the provided k value below. It works better in combination with 'Auto Open/Close of Components' feature enabled.",
+    isFlagSetting: true,
+  },
+  clusterBasedOnMembers: {
+    value: 40.0,
+    range: {
+      min: 1.0,
+      max: 100.0,
+      step: 1.0,
+    },
+    orderNumber: 5,
+    group: 'Semantic Zoom',
+    displayName: 'Relative # of clusters',
+    description:
+      'It takes a percentage of the number of 3D Objects that are capable of semantic zoom in the scene. It is used as the k in the k-means clustering. If the clustering mode is not k-means, this value is ignored.',
     isRangeSetting: true,
   },
-  version2: {
-    value: true,
-    orderNumber: 3,
-    group: 'Minimap',
-    displayName: 'Use Camera Position',
+  usePredefinedSet: {
+    value: false,
+    orderNumber: 2,
+    group: 'Semantic Zoom',
+    displayName: 'Use Predefined Set',
     description:
-      'If off, calculate minimap position via intersection of camera with ground plane.',
+      'If enabled, uses the slider for the predefined sets. Else its customized',
     isFlagSetting: true,
+  },
+  distancePreSet: {
+    value: 1,
+    range: {
+      min: 1.0,
+      max: 6.0,
+      step: 1.0,
+    },
+    orderNumber: 3,
+    group: 'Semantic Zoom',
+    displayName: 'Predefined Zoom Sets',
+    description:
+      'Use the slider to set predefined values for the 5 levels. 0: Costum. 1: Early/Far, 5: Late/Close',
+    isRangeSetting: true,
+  },
+  distanceLevel1: {
+    value: 20,
+    range: {
+      min: 1.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 4,
+    group: 'Semantic Zoom',
+    displayName: 'Level 1',
+    description:
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+    isRangeSetting: true,
+  },
+  distanceLevel2: {
+    value: 65,
+    range: {
+      min: 1.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 4,
+    group: 'Semantic Zoom',
+    displayName: 'Level 2',
+    description:
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+    isRangeSetting: true,
+  },
+  distanceLevel3: {
+    value: 70,
+    range: {
+      min: 1.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 4,
+    group: 'Semantic Zoom',
+    displayName: 'Level 3',
+    description:
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+    isRangeSetting: true,
+  },
+  distanceLevel4: {
+    value: 80,
+    range: {
+      min: 1.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 4,
+    group: 'Semantic Zoom',
+    displayName: 'Level 4',
+    description:
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+    isRangeSetting: true,
+  },
+  distanceLevel5: {
+    value: 90,
+    range: {
+      min: 1.0,
+      max: 100.0,
+      step: 2.0,
+    },
+    orderNumber: 4,
+    group: 'Semantic Zoom',
+    displayName: 'Level 5',
+    description:
+      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
+    isRangeSetting: true,
   },
   layer1: {
     value: true,
@@ -426,6 +673,37 @@ export const defaultApplicationSettings: ApplicationSettings = {
     displayName: 'Enable visibility of different user-markers',
     description:
       'Toggle the different users position markers visibility for the minimap',
+    isFlagSetting: true,
+  },
+  // Minimap Settings
+  minimap: {
+    value: false,
+    orderNumber: 1,
+    group: 'Minimap',
+    displayName: 'Enable Minimap',
+    description: 'Toggle visibility of the minimap',
+    isFlagSetting: true,
+  },
+  zoom: {
+    value: 1,
+    range: {
+      min: 0.5,
+      max: 3.0,
+      step: 0.1,
+    },
+    orderNumber: 2,
+    group: 'Minimap',
+    displayName: 'Zoom of Minimap',
+    description: 'Set zoom of the minimap',
+    isRangeSetting: true,
+  },
+  version2: {
+    value: true,
+    orderNumber: 3,
+    group: 'Minimap',
+    displayName: 'Use Camera Position',
+    description:
+      'If off, calculate minimap position via intersection of camera with ground plane.',
     isFlagSetting: true,
   },
 };

@@ -17,7 +17,7 @@ import {
   spanIdToClass,
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 
 interface Args {
   selectedTrace: Trace;
@@ -39,7 +39,7 @@ export default class TraceReplayerMain extends Component<Args> {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   localUser!: LocalUser;
 
   constructor(owner: any, args: Args) {

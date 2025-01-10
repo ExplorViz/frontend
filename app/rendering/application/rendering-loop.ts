@@ -4,9 +4,9 @@ import THREEPerformance from 'explorviz-frontend/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
-import ArZoomHandler from 'extended-reality/utils/ar-helpers/ar-zoom-handler';
+import ArZoomHandler from 'explorviz-frontend/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
-import LocalUser from 'collaboration/services/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 
 const clock = new Clock();
@@ -31,7 +31,7 @@ export default class RenderingLoop {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('local-user')
+  @service('collaboration/local-user')
   private localUser!: LocalUser;
 
   @service('minimap-service')
@@ -66,10 +66,18 @@ export default class RenderingLoop {
     this.minimapCamera = this.localUser.minimapCamera;
   }
 
+  changeScene(scene: THREE.Scene) {
+    this.scene = scene;
+  }
+
+  changeCamera(cam: THREE.Camera) {
+    this.camera = cam;
+  }
+
   start() {
     this.renderer.setAnimationLoop((_timestamp, frame) => {
       const { value: showFpsCounter } =
-        this.userSettings.applicationSettings.showFpsCounter;
+        this.userSettings.visualizationSettings.showFpsCounter;
 
       if (showFpsCounter && !this.threePerformance) {
         this.threePerformance = new THREEPerformance();
@@ -126,7 +134,7 @@ export default class RenderingLoop {
   private handleLightHelper() {
     // Add Light Helper based on setting
     const { value: showLightHelper } =
-      this.userSettings.applicationSettings.showLightHelper;
+      this.userSettings.visualizationSettings.showLightHelper;
     if (showLightHelper && !this.lightHelper) {
       const light = this.scene.getObjectByName(
         'DirectionalLight'
@@ -147,7 +155,7 @@ export default class RenderingLoop {
   private handleAxesHelper() {
     // Add Axes Helper based on setting
     const { value: showAxesHelper } =
-      this.userSettings.applicationSettings.showAxesHelper;
+      this.userSettings.visualizationSettings.showAxesHelper;
     if (showAxesHelper && !this.axesHelper) {
       this.axesHelper = new THREE.AxesHelper(5);
       this.scene.add(this.axesHelper);

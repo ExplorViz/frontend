@@ -6,67 +6,67 @@ import AnnotationData from 'explorviz-frontend/components/visualization/renderin
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import { isEntityMesh } from 'extended-reality/utils/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
-import { SerializedAnnotation } from 'collaboration/utils/web-socket-messages/types/serialized-room';
-import DetachedMenuRenderer from 'extended-reality/services/detached-menu-renderer';
-import WebSocketService from 'collaboration/services/web-socket';
-import { ForwardedMessage } from 'collaboration/utils/web-socket-messages/receivable/forwarded';
+import { SerializedAnnotation } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
+import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
+import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { ForwardedMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   ANNOTATION_OPENED_EVENT,
   AnnotationOpenedMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/annotation-opened';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-opened';
 import {
   ANNOTATION_CLOSED_EVENT,
   AnnotationClosedMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/annotation-closed';
-import { AnnotationForwardMessage } from 'collaboration/utils/web-socket-messages/receivable/annotation-forward';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-closed';
+import { AnnotationForwardMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/annotation-forward';
 import {
   AnnotationResponse,
   isAnnotationResponse,
-} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-response';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'extended-reality/utils/vr-web-wocket-messages/receivable/response/object-closed';
+} from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import Auth from './auth';
 import {
   ANNOTATION_UPDATED_EVENT,
   AnnotationUpdatedMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/annotation-updated';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-updated';
 import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
-} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-updated-response';
-import { AnnotationUpdatedForwardMessage } from 'collaboration/utils/web-socket-messages/receivable/annotation-updated-forward';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
+import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,
-} from 'collaboration/utils/web-socket-messages/sendable/annotation-edit';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/annotation-edit';
 import {
   AnnotationEditResponse,
   isAnnotationEditResponse,
-} from 'collaboration/utils/web-socket-messages/receivable/response/annotation-edit-response';
-import CollaborationSession from 'collaboration/services/collaboration-session';
+} from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
+import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('detached-menu-renderer')
+  @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  @service('web-socket')
+  @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
-  @service('collaboration-session')
+  @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
   @service('auth')
@@ -735,23 +735,6 @@ export default class AnnotationHandlerService extends Service {
         annotation.mesh = mesh;
       }
     }
-  }
-
-  willDestroy() {
-    this.annotationData = [];
-    this.minimizedAnnotations = [];
-    this.webSocket.off(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
-    this.webSocket.off(ANNOTATION_CLOSED_EVENT, this, this.onMenuClosed);
-    this.webSocket.off(
-      ANNOTATION_UPDATED_EVENT,
-      this,
-      this.onUpdatedAnnotation
-    );
-    this.detachedMenuRenderer.off(
-      'restore_annotations',
-      this,
-      this.onRestoreAnnotations
-    );
   }
 }
 

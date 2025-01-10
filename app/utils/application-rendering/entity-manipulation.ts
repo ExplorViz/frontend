@@ -11,13 +11,16 @@ import {
 import { spanIdToClass } from '../landscape-structure-helpers';
 import CameraControls from './camera-controls';
 import { removeHighlighting } from './highlighting';
-import MessageSender from 'collaboration/services/message-sender';
+import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
-import { getStoredSettings } from '../settings/local-storage-settings';
+import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
+import {
+  getStoredNumberSetting,
+  getStoredSettings,
+} from '../settings/local-storage-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -54,6 +57,24 @@ export function openComponentsByList(
 }
 
 /**
+ * Opens the component and its ancestors
+ *
+ * @param components List of components which shall be opened
+ * @param application Parent application object of the components
+ */
+export function openComponentAndAncestor(
+  component: Package | Class,
+  application: ApplicationObject3D
+) {
+  const ancestors = getAllAncestorComponents(component);
+  ancestors.forEach((ancestorComponent) => {
+    const ancestorMesh = application.getBoxMeshbyModelId(ancestorComponent.id);
+    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened)
+      openComponentMesh(ancestorMesh, application);
+  });
+}
+
+/**
  * Opens a given component mesh.
  *
  * @param mesh Component mesh which shall be opened
@@ -67,7 +88,9 @@ export function openComponentMesh(
     return;
   }
 
-  const OPENED_COMPONENT_HEIGHT = 1.5;
+  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'openedComponentHeight'
+  );
 
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
@@ -86,6 +109,7 @@ export function openComponentMesh(
 
   mesh.opened = true;
   mesh.visible = true;
+  mesh.saveOriginalAppearence();
   Labeler.positionBoxLabel(mesh);
 
   const childComponents = mesh.dataModel.subPackages;
@@ -103,6 +127,7 @@ export function openComponentMesh(
     const childMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
     if (childMesh) {
       childMesh.visible = true;
+      childMesh.saveOriginalAppearence();
     }
   });
 }
@@ -122,24 +147,36 @@ export function closeComponentMesh(
     return;
   }
 
+  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'openedComponentHeight'
+  );
+
+  const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'closedComponentHeight'
+  );
+
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
       duration: 0.5,
-      height: mesh.layout.height,
+      height: CLOSED_COMPONENT_HEIGHT,
     });
 
     gsap.to(mesh.position, {
       duration: 0.5,
-      y: mesh.layout.positionY + 0.75,
+      y:
+        mesh.layout.positionY +
+        (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2,
     });
   } else {
-    mesh.height = mesh.layout.height;
-    mesh.position.y = mesh.layout.positionY + 0.75;
+    mesh.height = CLOSED_COMPONENT_HEIGHT;
+    mesh.position.y =
+      mesh.layout.positionY +
+      (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2;
   }
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);
-
+  mesh.saveOriginalAppearence();
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
     const childMesh = applicationObject3D.getBoxMeshbyModelId(
@@ -154,6 +191,7 @@ export function closeComponentMesh(
       if (!keepHighlighted && childMesh.highlighted) {
         removeHighlighting(childMesh, applicationObject3D);
       }
+      childMesh.saveOriginalAppearence();
     }
   });
 
@@ -199,7 +237,7 @@ export function closeAllComponents(
 export function openComponentsRecursively(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  sender: MessageSender
+  sender: MessageSender | undefined
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -208,7 +246,7 @@ export function openComponentsRecursively(
       // !mesh.opened needed!
 
       openComponentMesh(mesh, applicationObject3D);
-      sender.sendComponentUpdate(
+      sender?.sendComponentUpdate(
         applicationObject3D.getModelId(),
         mesh.getModelId(),
         mesh.opened,
@@ -216,6 +254,35 @@ export function openComponentsRecursively(
       );
     }
     openComponentsRecursively(child, applicationObject3D, sender);
+  });
+}
+
+/**
+ * Takes a component and closes all children component meshes recursively
+ *
+ * @param component Component of which the children shall be closed
+ * @param applicationObject3D Application object which contains the component
+ */
+export function closeComponentsRecursively(
+  component: Package,
+  applicationObject3D: ApplicationObject3D,
+  sender: MessageSender | undefined
+) {
+  const components = component.subPackages;
+  components.forEach((child) => {
+    const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
+    if (mesh !== undefined && mesh instanceof ComponentMesh && mesh.opened) {
+      // mesh.opened needed!
+
+      closeComponentMesh(mesh, applicationObject3D, false);
+      sender?.sendComponentUpdate(
+        applicationObject3D.getModelId(),
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh
+      );
+    }
+    closeComponentsRecursively(child, applicationObject3D, sender);
   });
 }
 
@@ -401,7 +468,7 @@ export function moveCameraTo(
 
 export function updateColors(
   scene: THREE.Scene,
-  applicationColors: ApplicationColors
+  applicationColors: ExplorVizColors
 ) {
   scene.traverse((object3D) => {
     if (object3D instanceof BaseMesh) {

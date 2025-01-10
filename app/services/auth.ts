@@ -26,6 +26,7 @@ export default class Auth extends Service.extend(Evented) {
     if (noAuth) {
       this.user = ENV.auth0.profile;
       this.accessToken = ENV.auth0.accessToken;
+      this.trigger('user_authenticated', this.user);
     } else {
       this.initAuthLock();
     }

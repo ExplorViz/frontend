@@ -1,7 +1,10 @@
 <div id='landscape-container'>
   <BsTab id='tabnav' @type='pills' as |tab|>
     <tab.pane @id='landscape-tab' @title='Landscapes'>
-      <div class='d-flex flex-row justify-content-center overflow-auto'>
+      <div
+        class='d-flex flex-row justify-content-center overflow-auto'
+        style='max-height: 80vh; overflow-y: auto;'
+      >
         <TokenSelection
           @openTokenCreationModal={{this.openTokenCreationModal}}
           @selectToken={{this.selectToken}}
@@ -12,7 +15,10 @@
       </div>
     </tab.pane>
     <tab.pane @id='room-tab' @title='Rooms'>
-      <RoomList @tokens={{@model}} @selectToken={{this.selectToken}} />
+      <Collaboration::RoomList
+        @tokens={{@model.landscapeTokens}}
+        @selectToken={{this.selectToken}}
+      />
     </tab.pane>
     <tab.pane @id='snapshot-tab' @title='Snapshots'>
       <SnapshotSelection
