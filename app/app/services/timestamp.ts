@@ -1,13 +1,21 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
-import { tracked } from '@glimmer/tracking';
 import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 
 export const NEW_SELECTED_TIMESTAMP_EVENT = 'new_selected_timestamp';
 
 export default class TimestampService extends Service.extend(Evented) {
-  @tracked
-  timestamp: Map<string, number[]> = new Map();
+  // @tracked
+  // timestamp: Map<string, number[]> = new Map();
+
+  get timestamp(): Map<string, number[]> {
+    return useTimestampStore.getState().timestamp;
+  }
+
+  set timestamp(value: Map<string, number[]>) {
+    useTimestampStore.setState({ timestamp: value });
+  }
 
   getLatestTimestampByCommitOrFallback(commit: string): number {
     let returnValue;

@@ -4,6 +4,7 @@ import debugLogger from 'ember-debug-logger';
 import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 const { userService } = ENV.backendAddresses;
 
 export type LandscapeToken = {
@@ -23,8 +24,20 @@ export default class LandscapeTokenService extends Service {
   @service('auth')
   private auth!: Auth;
 
+// TODO: Remove old tracked usage after migration.
+// Not possible until then, because header LandscapeToken wouldn't be
+// shown, so navigation would be impossible
+
   @tracked
   token: LandscapeToken | null = null;
+
+  // get token(): LandscapeToken | null {
+  //   return useLandscapeTokenStore.getState().token;
+  // }
+
+  // set token(value: LandscapeToken | null) {
+  //   useLandscapeTokenStore.setState({ token: value });
+  // }
 
   constructor() {
     super(...arguments);

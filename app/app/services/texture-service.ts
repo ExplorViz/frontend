@@ -6,6 +6,7 @@ import {
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import { Texture, TextureLoader } from 'three';
 import Service from '@ember/service';
+import { useTextureServiceStore } from 'react-lib/src/stores/texture-service';
 
 export enum TextureNameConstants {
   ADDED = 'plus',
@@ -14,9 +15,25 @@ export enum TextureNameConstants {
 }
 
 export default class TextureService extends Service {
-  private _textureCache: Map<string, Texture> = new Map();
+  // private _textureCache: Map<string, Texture> = new Map();
 
-  private loader = new TextureLoader();
+  get _textureCache(): Map<string, Texture> {
+    return useTextureServiceStore.getState()._textureCache;
+  }
+
+  set _textureCache(value: Map<string, Texture>) {
+    useTextureServiceStore.setState({ _textureCache: value });
+  }
+
+  // private loader = new TextureLoader();
+
+  get loader(): TextureLoader {
+    return useTextureServiceStore.getState().loader;
+  }
+
+  set loader(value: TextureLoader) {
+    useTextureServiceStore.setState({ loader: value });
+  }
 
   constructor() {
     super();
@@ -44,7 +61,8 @@ export default class TextureService extends Service {
     this.loader.load(
       filenamePrefix + texturePath + filenameSuffix,
       (texture) => {
-        this._textureCache.set(texturePath, texture);
+        useTextureServiceStore.getState().addTexture(texturePath, texture);
+        // this._textureCache.set(texturePath, texture);
         if (onLoad) {
           onLoad(texture);
         }
