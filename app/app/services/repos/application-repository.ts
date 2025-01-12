@@ -1,6 +1,7 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 
 export default class ApplicationRepository extends Service.extend({
   // anything which *must* be merged to prototype here
