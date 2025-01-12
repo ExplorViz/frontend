@@ -33,7 +33,7 @@ import {
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import { ControllerId } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 import {
   EntityType,

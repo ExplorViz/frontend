@@ -27,7 +27,7 @@ import {
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,

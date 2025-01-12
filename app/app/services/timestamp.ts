@@ -1,6 +1,6 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
-import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timetsamp-update';
+import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 
 export const NEW_SELECTED_TIMESTAMP_EVENT = 'new_selected_timestamp';
