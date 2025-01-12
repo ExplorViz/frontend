@@ -15,6 +15,7 @@ import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
+// import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -29,9 +30,28 @@ export default class LinkRenderer extends Service.extend({}) {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
+  // TODO: Migrate after migration of ClazzCommunicationMesh
+  // All changes are ready to get uncommented
+
   private linkIdToMesh: Map<string, ClazzCommunicationMesh> = new Map();
 
+  // get linkIdToMesh(): Map<string, ClazzCommunicationMesh> {
+  //   return useLinkRendererStore.getState().linkIdToMesh;
+  // }
+
+  // set linkIdToMesh(value: Map<string, ClazzCommunicationMesh>) {
+  //   // useLinkRendererStore.setState({ linkIdToMesh: value });
+  // }
+
   private _flag = false;
+
+  // get _flag(): boolean {
+  //   return useLinkRendererStore.getState()._flag;
+  // }
+
+  // set _flag(value: boolean) {
+    // useLinkRendererStore.setState({ _flag: value });
+  // }
 
   readonly debug = debugLogger();
 
@@ -154,6 +174,7 @@ export default class LinkRenderer extends Service.extend({}) {
       highlightedEntityColor
     );
     this.linkIdToMesh.set(id, newMesh);
+    // useLinkRendererStore.getState().addLinkIdToMesh(id, newMesh);
 
     return newMesh;
   }

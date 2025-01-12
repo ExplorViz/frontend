@@ -24,7 +24,7 @@ import { PING_UPDATE_EVENT } from 'react-lib/src/utils/collaboration//web-socket
 import { SHARE_SETTINGS_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/share-settings';
 import { SPECTATING_UPDATE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/spectating-update';
 import { SYNC_ROOM_STATE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/synchronize-room-state';
-import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/timetsamp-update';
+import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/timestamp-update';
 import { Nonce } from 'react-lib/src/utils/collaboration//web-socket-messages/types/nonce';
 import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';

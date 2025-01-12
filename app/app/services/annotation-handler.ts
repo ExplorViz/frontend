@@ -52,6 +52,7 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
+import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -77,13 +78,25 @@ export default class AnnotationHandlerService extends Service {
 
   minimizedAnnotations: AnnotationData[] = [];
 
-  latestMousePosition: { timestamp: number; x: number; y: number } = {
-    timestamp: 0,
-    x: 0,
-    y: 0,
-  };
+  // latestMousePosition: { timestamp: number; x: number; y: number } = {
+  //   timestamp: 0,
+  //   x: 0,
+  //   y: 0,
+  // };
+  get latestMousePosition(): { timestamp: number; x: number; y: number } {
+    return useAnnotationHandlerStore.getState().latestMousePosition;
+  }
+  set latestMousePosition(value: { timestamp: number; x: number; y: number }) {
+    useAnnotationHandlerStore.setState({ latestMousePosition: value });
+  }
 
-  isShiftPressed = false;
+  // isShiftPressed = false;
+  get isShiftPressed(): boolean {
+    return useAnnotationHandlerStore.getState().isShiftPressed;
+  }
+  set isShiftPressed(value: boolean) {
+    useAnnotationHandlerStore.setState({ isShiftPressed: value });
+  }
 
   init() {
     super.init();
