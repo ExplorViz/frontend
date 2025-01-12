@@ -74,6 +74,7 @@ import {
 } from 'react-lib/src/utils/changelog-entry';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -113,8 +114,14 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @service('collaboration/message-sender')
   private sender!: MessageSender;
 
-  @tracked
-  restructureMode: boolean = false;
+  // @tracked
+  // restructureMode: boolean = false;
+  get restructureMode(): boolean {
+    return useLandscapeRestructureStore.getState().restructureMode;
+  }
+  set restructureMode(value: boolean) {
+    useLandscapeRestructureStore.setState({ restructureMode: value });
+  }
 
   @tracked
   landscapeData: LandscapeData | null = null;
@@ -125,8 +132,14 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   /**
    * Using amount of new Meshes for unique mesh id's
    */
-  @tracked
-  newMeshCounter: number = 1;
+  // @tracked
+  // newMeshCounter: number = 1;
+  get newMeshCounter(): number {
+    return useLandscapeRestructureStore.getState().newMeshCounter;
+  }
+  set newMeshCounter(value: number) {
+    useLandscapeRestructureStore.setState({ newMeshCounter: value });
+  }
 
   /**
    * Storing all the Meshes with corresponding texture
@@ -143,11 +156,24 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
   @tracked
   deletedDataModels: diverseDataModel[] = [];
 
-  @tracked
-  canvas!: HTMLCanvasElement;
+  // @tracked
+  // canvas!: HTMLCanvasElement;
 
-  @tracked
-  clipboard: string = '';
+  get canvas(): HTMLCanvasElement {
+    return useLandscapeRestructureStore.getState().canvas!;
+  }
+  set canvas(value: HTMLCanvasElement) {
+    useLandscapeRestructureStore.setState({ canvas: value });
+  }
+
+  // @tracked
+  // clipboard: string = '';
+  get clipboard(): string {
+    return useLandscapeRestructureStore.getState().clipboard;
+  }
+  set clipboard(value: string) {
+    useLandscapeRestructureStore.setState({ clipboard: value });
+  }
 
   @tracked
   clippedMesh: Package | Class | null = null;

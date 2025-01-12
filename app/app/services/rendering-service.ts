@@ -22,6 +22,7 @@ import EvolutionDataRepository from './repos/evolution-data-repository';
 import { SelectedCommit } from './commit-tree-state';
 import TimestampRepository from './repos/timestamp-repository';
 import CommitTreeStateService from './commit-tree-state';
+import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 export type VisualizationMode = 'evolution' | 'runtime';
 
@@ -58,7 +59,13 @@ export default class RenderingService extends Service {
 
   // #region Properties
 
-  private previousMethodHashes: string[] = [];
+  // private previousMethodHashes: string[] = [];
+  get previousMethodHashes(): string[] {
+    return useRenderingServiceStore.getState().previousMethodHashes;
+  }
+  set previousMethodHashes(value: string[]) {
+    useRenderingServiceStore.setState({ previousMethodHashes: value });
+  }
 
   private currentRuntimeLandscapeData: Map<string, LandscapeData> = new Map(); // <commitId, LandscapeData>
 
@@ -67,13 +74,34 @@ export default class RenderingService extends Service {
   @tracked
   private _landscapeData: LandscapeData | null = null;
 
-  @tracked
-  private _visualizationPaused = false;
+  // @tracked
+  // private _visualizationPaused = false;
+  get _visualizationPaused(): boolean {
+    return useRenderingServiceStore.getState()._visualizationPaused;
+  }
+  set _visualizationPaused(value: boolean) {
+    useRenderingServiceStore.setState({ _visualizationPaused: value });
+  }
 
-  @tracked
-  private _visualizationMode: VisualizationMode = 'runtime';
+  // @tracked
+  // private _visualizationMode: VisualizationMode = 'runtime';
+  get _visualizationMode(): VisualizationMode {
+    return useRenderingServiceStore.getState()._visualizationMode;
+  }
+  set _visualizationMode(value: VisualizationMode) {
+    useRenderingServiceStore.setState({ _visualizationMode: value });
+  }
 
-  private _userInitiatedStaticDynamicCombination = false;
+  // private _userInitiatedStaticDynamicCombination = false;
+  get _userInitiatedStaticDynamicCombination(): boolean {
+    return useRenderingServiceStore.getState()
+      ._userInitiatedStaticDynamicCombination;
+  }
+  set _userInitiatedStaticDynamicCombination(value: boolean) {
+    useRenderingServiceStore.setState({
+      _userInitiatedStaticDynamicCombination: value,
+    });
+  }
 
   // #endregion
 
