@@ -28,6 +28,7 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
+import { useRoomSerializerStore } from 'react-lib/src/stores/collaboration/room-serializer';
 
 export default class RoomSerializer extends Service {
   @service('application-renderer')
@@ -45,7 +46,14 @@ export default class RoomSerializer extends Service {
   @service('timestamp')
   private timestampService!: TimestampService;
 
-  public serializedRoom?: SerializedRoom;
+  // public serializedRoom?: SerializedRoom;
+  get serializedRoom(): SerializedRoom | undefined {
+    return useRoomSerializerStore.getState().serializedRoom;
+  }
+
+  set serializedRoom(value: SerializedRoom | undefined) {
+    useRoomSerializerStore.setState({ serializedRoom: value });
+  }
 
   /**
    * Creates a JSON object for the current state of the room.

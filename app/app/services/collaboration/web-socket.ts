@@ -44,6 +44,7 @@ import { CHAT_SYNC_EVENT } from 'react-lib/src/utils/collaboration//web-socket-m
 import { io, Socket } from 'socket.io-client';
 import { USER_KICK_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/kick-user';
 import { MESSAGE_DELETE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/delete-message';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -100,13 +101,41 @@ const RESPONSE_EVENTS = [
 export default class WebSocketService extends Service.extend(Evented) {
   private debug = debugLogger('WebSocketService');
 
-  private currentSocket: Socket | null = null; // WebSocket to send/receive messages to/from backend
+  // private currentSocket: Socket | null = null; // WebSocket to send/receive messages to/from backend
+  private get currentSocket(): Socket | null {
+    return useWebSocketStore.getState().currentSocket;
+  }
 
-  private currentSocketUrl: string | null = null;
+  private set currentSocket(value: Socket | null) {
+    useWebSocketStore.setState({ currentSocket: value });
+  }
 
-  private responseHandlers = new Map<Nonce, ResponseHandler<any>>();
+  // private currentSocketUrl: string | null = null;
+  private get currentSocketUrl(): string | null {
+    return useWebSocketStore.getState().currentSocketUrl;
+  }
 
-  private lastNonce: Nonce = 0;
+  private set currentSocketUrl(value: string | null) {
+    useWebSocketStore.setState({ currentSocketUrl: value });
+  }
+
+  // private responseHandlers = new Map<Nonce, ResponseHandler<any>>();
+  private get responseHandlers(): Map<Nonce, ResponseHandler<any>> {
+    return useWebSocketStore.getState().responseHandlers;
+  }
+
+  private set responseHandlers(value: Map<Nonce, ResponseHandler<any>>) {
+    useWebSocketStore.setState({ responseHandlers: value });
+  }
+
+  // private lastNonce: Nonce = 0;
+  private get lastNonce(): Nonce {
+    return useWebSocketStore.getState().lastNonce;
+  }
+
+  private set lastNonce(value: Nonce) {
+    useWebSocketStore.setState({ lastNonce: value });
+  }
 
   nextNonce() {
     return ++this.lastNonce;

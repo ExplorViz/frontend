@@ -10,6 +10,7 @@ import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dyna
 import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 
 export type SnapshotToken = {
   owner: string;
@@ -53,15 +54,36 @@ export default class SnapshotTokenService extends Service {
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
-  @tracked
-  snapshotToken: SnapshotToken | null = null;
+  // @tracked
+  // snapshotToken: SnapshotToken | null = null;
+  get snapshotToken(): SnapshotToken | null {
+    return useSnapshotTokenStore.getState().snapshotToken;
+  }
 
-  @tracked
-  snapshotSelected: boolean = false;
+  set snapshotToken(value: SnapshotToken | null) {
+    useSnapshotTokenStore.setState({ snapshotToken: value });
+  }
 
-  // Used in landscape selection to go back to last selected snapshot
-  @tracked
-  latestSnapshotToken: SnapshotToken | null = null;
+  // @tracked
+  // snapshotSelected: boolean = false;
+  get snapshotSelected(): boolean {
+    return useSnapshotTokenStore.getState().snapshotSelected;
+  }
+
+  set snapshotSelected(value: boolean) {
+    useSnapshotTokenStore.setState({ snapshotSelected: value });
+  }
+
+  // // Used in landscape selection to go back to last selected snapshot
+  // @tracked
+  // latestSnapshotToken: SnapshotToken | null = null;
+  get latestSnapshotToken(): SnapshotToken | null {
+    return useSnapshotTokenStore.getState().latestSnapshotToken;
+  }
+
+  set latestSnapshotToken(value: SnapshotToken | null) {
+    useSnapshotTokenStore.setState({ latestSnapshotToken: value });
+  }
 
   retrieveTokens() {
     return new Promise<SnapshotInfo>((resolve) => {

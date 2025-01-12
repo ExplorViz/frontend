@@ -20,6 +20,7 @@ import MessageSender from './message-sender';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import equal from 'fast-deep-equal';
+import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -42,12 +43,42 @@ export default class SpectateUser extends Service {
   @tracked
   spectatedUser: RemoteUser | null = null;
 
-  cameraControls: CameraControls | null = null;
+  // TODO migrate RemoteUser first
+  // get spectatedUser(): RemoteUser | null {
+  //   return useSpectateUserStore.getState().spectatedUser;
+  // }
 
-  @tracked
-  spectateConfigurationId = 'default';
+  // set spectatedUser(value: RemoteUser | null) {
+  //   useSpectateUserStore.setState({ spectatedUser: value });
+  // }
 
-  private spectatingUsers: Set<string> = new Set<string>();
+  // cameraControls: CameraControls | null = null;
+  get cameraControls(): CameraControls | null {
+    return useSpectateUserStore.getState().cameraControls;
+  }
+
+  set cameraControls(value: CameraControls | null) {
+    useSpectateUserStore.setState({ cameraControls: value });
+  }
+
+  // @tracked
+  // spectateConfigurationId = 'default';
+  get spectateConfigurationId(): string {
+    return useSpectateUserStore.getState().spectateConfigurationId;
+  }
+
+  set spectateConfigurationId(value: string) {
+    useSpectateUserStore.setState({ spectateConfigurationId: value });
+  }
+
+  // private spectatingUsers: Set<string> = new Set<string>();
+  private get spectatingUsers(): Set<string> {
+    return useSpectateUserStore.getState().spectatingUsers;
+  }
+
+  private set spectatingUsers(value: Set<string>) {
+    useSpectateUserStore.setState({ spectatingUsers: value });
+  }
 
   init() {
     super.init();
@@ -82,6 +113,15 @@ export default class SpectateUser extends Service {
   }
 
   lastPose?: VrPose;
+
+  // TODO migrate VrPose first
+  // get lastPose(): VrPose | undefined {
+  //   return useSpectateUserStore.getState().lastPose;
+  // }
+
+  // set lastPose(value: VrPose) {
+  //   useSpectateUserStore.setState({ lastPose: value });
+  // }
 
   /**
    * Used in spectating mode to set user's camera position to the spectated user's position

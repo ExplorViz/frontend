@@ -41,6 +41,7 @@ import {
   UserKickEvent,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
+import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -91,20 +92,58 @@ export default class CollaborationSession extends Service.extend({
   @tracked
   idToRemoteUser: Map<string, RemoteUser> = new Map();
 
-  readonly remoteUserGroup: THREE.Group = new THREE.Group();
+  // TODO migrate RemoteUser first
+  // get idToRemoteUser(): Map<string, RemoteUser> {
+  //   return useCollaborationSessionStore.getState().idToRemoteUser;
+  // }
+
+  // set idToRemoteUser(value: Map<string, RemoteUser>) {
+  //   useCollaborationSessionStore.setState({ idToRemoteUser: value });
+  // }
+
+  // readonly remoteUserGroup: THREE.Group = new THREE.Group();
+  get remoteUserGroup(): THREE.Group {
+    return useCollaborationSessionStore.getState().remoteUserGroup;
+  }
 
   get userCount() {
     return this.idToRemoteUser.size + 1;
   }
 
-  @tracked
-  connectionStatus: ConnectionStatus = 'offline';
+  // TODO migrate RemoteUser first
+  // get userCount() {
+  //   return useCollaborationSessionStore.getState().getUserCount();
+  // }
 
-  @tracked
-  currentRoomId: string | null = null;
+  // @tracked
+  // connectionStatus: ConnectionStatus = 'offline';
+  get connectionStatus(): ConnectionStatus {
+    return useCollaborationSessionStore.getState().connectionStatus;
+  }
 
-  @tracked
-  previousRoomId: string | null = this.currentRoomId;
+  set connectionStatus(value: ConnectionStatus) {
+    useCollaborationSessionStore.setState({ connectionStatus: value });
+  }
+
+  // @tracked
+  // currentRoomId: string | null = null;
+  get currentRoomId(): string | null {
+    return useCollaborationSessionStore.getState().currentRoomId;
+  }
+
+  set currentRoomId(value: string | null) {
+    useCollaborationSessionStore.setState({ currentRoomId: value });
+  }
+
+  // @tracked
+  // previousRoomId: string | null = this.currentRoomId;
+  get previousRoomId(): string | null {
+    return useCollaborationSessionStore.getState().previousRoomId;
+  }
+
+  set previousRoomId(value: string | null) {
+    useCollaborationSessionStore.setState({ previousRoomId: value });
+  }
 
   init() {
     super.init();
