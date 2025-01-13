@@ -9,6 +9,7 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 export type HeatmapMode =
   | 'snapshotHeatmap'
@@ -22,41 +23,142 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
 
-  @tracked
-  heatmapActive = false;
+  // @tracked
+  // heatmapActive = false;
+  get heatmapActive(): boolean {
+    return useHeatmapConfigurationStore.getState().heatmapActive;
+  }
 
-  @tracked
-  heatmapShared = false;
+  set heatmapActive(value: boolean) {
+    useHeatmapConfigurationStore.setState({ heatmapActive: value });
+  }
+
+  // @tracked
+  // heatmapShared = false;
+  get heatmapShared(): boolean {
+    return useHeatmapConfigurationStore.getState().heatmapShared;
+  }
+
+  set heatmapShared(value: boolean) {
+    useHeatmapConfigurationStore.setState({ heatmapShared: value });
+  }
+
+  // TODO migrate ApplicationObject3D first
 
   @tracked
   currentApplication: ApplicationObject3D | undefined | null;
 
-  // Switch for the legend
-  legendActive = true;
+  // get currentApplication(): ApplicationObject3D | undefined | null {
+  //   return useHeatmapConfigurationStore.getState().currentApplication;
+  // }
+
+  // set currentApplication(value: ApplicationObject3D | undefined | null) {
+  //   useHeatmapConfigurationStore.setState({ currentApplication: value });
+  // }
+
+  // // Switch for the legend
+  // legendActive = true;
+  get legendActive(): boolean {
+    return useHeatmapConfigurationStore.getState().legendActive;
+  }
+
+  set legendActive(value: boolean) {
+    useHeatmapConfigurationStore.setState({ legendActive: value });
+  }
 
   // TODO this is never assigned another value, but used in calculation. What is it supposed to do?
-  largestValue = 0;
+  // largestValue = 0;
+  get largestValue(): number {
+    return useHeatmapConfigurationStore.getState().largestValue;
+  }
 
-  windowSize: number = 9;
+  set largestValue(value: number) {
+    useHeatmapConfigurationStore.setState({ largestValue: value });
+  }
+
+  // windowSize: number = 9;
+  get windowSize(): number {
+    return useHeatmapConfigurationStore.getState().windowSize;
+  }
+
+  set windowSize(value: number) {
+    useHeatmapConfigurationStore.setState({ windowSize: value });
+  }
 
   // Switches and models used by config
-  @tracked
-  selectedMode: HeatmapMode = 'snapshotHeatmap';
+  // @tracked
+  // selectedMode: HeatmapMode = 'snapshotHeatmap';
+  get selectedMode(): HeatmapMode {
+    return useHeatmapConfigurationStore.getState().selectedMode;
+  }
 
-  @tracked
-  selectedMetricName: string = 'Instance Count';
+  set selectedMode(value: HeatmapMode) {
+    useHeatmapConfigurationStore.setState({ selectedMode: value });
+  }
 
-  useHelperLines = true;
+  // @tracked
+  // selectedMetricName: string = 'Instance Count';
+  get selectedMetricName(): string {
+    return useHeatmapConfigurationStore.getState().selectedMetricName;
+  }
 
-  opacityValue = 0.03;
+  set selectedMetricName(value: string) {
+    useHeatmapConfigurationStore.setState({ selectedMetricName: value });
+  }
 
-  heatmapRadius = 2;
+  // useHelperLines = true;
+  get useHelperLines(): boolean {
+    return useHeatmapConfigurationStore.getState().useHelperLines;
+  }
 
-  blurRadius = 0;
+  set useHelperLines(value: boolean) {
+    useHeatmapConfigurationStore.setState({ useHelperLines: value });
+  }
 
-  showLegendValues = true;
+  // opacityValue = 0.03;
+  get opacityValue(): number {
+    return useHeatmapConfigurationStore.getState().opacityValue;
+  }
 
-  simpleHeatGradient = getSimpleDefaultGradient();
+  set opacityValue(value: number) {
+    useHeatmapConfigurationStore.setState({ opacityValue: value });
+  }
+
+  // heatmapRadius = 2;
+  get heatmapRadius(): number {
+    return useHeatmapConfigurationStore.getState().heatmapRadius;
+  }
+
+  set heatmapRadius(value: number) {
+    useHeatmapConfigurationStore.setState({ heatmapRadius: value });
+  }
+
+  // blurRadius = 0;
+  get blurRadius(): number {
+    return useHeatmapConfigurationStore.getState().blurRadius;
+  }
+
+  set blurRadius(value: number) {
+    useHeatmapConfigurationStore.setState({ blurRadius: value });
+  }
+
+  // showLegendValues = true;
+  get showLegendValues(): boolean {
+    return useHeatmapConfigurationStore.getState().showLegendValues;
+  }
+
+  set showLegendValues(values: boolean) {
+    useHeatmapConfigurationStore.setState({ showLegendValues: values });
+  }
+
+  // simpleHeatGradient = getSimpleDefaultGradient();
+  get simpleHeatGradient(): any {
+    return useHeatmapConfigurationStore.getState().simpleHeatGradient;
+  }
+
+  set simpleHeatGradient(value: any) {
+    useHeatmapConfigurationStore.setState({ simpleHeatGradient: value });
+  }
 
   debug = debugLogger();
 

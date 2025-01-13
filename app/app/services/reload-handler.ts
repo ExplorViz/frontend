@@ -10,10 +10,20 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import LandscapeHttpRequestUtil from './landscape-http-request-util';
 import { getOwner } from '@ember/application';
+import { useReloadHandlerStore } from 'react-lib/src/stores/reload-handler';
 
 export default class ReloadHandler extends Service.extend(Evented) {
   landscapeHttpRequestUtil: LandscapeHttpRequestUtil =
     new LandscapeHttpRequestUtil(getOwner(this));
+
+  // TODO migrate LandscapeHttpRequestUtil first
+  // get landscapeHttpRequestUtil(): LandscapeHttpRequestUtil {
+  //   return useReloadHandlerStore.getState().landscapeHttpRequestUtil;
+  // }
+
+  // set landscapeHttpRequestUtil(value: LandscapeHttpRequestUtil) {
+  //   useReloadHandlerStore.setState({ landscapeHttpRequestUtil: value });
+  // }
 
   debug = debugLogger();
 
