@@ -24,7 +24,7 @@ import VRControllerThumbpadBinding, {
 } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
 import DetailInfoMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/detail-info-mesh';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   EntityType,

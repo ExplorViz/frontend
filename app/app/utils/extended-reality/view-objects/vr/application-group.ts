@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 
 export default class ApplicationGroup extends THREE.Group {
   openedApps: Map<string, ApplicationObject3D>;

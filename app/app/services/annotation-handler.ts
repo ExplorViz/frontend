@@ -7,7 +7,7 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import { SerializedAnnotation } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
@@ -31,7 +31,7 @@ import {
   ObjectClosedResponse,
   isObjectClosedResponse,
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import Auth from './auth';
 import {
   ANNOTATION_UPDATED_EVENT,

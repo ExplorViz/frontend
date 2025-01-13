@@ -1,9 +1,9 @@
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ApplicationObject3D from "react-lib/src/view-objects/3d/application/application-object-3d";
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import {
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from "react-lib/src/utils/landscape-schemes/structure-data";
 
 /* eslint-disable no-underscore-dangle */
 

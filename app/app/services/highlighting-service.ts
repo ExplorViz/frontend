@@ -9,11 +9,11 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
 import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import ToastHandlerService from './toast-handler';
 import ChatService from './chat';
 import {

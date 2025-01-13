@@ -1,7 +1,8 @@
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import {
   Class,
   Package,
@@ -15,9 +16,9 @@ import { spanIdToClass } from 'react-lib/src/utils/landscape-structure-helpers';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import { removeHighlighting } from './highlighting';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';

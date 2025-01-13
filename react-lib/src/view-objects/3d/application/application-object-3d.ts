@@ -3,17 +3,17 @@ import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-dat
 import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
 import { tracked } from '@glimmer/tracking';
 import { earthTexture } from 'explorviz-frontend/controllers/visualization';
-import FoundationMesh from './foundation-mesh';
-import ClazzMesh from './clazz-mesh';
-import ComponentMesh from './component-mesh';
-import ClazzCommunicationMesh from './clazz-communication-mesh';
-import BaseMesh from '../base-mesh';
-import BoxMesh from './box-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
 import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'react-lib/src/utils/link-helper';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import { ChildMesh } from './simple-parent-mesh';
+import { ChildMesh } from '../../../../../app/app/view-objects/3d/application/simple-parent-mesh';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 

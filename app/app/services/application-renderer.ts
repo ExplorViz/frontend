@@ -16,9 +16,9 @@ import {
   Class,
   Package,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
@@ -29,7 +29,7 @@ import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
 import FontRepository from './repos/font-repository';
 import UserSettings from './user-settings';
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import { getSubPackagesOfPackage } from 'react-lib/src/utils/package-helpers';
 import HighlightingService from './highlighting-service';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
@@ -40,7 +40,7 @@ import {
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import SceneRepository from './repos/scene-repository';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { CommitComparison } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import {
@@ -253,7 +253,7 @@ export default class ApplicationRenderer extends Service.extend() {
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.userSettings.applicationColors
+          this.userSettings.applicationColors!
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
@@ -268,7 +268,7 @@ export default class ApplicationRenderer extends Service.extend() {
         Labeler.addApplicationLabels(
           applicationObject3D,
           this.font,
-          this.userSettings.applicationColors
+          this.userSettings.applicationColors!
         );
       }
 

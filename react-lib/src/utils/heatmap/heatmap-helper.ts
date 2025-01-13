@@ -1,12 +1,12 @@
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import * as THREE from 'three';
+import ApplicationObject3D from "react-lib/src/view-objects/3d/application/application-object-3d";
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import * as THREE from "three";
 
 export default function applySimpleHeatOnFoundation(
   foundationMesh: FoundationMesh,
   canvas: HTMLCanvasElement
 ) {
-  const color = 'rgb(255, 255, 255)';
+  const color = "rgb(255, 255, 255)";
 
   foundationMesh.material = [];
 
@@ -23,7 +23,7 @@ export default function applySimpleHeatOnFoundation(
     .material[2] as THREE.MeshLambertMaterial;
 
   heatmapMaterial.emissiveMap = new THREE.CanvasTexture(canvas);
-  heatmapMaterial.emissive = new THREE.Color('rgb(125, 125, 125)');
+  heatmapMaterial.emissive = new THREE.Color("rgb(125, 125, 125)");
   heatmapMaterial.emissiveIntensity = 1;
   heatmapMaterial.needsUpdate = true;
 }
@@ -56,7 +56,7 @@ export function addHeatmapHelperLine(
   points.push(worldIntersectionPoint);
   const geometry1 = new THREE.BufferGeometry().setFromPoints(points);
   const line = new THREE.Line(geometry1, material1);
-  line.name = 'helperline';
+  line.name = "helperline";
 
   applicationObject3D.add(line);
 }
@@ -71,7 +71,7 @@ export function removeHeatmapHelperLines(
 
   // Remove helper lines if existend
   applicationObject3D.traverse((child) => {
-    if (child.name === 'helperline') {
+    if (child.name === "helperline") {
       applicationChildren.push(child);
     }
   });

@@ -37,6 +37,6 @@
     "app",
     "config",
     "types"
-  ],
+, "../react-lib/src/view-objects/3d/application/application-object-3d.ts", "../react-lib/src/view-objects/3d/application/box-mesh.ts"  ],
   "exclude": ["tests/*"]
 }

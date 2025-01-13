@@ -5,7 +5,7 @@ import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';

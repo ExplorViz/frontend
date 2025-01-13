@@ -4,9 +4,9 @@ import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import applySimpleHeatOnFoundation, {
   addHeatmapHelperLine,

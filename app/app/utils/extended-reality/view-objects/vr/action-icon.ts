@@ -1,4 +1,4 @@
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import * as THREE from 'three';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';

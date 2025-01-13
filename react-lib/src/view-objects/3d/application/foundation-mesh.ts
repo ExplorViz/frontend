@@ -1,9 +1,9 @@
 import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
-import BoxMesh from './box-mesh';
-import ComponentLabelMesh from './component-label-mesh';
-import MinimapLabelMesh from './minimap-label-mesh';
+import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
+import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
+import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
 export default class FoundationMesh<

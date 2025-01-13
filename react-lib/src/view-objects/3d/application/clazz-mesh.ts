@@ -1,8 +1,8 @@
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
-import BoxMesh from './box-mesh';
-import ClazzLabelMesh from './clazz-label-mesh';
+import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
+import ClazzLabelMesh from 'react-lib/src/view-objects/3d/application/clazz-label-mesh';
 import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 

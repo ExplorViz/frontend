@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ComponentMesh from '../../view-objects/3d/application/component-mesh';
-import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';
 import {
   Application,

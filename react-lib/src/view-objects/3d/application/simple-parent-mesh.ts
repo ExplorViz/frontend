@@ -12,7 +12,7 @@ import {
 } from 'three';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-import BaseMesh from '../base-mesh';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import { DetailedInfo } from 'extended-reality/utils/vr-helpers/detail-info-composer';
 import { GenericPopupData } from 'explorviz-frontend/components/visualization/rendering/popups/generic-popup';
 

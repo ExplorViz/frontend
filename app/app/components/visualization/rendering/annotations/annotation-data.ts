@@ -6,7 +6,7 @@ import {
   Node,
   Package,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 
 export interface AnnotationDataArgs {
   annotationId: number | undefined;

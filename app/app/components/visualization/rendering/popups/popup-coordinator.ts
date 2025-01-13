@@ -12,11 +12,11 @@ import {
   isNode,
   isPackage,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import PopupData from './popup-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
+import SimpleParentMesh from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
 
 interface IArgs {
   addAnnotationForPopup(popup: PopupData): void;

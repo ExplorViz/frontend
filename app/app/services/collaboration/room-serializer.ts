@@ -6,11 +6,11 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import { isTrace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
 import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import {

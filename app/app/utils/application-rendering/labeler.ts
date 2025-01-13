@@ -1,14 +1,14 @@
 import * as THREE from 'three';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ClazzLabelMesh from 'explorviz-frontend/view-objects/3d/application/clazz-label-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import ComponentLabelMesh from 'explorviz-frontend/view-objects/3d/application/component-label-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import ClazzLabelMesh from 'react-lib/src/view-objects/3d/application/clazz-label-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
-import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
+import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 

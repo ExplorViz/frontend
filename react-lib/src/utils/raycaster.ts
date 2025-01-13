@@ -1,7 +1,7 @@
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import CrosshairMesh from 'react-lib/src/view-objects/3d/crosshair-mesh.ts';
-import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
-import LogoMesh from 'explorviz-frontend/view-objects/3d/logo-mesh';
+import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh.ts';
+import LogoMesh from 'react-lib/src/view-objects/3d/logo-mesh';
 import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import LabelMesh from '../label-mesh';
-import ComponentMesh from './component-mesh';
-import FoundationMesh from './foundation-mesh';
+import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh.ts';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 
 export default class ComponentLabelMesh extends LabelMesh {
   minHeight: number;

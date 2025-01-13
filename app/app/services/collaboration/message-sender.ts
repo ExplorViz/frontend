@@ -40,7 +40,7 @@ import {
   RestructureAction,
 } from 'react-lib/src/utils/restructure-helper';
 import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import { default as VRController } from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import { getControllerPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import { JoinVrMessage } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';

@@ -1,4 +1,4 @@
-import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import { Color } from 'three';

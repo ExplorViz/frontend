@@ -8,7 +8,7 @@ import VRController from 'explorviz-frontend/utils/extended-reality/vr-controlle
 import { getPoses } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ChatService from 'explorviz-frontend/services/chat';

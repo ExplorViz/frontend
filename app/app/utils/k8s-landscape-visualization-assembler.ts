@@ -1,6 +1,6 @@
 import SimpleParentMesh, {
   SimpleParentMeshParams,
-} from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
+} from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
 import {
   Application,
   K8sDeployment,
@@ -8,7 +8,7 @@ import {
   K8sNode,
   K8sPod,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import { GenericPopupEntiresFromObject } from 'explorviz-frontend/components/visualization/rendering/popups/generic-popup';
 
 export default function visualizeK8sLandscape(

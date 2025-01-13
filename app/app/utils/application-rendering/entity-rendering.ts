@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
 import AnimationMesh from 'react-lib/src/view-objects/3d/animation-mesh.ts';
 import { Class, Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { ApplicationColors } from 'explorviz-frontend/services/user-settings';

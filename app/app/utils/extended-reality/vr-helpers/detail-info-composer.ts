@@ -8,11 +8,11 @@ import {
   getSubPackagesOfPackage,
   getClassesInPackage,
 } from 'react-lib/src/utils/package-helpers';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
@@ -20,7 +20,7 @@ import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/cl
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
-import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
+import SimpleParentMesh from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
 
 export type DetailedInfo = {
   title: string;

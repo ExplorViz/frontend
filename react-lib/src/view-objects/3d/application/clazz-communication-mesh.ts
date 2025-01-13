@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';
-import BaseMesh from '../base-mesh';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
-import ClazzCommuMeshDataModel from './utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
