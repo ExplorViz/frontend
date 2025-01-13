@@ -50,6 +50,7 @@ import {
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
+import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -98,8 +99,6 @@ export default class ApplicationRenderer extends Service.extend() {
 
   //#region Fields
 
-  private _forceGraph!: ThreeForceGraph;
-
   private _openApplicationsMap: Map<string, ApplicationObject3D>;
 
   private _appCommRendering: CommunicationRendering;
@@ -123,12 +122,12 @@ export default class ApplicationRenderer extends Service.extend() {
 
   // #region Get / Set
 
-  get forceGraph() {
-    return this._forceGraph;
+  get forceGraph(): ThreeForceGraph {
+    return useApplicationRendererStore.getState().forceGraph!;
   }
 
-  set forceGraph(newForceGraph: ThreeForceGraph) {
-    this._forceGraph = newForceGraph;
+  set forceGraph(value: ThreeForceGraph) {
+    useApplicationRendererStore.setState({ forceGraph: value });
   }
 
   get appSettings() {
@@ -177,7 +176,7 @@ export default class ApplicationRenderer extends Service.extend() {
   getGraphPosition(mesh: THREE.Object3D) {
     const worldPosition = new THREE.Vector3();
     mesh.getWorldPosition(worldPosition);
-    this._forceGraph.worldToLocal(worldPosition);
+    this.forceGraph.worldToLocal(worldPosition);
     return worldPosition;
   }
 
