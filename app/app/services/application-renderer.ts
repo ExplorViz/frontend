@@ -99,6 +99,15 @@ export default class ApplicationRenderer extends Service.extend() {
 
   //#region Fields
 
+  // private _forceGraph!: ThreeForceGraph;
+  get forceGraph(): ThreeForceGraph {
+    return useApplicationRendererStore.getState().forceGraph!;
+  }
+
+  set forceGraph(value: ThreeForceGraph) {
+    useApplicationRendererStore.setState({ forceGraph: value });
+  }
+
   private _openApplicationsMap: Map<string, ApplicationObject3D>;
 
   private _appCommRendering: CommunicationRendering;
@@ -121,14 +130,6 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   // #region Get / Set
-
-  get forceGraph(): ThreeForceGraph {
-    return useApplicationRendererStore.getState().forceGraph!;
-  }
-
-  set forceGraph(value: ThreeForceGraph) {
-    useApplicationRendererStore.setState({ forceGraph: value });
-  }
 
   get appSettings() {
     return this.userSettings.applicationSettings;
