@@ -1,7 +1,7 @@
 import { action } from '@ember/object';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
-import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
-import { DetachableMenu } from '../detachable-menu';
+import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
 import RectangleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/rectangle-item';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';

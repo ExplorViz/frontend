@@ -1,5 +1,7 @@
-import BaseMenu from './base-menu';
-import MenuGroup, { MenuGroupArgs } from './menu-group';
+import BaseMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
+import MenuGroup, {
+  MenuGroupArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-group';
 
 export type MenuQueueArgs = MenuGroupArgs & {
   nextMenuDelay?: number;

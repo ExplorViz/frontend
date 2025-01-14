@@ -1,6 +1,8 @@
 import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
-import { DetachableMenu } from './detachable-menu';
-import MenuGroup, { MenuGroupArgs } from './menu-group';
+import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
+import MenuGroup, {
+  MenuGroupArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-group';
 
 export type DetachedMenuGroupArgs = MenuGroupArgs & {
   menu: DetachableMenu;

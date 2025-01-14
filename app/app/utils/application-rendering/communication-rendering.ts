@@ -1,7 +1,7 @@
 import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import applyCommunicationLayout, {
   calculateLineThickness,
-} from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+} from 'react-lib/src/utils/application-rendering/communication-layouter';
 import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';

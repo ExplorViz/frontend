@@ -1,4 +1,4 @@
-import VRController from '../vr-controller';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 
 export type VrInputEvent<T> = {
   target: T;

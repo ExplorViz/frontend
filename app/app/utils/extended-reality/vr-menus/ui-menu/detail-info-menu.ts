@@ -14,9 +14,9 @@ import composeContent, {
   getTypeOfEntity,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import ThreeMeshUI from 'three-mesh-ui';
-import InteractiveMenu from '../interactive-menu';
-import { DetachableMenu } from '../detachable-menu';
-import { BaseMenuArgs } from '../base-menu';
+import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
+import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
+import { BaseMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import * as THREE from 'three';
 import VRControllerThumbpadBinding, {

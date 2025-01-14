@@ -3,15 +3,15 @@ import { setOwner } from '@ember/application';
 import { getOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
 import { inject as service } from '@ember/service';
-import { UiMenuArgs } from './ui-menu';
+import { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 import * as THREE from 'three';
-import InteractiveMenu from './interactive-menu';
-import KeyboardMesh from '../view-objects/vr/keyboard-mesh';
-import SearchList from '../view-objects/vr/search-list';
-import VRController from '../vr-controller';
+import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
+import KeyboardMesh from 'explorviz-frontend/utils/extended-reality/view-objects/vr/keyboard-mesh';
+import SearchList from 'explorviz-frontend/utils/extended-reality/view-objects/vr/search-list';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
-} from '../vr-controller/vr-controller-thumbpad-binding';
+} from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
 

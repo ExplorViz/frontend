@@ -7,7 +7,7 @@ import ArrowbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import UiMenu, { UiMenuArgs } from '../ui-menu';
+import UiMenu, { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 const MS_PER_SECOND = 1000;
 const TIMESTAMP_INTERVAL = 10 * MS_PER_SECOND;

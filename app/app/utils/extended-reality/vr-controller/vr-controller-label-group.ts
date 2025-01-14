@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import VRController from '../vr-controller';
-import VRControllerBindings from './vr-controller-bindings';
-import VRControllerBindingsList from './vr-controller-bindings-list';
-import { getVRControllerLabelPositions } from './vr-controller-label-positions';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
+import VRControllerBindings from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-bindings';
+import VRControllerBindingsList from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-bindings-list';
+import { getVRControllerLabelPositions } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-label-positions';
 
 export default class VRControllerLabelGroup extends THREE.Group {
   static get visibilitySetting(): boolean {

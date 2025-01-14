@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import VRControllerButtonBinding from '../vr-controller/vr-controller-button-binding';
+import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
-} from '../vr-controller/vr-controller-thumbpad-binding';
-import { BaseMenuArgs } from './base-menu';
-import InteractiveMenu from './interactive-menu';
+} from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import { BaseMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
+import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
 import InteractiveItem from 'react-lib/src/utils/extended-reality/vr-menus/items/interactive-item';
 import Item from 'react-lib/src/utils/extended-reality/vr-menus/items/item';
 

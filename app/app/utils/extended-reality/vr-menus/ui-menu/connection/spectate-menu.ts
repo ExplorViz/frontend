@@ -3,12 +3,12 @@ import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
-import DisableInputMenu from '../../ui-less-menu/disable-input-menu';
+import DisableInputMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-less-menu/disable-input-menu';
 import UiMenu, {
   DEFAULT_MENU_RESOLUTION,
   SIZE_RESOLUTION_FACTOR,
   UiMenuArgs,
-} from '../../ui-menu';
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 export type SpectateMenuArgs = UiMenuArgs & {
   localUser: LocalUser;

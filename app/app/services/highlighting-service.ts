@@ -6,7 +6,7 @@ import MessageSender from 'explorviz-frontend/services/collaboration/message-sen
 import debugLogger from 'ember-debug-logger';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import * as Highlighting from 'explorviz-frontend/utils/application-rendering/highlighting';
+import * as Highlighting from 'react-lib/src/utils/application-rendering/highlighting';
 import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';

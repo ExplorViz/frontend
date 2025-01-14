@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import BaseMenu, { BaseMenuArgs } from './base-menu';
+import BaseMenu, {
+  BaseMenuArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
 
 /**
  * Base class for all menus that can be animated.

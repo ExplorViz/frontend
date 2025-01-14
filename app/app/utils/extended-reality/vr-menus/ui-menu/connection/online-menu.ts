@@ -2,7 +2,9 @@ import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-use
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
+import ConnectionBaseMenu, {
+  ConnectionBaseMenuArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/connection/base';
 
 type OnlineMenuArgs = ConnectionBaseMenuArgs & {
   spectateUserService: SpectateUser;

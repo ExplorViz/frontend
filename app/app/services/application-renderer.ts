@@ -10,7 +10,7 @@ import * as EntityRendering from 'explorviz-frontend/utils/application-rendering
 import {
   HightlightComponentArgs,
   removeAllHighlightingFor,
-} from 'explorviz-frontend/utils/application-rendering/highlighting';
+} from 'react-lib/src/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Class,
@@ -23,7 +23,7 @@ import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
-import VrApplicationObject3D from 'explorviz-frontend/utils/extended-reality/view-objects/application/vr-application-object-3d';
+import VrApplicationObject3D from 'react-lib/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';

@@ -1,7 +1,9 @@
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import BaseMenu, { BaseMenuArgs } from '../base-menu';
+import BaseMenu, {
+  BaseMenuArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import DetailInfoScrollarea from 'explorviz-frontend/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';

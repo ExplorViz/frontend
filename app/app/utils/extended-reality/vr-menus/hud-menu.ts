@@ -1,4 +1,4 @@
-import UiMenu, { UiMenuArgs } from './ui-menu';
+import UiMenu, { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 export const HUD_RENDER_ORDER = 1000;
 

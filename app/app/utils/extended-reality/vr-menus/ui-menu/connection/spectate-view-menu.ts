@@ -1,10 +1,10 @@
 import ThreeMeshUI from 'three-mesh-ui';
-import { DetachableMenu } from '../../detachable-menu';
-import InteractiveMenu from '../../interactive-menu';
-import { BaseMenuArgs } from '../../base-menu';
+import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
+import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
+import { BaseMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
 import { inject as service } from '@ember/service';
 import * as THREE from 'three';
-import { SIZE_RESOLUTION_FACTOR } from '../../ui-menu';
+import { SIZE_RESOLUTION_FACTOR } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { setOwner } from '@ember/application';
@@ -12,7 +12,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,
-} from '../detail-info-menu';
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/detail-info-menu';
 import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type SpectateViewMenuArgs = BaseMenuArgs & {

@@ -4,7 +4,7 @@ import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objec
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import BaseMenu, { BaseMenuArgs } from '../base-menu';
+import BaseMenu, { BaseMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
 
 export type GrabMenuArgs = BaseMenuArgs & {
   grabbedObject: GrabbableObject;

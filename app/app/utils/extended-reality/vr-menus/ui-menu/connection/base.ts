@@ -2,7 +2,9 @@ import CollaborationSession, {
   ConnectionStatus,
 } from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import UiMenu, { UiMenuArgs } from '../../ui-menu';
+import UiMenu, {
+  UiMenuArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 export type ConnectionBaseMenuArgs = UiMenuArgs & {
   collaborationSession: CollaborationSession;

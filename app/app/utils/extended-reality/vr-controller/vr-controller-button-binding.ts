@@ -1,7 +1,7 @@
-import VRController from '../vr-controller';
-import VRControllerLabelGroup from './vr-controller-label-group';
-import VRControllerLabelMesh from './vr-controller-label-mesh';
-import { VRControllerLabelPosition } from './vr-controller-label-positions';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
+import VRControllerLabelGroup from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-label-group';
+import VRControllerLabelMesh from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-label-mesh';
+import { VRControllerLabelPosition } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-label-positions';
 
 type VRControllerButtonCallbacks<V> = {
   onButtonDown?(controller: VRController): void;

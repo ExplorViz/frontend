@@ -4,15 +4,15 @@ import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import * as THREE from 'three';
 import { canIntersectAllParentObjects } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import TeleportMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/teleport-mesh';
-import VRControllerBindingsList from './vr-controller/vr-controller-bindings-list';
-import VRControllerLabelGroup from './vr-controller/vr-controller-label-group';
+import VRControllerBindingsList from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-bindings-list';
+import VRControllerLabelGroup from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-label-group';
 import VrControllerModel from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model';
 import VrControllerModelFactory from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
 import {
   displayAsSolidObject,
   displayAsWireframe,
 } from 'react-lib/src/utils/extended-reality/vr-helpers/wireframe';
-import MenuGroup from './vr-menus/menu-group';
+import MenuGroup from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-group';
 import { ControllerId } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 /**
  * Length of the controller's ray when there is no intersection point.

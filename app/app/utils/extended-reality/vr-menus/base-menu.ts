@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import VrMenuFactoryService from 'explorviz-frontend/services/extended-reality/vr-menu-factory';
-import VRControllerBindings from '../vr-controller/vr-controller-bindings';
-import VRControllerButtonBinding from '../vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding from '../vr-controller/vr-controller-thumbpad-binding';
-import MenuGroup from './menu-group';
+import VRControllerBindings from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-bindings';
+import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerThumbpadBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import MenuGroup from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-group';
 
 export enum MenuState {
   /**

@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import TextTexture from 'react-lib/src/utils/extended-reality/vr-helpers/text-texture';
-import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
+import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
-} from '../../vr-controller/vr-controller-thumbpad-binding';
-import { BaseMenuArgs } from '../base-menu';
-import InteractiveMenu from '../interactive-menu';
-import { SIZE_RESOLUTION_FACTOR } from '../ui-menu';
+} from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import { BaseMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
+import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
+import { SIZE_RESOLUTION_FACTOR } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 type ToolArgs = {
   label: string;

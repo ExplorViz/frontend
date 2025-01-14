@@ -1,5 +1,7 @@
 import ThreeMeshUI from 'three-mesh-ui';
-import SearchListItem, { BLOCK_OPTIONS_LIST_ITEM } from './search-list-item';
+import SearchListItem, {
+  BLOCK_OPTIONS_LIST_ITEM,
+} from 'explorviz-frontend/utils/extended-reality/view-objects/vr/search-list-item';
 
 export type SearchListArgs = ThreeMeshUI.BlockOptions & {
   owner: any;

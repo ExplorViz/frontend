@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import VRController from '../vr-controller';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 
 export enum VRControllerLabelOffsetDirection {
   LEFT = -1,

@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger/utils/debug-logger';
 import { GraphLink } from 'explorviz-frontend/rendering/application/force-graph';
-import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import { calculateLineThickness } from 'react-lib/src/utils/application-rendering/communication-layouter';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import { findFirstOpen } from 'react-lib/src/utils/link-helper';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
@@ -51,7 +51,7 @@ export default class LinkRenderer extends Service.extend({}) {
   // }
 
   // set _flag(value: boolean) {
-    // useLinkRendererStore.setState({ _flag: value });
+  // useLinkRendererStore.setState({ _flag: value });
   // }
 
   readonly debug = debugLogger();

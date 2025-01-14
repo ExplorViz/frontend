@@ -17,7 +17,7 @@ import ApplicationData, {
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'react-lib/src/utils/application-rendering/class-communication-computer';
-import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+import { calculateLineThickness } from 'react-lib/src/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
 import {
   Application,

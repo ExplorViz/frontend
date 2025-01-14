@@ -1,12 +1,14 @@
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import VRController from '../../vr-controller';
-import VRControllerButtonBinding from '../../vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding from '../../vr-controller/vr-controller-thumbpad-binding';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
+import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerThumbpadBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
 import ArrowbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/arrowbutton-item';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import UiMenu, { UiMenuArgs } from '../ui-menu';
+import UiMenu, {
+  UiMenuArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 /**
  * The maximum change of the camera's height per frame when the trigger is fully pressed.

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import FloorMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/floor-mesh';
-import VRController from '../vr-controller';
-import VRControllerBindings from '../vr-controller/vr-controller-bindings';
-import BaseMenu from './base-menu';
-import { isDetachableMenu } from './detachable-menu';
+import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
+import VRControllerBindings from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-bindings';
+import BaseMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/base-menu';
+import { isDetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
 
 export type MenuGroupArgs = {
   detachedMenuGroups: DetachedMenuGroupsService;

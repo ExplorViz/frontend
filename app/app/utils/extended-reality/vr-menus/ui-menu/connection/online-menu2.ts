@@ -5,12 +5,12 @@ import { inject as service } from '@ember/service';
 import * as THREE from 'three';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import UserList from 'explorviz-frontend/utils/extended-reality/view-objects/vr/user-list';
-import { UiMenuArgs } from '../../ui-menu';
+import { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
-import InteractiveMenu from '../../interactive-menu';
+import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import DisconnectButton from 'explorviz-frontend/utils/extended-reality/view-objects/vr/disconnect-button';
 

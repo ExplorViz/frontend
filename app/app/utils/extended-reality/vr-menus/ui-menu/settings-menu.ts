@@ -1,9 +1,9 @@
-import VRControllerLabelGroup from '../../vr-controller/vr-controller-label-group';
+import VRControllerLabelGroup from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-label-group';
 import CheckboxItem from 'react-lib/src/utils/extended-reality/vr-menus/items/checkbox-item';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import UiMenu, { UiMenuArgs } from '../ui-menu';
+import UiMenu, { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 export type SettingsMenuArgs = UiMenuArgs & {
   labelGroups: (VRControllerLabelGroup | undefined)[];

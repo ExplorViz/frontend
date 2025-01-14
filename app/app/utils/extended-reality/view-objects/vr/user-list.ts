@@ -1,6 +1,6 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { inject as service } from '@ember/service';
-import UserListItem, { BLOCK_OPTIONS_LIST_ITEM } from './user-list-item';
+import UserListItem, { BLOCK_OPTIONS_LIST_ITEM } from 'explorviz-frontend/utils/extended-reality/view-objects/vr/user-list-item';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { setOwner } from '@ember/application';

@@ -1,5 +1,7 @@
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
-import ConnectionBaseMenu, { ConnectionBaseMenuArgs } from './base';
+import ConnectionBaseMenu, {
+  ConnectionBaseMenuArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/connection/base';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 
 export default class ConnectingMenu extends ConnectionBaseMenu {
