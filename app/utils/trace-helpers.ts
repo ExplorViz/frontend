@@ -83,7 +83,7 @@ export function getTraceRequestCount(trace: Trace) {
 }
 
 /**
- * Sorts the given trace array by their id in alphabetical order
+ * Sorts the given trace array by their request count
  *
  * @param traces - The array to be sorted
  * @param ascending - If true, order is ascending, else descending. Default: `true`
