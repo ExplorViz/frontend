@@ -19,11 +19,15 @@
         <th
           {{on 'click' (fn this.sortByProperty 'firstClassName')}}
           scope='col'
-        >First Clazz</th>
+        >First Class</th>
         <th
           {{on 'click' (fn this.sortByProperty 'lastClassName')}}
           scope='col'
-        >Last Clazz</th>
+        >Last Class</th>
+        <th
+          {{on 'click' (fn this.sortByProperty 'steps')}}
+          scope='col'
+        >Requests</th>
         <th {{on 'click' (fn this.sortByProperty 'traceDuration')}} scope='col'>
           Duration in
           <BsButton
@@ -63,6 +67,9 @@
                 14
                 true
               }}</td>
+          {{/let}}
+          {{#let (get this.requestCounts index) as |requestCounts|}}
+            <td>{{requestCounts}}</td>
           {{/let}}
           {{#let (get this.traceDurations index) as |duration|}}
             <td>{{format-number duration this.traceTimeUnit}}</td>

@@ -12,7 +12,6 @@
           {{#if @sourceClass}}
             {{@sourceClass.name}}
             <BsButton
-              @onClick={{fn @moveCameraTo @sourceClass}}
               @type='button'
               class='th-btn'
             >
@@ -27,7 +26,6 @@
           {{#if @targetClass}}
             {{@targetClass.name}}
             <BsButton
-              @onClick={{fn @moveCameraTo @targetClass}}
               @type='button'
               class='th-btn'
             >

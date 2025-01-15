@@ -83,6 +83,36 @@ export function getTraceRequestCount(trace: Trace) {
 }
 
 /**
+ * Sorts the given trace array by their id in alphabetical order
+ *
+ * @param traces - The array to be sorted
+ * @param ascending - If true, order is ascending, else descending. Default: `true`
+ * @param copy - If set to true, a sorted copy of the array is returned,
+ * else the original array is mutated and returned. Default: `true`
+ */
+export function sortTracesByRequestCount(
+  traces: Trace[],
+  ascending = true,
+  copy = false
+) {
+  let sortedArray = traces;
+  if (copy) {
+    sortedArray = [...sortedArray];
+  }
+  sortedArray.sort((a, b) => {
+    const traceDurationA = getTraceRequestCount(a);
+    const traceDurationB = getTraceRequestCount(b);
+
+    return traceDurationA - traceDurationB;
+  });
+
+  if (!ascending) {
+    sortedArray.reverse();
+  }
+  return sortedArray;
+}
+
+/**
  * Sorts the given span array by their startTime and returns it
  *
  * @param spanArary The array that is to be sorted

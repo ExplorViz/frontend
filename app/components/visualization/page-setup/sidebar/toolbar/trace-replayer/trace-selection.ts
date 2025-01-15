@@ -14,15 +14,19 @@ import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-struct
 import {
   calculateDuration,
   getSortedTraceSpans,
+  getTraceRequestCount,
   sortTracesByDuration,
   sortTracesById,
+  sortTracesByRequestCount,
 } from 'explorviz-frontend/utils/trace-helpers';
 
 export type TimeUnit = 'ns' | 'ms' | 's';
 
 interface Args {
   moveCameraTo(emberModel: Class | Span): void;
+
   selectTrace(trace: Trace): void;
+
   readonly structureData: StructureLandscapeData;
   readonly application: Application;
   readonly selectedTrace: Trace;
@@ -32,7 +36,7 @@ interface Args {
 export default class TraceSelection extends Component<Args> {
   // default time units
   @tracked
-  traceTimeUnit: TimeUnit = 'ms';
+  traceTimeUnit: TimeUnit = 'ns';
 
   @tracked
   sortBy: any = 'traceId';
@@ -58,6 +62,11 @@ export default class TraceSelection extends Component<Args> {
   @computed('traces')
   get traceDurations() {
     return this.traces.map((trace) => calculateDuration(trace));
+  }
+
+  @computed('traces')
+  get requestCounts() {
+    return this.traces.map((trace) => getTraceRequestCount(trace));
   }
 
   @computed('args.applicationTraces')
@@ -115,7 +124,10 @@ export default class TraceSelection extends Component<Args> {
 
     const filteredTraces: Trace[] = [];
     const filter = this.filterTerm;
+
     this.args.applicationTraces.forEach((trace) => {
+      console.log(`id: ${trace.traceId}`);
+
       if (filter === '' || trace.traceId.toLowerCase().includes(filter)) {
         filteredTraces.push(trace);
         return;
@@ -140,6 +152,9 @@ export default class TraceSelection extends Component<Args> {
     }
     if (this.sortBy === 'lastClassName') {
       this.sortTracesBylastClassName(filteredTraces, this.isSortedAsc);
+    }
+    if (this.sortBy === 'steps') {
+      sortTracesByRequestCount(filteredTraces, this.isSortedAsc);
     }
     if (this.sortBy === 'traceDuration') {
       sortTracesByDuration(filteredTraces, this.isSortedAsc);

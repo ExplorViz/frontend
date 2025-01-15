@@ -146,18 +146,12 @@
                   />
                 {{/if}}
                 {{#if (eq @openedToolComponent 'Trace-Replayer')}}
-                  {{#if this.selectedApplicationObject3D}}
-                    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSelectionAndReplayer
-                      @highlightTrace={{this.highlightTrace}}
-                      @moveCameraTo={{this.moveCameraTo}}
-                      @removeHighlighting={{this.removeAllHighlighting}}
-                      @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                      @structureData={{@landscapeData.structureLandscapeData}}
-                      @application={{this.selectedApplicationObject3D.data.application}}
-                    />
-                  {{else}}
-                    Please select an application to use the trace overview.
-                  {{/if}}
+                  <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSelectionAndReplayer
+                    @highlightTrace={{this.highlightTrace}}
+                    @removeHighlighting={{this.removeAllHighlighting}}
+                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                    @structureData={{@landscapeData.structureLandscapeData}}
+                  />
                 {{/if}}
               </div>
             </div>
@@ -241,18 +235,12 @@
                 />
               {{/if}}
               {{#if (eq @openedSettingComponent 'trace-selection')}}
-                {{#if this.selectedApplicationObject3D}}
-                  <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
-                    @highlightTrace={{this.highlightTrace}}
-                    @moveCameraTo={{this.moveCameraTo}}
-                    @removeHighlighting={{this.removeHighlighting}}
-                    @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                    @structureData={{@landscapeData.structureLandscapeData}}
-                    @application={{this.selectedApplicationObject3D.dataModel}}
-                  />
-                {{else}}
-                  Please select an application to use the trace overview.
-                {{/if}}
+                <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
+                  @highlightTrace={{this.highlightTrace}}
+                  @removeHighlighting={{this.removeHighlighting}}
+                  @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                  @structureData={{@landscapeData.structureLandscapeData}}
+                />
               {{/if}}
               {{#if (eq @openedSettingComponent 'Settings')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Settings::Settings

@@ -7,7 +7,6 @@ import {
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  Class,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
@@ -22,13 +21,13 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 interface Args {
   selectedTrace: Trace;
   structureData: StructureLandscapeData;
+
   highlightTrace(trace: Trace, traceStep: string): void;
-  moveCameraTo(emberModel: Class | Span): void;
 }
 
 export default class TraceReplayerMain extends Component<Args> {
   @tracked
-  isReplayAnimated: boolean = true;
+  isReplayAnimated: boolean = false;
 
   @tracked
   currentTraceStep: Span | null = null;
@@ -50,12 +49,6 @@ export default class TraceReplayerMain extends Component<Args> {
     if (this.traceSteps.length > 0) {
       const [firstStep] = this.traceSteps;
       this.currentTraceStep = firstStep;
-
-      this.pingTraceStep();
-
-      if (this.isReplayAnimated) {
-        this.args.moveCameraTo(this.currentTraceStep);
-      }
     }
   }
 
@@ -150,12 +143,6 @@ export default class TraceReplayerMain extends Component<Args> {
       this.args.selectedTrace,
       this.currentTraceStep.spanId
     );
-
-    this.pingTraceStep();
-
-    if (this.isReplayAnimated) {
-      this.args.moveCameraTo(this.currentTraceStep);
-    }
   }
 
   @action
@@ -185,49 +172,5 @@ export default class TraceReplayerMain extends Component<Args> {
       this.args.selectedTrace,
       this.currentTraceStep.spanId
     );
-
-    this.pingTraceStep();
-
-    if (this.isReplayAnimated) {
-      this.args.moveCameraTo(this.currentTraceStep);
-    }
-  }
-
-  private pingTraceStep() {
-    const traceOfSpan = this.args.selectedTrace;
-
-    if (!traceOfSpan) {
-      return;
-    }
-
-    if (this.sourceClass) {
-      const sourceAppObject3D = this.applicationRenderer.getApplicationById(
-        this.sourceApplication!.id
-      );
-
-      const sourceClazzMesh = sourceAppObject3D!.getBoxMeshbyModelId(
-        this.sourceClass!.id
-      );
-
-      this.localUser.ping(
-        sourceClazzMesh!,
-        sourceClazzMesh!.getWorldPosition(sourceClazzMesh!.position),
-        2000
-      );
-    } else if (this.targetClass) {
-      const targetAppObject3D = this.applicationRenderer.getApplicationById(
-        this.targetApplication!.id
-      );
-
-      const targetClazzMesh = targetAppObject3D!.getBoxMeshbyModelId(
-        this.targetClass.id
-      );
-
-      this.localUser.ping(
-        targetClazzMesh!,
-        targetClazzMesh!.getWorldPosition(targetClazzMesh!.position),
-        2000
-      );
-    }
   }
 }
