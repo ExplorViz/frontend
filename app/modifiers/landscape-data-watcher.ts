@@ -3,11 +3,10 @@ import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
-import { GraphNode } from 'explorviz-frontend/rendering/application/force-graph';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
+// import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData, {
@@ -16,7 +15,7 @@ import ApplicationData, {
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
+// import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import {
   Application,
@@ -36,7 +35,7 @@ import layoutCity, {
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
-import { Object3D } from 'three';
+// import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
@@ -124,10 +123,11 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
+    const landscape3D = this.graph;
     if (
       !this.structureLandscapeData ||
       !this.dynamicLandscapeData ||
-      !this.graph
+      !landscape3D
     ) {
       return;
     }
@@ -136,7 +136,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Init computation of layout for applications
     const graphLayoutMap = new Map();
-    const { nodes, k8sNodes } = this.structureLandscapeData;
+    const { nodes /*, k8sNodes*/ } = this.structureLandscapeData;
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
@@ -168,14 +168,14 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // let { nodes: graphNodes } = this.graph.graphData();
 
-    const allAppsInNodes = [
-      ...nodes.flatMap((n) => n.applications),
-      ...k8sNodes
-        .flatMap((n) => n.k8sNamespaces)
-        .flatMap((ns) => ns.k8sDeployments)
-        .flatMap((d) => d.k8sPods)
-        .flatMap((p) => p.applications),
-    ];
+    // const allAppsInNodes = [
+    //   ...nodes.flatMap((n) => n.applications),
+    //   ...k8sNodes
+    //     .flatMap((n) => n.k8sNamespaces)
+    //     .flatMap((ns) => ns.k8sDeployments)
+    //     .flatMap((d) => d.k8sPods)
+    //     .flatMap((p) => p.applications),
+    // ];
 
     // Filter out any nodes that are no longer present in the new landscape data
     // graphNodes = graphNodes.filter((node: GraphNode) => {
@@ -188,7 +188,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     //   return appears;
     // });
 
-    const graphNodes = allAppsInNodes;
+    // const graphNodes = allAppsInNodes;
 
     // const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
@@ -211,8 +211,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           await this.applicationRenderer.addApplicationTask.perform(
             applicationData
           );
-
-        this.graph.add(app);
 
         // fix previously existing nodes to position (if present) and calculate collision size
         // const graphNode = graphNodes.find(
@@ -323,7 +321,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const baseParams = {
       font: this.fontRepo.font,
     };
-    const rootParents = visualizeK8sLandscape(
+    // const rootParents =
+    visualizeK8sLandscape(
       this.landscapeData.structureLandscapeData.k8sNodes,
       baseParams,
       (app) => {
@@ -335,10 +334,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
-
-    const interAppCommunications = classCommunications.filter(
-      (x) => x.sourceApp !== x.targetApp
-    );
     // const communicationLinks = interAppCommunications.map((communication) => ({
     //   source: graphNodes.find(
     //     (node) => node.id == communication.sourceApp?.id
@@ -369,7 +364,24 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // };
 
     const applications = this.applicationRenderer.getOpenApplications();
-    layoutLandscape(applications);
+    await layoutLandscape(applications);
+
+    applications.forEach((application3D) => {
+      landscape3D.add(application3D);
+    });
+
+    // Add communication
+    const interAppCommunications = classCommunications.filter(
+      (x) => x.sourceApp !== x.targetApp
+    );
+    interAppCommunications.forEach((communication) => {
+      const commMesh =
+        this.linkRenderer.createMeshFromCommunication(communication);
+      if (commMesh) {
+        landscape3D.add(commMesh);
+        this.linkRenderer.updateLinkPosition(commMesh);
+      }
+    });
 
     const { serializedRoom } = this.roomSerializer;
 

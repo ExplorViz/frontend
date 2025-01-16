@@ -382,7 +382,7 @@ export default class ApplicationRenderer extends Service.extend() {
   @action
   addCommunicationForAllApplications() {
     this.forEachOpenApplication(this.addCommunication);
-    this.updateLinks?.();
+    this.linkRenderer.updateLinkPositions();
   }
 
   @action
@@ -409,12 +409,10 @@ export default class ApplicationRenderer extends Service.extend() {
       this.userSettings.colors
     );
     // Update links
-    this.updateLinks?.();
+    this.linkRenderer.updateLinkPositions();
     // Update highlighting
     this.highlightingService.updateHighlighting(); // needs to be after update links
   }
-
-  updateLinks?: () => void;
 
   @action
   openAllComponentsOfAllApplications() {
@@ -432,7 +430,7 @@ export default class ApplicationRenderer extends Service.extend() {
     } else {
       this.removeCommunicationForAllApplications();
     }
-    this.updateLinks?.();
+    this.linkRenderer.updateLinkPositions();
   }
 
   /**

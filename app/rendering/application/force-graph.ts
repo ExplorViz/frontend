@@ -80,7 +80,7 @@ export default class ForceGraph {
       )
       .linkOpacity(0.4)
       .linkThreeObject(this.linkRenderer.createMeshFromLink)
-      .linkPositionUpdate(this.linkRenderer.linkPositionUpdate)
+      .updateLinkPosition(this.linkRenderer.updateLinkPosition)
       .linkVisibility(this.linkRenderer.isLinkVisible)
       .nodeAutoColorBy('node')
       .cooldownTicks(1)
@@ -100,7 +100,7 @@ export default class ForceGraph {
         // eslint-disable-next-line no-underscore-dangle
         const lineObj = link.__lineObj;
         if (!lineObj) return;
-        this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
+        this.linkRenderer.updateLinkPosition(lineObj, {}, link);
       });
     };
     try {

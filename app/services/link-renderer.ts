@@ -1,8 +1,5 @@
-/* eslint-disable no-underscore-dangle */
-import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger/utils/debug-logger';
-import { GraphLink } from 'explorviz-frontend/rendering/application/force-graph';
 import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
 import { findFirstOpen } from 'explorviz-frontend/utils/link-helper';
@@ -16,9 +13,6 @@ import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
-import SemanticZoomManager, {
-  SemanticZoomableObject,
-} from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -55,33 +49,28 @@ export default class LinkRenderer extends Service.extend({}) {
     return Array.from(this.linkIdToMesh.values());
   }
 
-  @action
-  linkPositionUpdate(
-    line: ClazzCommunicationMesh,
-    _coords: any,
-    link: GraphLink
-  ) {
-    const sourceApp = link.source.__threeObj;
-    const targetApp = link.target.__threeObj;
+  updateLinkPosition(line: ClazzCommunicationMesh) {
+    const sourceApp = this.applicationRenderer.getApplicationById(
+      line.dataModel.communication.sourceApp.id
+    );
+    const targetApp = this.applicationRenderer.getApplicationById(
+      line.dataModel.communication.targetApp.id
+    );
 
     if (
       !(sourceApp instanceof ApplicationObject3D) ||
-      !(targetApp instanceof ApplicationObject3D) ||
-      !link.communicationData
+      !(targetApp instanceof ApplicationObject3D)
     ) {
       this.debug('Link data incomplete');
       return;
     }
 
-    const classCommunication: ClassCommunication = link.communicationData;
+    const classCommunication = line.dataModel.communication;
 
-    line.visible = this.isLinkVisible(link);
+    // line.visible = true;
+    const landscapeGroup = sourceApp.parent!;
+    console.log('Landscape Group:', landscapeGroup);
 
-    let rootElement = link.source.__threeObj;
-    while (rootElement.parent?.type !== 'Scene') {
-      rootElement = rootElement?.parent || rootElement;
-    }
-    const forceGraph = sourceApp.parent!;
     const sourceClass = findFirstOpen(
       sourceApp,
       classCommunication.sourceClass
@@ -90,9 +79,7 @@ export default class LinkRenderer extends Service.extend({}) {
     let start = new THREE.Vector3();
     if (sourceMesh) {
       start = sourceMesh.getWorldPosition(new THREE.Vector3());
-      forceGraph.worldToLocal(start);
-      start = sourceMesh.getWorldPosition(new THREE.Vector3());
-      rootElement.worldToLocal(start);
+      landscapeGroup.worldToLocal(start);
     } else {
       this.debug('Source mesh not found');
     }
@@ -106,14 +93,12 @@ export default class LinkRenderer extends Service.extend({}) {
     let end = new THREE.Vector3();
     if (targetMesh) {
       end = targetMesh.getWorldPosition(new THREE.Vector3());
-      forceGraph.worldToLocal(end);
-      end = targetMesh.getWorldPosition(new THREE.Vector3());
-      rootElement.worldToLocal(end);
+      landscapeGroup.worldToLocal(end);
     } else {
       this.debug('Target mesh not found');
     }
 
-    // add arrow
+    // Add arrow
     const commLayout = new CommunicationLayout(classCommunication);
     commLayout.startPoint = start;
     commLayout.endPoint = end;
@@ -127,13 +112,6 @@ export default class LinkRenderer extends Service.extend({}) {
     const curveHeight = this.computeCurveHeight(commLayout);
     line.render(new THREE.Vector3(), curveHeight);
 
-    // to move particles and arrow
-    const curve = (line.geometry as THREE.TubeGeometry).parameters.path;
-    link.__curve = curve;
-    line.children.forEach((child: unknown) =>
-      SemanticZoomManager.instance.remove(child as SemanticZoomableObject)
-    );
-    line.children.clear();
     this.addArrows(line, curveHeight, new THREE.Vector3());
     // SemanticZoomManager: save the original appearence
     line.saveOriginalAppearence();
@@ -141,10 +119,19 @@ export default class LinkRenderer extends Service.extend({}) {
     return true;
   }
 
-  @action
-  createMeshFromLink(link: GraphLink): ClazzCommunicationMesh {
-    const classCommunication = link.communicationData;
-    const applicationObject3D = link.source.__threeObj as ApplicationObject3D;
+  updateLinkPositions() {
+    this.linkIdToMesh.forEach((link) => {
+      this.updateLinkPosition(link);
+    });
+  }
+
+  createMeshFromCommunication(
+    classCommunication: ClassCommunication
+  ): ClazzCommunicationMesh | undefined {
+    const applicationObject3D = this.applicationRenderer.getApplicationById(
+      classCommunication.sourceApp.id
+    );
+    if (!applicationObject3D) return;
     const { id } = classCommunication;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
@@ -172,32 +159,8 @@ export default class LinkRenderer extends Service.extend({}) {
     return newMesh;
   }
 
-  getLinks() {
-    return Array.from(this.linkIdToMesh.values());
-  }
-
   getLinkById(linkId: string) {
     return this.linkIdToMesh.get(linkId);
-  }
-
-  @action
-  isLinkVisible(link: GraphLink) {
-    if (!link.communicationData) {
-      return false;
-    }
-    const sourceClassMesh = this.applicationRenderer.getMeshById(
-      link.communicationData.sourceClass.id
-    );
-    const targetClassMesh = this.applicationRenderer.getMeshById(
-      link.communicationData.targetClass.id
-    );
-    return (
-      this.configuration.isCommRendered &&
-      sourceClassMesh !== undefined &&
-      targetClassMesh !== undefined &&
-      sourceClassMesh.material.visible &&
-      targetClassMesh.material.visible
-    );
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {
@@ -219,6 +182,11 @@ export default class LinkRenderer extends Service.extend({}) {
     curveHeight: number,
     viewCenterPoint: THREE.Vector3
   ) {
+    pipe.children.forEach((child) => {
+      if (child instanceof CommunicationArrowMesh) child.dispose();
+      pipe.remove(child);
+    });
+
     const arrowOffset = 0.8;
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;

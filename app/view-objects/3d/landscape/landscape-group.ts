@@ -7,7 +7,7 @@ export default class LandscapeGroup
 {
   constructor() {
     super();
-    this.scale.set(0.5, 0.5, 0.5);
+    this.scale.set(0.01, 0.01, 0.01);
   }
 
   getGrabId() {

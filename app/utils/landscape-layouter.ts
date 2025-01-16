@@ -52,7 +52,6 @@ function populateGraph(applications: ApplicationObject3D[], graph: any) {
       width: Math.abs(boundingBox.min.z) + Math.abs(boundingBox.max.z),
       height: Math.abs(boundingBox.min.y) + Math.abs(boundingBox.max.y),
       layoutOptions: {
-        algorithm: 'force',
         'spacing.nodeNode': APP_MARGIN,
         'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
       },
