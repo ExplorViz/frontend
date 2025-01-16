@@ -14,7 +14,8 @@ import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';import {
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,

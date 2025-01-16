@@ -1,7 +1,7 @@
 import Service from '@ember/service';
 import Evented from '@ember/object/evented';
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
-import { tracked } from '@glimmer/tracking';
+// import { tracked } from '@glimmer/tracking';
 import { useIdeWebsocketFacadeStore } from 'react-lib/src/stores/ide-websocket-facade';
 
 export default class IdeWebsocketFacade extends Service.extend(Evented) {

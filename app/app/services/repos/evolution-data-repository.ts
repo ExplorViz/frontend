@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
-import { tracked } from '@glimmer/tracking';
+// import { tracked } from '@glimmer/tracking';
 import {
   CommitTree,
   AppNameCommitTreeMap,
@@ -31,50 +31,110 @@ export default class EvolutionDataRepository extends Service {
 
   // #region Properties
 
-  @tracked private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
+  // @tracked
+  // private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
+  get _appNameCommitTreeMap(): AppNameCommitTreeMap {
+    return useEvolutionDataRepositoryeState.getState()._appNameCommitTreeMap;
+  }
 
-  private _evolutionStructureLandscapeData: Map<
-    string,
-    StructureLandscapeData
-  > = new Map();
+  set _appNameCommitTreeMap(value: AppNameCommitTreeMap) {
+    useEvolutionDataRepositoryeState.setState({ _appNameCommitTreeMap: value });
+  }
+
+  // private _evolutionStructureLandscapeData: Map<
+  //   string,
+  //   StructureLandscapeData
+  // > = new Map();
   // <appName, StructureLandscapeData>
+  get _evolutionStructureLandscapeData(): Map<string, StructureLandscapeData> {
+    return useEvolutionDataRepositoryeState.getState()
+      ._evolutionStructureLandscapeData;
+  }
 
-  private _combinedStructureLandscapeData: StructureLandscapeData =
-    createEmptyStructureLandscapeData();
+  set _evolutionStructureLandscapeData(
+    value: Map<string, StructureLandscapeData>
+  ) {
+    useEvolutionDataRepositoryeState.setState({
+      _evolutionStructureLandscapeData: value,
+    });
+  }
 
-  private _appNameToCommitIdToApplicationMetricsCodeMap: Map<
+  // private _combinedStructureLandscapeData: StructureLandscapeData =
+  //   createEmptyStructureLandscapeData();
+  get _combinedStructureLandscapeData(): StructureLandscapeData {
+    return useEvolutionDataRepositoryeState.getState()
+      ._combinedStructureLandscapeData;
+  }
+
+  set _combinedStructureLandscapeData(value: StructureLandscapeData) {
+    useEvolutionDataRepositoryeState.setState({
+      _combinedStructureLandscapeData: value,
+    });
+  }
+
+  // private _appNameToCommitIdToApplicationMetricsCodeMap: Map<
+  //   string,
+  //   Map<string, ApplicationMetricsCode>
+  // > = new Map();
+  get _appNameToCommitIdToApplicationMetricsCodeMap(): Map<
     string,
     Map<string, ApplicationMetricsCode>
-  > = new Map();
+  > {
+    return useEvolutionDataRepositoryeState.getState()
+      ._appNameToCommitIdToApplicationMetricsCodeMap;
+  }
 
-  private _commitsToCommitComparisonMap: Map<string, CommitComparison> =
-    new Map();
+  set _appNameToCommitIdToApplicationMetricsCodeMap(
+    value: Map<string, Map<string, ApplicationMetricsCode>>
+  ) {
+    useEvolutionDataRepositoryeState.setState({
+      _appNameToCommitIdToApplicationMetricsCodeMap: value,
+    });
+  }
+
+  // private _commitsToCommitComparisonMap: Map<string, CommitComparison> =
+  //   new Map();
+  get _commitsToCommitComparisonMap(): Map<string, CommitComparison> {
+    return useEvolutionDataRepositoryeState.getState()
+      ._commitsToCommitComparisonMap;
+  }
+
+  set _commitsToCommitComparisonMap(value: Map<string, CommitComparison>) {
+    useEvolutionDataRepositoryeState.setState({
+      _commitsToCommitComparisonMap: value,
+    });
+  }
 
   // #endregion
 
   // #region Getter / Setter
+  //
 
   get evolutionStructureLandscapeData(): Map<string, StructureLandscapeData> {
-    return this._evolutionStructureLandscapeData;
+    return useEvolutionDataRepositoryeState.getState()
+      ._evolutionStructureLandscapeData;
   }
 
   get appNameCommitTreeMap(): AppNameCommitTreeMap {
-    return this._appNameCommitTreeMap;
+    return useEvolutionDataRepositoryeState.getState()._appNameCommitTreeMap;
   }
 
   get combinedStructureLandscapeData(): StructureLandscapeData {
-    return this._combinedStructureLandscapeData;
+    return useEvolutionDataRepositoryeState.getState()
+      ._combinedStructureLandscapeData;
   }
 
   get commitsToCommitComparisonMap(): Map<string, CommitComparison> {
-    return this._commitsToCommitComparisonMap;
+    return useEvolutionDataRepositoryeState.getState()
+      ._commitsToCommitComparisonMap;
   }
 
   get appNameToCommitIdToApplicationMetricsCodeMap(): Map<
     string,
     Map<string, ApplicationMetricsCode>
   > {
-    return this._appNameToCommitIdToApplicationMetricsCodeMap;
+    return useEvolutionDataRepositoryeState.getState()
+      ._appNameToCommitIdToApplicationMetricsCodeMap;
   }
 
   getCommitComparisonByAppName(appName: string): CommitComparison | undefined {
@@ -106,7 +166,7 @@ export default class EvolutionDataRepository extends Service {
 
       this._appNameCommitTreeMap = appNameCommitTreeMap;
     } catch (error) {
-      this.resetAppNameCommitTreeMap();
+      useEvolutionDataRepositoryeState.getState().resetAppNameCommitTreeMap();
       console.error(`Failed to build AppNameCommitTreeMap, reason: ${error}`);
     }
   }
@@ -180,31 +240,49 @@ export default class EvolutionDataRepository extends Service {
 
   // #region Reset functions
 
+  // resetAllEvolutionData(): void {
+  //   this.resetEvolutionStructureLandscapeData();
+  //   this.resetAppNameCommitTreeMap();
+  // }
   resetAllEvolutionData(): void {
     this.debug('Reset All Evolution Data');
-    this.resetEvolutionStructureLandscapeData();
-    this.resetAppNameCommitTreeMap();
+    useEvolutionDataRepositoryeState
+      .getState()
+      .resetEvolutionStructureLandscapeData();
+    useEvolutionDataRepositoryeState.getState().resetAppNameCommitTreeMap();
   }
 
+  // resetStructureLandscapeData(): void {
+  //   this.debug('Reset Evolution StructureLandscapeData');
+  //   this.resetAppNameToCommitIdToApplicationMetricsCodeMap();
+  //   this.resetEvolutionStructureLandscapeData();
+  //   this._commitsToCommitComparisonMap = new Map();
+  // }
   resetStructureLandscapeData(): void {
     this.debug('Reset Evolution StructureLandscapeData');
-    this.resetAppNameToCommitIdToApplicationMetricsCodeMap();
-    this.resetEvolutionStructureLandscapeData();
-    this._commitsToCommitComparisonMap = new Map();
+    useEvolutionDataRepositoryeState
+      .getState()
+      .resetAppNameToCommitIdToApplicationMetricsCodeMap();
+    useEvolutionDataRepositoryeState
+      .getState()
+      .resetEvolutionStructureLandscapeData();
+    useEvolutionDataRepositoryeState
+      .getState()
+      .resetCommitsToCommitComparisonMap();
   }
 
-  resetAppNameToCommitIdToApplicationMetricsCodeMap(): void {
-    this._appNameToCommitIdToApplicationMetricsCodeMap = new Map();
-  }
+  // resetAppNameToCommitIdToApplicationMetricsCodeMap(): void {
+  //   this._appNameToCommitIdToApplicationMetricsCodeMap = new Map();
+  // }
 
-  resetEvolutionStructureLandscapeData(): void {
-    this._evolutionStructureLandscapeData = new Map();
-    this._combinedStructureLandscapeData = createEmptyStructureLandscapeData();
-  }
+  // resetEvolutionStructureLandscapeData(): void {
+  //   this._evolutionStructureLandscapeData = new Map();
+  //   this._combinedStructureLandscapeData = createEmptyStructureLandscapeData();
+  // }
 
-  resetAppNameCommitTreeMap(): void {
-    this._appNameCommitTreeMap = new Map();
-  }
+  // resetAppNameCommitTreeMap(): void {
+  //   this._appNameCommitTreeMap = new Map();
+  // }
 
   // #endregion
 

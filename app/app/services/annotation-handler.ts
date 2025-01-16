@@ -41,7 +41,10 @@ import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
-import { AnnotationUpdatedForwardMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
+import {
+  AnnotationUpdatedForwardMessage,
+  isAnnotationUpdatedForwardMessage,
+} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,
@@ -75,8 +78,20 @@ export default class AnnotationHandlerService extends Service {
 
   @tracked
   annotationData: AnnotationData[] = [];
+  // get annotationData(): AnnotationData[] {
+  //   return useAnnotationHandlerStore.getState().annotationData;
+  // }
+  // set annotationData(value: AnnotationData[]) {
+  //   useAnnotationHandlerStore.setState({ annotationData: value });
+  // }
 
   minimizedAnnotations: AnnotationData[] = [];
+  // get minimizedAnnotations(): AnnotationData[] {
+  //   return useAnnotationHandlerStore.getState().minimizedAnnotations;
+  // }
+  // set minimizedAnnotations(value: AnnotationData[]) {
+  //   useAnnotationHandlerStore.setState({ minimizedAnnotations: value });
+  // }
 
   // latestMousePosition: { timestamp: number; x: number; y: number } = {
   //   timestamp: 0,
@@ -111,12 +126,7 @@ export default class AnnotationHandlerService extends Service {
   }
 
   handleMouseMove(event: MouseEvent) {
-    this.latestMousePosition = {
-      timestamp: Date.now(),
-      x: event.pageX,
-      y: event.pageY,
-    };
-    this.isShiftPressed = event.shiftKey;
+    useAnnotationHandlerStore.getState().handleMouseMove(event);
   }
 
   @action
@@ -374,6 +384,7 @@ export default class AnnotationHandlerService extends Service {
         },
       }
     );
+    // useAnnotationHandlerStore.getState().canRemoveAnnotation(annotation);
   }
 
   @action
@@ -620,6 +631,7 @@ export default class AnnotationHandlerService extends Service {
     annotation.annotationText = newAnnotation.annotationText;
     annotation.annotationTitle = newAnnotation.annotationTitle;
     this.updateMeshReference(annotation);
+    // useAnnotationHandlerStore.getState().updateMeshReference(annotation);
   }
 
   onAnnotation({
@@ -652,6 +664,7 @@ export default class AnnotationHandlerService extends Service {
       inEdit: false,
       lastEditor: lastEditor,
     });
+    // useAnnotationHandlerStore.getState().onAnnotation({annotationId, objectId, userId, entityId, annotationTitle, annotationText, owner, lastEditor}: AnnotationForwardMessage);
   }
 
   onUpdatedAnnotation({
@@ -671,10 +684,10 @@ export default class AnnotationHandlerService extends Service {
         return;
       }
     }
-
     annotation.annotationTitle = annotationTitle;
     annotation.annotationText = annotationText;
     annotation.lastEditor = lastEditor;
+    // useAnnotationHandlerStore.getState().onUpdatedAnnotation({objectId, annotationTitle, annotationText, lastEditor}:AnnotationUpdatedForwardMessage);
   }
 
   onRestoreAnnotations(annotations: SerializedAnnotation[]) {
@@ -704,6 +717,7 @@ export default class AnnotationHandlerService extends Service {
         lastEditor: annotation.lastEditor,
       });
     }
+    // useAnnotationHandlerStore.getState().onRestoreAnnotations(annotations);
   }
 
   @action
@@ -765,6 +779,7 @@ export default class AnnotationHandlerService extends Service {
       this,
       this.onRestoreAnnotations
     );
+    // useAnnotationHandlerStore.getState().willDestroy();
   }
 }
 

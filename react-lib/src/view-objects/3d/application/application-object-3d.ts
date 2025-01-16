@@ -1,21 +1,21 @@
-import * as THREE from 'three';
-import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
-import { tracked } from '@glimmer/tracking';
-import { earthTexture } from 'explorviz-frontend/controllers/visualization';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
-import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
-import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
-import { findFirstOpenOrLastClosedAncestorComponent } from 'react-lib/src/utils/link-helper';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import { ChildMesh } from '../../../../../app/app/view-objects/3d/application/simple-parent-mesh';
-import { Vector3 } from 'three';
-import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import * as THREE from "three";
+import { Trace } from "react-lib/src/utils/landscape-schemes/dynamic/dynamic-data";
+import BoxLayout from "react-lib/src/view-objects/layout-models/box-layout.ts";
+import { tracked } from "@glimmer/tracking";
+import { earthTexture } from "explorviz-frontend/controllers/visualization";
+import FoundationMesh from "react-lib/src/view-objects/3d/application/foundation-mesh";
+import ClazzMesh from "react-lib/src/view-objects/3d/application/clazz-mesh";
+import ComponentMesh from "react-lib/src/view-objects/3d/application/component-mesh";
+import ClazzCommunicationMesh from "react-lib/src/view-objects/3d/application/clazz-communication-mesh";
+import BaseMesh from "react-lib/src/view-objects/3d/base-mesh.ts";
+import BoxMesh from "react-lib/src/view-objects/3d/application/box-mesh.ts";
+import ApplicationData from "react-lib/src/utils/application-data";
+import { getAllClassesInApplication } from "react-lib/src/utils/application-helpers";
+import { findFirstOpenOrLastClosedAncestorComponent } from "react-lib/src/utils/link-helper";
+import ClassCommunication from "react-lib/src/utils/landscape-schemes/dynamic/class-communication";
+import { ChildMesh } from "react-lib/src/view-objects/3d/application/simple-parent-mesh.ts";
+import { Vector3 } from "three";
+import { EntityMesh } from "explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer";
 
 /**
  * This extended Object3D adds additional functionality to
@@ -158,10 +158,10 @@ export default class ApplicationObject3D
     const times = [0, period];
     const values = [0, 360];
 
-    const trackName = '.rotation[y]';
+    const trackName = ".rotation[y]";
     const track = new THREE.NumberKeyframeTrack(trackName, times, values);
 
-    const clip = new THREE.AnimationClip('default', period, [track]);
+    const clip = new THREE.AnimationClip("default", period, [track]);
 
     this.animationMixer = new THREE.AnimationMixer(this.globeMesh);
 

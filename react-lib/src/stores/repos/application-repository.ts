@@ -1,36 +1,56 @@
-import { createStore } from 'zustand/vanilla';
-// import ApplicationData from 'explorviz-frontend/utils/application-data';
+import { createStore } from "zustand/vanilla";
+import ApplicationData from "react-lib/src/utils/application-data";
 
 interface ApplicationRepositoryState {
-    // applications: Map<string, ApplicationData>;
-    // getById: (applicationId: string) => ApplicationData;
-    // getAll: () => ApplicationData[];
-    // add: (applicationData: ApplicationData) => void;
-    // delete: (applicationId: string) => void;
-    // cleanup: () => void;
+  applications: Map<string, ApplicationData>;
+  addApplication: (
+    applicationId: string,
+    applicationData: ApplicationData
+  ) => void;
+  removeApplication: (applicationId: string) => void;
+  clearApplication: () => void;
+  getById: (applicationId: string) => ApplicationData | undefined;
+  getAll: () => MapIterator<ApplicationData>;
 }
 
-export const useApplicationRepositoryStore = createStore<ApplicationRepositoryState>(() => ({
-    // applications: new Map(),
-    // getById: (applicationId: string) => {
-    //     return useApplicationRepository.getState().applications.get(applicationId);
-    // },
-    // getAll: () => {
-    //     return Array.from(useApplicationRepository.getState().applications.values());
-    // },
-    // add: (applicationData: ApplicationData) => {
-    //     useApplicationRepository.setState((state) => {
-    //         state.applications.set(applicationData.application.id, applicationData);
-    //     });
-    // },
-    // delete: (applicationId: string) => {
-    //     useApplicationRepository.setState((state) => {
-    //         state.applications.delete(applicationId);
-    //     });
-    // },
-    // cleanup: () => {
-    //     useApplicationRepository.setState((state) => {
-    //         state.applications.clear();
-    //     });
-    // },
-}));
+export const useApplicationRepositoryStore =
+  createStore<ApplicationRepositoryState>((set, get) => ({
+    applications: new Map<string, ApplicationData>(),
+    addApplication,
+    removeApplication,
+    clearApplication,
+    getById: (applicationId: string) => {
+      return get().applications.get(applicationId);
+    },
+    getAll: () => {
+      return get().applications.values();
+    },
+  }));
+
+function addApplication(
+  applicationId: string,
+  applicationData: ApplicationData
+) {
+  useApplicationRepositoryStore.setState((prev) => ({
+    applications: new Map(prev.applications).set(
+      applicationId,
+      applicationData
+    ),
+  }));
+}
+
+function removeApplication(applicationID: string) {
+  useApplicationRepositoryStore.setState((prev) => {
+    const updatedMap = new Map(prev.applications);
+    updatedMap.delete(applicationID);
+    return {
+      applications: updatedMap,
+    };
+  });
+}
+
+function clearApplication() {
+  useApplicationRepositoryStore.setState(() => ({
+    applications: new Map(),
+  }));
+}

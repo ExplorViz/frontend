@@ -1,8 +1,5 @@
-import { createStore } from 'zustand/vanilla';
+import { createStore } from "zustand/vanilla";
 
-interface ToastHandlerState{
-}
+interface ToastHandlerState {}
 
-export const useToastHandlerStore = createStore<ToastHandlerState>(() => ({
-
-}));
+export const useToastHandlerStore = createStore<ToastHandlerState>(() => ({}));

@@ -1,5 +1,5 @@
-import { tracked } from '@glimmer/tracking';
-import { LayoutData } from 'explorviz-frontend/services/application-renderer';
+// import { tracked } from '@glimmer/tracking';
+import { LayoutData } from 'react-lib/src/stores/application-renderer';
 import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import {
@@ -16,7 +16,7 @@ export default class ApplicationData {
 
   flatData: FlatData;
 
-  @tracked
+  // @tracked
   applicationMetrics: ApplicationMetrics;
 
   classCommunications: ClassCommunication[] = [];

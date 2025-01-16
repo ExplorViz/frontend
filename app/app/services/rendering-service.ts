@@ -67,12 +67,30 @@ export default class RenderingService extends Service {
     useRenderingServiceStore.setState({ previousMethodHashes: value });
   }
 
-  private currentRuntimeLandscapeData: Map<string, LandscapeData> = new Map(); // <commitId, LandscapeData>
+  // private currentRuntimeLandscapeData: Map<string, LandscapeData> = new Map(); // <commitId, LandscapeData>
+  get currentRuntimeLandscapeData(): Map<string, LandscapeData> {
+    return useRenderingServiceStore.getState().currentRuntimeLandscapeData;
+  }
+  set currentRuntimeLandscapeData(value: Map<string, LandscapeData>) {
+    useRenderingServiceStore.setState({ currentRuntimeLandscapeData: value });
+  }
 
   private _timelineDataObjectHandler: TimelineDataObjectHandler | null = null;
+  // get _timelineDataObjectHandler(): TimelineDataObjectHandler {
+  //   return useRenderingServiceStore.getState()._timelineDataObjectHandler;
+  // }
+  // set _timelineDataObjectHandler(value: TimelineDataObjectHandler) {
+  //   useRenderingServiceStore.setState({ _timelineDataObjectHandler: value });
+  // }
 
-  @tracked
-  private _landscapeData: LandscapeData | null = null;
+  // @tracked
+  // private _landscapeData: LandscapeData | null = null;
+  get _landscapeData(): LandscapeData | null {
+    return useRenderingServiceStore.getState()._landscapeData;
+  }
+  set _landscapeData(value: LandscapeData | null) {
+    useRenderingServiceStore.setState({ _landscapeData: value });
+  }
 
   // @tracked
   // private _visualizationPaused = false;
@@ -108,41 +126,51 @@ export default class RenderingService extends Service {
   // #region  Getter / Setter
 
   get visualizationMode(): VisualizationMode {
-    return this._visualizationMode;
+    return useRenderingServiceStore.getState()._visualizationMode;
   }
 
   get userInitiatedStaticDynamicCombination(): boolean {
-    return this._userInitiatedStaticDynamicCombination;
+    return useRenderingServiceStore.getState()
+      ._userInitiatedStaticDynamicCombination;
   }
 
   set userInitiatedStaticDynamicCombination(newValue: boolean) {
-    this._userInitiatedStaticDynamicCombination = newValue;
+    // this._userInitiatedStaticDynamicCombination = newValue;
+    useRenderingServiceStore.setState({
+      _userInitiatedStaticDynamicCombination: newValue,
+    });
   }
 
   set timelineDataObjectHandler(
     newTimelineDataObjectHandler: TimelineDataObjectHandler | null
   ) {
     this._timelineDataObjectHandler = newTimelineDataObjectHandler;
+    // useRenderingServiceStore.setState({
+    //   _timelineDataObjectHandler: newTimelineDataObjectHandler,
+    // });
   }
 
   get timelineDataObjectHandler() {
     return this._timelineDataObjectHandler;
+    // return useRenderingServiceStore.getState()._timelineDataObjectHandler;
   }
 
   set landscapeData(newLandscapeData: LandscapeData | null) {
-    this._landscapeData = newLandscapeData;
+    // this._landscapeData = newLandscapeData;
+    useRenderingServiceStore.setState({ _landscapeData: newLandscapeData });
   }
 
   get landscapeData() {
-    return this._landscapeData;
+    return useRenderingServiceStore.getState()._landscapeData;
   }
 
   set visualizationPaused(newValue: boolean) {
-    this._visualizationPaused = newValue;
+    // this._visualizationPaused = newValue;
+    useRenderingServiceStore.setState({ _visualizationPaused: newValue });
   }
 
   get visualizationPaused() {
-    return this._visualizationPaused;
+    return useRenderingServiceStore.getState()._visualizationPaused;
   }
 
   // #endregion
@@ -254,17 +282,9 @@ export default class RenderingService extends Service {
   private mapTimestampsToEpochs(
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ): Map<string, number[]> {
-    const commitToSelectedEpochMap: Map<string, number[]> = new Map();
-    for (const [
-      commitId,
-      selectedTimestampsForACommit,
-    ] of commitToSelectedTimestampMap.entries()) {
-      commitToSelectedEpochMap.set(
-        commitId,
-        selectedTimestampsForACommit.map((timestamp) => timestamp.epochMilli)
-      );
-    }
-    return commitToSelectedEpochMap;
+    return useRenderingServiceStore
+      .getState()
+      .mapTimestampsToEpochs(commitToSelectedTimestampMap);
   }
 
   private async fetchRuntimeLandscapeData(
@@ -294,57 +314,26 @@ export default class RenderingService extends Service {
     prevLandscapeData: LandscapeData | undefined,
     newLandscapeData: LandscapeData
   ): LandscapeData {
-    if (prevLandscapeData) {
-      return {
-        structureLandscapeData: combineStructureLandscapeData(
-          prevLandscapeData.structureLandscapeData,
-          newLandscapeData.structureLandscapeData
-        ),
-        dynamicLandscapeData: combineDynamicLandscapeData(
-          prevLandscapeData.dynamicLandscapeData,
-          newLandscapeData.dynamicLandscapeData
-        ),
-      };
-    } else {
-      return newLandscapeData;
-    }
+    return useRenderingServiceStore
+      .getState()
+      .combineLandscapeData(prevLandscapeData, newLandscapeData);
   }
 
   private getCombineDynamicLandscapeData(
     commitToLandscapeDataMap: Map<string, LandscapeData>
   ): DynamicLandscapeData {
-    const combinedDynamicLandscapeData: DynamicLandscapeData = [];
-
-    commitToLandscapeDataMap.forEach((landscapeData) => {
-      combinedDynamicLandscapeData.pushObjects(
-        landscapeData.dynamicLandscapeData
-      );
-    });
-    return combinedDynamicLandscapeData;
+    return useRenderingServiceStore
+      .getState()
+      .getCombineDynamicLandscapeData(commitToLandscapeDataMap);
   }
 
   private requiresRerendering(
     newStructureLandscapeData: StructureLandscapeData,
     newDynamicLandscapeData: DynamicLandscapeData
   ) {
-    let requiresRerendering = false;
-    const latestMethodHashes = getAllMethodHashesOfLandscapeStructureData(
-      newStructureLandscapeData
-    );
-
-    if (
-      !areArraysEqual(latestMethodHashes, this.previousMethodHashes) ||
-      !areArraysEqual(
-        newDynamicLandscapeData,
-        this.getCombineDynamicLandscapeData(this.currentRuntimeLandscapeData)
-      )
-    ) {
-      requiresRerendering = true;
-    }
-
-    this.previousMethodHashes = latestMethodHashes;
-
-    return requiresRerendering;
+    useRenderingServiceStore
+      .getState()
+      .requiresRerendering(newStructureLandscapeData, newDynamicLandscapeData);
   }
 
   private updateTimelineData(
@@ -362,6 +351,9 @@ export default class RenderingService extends Service {
       }
       this.timelineDataObjectHandler?.triggerTimelineUpdate();
     }
+    // useRenderingServiceStore
+    //   .getState()
+    //   .updateTimelineData(commitToSelectedTimestampMap);
   }
 
   private async setEvolutionModeActiveAndHandleRendering(
@@ -458,6 +450,7 @@ export default class RenderingService extends Service {
     this.evolutionDataRepository.resetStructureLandscapeData();
     this.timestampRepo.resetState();
     this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
+    // useRenderingServiceStore.getState().setRuntimeModeActive();
   }
 
   private handleError(e: any) {
@@ -490,6 +483,7 @@ export default class RenderingService extends Service {
       animatePlayPauseIcon(false);
       this.timelineDataObjectHandler?.triggerTimelineUpdate();
     }
+    // useRenderingServiceStore.getState().resumeVisualizationUpdating();
   }
 
   @action
@@ -515,6 +509,7 @@ export default class RenderingService extends Service {
     this._landscapeData = null;
     this.currentRuntimeLandscapeData = new Map();
     this.previousMethodHashes = [];
+    // useRenderingServiceStore.getState().resetAllRenderingStates();
   }
 
   // #endregion

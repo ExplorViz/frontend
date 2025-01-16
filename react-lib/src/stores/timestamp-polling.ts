@@ -1,9 +1,11 @@
-import { createStore } from 'zustand/vanilla';
+import { createStore } from "zustand/vanilla";
 
-interface TimestampPollingState{
-    timer: NodeJS.Timeout | null;
+interface TimestampPollingState {
+  timer: NodeJS.Timeout | null;
 }
 
-export const useTimestampPollingStore = createStore<TimestampPollingState>(() => ({
+export const useTimestampPollingStore = createStore<TimestampPollingState>(
+  () => ({
     timer: null,
-}));
+  })
+);

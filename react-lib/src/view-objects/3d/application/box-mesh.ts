@@ -1,6 +1,6 @@
-import * as THREE from 'three';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+import * as THREE from "three";
+import BoxLayout from "react-lib/src/view-objects/layout-models/box-layout.ts";
+import BaseMesh from "react-lib/src/view-objects/3d/base-mesh.ts";
 
 export default abstract class BoxMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -23,6 +23,7 @@ export default abstract class BoxMesh<
     this.depth = layout.depth;
   }
 
+  // TODO: give problems in landscape-restructure.ts
   // Override
   changeTexture(texture: THREE.Texture) {
     if (
@@ -39,8 +40,8 @@ export default abstract class BoxMesh<
 
       // https://codepen.io/boytchev/pen/wvYeMrG
 
-      const pos = this.geometry.getAttribute('position');
-      const uv = this.geometry.getAttribute('uv');
+      const pos = this.geometry.getAttribute("position");
+      const uv = this.geometry.getAttribute("uv");
 
       const width = this.geometry.parameters.width * this.scale.x;
 

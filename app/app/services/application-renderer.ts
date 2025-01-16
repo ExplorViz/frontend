@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { task } from 'ember-concurrency';
-import ApplicationData from 'explorviz-frontend/utils/application-data';
+import ApplicationData from 'react-lib/src/utils/application-data';
 import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';

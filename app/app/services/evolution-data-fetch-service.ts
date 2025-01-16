@@ -15,7 +15,7 @@ import {
   TypeOfAnalysis,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { ApplicationMetricsCode } from 'react-lib/src/utils/metric-schemes/metric-data';
-import { SelectedCommit } from './commit-tree-state';
+import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
 import { useEvolutionDataFetchServiceState } from 'react-lib/src/stores/evolution-data-fetch-service';
 
 const { codeService } = ENV.backendAddresses;
