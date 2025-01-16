@@ -20,7 +20,6 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 import VrApplicationObject3D from 'explorviz-frontend/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
@@ -54,6 +53,7 @@ import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersiv
 import layoutCity, {
   convertElkToBoxLayout,
 } from 'explorviz-frontend/utils/city-layouter';
+import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -102,7 +102,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   //#region Fields
 
-  private _forceGraph!: ThreeForceGraph;
+  private _forceGraph!: LandscapeGroup;
 
   private _openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -143,7 +143,7 @@ export default class ApplicationRenderer extends Service.extend() {
     return this._forceGraph;
   }
 
-  set forceGraph(newForceGraph: ThreeForceGraph) {
+  set forceGraph(newForceGraph: LandscapeGroup) {
     this._forceGraph = newForceGraph;
   }
 

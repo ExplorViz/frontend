@@ -8,7 +8,6 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -57,6 +56,7 @@ import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -130,7 +130,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
-  readonly graph: ForceGraph;
+  readonly graph: LandscapeGroup;
 
   // Determines if landscape needs to be fully re-computed
   @tracked
@@ -203,10 +203,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       SemanticZoomManager.instance.isEnabled;
 
     // Force graph
-    const forceGraph = new ForceGraph(getOwner(this), 0.02);
+    const forceGraph = new LandscapeGroup();
     this.graph = forceGraph;
-    this.scene.add(forceGraph.graph);
-    this.updatables.push(forceGraph);
+    this.scene.add(forceGraph);
     this.updatables.push(this);
 
     // Spectate
@@ -223,7 +222,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     ImmersiveView.instance.callbackOnExit = () => {
       this.popupHandler.deactivated = false;
     };
-    this.applicationRenderer.forceGraph = this.graph.graph;
+    this.applicationRenderer.forceGraph = this.graph;
     // Semantic Zoom Manager shows/removes all communication arrows, due to heigh rendering time.
     // If the Semantic zoom feature is enabled, all previously generated arrows are hidden. After that
     // the manager decides on which level to show.
@@ -261,7 +260,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     SemanticZoomManager.instance.toggleAutoOpenClose(
       this.userSettings.visualizationSettings.autoOpenCloseFeature.value
     );
-    this.applicationRenderer.forceGraph = this.graph.graph;
+    this.applicationRenderer.forceGraph = this.graph;
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
@@ -537,52 +536,52 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.renderingLoop.start();
 
-    this.graph.graph.onFinishUpdate(() => {
-      if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
-        this.debug('initdone!');
-        setTimeout(() => {
-          this.cameraControls.resetCameraFocusOn(
-            1.2,
-            ...this.applicationRenderer.getOpenApplications()
-          );
-          if (
-            SemanticZoomManager.instance.isEnabled ||
-            this.userSettings.visualizationSettings.semanticZoomState.value ==
-              true
-          ) {
-            SemanticZoomManager.instance.activate();
-            this.configuration.semanticZoomEnabled =
-              SemanticZoomManager.instance.isEnabled;
-          }
-        }, 200);
-        this.initDone = true;
-      }
-    });
+    // this.graph.graph.onFinishUpdate(() => {
+    //   if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+    //     this.debug('initdone!');
+    //     setTimeout(() => {
+    //       this.cameraControls.resetCameraFocusOn(
+    //         1.2,
+    //         ...this.applicationRenderer.getOpenApplications()
+    //       );
+    //       if (
+    //         SemanticZoomManager.instance.isEnabled ||
+    //         this.userSettings.visualizationSettings.semanticZoomState.value ==
+    //           true
+    //       ) {
+    //         SemanticZoomManager.instance.activate();
+    //         this.configuration.semanticZoomEnabled =
+    //           SemanticZoomManager.instance.isEnabled;
+    //       }
+    //     }, 200);
+    //     this.initDone = true;
+    //   }
+    // });
     // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
-    if (this.args.snapshot || this.args.snapshotReload) {
-      this.graph.graph.onFinishUpdate(() => {
-        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
-          this.debug('initdone!');
-          setTimeout(() => {
-            this.applicationRenderer.getOpenApplications();
-          }, 200);
-          this.initDone = true;
-        }
-      });
-    } else {
-      this.graph.graph.onFinishUpdate(() => {
-        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
-          this.debug('initdone!');
-          setTimeout(() => {
-            this.cameraControls.resetCameraFocusOn(
-              1.2,
-              ...this.applicationRenderer.getOpenApplications()
-            );
-          }, 200);
-          this.initDone = true;
-        }
-      });
-    }
+    // if (this.args.snapshot || this.args.snapshotReload) {
+    //   this.graph.graph.onFinishUpdate(() => {
+    //     if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+    //       this.debug('initdone!');
+    //       setTimeout(() => {
+    //         this.applicationRenderer.getOpenApplications();
+    //       }, 200);
+    //       this.initDone = true;
+    //     }
+    //   });
+    // } else {
+    //   this.graph.graph.onFinishUpdate(() => {
+    //     if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+    //       this.debug('initdone!');
+    //       setTimeout(() => {
+    //         this.cameraControls.resetCameraFocusOn(
+    //           1.2,
+    //           ...this.applicationRenderer.getOpenApplications()
+    //         );
+    //       }, 200);
+    //       this.initDone = true;
+    //     }
+    //   });
+    // }
   }
 
   @action

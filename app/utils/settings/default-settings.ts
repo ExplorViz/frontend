@@ -385,7 +385,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 100,
     range: {
       min: 5.0,
-      max: 150.0,
+      max: 500.0,
       step: 1.0,
     },
     orderNumber: 2,

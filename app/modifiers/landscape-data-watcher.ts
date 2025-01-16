@@ -1,4 +1,3 @@
-import { ForceGraph3DInstance } from '3d-force-graph';
 import { inject as service } from '@ember/service';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
@@ -40,10 +39,12 @@ import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
+import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import layoutLandscape from 'explorviz-frontend/utils/landscape-layouter';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
-  readonly graph: ForceGraph3DInstance;
+  readonly graph: LandscapeGroup;
 }
 
 interface Args {
@@ -101,7 +102,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private landscapeData!: LandscapeData;
 
-  private graph!: ForceGraph3DInstance;
+  private graph: LandscapeGroup | undefined;
 
   get structureLandscapeData(): StructureLandscapeData | null {
     return this.landscapeData?.structureLandscapeData;
@@ -117,13 +118,17 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     { landscapeData, graph }: any
   ) {
     this.landscapeData = landscapeData;
-    this.graph = graph.graph;
+    this.graph = graph;
     this.handleUpdatedLandscapeData.perform();
   }
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-    if (!this.structureLandscapeData || !this.dynamicLandscapeData) {
+    if (
+      !this.structureLandscapeData ||
+      !this.dynamicLandscapeData ||
+      !this.graph
+    ) {
       return;
     }
 
@@ -161,7 +166,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Use the updated landscape data to calculate application metrics.
     // This is done for all applications to have accurate heatmap data.
 
-    let { nodes: graphNodes } = this.graph.graphData();
+    // let { nodes: graphNodes } = this.graph.graphData();
 
     const allAppsInNodes = [
       ...nodes.flatMap((n) => n.applications),
@@ -173,17 +178,19 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     ];
 
     // Filter out any nodes that are no longer present in the new landscape data
-    graphNodes = graphNodes.filter((node: GraphNode) => {
-      const appears = allAppsInNodes.some((n) => n.id === node.id);
+    // graphNodes = graphNodes.filter((node: GraphNode) => {
+    //   const appears = allAppsInNodes.some((n) => n.id === node.id);
 
-      if (!appears) {
-        // also delete from application renderer so it can be rerendered if it existent again
-        this.applicationRenderer.removeApplicationLocallyById(node.id);
-      }
-      return appears;
-    });
+    //   if (!appears) {
+    //     // also delete from application renderer so it can be rerendered if it existent again
+    //     this.applicationRenderer.removeApplicationLocallyById(node.id);
+    //   }
+    //   return appears;
+    // });
 
-    const nodeLinks: any[] = [];
+    const graphNodes = allAppsInNodes;
+
+    // const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
@@ -205,41 +212,43 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             applicationData
           );
 
+        this.graph.add(app);
+
         // fix previously existing nodes to position (if present) and calculate collision size
-        const graphNode = graphNodes.find(
-          (node) => node.id === applicationData.application.id
-        ) as GraphNode;
+        // const graphNode = graphNodes.find(
+        //   (node) => node.id === applicationData.application.id
+        // ) as GraphNode;
 
         if (!app.foundationMesh) {
           console.error('No foundation mesh, this should not happen');
           return;
         }
 
-        const { x, z } = app.foundationMesh.scale;
-        const collisionRadius = Math.hypot(x, z) / 2 + 3;
-        if (graphNode) {
-          graphNode.collisionRadius = collisionRadius;
-          //graphNode.fx = graphNode.x;
-          //graphNode.fz = graphNode.z;
-        } else {
-          graphNodes.push({
-            id: applicationData.application.id,
-            fy: 0,
-            collisionRadius,
-            __threeObj: app as Object3D,
-          } as GraphNode);
-        }
+        // const { x, z } = app.foundationMesh.scale;
+        // const collisionRadius = Math.hypot(x, z) / 2 + 3;
+        // if (graphNode) {
+        //   graphNode.collisionRadius = collisionRadius;
+        //   //graphNode.fx = graphNode.x;
+        //   //graphNode.fz = graphNode.z;
+        // } else {
+        //   graphNodes.push({
+        //     id: applicationData.application.id,
+        //     fy: 0,
+        //     collisionRadius,
+        //     __threeObj: app as Object3D,
+        //   } as GraphNode);
+        // }
 
         // create (invisible) links between apps on the same node
-        node.applications.forEach((nodeApp) => {
-          if (nodeApp.id !== application.id) {
-            nodeLinks.push({
-              source: application.id,
-              target: nodeApp.id,
-              value: 1, // used for particles
-            });
-          }
-        });
+        // node.applications.forEach((nodeApp) => {
+        //   if (nodeApp.id !== application.id) {
+        //     nodeLinks.push({
+        //       source: application.id,
+        //       target: nodeApp.id,
+        //       value: 1, // used for particles
+        //     });
+        //   }
+        // });
       }
     }
 
@@ -282,29 +291,29 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         );
 
       // fix previously existing nodes to position (if present) and calculate collision size
-      const graphNode = graphNodes.find(
-        (node) => node.id === applicationData.application.id
-      ) as GraphNode;
+      // const graphNode = graphNodes.find(
+      //   (node) => node.id === applicationData.application.id
+      // ) as GraphNode;
 
       if (!app.foundationMesh) {
         console.error('No foundation mesh, this should not happen');
         return;
       }
 
-      const { x, z } = app.foundationMesh.scale;
-      const collisionRadius = Math.hypot(x, z) / 2 + 3;
-      if (graphNode) {
-        graphNode.collisionRadius = collisionRadius;
-        // graphNode.fx = graphNode.x;
-        // graphNode.fz = graphNode.z;
-      } else {
-        graphNodes.push({
-          id: applicationData.application.id,
-          x: 0, // without this property, the arrows will not be displayed
-          collisionRadius,
-          __threeObj: app as Object3D,
-        } as GraphNode);
-      }
+      // const { x, z } = app.foundationMesh.scale;
+      // const collisionRadius = Math.hypot(x, z) / 2 + 3;
+      // if (graphNode) {
+      //   graphNode.collisionRadius = collisionRadius;
+      //   // graphNode.fx = graphNode.x;
+      //   // graphNode.fz = graphNode.z;
+      // } else {
+      //   graphNodes.push({
+      //     id: applicationData.application.id,
+      //     x: 0, // without this property, the arrows will not be displayed
+      //     collisionRadius,
+      //     __threeObj: app as Object3D,
+      //   } as GraphNode);
+      // }
 
       return app;
     });
@@ -330,34 +339,37 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const interAppCommunications = classCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
-    const communicationLinks = interAppCommunications.map((communication) => ({
-      source: graphNodes.find(
-        (node) => node.id == communication.sourceApp?.id
-      ) as GraphNode,
-      target: graphNodes.find(
-        (node) => node.id == communication.targetApp?.id
-      ) as GraphNode,
-      value: calculateLineThickness(
-        communication,
-        this.userSettings.visualizationSettings
-      ),
-      communicationData: communication,
-    }));
-    const gData = {
-      nodes: [
-        ...rootParents.map((p) => {
-          const d = p.dimensions;
-          const collisionRadius = Math.hypot(d.x, d.z) / 2 + 3;
-          return {
-            __threeObj: p,
-            fy: 0, // positions all nodes on the same height
-            collisionRadius,
-          };
-        }),
-        ...graphNodes.filter((n) => !apps.includes((n as any).__threeObj)),
-      ],
-      links: [...communicationLinks, ...nodeLinks],
-    };
+    // const communicationLinks = interAppCommunications.map((communication) => ({
+    //   source: graphNodes.find(
+    //     (node) => node.id == communication.sourceApp?.id
+    //   ) as GraphNode,
+    //   target: graphNodes.find(
+    //     (node) => node.id == communication.targetApp?.id
+    //   ) as GraphNode,
+    //   value: calculateLineThickness(
+    //     communication,
+    //     this.userSettings.visualizationSettings
+    //   ),
+    //   communicationData: communication,
+    // }));
+    // // const gData = {
+    //   nodes: [
+    //     ...rootParents.map((p) => {
+    //       const d = p.dimensions;
+    //       const collisionRadius = Math.hypot(d.x, d.z) / 2 + 3;
+    //       return {
+    //         __threeObj: p,
+    //         fy: 0, // positions all nodes on the same height
+    //         collisionRadius,
+    //       };
+    //     }),
+    //     ...graphNodes.filter((n) => !apps.includes((n as any).__threeObj)),
+    //   ],
+    //   links: [...communicationLinks, ...nodeLinks],
+    // };
+
+    const applications = this.applicationRenderer.getOpenApplications();
+    layoutLandscape(applications);
 
     const { serializedRoom } = this.roomSerializer;
 
@@ -387,21 +399,21 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       this.highlightingService.updateHighlighting();
     }
 
-    this.graph.graphData(gData);
+    // this.graph.graphData(gData);
 
     // Send new data to ide
-    const cls: CommunicationLink[] = [];
-    communicationLinks.forEach((element) => {
-      const meshIDs = element.communicationData.id.split('_');
-      const tempCL: CommunicationLink = {
-        meshID: element.communicationData.id,
-        sourceMeshID: meshIDs[0],
-        targetMeshID: meshIDs[1],
-        methodName: meshIDs[2],
-      };
-      cls.push(tempCL);
-    });
-    this.ideWebsocketFacade.refreshVizData(cls);
+    // const cls: CommunicationLink[] = [];
+    // communicationLinks.forEach((element) => {
+    //   const meshIDs = element.communicationData.id.split('_');
+    //   const tempCL: CommunicationLink = {
+    //     meshID: element.communicationData.id,
+    //     sourceMeshID: meshIDs[0],
+    //     targetMeshID: meshIDs[1],
+    //     methodName: meshIDs[2],
+    //   };
+    //   cls.push(tempCL);
+    // });
+    // this.ideWebsocketFacade.refreshVizData(cls);
 
     // apply new color for restructured communications in restructure mode
     this.landscapeRestructure.applyColorMappings();
