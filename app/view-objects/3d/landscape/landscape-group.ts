@@ -15,7 +15,7 @@ export default class LandscapeGroup
   }
 
   getModelId() {
-    return 'three-force-graph';
+    return '3d-landscape';
   }
 
   canBeIntersected() {

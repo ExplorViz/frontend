@@ -12,7 +12,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import {
   getTypeOfEntity,
@@ -36,6 +35,7 @@ import {
   MenuDetachedMessage,
 } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import * as THREE from 'three';
+import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
 
 export default class PopupHandler {
   @service('application-renderer')
@@ -236,7 +236,7 @@ export default class PopupHandler {
       entity: mesh.dataModel,
       mesh,
       applicationId: (
-        mesh.parent as ApplicationObject3D | GrabbableForceGraph
+        mesh.parent as ApplicationObject3D | LandscapeGroup
       ).getModelId(),
       menuId: menuId || null,
       isPinned: pinned || false,

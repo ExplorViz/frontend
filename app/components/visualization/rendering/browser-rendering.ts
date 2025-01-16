@@ -441,7 +441,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
   }
 
-  // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
   @action
   async outerDivInserted(outerDiv: HTMLElement) {
     this.initCameras();
