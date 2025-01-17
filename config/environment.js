@@ -91,9 +91,9 @@ module.exports = (environment) => {
     ENV.APP.rootElement = '#ember-testing';
   }
 
-  if (ENV.backendAddresses.useHttps) {
+  if (ENV.backendAddresses.useHttps === 'true') {
     for (const [key, value] of Object.entries(ENV.backendAddresses)) {
-      ENV.backendAddresses[key] = value.replace("http:", "https:");
+      ENV.backendAddresses[key] = value.replace('http:', 'https:');
     }
   }
   console.log(ENV);
