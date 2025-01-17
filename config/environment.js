@@ -55,6 +55,7 @@ module.exports = (environment) => {
       },
     },
     backendAddresses: {
+      useHttps: P_ENV.USE_HTTPS,
       spanService: P_ENV.SPAN_SERV_URL,
       userService: P_ENV.USER_SERV_URL,
       userServiceApi: P_ENV.USER_SERV_API_URL,
@@ -89,6 +90,13 @@ module.exports = (environment) => {
 
     ENV.APP.rootElement = '#ember-testing';
   }
+
+  if (ENV.backendAddresses.useHttps) {
+    for (const [key, value] of Object.entries(ENV.backendAddresses)) {
+      ENV.backendAddresses[key] = value.replace("http:", "https:");
+    }
+  }
+  console.log(ENV);
 
   return ENV;
 };
