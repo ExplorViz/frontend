@@ -1,13 +1,5 @@
 <h5 align='center'>
   Trace Replayer
-  <BsButton
-    class='th-btn {{if this.isReplayAnimated "navbar-highlight red-hover"}}'
-    title={{if this.isReplayAnimated 'Pause animation' 'Resume animation'}}
-    @onClick={{this.toggleAnimation}}
-    @type='button'
-  >
-    {{svg-jar 'device-camera-video-16' class='octicon align-middle'}}
-  </BsButton>
 </h5>
 
 <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation

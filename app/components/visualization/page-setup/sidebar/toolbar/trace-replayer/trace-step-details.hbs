@@ -11,12 +11,7 @@
         <td class='col-9 container-word-wrap'>
           {{#if @sourceClass}}
             {{@sourceClass.name}}
-            <BsButton
-              @type='button'
-              class='th-btn'
-            >
-              {{svg-jar 'eye-16' class='octicon align-middle'}}
-            </BsButton>
+
           {{/if}}
         </td>
       </tr>
@@ -25,12 +20,6 @@
         <td class='col-9 container-word-wrap'>
           {{#if @targetClass}}
             {{@targetClass.name}}
-            <BsButton
-              @type='button'
-              class='th-btn'
-            >
-              {{svg-jar 'eye-16' class='octicon align-middle'}}
-            </BsButton>
           {{/if}}
         </td>
       </tr>
