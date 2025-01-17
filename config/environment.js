@@ -93,7 +93,9 @@ module.exports = (environment) => {
 
   if (ENV.backendAddresses.useHttps === 'true') {
     for (const [key, value] of Object.entries(ENV.backendAddresses)) {
-      ENV.backendAddresses[key] = value.replace('http:', 'https:');
+      if (value) {
+        ENV.backendAddresses[key] = value.replace('http:', 'https:');
+      }
     }
   }
   console.log(ENV);
