@@ -83,7 +83,6 @@ jobs:
     needs: [test, linting]
     env:
       VERSION_TAG: ${{ github.ref_name }}-${{ github.sha }}
-      AUTH0_ENABLED: 'false'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
