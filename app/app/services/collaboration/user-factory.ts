@@ -1,16 +1,17 @@
 import Service, { inject as service } from '@ember/service';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import * as THREE from 'three';
-import HmdService from 'explorviz-frontend/services/extended-reality/hmd-service';
+// import HmdService from 'explorviz-frontend/services/extended-reality/hmd-service';
 import LocalUser from './local-user';
 import { Color } from 'react-lib/src/utils/collaboration/web-socket-messages/types/color';
 import { Position } from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
 import { Quaternion } from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
+import { useHMDStore } from 'react-lib/src/stores/extended-reality/hmd';
 
 export default class UserFactory extends Service.extend({}) {
-  @service('extended-reality/hmd-service')
-  hmdService!: HmdService;
+  // @service('extended-reality/hmd-service')
+  // hmdService!: HmdService;
 
   @service('collaboration/local-user')
   localUser!: LocalUser;
@@ -39,9 +40,11 @@ export default class UserFactory extends Service.extend({}) {
       localUser: this.localUser,
       minimapService: this.minimapService,
     });
-    this.hmdService.headsetModel.then((hmd) =>
-      remoteUser.initCamera(hmd.clone(true), { position, quaternion })
-    );
+    useHMDStore
+      .getState()
+      .headsetModel.then((hmd) =>
+        remoteUser.initCamera(hmd.clone(true), { position, quaternion })
+      );
     return remoteUser;
   }
 }
