@@ -52,7 +52,7 @@ interface HighlightingState {
     // _handleHighlightForComponent: (application: ApplicationObject3D, object: THREE.Object3D, highlighted: boolean, options?: HighlightOptions) => void;
     // _turnLandscapeOpaque: () => void;
     // _setHightlightStatusForMesh: (application: ApplicationObject3D, mesh: FoundationMesh | ComponentMesh | ClazzMesh | ClazzCommunicationMesh, highlighted: boolean, color?: THREE.Color) => void;
-    // _getEntityType: (mesh: Highlighting.HighlightableMesh) => string;
+    _getEntityType: (mesh: Highlighting.HighlightableMesh) => string;
 }
 
 export const useHighlightingStore = createStore<HighlightingState>((set, get) => ({

@@ -5,6 +5,10 @@ import ENV from 'explorviz-frontend/config/environment';
 import ToastHandlerService from './toast-handler';
 import { useSpectateConfigurationStore } from 'react-lib/src/stores/spectate-configuration';
 
+// INFO:
+// Completely migrated to react-lib. In react-lib toast-service and ENV
+// just have to be included.
+
 export type SpectateConfig = {
   id: string;
   user: string;
@@ -20,148 +24,148 @@ export default class SpectateConfigurationService extends Service {
   @service('toast-handler')
   toastHandler!: ToastHandlerService;
 
-  // @tracked
-  // spectateConfig: SpectateConfig | null = null;
-  get specateConfig(): SpectateConfig | null {
-    return useSpectateConfigurationStore.getState().spectateConfig;
-  }
+  // // @tracked
+  // // spectateConfig: SpectateConfig | null = null;
+  // get specateConfig(): SpectateConfig | null {
+  //   return useSpectateConfigurationStore.getState().spectateConfig;
+  // }
 
-  set spectateConfig(value: SpectateConfig | null) {
-    useSpectateConfigurationStore.setState({ spectateConfig: value });
-  }
+  // set spectateConfig(value: SpectateConfig | null) {
+  //   useSpectateConfigurationStore.setState({ spectateConfig: value });
+  // }
 
-  retrieveConfigs() {
-    return new Promise<SpectateConfig[]>((resolve) => {
-      const userId = encodeURI(this.auth.user?.sub || '');
-      if (!userId) {
-        resolve([]);
-      }
+  // retrieveConfigs() {
+  //   return new Promise<SpectateConfig[]>((resolve) => {
+  //     const userId = encodeURI(this.auth.user?.sub || '');
+  //     if (!userId) {
+  //       resolve([]);
+  //     }
 
-      fetch(`${collaborationServiceApi}/spectateConfig/all`, {
-        headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
-        },
-      })
-        .then(async (response: Response) => {
-          if (response.ok) {
-            const spectateConfiguration =
-              (await response.json()) as SpectateConfig[];
-            resolve(spectateConfiguration);
-          } else {
-            resolve([]);
-            console.error('Spectate Configurations could not be loaded.');
-          }
-        })
-        .catch(async () => {
-          resolve([]);
-          this.toastHandler.showErrorToastMessage(
-            'Server for spectate configuration not available.'
-          );
-        });
-    });
-  }
+  //     fetch(`${collaborationServiceApi}/spectateConfig/all`, {
+  //       headers: {
+  //         Authorization: `Bearer ${this.auth.accessToken}`,
+  //       },
+  //     })
+  //       .then(async (response: Response) => {
+  //         if (response.ok) {
+  //           const spectateConfiguration =
+  //             (await response.json()) as SpectateConfig[];
+  //           resolve(spectateConfiguration);
+  //         } else {
+  //           resolve([]);
+  //           console.error('Spectate Configurations could not be loaded.');
+  //         }
+  //       })
+  //       .catch(async () => {
+  //         resolve([]);
+  //         this.toastHandler.showErrorToastMessage(
+  //           'Server for spectate configuration not available.'
+  //         );
+  //       });
+  //   });
+  // }
 
-  async saveSpectateConfig(content: SpectateConfig) {
-    const url = `${collaborationServiceApi}/spectateConfig/add`;
+  // async saveSpectateConfig(content: SpectateConfig) {
+  //   const url = `${collaborationServiceApi}/spectateConfig/add`;
 
-    await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(content),
-      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-    })
-      .then(async (response: Response) => {
-        if (response.ok) {
-          this.toastHandler.showSuccessToastMessage(
-            'Successfully created spectate configuration.'
-          );
-        } else {
-          this.toastHandler.showErrorToastMessage(
-            'Something went wrong. Spectate configuration could not be saved.'
-          );
-        }
-      })
-      .catch(async () => {
-        this.toastHandler.showErrorToastMessage(
-          'Spectate config server not reachable..'
-        );
-      });
-  }
+  //   await fetch(url, {
+  //     method: 'POST',
+  //     body: JSON.stringify(content),
+  //     headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+  //   })
+  //     .then(async (response: Response) => {
+  //       if (response.ok) {
+  //         this.toastHandler.showSuccessToastMessage(
+  //           'Successfully created spectate configuration.'
+  //         );
+  //       } else {
+  //         this.toastHandler.showErrorToastMessage(
+  //           'Something went wrong. Spectate configuration could not be saved.'
+  //         );
+  //       }
+  //     })
+  //     .catch(async () => {
+  //       this.toastHandler.showErrorToastMessage(
+  //         'Spectate config server not reachable..'
+  //       );
+  //     });
+  // }
 
-  async updateSpectateConfig(content: SpectateConfig) {
-    const url = `${collaborationServiceApi}/spectateConfig/update`;
+  // async updateSpectateConfig(content: SpectateConfig) {
+  //   const url = `${collaborationServiceApi}/spectateConfig/update`;
 
-    await fetch(url, {
-      method: 'PUT',
-      body: JSON.stringify(content),
-      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-    })
-      .then(async (response: Response) => {
-        if (response.ok) {
-          const res = await response.text();
+  //   await fetch(url, {
+  //     method: 'PUT',
+  //     body: JSON.stringify(content),
+  //     headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+  //   })
+  //     .then(async (response: Response) => {
+  //       if (response.ok) {
+  //         const res = await response.text();
 
-          if (Number(res) === -1) {
-            this.toastHandler.showErrorToastMessage(
-              'The configuration to be updated does not exist.'
-            );
-          } else if (Number(res) === -2) {
-            this.toastHandler.showErrorToastMessage(
-              'You are not allowed to update this configuration.'
-            );
-          } else {
-            this.toastHandler.showSuccessToastMessage(
-              'Successfully updated spectate configuration.'
-            );
-          }
-        } else {
-          this.toastHandler.showErrorToastMessage(
-            'Something went wrong. Spectate configuration could not be updated.'
-          );
-        }
-      })
-      .catch(async () => {
-        this.toastHandler.showErrorToastMessage(
-          'Spectate config server not reachable..'
-        );
-      });
-  }
+  //         if (Number(res) === -1) {
+  //           this.toastHandler.showErrorToastMessage(
+  //             'The configuration to be updated does not exist.'
+  //           );
+  //         } else if (Number(res) === -2) {
+  //           this.toastHandler.showErrorToastMessage(
+  //             'You are not allowed to update this configuration.'
+  //           );
+  //         } else {
+  //           this.toastHandler.showSuccessToastMessage(
+  //             'Successfully updated spectate configuration.'
+  //           );
+  //         }
+  //       } else {
+  //         this.toastHandler.showErrorToastMessage(
+  //           'Something went wrong. Spectate configuration could not be updated.'
+  //         );
+  //       }
+  //     })
+  //     .catch(async () => {
+  //       this.toastHandler.showErrorToastMessage(
+  //         'Spectate config server not reachable..'
+  //       );
+  //     });
+  // }
 
-  async deleteSpectateConfig(content: SpectateConfig) {
-    const url = `${collaborationServiceApi}/spectateConfig/delete`;
+  // async deleteSpectateConfig(content: SpectateConfig) {
+  //   const url = `${collaborationServiceApi}/spectateConfig/delete`;
 
-    await fetch(url, {
-      method: 'DELETE',
-      body: JSON.stringify(content),
-      headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-    })
-      .then(async (response: Response) => {
-        if (response.ok) {
-          const res = await response.text();
+  //   await fetch(url, {
+  //     method: 'DELETE',
+  //     body: JSON.stringify(content),
+  //     headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+  //   })
+  //     .then(async (response: Response) => {
+  //       if (response.ok) {
+  //         const res = await response.text();
 
-          if (Number(res) === -1) {
-            this.toastHandler.showErrorToastMessage(
-              'The configuration to be deleted doesn`t exist.'
-            );
-          } else if (Number(res) === -2) {
-            this.toastHandler.showErrorToastMessage(
-              'You are not allowed to delete this configuration.'
-            );
-          } else {
-            this.toastHandler.showSuccessToastMessage(
-              'Successfully deleted spectate configuration.'
-            );
-          }
-        } else {
-          this.toastHandler.showErrorToastMessage(
-            'Something went wrong. Spectate configuration could not be deleted.'
-          );
-        }
-      })
-      .catch(async () => {
-        this.toastHandler.showErrorToastMessage(
-          'Spectate config server not reachable..'
-        );
-      });
-  }
+  //         if (Number(res) === -1) {
+  //           this.toastHandler.showErrorToastMessage(
+  //             'The configuration to be deleted doesn`t exist.'
+  //           );
+  //         } else if (Number(res) === -2) {
+  //           this.toastHandler.showErrorToastMessage(
+  //             'You are not allowed to delete this configuration.'
+  //           );
+  //         } else {
+  //           this.toastHandler.showSuccessToastMessage(
+  //             'Successfully deleted spectate configuration.'
+  //           );
+  //         }
+  //       } else {
+  //         this.toastHandler.showErrorToastMessage(
+  //           'Something went wrong. Spectate configuration could not be deleted.'
+  //         );
+  //       }
+  //     })
+  //     .catch(async () => {
+  //       this.toastHandler.showErrorToastMessage(
+  //         'Spectate config server not reachable..'
+  //       );
+  //     });
+  // }
 }
 
 // Don't remove this declaration: this is what enables TypeScript to resolve

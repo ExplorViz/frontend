@@ -1,8 +1,8 @@
 import { createStore } from 'zustand/vanilla';
 import { Auth0Error, Auth0UserProfile } from 'auth0-js';
-import Auth0Lock from 'auth0-lock';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import ENV from 'explorviz-frontend/config/environment';
+// import Auth0Lock from 'auth0-lock';
+// import eventEmitter from 'react-lib/src/utils/event-emitter';
+// import ENV from 'explorviz-frontend/config/environment';
 
 // TODO: Wait for router to be migrated
 
@@ -174,6 +174,6 @@ export const useAuthStore = createStore<AuthState>((set, get) => ({
   //     this.router.transitionTo('login');
   //   }
   // },
-}
+// }
 }));
 

@@ -180,7 +180,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     // Scene
     this.scene = this.sceneRepo.getScene('browser', true);
-    this.scene.background = this.userSettings.applicationColors.backgroundColor;
+    this.scene.background =
+      this.userSettings.applicationColors!.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
@@ -695,7 +696,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   updateColors() {
-    updateColors(this.scene, this.userSettings.applicationColors);
+    updateColors(this.scene, this.userSettings.applicationColors!);
   }
 
   @action

@@ -15,9 +15,13 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import SpectateConfigurationService, {
+// import SpectateConfigurationService, {
+//   SpectateConfig,
+// } from 'explorviz-frontend/services/spectate-configuration';
+import {
+  useSpectateConfigurationStore,
   SpectateConfig,
-} from 'explorviz-frontend/services/spectate-configuration';
+} from 'react-lib/src/stores/spectate-configuration';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ChatService from 'explorviz-frontend/services/chat';
@@ -69,8 +73,8 @@ export default class CollaborationControls extends Component {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('spectate-configuration')
-  spectateConfigurationService!: SpectateConfigurationService;
+  // @service('spectate-configuration')
+  // spectateConfigurationService!: SpectateConfigurationService;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -182,8 +186,9 @@ export default class CollaborationControls extends Component {
     this.rooms = rooms;
     this.landscapeTokens = await this.tokenService.retrieveTokens();
 
-    this.spectateConfigs =
-      await this.spectateConfigurationService.retrieveConfigs();
+    this.spectateConfigs = await useSpectateConfigurationStore
+      .getState()
+      .retrieveConfigs();
   }
 
   @action
@@ -425,10 +430,13 @@ export default class CollaborationControls extends Component {
       devices: this.spectateConfigDevices,
     };
 
-    await this.spectateConfigurationService.saveSpectateConfig(spectateConfig);
+    await useSpectateConfigurationStore
+      .getState()
+      .saveSpectateConfig(spectateConfig);
 
-    this.spectateConfigs =
-      await this.spectateConfigurationService.retrieveConfigs();
+    this.spectateConfigs = await useSpectateConfigurationStore
+      .getState()
+      .retrieveConfigs();
 
     this.closeSpectateConfigModal();
   }
@@ -471,12 +479,13 @@ export default class CollaborationControls extends Component {
       devices: this.spectateConfigDevices,
     };
 
-    await this.spectateConfigurationService.updateSpectateConfig(
-      spectateConfig
-    );
+    await useSpectateConfigurationStore
+      .getState()
+      .updateSpectateConfig(spectateConfig);
 
-    this.spectateConfigs =
-      await this.spectateConfigurationService.retrieveConfigs();
+    this.spectateConfigs = await useSpectateConfigurationStore
+      .getState()
+      .retrieveConfigs();
 
     this.reassignSelectedItems();
 
@@ -491,12 +500,13 @@ export default class CollaborationControls extends Component {
       devices: this.spectateConfigDevices,
     };
 
-    await this.spectateConfigurationService.deleteSpectateConfig(
-      spectateConfig
-    );
+    await useSpectateConfigurationStore
+      .getState()
+      .deleteSpectateConfig(spectateConfig);
 
-    this.spectateConfigs =
-      await this.spectateConfigurationService.retrieveConfigs();
+    this.spectateConfigs = await useSpectateConfigurationStore
+      .getState()
+      .retrieveConfigs();
 
     this.reassignSelectedItems();
 

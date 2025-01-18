@@ -14,6 +14,9 @@ import {
   ApplicationColorSettings,
   ApplicationSettingId,
   ApplicationSettings,
+  isColorSetting,
+  isFlagSetting,
+  isRangeSetting,
 } from 'react-lib/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
@@ -25,6 +28,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   getStoredSettings,
   saveSettings,
+  validateRangeSetting,
 } from 'react-lib/src/utils/settings/local-storage-settings';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 
@@ -111,6 +115,27 @@ export default class UserSettings extends Service {
 
   updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
     useUserSettingsStore.getState().updateApplicationSetting(name, value);
+
+    // const setting = this.applicationSettings[name];
+
+    // const newValue = value ?? defaultApplicationSettings[name].value;
+
+    // if (isRangeSetting(setting) && typeof newValue === 'number') {
+    //   validateRangeSetting(setting, newValue);
+    //   this.applicationSettings = {
+    //     ...this.applicationSettings,
+    //     [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
+    //   };
+    // } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
+    //   this.applicationSettings = {
+    //     ...this.applicationSettings,
+    //     [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
+    //   };
+    // } else if (isColorSetting(setting) && typeof newValue === 'string') {
+    //   setting.value = newValue;
+    // }
+
+    // saveSettings(this.applicationSettings);
   }
 
   // TODO: Wait for corresponding service to be fully migrated
@@ -167,6 +192,40 @@ export default class UserSettings extends Service {
 
   setColorsFromSettings() {
     useUserSettingsStore.getState().setColorsFromSettings();
+
+    // const applicationSettings = this.applicationSettings;
+
+    // this.applicationColors = {
+    //   foundationColor: new THREE.Color(
+    //     applicationSettings.foundationColor.value
+    //   ),
+    //   componentOddColor: new THREE.Color(
+    //     applicationSettings.componentOddColor.value
+    //   ),
+    //   componentEvenColor: new THREE.Color(
+    //     applicationSettings.componentEvenColor.value
+    //   ),
+    //   clazzColor: new THREE.Color(applicationSettings.clazzColor.value),
+    //   highlightedEntityColor: new THREE.Color(
+    //     applicationSettings.highlightedEntityColor.value
+    //   ),
+    //   componentTextColor: new THREE.Color(
+    //     applicationSettings.componentTextColor.value
+    //   ),
+    //   clazzTextColor: new THREE.Color(applicationSettings.clazzTextColor.value),
+    //   foundationTextColor: new THREE.Color(
+    //     applicationSettings.foundationTextColor.value
+    //   ),
+    //   communicationColor: new THREE.Color(
+    //     applicationSettings.communicationColor.value
+    //   ),
+    //   communicationArrowColor: new THREE.Color(
+    //     applicationSettings.communicationArrowColor.value
+    //   ),
+    //   backgroundColor: new THREE.Color(
+    //     applicationSettings.backgroundColor.value
+    //   ),
+    // };
   }
 }
 
