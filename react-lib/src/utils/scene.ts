@@ -1,4 +1,4 @@
-import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 import * as THREE from 'three';
 import FloorMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/floor-mesh';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';

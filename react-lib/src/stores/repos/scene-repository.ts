@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
-import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
-import { createScene } from 'explorviz-frontend/utils/scene';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
+import { createScene } from 'react-lib/src/utils/scene';
 
 interface SceneRepositoryState {
   scene?: THREE.Scene;

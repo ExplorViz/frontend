@@ -132,10 +132,7 @@ export const useLandscapeRestructureStore =
     copiedClassCommunications: new Map<string, ClassCommunication[]>(),
     removeCopiedClassCommunication,
     updatedClassCommunications: new Map<string, ClassCommunication[]>(),
-    completelyDeletedClassCommunications: new Map<
-      string,
-      ClassCommunication[]
-    >(),
+    completelyDeletedClassCommunications: new Map<string,ClassCommunication[]>(),
     deletedClassCommunications: [],
     sourceClass: null,
     targetClass: null,

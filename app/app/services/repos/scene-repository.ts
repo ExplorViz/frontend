@@ -1,6 +1,6 @@
 import Service from '@ember/service';
 import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
-import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 // import { createScene } from 'explorviz-frontend/utils/scene';
 import * as THREE from 'three';
 
