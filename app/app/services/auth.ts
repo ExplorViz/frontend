@@ -13,7 +13,7 @@ export default class Auth extends Service.extend(Evented) {
   @service('router')
   router!: any;
 
-  // TODO: Clarify why page header disappears when using stores.
+
   private lock: Auth0LockStatic | null = null;
   // get lock(): Auth0LockStatic | null {
   //   return useAuthStore.getState().lock;
@@ -23,6 +23,7 @@ export default class Auth extends Service.extend(Evented) {
   //   useAuthStore.setState({ lock: value });
   // }
 
+   // TODO: page header disappears when using stores, because of tracked
   @tracked
   user: Auth0UserProfile | undefined = undefined;
   // get user(): Auth0UserProfile | undefined {
