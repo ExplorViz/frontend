@@ -83,14 +83,14 @@ export default class RenderingService extends Service {
   //   useRenderingServiceStore.setState({ _timelineDataObjectHandler: value });
   // }
 
-  // @tracked
-  // private _landscapeData: LandscapeData | null = null;
-  get _landscapeData(): LandscapeData | null {
-    return useRenderingServiceStore.getState()._landscapeData;
-  }
-  set _landscapeData(value: LandscapeData | null) {
-    useRenderingServiceStore.setState({ _landscapeData: value });
-  }
+  @tracked
+  private _landscapeData: LandscapeData | null = null;
+  // get _landscapeData(): LandscapeData | null {
+  //   return useRenderingServiceStore.getState()._landscapeData;
+  // }
+  // set _landscapeData(value: LandscapeData | null) {
+  //   useRenderingServiceStore.setState({ _landscapeData: value });
+  // }
 
   // @tracked
   // private _visualizationPaused = false;
@@ -155,14 +155,27 @@ export default class RenderingService extends Service {
     // return useRenderingServiceStore.getState()._timelineDataObjectHandler;
   }
 
+  // region landscapeData: Change after remove tracked
+
   set landscapeData(newLandscapeData: LandscapeData | null) {
-    // this._landscapeData = newLandscapeData;
-    useRenderingServiceStore.setState({ _landscapeData: newLandscapeData });
+    this._landscapeData = newLandscapeData;
   }
 
   get landscapeData() {
-    return useRenderingServiceStore.getState()._landscapeData;
+    return this._landscapeData;
   }
+
+  // set landscapeData(newLandscapeData: LandscapeData | null) {
+  //   // this._landscapeData = newLandscapeData;
+  //   useRenderingServiceStore.setState({ _landscapeData: newLandscapeData });
+  // }
+
+
+  // get landscapeData() {
+  //   return useRenderingServiceStore.getState()._landscapeData;
+  // }
+
+  // endregion
 
   set visualizationPaused(newValue: boolean) {
     // this._visualizationPaused = newValue;
