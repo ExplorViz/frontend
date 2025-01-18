@@ -133,7 +133,8 @@ export default class GrabbedObjectService extends Service {
    * @returns The number of controllers that are grabbing the object.
    */
   getGrabCount(object: GrabbableObject): number {
-    return this.grabCounters.get(object) || 0;
+    // return this.grabCounters.get(object) || 0;
+    return useGrabbedObjectStore.getState().getGrabCount(object);
   }
 
   /**
