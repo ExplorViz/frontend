@@ -8,7 +8,7 @@ import RenderingService from '../rendering-service';
 import TimestampService from '../timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
-import { SelectedCommit } from '../commit-tree-state';
+import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
 
 /**
  * Handles all landscape-related timestamps within the application, especially for the timelines

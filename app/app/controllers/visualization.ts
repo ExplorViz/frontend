@@ -67,7 +67,7 @@ import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution
 import RenderingService, {
   VisualizationMode as RenderingVisualizationMode,
 } from 'explorviz-frontend/services/rendering-service';
-import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
+import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
@@ -113,8 +113,8 @@ export default class VisualizationController extends Controller {
 
   // #region Services
 
-  @service('commit-tree-state')
-  commitTreeStateService!: CommitTreeStateService;
+  // @service('commit-tree-state')
+  // commitTreeStateService!: CommitTreeStateService;
 
   @service('rendering-service')
   renderingService!: RenderingService;
@@ -323,11 +323,13 @@ export default class VisualizationController extends Controller {
 
     // check what kind of rendering we should start
     if (this.commit1 && this.commit1.length > 0) {
-      showEvolutionVisualization = this.commitTreeStateService.setDefaultState(
-        this.evolutionDataRepository.appNameCommitTreeMap,
-        this.commit1,
-        this.commit2
-      );
+      showEvolutionVisualization = useCommitTreeStateStore
+        .getState()
+        .setDefaultState(
+          this.evolutionDataRepository.appNameCommitTreeMap,
+          this.commit1,
+          this.commit2
+        );
 
       // check which bottom bar should be displayed by default
       if (this.bottomBar === 'runtime') {

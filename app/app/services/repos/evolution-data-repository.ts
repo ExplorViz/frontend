@@ -13,7 +13,10 @@ import {
 } from 'react-lib/src/utils/landscape-structure-helpers';
 import { ApplicationMetricsCode } from 'react-lib/src/utils/metric-schemes/metric-data';
 import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
-import CommitTreeStateService, { SelectedCommit } from '../commit-tree-state';
+import {
+  SelectedCommit,
+  useCommitTreeStateStore,
+} from 'react-lib/src/stores/commit-tree-state';
 import { useEvolutionDataRepositoryeState } from 'react-lib/src/stores/repos/evolution-data-repository';
 
 export default class EvolutionDataRepository extends Service {
@@ -24,8 +27,8 @@ export default class EvolutionDataRepository extends Service {
   @service('evolution-data-fetch-service')
   evolutionDataFetchService!: EvolutionDataFetchServiceService;
 
-  @service('commit-tree-state')
-  commitTreeStateService!: CommitTreeStateService;
+  // @service('commit-tree-state')
+  // commitTreeStateService!: CommitTreeStateService;
 
   // #endregion
 
@@ -139,7 +142,8 @@ export default class EvolutionDataRepository extends Service {
 
   getCommitComparisonByAppName(appName: string): CommitComparison | undefined {
     const selectedCommits =
-      this.commitTreeStateService.selectedCommits.get(appName) ?? [];
+      useCommitTreeStateStore.getState().getSelectedCommits().get(appName) ??
+      [];
 
     if (selectedCommits.length !== 2) {
       return undefined;

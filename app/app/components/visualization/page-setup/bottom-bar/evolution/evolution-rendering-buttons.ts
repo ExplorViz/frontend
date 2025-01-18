@@ -1,7 +1,8 @@
 import Component from '@glimmer/component';
-import CommitTreeStateService, {
+import {
+  useCommitTreeStateStore,
   SelectedCommit,
-} from 'explorviz-frontend/services/commit-tree-state';
+} from 'react-lib/src/stores/commit-tree-state';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
@@ -19,8 +20,8 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
   @service('visibility-service')
   visibilityService!: VisibilityService;
 
-  @service('commit-tree-state')
-  commitTreeStateService!: CommitTreeStateService;
+  // @service('commit-tree-state')
+  // commitTreeStateService!: CommitTreeStateService;
 
   get showSelectionButton() {
     return this.renderingService.userInitiatedStaticDynamicCombination;
@@ -36,7 +37,7 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
 
   @action
   unselectAllSelectedCommits() {
-    this.commitTreeStateService.resetSelectedCommits();
+    useCommitTreeStateStore.getState().resetSelectedCommits();
     this.renderingService.triggerRenderingForSelectedCommits();
   }
 

@@ -1,7 +1,7 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
-import CommitTreeStateService from 'explorviz-frontend/services/commit-tree-state';
+import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import {
   ApplicationMetricsCode,
@@ -25,8 +25,8 @@ export default class ClazzPopup extends Component<Args> {
   @service('repos/application-repository')
   applicationRepo!: ApplicationRepository;
 
-  @service('commit-tree-state')
-  commitTreeStateService!: CommitTreeStateService;
+  // @service('commit-tree-state')
+  // commitTreeStateService!: CommitTreeStateService;
 
   get fileName() {
     return (this.args.popupData.entity as Class).name;
@@ -106,7 +106,10 @@ export default class ClazzPopup extends Component<Args> {
     }
 
     const selectedCommits =
-      this.commitTreeStateService.selectedCommits.get(this.appName) ?? [];
+      useCommitTreeStateStore
+        .getState()
+        .getSelectedCommits()
+        .get(this.appName) ?? [];
 
     return selectedCommits.length;
   }

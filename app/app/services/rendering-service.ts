@@ -19,9 +19,11 @@ import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timelin
 import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
 import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
 import EvolutionDataRepository from './repos/evolution-data-repository';
-import { SelectedCommit } from './commit-tree-state';
+import {
+  SelectedCommit,
+  useCommitTreeStateStore,
+} from 'react-lib/src/stores/commit-tree-state';
 import TimestampRepository from './repos/timestamp-repository';
-import CommitTreeStateService from './commit-tree-state';
 import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 export type VisualizationMode = 'evolution' | 'runtime';
@@ -52,8 +54,8 @@ export default class RenderingService extends Service {
   @service('repos/timestamp-repository')
   private timestampRepo!: TimestampRepository;
 
-  @service('commit-tree-state')
-  private commitTreeStateService!: CommitTreeStateService;
+  // @service('commit-tree-state')
+  // private commitTreeStateService!: CommitTreeStateService;
 
   // #endregion
 
@@ -270,7 +272,7 @@ export default class RenderingService extends Service {
   async triggerRenderingForSelectedCommits(): Promise<void> {
     try {
       const appNameToSelectedCommits: Map<string, SelectedCommit[]> =
-        this.commitTreeStateService.selectedCommits;
+        useCommitTreeStateStore.getState().getSelectedCommits();
 
       // always pause when the selected commits change
       this.pauseVisualizationUpdating();
