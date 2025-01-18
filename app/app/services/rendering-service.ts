@@ -331,7 +331,7 @@ export default class RenderingService extends Service {
     newStructureLandscapeData: StructureLandscapeData,
     newDynamicLandscapeData: DynamicLandscapeData
   ) {
-    useRenderingServiceStore
+    return useRenderingServiceStore
       .getState()
       .requiresRerendering(newStructureLandscapeData, newDynamicLandscapeData);
   }

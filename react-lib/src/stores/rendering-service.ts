@@ -5,6 +5,9 @@ import { Timestamp } from "react-lib/src/utils/landscape-schemes/timestamp";
 import { DynamicLandscapeData } from "react-lib/src/utils/landscape-schemes/dynamic/dynamic-data";
 import { StructureLandscapeData } from "react-lib/src/utils/landscape-schemes/structure-data";
 import { animatePlayPauseIcon } from "react-lib/src/utils/animate";
+import { combineStructureLandscapeData, getAllMethodHashesOfLandscapeStructureData } from "../utils/landscape-structure-helpers";
+import { combineDynamicLandscapeData } from "../utils/landscape-dynamic-helpers";
+import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
 
 interface RenderingServiceState {
   previousMethodHashes: string[];
