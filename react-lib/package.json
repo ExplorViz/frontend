@@ -16,6 +16,7 @@
         "typescript": "5"
     },
     "devDependencies": {
+        "events": "^3.3.0",
         "zustand": "^5.0.2"
     },
     "dependencies": {
