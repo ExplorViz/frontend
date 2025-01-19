@@ -1,9 +1,11 @@
 import { createStore } from 'zustand/vanilla';
-// import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
-// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-// import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
-// import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-// import UserSettings from 'explorviz-frontend/services/user-settings';
+// import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+// import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+// import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
+// import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
+// import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
+// import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
+// import { useChatStore } from 'react-lib/src/stores/chat';
 import * as Highlighting from 'react-lib/src/utils/application-rendering/highlighting';
 import { Color } from '../utils/collaboration/web-socket-messages/types/color';
 import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
@@ -59,18 +61,18 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     hoveredOnHighlightedMesh: false,
 
     // applyHighlightingOnHover: () => {
-        // return this.userSettings.applicationSettings.applyHighlightingOnHover.value;
+        // return useUserSettingsStore.getState().applicationSettings.applyHighlightingOnHover.value;
     // },
 
     // opacity: () => {
-        // return this.userSettings.applicationSettings.transparencyIntensity.value;
+        // return useUserSettingsStore.getState().applicationSettings.transparencyIntensity.value;
     // },
 
     // highlightingColor: () => {
-        // if (this.collaborationSession.isOnline) {
-        //     return this.localUser.color;
+        // if (useCollaborationSessionStore.getState().isOnline) {
+            // return useLocalUserStore.getState().color;
         // } else {
-        //     return this.userSettings.applicationColors!.highlightedEntityColor;
+            // return useUserSettingsStore.getState().applicationColors!.highlightedEntityColor;
         // }
     // },
 
@@ -92,7 +94,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     // },
 
     // highlightById: (modelId: string, color?: THREE.Color, sendMessage = false) => {
-        // const mesh = this.applicationRenderer.getMeshById(modelId);
+        // const mesh = useApplicationRendererStore.getState().getMeshById(modelId);
         // if (isEntityMesh(mesh)) {
         //   get().highlight(mesh, { sendMessage, remoteColor: color });
         // }
@@ -103,7 +105,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //     color?: THREE.Color,
     //     sendMessage = false
     //   ) => {
-        // const mesh = this.applicationRenderer.getMeshById(modelId);
+        // const mesh = useApplicationRendererStore.getState().getMeshById(modelId);
         // if (isEntityMesh(mesh)) {
         //   get().toggleHighlight(mesh, { sendMessage, remoteColor: color });
         // }
@@ -116,9 +118,9 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     // structureData: StructureLandscapeData
     // ) => {
         // const classCommunications =
-        //     this.applicationRenderer.getClassCommunications(applicationObject3D);
+            // useApplicationRendererStore.getState().getClassCommunications(applicationObject3D);
 
-        // this.applicationRenderer.openAllComponents(applicationObject3D);
+        // useApplicationRendererStore.getState().openAllComponents(applicationObject3D);
         // Highlighting.highlightTrace(
         //     trace,
         //     traceStep,
@@ -150,13 +152,13 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     // },
 
     // highlightReplay: (userId: string, appId: string, entityId: string) => {
-        // const user = this.collaborationSession.lookupRemoteUserById(userId);
-        // const userColor = user ? user.color : this.localUser.color;
+        // const user = useCollaborationSessionStore.getState().lookupRemoteUserById(userId);
+        // const userColor = user ? user.color : useLocalUserStore.getState().color;
     
-        // const application = this.applicationRenderer.getApplicationById(appId);
+        // const application = useApplicationRendererStore.getState().getApplicationById(appId);
         // if (!application) {
         //   // extern communication link
-        //   const mesh = this.applicationRenderer.getMeshById(entityId);
+        //   const mesh = useApplicationRendererStore.getState().getMeshById(entityId);
         //   if (mesh instanceof ClazzCommunicationMesh) {
         //     // multi selected extern links?
         //     get().toggleHighlight(mesh, {
@@ -184,7 +186,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     // },
 
     // unhighlightById: (modelId: string, color?: THREE.Color, sendMessage = true) => {
-        // const mesh = this.applicationRenderer.getMeshById(modelId);
+        // const mesh = useApplicationRendererStore.getState().getMeshById(modelId);
         // if (isEntityMesh(mesh)) {
         //   get().unhighlight(mesh, { sendMessage, remoteColor: color });
         // }
@@ -222,7 +224,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //     });
     
         // if (sendMessage) {
-        //   this.sender.sendAllHighlightsReset();
+        //   useMessageSenderStore.getState().sendAllHighlightsReset();
         // }
     // },
 
@@ -240,7 +242,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //       }
         // }
     
-        // this.linkRenderer.getAllLinks().forEach((externLink) => {
+        // useLinkRendererStore.getState().getAllLinks().forEach((externLink) => {
         //   if (externLink.highlighted) {
         //     externLink.highlightingColor = get().highlightingColor;
         //     externLink.highlight();
@@ -252,9 +254,9 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //     communicationMeshes: ClazzCommunicationMesh[];
     //     applications: ApplicationObject3D[];
     //   } => {
-    //     // const communicationMeshes = this.linkRenderer.getLinks();
+            // const communicationMeshes = useLinkRenderer.getState().getLinks();
     
-    //     // const applications = this.applicationRenderer.getOpenApplications();
+           // const applications = useApplicationRendererStore.getState().getOpenApplications();
     //     // applications.forEach((applicationObject3D: ApplicationObject3D) => {
     //     //   communicationMeshes.push(...applicationObject3D.getCommMeshes());
     //     // });
@@ -271,7 +273,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //     options?: HighlightOptions
     //   ) => {
     //     if (
-    //       !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+        //   !useUserSettingsStore.getState().applicationSettings.enableMultipleHighlighting.value
     //     ) {
     //       get().removeHighlightingForAllApplications(false);
     //     }
@@ -286,17 +288,17 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //     get().updateHighlighting();
     
     //     if (options?.sendMessage) {
-    //       this.sender.sendHighlightingUpdate(
+        //   useMessageSenderStore.getState().sendHighlightingUpdate(
     //         '',
     //         get()._getEntityType(mesh),
     //         mesh.getModelId(),
     //         mesh.highlighted,
-    //         this.userSettings.applicationSettings.enableMultipleHighlighting.value
+            // useUserSettingsStore.getState().applicationSettings.enableMultipleHighlighting.value
     //       );
     //       if (highlighted) {
-    //         this.chatService.sendChatMessage(
-    //           this.localUser.userId,
-    //           `${this.localUser.userName}(${this.localUser.userId}) highlighted a link`,
+            // useChatStore.getState().sendChatMessage(
+            //   useLocalUserStore.getState().userId,
+            //   `${useLocalUserStore.getState().userName}(${useLocalUserStore.getState().userId}) highlighted a link`,
     //           true,
     //           'highlight',
     //           ['', mesh.getModelId()]
@@ -326,7 +328,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //       );
     //       // Only update application if component state did change
     //       if (didOpenComponent) {
-    //         this.applicationRenderer.updateApplicationObject3DAfterUpdate(
+            // useApplicationRendererStore.getState().updateApplicationObject3DAfterUpdate(
     //           application
     //         );
     //       }
@@ -344,17 +346,17 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //       const entityType = get()._getEntityType(object);
     //       const entityId = object.getModelId();
     
-    //       this.sender.sendHighlightingUpdate(
+        //   useMessageSenderStore.getState().sendHighlightingUpdate(
     //         appId,
     //         entityType,
     //         entityId,
     //         object.highlighted,
-    //         this.userSettings.applicationSettings.enableMultipleHighlighting.value
+            // useUserSettingsStore.getState().applicationSettings.enableMultipleHighlighting.value
     //       );
     //       if (highlighted) {
-    //         this.chatService.sendChatMessage(
-    //           this.localUser.userId,
-    //           `${this.localUser.userName}(${this.localUser.userId}) highlighted ${object.dataModel.name}`,
+            // useChatStore.getState().sendChatMessage(
+            //   useLocalUserStore.getState().userId,
+            //   `${useLocalUserStore.getState().userName}(${useLocalUserStore.getState().userId}) highlighted ${object.dataModel.name}`,
     //           true,
     //           'highlight',
     //           [appId, entityId]
@@ -382,7 +384,7 @@ export const useHighlightingStore = createStore<HighlightingState>((set, get) =>
     //     mesh.highlightingColor = color || get().highlightingColor;
     
     //     if (
-    //       !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+        //   !useUserSettingsStore.getState().applicationSettings.enableMultipleHighlighting.value
     //     ) {
     //       get().removeHighlightingForAllApplications(false);
     //     }

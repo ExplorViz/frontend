@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla';
-import { useAuthStore } from 'react-lib/src/stores/auth';
 // import ENV from 'explorviz-frontend/config/environment';
+import { useAuthStore } from 'react-lib/src/stores/auth';
+// import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 // TODO: Add toast-service after migration
 
@@ -48,7 +49,7 @@ export const useSpectateConfigurationStore = createStore<SpectateConfigurationSt
             .catch(async () => {
               resolve([]);
             // TODO:
-            //   this.toastHandler.showErrorToastMessage(
+              // useToastHandlerStore.getState().showErrorToastMessage(
             //     'Server for spectate configuration not available.'
             //   );
             });
@@ -66,19 +67,19 @@ export const useSpectateConfigurationStore = createStore<SpectateConfigurationSt
           .then(async (response: Response) => {
             if (response.ok) {
                 // TODO:
-            //   this.toastHandler.showSuccessToastMessage(
+            //   useToastHandlerStore.getState().showSuccessToastMessage(
             //     'Successfully created spectate configuration.'
             //   );
             } else {
                 // TODO:
-            //   this.toastHandler.showErrorToastMessage(
+            //   useToastHandlerStore.getState().showErrorToastMessage(
             //     'Something went wrong. Spectate configuration could not be saved.'
             //   );
             }
           })
           .catch(async () => {
             // TODO:
-            // this.toastHandler.showErrorToastMessage(
+            // useToastHandlerStore.getState().showErrorToastMessage(
             //   'Spectate config server not reachable..'
             // );
           });
@@ -98,30 +99,30 @@ export const useSpectateConfigurationStore = createStore<SpectateConfigurationSt
     
               if (Number(res) === -1) {
                 //  TODO:
-                // this.toastHandler.showErrorToastMessage(
+                // useToastHandlerStore.getState().showErrorToastMessage(
                 //   'The configuration to be updated does not exist.'
                 // );
               } else if (Number(res) === -2) {
                 // TODO:
-                // this.toastHandler.showErrorToastMessage(
+                // useToastHandlerStore.getState().showErrorToastMessage(
                 //   'You are not allowed to update this configuration.'
                 // );
               } else {
                 // TODO:
-                // this.toastHandler.showSuccessToastMessage(
+                // useToastHandlerStore.getState().showSuccessToastMessage(
                 //   'Successfully updated spectate configuration.'
                 // );
               }
             } else {
                 // TODO:
-            //   this.toastHandler.showErrorToastMessage(
+            //   useToastHandlerStore.getState().showErrorToastMessage(
             //     'Something went wrong. Spectate configuration could not be updated.'
             //   );
             }
           })
           .catch(async () => {
             // TODO:
-            // this.toastHandler.showErrorToastMessage(
+            // useToastHandlerStore.getState().showErrorToastMessage(
             //   'Spectate config server not reachable..'
             // );
           });
@@ -141,30 +142,30 @@ export const useSpectateConfigurationStore = createStore<SpectateConfigurationSt
     
               if (Number(res) === -1) {
                 // TODO:
-                // this.toastHandler.showErrorToastMessage(
+                // useToastHandlerStore.getState().showErrorToastMessage(
                 //   'The configuration to be deleted doesn`t exist.'
                 // );
               } else if (Number(res) === -2) {
                 // TODO:
-                // this.toastHandler.showErrorToastMessage(
+                // useToastHandlerStore.getState().showErrorToastMessage(
                 //   'You are not allowed to delete this configuration.'
                 // );
               } else {
                 // TODO:
-                // this.toastHandler.showSuccessToastMessage(
+                // useToastHandlerStore.getState().showSuccessToastMessage(
                 //   'Successfully deleted spectate configuration.'
                 // );
               }
             } else {
                 // TODO:
-            //   this.toastHandler.showErrorToastMessage(
+            //   useToastHandlerStore.getState().showErrorToastMessage(
             //     'Something went wrong. Spectate configuration could not be deleted.'
             //   );
             }
           })
           .catch(async () => {
             // TODO:
-            // this.toastHandler.showErrorToastMessage(
+            // useToastHandlerStore.getState().showErrorToastMessage(
             //   'Spectate config server not reachable..'
             // );
           });

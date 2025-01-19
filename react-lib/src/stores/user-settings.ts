@@ -23,6 +23,11 @@ import {
   ColorScheme,
 } from 'react-lib/src/utils/settings/color-schemes';
 import * as THREE from 'three';
+// import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
+// import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
+// import { useHighlightingStore } from 'react-lib/src/stores/highlighting-service';
+// import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
+// import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 
 
 interface UserSettingsState {
@@ -66,20 +71,22 @@ export const useUserSettingsStore = createStore<UserSettingsState>((set, get) =>
         saveSettings(get().applicationSettings);
       }
     },
+ 
 
-    // TODO: this.sender is message-sender Service
     // shareApplicationSettings: () => {
-    //   this.sender.sendSharedSettings(this.applicationSettings);
+      // useMessageSenderStore.getState().sendSharedSettings(get().applicationSettings);
     // },
 
     updateSettings: (settings: ApplicationSettings) => {
       set({ applicationSettings: settings });
   
       get().updateColors();
-      // this.applicationRenderer.addCommunicationForAllApplications(); TODO: Use corresponding store
-      // this.highlightingService.updateHighlighting(); TODO: Use corresponding store
-      // this.localUser.defaultCamera.fov = this.applicationSettings.cameraFov.value; TODO: Use corresponding store
-      // this.localUser.defaultCamera.updateProjectionMatrix(); TODO: Use corresponding store
+      // useApplicationRendererStore.getState().addCommunicationForAllApplications();
+      // useHighlightingStore.getState().updateHighlighting();
+      // let tmpDefaultCamera = useLocalUserStore.getState().defaultCamera;
+      // tmpDefaultCamera.fov = get().applicationSettings.cameraFov.value;
+      // useLocalUserStore.setState({ defaultCamera: tmpDefaultCamera });
+      // useLocalUserStore.getState().defaultCamera.updateProjectionMatrix();
     },
 
     updateApplicationSetting: (name: ApplicationSettingId, value?: unknown) => {
@@ -155,7 +162,7 @@ export const useUserSettingsStore = createStore<UserSettingsState>((set, get) =>
         }
       }
   
-      // updateColors(this.sceneRepo.getScene(), this.applicationColors); TODO: Use corresponding store/utils
+      // updateColors(useSceneRepositoryStore.getState().getScene(), get().applicationColors);
     },
 
     setColorsFromSettings: () => {

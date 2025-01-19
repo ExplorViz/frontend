@@ -9,6 +9,8 @@ import {
   OBJECT_GRABBED_EVENT,
   ObjectGrabbedMessage,
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/object-grabbed';
+// import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
+// import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 
 // TODO: Remove add and remove functions for attributes
 //       after full migration
@@ -56,7 +58,7 @@ export const useGrabbedObjectStore = createStore<GrabbedObjectState>((set, get) 
 //         const objectId = object.getGrabId();
 //         if (!objectId) return Promise.resolve(true);
 
-//         return this.webSocket.sendRespondableMessage<
+//         return useWebSocketStore.getState().sendRespondableMessage<
 //         ObjectGrabbedMessage,
 //         ObjectGrabbedResponse
 //         >(
@@ -132,7 +134,7 @@ export const useGrabbedObjectStore = createStore<GrabbedObjectState>((set, get) 
     //         // backend that the object has been released.
     //         if (count === 1) {
     //             const objectId = object.getGrabId();
-    //             if (objectId) this.sender.sendObjectReleased(objectId);
+    //             if (objectId) useMessageSenderStore.getState().sendObjectReleased(objectId);
     //             let newGrabCounters = get().grabCounters;
     //             newGrabCounters.delete(object);
     //             set({ grabCounters: newGrabCounters });
@@ -161,7 +163,7 @@ export const useGrabbedObjectStore = createStore<GrabbedObjectState>((set, get) 
 
     //             const { scale } = object;
 
-    //             this.sender.sendObjectMoved(objectId, position, quaternion, scale);
+    //             useMessageSenderStore.getState().sendObjectMoved(objectId, position, quaternion, scale);
     //         }
     //     });
     // },
