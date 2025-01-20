@@ -27,7 +27,8 @@ import VrApplicationObject3D from 'react-lib/src/utils/extended-reality/view-obj
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
 import ApplicationRepository from './repos/application-repository';
-import FontRepository from './repos/font-repository';
+// import FontRepository from './repos/font-repository';
+import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import UserSettings from './user-settings';
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import { getSubPackagesOfPackage } from 'react-lib/src/utils/package-helpers';
@@ -78,8 +79,8 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('repos/application-repository')
   private applicationRepo!: ApplicationRepository;
 
-  @service('repos/font-repository')
-  private fontRepo!: FontRepository;
+  // @service('repos/font-repository')
+  // private fontRepo!: FontRepository;
 
   @service('collaboration/room-serializer')
   private roomSerializer!: RoomSerializer;
@@ -137,7 +138,7 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   get font() {
-    return this.fontRepo.font;
+    return useFontRepositoryStore.getState().font;
   }
 
   get openApplications() {
@@ -268,7 +269,7 @@ export default class ApplicationRenderer extends Service.extend() {
         // Add labels to application
         Labeler.addApplicationLabels(
           applicationObject3D,
-          this.font,
+          this.font!,
           this.userSettings.applicationColors!
         );
       }
@@ -346,11 +347,16 @@ export default class ApplicationRenderer extends Service.extend() {
       this.userSettings.applicationColors;
 
     if (boxMesh instanceof ComponentMesh) {
-      Labeler.updateBoxTextLabel(boxMesh, this.font, componentTextColor, label);
+      Labeler.updateBoxTextLabel(
+        boxMesh,
+        this.font!,
+        componentTextColor,
+        label
+      );
     } else if (boxMesh instanceof FoundationMesh) {
       Labeler.updateBoxTextLabel(
         boxMesh,
-        this.font,
+        this.font!,
         foundationTextColor,
         label
       );
@@ -393,7 +399,7 @@ export default class ApplicationRenderer extends Service.extend() {
     // Update labels
     Labeler.addApplicationLabels(
       applicationObject3D,
-      this.font,
+      this.font!,
       this.userSettings.applicationColors
     );
     // Update links

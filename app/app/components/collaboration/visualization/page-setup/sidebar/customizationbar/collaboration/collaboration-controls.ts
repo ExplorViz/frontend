@@ -14,7 +14,8 @@ import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 // import SpectateConfigurationService, {
 //   SpectateConfig,
 // } from 'explorviz-frontend/services/spectate-configuration';
@@ -33,8 +34,8 @@ export default class CollaborationControls extends Component {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -312,7 +313,8 @@ export default class CollaborationControls extends Component {
 
     // Cleanup old landscape
     this.applicationRenderer.cleanup();
-    this.applicationRepo.cleanup();
+    // this.applicationRepo.cleanup();
+    useApplicationRepositoryStore.getState().clearApplication();
     this.linkRenderer.getAllLinks().forEach((externLink) => {
       externLink.removeFromParent();
     });

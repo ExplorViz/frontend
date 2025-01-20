@@ -4,7 +4,8 @@ import { action } from '@ember/object';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { tracked } from '@glimmer/tracking';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository'; not used
+// import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
@@ -49,8 +50,8 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   @service('auth')
   auth!: Auth;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
@@ -524,7 +525,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
       true
     );
 
-    const timestamps = this.timestampRepo.getTimestamps(
+    const timestamps = this.timestampRepo.getTimestampsForCommitId(
       this.args.landscapeToken.value
     );
 

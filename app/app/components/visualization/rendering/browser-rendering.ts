@@ -15,7 +15,8 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import {
@@ -71,8 +72,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   @service('configuration')
   configuration!: Configuration;
@@ -726,7 +727,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // is not called before other e.g. vr-rendering is inserted:
     // https://github.com/emberjs/ember.js/issues/18873
     this.applicationRenderer.cleanup();
-    this.applicationRepo.cleanup();
+    useApplicationRepositoryStore.getState().clearApplication();
+    // this.applicationRepo.cleanup();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
 

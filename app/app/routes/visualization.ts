@@ -5,7 +5,8 @@ import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { action } from '@ember/object';
-import FontRepository from 'explorviz-frontend/services/repos/font-repository';
+// import FontRepository from 'explorviz-frontend/services/repos/font-repository';
+import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import BaseRoute from './base-route';
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 
@@ -25,8 +26,8 @@ export default class VisualizationRoute extends BaseRoute {
   @service('router')
   router!: any;
 
-  @service('repos/font-repository')
-  fontRepo!: FontRepository;
+  // @service('repos/font-repository')
+  // fontRepo!: FontRepository;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
@@ -45,10 +46,10 @@ export default class VisualizationRoute extends BaseRoute {
     // load font for labels
     // const controller = this.controllerFor('visualization') as VisualizationController;
     // TODO maybe not the best place here
-    if (!this.fontRepo.font) {
+    if (!useFontRepositoryStore.getState().font) {
       const font = await this.loadFont();
 
-      this.fontRepo.font = font;
+      useFontRepositoryStore.getState().font = font;
       // controller.set('font', font);
     }
     // handle auth0 authorization

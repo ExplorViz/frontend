@@ -17,7 +17,8 @@ import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation
 import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { Object3DEventMap } from 'three';
@@ -98,8 +99,8 @@ export default class IdeWebsocket {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   @service('toast-handler')
   toastHandlerService!: ToastHandlerService;
@@ -250,9 +251,13 @@ export default class IdeWebsocket {
     openApplications.forEach((element) => {
       const application = element;
 
-      const applicationData = this.applicationRepo.getById(
-        application.getModelId()
-      );
+      const applicationData = useApplicationRepositoryStore
+        .getState()
+        .getById(application.getModelId());
+
+      // const applicationData = this.applicationRepo.getById(
+      //   application.getModelId()
+      // );
 
       const classCommunications = applicationData?.classCommunications;
 

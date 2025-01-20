@@ -11,6 +11,7 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import ApplicationData, { K8sData } from 'react-lib/src/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
@@ -32,7 +33,8 @@ import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dyna
 // import SceneRepository from 'explorviz-frontend/services/repos/scene-repository'; not being used
 // import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import FontRepository from 'explorviz-frontend/services/repos/font-repository';
+// import FontRepository from 'explorviz-frontend/services/repos/font-repository';
+import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
@@ -89,8 +91,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   // @service('repos/scene-repository')
   // sceneRepo!: SceneRepository;
 
-  @service('repos/font-repository')
-  fontRepo!: FontRepository;
+  // @service('repos/font-repository')
+  // fontRepo!: FontRepository;
 
   @service
   private worker!: any;
@@ -292,7 +294,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const apps = (await Promise.all(promises)) as ApplicationObject3D[];
 
     const baseParams = {
-      font: this.fontRepo.font,
+      font: useFontRepositoryStore.getState().font,
     };
     const rootParents = visualizeK8sLandscape(
       this.landscapeData.structureLandscapeData.k8sNodes,
@@ -344,7 +346,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Apply serialized room data from collaboration service if it seems up-to-date
     if (
       serializedRoom &&
-      serializedRoom.openApps.length >= this.applicationRepo.applications.size
+      serializedRoom.openApps.length >=
+        useApplicationRepositoryStore.getState().applications.size
     ) {
       this.applicationRenderer.restoreFromSerialization(serializedRoom);
       this.detachedMenuRenderer.restore(
@@ -359,7 +362,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
       for (let i = 0; i < openApplicationsIds.length; ++i) {
         const applicationId = openApplicationsIds[i];
-        const applicationData = this.applicationRepo.getById(applicationId);
+        const applicationData = useApplicationRepositoryStore
+          .getState()
+          .getById(applicationId);
         if (!applicationData) {
           this.applicationRenderer.removeApplicationLocallyById(applicationId);
         }
@@ -410,7 +415,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       const results = (await all([cityLayout, flatData])) as any[];
 
-      let applicationData = this.applicationRepo.getById(application.id);
+      let applicationData = useApplicationRepositoryStore
+        .getState()
+        .getById(application.id);
       if (applicationData) {
         applicationData.updateApplication(application, results[0], results[1]);
       } else {

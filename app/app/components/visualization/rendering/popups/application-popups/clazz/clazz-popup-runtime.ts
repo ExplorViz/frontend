@@ -2,7 +2,8 @@ import Component from '@glimmer/component';
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { inject as service } from '@ember/service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface Args {
@@ -18,8 +19,8 @@ type AllMetricScoresObject = {
 };
 
 export default class ClazzPopup extends Component<Args> {
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   @service('heatmap/heatmap-configuration')
   heatmapConf!: HeatmapConfiguration;
@@ -32,8 +33,11 @@ export default class ClazzPopup extends Component<Args> {
   }
 
   get applicationMetricsForEncompassingApplication() {
-    return this.applicationRepo.getById(this.args.applicationId)
-      ?.applicationMetrics;
+    return useApplicationRepositoryStore
+      .getState()
+      .getById(this.args.applicationId)?.applicationMetrics;
+    // return this.applicationRepo.getById(this.args.applicationId)
+    //   ?.applicationMetrics;
   }
 
   get allMetrics() {

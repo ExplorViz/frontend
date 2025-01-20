@@ -14,8 +14,9 @@ import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation
 import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event'; // TODO: Add this to the react-lib
 import { Object3DEventMap } from 'three';
 
 export enum IDEApiDest {
@@ -85,8 +86,8 @@ export default class IdeCrossCommunication {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   handleDoubleClickOnMesh: (meshID: string) => void;
   lookAtMesh: (meshID: string) => void;
@@ -176,9 +177,12 @@ export default class IdeCrossCommunication {
     openApplications.forEach((element) => {
       const application = element;
 
-      const applicationData = this.applicationRepo.getById(
-        application.getModelId()
-      );
+      const applicationData = useApplicationRepositoryStore
+        .getState()
+        .getById(application.getModelId());
+      // const applicationData = this.applicationRepo.getById(
+      //   application.getModelId()
+      // );
 
       const classCommunications = applicationData?.classCommunications;
 

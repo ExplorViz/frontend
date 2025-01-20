@@ -2,7 +2,8 @@ import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
 import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import {
   ApplicationMetricsCode,
   ClassMetricCode,
@@ -22,8 +23,8 @@ export default class ClazzPopup extends Component<Args> {
   @service('repos/evolution-data-repository')
   evolutionDataRepository!: EvolutionDataRepository;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   // @service('commit-tree-state')
   // commitTreeStateService!: CommitTreeStateService;
@@ -120,8 +121,8 @@ export default class ClazzPopup extends Component<Args> {
     if (!appId?.length) {
       return undefined;
     }
-
-    const appData = this.applicationRepo.getById(appId);
+    const appData = useApplicationRepositoryStore.getState().getById(appId);
+    // const appData = this.applicationRepo.getById(appId);
 
     if (!appData) {
       return undefined;
