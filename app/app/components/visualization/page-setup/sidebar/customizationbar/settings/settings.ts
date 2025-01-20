@@ -16,7 +16,9 @@ import MessageSender from 'explorviz-frontend/services/collaboration/message-sen
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import PopupData from '../../../../rendering/popups/popup-data';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
-import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+// import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
+
 import { Mesh } from 'three';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
@@ -49,8 +51,8 @@ export default class Settings extends Component<Args> {
   @service('collaboration/room-serializer')
   private roomSerializer!: RoomSerializer;
 
-  @service('repos/scene-repository')
-  sceneRepo!: SceneRepository;
+  // @service('repos/scene-repository')
+  // sceneRepo!: SceneRepository;
 
   @service('toast-handler')
   private toastHandlerService!: ToastHandlerService;
@@ -227,7 +229,7 @@ export default class Settings extends Component<Args> {
       }
     }
 
-    const scene = this.sceneRepo.getScene();
+    const scene = useSceneRepositoryStore.getState().getScene('browser', false);
     const directionalLight = scene.getObjectByName('DirectionalLight');
     const spotLight = scene.getObjectByName('SpotLight');
 

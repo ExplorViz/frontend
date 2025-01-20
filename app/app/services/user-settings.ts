@@ -20,7 +20,8 @@ import {
 } from 'react-lib/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import SceneRepository from './repos/scene-repository';
+// import SceneRepository from './repos/scene-repository';
+import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import HighlightingService from './highlighting-service';
 import ApplicationRenderer from './application-renderer';
@@ -39,8 +40,8 @@ export default class UserSettings extends Service {
   @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('repos/scene-repository')
-  sceneRepo!: SceneRepository;
+  // @service('repos/scene-repository')
+  // sceneRepo!: SceneRepository;
 
   @service('collaboration/message-sender')
   private sender!: MessageSender;
@@ -187,7 +188,10 @@ export default class UserSettings extends Service {
       }
     }
 
-    updateColors(this.sceneRepo.getScene(), this.applicationColors);
+    updateColors(
+      useSceneRepositoryStore.getState().getScene('browser', false),
+      this.applicationColors
+    );
   }
 
   setColorsFromSettings() {

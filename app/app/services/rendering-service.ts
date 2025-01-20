@@ -172,7 +172,6 @@ export default class RenderingService extends Service {
   //   useRenderingServiceStore.setState({ _landscapeData: newLandscapeData });
   // }
 
-
   // get landscapeData() {
   //   return useRenderingServiceStore.getState()._landscapeData;
   // }

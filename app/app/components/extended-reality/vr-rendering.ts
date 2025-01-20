@@ -58,7 +58,9 @@ import OpenEntityButton from 'explorviz-frontend/utils/extended-reality/view-obj
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import DisconnectButton from 'explorviz-frontend/utils/extended-reality/view-objects/vr/disconnect-button';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+// import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
+
 import gsap from 'gsap';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
@@ -148,8 +150,8 @@ export default class VrRendering extends Component<Args> {
   @service('link-renderer')
   linkRenderer!: LinkRenderer;
 
-  @service('repos/scene-repository')
-  sceneRepo!: SceneRepository;
+  // @service('repos/scene-repository')
+  // sceneRepo!: SceneRepository;
 
   // #endregion SERVICES
 
@@ -197,7 +199,7 @@ export default class VrRendering extends Component<Args> {
   constructor(owner: any, args: Args) {
     super(owner, args);
 
-    this.scene = this.sceneRepo.getScene('vr', true);
+    this.scene = useSceneRepositoryStore.getState().getScene('vr', true);
     this.scene.background = this.userSettings.applicationColors.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(

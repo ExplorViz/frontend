@@ -39,7 +39,8 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
-import SceneRepository from './repos/scene-repository';
+// import SceneRepository from './repos/scene-repository'; Not being used
+// import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import EvolutionDataRepository from './repos/evolution-data-repository';
 import { CommitComparison } from 'react-lib/src/utils/evolution-schemes/evolution-data';
@@ -89,8 +90,8 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('repos/scene-repository')
-  sceneRepo!: SceneRepository;
+  // @service('repos/scene-repository')
+  // sceneRepo!: SceneRepository;
 
   @service('texture-service')
   private textureService!: TextureService;

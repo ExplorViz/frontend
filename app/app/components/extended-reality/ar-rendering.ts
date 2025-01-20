@@ -14,7 +14,8 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+// import SceneRepository from 'react-lib/src/stores/repos/scene-repository';
+import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
@@ -66,8 +67,8 @@ export default class ArRendering extends Component<Args> {
   @service('extended-reality/ar-settings')
   private arSettings!: ArSettings;
 
-  @service('repos/scene-repository')
-  private sceneRepo!: SceneRepository;
+  // @service('repos/scene-repository')
+  // private sceneRepo!: SceneRepository;
 
   @service('collaboration/message-sender')
   private sender!: MessageSender;
@@ -168,7 +169,7 @@ export default class ArRendering extends Component<Args> {
     super(owner, args);
     this.debug('Constructor called');
 
-    this.scene = this.sceneRepo.getScene('ar', true);
+    this.scene = useSceneRepositoryStore.getState().getScene('ar', true);
     this.scene.background = null;
 
     this.applicationRenderer.getOpenApplications().clear();

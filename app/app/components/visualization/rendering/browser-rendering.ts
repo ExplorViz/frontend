@@ -43,7 +43,8 @@ import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'react-lib/src/utils/application-rendering/highlighting';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+// import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
+import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
@@ -103,8 +104,8 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
-  @service('repos/scene-repository')
-  sceneRepo!: SceneRepository;
+  // @service('repos/scene-repository')
+  // sceneRepo!: SceneRepository;
 
   @service('minimap-service')
   minimapService!: MinimapService;
@@ -179,7 +180,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     super(owner, args);
 
     // Scene
-    this.scene = this.sceneRepo.getScene('browser', true);
+    this.scene = useSceneRepositoryStore.getState().getScene('browser', true);
     this.scene.background =
       this.userSettings.applicationColors!.backgroundColor;
 
