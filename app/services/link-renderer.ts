@@ -69,7 +69,6 @@ export default class LinkRenderer extends Service.extend({}) {
 
     // line.visible = true;
     const landscapeGroup = sourceApp.parent!;
-    console.log('Landscape Group:', landscapeGroup);
 
     const sourceClass = findFirstOpen(
       sourceApp,

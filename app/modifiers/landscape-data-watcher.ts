@@ -29,9 +29,9 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import layoutCity, {
+import layoutLandscape, {
   convertElkToBoxLayout,
-} from 'explorviz-frontend/utils/city-layouter';
+} from 'explorviz-frontend/utils/elk-layouter';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
@@ -39,7 +39,6 @@ import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
-import layoutLandscape from 'explorviz-frontend/utils/landscape-layouter';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -135,15 +134,17 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.debug('Update Visualization');
 
     // Init computation of layout for applications
-    const graphLayoutMap = new Map();
+    const test: Application[] = [];
     const { nodes /*, k8sNodes*/ } = this.structureLandscapeData;
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
-        const application = node.applications[j];
-        graphLayoutMap.set(application.id, layoutCity(application));
+        test.push(node.applications[j]);
       }
     }
+
+    const graphLayoutMap = await layoutLandscape(test);
+    console.log('Graph layout map:', graphLayoutMap);
 
     // ToDo: This can take quite some time. Optimize.
     let classCommunications = computeClassCommunication(
@@ -244,20 +245,22 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         convertElkToBoxLayout(await graphLayoutMap.get(k8sApp.app.id))
       );
 
-      const app =
+      const app3D =
         await this.applicationRenderer.addApplicationTask.perform(
           applicationData
         );
 
-      if (!app.foundationMesh) {
+      if (!app3D.foundationMesh) {
         console.error('No foundation mesh, this should not happen');
         return;
       }
 
-      return app;
+      return app3D;
     });
 
-    const apps = (await Promise.all(k8sAppPromises)) as ApplicationObject3D[];
+    const k8sApp3Ds = (await Promise.all(
+      k8sAppPromises
+    )) as ApplicationObject3D[];
 
     const baseParams = {
       font: this.fontRepo.font,
@@ -267,7 +270,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       this.landscapeData.structureLandscapeData.k8sNodes,
       baseParams,
       (app) => {
-        return apps.find(
+        return k8sApp3Ds.find(
           (a) => a.dataModel.application.id === app.id
         ) as ApplicationObject3D;
       }
@@ -304,10 +307,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     //   links: [...communicationLinks, ...nodeLinks],
     // };
 
-    const applications = this.applicationRenderer.getOpenApplications();
-    await layoutLandscape(applications);
+    const app3Ds = this.applicationRenderer.getOpenApplications();
+    // await layoutLandscape(app3Ds);
 
-    applications.forEach((application3D) => {
+    app3Ds.forEach((application3D) => {
       landscape3D.add(application3D);
     });
 

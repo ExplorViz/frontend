@@ -13,6 +13,7 @@ import {
 } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
+  Application,
   Class,
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
@@ -50,9 +51,9 @@ import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schem
 import TextureService from './texture-service';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
-import layoutCity, {
+import layoutLandscape, {
   convertElkToBoxLayout,
-} from 'explorviz-frontend/utils/city-layouter';
+} from 'explorviz-frontend/utils/elk-layouter';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 // #endregion imports
 
@@ -236,38 +237,35 @@ export default class ApplicationRenderer extends Service.extend() {
       const applicationModel = applicationData.application;
       const boxLayoutMap = applicationData.boxLayoutMap;
       const isOpen = this.isApplicationOpen(applicationModel.id);
-      let applicationObject3D = this.getApplicationById(applicationModel.id);
+      let app3D = this.getApplicationById(applicationModel.id);
 
       let addedClasses = true;
-      if (applicationObject3D) {
+      if (app3D) {
         // Check if new classes have been discovered
-        addedClasses =
-          boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
+        addedClasses = boxLayoutMap.size !== app3D.boxLayoutMap.size;
       } else {
-        applicationObject3D = new VrApplicationObject3D(applicationData);
-        this._openApplicationsMap.set(applicationModel.id, applicationObject3D);
+        app3D = new VrApplicationObject3D(applicationData);
+        this._openApplicationsMap.set(applicationModel.id, app3D);
       }
 
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 && isOpen && addedClasses
-          ? this.roomSerializer.serializeToAddApplicationArgs(
-              applicationObject3D
-            )
+          ? this.roomSerializer.serializeToAddApplicationArgs(app3D)
           : addApplicationArgs;
 
       if (addedClasses) {
-        applicationObject3D.removeAllEntities();
+        app3D.removeAllEntities();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
-          applicationObject3D,
+          app3D,
           this.userSettings.colors,
           this.font
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
         EntityManipulation.restoreComponentState(
-          applicationObject3D,
+          app3D,
           applicationState.openComponents,
           applicationState.transparentComponents,
           this.highlightingService.opacity
@@ -275,19 +273,19 @@ export default class ApplicationRenderer extends Service.extend() {
 
         // Add labels to application
         Labeler.addApplicationLabels(
-          applicationObject3D,
+          app3D,
           this.font,
           this.userSettings.colors
         );
       } else {
         // Layout may have been changed in settings
-        applicationObject3D.updateLayout();
+        app3D.updateLayout();
       }
 
-      this.addCommunication(applicationObject3D);
+      this.addCommunication(app3D);
 
       // reset transparency of inner communication links
-      applicationObject3D.getCommMeshes().forEach((commMesh) => {
+      app3D.getCommMeshes().forEach((commMesh) => {
         if (applicationState.transparentComponents?.has(commMesh.getModelId()))
           commMesh.turnTransparent(this.highlightingService.opacity);
       });
@@ -337,9 +335,18 @@ export default class ApplicationRenderer extends Service.extend() {
         this.removeCommitComparisonVisualization(applicationData);
       }
 
-      applicationObject3D.resetRotation();
+      app3D.resetRotation();
 
-      return applicationObject3D;
+      const appLayout = boxLayoutMap.get(applicationData.getId());
+      if (appLayout) {
+        app3D.position.set(
+          appLayout.positionX,
+          appLayout.positionY,
+          appLayout.positionZ
+        );
+      }
+
+      return app3D;
     }
   );
 
@@ -613,25 +620,21 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   async updateApplicationLayout() {
-    const elkPromises: any[] = [];
+    const apps: Application[] = [];
 
-    // Compute layout asynchronously
-    this.openApplications.forEach((application) => {
-      elkPromises.push(layoutCity(application.dataModel.application));
+    this.openApplications.forEach((app3D) => {
+      apps.push(app3D.dataModel.application);
     });
-    const layoutGraphs = await Promise.all(elkPromises);
+
+    const graphLayoutMap = await layoutLandscape(apps);
 
     // Apply layout to each application
-    layoutGraphs.forEach((graph) => {
-      const boxLayoutMap = convertElkToBoxLayout(graph);
+    this.openApplications.forEach((app3D) => {
+      const elkAppGraph = graphLayoutMap.get(app3D.getModelId());
+      const boxLayoutMap = convertElkToBoxLayout(elkAppGraph);
 
-      // Ids in ELK must not start with numbers, therefore we added 5 letters
-      const application = this.getApplicationById(graph.id.substring(5));
-
-      if (!application) return;
-
-      application.dataModel.boxLayoutMap = boxLayoutMap;
-      application.updateLayout();
+      app3D.dataModel.boxLayoutMap = boxLayoutMap;
+      app3D.updateLayout();
     });
 
     // Update communication since position of classes may have changed

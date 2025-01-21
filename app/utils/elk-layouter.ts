@@ -3,6 +3,11 @@ import { Application, Package } from './landscape-schemes/structure-data';
 import { getStoredNumberSetting } from './settings/local-storage-settings';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
+// We rely on prefixes having the same length
+const APP_PREFIX = 'applc';
+const PACKAGE_PREFIX = 'packg';
+const CLASS_PREFIX = 'class';
+
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
 let CLASS_MARGIN: number;
@@ -12,7 +17,7 @@ let PACKAGE_LABEL_MARGIN: number;
 let PACKAGE_MARGIN: number;
 let COMPONENT_HEIGHT: number;
 
-export default async function layoutCity(application: Application) {
+export default async function layoutLandscape(applications: Application[]) {
   const elk = new ELK();
 
   ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
@@ -24,8 +29,33 @@ export default async function layoutCity(application: Application) {
   PACKAGE_MARGIN = getStoredNumberSetting('packageMargin');
   COMPONENT_HEIGHT = getStoredNumberSetting('openedComponentHeight');
 
-  const graph = {
-    id: 'applc' + application.id,
+  // Initialize landscape graph
+  const landscapeGraph: any = {
+    id: 'landscape',
+    children: [],
+    edges: [],
+    layoutOptions: {
+      algorithm: 'force',
+      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
+    },
+  };
+
+  // Add applications
+  applications.forEach((app) => {
+    const appGraph = createApplicationGraph(app);
+    landscapeGraph.children.push(appGraph);
+  });
+
+  // Add edges for force layout between applications
+
+  const layoutedGraph = await elk.layout(landscapeGraph);
+
+  return convertToGraphLayoutMap(layoutedGraph);
+}
+
+function createApplicationGraph(application: Application) {
+  const appGraph = {
+    id: APP_PREFIX + application.id,
     children: [],
     layoutOptions: {
       aspectRatio: ASPECT_RATIO.toString(),
@@ -33,16 +63,15 @@ export default async function layoutCity(application: Application) {
       'elk.padding': `[top=${APP_MARGIN},left=${APP_LABEL_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
     },
   };
+  populateAppGraph(appGraph, application);
 
-  populateGraph(application, graph);
-
-  return elk.layout(graph);
+  return appGraph;
 }
 
-function populateGraph(application: Application, graph: any) {
+function populateAppGraph(appGraph: any, application: Application) {
   application.packages.forEach((component) => {
-    const node = {
-      id: 'packg' + component.id,
+    const packageGraph = {
+      id: PACKAGE_PREFIX + component.id,
       children: [],
       layoutOptions: {
         algorithm: 'rectpacking',
@@ -51,26 +80,26 @@ function populateGraph(application: Application, graph: any) {
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
-    graph.children.push(node);
+    appGraph.children.push(packageGraph);
 
-    populatePackage(component, node.children);
+    populatePackage(packageGraph.children, component);
   });
 }
 
-function populatePackage(component: Package, children: any[]) {
+function populatePackage(packageGraphChildren: any[], component: Package) {
   component.classes.forEach((clazz) => {
     const node = {
-      id: 'class' + clazz.id,
+      id: CLASS_PREFIX + clazz.id,
       children: [],
       width: CLASS_FOOTPRINT,
       height: CLASS_FOOTPRINT,
     };
-    children.push(node);
+    packageGraphChildren.push(node);
   });
 
   component.subPackages.forEach((subPackage) => {
     const node = {
-      id: 'packg' + subPackage.id,
+      id: PACKAGE_PREFIX + subPackage.id,
       children: [],
       layoutOptions: {
         algorithm: 'rectpacking',
@@ -79,10 +108,10 @@ function populatePackage(component: Package, children: any[]) {
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
-    children.push(node);
+    packageGraphChildren.push(node);
 
     if (subPackage.subPackages.length > 0 || subPackage.classes.length > 0) {
-      populatePackage(subPackage, node.children);
+      populatePackage(node.children, subPackage);
     }
   });
 }
@@ -110,7 +139,7 @@ export function convertElkToBoxLayout(
   boxLayout.depth = elkGraph.height! * SCALAR;
 
   // Ids in ELK must not start with numbers, therefore we added 5 letters
-  layoutMap.set(elkGraph.id.substring(5), boxLayout);
+  layoutMap.set(elkGraph.id.substring(APP_PREFIX.length), boxLayout);
 
   elkGraph.children?.forEach((child: any) => {
     convertElkToBoxLayout(
@@ -123,4 +152,14 @@ export function convertElkToBoxLayout(
   });
 
   return layoutMap;
+}
+
+export function convertToGraphLayoutMap(layoutedGraph: any) {
+  const graphLayoutMap = new Map();
+  for (let index = 0; index < layoutedGraph.children.length; index++) {
+    const appGraph = layoutedGraph.children[index];
+    const appId = appGraph.id.substring(APP_PREFIX.length);
+    graphLayoutMap.set(appId, appGraph);
+  }
+  return graphLayoutMap;
 }
