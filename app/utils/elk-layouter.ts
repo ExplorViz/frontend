@@ -47,6 +47,7 @@ export default async function layoutLandscape(applications: Application[]) {
   });
 
   // Add edges for force layout between applications
+  addEdges(landscapeGraph, applications);
 
   const layoutedGraph = await elk.layout(landscapeGraph);
 
@@ -113,6 +114,18 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
     if (subPackage.subPackages.length > 0 || subPackage.classes.length > 0) {
       populatePackage(node.children, subPackage);
     }
+  });
+}
+
+function addEdges(landscapeGraph: any, applications: Application[]) {
+  applications.forEach((sourceApp) => {
+    applications.forEach((targetApp) => {
+      landscapeGraph.edges.push({
+        id: `eFrom${sourceApp.id}to${targetApp.id}`,
+        sources: [`${APP_PREFIX}${sourceApp.id}`],
+        targets: [`${APP_PREFIX}${targetApp.id}`],
+      });
+    });
   });
 }
 

@@ -134,16 +134,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     this.debug('Update Visualization');
 
     // Init computation of layout for applications
-    const test: Application[] = [];
+    const applications: Application[] = [];
     const { nodes /*, k8sNodes*/ } = this.structureLandscapeData;
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
-        test.push(node.applications[j]);
+        applications.push(node.applications[j]);
       }
     }
 
-    const graphLayoutMap = await layoutLandscape(test);
+    const graphLayoutMap = await layoutLandscape(applications);
     console.log('Graph layout map:', graphLayoutMap);
 
     // ToDo: This can take quite some time. Optimize.
@@ -184,32 +184,25 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     //   }
     //   return appears;
     // });
-    for (let i = 0; i < nodes.length; ++i) {
-      const node = nodes[i];
-      for (let j = 0; j < node.applications.length; ++j) {
-        const application = node.applications[j];
-        const boxLayout = convertElkToBoxLayout(
-          await graphLayoutMap.get(application.id)
-        );
 
-        const applicationData = await this.updateApplicationData.perform(
-          application,
-          null,
-          classCommunications,
-          boxLayout
-        );
+    for (let i = 0; i < applications.length; ++i) {
+      const application = applications[i];
+      const boxLayout = convertElkToBoxLayout(
+        await graphLayoutMap.get(application.id)
+      );
 
-        // create or update applicationObject3D
-        const app =
-          await this.applicationRenderer.addApplicationTask.perform(
-            applicationData
-          );
+      const applicationData = await this.updateApplicationData.perform(
+        application,
+        null,
+        classCommunications,
+        boxLayout
+      );
 
-        if (!app.foundationMesh) {
-          console.error('No foundation mesh, this should not happen');
-          return;
-        }
-      }
+      // Create or update applicationObject3D
+
+      await this.applicationRenderer.addApplicationTask.perform(
+        applicationData
+      );
     }
 
     const k8sApps = this.landscapeData.structureLandscapeData.k8sNodes.flatMap(
@@ -308,7 +301,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // };
 
     const app3Ds = this.applicationRenderer.getOpenApplications();
-    // await layoutLandscape(app3Ds);
 
     app3Ds.forEach((application3D) => {
       landscape3D.add(application3D);

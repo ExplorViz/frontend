@@ -335,8 +335,6 @@ export default class ApplicationRenderer extends Service.extend() {
         this.removeCommitComparisonVisualization(applicationData);
       }
 
-      app3D.resetRotation();
-
       const appLayout = boxLayoutMap.get(applicationData.getId());
       if (appLayout) {
         app3D.position.set(

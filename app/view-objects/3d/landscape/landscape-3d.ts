@@ -8,6 +8,9 @@ export default class Landscape3D
   constructor() {
     super();
     this.scale.set(0.01, 0.01, 0.01);
+
+    // Align rotation with axes of three.js
+    // this.rotation.y = 90 * THREE.MathUtils.DEG2RAD;
   }
 
   getGrabId() {

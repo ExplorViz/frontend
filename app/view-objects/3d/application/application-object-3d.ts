@@ -105,16 +105,6 @@ export default class ApplicationObject3D
   }
 
   /**
-   * Resets this object's rotation to default
-   * (x = 0.65, y = 0.80)
-   */
-  resetRotation() {
-    this.rotation.x = -90 * THREE.MathUtils.DEG2RAD;
-    this.rotation.y = 90 * THREE.MathUtils.DEG2RAD;
-    this.rotation.z = 90 * THREE.MathUtils.DEG2RAD;
-  }
-
-  /**
    * Adds object as child of this object.
    * Furthermore, application related meshes are stored inside
    * one of the class's maps or set for easier future access.
