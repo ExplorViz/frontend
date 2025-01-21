@@ -35,7 +35,7 @@ import {
   MenuDetachedMessage,
 } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import * as THREE from 'three';
-import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 export default class PopupHandler {
   @service('application-renderer')
@@ -93,7 +93,7 @@ export default class PopupHandler {
 
     const { mesh } = popup;
     const entityId = mesh.getModelId();
-    const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
+    const worldPosition = this.applicationRenderer.getPositionInLandscape(mesh);
     worldPosition.y += 0.3;
 
     this.webSocket.sendRespondableMessage<
@@ -236,7 +236,7 @@ export default class PopupHandler {
       entity: mesh.dataModel,
       mesh,
       applicationId: (
-        mesh.parent as ApplicationObject3D | LandscapeGroup
+        mesh.parent as ApplicationObject3D | Landscape3D
       ).getModelId(),
       menuId: menuId || null,
       isPinned: pinned || false,

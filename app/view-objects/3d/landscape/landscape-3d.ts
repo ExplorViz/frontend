@@ -1,7 +1,7 @@
 import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import * as THREE from 'three';
 
-export default class LandscapeGroup
+export default class Landscape3D
   extends THREE.Group
   implements GrabbableObject
 {

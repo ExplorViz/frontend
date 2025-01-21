@@ -53,7 +53,7 @@ import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersiv
 import layoutCity, {
   convertElkToBoxLayout,
 } from 'explorviz-frontend/utils/city-layouter';
-import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -102,7 +102,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   //#region Fields
 
-  private _forceGraph!: LandscapeGroup;
+  private _landscape3D!: Landscape3D;
 
   private _openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -139,12 +139,12 @@ export default class ApplicationRenderer extends Service.extend() {
 
   // #region Get / Set
 
-  get forceGraph() {
-    return this._forceGraph;
+  get landscape3D() {
+    return this._landscape3D;
   }
 
-  set forceGraph(newForceGraph: LandscapeGroup) {
-    this._forceGraph = newForceGraph;
+  set landscape3D(newLandscape3D: Landscape3D) {
+    this._landscape3D = newLandscape3D;
   }
 
   get appSettings() {
@@ -190,11 +190,11 @@ export default class ApplicationRenderer extends Service.extend() {
     return applicationData?.classCommunications || [];
   }
 
-  getGraphPosition(mesh: THREE.Object3D) {
-    const worldPosition = new THREE.Vector3();
-    mesh.getWorldPosition(worldPosition);
-    this._forceGraph.worldToLocal(worldPosition);
-    return worldPosition;
+  getPositionInLandscape(mesh: THREE.Object3D) {
+    const landscapePosition = new THREE.Vector3();
+    mesh.getWorldPosition(landscapePosition);
+    this._landscape3D.worldToLocal(landscapePosition);
+    return landscapePosition;
   }
 
   getMeshById(meshId: string): BaseMesh | undefined {

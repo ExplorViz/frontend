@@ -34,7 +34,7 @@ import {
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
-import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -113,7 +113,7 @@ export default class ArRendering extends Component<Args> {
   scene: THREE.Scene;
 
   @tracked
-  readonly graph: LandscapeGroup;
+  readonly landscape3D: Landscape3D;
 
   private renderer!: THREE.WebGLRenderer;
 
@@ -172,14 +172,14 @@ export default class ArRendering extends Component<Args> {
     this.scene.background = null;
 
     this.applicationRenderer.getOpenApplications().clear();
-    this.graph = new LandscapeGroup();
-    this.scene.add(this.graph);
+    this.landscape3D = new Landscape3D();
+    this.scene.add(this.landscape3D);
     this.updatables.push(this.localUser);
 
     document.addEventListener('contextmenu', (event) => event.preventDefault());
 
     this.popupHandler = new PopupHandler(getOwner(this));
-    this.applicationRenderer.forceGraph = this.graph;
+    this.applicationRenderer.landscape3D = this.landscape3D;
   }
 
   get camera() {
@@ -272,32 +272,32 @@ export default class ArRendering extends Component<Args> {
 
   @action
   handlePinching(_intersection: THREE.Intersection, delta: number) {
-    this.graph.scale.multiplyScalar(delta);
+    this.landscape3D.scale.multiplyScalar(delta);
   }
 
   @action
   handleRotate(_intersection: THREE.Intersection, delta: number) {
-    this.graph.rotateY(delta);
+    this.landscape3D.rotateY(delta);
   }
 
   @action
   increaseSize() {
-    this.graph.scale.multiplyScalar(1.1);
+    this.landscape3D.scale.multiplyScalar(1.1);
   }
 
   @action
   decreaseSize() {
-    this.graph.scale.multiplyScalar(0.9);
+    this.landscape3D.scale.multiplyScalar(0.9);
   }
 
   @action
   rotateLeft() {
-    this.graph.rotateY((12.5 * Math.PI) / 180);
+    this.landscape3D.rotateY((12.5 * Math.PI) / 180);
   }
 
   @action
   rotateRight() {
-    this.graph.rotateY((-12.5 * Math.PI) / 180);
+    this.landscape3D.rotateY((-12.5 * Math.PI) / 180);
   }
 
   @action
@@ -422,8 +422,8 @@ export default class ArRendering extends Component<Args> {
 
   @action
   resetView() {
-    this.graph.scale.setScalar(0.02);
-    this.graph.visible = false;
+    this.landscape3D.scale.setScalar(0.02);
+    this.landscape3D.visible = false;
   }
 
   @action
@@ -437,8 +437,8 @@ export default class ArRendering extends Component<Args> {
     const intersection = this.raycastCenter();
     if (intersection) {
       this.handlePrimaryInputOn(intersection);
-    } else if (this.reticle.visible && !this.graph.visible) {
-      const mesh = this.graph;
+    } else if (this.reticle.visible && !this.landscape3D.visible) {
+      const mesh = this.landscape3D;
       this.reticle.matrix.decompose(
         mesh.position,
         mesh.quaternion,
@@ -640,7 +640,7 @@ export default class ArRendering extends Component<Args> {
     }
 
     if (this.renderer.xr.enabled) {
-      if (!this.graph.visible || this.reticle.visible) {
+      if (!this.landscape3D.visible || this.reticle.visible) {
         hitTest(this.renderer, this.reticle, frame);
       }
     }

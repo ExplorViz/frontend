@@ -91,7 +91,7 @@ import { JOIN_VR_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-
 import { MENU_DETACHED_EVENT } from 'explorviz-frontend/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
-import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 interface Args {
   readonly id: string;
@@ -190,7 +190,7 @@ export default class VrRendering extends Component<Args> {
   scene: THREE.Scene;
 
   @tracked
-  readonly graph: LandscapeGroup;
+  readonly landscape3D: Landscape3D;
 
   // #endregion CLASS FIELDS
   //
@@ -213,8 +213,8 @@ export default class VrRendering extends Component<Args> {
 
     this.applicationRenderer.getOpenApplications().clear();
 
-    this.graph = new LandscapeGroup();
-    this.scene.add(this.graph);
+    this.landscape3D = new Landscape3D();
+    this.scene.add(this.landscape3D);
     this.updatables.push(this.localUser);
 
     this.menuFactory.scene = this.scene;
@@ -1193,7 +1193,7 @@ export default class VrRendering extends Component<Args> {
     const x = new THREE.Vector3();
     x.fromArray(position);
     x.y += 15;
-    this.graph.localToWorld(x);
+    this.landscape3D.localToWorld(x);
     this.detachedMenuRenderer.restoreDetachedMenu({
       objectId,
       entityType,

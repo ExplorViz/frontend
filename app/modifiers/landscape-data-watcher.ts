@@ -38,12 +38,12 @@ import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 // import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
-import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 import layoutLandscape from 'explorviz-frontend/utils/landscape-layouter';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
-  readonly graph: LandscapeGroup;
+  readonly landscape3D: Landscape3D;
 }
 
 interface Args {
@@ -101,7 +101,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   private landscapeData!: LandscapeData;
 
-  private graph: LandscapeGroup | undefined;
+  private landscape3D: Landscape3D | undefined;
 
   get structureLandscapeData(): StructureLandscapeData | null {
     return this.landscapeData?.structureLandscapeData;
@@ -114,16 +114,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   async modify(
     _element: any,
     _positionalArgs: any[],
-    { landscapeData, graph }: any
+    { landscapeData, landscape3D }: any
   ) {
     this.landscapeData = landscapeData;
-    this.graph = graph;
+    this.landscape3D = landscape3D;
     this.handleUpdatedLandscapeData.perform();
   }
 
   handleUpdatedLandscapeData = task({ restartable: true }, async () => {
     await Promise.resolve();
-    const landscape3D = this.graph;
+    const landscape3D = this.landscape3D;
     if (
       !this.structureLandscapeData ||
       !this.dynamicLandscapeData ||
@@ -163,11 +163,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     this.landscapeRestructure.allClassCommunications = classCommunications;
 
-    // Use the updated landscape data to calculate application metrics.
-    // This is done for all applications to have accurate heatmap data.
-
-    // let { nodes: graphNodes } = this.graph.graphData();
-
+    // TODO: Check if following code is still needed
     // const allAppsInNodes = [
     //   ...nodes.flatMap((n) => n.applications),
     //   ...k8sNodes
@@ -187,10 +183,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     //   }
     //   return appears;
     // });
-
-    // const graphNodes = allAppsInNodes;
-
-    // const nodeLinks: any[] = [];
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
@@ -212,41 +204,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
             applicationData
           );
 
-        // fix previously existing nodes to position (if present) and calculate collision size
-        // const graphNode = graphNodes.find(
-        //   (node) => node.id === applicationData.application.id
-        // ) as GraphNode;
-
         if (!app.foundationMesh) {
           console.error('No foundation mesh, this should not happen');
           return;
         }
-
-        // const { x, z } = app.foundationMesh.scale;
-        // const collisionRadius = Math.hypot(x, z) / 2 + 3;
-        // if (graphNode) {
-        //   graphNode.collisionRadius = collisionRadius;
-        //   //graphNode.fx = graphNode.x;
-        //   //graphNode.fz = graphNode.z;
-        // } else {
-        //   graphNodes.push({
-        //     id: applicationData.application.id,
-        //     fy: 0,
-        //     collisionRadius,
-        //     __threeObj: app as Object3D,
-        //   } as GraphNode);
-        // }
-
-        // create (invisible) links between apps on the same node
-        // node.applications.forEach((nodeApp) => {
-        //   if (nodeApp.id !== application.id) {
-        //     nodeLinks.push({
-        //       source: application.id,
-        //       target: nodeApp.id,
-        //       value: 1, // used for particles
-        //     });
-        //   }
-        // });
       }
     }
 
@@ -288,30 +249,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           applicationData
         );
 
-      // fix previously existing nodes to position (if present) and calculate collision size
-      // const graphNode = graphNodes.find(
-      //   (node) => node.id === applicationData.application.id
-      // ) as GraphNode;
-
       if (!app.foundationMesh) {
         console.error('No foundation mesh, this should not happen');
         return;
       }
-
-      // const { x, z } = app.foundationMesh.scale;
-      // const collisionRadius = Math.hypot(x, z) / 2 + 3;
-      // if (graphNode) {
-      //   graphNode.collisionRadius = collisionRadius;
-      //   // graphNode.fx = graphNode.x;
-      //   // graphNode.fz = graphNode.z;
-      // } else {
-      //   graphNodes.push({
-      //     id: applicationData.application.id,
-      //     x: 0, // without this property, the arrows will not be displayed
-      //     collisionRadius,
-      //     __threeObj: app as Object3D,
-      //   } as GraphNode);
-      // }
 
       return app;
     });
@@ -411,8 +352,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       this.highlightingService.updateHighlighting();
     }
 
-    // this.graph.graphData(gData);
-
+    // TODO: Check if this code is still needed
     // Send new data to ide
     // const cls: CommunicationLink[] = [];
     // communicationLinks.forEach((element) => {

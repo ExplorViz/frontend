@@ -51,7 +51,7 @@ import {
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
-import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -521,7 +521,7 @@ export default class AnnotationHandlerService extends Service {
           entity: mesh.dataModel,
           mesh,
           applicationId: (
-            mesh.parent as ApplicationObject3D | LandscapeGroup
+            mesh.parent as ApplicationObject3D | Landscape3D
           ).getModelId(),
           menuId: menuId || null,
           hovered: hovered || false,

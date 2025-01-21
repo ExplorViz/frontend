@@ -56,7 +56,7 @@ import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
-import LandscapeGroup from 'explorviz-frontend/view-objects/3d/landscape/landscape-group';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -130,7 +130,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
-  readonly graph: LandscapeGroup;
+  readonly landscape3D: Landscape3D;
 
   // Determines if landscape needs to be fully re-computed
   @tracked
@@ -202,10 +202,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.configuration.semanticZoomEnabled =
       SemanticZoomManager.instance.isEnabled;
 
-    // Force graph
-    const forceGraph = new LandscapeGroup();
-    this.graph = forceGraph;
-    this.scene.add(forceGraph);
+    // Landscape
+    this.landscape3D = new Landscape3D();
+    this.scene.add(this.landscape3D);
     this.updatables.push(this);
 
     // Spectate
@@ -222,7 +221,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     ImmersiveView.instance.callbackOnExit = () => {
       this.popupHandler.deactivated = false;
     };
-    this.applicationRenderer.forceGraph = this.graph;
+    this.applicationRenderer.landscape3D = this.landscape3D;
     // Semantic Zoom Manager shows/removes all communication arrows, due to heigh rendering time.
     // If the Semantic zoom feature is enabled, all previously generated arrows are hidden. After that
     // the manager decides on which level to show.
@@ -260,7 +259,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     SemanticZoomManager.instance.toggleAutoOpenClose(
       this.userSettings.visualizationSettings.autoOpenCloseFeature.value
     );
-    this.applicationRenderer.forceGraph = this.graph;
+    this.applicationRenderer.landscape3D = this.landscape3D;
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
@@ -499,7 +498,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // initialize minimap
     this.minimapService.initializeMinimap(
       this.scene,
-      this.graph,
+      this.landscape3D,
       this.cameraControls
     );
 
@@ -535,6 +534,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.renderingLoop.start();
 
+    // TODO: Check if some of the following code is still needed
     // this.graph.graph.onFinishUpdate(() => {
     //   if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
     //     this.debug('initdone!');
@@ -675,7 +675,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     applicationObject3D.updateMatrixWorld();
-    this.applicationRenderer.updateLinks?.();
+    // TODO: Update links (make them invisible?)
   }
 
   @action
@@ -923,7 +923,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.configuration.isCommRendered = true;
     this.popupHandler.willDestroy();
     this.annotationHandler.willDestroy();
-    // this.graph.graphData([]);
 
     this.debug('Cleaned up application rendering');
 
