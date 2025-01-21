@@ -11,13 +11,13 @@ export default class ClazzLabelMesh extends LabelMesh {
     labelText: string,
     textColor = new THREE.Color('black'),
     size: number,
-    limitletters: number = 10
+    letterLimit: number = 10
   ) {
     super(font, labelText, textColor);
 
     this.renderOrder = 1;
 
-    this.computeLabel(labelText, size, limitletters);
+    this.computeLabel(labelText, size, letterLimit);
 
     // Set label slightly transparent to avoid errors
     // due to different render order (of transparent objects)
@@ -29,13 +29,13 @@ export default class ClazzLabelMesh extends LabelMesh {
     this.saveOriginalAppearence();
     // Set Appearence on Level 1
     this.setAppearence(1, () => {
-      this.computeLabel(labelText, size - 0.1, limitletters + 5);
+      this.computeLabel(labelText, size - 0.1, letterLimit + 5);
       if (this.parent != undefined) {
         Labeler.positionClassLabel(this, this.parent);
       }
     });
     this.setAppearence(2, () => {
-      this.computeLabel(labelText, size - 0.2, limitletters + 10);
+      this.computeLabel(labelText, size - 0.2, letterLimit + 10);
       if (this.parent != undefined) {
         Labeler.positionClassLabel(this, this.parent);
       }

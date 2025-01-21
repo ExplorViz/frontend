@@ -27,38 +27,38 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
     return;
   }
 
-  const foundationOffset = label.minHeight;
-
   label.geometry.center();
+
+  const boundingBox = new THREE.Box3().setFromObject(label);
+
+  // Align text with component parent
+  label.rotation.x = -(Math.PI / 2);
 
   // Set y-position just above the box of the parent mesh
   label.position.y = boxMesh.geometry.parameters.height / 2 + 0.01;
 
-  // Align text with component parent
-  label.rotation.x = -(Math.PI / 2);
-  label.rotation.z = -(Math.PI / 2);
-
-  const xPosOfOpenedBox =
-    -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
+  const zPosOfOpenBox =
+    boxMesh.geometry.parameters.depth / 2 -
+    boundingBox.getSize(new THREE.Vector3()).y / 2;
 
   // Foundation is labeled like an opened component
   if (boxMesh instanceof FoundationMesh) {
     // Do not animate label on foundation since it is always opened
-    label.position.x = xPosOfOpenedBox;
+    label.position.z = zPosOfOpenBox;
   } else if (boxMesh.opened) {
     if (getStoredSettings().enableAnimations.value) {
       gsap.to(label.position, {
         duration: 0.25,
-        x: xPosOfOpenedBox,
+        z: zPosOfOpenBox,
       });
     } else {
-      label.position.x = xPosOfOpenedBox;
+      label.position.x = zPosOfOpenBox;
     }
   } else {
     if (getStoredSettings().enableAnimations.value) {
       gsap.to(label.position, {
         duration: 0.25,
-        x: 0,
+        z: 0,
       });
     } else {
       label.position.x = 0;
@@ -168,7 +168,7 @@ export function positionClassLabel(
   labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + 0.01;
   // Rotate text
   labelMesh.rotation.x = -(Math.PI / 2);
-  labelMesh.rotation.z = -(Math.PI / 3);
+  // labelMesh.rotation.y = -(Math.PI / 3);
 }
 
 export function createClazzTextLabelForZoomLevel(
@@ -231,7 +231,7 @@ export function addMinimapTextLabel(
 
   // Rotate text
   minimapLabelMesh.rotation.x = -(Math.PI / 2);
-  minimapLabelMesh.rotation.z = -(Math.PI / 2);
+  // minimapLabelMesh.rotation.z = -(Math.PI / 2);
 
   minimapLabelMesh.layers.set(SceneLayers.MinimapLabel);
 

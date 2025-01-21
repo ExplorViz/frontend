@@ -48,10 +48,10 @@ export default class ComponentLabelMesh extends LabelMesh {
     }
 
     const parentScale = componentMesh.scale;
-    const parentAspectRatio = parentScale.x / parentScale.z;
+    const parentAspectRatio = parentScale.z / parentScale.x;
 
     // Adjust desired text size with possible scaling
-    const textSize = (2.0 / parentScale.x) * parentAspectRatio * scalar;
+    const textSize = (2.0 / parentScale.z) * parentAspectRatio * scalar;
     // Text should look like it is written on the parent's box (no height required)
     const textHeight = 0.0;
 
@@ -80,7 +80,7 @@ export default class ComponentLabelMesh extends LabelMesh {
     }
 
     // Avoid distorted text due to parent scaling
-    this.scale.y /= componentMesh.scale.x / componentMesh.scale.z;
+    this.scale.y /= componentMesh.scale.z / componentMesh.scale.x;
 
     // Text height as percepted by the user
     const absoluteTextHeight = textDimensions.y * parentScale.x * scaleFactor;

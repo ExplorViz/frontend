@@ -61,7 +61,7 @@ function createApplicationGraph(application: Application) {
     layoutOptions: {
       aspectRatio: ASPECT_RATIO.toString(),
       algorithm: 'rectpacking',
-      'elk.padding': `[top=${APP_MARGIN},left=${APP_LABEL_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
+      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
     },
   };
   populateAppGraph(appGraph, application);
@@ -78,7 +78,7 @@ function populateAppGraph(appGraph: any, application: Application) {
         algorithm: 'rectpacking',
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
-        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
+        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
     appGraph.children.push(packageGraph);
@@ -106,7 +106,7 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
         algorithm: 'rectpacking',
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
-        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_LABEL_MARGIN},bottom=${PACKAGE_MARGIN},right=${PACKAGE_MARGIN}]`,
+        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
     packageGraphChildren.push(node);
