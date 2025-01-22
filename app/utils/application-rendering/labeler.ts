@@ -158,17 +158,18 @@ export function addClazzTextLabel(
 
 export function positionClassLabel(
   labelMesh: LabelMesh,
-  parentMesh: ClazzMesh
+  parentMesh: THREE.Mesh
 ) {
   if (!(parentMesh.geometry instanceof THREE.BoxGeometry)) return;
-
   // Set label origin to center of clazz mesh
   labelMesh.geometry.center();
+
   // Set y-position just above the clazz mesh
   labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + 0.01;
+
   // Rotate text
   labelMesh.rotation.x = -(Math.PI / 2);
-  // labelMesh.rotation.y = -(Math.PI / 3);
+  labelMesh.rotation.z = 0.3;
 }
 
 export function createClazzTextLabelForZoomLevel(

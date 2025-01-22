@@ -11,7 +11,7 @@ export default class ClazzLabelMesh extends LabelMesh {
     labelText: string,
     textColor = new THREE.Color('black'),
     size: number,
-    letterLimit: number = 10
+    letterLimit: number = 15
   ) {
     super(font, labelText, textColor);
 
@@ -21,7 +21,7 @@ export default class ClazzLabelMesh extends LabelMesh {
 
     // Set label slightly transparent to avoid errors
     // due to different render order (of transparent objects)
-    this.turnTransparent(0.99);
+    // this.turnTransparent(0.99);
 
     // Add this to the SemanticZoomManager
     SemanticZoomManager.instance.add(this);
@@ -30,13 +30,13 @@ export default class ClazzLabelMesh extends LabelMesh {
     // Set Appearence on Level 1
     this.setAppearence(1, () => {
       this.computeLabel(labelText, size - 0.1, letterLimit + 5);
-      if (this.parent != undefined) {
+      if (this.parent instanceof THREE.Mesh) {
         Labeler.positionClassLabel(this, this.parent);
       }
     });
     this.setAppearence(2, () => {
       this.computeLabel(labelText, size - 0.2, letterLimit + 10);
-      if (this.parent != undefined) {
+      if (this.parent instanceof THREE.Mesh) {
         Labeler.positionClassLabel(this, this.parent);
       }
     });
