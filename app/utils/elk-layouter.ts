@@ -35,7 +35,8 @@ export default async function layoutLandscape(applications: Application[]) {
     children: [],
     edges: [],
     layoutOptions: {
-      algorithm: 'force',
+      algorithm: 'stress',
+      desiredEdgeLength: 400,
       'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
     },
   };
@@ -48,6 +49,8 @@ export default async function layoutLandscape(applications: Application[]) {
 
   // Add edges for force layout between applications
   addEdges(landscapeGraph, applications);
+
+  console.log(landscapeGraph);
 
   const layoutedGraph = await elk.layout(landscapeGraph);
 

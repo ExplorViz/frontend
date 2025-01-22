@@ -147,13 +147,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Center landscape
     // TODO: Remove magic values
-    // const landscapeLayout = graphLayoutMap.get('landscape');
-    // if (landscapeLayout && graphLayoutMap.size > 2) {
-    //   landscape3D.position.x =
-    //     (-landscapeLayout.width * landscape3D.scale.x) / 8;
-    //   landscape3D.position.z =
-    //     (-landscapeLayout.height * landscape3D.scale.z) / 8;
-    // }
+    const landscapeLayout = graphLayoutMap.get('landscape');
+    if (landscapeLayout && graphLayoutMap.size > 2) {
+      landscape3D.position.x =
+        (-landscapeLayout.width * landscape3D.scale.x) / 8;
+      landscape3D.position.z =
+        (-landscapeLayout.height * landscape3D.scale.z) / 8;
+    }
 
     // ToDo: This can take quite some time. Optimize.
     let classCommunications = computeClassCommunication(
