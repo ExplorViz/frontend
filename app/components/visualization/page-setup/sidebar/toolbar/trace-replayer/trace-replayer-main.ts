@@ -1,8 +1,10 @@
 import Component from '@glimmer/component';
-import { action } from '@ember/object';
+import { action, computed } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
+import * as THREE from 'three';
 import {
+  DynamicLandscapeData,
   Span,
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
@@ -15,12 +17,29 @@ import {
 } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+import {
+  addMeshToApplication,
+  updateMeshVisiblity,
+} from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
+import { WebGLRenderer } from 'three';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
+import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
 
 interface Args {
   selectedTrace: Trace;
   structureData: StructureLandscapeData;
+  renderingLoop: RenderingLoop;
 
   highlightTrace(trace: Trace, traceStep: string): void;
+
+  readonly landscapeData: LandscapeData;
+
+  triggerRenderingForGivenLandscapeData(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ): void;
 }
 
 export default class TraceReplayerMain extends Component<Args> {
@@ -109,9 +128,100 @@ export default class TraceReplayerMain extends Component<Args> {
     return undefined;
   }
 
+  public minSpeed = 0.1;
+  public maxSpeed = 1.0;
+  public selectedSpeed = 0.5;
+
   @action
-  toggleAnimation() {
-    this.isReplayAnimated = !this.isReplayAnimated;
+  inputSpeed(_: any, htmlInputElement: any) {
+    const newValue = htmlInputElement.target.value;
+    if (newValue) {
+      console.log(newValue);
+      this.selectedSpeed = Number(newValue);
+    }
+  }
+
+  @action
+  changeSpeed(event: any) {
+    this.selectedSpeed = Number(event.target.value);
+  }
+
+  private delta: number = 0;
+  private steps: Span[] = [];
+
+  tick(delta: number) {
+    this.delta += delta;
+
+    if (this.delta > this.selectedSpeed) {
+      console.log('tick');
+      this.delta = 0;
+
+      if (this.steps.length > 0) {
+        let step = this.steps.pop();
+        if (step) {
+          let application = this.applicationRenderer.getApplicationById(
+            this.applicationRenderer.getOpenApplications()[0].getModelId()
+          );
+
+          if (application) {
+            const hashCodeToClassMap = getHashCodeToClassMap(
+              this.args.landscapeData.structureLandscapeData
+            );
+            let clazz = hashCodeToClassMap.get(step.methodHash);
+
+            console.log(clazz);
+            if (clazz) {
+              let span = application.getMeshById(clazz.id);
+              if (span) {
+                console.log(span.position);
+                if (this.track) {
+                  // TODO offset
+                  const position = new THREE.Vector3(0, 2, 4);
+                  this.track.position.copy(position);
+                }
+              }
+            }
+          }
+
+          this.args.highlightTrace(this.args.selectedTrace, step.spanId);
+        }
+      } else {
+        this.stop();
+      }
+    }
+  }
+
+  private track;
+
+  @action
+  start() {
+    this.isReplayAnimated = true;
+    this.steps = [...this.traceSteps];
+    this.args.renderingLoop.updatables.push(this);
+
+    let application = this.applicationRenderer.getApplicationById(
+      this.applicationRenderer.getOpenApplications()[0].getModelId()
+    );
+
+    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    const position = new THREE.Vector3(0, 1, 4);
+
+    mesh.position.copy(position);
+    this.track = mesh;
+
+    if (application) {
+      this.args.renderingLoop.scene.add(mesh);
+    }
+  }
+
+  @action
+  stop() {
+    this.isReplayAnimated = false;
+    this.steps.clear();
+    this.args.renderingLoop.updatables.removeObject(this);
   }
 
   @action
@@ -136,6 +246,8 @@ export default class TraceReplayerMain extends Component<Args> {
     }
 
     this.currentTraceStep = this.traceSteps[nextStepPosition];
+
+    console.log(this.currentTraceStep);
 
     this.args.highlightTrace(
       this.args.selectedTrace,

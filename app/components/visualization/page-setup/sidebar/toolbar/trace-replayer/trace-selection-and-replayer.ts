@@ -12,14 +12,15 @@ import {
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
+import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
 interface Args {
-  moveCameraTo(emberModel: Class | Span): void;
-
   highlightTrace(trace: Trace, traceStep: string): void;
 
   removeHighlighting(): void;
 
+  renderingLoop: RenderingLoop;
   readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
 }
@@ -40,6 +41,8 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
 
   @action
   selectTrace(trace: Trace) {
+    console.log(this.args.renderingLoop);
+
     if (trace !== this.selectedTrace) {
       this.selectedTrace = trace;
       const traceSteps = getSortedTraceSpans(trace);

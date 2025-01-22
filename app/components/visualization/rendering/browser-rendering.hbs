@@ -150,7 +150,10 @@
                     @highlightTrace={{this.highlightTrace}}
                     @removeHighlighting={{this.removeAllHighlighting}}
                     @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                    @renderingLoop={{this.renderingLoop}}
                     @structureData={{@landscapeData.structureLandscapeData}}
+                    @landscapeData={{@landscapeData}}
+                    @triggerRenderingForGivenLandscapeData={{@triggerRenderingForGivenLandscapeData}}
                   />
                 {{/if}}
               </div>
@@ -239,6 +242,7 @@
                   @highlightTrace={{this.highlightTrace}}
                   @removeHighlighting={{this.removeHighlighting}}
                   @dynamicData={{@landscapeData.dynamicLandscapeData}}
+                  @renderingLoop={{this.renderingLoop}}
                   @structureData={{@landscapeData.structureLandscapeData}}
                 />
               {{/if}}
