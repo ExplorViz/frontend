@@ -458,7 +458,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       settings.cameraNear.value,
       settings.cameraFar.value
     );
-    this.camera.position.set(5, 5, 5);
+    this.camera.position.set(1, 2, 3);
     this.scene.add(this.camera);
 
     // Add Camera to ImmersiveView manager
