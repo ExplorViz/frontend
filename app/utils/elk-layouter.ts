@@ -122,8 +122,8 @@ function addEdges(landscapeGraph: any, applications: Application[]) {
     applications.forEach((targetApp) => {
       landscapeGraph.edges.push({
         id: `eFrom${sourceApp.id}to${targetApp.id}`,
-        sources: [`${APP_PREFIX}${sourceApp.id}`],
-        targets: [`${APP_PREFIX}${targetApp.id}`],
+        sources: [APP_PREFIX + sourceApp.id],
+        targets: [APP_PREFIX + targetApp.id],
       });
     });
   });
@@ -169,6 +169,7 @@ export function convertElkToBoxLayout(
 
 export function convertToGraphLayoutMap(layoutedGraph: any) {
   const graphLayoutMap = new Map();
+  graphLayoutMap.set('landscape', layoutedGraph);
   for (let index = 0; index < layoutedGraph.children.length; index++) {
     const appGraph = layoutedGraph.children[index];
     const appId = appGraph.id.substring(APP_PREFIX.length);

@@ -203,12 +203,12 @@ export default class ApplicationObject3D
    *
    * @param id The mesh's id to lookup
    */
-  getBoxMeshbyModelId(id: string) {
+  getBoxMeshByModelId(id: string) {
     return this.modelIdToMesh.get(id);
   }
 
   getMeshById(id: string) {
-    return this.getBoxMeshbyModelId(id) || this.getCommMeshByModelId(id);
+    return this.getBoxMeshByModelId(id) || this.getCommMeshByModelId(id);
   }
 
   /**
@@ -242,7 +242,7 @@ export default class ApplicationObject3D
   }
 
   get foundationMesh() {
-    return this.getBoxMeshbyModelId(this.dataModel.getId());
+    return this.getBoxMeshByModelId(this.dataModel.getId());
   }
 
   /**
@@ -285,11 +285,11 @@ export default class ApplicationObject3D
         this,
         clazzParentPackage
       );
-      const pckgMesh = this.getBoxMeshbyModelId(pckg.id);
+      const pckgMesh = this.getBoxMeshByModelId(pckg.id);
       if (pckgMesh instanceof ComponentMesh) {
         if (pckgMesh.opened) {
           pckgMesh.dataModel.subPackages.forEach((subPckg) => {
-            const subPckgMesh = this.getBoxMeshbyModelId(subPckg.id);
+            const subPckgMesh = this.getBoxMeshByModelId(subPckg.id);
             if (
               subPckgMesh instanceof ComponentMesh &&
               subPckgMesh.material.opacity !== 1
@@ -303,7 +303,7 @@ export default class ApplicationObject3D
         }
       }
 
-      if (this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1) {
+      if (this.getBoxMeshByModelId(clazz.id)?.material.opacity !== 1) {
         transparentComponentIds.add(clazz.id);
       }
     });
@@ -472,8 +472,8 @@ export default class ApplicationObject3D
   removeAllCommunication() {
     this.getCommMeshes().forEach((mesh) => {
       SemanticZoomManager.instance.remove(mesh);
-      mesh.disposeRecursively();
       mesh.deleteFromParent();
+      mesh.disposeRecursively();
     });
     this.commIdToMesh.clear();
   }
@@ -484,8 +484,8 @@ export default class ApplicationObject3D
   removeAllEntities() {
     this.getAllMeshes().forEach((mesh) => {
       SemanticZoomManager.instance.remove(mesh);
-      mesh.disposeRecursively();
       mesh.deleteFromParent();
+      mesh.disposeRecursively();
     });
     this.resetMeshReferences();
     this.highlightedEntity = null;

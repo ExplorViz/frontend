@@ -65,7 +65,7 @@ export function updateMeshVisiblity(
     return;
   }
 
-  const parentMesh = applicationObject3D.getBoxMeshbyModelId(parent.id);
+  const parentMesh = applicationObject3D.getBoxMeshByModelId(parent.id);
   if (parentMesh instanceof ComponentMesh) {
     mesh.visible = parentMesh.opened;
   }

@@ -74,7 +74,7 @@ export default class LinkRenderer extends Service.extend({}) {
       sourceApp,
       classCommunication.sourceClass
     );
-    const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id);
+    const sourceMesh = sourceApp.getBoxMeshByModelId(sourceClass.id);
     let start = new THREE.Vector3();
     if (sourceMesh) {
       start = sourceMesh.getWorldPosition(new THREE.Vector3());
@@ -88,7 +88,7 @@ export default class LinkRenderer extends Service.extend({}) {
       targetApp,
       classCommunication.targetClass
     );
-    const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id);
+    const targetMesh = targetApp.getBoxMeshByModelId(targetClass.id);
     let end = new THREE.Vector3();
     if (targetMesh) {
       end = targetMesh.getWorldPosition(new THREE.Vector3());

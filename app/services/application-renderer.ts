@@ -170,7 +170,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   getBoxMeshByModelId(id: string) {
     for (const application of this.getOpenApplications()) {
-      const mesh = application.getBoxMeshbyModelId(id);
+      const mesh = application.getBoxMeshByModelId(id);
       if (mesh) return mesh;
     }
     return null;
@@ -355,7 +355,7 @@ export default class ApplicationRenderer extends Service.extend() {
     const appId = this.getApplicationIdByMeshId(entityId);
     const applicationObject3D = this.getApplicationById(appId!);
 
-    const boxMesh = applicationObject3D!.getBoxMeshbyModelId(entityId) as
+    const boxMesh = applicationObject3D!.getBoxMeshByModelId(entityId) as
       | ComponentMesh
       | FoundationMesh;
 

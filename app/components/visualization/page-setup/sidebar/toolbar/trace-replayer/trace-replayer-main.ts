@@ -205,7 +205,7 @@ export default class TraceReplayerMain extends Component<Args> {
         this.sourceApplication!.id
       );
 
-      const sourceClazzMesh = sourceAppObject3D!.getBoxMeshbyModelId(
+      const sourceClazzMesh = sourceAppObject3D!.getBoxMeshByModelId(
         this.sourceClass!.id
       );
 
@@ -219,7 +219,7 @@ export default class TraceReplayerMain extends Component<Args> {
         this.targetApplication!.id
       );
 
-      const targetClazzMesh = targetAppObject3D!.getBoxMeshbyModelId(
+      const targetClazzMesh = targetAppObject3D!.getBoxMeshByModelId(
         this.targetClass.id
       );
 

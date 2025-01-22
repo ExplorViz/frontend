@@ -57,7 +57,7 @@ export default function applyCommunicationLayout(
     if (!parentComponent) return component;
 
     // Check open status in corresponding component mesh
-    const parentMesh = applicationObject3D.getBoxMeshbyModelId(
+    const parentMesh = applicationObject3D.getBoxMeshByModelId(
       parentComponent.id
     );
     if (parentMesh instanceof ComponentMesh && parentMesh.opened) {
@@ -127,9 +127,9 @@ export default function applyCommunicationLayout(
 
       if (parentComponent === null) {
         // common ancestor must be the foundation
-        parentMesh = applicationObject3D.getBoxMeshbyModelId(application.id);
+        parentMesh = applicationObject3D.getBoxMeshByModelId(application.id);
       } else {
-        parentMesh = applicationObject3D.getBoxMeshbyModelId(
+        parentMesh = applicationObject3D.getBoxMeshByModelId(
           parentComponent.id
         );
       }
@@ -145,7 +145,7 @@ export default function applyCommunicationLayout(
         const targetClazz = classCommunication.targetClass;
 
         const sourceParent = sourceClazz.parent;
-        const sourceParentMesh = applicationObject3D.getBoxMeshbyModelId(
+        const sourceParentMesh = applicationObject3D.getBoxMeshByModelId(
           sourceParent.id
         );
 
@@ -162,7 +162,7 @@ export default function applyCommunicationLayout(
         }
 
         const targetParent = targetClazz.parent;
-        const targetParentMesh = applicationObject3D.getBoxMeshbyModelId(
+        const targetParentMesh = applicationObject3D.getBoxMeshByModelId(
           targetParent.id
         );
 
