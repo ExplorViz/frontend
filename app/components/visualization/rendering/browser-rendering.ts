@@ -531,53 +531,42 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.renderingLoop.start();
 
-    // TODO: Check if some of the following code is still needed
-    // this.graph.graph.onFinishUpdate(() => {
-    //   if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
-    //     this.debug('initdone!');
-    //     setTimeout(() => {
-    //       this.cameraControls.resetCameraFocusOn(
-    //         1.2,
-    //         ...this.applicationRenderer.getOpenApplications()
-    //       );
-    //       if (
-    //         SemanticZoomManager.instance.isEnabled ||
-    //         this.userSettings.visualizationSettings.semanticZoomState.value ==
-    //           true
-    //       ) {
-    //         SemanticZoomManager.instance.activate();
-    //         this.configuration.semanticZoomEnabled =
-    //           SemanticZoomManager.instance.isEnabled;
-    //       }
-    //     }, 200);
-    //     this.initDone = true;
-    //   }
-    // });
-    // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
-    // if (this.args.snapshot || this.args.snapshotReload) {
-    //   this.graph.graph.onFinishUpdate(() => {
-    //     if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
-    //       this.debug('initdone!');
-    //       setTimeout(() => {
-    //         this.applicationRenderer.getOpenApplications();
-    //       }, 200);
-    //       this.initDone = true;
-    //     }
-    //   });
-    // } else {
-    //   this.graph.graph.onFinishUpdate(() => {
-    //     if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
-    //       this.debug('initdone!');
-    //       setTimeout(() => {
-    //         this.cameraControls.resetCameraFocusOn(
-    //           1.2,
-    //           ...this.applicationRenderer.getOpenApplications()
-    //         );
-    //       }, 200);
-    //       this.initDone = true;
-    //     }
-    //   });
-    // }
+    document.addEventListener('Landscape initialized', () => {
+      if (!this.initDone && this.landscape3D.children.length > 0) {
+        this.debug('initdone!');
+        setTimeout(() => {
+          this.cameraControls.resetCameraFocusOn(1.2, [this.landscape3D]);
+          if (
+            SemanticZoomManager.instance.isEnabled ||
+            this.userSettings.visualizationSettings.semanticZoomState.value ==
+              true
+          ) {
+            SemanticZoomManager.instance.activate();
+            this.configuration.semanticZoomEnabled =
+              SemanticZoomManager.instance.isEnabled;
+          }
+        }, 200);
+        this.initDone = true;
+      }
+
+      if (this.args.snapshot || this.args.snapshotReload) {
+        if (!this.initDone && this.landscape3D.children.length > 0) {
+          this.debug('initdone!');
+          setTimeout(() => {
+            this.applicationRenderer.getOpenApplications();
+          }, 200);
+          this.initDone = true;
+        }
+      } else {
+        if (!this.initDone && this.landscape3D.children.length > 0) {
+          this.debug('initdone!');
+          setTimeout(() => {
+            this.cameraControls.resetCameraFocusOn(1.2, [this.landscape3D]);
+          }, 200);
+          this.initDone = true;
+        }
+      }
+    });
   }
 
   @action

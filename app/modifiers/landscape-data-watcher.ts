@@ -373,6 +373,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // apply new color for restructured communications in restructure mode
     this.landscapeRestructure.applyColorMappings();
+
+    document.dispatchEvent(new Event('Landscape initialized'));
   });
 
   updateApplicationData = task(
