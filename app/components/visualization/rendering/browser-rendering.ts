@@ -397,10 +397,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   async resetView() {
-    this.cameraControls.resetCameraFocusOn(
-      1.0,
-      ...this.applicationRenderer.getOpenApplications()
-    );
+    this.cameraControls.resetCameraFocusOn(1.0, [this.landscape3D]);
   }
 
   @action
