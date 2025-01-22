@@ -25,12 +25,11 @@
   <div class='range-slider--container'>
     <div style='width: 100%;'>
       <input
-        id='filtering-trace-duration'
         value={{this.selectedSpeed}}
         min={{this.minSpeed}}
         max={{this.maxSpeed}}
         type='range'
-        step='0.1'
+        step='1'
         class='form-control mr-2'
         onchange={{this.changeSpeed}}
         oninput={{fn this.inputSpeed this}}
@@ -40,6 +39,22 @@
         <span style='font-weight: bold;'>{{this.selectedSpeed}}</span>
         <span>{{this.maxSpeed}}</span>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class='mb-3'>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <input
+        value={{this.progress}}
+        min=0
+        max=100
+        type='range'
+        step='1'
+        class='form-control mr-2'
+      />
+      {{this.progress}}%
     </div>
   </div>
 </div>

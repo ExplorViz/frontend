@@ -9,7 +9,11 @@ import {
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
+import {
+  calculateDuration,
+  getSortedTraceSpans,
+  getTraceIdToSpanTree,
+} from 'explorviz-frontend/utils/trace-helpers';
 import {
   getApplicationFromClass,
   getHashCodeToClassMap,
@@ -26,6 +30,7 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import { WebGLRenderer } from 'three';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import ClazzMesh from 'explorviz-frontend/view-objects/3d/application/clazz-mesh';
+import { float } from 'three/examples/jsm/nodes/shadernode/ShaderNode';
 
 interface Args {
   selectedTrace: Trace;
@@ -35,11 +40,6 @@ interface Args {
   highlightTrace(trace: Trace, traceStep: string): void;
 
   readonly landscapeData: LandscapeData;
-
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
 }
 
 export default class TraceReplayerMain extends Component<Args> {
@@ -58,6 +58,8 @@ export default class TraceReplayerMain extends Component<Args> {
   @service('collaboration/local-user')
   localUser!: LocalUser;
 
+  private hashCodeToClassMap;
+
   constructor(owner: any, args: Args) {
     super(owner, args);
     const { selectedTrace } = this.args;
@@ -67,6 +69,8 @@ export default class TraceReplayerMain extends Component<Args> {
       const [firstStep] = this.traceSteps;
       this.currentTraceStep = firstStep;
     }
+
+    this.hashCodeToClassMap = getHashCodeToClassMap(this.args.structureData);
   }
 
   get currentTraceStepIndex() {
@@ -128,15 +132,15 @@ export default class TraceReplayerMain extends Component<Args> {
     return undefined;
   }
 
-  public minSpeed = 0.1;
-  public maxSpeed = 1.0;
-  public selectedSpeed = 0.5;
+  public minSpeed = 1;
+  public maxSpeed = 20;
+  @tracked
+  public selectedSpeed = 5;
 
   @action
   inputSpeed(_: any, htmlInputElement: any) {
     const newValue = htmlInputElement.target.value;
     if (newValue) {
-      console.log(newValue);
       this.selectedSpeed = Number(newValue);
     }
   }
@@ -149,41 +153,81 @@ export default class TraceReplayerMain extends Component<Args> {
   private delta: number = 0;
   private steps: Span[] = [];
 
+  private cloud: THREE.Mesh[] = [];
+  private curve: THREE.QuadraticBezierCurve3 | undefined = undefined;
+  private duration = 0;
+  @tracked
+  private progress = 0;
+
   tick(delta: number) {
     this.delta += delta;
 
-    if (this.delta > this.selectedSpeed) {
-      console.log('tick');
+    if (this.curve) {
+      const progress = this.delta / this.duration;
+      if (0.0 <= progress && progress <= 1.0) {
+        this.cloud[0].position.copy(this.curve.getPoint(progress));
+      }
+    }
+    this.progress = Math.ceil(
+      ((this.traceSteps.length - this.steps.length) / this.traceSteps.length) *
+        100
+    );
+
+    if (this.delta > this.duration) {
       this.delta = 0;
 
-      if (this.steps.length > 0) {
-        let step = this.steps.pop();
-        if (step) {
-          let application = this.applicationRenderer.getApplicationById(
-            this.applicationRenderer.getOpenApplications()[0].getModelId()
-          );
+      if (this.steps.length > 1) {
+        const origin = this.steps.shift();
+        const target = this.steps[0];
 
-          if (application) {
-            const hashCodeToClassMap = getHashCodeToClassMap(
-              this.args.landscapeData.structureLandscapeData
+        if (origin && target) {
+          this.duration =
+            (1 + calculateDuration(origin) / 1000.0) / this.selectedSpeed;
+
+          let originClass = this.hashCodeToClassMap.get(origin.methodHash);
+          let targetClass = this.hashCodeToClassMap.get(target.methodHash);
+          // let method = clazz?.methods.find(
+          //   (method) => method.methodHash === current?.methodHash
+          // );
+
+          if (originClass && targetClass) {
+            let originMesh = this.applicationRenderer.getMeshById(
+              originClass.id
             );
-            let clazz = hashCodeToClassMap.get(step.methodHash);
+            let targetMesh = this.applicationRenderer.getMeshById(
+              targetClass.id
+            );
+            if (originMesh && targetMesh) {
+              let scale = this.applicationRenderer.forceGraph.scale;
+              let start = this.applicationRenderer
+                .getGraphPosition(originMesh)
+                .multiply(scale);
+              let end = this.applicationRenderer
+                .getGraphPosition(targetMesh)
+                .multiply(scale);
 
-            console.log(clazz);
-            if (clazz) {
-              let span = application.getMeshById(clazz.id);
-              if (span) {
-                console.log(span.position);
-                if (this.track) {
-                  // TODO offset
-                  const position = new THREE.Vector3(0, 2, 4);
-                  this.track.position.copy(position);
-                }
-              }
+              const classDistance = Math.hypot(
+                end.x - start.x,
+                end.z - start.z
+              );
+              const height =
+                classDistance *
+                0.2 *
+                this.applicationRenderer.appSettings.curvyCommHeight.value;
+              const middle = new THREE.Vector3(
+                start.x + (end.x - start.x) / 2.0,
+                height + start.y + (end.y - start.y) / 2.0,
+                start.z + (end.z - start.z) / 2.0
+              );
+
+              this.curve = new THREE.QuadraticBezierCurve3(start, middle, end);
+
+              this.cloud[0].position.copy(start);
+              this.cloud[0].visible = true;
             }
           }
 
-          this.args.highlightTrace(this.args.selectedTrace, step.spanId);
+          // this.args.highlightTrace(this.args.selectedTrace, current.spanId);
         }
       } else {
         this.stop();
@@ -191,29 +235,22 @@ export default class TraceReplayerMain extends Component<Args> {
     }
   }
 
-  private track;
-
   @action
   start() {
     this.isReplayAnimated = true;
     this.steps = [...this.traceSteps];
     this.args.renderingLoop.updatables.push(this);
 
-    let application = this.applicationRenderer.getApplicationById(
-      this.applicationRenderer.getOpenApplications()[0].getModelId()
-    );
+    const geometry = new THREE.SphereGeometry(0.05, 16, 16);
 
-    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const mesh = new THREE.Mesh(geometry, material);
+    const colors = ['red', 'green', 'blue'];
 
-    const position = new THREE.Vector3(0, 1, 4);
-
-    mesh.position.copy(position);
-    this.track = mesh;
-
-    if (application) {
+    for (let i = 0; i < 3; ++i) {
+      const material = new THREE.MeshBasicMaterial({ color: colors[i] });
+      let mesh = new THREE.Mesh(geometry, material);
+      mesh.visible = false;
       this.args.renderingLoop.scene.add(mesh);
+      this.cloud.push(mesh);
     }
   }
 
@@ -222,6 +259,12 @@ export default class TraceReplayerMain extends Component<Args> {
     this.isReplayAnimated = false;
     this.steps.clear();
     this.args.renderingLoop.updatables.removeObject(this);
+    this.progress = 0;
+
+    for (let mesh of this.cloud) {
+      this.args.renderingLoop.scene.remove(mesh);
+    }
+    this.cloud.clear();
   }
 
   @action
