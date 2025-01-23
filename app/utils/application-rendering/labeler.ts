@@ -26,20 +26,23 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
   if (!label) {
     return;
   }
-
-  label.geometry.center();
-
-  const boundingBox = new THREE.Box3().setFromObject(label);
-
   // Align text with component parent
   label.rotation.x = -(Math.PI / 2);
+
+  label.geometry.center();
 
   // Set y-position just above the box of the parent mesh
   label.position.y = boxMesh.geometry.parameters.height / 2 + 0.01;
 
+  // TODO: The calculation of the z-position can still be off on tall boxes
+  const boxDimensions = new THREE.Vector3();
+  label.geometry.boundingBox?.getSize(boxDimensions);
+  const parentScale = label.parent!.scale;
+  const parentAspectRatio = parentScale.x / parentScale.z;
+
   const zPosOfOpenBox =
     boxMesh.geometry.parameters.depth / 2 -
-    boundingBox.getSize(new THREE.Vector3()).y / 2;
+    (boxDimensions.y * parentAspectRatio) / 2;
 
   // Foundation is labeled like an opened component
   if (boxMesh instanceof FoundationMesh) {
@@ -61,7 +64,7 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
         z: 0,
       });
     } else {
-      label.position.x = 0;
+      label.position.z = 0;
     }
   }
 }
