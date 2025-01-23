@@ -1,12 +1,23 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
-import { Application, Package } from './landscape-schemes/structure-data';
+import {
+  Application,
+  K8sDeployment,
+  K8sNamespace,
+  K8sNode,
+  K8sPod,
+  Package,
+} from './landscape-schemes/structure-data';
 import { getStoredNumberSetting } from './settings/local-storage-settings';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 // We rely on prefixes having the same length
-const APP_PREFIX = 'applc';
-const PACKAGE_PREFIX = 'packg';
-const CLASS_PREFIX = 'class';
+const K8S_NODE_PREFIX = 'node-';
+const K8S_NAMESPACE_PREFIX = 'nspc-';
+const K8S_DEPLOYMENT_PREFIX = 'depl-';
+const K8S_POD_PREFIX = 'kpod-';
+const APP_PREFIX = 'appl-';
+const PACKAGE_PREFIX = 'pack-';
+const CLASS_PREFIX = 'clss-';
 
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
@@ -17,7 +28,10 @@ let PACKAGE_LABEL_MARGIN: number;
 let PACKAGE_MARGIN: number;
 let COMPONENT_HEIGHT: number;
 
-export default async function layoutLandscape(applications: Application[]) {
+export default async function layoutLandscape(
+  k8sNodes: K8sNode[],
+  applications: Application[]
+) {
   const elk = new ELK();
 
   ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
@@ -41,6 +55,11 @@ export default async function layoutLandscape(applications: Application[]) {
     },
   };
 
+  k8sNodes.forEach((k8sNode) => {
+    const k8sNodeGraph = createK8sNodeGraph(k8sNode);
+    landscapeGraph.children.push(k8sNodeGraph);
+  });
+
   // Add applications
   applications.forEach((app) => {
     const appGraph = createApplicationGraph(app);
@@ -57,12 +76,93 @@ export default async function layoutLandscape(applications: Application[]) {
   return convertToGraphLayoutMap(layoutedGraph);
 }
 
+function createK8sNodeGraph(k8sNode: K8sNode) {
+  const k8sNodeGraph = {
+    id: K8S_NODE_PREFIX + k8sNode.name,
+    children: [],
+    layoutOptions: {
+      aspectRatio: ASPECT_RATIO.toString(),
+      algorithm: 'rectpacking',
+      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+    },
+  };
+
+  populateK8sNodeGraph(k8sNodeGraph, k8sNode.k8sNamespaces);
+
+  return k8sNodeGraph;
+}
+
+function populateK8sNodeGraph(nodeGraph: any, namespaces: K8sNamespace[]) {
+  namespaces.forEach((namespace) => {
+    const namespaceGraph = {
+      id: K8S_NAMESPACE_PREFIX + namespace.name,
+      children: [],
+      layoutOptions: {
+        aspectRatio: ASPECT_RATIO.toString(),
+        algorithm: 'rectpacking',
+        'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+      },
+    };
+
+    populateNamespaceGraph(namespaceGraph, namespace.k8sDeployments);
+
+    nodeGraph.children.push(namespaceGraph);
+  });
+}
+
+function populateNamespaceGraph(
+  namespaceGraph: any,
+  deployments: K8sDeployment[]
+) {
+  deployments.forEach((deployment) => {
+    const deploymentGraph = {
+      id: K8S_DEPLOYMENT_PREFIX + deployment.name,
+      children: [],
+      layoutOptions: {
+        aspectRatio: ASPECT_RATIO.toString(),
+        algorithm: 'rectpacking',
+        'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+      },
+    };
+
+    populateDeployment(deploymentGraph, deployment.k8sPods);
+
+    namespaceGraph.children.push(deploymentGraph);
+  });
+}
+
+function populateDeployment(deploymentGraph: any, pods: K8sPod[]) {
+  pods.forEach((pod) => {
+    const podGraph = {
+      id: K8S_POD_PREFIX + pod.name,
+      children: [],
+      layoutOptions: {
+        aspectRatio: ASPECT_RATIO.toString(),
+        algorithm: 'rectpacking',
+        'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+      },
+    };
+
+    populatePod(podGraph, pod.applications);
+
+    deploymentGraph.children.push(podGraph);
+  });
+}
+
+function populatePod(podGraph: any, applications: Application[]) {
+  applications.forEach((application) => {
+    const appGraph = createApplicationGraph(application);
+
+    podGraph.children.push(appGraph);
+  });
+}
+
 function createApplicationGraph(application: Application) {
   const appGraph = {
     id: APP_PREFIX + application.id,
     children: [],
     layoutOptions: {
-      aspectRatio: ASPECT_RATIO.toString(),
+      aspectRatio: ASPECT_RATIO,
       algorithm: 'rectpacking',
       'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
     },
@@ -174,9 +274,42 @@ export function convertToGraphLayoutMap(layoutedGraph: any) {
   const graphLayoutMap = new Map();
   graphLayoutMap.set('landscape', layoutedGraph);
   for (let index = 0; index < layoutedGraph.children.length; index++) {
-    const appGraph = layoutedGraph.children[index];
-    const appId = appGraph.id.substring(APP_PREFIX.length);
-    graphLayoutMap.set(appId, appGraph);
+    const node = layoutedGraph.children[index];
+
+    if (node.id.substring(0, APP_PREFIX.length - 1) === APP_PREFIX) {
+      const appId = node.id.substring(APP_PREFIX.length);
+      graphLayoutMap.set(appId, node);
+    }
+
+    // Iterate over Kubernetes entities and apps
+    if (node.id.substring(0, K8S_NODE_PREFIX.length) === K8S_NODE_PREFIX) {
+      const nodeId = node.id.substring(K8S_NODE_PREFIX.length);
+      graphLayoutMap.set(nodeId, node);
+
+      node.children.forEach((nameSpaceGraph: any) => {
+        const namespaceId = nameSpaceGraph.id.substring(
+          K8S_NAMESPACE_PREFIX.length
+        );
+        graphLayoutMap.set(namespaceId, node);
+
+        nameSpaceGraph.children.forEach((deploymentGraph: any) => {
+          const deploymentId = deploymentGraph.id.substring(
+            K8S_DEPLOYMENT_PREFIX.length
+          );
+          graphLayoutMap.set(deploymentId, node);
+
+          deploymentGraph.children.forEach((podGraph: any) => {
+            const podId = podGraph.id.substring(K8S_POD_PREFIX.length);
+            graphLayoutMap.set(podId, podGraph);
+
+            podGraph.children.forEach((appGraph: any) => {
+              const appId = appGraph.id.substring(APP_PREFIX.length);
+              graphLayoutMap.set(appId, appGraph);
+            });
+          });
+        });
+      });
+    }
   }
   return graphLayoutMap;
 }

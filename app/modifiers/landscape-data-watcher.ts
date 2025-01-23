@@ -135,7 +135,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     // Init computation of layout for applications
     const applications: Application[] = [];
-    const { nodes /*, k8sNodes*/ } = this.structureLandscapeData;
+    const { nodes, k8sNodes } = this.structureLandscapeData;
     for (let i = 0; i < nodes.length; ++i) {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
@@ -143,7 +143,32 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       }
     }
 
-    const graphLayoutMap = await layoutLandscape(applications);
+    const k8sApps = k8sNodes.flatMap((n) =>
+      n.k8sNamespaces.flatMap((ns) =>
+        ns.k8sDeployments.flatMap((d) =>
+          d.k8sPods.flatMap((p) =>
+            p.applications.map((app) => {
+              return {
+                k8sNode: n,
+                k8sNamespace: ns,
+                k8sDeployment: d,
+                k8sPod: p,
+                app: app,
+              };
+            })
+          )
+        )
+      )
+    );
+
+    // Add kubernetes applications
+    // k8sApps.forEach((k8App) => {
+    //   applications.push(k8App.app);
+    // });
+
+    const graphLayoutMap = await layoutLandscape(k8sNodes, applications);
+
+    console.log(graphLayoutMap);
 
     // Center landscape
     // TODO: Remove magic values
@@ -173,27 +198,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     this.landscapeRestructure.allClassCommunications = classCommunications;
 
-    // TODO: Check if following code is still needed
-    // const allAppsInNodes = [
-    //   ...nodes.flatMap((n) => n.applications),
-    //   ...k8sNodes
-    //     .flatMap((n) => n.k8sNamespaces)
-    //     .flatMap((ns) => ns.k8sDeployments)
-    //     .flatMap((d) => d.k8sPods)
-    //     .flatMap((p) => p.applications),
-    // ];
-
-    // Filter out any nodes that are no longer present in the new landscape data
-    // graphNodes = graphNodes.filter((node: GraphNode) => {
-    //   const appears = allAppsInNodes.some((n) => n.id === node.id);
-
-    //   if (!appears) {
-    //     // also delete from application renderer so it can be rerendered if it existent again
-    //     this.applicationRenderer.removeApplicationLocallyById(node.id);
-    //   }
-    //   return appears;
-    // });
-
     for (let i = 0; i < applications.length; ++i) {
       const application = applications[i];
       const boxLayout = convertElkToBoxLayout(
@@ -214,26 +218,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
     }
 
-    const k8sApps = this.landscapeData.structureLandscapeData.k8sNodes.flatMap(
-      (n) =>
-        n.k8sNamespaces.flatMap((ns) =>
-          ns.k8sDeployments.flatMap((d) =>
-            d.k8sPods.flatMap((p) =>
-              p.applications.map((app) => {
-                return {
-                  k8sNode: n,
-                  k8sNamespace: ns,
-                  k8sDeployment: d,
-                  k8sPod: p,
-                  app: app,
-                };
-              })
-            )
-          )
-        )
-    );
-
-    // add k8sApps
+    // Add k8sApps
     const k8sAppPromises = k8sApps.map(async (k8sApp) => {
       const applicationData = await this.updateApplicationData.perform(
         k8sApp.app,
@@ -267,8 +252,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const baseParams = {
       font: this.fontRepo.font,
     };
-    // const rootParents =
-    visualizeK8sLandscape(
+
+    const rootParents = visualizeK8sLandscape(
       this.landscapeData.structureLandscapeData.k8sNodes,
       baseParams,
       (app) => {
@@ -277,6 +262,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         ) as ApplicationObject3D;
       }
     );
+
+    console.log('rootParent', rootParents);
+
+    rootParents.forEach((rootParent) => {
+      landscape3D.add(rootParent);
+    });
 
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
