@@ -37,6 +37,7 @@ function addApplication(
       applicationData
     ),
   }));
+  // TODO: this.notifyPropertyChange('applications');
 }
 
 function removeApplication(applicationID: string) {
@@ -47,10 +48,12 @@ function removeApplication(applicationID: string) {
       applications: updatedMap,
     };
   });
+  // TODO: this.notifyPropertyChange('applications');
 }
 
 function clearApplication() {
   useApplicationRepositoryStore.setState(() => ({
     applications: new Map(),
   }));
+  // TODO: this.notifyPropertyChange('applications');
 }
