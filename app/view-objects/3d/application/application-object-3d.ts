@@ -93,7 +93,7 @@ export default class ApplicationObject3D
       ) {
         const boxLayout = this.getBoxLayout(mesh.dataModel.id);
         if (boxLayout) {
-          mesh.updateLayout(boxLayout, this.layout.center);
+          mesh.updateLayout(boxLayout, this.layout.position);
         }
       }
     });

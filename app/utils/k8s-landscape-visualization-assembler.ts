@@ -10,13 +10,77 @@ import {
 } from './landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import { GenericPopupEntiresFromObject } from 'explorviz-frontend/components/visualization/rendering/popups/generic-popup';
+import K8sNodeMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-node-mesh';
+import * as THREE from 'three';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
+import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 
 export default function visualizeK8sLandscape(
-  k8sNodes: K8sNode[],
+  landscape3D: Landscape3D,
+  nodes: K8sNode[],
   params: SimpleParentMeshParams,
+  boxLayoutMap: any,
   appToApp3d: (app: Application) => ApplicationObject3D
-): SimpleParentMesh[] {
-  return k8sNodes.map((n) => mapNode(n, params, appToApp3d));
+) {
+  nodes.forEach((node) => {
+    const nodeMesh = new K8sNodeMesh(
+      boxLayoutMap.get(node.name),
+      { id: node.name },
+      new THREE.Color('green'),
+      new THREE.Color('red')
+    );
+    addMeshToLandscape(nodeMesh, landscape3D);
+
+    node.k8sNamespaces.forEach((namespace) => {
+      const namespaceMesh = new K8sNodeMesh(
+        boxLayoutMap.get(namespace.name),
+        { id: namespace.name },
+        new THREE.Color('blue'),
+        new THREE.Color('red')
+      );
+      addMeshToLandscape(namespaceMesh, landscape3D);
+
+      namespace.k8sDeployments.forEach((deployment) => {
+        const deploymentMesh = new K8sNodeMesh(
+          boxLayoutMap.get(deployment.name),
+          { id: deployment.name },
+          new THREE.Color('yellow'),
+          new THREE.Color('red')
+        );
+        addMeshToLandscape(deploymentMesh, landscape3D);
+
+        deployment.k8sPods.forEach((pod) => {
+          const podMesh = new K8sNodeMesh(
+            boxLayoutMap.get(pod.name),
+            { id: deployment.name },
+            new THREE.Color('red'),
+            new THREE.Color('red')
+          );
+          addMeshToLandscape(podMesh, landscape3D);
+
+          pod.applications.forEach((application) => {
+            const app3D = appToApp3d(application);
+          });
+        });
+      });
+    });
+  });
+
+  // return nodes.map((n) => mapNode(n, params, appToApp3d));
+}
+
+function addMeshToLandscape(mesh: BoxMesh, landscape3D: Landscape3D) {
+  const layoutPosition = mesh.layout.position;
+
+  const centerPoint = new THREE.Vector3(
+    layoutPosition.x + mesh.layout.width / 2.0,
+    layoutPosition.y + mesh.layout.height / 2.0,
+    layoutPosition.z + mesh.layout.depth / 2.0
+  );
+
+  mesh.position.copy(centerPoint);
+  mesh.saveOriginalAppearence();
+  landscape3D.add(mesh);
 }
 
 function mapNode(

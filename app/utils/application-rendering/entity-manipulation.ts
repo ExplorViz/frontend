@@ -78,11 +78,11 @@ export function openComponentAndAncestor(
  * Opens a given component mesh.
  *
  * @param mesh Component mesh which shall be opened
- * @param applicationObject3D Application object which contains the mesh
+ * @param app3D Application object which contains the mesh
  */
 export function openComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D
+  app3D: ApplicationObject3D
 ) {
   if (mesh.opened) {
     return;
@@ -92,6 +92,10 @@ export function openComponentMesh(
     'openedComponentHeight'
   );
 
+  // Position is center of box, need to subtract apps layout position
+  const yPos =
+    mesh.layout.positionY + mesh.layout.height / 2 - app3D.layout.positionY;
+
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
       duration: 0.25,
@@ -100,11 +104,11 @@ export function openComponentMesh(
 
     gsap.to(mesh.position, {
       duration: 0.25,
-      y: mesh.layout.positionY,
+      y: yPos,
     });
   } else {
     mesh.height = OPENED_COMPONENT_HEIGHT;
-    mesh.position.y = mesh.layout.positionY;
+    mesh.position.y = yPos;
   }
 
   mesh.opened = true;
@@ -114,9 +118,7 @@ export function openComponentMesh(
 
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-    const childMesh = applicationObject3D.getBoxMeshByModelId(
-      childComponent.id
-    );
+    const childMesh = app3D.getBoxMeshByModelId(childComponent.id);
     if (childMesh) {
       childMesh.visible = true;
     }
@@ -124,7 +126,7 @@ export function openComponentMesh(
 
   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
-    const childMesh = applicationObject3D.getBoxMeshByModelId(clazz.id);
+    const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh) {
       childMesh.visible = true;
       childMesh.saveOriginalAppearence();
@@ -136,24 +138,26 @@ export function openComponentMesh(
  * Closes a given component mesh.
  *
  * @param mesh Component mesh which shall be closed
- * @param applicationObject3D Application object which contains the mesh
+ * @param app3D Application object which contains the mesh
  */
 export function closeComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D,
+  app3D: ApplicationObject3D,
   keepHighlighted: boolean
 ) {
   if (!mesh.opened) {
     return;
   }
 
-  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
-    'openedComponentHeight'
-  );
-
   const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
     'closedComponentHeight'
   );
+
+  // Position is in center of box, need to subtract apps layout position
+  const yPos =
+    mesh.layout.positionY +
+    CLOSED_COMPONENT_HEIGHT / 2 -
+    app3D.layout.positionY;
 
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
@@ -163,15 +167,11 @@ export function closeComponentMesh(
 
     gsap.to(mesh.position, {
       duration: 0.5,
-      y:
-        mesh.layout.positionY +
-        (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2,
+      y: yPos,
     });
   } else {
     mesh.height = CLOSED_COMPONENT_HEIGHT;
-    mesh.position.y =
-      mesh.layout.positionY +
-      (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2;
+    mesh.position.y = yPos;
   }
 
   mesh.opened = false;
@@ -179,17 +179,15 @@ export function closeComponentMesh(
   mesh.saveOriginalAppearence();
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-    const childMesh = applicationObject3D.getBoxMeshByModelId(
-      childComponent.id
-    );
+    const childMesh = app3D.getBoxMeshByModelId(childComponent.id);
     if (childMesh instanceof ComponentMesh) {
       childMesh.visible = false;
       if (childMesh.opened) {
-        closeComponentMesh(childMesh, applicationObject3D, keepHighlighted);
+        closeComponentMesh(childMesh, app3D, keepHighlighted);
       }
       // Reset highlighting if highlighted entity is no longer visible
       if (!keepHighlighted && childMesh.highlighted) {
-        removeHighlighting(childMesh, applicationObject3D);
+        removeHighlighting(childMesh, app3D);
       }
       childMesh.saveOriginalAppearence();
     }
@@ -197,12 +195,12 @@ export function closeComponentMesh(
 
   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
-    const childMesh = applicationObject3D.getBoxMeshByModelId(clazz.id);
+    const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh instanceof ClazzMesh) {
       childMesh.visible = false;
       // Reset highlighting if highlighted entity is no longer visible
       if (!keepHighlighted && childMesh.highlighted) {
-        removeHighlighting(childMesh, applicationObject3D);
+        removeHighlighting(childMesh, app3D);
       }
     }
   });

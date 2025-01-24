@@ -11,6 +11,7 @@ import { getStoredNumberSetting } from './settings/local-storage-settings';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
 // We rely on prefixes having the same length
+const LANDSCAPE_PREFIX = 'land-';
 const K8S_NODE_PREFIX = 'node-';
 const K8S_NAMESPACE_PREFIX = 'nspc-';
 const K8S_DEPLOYMENT_PREFIX = 'depl-';
@@ -45,7 +46,7 @@ export default async function layoutLandscape(
 
   // Initialize landscape graph
   const landscapeGraph: any = {
-    id: 'landscape',
+    id: LANDSCAPE_PREFIX + 'landscape',
     children: [],
     edges: [],
     layoutOptions: {
@@ -69,11 +70,9 @@ export default async function layoutLandscape(
   // Add edges for force layout between applications
   addEdges(landscapeGraph, applications);
 
-  console.log(landscapeGraph);
-
   const layoutedGraph = await elk.layout(landscapeGraph);
 
-  return convertToGraphLayoutMap(layoutedGraph);
+  return convertElkToBoxLayout(layoutedGraph);
 }
 
 function createK8sNodeGraph(k8sNode: K8sNode) {
@@ -242,7 +241,7 @@ export function convertElkToBoxLayout(
   const SCALAR = 0.3;
 
   let height = COMPONENT_HEIGHT;
-  if (elkGraph.id.startsWith('class')) {
+  if (elkGraph.id.startsWith(CLASS_PREFIX)) {
     height = 5;
   }
 
@@ -253,6 +252,12 @@ export function convertElkToBoxLayout(
   boxLayout.width = elkGraph.width! * SCALAR;
   boxLayout.height = height;
   boxLayout.depth = elkGraph.height! * SCALAR;
+
+  // Landscape and applications are on the same level
+  if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
+    // eslint-disable-next-line
+    depth = depth - 1;
+  }
 
   // Ids in ELK must not start with numbers, therefore we added 5 letters
   layoutMap.set(elkGraph.id.substring(APP_PREFIX.length), boxLayout);
@@ -268,48 +273,4 @@ export function convertElkToBoxLayout(
   });
 
   return layoutMap;
-}
-
-export function convertToGraphLayoutMap(layoutedGraph: any) {
-  const graphLayoutMap = new Map();
-  graphLayoutMap.set('landscape', layoutedGraph);
-  for (let index = 0; index < layoutedGraph.children.length; index++) {
-    const node = layoutedGraph.children[index];
-
-    if (node.id.substring(0, APP_PREFIX.length - 1) === APP_PREFIX) {
-      const appId = node.id.substring(APP_PREFIX.length);
-      graphLayoutMap.set(appId, node);
-    }
-
-    // Iterate over Kubernetes entities and apps
-    if (node.id.substring(0, K8S_NODE_PREFIX.length) === K8S_NODE_PREFIX) {
-      const nodeId = node.id.substring(K8S_NODE_PREFIX.length);
-      graphLayoutMap.set(nodeId, node);
-
-      node.children.forEach((nameSpaceGraph: any) => {
-        const namespaceId = nameSpaceGraph.id.substring(
-          K8S_NAMESPACE_PREFIX.length
-        );
-        graphLayoutMap.set(namespaceId, node);
-
-        nameSpaceGraph.children.forEach((deploymentGraph: any) => {
-          const deploymentId = deploymentGraph.id.substring(
-            K8S_DEPLOYMENT_PREFIX.length
-          );
-          graphLayoutMap.set(deploymentId, node);
-
-          deploymentGraph.children.forEach((podGraph: any) => {
-            const podId = podGraph.id.substring(K8S_POD_PREFIX.length);
-            graphLayoutMap.set(podId, podGraph);
-
-            podGraph.children.forEach((appGraph: any) => {
-              const appId = appGraph.id.substring(APP_PREFIX.length);
-              graphLayoutMap.set(appId, appGraph);
-            });
-          });
-        });
-      });
-    }
-  }
-  return graphLayoutMap;
 }

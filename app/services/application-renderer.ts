@@ -51,9 +51,7 @@ import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schem
 import TextureService from './texture-service';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
-import layoutLandscape, {
-  convertElkToBoxLayout,
-} from 'explorviz-frontend/utils/elk-layouter';
+import layoutLandscape from 'explorviz-frontend/utils/elk-layouter';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 // #endregion imports
 
@@ -256,6 +254,15 @@ export default class ApplicationRenderer extends Service.extend() {
       if (addedClasses) {
         app3D.removeAllEntities();
 
+        const appLayout = boxLayoutMap.get(applicationData.getId());
+        if (appLayout) {
+          app3D.position.set(
+            appLayout.positionX,
+            appLayout.positionY,
+            appLayout.positionZ
+          );
+        }
+
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           app3D,
@@ -333,15 +340,6 @@ export default class ApplicationRenderer extends Service.extend() {
       } else {
         // remove existing comparison visualizations
         this.removeCommitComparisonVisualization(applicationData);
-      }
-
-      const appLayout = boxLayoutMap.get(applicationData.getId());
-      if (appLayout) {
-        app3D.position.set(
-          appLayout.positionX,
-          appLayout.positionY,
-          appLayout.positionZ
-        );
       }
 
       return app3D;
@@ -624,13 +622,13 @@ export default class ApplicationRenderer extends Service.extend() {
       apps.push(app3D.dataModel.application);
     });
 
-    const graphLayoutMap = await layoutLandscape(apps);
+    const boxLayoutMap = await layoutLandscape(
+      this.landscape3D.dataModel.structure.k8sNodes,
+      apps
+    );
 
     // Apply layout to each application
     this.openApplications.forEach((app3D) => {
-      const elkAppGraph = graphLayoutMap.get(app3D.getModelId());
-      const boxLayoutMap = convertElkToBoxLayout(elkAppGraph);
-
       app3D.dataModel.boxLayoutMap = boxLayoutMap;
       app3D.updateLayout();
     });

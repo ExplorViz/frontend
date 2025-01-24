@@ -29,9 +29,7 @@ import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynam
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import layoutLandscape, {
-  convertElkToBoxLayout,
-} from 'explorviz-frontend/utils/elk-layouter';
+import layoutLandscape from 'explorviz-frontend/utils/elk-layouter';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
@@ -39,6 +37,7 @@ import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
+import LandscapeModel from 'explorviz-frontend/view-objects/3d/landscape/landscape-model';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -166,18 +165,23 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     //   applications.push(k8App.app);
     // });
 
-    const graphLayoutMap = await layoutLandscape(k8sNodes, applications);
-
-    console.log(graphLayoutMap);
+    const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
 
     // Center landscape
-    // TODO: Remove magic values
-    const landscapeLayout = graphLayoutMap.get('landscape');
-    if (landscapeLayout && graphLayoutMap.size > 2) {
+    const landscapeLayout = boxLayoutMap.get('landscape');
+    if (landscapeLayout) {
+      const landscapeModel = new LandscapeModel(
+        this.structureLandscapeData,
+        this.dynamicLandscapeData,
+        landscapeLayout
+      );
+      landscape3D.dataModel = landscapeModel;
+    }
+    if (landscapeLayout && boxLayoutMap.size > 2) {
       landscape3D.position.x =
-        (-landscapeLayout.width * landscape3D.scale.x) / 8;
+        (-landscapeLayout.width * landscape3D.scale.x) / 2;
       landscape3D.position.z =
-        (-landscapeLayout.height * landscape3D.scale.z) / 8;
+        (-landscapeLayout.depth * landscape3D.scale.z) / 2;
     }
 
     // ToDo: This can take quite some time. Optimize.
@@ -200,17 +204,13 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     for (let i = 0; i < applications.length; ++i) {
       const application = applications[i];
-      const boxLayout = convertElkToBoxLayout(
-        await graphLayoutMap.get(application.id)
-      );
 
       const applicationData = await this.updateApplicationData.perform(
         application,
         null,
         classCommunications,
-        boxLayout
+        boxLayoutMap
       );
-
       // Create or update applicationObject3D
 
       await this.applicationRenderer.addApplicationTask.perform(
@@ -229,7 +229,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           k8sPod: k8sApp.k8sPod.name,
         },
         classCommunications,
-        convertElkToBoxLayout(await graphLayoutMap.get(k8sApp.app.id))
+        boxLayoutMap
       );
 
       const app3D =
@@ -253,21 +253,24 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       font: this.fontRepo.font,
     };
 
-    const rootParents = visualizeK8sLandscape(
+    const app3Ds = this.applicationRenderer.getOpenApplications();
+
+    app3Ds.forEach((application3D) => {
+      landscape3D.add(application3D);
+    });
+
+    // const rootParents =
+    visualizeK8sLandscape(
+      landscape3D,
       this.landscapeData.structureLandscapeData.k8sNodes,
       baseParams,
+      boxLayoutMap,
       (app) => {
         return k8sApp3Ds.find(
           (a) => a.dataModel.application.id === app.id
         ) as ApplicationObject3D;
       }
     );
-
-    console.log('rootParent', rootParents);
-
-    rootParents.forEach((rootParent) => {
-      landscape3D.add(rootParent);
-    });
 
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
@@ -299,12 +302,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     //   ],
     //   links: [...communicationLinks, ...nodeLinks],
     // };
-
-    const app3Ds = this.applicationRenderer.getOpenApplications();
-
-    app3Ds.forEach((application3D) => {
-      landscape3D.add(application3D);
-    });
 
     // Add communication
     const interAppCommunications = classCommunications.filter(
