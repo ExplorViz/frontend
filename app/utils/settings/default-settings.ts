@@ -69,6 +69,36 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Highlighted Entity',
     isColorSetting: true,
   },
+  k8sNodeColor: {
+    value: defaultColors.k8sNodeColor,
+    group: 'Colors',
+    displayName: 'K8s Node',
+    isColorSetting: true,
+  },
+  k8sNamespaceColor: {
+    value: defaultColors.k8sNamespaceColor,
+    group: 'Colors',
+    displayName: 'K8s Namespace',
+    isColorSetting: true,
+  },
+  k8sDeploymentColor: {
+    value: defaultColors.k8sDeploymentColor,
+    group: 'Colors',
+    displayName: 'K8s Deployment',
+    isColorSetting: true,
+  },
+  k8sPodColor: {
+    value: defaultColors.k8sPodColor,
+    group: 'Colors',
+    displayName: 'K8s Pod',
+    isColorSetting: true,
+  },
+  k8sTextColor: {
+    value: defaultColors.k8sTextColor,
+    group: 'Colors',
+    displayName: 'K8s Text',
+    isColorSetting: true,
+  },
   // Control Settings
   enableGamepadControls: {
     value: true,

@@ -13,6 +13,11 @@ export const defaultColors = {
   foundationColor: '#d2d2d2', // grey
   foundationTextColor: '#000000', // black
   highlightedEntityColor: '#ff5151', // pastel red
+  k8sNodeColor: '#000f6c',
+  k8sNamespaceColor: '#0023a3',
+  k8sDeploymentColor: '#002dea',
+  k8sPodColor: '#0648e5',
+  k8sTextColor: '#ffffff',
 };
 
 export const classicColors = {
@@ -27,6 +32,11 @@ export const classicColors = {
   foundationColor: '#c7c7c7', // grey
   foundationTextColor: '#000000', // black
   highlightedEntityColor: '#ff0000', // red
+  k8sNodeColor: '#000f6c',
+  k8sNamespaceColor: '#0023a3',
+  k8sDeploymentColor: '#002dea',
+  k8sPodColor: '#0648e5',
+  k8sTextColor: '#ffffff',
 };
 
 export const blueColors = {
@@ -41,6 +51,11 @@ export const blueColors = {
   foundationColor: '#c7c7c7', // light grey
   foundationTextColor: '#000000', // black
   highlightedEntityColor: '#ff0000', // red
+  k8sNodeColor: '#000f6c',
+  k8sNamespaceColor: '#0023a3',
+  k8sDeploymentColor: '#002dea',
+  k8sPodColor: '#0648e5',
+  k8sTextColor: '#ffffff',
 };
 
 export const darkColors = {
@@ -55,4 +70,9 @@ export const darkColors = {
   foundationColor: '#c7c7c7', // grey
   foundationTextColor: '#000000', // black
   highlightedEntityColor: '#ff0000', // red
+  k8sNodeColor: '#000f6c',
+  k8sNamespaceColor: '#0023a3',
+  k8sDeploymentColor: '#002dea',
+  k8sPodColor: '#0648e5',
+  k8sTextColor: '#ffffff',
 };

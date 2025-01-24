@@ -39,7 +39,12 @@ export type ColorSettingId =
   | 'componentTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
-  | 'highlightedEntityColor';
+  | 'highlightedEntityColor'
+  | 'k8sNodeColor'
+  | 'k8sNamespaceColor'
+  | 'k8sDeploymentColor'
+  | 'k8sPodColor'
+  | 'k8sTextColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 

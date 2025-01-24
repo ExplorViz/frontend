@@ -249,8 +249,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       k8sAppPromises
     )) as ApplicationObject3D[];
 
-    const baseParams = {
+    const k8sParameters = {
       font: this.fontRepo.font,
+      colors: this.userSettings.colors,
     };
 
     const app3Ds = this.applicationRenderer.getOpenApplications();
@@ -263,7 +264,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     visualizeK8sLandscape(
       landscape3D,
       this.landscapeData.structureLandscapeData.k8sNodes,
-      baseParams,
+      k8sParameters,
       boxLayoutMap,
       (app) => {
         return k8sApp3Ds.find(
