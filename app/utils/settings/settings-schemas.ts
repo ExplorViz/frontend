@@ -211,7 +211,6 @@ export type VisualizationSettings = AnnotationSettings &
 
 export interface Setting<T> {
   value: T;
-  orderNumber: number;
   group: SettingGroup;
 }
 

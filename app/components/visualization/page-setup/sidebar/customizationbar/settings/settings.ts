@@ -106,17 +106,6 @@ export default class Settings extends Component<Args> {
       settingGroupToSettingIds[setting.group].push(settingId);
     }
 
-    let settingGroupId: SettingGroup;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
-    for (settingGroupId in settingGroupToSettingIds) {
-      const settingArray = settingGroupToSettingIds[settingGroupId];
-      settingArray.sort(
-        (settingId1, settingId2) =>
-          visualizationSettings[settingId1].orderNumber -
-          visualizationSettings[settingId2].orderNumber
-      );
-    }
-
     return settingGroupToSettingIds;
   }
 
