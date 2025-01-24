@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
-import { useTimestampStore } from 'react-lib/src/stores/repos/timestamp-repository';
+import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
 import { tracked } from '@glimmer/tracking';
 import TimestampPollingService from '../timestamp-polling';
 import RenderingService from '../rendering-service';
@@ -36,20 +36,20 @@ export default class TimestampRepository extends Service.extend(Evented) {
   // commitToTimestampMap: Map<string, Map<number, Timestamp>> = new Map();
   // <commitId, <epochMilli, timestamp>>
   get commitToTimestampMap(): Map<string, Map<number, Timestamp>> {
-    return useTimestampStore.getState().commitToTimestampMap;
+    return useTimestampRepositoryStore.getState().commitToTimestampMap;
   }
 
   set commitToTimestampMap(value: Map<string, Map<number, Timestamp>>) {
-    useTimestampStore.setState({ commitToTimestampMap: value });
+    useTimestampRepositoryStore.setState({ commitToTimestampMap: value });
   }
 
   private _timelineDataObjectHandler: TimelineDataObjectHandler | null = null;
   // get _timelineDataObjectHandler(): TimelineDataObjectHandler | null {
-  //   return useTimestampStore.getState()._timelineDataObjectHandler;
+  //   return useTimestampRepositoryStore.getState()._timelineDataObjectHandler;
   // }
 
   // set _timelineDataObjectHandler(value: TimelineDataObjectHandler | null) {
-  //   useTimestampStore.setState({ _timelineDataObjectHandler: value });
+  //   useTimestampRepositoryStore.setState({ _timelineDataObjectHandler: value });
   // }
 
   // #endregion
@@ -207,7 +207,9 @@ export default class TimestampRepository extends Service.extend(Evented) {
       this.commitToTimestampMap.get(commitId) ?? new Map<number, Timestamp>();
 
     timestamps.set(timestamp.epochMilli, timestamp);
-    useTimestampStore.getState().addCommitToTimestamp(commitId, timestamps);
+    useTimestampRepositoryStore
+      .getState()
+      .addCommitToTimestamp(commitId, timestamps);
   }
 
   // #endregion
