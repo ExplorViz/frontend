@@ -67,7 +67,7 @@ export default class LinkRenderer extends Service.extend({}) {
 
     const classCommunication = line.dataModel.communication;
 
-    // line.visible = true;
+    line.visible = this.configuration.isCommRendered;
     const landscapeGroup = sourceApp.parent!;
 
     const sourceClass = findFirstOpen(
