@@ -14,7 +14,6 @@ import CommunicationLayout from 'react-lib/src/view-objects/layout-models/commun
 import { Vector3 } from 'three';
 import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
-import ApplicationRepository from './repos/application-repository';
 import UserSettings from './user-settings';
 // import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
 
@@ -28,8 +27,6 @@ export default class LinkRenderer extends Service.extend({}) {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
 
   // TODO: Migrate after migration of ClazzCommunicationMesh
   // All changes are ready to get uncommented

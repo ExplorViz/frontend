@@ -1,10 +1,14 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
+// import { inject as service } from '@ember/service';
+// import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { EmptyObject } from '@glimmer/component/-private/component';
 import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
+import {
+  useHeatmapConfigurationStore,
+  HeatmapMode as HeatmapMode2,
+} from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface HeatmapMode {
   name: string;
@@ -14,8 +18,8 @@ interface HeatmapMode {
 export default class HeatmapSettings extends Component {
   helpTooltipComponent = HelpTooltip;
 
-  @service('heatmap/heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
+  // @service('heatmap/heatmap-configuration')
+  // heatmapConf!: HeatmapConfiguration;
 
   heatmapModes: HeatmapMode[] = [
     { name: 'Aggregated Heatmap', id: 'aggregatedHeatmap' },
@@ -50,7 +54,8 @@ export default class HeatmapSettings extends Component {
   constructor(owner: any, args: EmptyObject) {
     super(owner, args);
     this.selectedMode =
-      this.heatmapConf.selectedMode === 'aggregatedHeatmap'
+      useHeatmapConfigurationStore.getState().selectedMode ===
+      'aggregatedHeatmap'
         ? this.heatmapModes[0]
         : this.heatmapModes[1];
   }
@@ -58,22 +63,28 @@ export default class HeatmapSettings extends Component {
   @action
   setHeatmapMode(mapMode: HeatmapMode) {
     this.selectedMode = mapMode;
-    this.heatmapConf.set('selectedMode', mapMode.id);
+    useHeatmapConfigurationStore.setState({
+      selectedMode: mapMode.id as HeatmapMode2,
+    });
+    // this.heatmapConf.set('selectedMode', mapMode.id);
   }
 
   @action
   onHeatmapRadiusChange(heatmapRadiusNew: number) {
-    this.heatmapConf.set('heatmapRadius', heatmapRadiusNew);
+    useHeatmapConfigurationStore.setState({ heatmapRadius: heatmapRadiusNew });
   }
 
   @action
   onBlurRadiusChange(blurRadiusNew: number) {
-    this.heatmapConf.set('blurRadius', blurRadiusNew);
+    useHeatmapConfigurationStore.setState({ blurRadius: blurRadiusNew });
   }
 
   @action
   toggleLegendValues() {
-    this.heatmapConf.toggleProperty('showLegendValues');
+    useHeatmapConfigurationStore.setState({
+      showLegendValues:
+        !useHeatmapConfigurationStore.getState().showLegendValues,
+    });
   }
 
   @action
@@ -83,11 +94,13 @@ export default class HeatmapSettings extends Component {
 
   @action
   resetSimpleHeatGradient() {
-    this.heatmapConf.resetSimpleHeatGradient();
+    useHeatmapConfigurationStore.getState().resetSimpleHeatGradient();
   }
 
   @action
   toggleHelperLines() {
-    this.heatmapConf.toggleProperty('useHelperLines');
+    useHeatmapConfigurationStore.setState({
+      useHelperLines: !useHeatmapConfigurationStore.getState().useHelperLines,
+    });
   }
 }

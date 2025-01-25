@@ -41,7 +41,6 @@ import {
   getApplicationFromSubPackage,
   getApplicationInLandscapeById,
 } from 'react-lib/src/utils/landscape-structure-helpers';
-import ApplicationRepository from './repos/application-repository';
 import Changelog from './changelog';
 import {
   getClassesInPackage,
@@ -98,9 +97,6 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
 }) {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
-
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
 
   @service('user-settings')
   userSettings!: UserSettings;

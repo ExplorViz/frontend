@@ -2,7 +2,7 @@ import { createStore } from "zustand/vanilla";
 import ApplicationData from "react-lib/src/utils/application-data";
 
 interface ApplicationRepositoryState {
-  applications: Map<string, ApplicationData>;
+  applications: Map<string, ApplicationData>; // tracked
   addApplication: (
     applicationId: string,
     applicationData: ApplicationData

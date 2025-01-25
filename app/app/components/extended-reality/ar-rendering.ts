@@ -27,7 +27,6 @@ import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/cl
 import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
@@ -36,6 +35,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -58,8 +58,6 @@ export default class ArRendering extends Component<Args> {
   @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('heatmap/heatmap-configuration')
-  private heatmapConf!: HeatmapConfiguration;
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
@@ -530,14 +528,17 @@ export default class ArRendering extends Component<Args> {
     ) {
       const applicationObject3D = intersection.object.parent;
       if (
-        this.heatmapConf.currentApplication === applicationObject3D &&
-        this.heatmapConf.heatmapActive
+        useHeatmapConfigurationStore.getState().currentApplication ===
+          applicationObject3D &&
+        useHeatmapConfigurationStore.getState().heatmapActive
       ) {
-        this.heatmapConf.heatmapActive = false;
+        useHeatmapConfigurationStore.setState({ heatmapActive: false });
         return;
       }
-      this.heatmapConf.setActiveApplication(applicationObject3D);
-      this.heatmapConf.heatmapActive = true;
+      useHeatmapConfigurationStore
+        .getState()
+        .setActiveApplication(applicationObject3D);
+      useHeatmapConfigurationStore.setState({ heatmapActive: true });
     }
   }
 

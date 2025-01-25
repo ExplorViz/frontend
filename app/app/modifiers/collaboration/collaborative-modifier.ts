@@ -72,7 +72,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { BaseChangeLogEntry } from 'react-lib/src/utils/changelog-entry';
@@ -92,6 +92,7 @@ import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-m
 import WaypointIndicator from 'react-lib/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 
 interface IModifierArgs {
   positional: [];
@@ -117,8 +118,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  @service('repos/application-repository')
-  private applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // private applicationRepo!: ApplicationRepository;
 
   @service('changelog')
   private changeLog!: Changelog;
@@ -434,7 +435,8 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     this.tokenService.setTokenByValue(landscapeToken);
 
     this.applicationRenderer.cleanup();
-    this.applicationRepo.cleanup();
+    useApplicationRepositoryStore.getState().clearApplication();
+    // this.applicationRepo.cleanup();
     this.linkRenderer.getAllLinks().forEach((externLink) => {
       externLink.removeFromParent();
     });

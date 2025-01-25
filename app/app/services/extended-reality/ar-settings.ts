@@ -1,14 +1,11 @@
 import Service, { inject as service } from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 export default class ArSettings extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @service('heatmap/heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
@@ -81,7 +78,7 @@ export default class ArSettings extends Service.extend({
 
   setApplicationOpacity(opacity: number) {
     this.applicationOpacity = opacity;
-    if (!this.heatmapConf.heatmapActive) {
+    if (!useHeatmapConfigurationStore.getState().heatmapActive) {
       this.updateApplicationOpacity();
     }
   }
