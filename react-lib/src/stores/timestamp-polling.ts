@@ -2,10 +2,10 @@ import { createStore } from "zustand/vanilla";
 import { SelectedCommit } from "react-lib/src/stores/commit-tree-state";
 import { Timestamp } from "react-lib/src/utils/landscape-schemes/timestamp";
 import { CROSS_COMMIT_IDENTIFIER } from "react-lib/src/utils/evolution-schemes/evolution-data";
-import ENV from "explorviz-frontend/config/environment";
+// import ENV from "explorviz-frontend/config/environment";
 // TODO: import Auth from "./auth";
 
-const { spanService } = ENV.backendAddresses;
+// const { spanService } = ENV.backendAddresses;
 
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
