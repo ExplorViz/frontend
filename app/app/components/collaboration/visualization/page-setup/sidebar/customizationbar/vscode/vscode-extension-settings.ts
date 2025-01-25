@@ -1,16 +1,13 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 import { inject as service } from '@ember/service';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export default class VscodeExtensionSettings extends Component {
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   constructor(owner: any, args: any) {
     super(owner, args);
@@ -19,9 +16,9 @@ export default class VscodeExtensionSettings extends Component {
   @action
   // eslint-disable-next-line class-methods-use-this
   onRoomNameCopied() {
-    this.toastHandlerService.showSuccessToastMessage(
-      'Room name copied to clipboard'
-    );
+    useToastHandlerStore
+      .getState()
+      .showSuccessToastMessage('Room name copied to clipboard');
   }
 
   @action
@@ -34,13 +31,15 @@ export default class VscodeExtensionSettings extends Component {
     };
 
     sendMonitoringData([payload]);
-    this.toastHandlerService.showSuccessToastMessage('Show Monitoring mockup');
+    useToastHandlerStore
+      .getState()
+      .showSuccessToastMessage('Show Monitoring mockup');
   }
 
   @action
   connectToIDE() {
     console.log('connectToIDE');
-    this.toastHandlerService.showInfoToastMessage('Connect to IDE');
+    useToastHandlerStore.getState().showInfoToastMessage('Connect to IDE');
     this.ideWebsocketFacade.restartConnection();
   }
 }

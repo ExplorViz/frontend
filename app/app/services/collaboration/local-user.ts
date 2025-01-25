@@ -10,7 +10,6 @@ import MessageSender from './message-sender';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ChatService from 'explorviz-frontend/services/chat';
 import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import {
@@ -35,9 +34,6 @@ export default class LocalUser extends Service.extend({
 
   @service
   applicationRenderer!: ApplicationRenderer;
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   @service('chat')
   chatService!: ChatService;

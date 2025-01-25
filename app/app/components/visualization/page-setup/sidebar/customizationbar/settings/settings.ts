@@ -1,6 +1,5 @@
 import Component from '@glimmer/component';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { ColorSchemeId } from 'react-lib/src/utils/settings/color-schemes';
@@ -21,6 +20,7 @@ import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-reposi
 
 import { Mesh } from 'three';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface Args {
   enterFullscreen?(): void;
@@ -53,9 +53,6 @@ export default class Settings extends Component<Args> {
 
   // @service('repos/scene-repository')
   // sceneRepo!: SceneRepository;
-
-  @service('toast-handler')
-  private toastHandlerService!: ToastHandlerService;
 
   @service('user-settings')
   private userSettings!: UserSettings;
@@ -121,7 +118,7 @@ export default class Settings extends Component<Args> {
     try {
       this.userSettings.updateApplicationSetting(settingId, input);
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
 
     switch (settingId) {
@@ -182,7 +179,9 @@ export default class Settings extends Component<Args> {
         break;
       case 'resetToDefaults':
         this.resetSettings();
-        this.toastHandlerService.showSuccessToastMessage('Settings reset');
+        useToastHandlerStore
+          .getState()
+          .showSuccessToastMessage('Settings reset');
         break;
       default:
         break;
@@ -196,7 +195,7 @@ export default class Settings extends Component<Args> {
     try {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
     if (settingString.startsWith('layer')) {
       const layerNumber = parseInt(settingString.slice(5), 10); // Extract the layer number from settingId
@@ -261,7 +260,7 @@ export default class Settings extends Component<Args> {
     try {
       this.userSettings.updateApplicationSetting(settingId, value);
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   }
 

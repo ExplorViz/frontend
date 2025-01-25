@@ -1,7 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import { registerDestructor } from '@ember/destroyable';
 import { tracked } from '@glimmer/tracking';
-import ToastHandlerService from './toast-handler';
 import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
@@ -22,6 +21,7 @@ import {
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { useChatStore } from 'react-lib/src/stores/chat.ts';
 import { string } from 'three/examples/jsm/nodes/shadernode/ShaderNode';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export interface ChatMessageInterface {
   msgId: number;
@@ -64,9 +64,6 @@ export default class ChatService extends Service {
   get filteredChatMessages(): ChatMessageInterface[] {
     return useChatStore.getState().filteredChatMessages;
   }
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   @service('collaboration/collaboration-session')
   collaborationSession!: collaborationSession;
@@ -138,7 +135,9 @@ export default class ChatService extends Service {
     },
   }: ForwardedMessage<ChatMessage>) {
     if (this.localUser.userId != userId && !isEvent) {
-      this.toastHandler.showInfoToastMessage(`Message received: ` + msg);
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage(`Message received: ` + msg);
     }
     this.addChatMessage(
       msgId,
@@ -175,7 +174,7 @@ export default class ChatService extends Service {
       return;
     }
     this.removeChatMessage(originalMessage.msgIds, true);
-    this.toastHandler.showErrorToastMessage('Message(s) deleted');
+    useToastHandlerStore.getState().showErrorToastMessage('Message(s) deleted');
   }
 
   sendChatMessage(
@@ -338,7 +337,7 @@ export default class ChatService extends Service {
         msg.eventData
       )
     );
-    this.toastHandler.showInfoToastMessage('Synchronized');
+    useToastHandlerStore.getState().showInfoToastMessage('Synchronized');
   }
 }
 

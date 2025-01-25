@@ -14,7 +14,6 @@ import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-d
 import debugLogger from 'ember-debug-logger';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import TimestampService from './timestamp';
-import ToastHandlerService from './toast-handler';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
 import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
@@ -25,6 +24,7 @@ import {
 } from 'react-lib/src/stores/commit-tree-state';
 import TimestampRepository from './repos/timestamp-repository';
 import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type VisualizationMode = 'evolution' | 'runtime';
 
@@ -44,9 +44,6 @@ export default class RenderingService extends Service {
 
   @service('timestamp')
   private timestampService!: TimestampService;
-
-  @service('toast-handler')
-  private toastHandlerService!: ToastHandlerService;
 
   @service('repos/evolution-data-repository')
   private evolutionDataRepository!: EvolutionDataRepository;
@@ -374,9 +371,9 @@ export default class RenderingService extends Service {
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) {
     if (this._visualizationMode === 'runtime') {
-      this.toastHandlerService.showInfoToastMessage(
-        'Switching to evolution mode.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage('Switching to evolution mode.');
       this._visualizationMode = 'evolution';
 
       // reset all timestamp data upon first change to this mode
@@ -452,9 +449,11 @@ export default class RenderingService extends Service {
 
   private setRuntimeModeActive() {
     if (this._visualizationMode === 'evolution') {
-      this.toastHandlerService.showInfoToastMessage(
-        'Switching to cross-commit runtime visualization.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage(
+          'Switching to cross-commit runtime visualization.'
+        );
       this._visualizationMode = 'runtime';
 
       this._userInitiatedStaticDynamicCombination = false;
@@ -469,9 +468,9 @@ export default class RenderingService extends Service {
 
   private handleError(e: any) {
     this.debug('An error occured!', { error: e });
-    this.toastHandlerService.showErrorToastMessage(
-      'An error occured for the rendering!'
-    );
+    useToastHandlerStore
+      .getState()
+      .showErrorToastMessage('An error occured for the rendering!');
     this.resumeVisualizationUpdating();
   }
 

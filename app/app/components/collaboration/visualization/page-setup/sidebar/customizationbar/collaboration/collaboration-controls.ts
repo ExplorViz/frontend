@@ -23,9 +23,9 @@ import {
   useSpectateConfigurationStore,
   SpectateConfig,
 } from 'react-lib/src/stores/spectate-configuration';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ChatService from 'explorviz-frontend/services/chat';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export default class CollaborationControls extends Component {
   @service('auth')
@@ -67,9 +67,6 @@ export default class CollaborationControls extends Component {
   @service('timestamp')
   // @ts-ignore since it is used in template
   private timestampService!: TimestampService;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -169,19 +166,25 @@ export default class CollaborationControls extends Component {
   @action
   hostRoom() {
     this.collaborationSession.hostRoom();
-    this.toastHandlerService.showSuccessToastMessage('Hosting new Room.');
+    useToastHandlerStore
+      .getState()
+      .showSuccessToastMessage('Hosting new Room.');
   }
 
   @action
   leaveSession() {
-    this.toastHandlerService.showInfoToastMessage('Disconnected from Room');
+    useToastHandlerStore
+      .getState()
+      .showInfoToastMessage('Disconnected from Room');
     this.collaborationSession.disconnect();
   }
 
   @action
   async loadRooms(alert = true) {
     if (alert) {
-      this.toastHandlerService.showSuccessToastMessage('Reloading Rooms');
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('Reloading Rooms');
     }
     const rooms = await this.roomService.listRooms();
     this.rooms = rooms;
@@ -260,9 +263,11 @@ export default class CollaborationControls extends Component {
   @action
   sendSelectedConfiguration() {
     if (this.selectedDevice !== 'main') {
-      this.toastHandlerService.showErrorToastMessage(
-        'Applying spectate configurations only possible as device `main`.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Applying spectate configurations only possible as device `main`.'
+        );
     } else {
       this.configurationSelected(this.selectedConfig!.id);
     }
@@ -446,16 +451,16 @@ export default class CollaborationControls extends Component {
   @action
   openEditSpectateConfigModal() {
     if (this.selectedConfig === null) {
-      this.toastHandlerService.showErrorToastMessage(
-        'Select a configuration to edit.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Select a configuration to edit.');
       return;
     }
 
     if (this.selectedConfig.user !== this.auth.user?.sub) {
-      this.toastHandlerService.showErrorToastMessage(
-        'You are not the creator of the configuration.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('You are not the creator of the configuration.');
       return;
     }
 

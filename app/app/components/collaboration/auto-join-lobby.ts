@@ -2,7 +2,7 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import debugLogger from 'ember-debug-logger';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface AutoJoinLobbyArgs {
   roomId: string;
@@ -11,9 +11,6 @@ interface AutoJoinLobbyArgs {
 export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
   @service('collaboration/collaboration-session')
   collaboration!: CollaborationSession;
-
-  @service('toast-handler')
-  toast!: ToastHandlerService;
 
   private readonly debug = debugLogger('auto-join-lobby');
 
@@ -36,7 +33,9 @@ export default class AutoJoinLobby extends Component<AutoJoinLobbyArgs> {
       this.debug('Successfully auto joined room');
     } else if (!roomHosted && retries <= 0) {
       this.debug('Failed to auto join room, no retries left');
-      this.toast.showErrorToastMessage('Failed to join room automatically.');
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Failed to join room automatically.');
     } else {
       this.debug('Failed to auto join room, retrying in 5 seconds again...');
       setTimeout(() => {

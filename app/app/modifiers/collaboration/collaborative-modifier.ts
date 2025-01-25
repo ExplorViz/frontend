@@ -73,7 +73,6 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { BaseChangeLogEntry } from 'react-lib/src/utils/changelog-entry';
 import { getClassById } from 'react-lib/src/utils/class-helpers';
@@ -92,6 +91,7 @@ import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-m
 import WaypointIndicator from 'react-lib/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface IModifierArgs {
   positional: [];
@@ -140,9 +140,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('collaboration/local-user')
   private localUser!: LocalUser;
-
-  @service('toast-handler')
-  private toastHandlerService!: ToastHandlerService;
 
   @service('user-settings')
   private userSettings!: UserSettings;
@@ -447,9 +444,11 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     this.userSettings.updateSettings(settings as ApplicationSettings);
 
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
-    this.toastHandlerService.showInfoToastMessage(
-      'Applied settings from user ' + remoteUser?.userName
-    );
+    useToastHandlerStore
+      .getState()
+      .showInfoToastMessage(
+        'Applied settings from user ' + remoteUser?.userName
+      );
   }
 
   onRestructureModeUpdate(): void {

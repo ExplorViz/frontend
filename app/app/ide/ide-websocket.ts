@@ -20,8 +20,8 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 // import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { Object3DEventMap } from 'three';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -102,9 +102,6 @@ export default class IdeWebsocket {
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
 
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
-
   handleDoubleClickOnMesh: (meshID: string) => void;
   lookAtMesh: (meshID: string) => void;
 
@@ -163,9 +160,11 @@ export default class IdeWebsocket {
     });
 
     socket!.on('connect_error', () => {
-      this.toastHandlerService.showErrorToastMessage(
-        'IDE connection was unexpectedly closed. Will try to reconnect'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'IDE connection was unexpectedly closed. Will try to reconnect'
+        );
     });
 
     socket!.on('reconnect_error', (error) => {
@@ -221,18 +220,20 @@ export default class IdeWebsocket {
           break;
 
         case 'connectIDE':
-          this.toastHandlerService.showSuccessToastMessage(
-            'An IDE has successfully connected to this room.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showSuccessToastMessage(
+              'An IDE has successfully connected to this room.'
+            );
           log('An IDE has successfully connected.');
           this.ideWebsocketFacade.numConnectedIDEs++;
           break;
 
         case 'disconnectIDE':
           log('An IDE has disconnected.');
-          this.toastHandlerService.showSuccessToastMessage(
-            'An IDE has disconnected.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showSuccessToastMessage('An IDE has disconnected.');
           this.ideWebsocketFacade.numConnectedIDEs--;
           break;
 

@@ -1,7 +1,6 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { tracked } from '@glimmer/tracking';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 // import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository'; not used
@@ -25,6 +24,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import { ApiToken } from 'explorviz-frontend/services/user-api-token';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -52,9 +52,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -269,15 +266,17 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         this.args.toggleVisualizationUpdating();
       }
 
-      this.toastHandlerService.showInfoToastMessage('Restructure Mode enabled');
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage('Restructure Mode enabled');
     } else {
       if (this.args.visualizationPaused) {
         this.args.toggleVisualizationUpdating();
       }
       this.landscapeRestructure.resetLandscapeRestructure();
-      this.toastHandlerService.showInfoToastMessage(
-        'Restructure Mode disabled'
-      );
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage('Restructure Mode disabled');
     }
   }
 
@@ -339,18 +338,18 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
               }[];
               resolve(projects);
             } else {
-              this.toastHandlerService.showErrorToastMessage(
-                'Could not load projects.'
-              );
+              useToastHandlerStore
+                .getState()
+                .showErrorToastMessage('Could not load projects.');
               resolve([]);
             }
           })
           .catch(async (e) => {
             console.log(e);
             resolve([]);
-            this.toastHandlerService.showErrorToastMessage(
-              'Network error: Could not load projects.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage('Network error: Could not load projects.');
           });
       }
     );
@@ -586,9 +585,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     localStorage.setItem('gitAPIToken', JSON.stringify(this.token!));
     localStorage.setItem('gitProject', JSON.stringify(this.project!));
     // localStorage.setItem('gitUpload', this.uploadURL);
-    this.toastHandlerService.showSuccessToastMessage(
-      'Git credentials successfully saved.'
-    );
+    useToastHandlerStore
+      .getState()
+      .showSuccessToastMessage('Git credentials successfully saved.');
   }
 
   @action
@@ -632,19 +631,19 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     })
       .then(async (response: Response) => {
         if (response.ok) {
-          this.toastHandlerService.showSuccessToastMessage(
-            'Successfully created Issue.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showSuccessToastMessage('Successfully created Issue.');
         } else {
-          this.toastHandlerService.showErrorToastMessage(
-            'Could not load projects.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Could not load projects.');
         }
       })
       .catch(async () => {
-        this.toastHandlerService.showErrorToastMessage(
-          'Network error: Could not load projects.'
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Network error: Could not load projects.');
       });
     this.deleteIssue(index);
   }
@@ -671,7 +670,9 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     );
 
     if (!res.ok) {
-      this.toastHandlerService.showErrorToastMessage('Could not upload Image.');
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Could not upload Image.');
     }
 
     const jsonRes = await res.json();

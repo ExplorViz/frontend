@@ -9,7 +9,6 @@ import { SerializedPopup } from 'react-lib/src/utils/collaboration/web-socket-me
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
@@ -36,6 +35,7 @@ import {
   MenuDetachedMessage,
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import * as THREE from 'three';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export default class PopupHandler {
   @service('application-renderer')
@@ -46,9 +46,6 @@ export default class PopupHandler {
 
   @service('collaboration/local-user')
   private localUser!: LocalUser;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
@@ -139,9 +136,11 @@ export default class PopupHandler {
     if (await this.canRemovePopup(popup)) {
       this.popupData = this.popupData.filter((pd) => pd.entity.id !== entityId);
     } else {
-      this.toastHandlerService.showErrorToastMessage(
-        'Could not remove popup since it is currently in use by another user.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Could not remove popup since it is currently in use by another user.'
+        );
     }
   }
 

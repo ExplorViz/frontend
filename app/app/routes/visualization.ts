@@ -3,12 +3,12 @@ import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import debugLogger from 'ember-debug-logger';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { action } from '@ember/object';
 // import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import BaseRoute from './base-route';
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 /**
  * TODO
@@ -28,9 +28,6 @@ export default class VisualizationRoute extends BaseRoute {
 
   // @service('repos/font-repository')
   // fontRepo!: FontRepository;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   debug = debugLogger();
 
@@ -79,9 +76,9 @@ export default class VisualizationRoute extends BaseRoute {
   @action
   error(error: any) {
     if (error instanceof ProgressEvent) {
-      this.toastHandlerService.showErrorToastMessage(
-        'Failed to load font for labels.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Failed to load font for labels.');
       return true;
     }
     return super.error(error);
