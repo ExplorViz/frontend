@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
+import { addBoxTextLabel } from './application-rendering/labeler';
 
 export default function visualizeK8sLandscape(
   landscape3D: Landscape3D,
@@ -14,38 +15,46 @@ export default function visualizeK8sLandscape(
   nodes.forEach((node) => {
     const nodeMesh = new K8sNodeMesh(
       boxLayoutMap.get(node.name),
-      { id: node.name },
+      { id: node.name, name: node.name },
       params.colors.k8sNodeColor,
       params.colors.highlightedEntityColor
     );
     addMeshToLandscape(nodeMesh, landscape3D);
+    addBoxTextLabel(nodeMesh, params.font, params.colors.k8sTextColor);
 
     node.k8sNamespaces.forEach((namespace) => {
       const namespaceMesh = new K8sNodeMesh(
         boxLayoutMap.get(namespace.name),
-        { id: namespace.name },
+        { id: namespace.name, name: namespace.name },
         params.colors.k8sNamespaceColor,
         params.colors.highlightedEntityColor
       );
       addMeshToLandscape(namespaceMesh, landscape3D);
+      addBoxTextLabel(namespaceMesh, params.font, params.colors.k8sTextColor);
 
       namespace.k8sDeployments.forEach((deployment) => {
         const deploymentMesh = new K8sNodeMesh(
           boxLayoutMap.get(deployment.name),
-          { id: deployment.name },
+          { id: deployment.name, name: deployment.name },
           params.colors.k8sDeploymentColor,
           params.colors.highlightedEntityColor
         );
         addMeshToLandscape(deploymentMesh, landscape3D);
+        addBoxTextLabel(
+          deploymentMesh,
+          params.font,
+          params.colors.k8sTextColor
+        );
 
         deployment.k8sPods.forEach((pod) => {
           const podMesh = new K8sNodeMesh(
             boxLayoutMap.get(pod.name),
-            { id: deployment.name },
+            { id: deployment.name, name: pod.name },
             params.colors.k8sPodColor,
             params.colors.highlightedEntityColor
           );
           addMeshToLandscape(podMesh, landscape3D);
+          addBoxTextLabel(podMesh, params.font, params.colors.k8sTextColor);
         });
       });
     });

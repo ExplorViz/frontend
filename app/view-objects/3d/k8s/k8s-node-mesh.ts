@@ -11,7 +11,7 @@ export default class K8sNodeMesh extends BoxMesh {
 
   material: THREE.MeshLambertMaterial;
 
-  dataModel: { id: string };
+  dataModel: { id: string; name: string };
 
   opened: boolean = true;
 
@@ -31,7 +31,7 @@ export default class K8sNodeMesh extends BoxMesh {
 
   constructor(
     layout: BoxLayout,
-    dataModel: { id: string },
+    dataModel: { id: string; name: string },
     defaultColor: THREE.Color,
     highlightingColor: THREE.Color
   ) {

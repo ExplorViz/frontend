@@ -12,6 +12,7 @@ import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-me
 import { getStoredSettings } from '../settings/local-storage-settings';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import K8sNodeMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-node-mesh';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -20,7 +21,9 @@ import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
  *
  * @param boxMesh Mesh which is labeled
  */
-export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
+export function positionBoxLabel(
+  boxMesh: ComponentMesh | FoundationMesh | K8sNodeMesh
+) {
   const label = boxMesh.labelMesh;
 
   if (!label) {
@@ -108,7 +111,7 @@ export function addApplicationLabels(
  * @param scalar Allows to scale text size additionally
  */
 export function addBoxTextLabel(
-  boxMesh: ComponentMesh | FoundationMesh,
+  boxMesh: ComponentMesh | FoundationMesh | K8sNodeMesh,
   font: Font,
   color: THREE.Color,
   minHeight = 1.5,

@@ -10,7 +10,9 @@ import {
 import { getStoredNumberSetting } from './settings/local-storage-settings';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 
-// We rely on prefixes having the same length
+// Prefixes with leading non-number characters are temporarily added
+// since ELK cannot handle IDs with leading numbers
+// We rely on prefixes having the same length for later removal
 const LANDSCAPE_PREFIX = 'land-';
 const K8S_NODE_PREFIX = 'node-';
 const K8S_NAMESPACE_PREFIX = 'nspc-';
