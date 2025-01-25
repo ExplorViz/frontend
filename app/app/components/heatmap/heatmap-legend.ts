@@ -1,9 +1,8 @@
 import Component from '@glimmer/component';
 import debugLogger from 'ember-debug-logger';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
-import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface Args {
   descriptions?: {
@@ -17,9 +16,6 @@ export default class HeatmapLegend extends Component<Args> {
   helpTooltipComponent = HelpTooltip;
 
   debug = debugLogger();
-
-  @service('heatmap/heatmap-configuration')
-  heatmapConfiguration!: HeatmapConfiguration;
 
   canvas!: HTMLCanvasElement;
 
@@ -39,7 +35,7 @@ export default class HeatmapLegend extends Component<Args> {
   }
 
   get subHeader() {
-    const mode = this.heatmapConfiguration.selectedMode;
+    const mode = useHeatmapConfigurationStore.getState().selectedMode;
     if (mode === 'snapshotHeatmap') {
       return 'Snapshot score:';
     }
@@ -65,7 +61,9 @@ export default class HeatmapLegend extends Component<Args> {
     const ctx = this.canvas.getContext('2d')!;
     const grad = ctx.createLinearGradient(0, this.canvas.height, 0, 0);
 
-    const heatmapGradient = this.heatmapConfiguration.getSimpleHeatGradient();
+    const heatmapGradient = useHeatmapConfigurationStore
+      .getState()
+      .getSimpleHeatGradient();
     Object.keys(heatmapGradient).forEach((key) => {
       grad.addColorStop(Number(key), heatmapGradient[key]);
     });
@@ -81,6 +79,6 @@ export default class HeatmapLegend extends Component<Args> {
 
   @action
   switchHeatMapMode() {
-    this.heatmapConfiguration.switchMode();
+    useHeatmapConfigurationStore.getState().switchMode();
   }
 }

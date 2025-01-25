@@ -6,6 +6,7 @@ import RectangleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/r
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
 import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 export type HeatmapMenuArgs = UiMenuArgs & {
   heatmapConfiguration: HeatmapConfiguration;
@@ -39,7 +40,7 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
 
   onCloseMenu() {
     super.onCloseMenu();
-    this.heatmapConfiguration.deactivate();
+    useHeatmapConfigurationStore.getState().deactivate();
   }
 
   opened = false;
@@ -51,7 +52,7 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
     }
     this.opened = true;
 
-    this.heatmapConfiguration.activate();
+    useHeatmapConfigurationStore.getState().activate();
 
     const content = this.getContent();
     const titleBackground = new RectangleItem({
@@ -99,14 +100,16 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
   }
 
   getContent() {
-    const min = this.heatmapConfiguration.selectedMetric?.min || '0';
-    const max = this.heatmapConfiguration.selectedMetric?.max || '0';
+    const min =
+      useHeatmapConfigurationStore.getState().getSelectedMetric()?.min || '0';
+    const max =
+      useHeatmapConfigurationStore.getState().getSelectedMetric()?.max || '0';
     return {
       title: 'Heatmap',
       entries: [
         {
           key: 'Metric',
-          value: this.heatmapConfiguration.selectedMetricName,
+          value: useHeatmapConfigurationStore.getState().selectedMetricName,
         },
         {
           key: 'Min',

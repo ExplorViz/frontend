@@ -2,7 +2,6 @@
 import { setOwner } from '@ember/application';
 import { getOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
-import { inject as service } from '@ember/service';
 import { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 import * as THREE from 'three';
 import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
@@ -12,7 +11,6 @@ import VRController from 'explorviz-frontend/utils/extended-reality/vr-controlle
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
 
 export type SearchMenuArgs = UiMenuArgs & {
@@ -43,8 +41,6 @@ const colors = {
 };
 
 export default class SearchMenu extends InteractiveMenu {
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
 
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;

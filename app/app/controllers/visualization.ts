@@ -67,7 +67,6 @@ import RenderingService, {
   VisualizationMode as RenderingVisualizationMode,
 } from 'explorviz-frontend/services/rendering-service';
 import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
@@ -128,8 +127,6 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('heatmap/heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-token')
   landscapeTokenService!: LandscapeTokenService;

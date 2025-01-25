@@ -2,9 +2,6 @@ import Modifier from 'ember-modifier';
 import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import HeatmapConfiguration, {
-  HeatmapMode,
-} from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import debugLogger from 'ember-debug-logger';
 import {
   HEATMAP_UPDATE_EVENT,
@@ -14,6 +11,10 @@ import {
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import equal from 'fast-deep-equal';
+import {
+  useHeatmapConfigurationStore,
+  HeatmapMode,
+} from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 function cleanup(instance: SyncStateModifier) {
   instance.webSocket.off(
@@ -27,9 +28,6 @@ export default class SyncStateModifier extends Modifier {
   @service('collaboration/web-socket')
   webSocket!: WebSocketService;
 
-  @service('heatmap/heatmap-configuration')
-  private heatmapConf!: HeatmapConfiguration;
-
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
@@ -42,12 +40,17 @@ export default class SyncStateModifier extends Modifier {
   }
 
   modify() {
-    if (this.heatmapConf.currentApplication && this.heatmapConf.heatmapShared) {
+    if (
+      useHeatmapConfigurationStore.getState().currentApplication &&
+      useHeatmapConfigurationStore.getState().heatmapShared
+    ) {
       this.send(HEATMAP_UPDATE_EVENT, {
-        applicationId: this.heatmapConf.currentApplication.getModelId(),
-        metric: this.heatmapConf.selectedMetricName,
-        mode: this.heatmapConf.selectedMode,
-        isActive: this.heatmapConf.heatmapActive,
+        applicationId: useHeatmapConfigurationStore
+          .getState()
+          .currentApplication!.getModelId(),
+        metric: useHeatmapConfigurationStore.getState().selectedMetricName,
+        mode: useHeatmapConfigurationStore.getState().selectedMode,
+        isActive: useHeatmapConfigurationStore.getState().heatmapActive,
       });
     }
   }
@@ -55,19 +58,26 @@ export default class SyncStateModifier extends Modifier {
   onHeatmapUpdate({
     originalMessage: message,
   }: ForwardedMessage<HeatmapUpdateMessage>) {
-    if (!this.heatmapConf.heatmapShared) {
+    if (!useHeatmapConfigurationStore.getState().heatmapShared) {
       return;
     }
     this.state.set(message.event, message);
     if (message.applicationId) {
-      this.heatmapConf.currentApplication =
-        this.applicationRenderer.getApplicationById(message.applicationId);
+      useHeatmapConfigurationStore.setState({
+        currentApplication: this.applicationRenderer.getApplicationById(
+          message.applicationId
+        ),
+      });
     } else {
-      this.heatmapConf.currentApplication = null;
+      useHeatmapConfigurationStore.setState({ currentApplication: null });
     }
-    this.heatmapConf.selectedMetricName = message.metric;
-    this.heatmapConf.selectedMode = message.mode as HeatmapMode;
-    this.heatmapConf.heatmapActive = message.isActive;
+    useHeatmapConfigurationStore.setState({
+      selectedMetricName: message.metric,
+    });
+    useHeatmapConfigurationStore.setState({
+      selectedMode: message.mode as HeatmapMode,
+    });
+    useHeatmapConfigurationStore.setState({ heatmapActive: message.isActive });
   }
 
   debug = debugLogger('SyncState');

@@ -16,7 +16,7 @@ import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 // import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event'; // TODO: Add this to the react-lib
+import IdeCrossCommunicationEvent from 'explorviz-frontend/ide/ide-cross-communication-event'; // TODO: Add this to the react-lib
 import { Object3DEventMap } from 'three';
 
 export enum IDEApiDest {

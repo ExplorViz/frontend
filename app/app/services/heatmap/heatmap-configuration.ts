@@ -3,12 +3,12 @@ import Evented from '@ember/object/evented';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type HeatmapMode =
@@ -17,8 +17,8 @@ export type HeatmapMode =
   | 'windowedHeatmap';
 
 export default class HeatmapConfiguration extends Service.extend(Evented) {
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   // @tracked
   // heatmapActive = false;
@@ -42,16 +42,16 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   // TODO migrate ApplicationObject3D first
 
-  @tracked
-  currentApplication: ApplicationObject3D | undefined | null;
+  // @tracked
+  // currentApplication: ApplicationObject3D | undefined | null;
 
-  // get currentApplication(): ApplicationObject3D | undefined | null {
-  //   return useHeatmapConfigurationStore.getState().currentApplication;
-  // }
+  get currentApplication(): ApplicationObject3D | undefined | null {
+    return useHeatmapConfigurationStore.getState().currentApplication;
+  }
 
-  // set currentApplication(value: ApplicationObject3D | undefined | null) {
-  //   useHeatmapConfigurationStore.setState({ currentApplication: value });
-  // }
+  set currentApplication(value: ApplicationObject3D | undefined | null) {
+    useHeatmapConfigurationStore.setState({ currentApplication: value });
+  }
 
   // // Switch for the legend
   // legendActive = true;
@@ -206,9 +206,12 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     if (!this.currentApplication) {
       return undefined;
     }
-    const applicationData = this.applicationRepo.getById(
-      this.currentApplication.getModelId()
-    );
+    const applicationData = useApplicationRepositoryStore
+      .getState()
+      .getById(this.currentApplication.getModelId());
+    // const applicationData = this.applicationRepo.getById(
+    //   this.currentApplication.getModelId()
+    // );
     return applicationData?.applicationMetrics;
   }
 

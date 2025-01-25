@@ -17,9 +17,8 @@ import PopupData from '../../../../rendering/popups/popup-data';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 // import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
-
 import { Mesh } from 'three';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface Args {
@@ -42,8 +41,6 @@ export default class Settings extends Component<Args> {
   @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('heatmap/heatmap-configuration')
-  private heatmapConf!: HeatmapConfiguration;
 
   @service('collaboration/message-sender')
   private sender!: MessageSender;
@@ -218,7 +215,7 @@ export default class Settings extends Component<Args> {
           this.args.setGamepadSupport(value);
           break;
         case 'heatmapEnabled':
-          this.heatmapConf.setActive(value);
+          useHeatmapConfigurationStore.getState().setActive(value);
           break;
         case 'minimap':
           this.minimapService.minimapEnabled = value;

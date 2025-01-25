@@ -16,7 +16,6 @@ import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/cl
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import * as THREE from 'three';
 import { Intersection } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
@@ -94,6 +93,7 @@ import {
 import { JOIN_VR_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import { MENU_DETACHED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface Args {
   readonly id: string;
@@ -141,8 +141,6 @@ export default class VrRendering extends Component<Args> {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  @service('heatmap/heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -362,8 +360,10 @@ export default class VrRendering extends Component<Args> {
       targetType: FoundationMesh,
       triggerDown: (event) => {
         const application = event.target.parent as ApplicationObject3D;
-        if (this.heatmapConf.heatmapActive) {
-          this.heatmapConf.setActiveApplication(application);
+        if (useHeatmapConfigurationStore.getState().heatmapActive) {
+          useHeatmapConfigurationStore
+            .getState()
+            .setActiveApplication(application);
         } else {
           this.applicationRenderer.closeAllComponents(application);
         }

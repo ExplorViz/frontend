@@ -1,4 +1,3 @@
-import { inject as service } from '@ember/service';
 import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
@@ -7,7 +6,6 @@ import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import applySimpleHeatOnFoundation, {
   addHeatmapHelperLine,
   computeHeatMapViewPos,
@@ -15,6 +13,7 @@ import applySimpleHeatOnFoundation, {
 } from 'react-lib/src/utils/heatmap/heatmap-helper';
 import simpleHeatmap from 'react-lib/src/utils/heatmap/simple-heatmap';
 import * as THREE from 'three';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface NamedArgs {
   camera: THREE.Camera;
@@ -35,15 +34,12 @@ export default class HeatmapRenderer extends Modifier<Args> {
 
   lastApplicationObject3D: ApplicationObject3D | undefined | null;
 
-  @service('heatmap/heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
-
   get applicationObject3D() {
-    return this.heatmapConf.currentApplication;
+    return useHeatmapConfigurationStore.getState().currentApplication;
   }
 
   get metric() {
-    return this.heatmapConf.selectedMetric;
+    return useHeatmapConfigurationStore.getState().getSelectedMetric();
   }
 
   modify(_element: any, _positionalArgs: any[], { camera, scene }: any) {
@@ -113,9 +109,9 @@ export default class HeatmapRenderer extends Modifier<Args> {
       const simpleHeatMap = simpleHeatmap(
         selectedMetric.max,
         canvas,
-        this.heatmapConf.getSimpleHeatGradient(),
-        this.heatmapConf.heatmapRadius,
-        this.heatmapConf.blurRadius
+        useHeatmapConfigurationStore.getState().getSimpleHeatGradient(),
+        useHeatmapConfigurationStore.getState().heatmapRadius,
+        useHeatmapConfigurationStore.getState().blurRadius
       );
 
       const foundationWorldPosition = new THREE.Vector3();
@@ -168,7 +164,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     if (!heatmapValue) return;
 
     const raycaster = new THREE.Raycaster();
-    const { selectedMode } = this.heatmapConf;
+    const selectedMode = useHeatmapConfigurationStore.getState().selectedMode;
 
     const clazzPos = clazzMesh.position.clone();
     const viewPos = computeHeatMapViewPos(foundationMesh, this.camera);
@@ -191,7 +187,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
     const worldIntersectionPoint = firstIntersection.point.clone();
     applicationObject3D.worldToLocal(worldIntersectionPoint);
 
-    if (this.heatmapConf.useHelperLines) {
+    if (useHeatmapConfigurationStore.getState().useHelperLines) {
       addHeatmapHelperLine(
         applicationObject3D,
         clazzPos,
@@ -209,7 +205,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
         simpleHeatMap.add([
           xPos,
           zPos,
-          heatmapValue + this.heatmapConf.largestValue / 2,
+          heatmapValue + useHeatmapConfigurationStore.getState().largestValue / 2,
         ]);
       }
     }

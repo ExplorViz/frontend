@@ -26,7 +26,7 @@ import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings
 import VrApplicationObject3D from 'react-lib/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
 import LinkRenderer from './link-renderer';
-import ApplicationRepository from './repos/application-repository';
+// import ApplicationRepository from './repos/application-repository';
 // import FontRepository from './repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import UserSettings from './user-settings';
@@ -53,6 +53,7 @@ import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/flat-data';
 import TextureService from './texture-service';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -76,8 +77,8 @@ export default class ApplicationRenderer extends Service.extend() {
   @service('collaboration/message-sender')
   private sender!: MessageSender;
 
-  @service('repos/application-repository')
-  private applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // private applicationRepo!: ApplicationRepository;
 
   // @service('repos/font-repository')
   // private fontRepo!: FontRepository;
@@ -166,9 +167,12 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   getClassCommunications(applicationObjetc3D: ApplicationObject3D) {
-    const applicationData = this.applicationRepo.getById(
-      applicationObjetc3D.getModelId()
-    );
+    const applicationData = useApplicationRepositoryStore
+      .getState()
+      .getById(applicationObjetc3D.getModelId());
+    // const applicationData = this.applicationRepo.getById(
+    //   applicationObjetc3D.getModelId()
+    // );
     return applicationData?.classCommunications || [];
   }
 
@@ -581,7 +585,10 @@ export default class ApplicationRenderer extends Service.extend() {
     });
 
     room.openApps.forEach(async (app) => {
-      const applicationData = this.applicationRepo.getById(app.id);
+      const applicationData = useApplicationRepositoryStore
+        .getState()
+        .getById(app.id);
+      // const applicationData = this.applicationRepo.getById(app.id);
       if (applicationData) {
         await this.addApplicationTask.perform(
           applicationData,

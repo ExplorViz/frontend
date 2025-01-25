@@ -31,7 +31,6 @@ import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
@@ -55,6 +54,7 @@ import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'react-lib/src/utils/raycaster';
 import PopupData from './popups/popup-data';
 import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -92,9 +92,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('collaboration/spectate-user')
   private spectateUserService!: SpectateUser;
-
-  @service('heatmap/heatmap-configuration')
-  private heatmapConf!: HeatmapConfiguration;
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -441,7 +438,10 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.selectActiveApplication(mesh.parent);
     }
 
-    if (isEntityMesh(mesh) && !this.heatmapConf.heatmapActive) {
+    if (
+      isEntityMesh(mesh) &&
+      !useHeatmapConfigurationStore.getState().heatmapActive
+    ) {
       this.highlightingService.toggleHighlight(mesh, { sendMessage: true });
     }
   }
@@ -493,7 +493,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     if (this.selectedApplicationObject3D !== applicationObject3D) {
       this.selectedApplicationId = applicationObject3D.getModelId();
-      this.heatmapConf.setActiveApplication(applicationObject3D);
+      useHeatmapConfigurationStore
+        .getState()
+        .setActiveApplication(applicationObject3D);
     }
 
     applicationObject3D.updateMatrixWorld();
@@ -575,7 +577,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     if (
       isEntityMesh(mesh) &&
       enableAppHoverEffects &&
-      !this.heatmapConf.heatmapActive
+      !useHeatmapConfigurationStore.getState().heatmapActive
     ) {
       if (this.hoveredObject) {
         this.hoveredObject.resetHoverEffect();
@@ -735,7 +737,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.ideWebsocket.dispose();
     this.ideCrossCommunication.dispose();
 
-    this.heatmapConf.cleanup();
+    useHeatmapConfigurationStore.getState().cleanup();
     this.renderingLoop.stop();
     this.configuration.isCommRendered = true;
     this.popupHandler.willDestroy();

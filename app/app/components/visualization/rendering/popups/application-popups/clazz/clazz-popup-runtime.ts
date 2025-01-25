@@ -4,7 +4,6 @@ import { inject as service } from '@ember/service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 // import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface Args {
   clazz: Class;
@@ -22,8 +21,6 @@ export default class ClazzPopup extends Component<Args> {
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
 
-  @service('heatmap/heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;

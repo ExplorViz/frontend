@@ -1,6 +1,7 @@
 import { setOwner } from '@ember/application';
-import { inject as service } from '@ember/service';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import { inject as service } from '@ember/service';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 
 /**
  * @class ApplicationSearchLogic
@@ -8,8 +9,8 @@ import ApplicationRepository from 'explorviz-frontend/services/repos/application
  * @module explorviz
  */
 export default class ApplicationSearchLogic {
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   constructor(owner: any) {
     // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
@@ -21,7 +22,8 @@ export default class ApplicationSearchLogic {
 
     let allEntities: Map<string, any> = new Map();
 
-    const applications = this.applicationRepo.getAll();
+    const applications = useApplicationRepositoryStore.getState().getAll();
+    // const applications = this.applicationRepo.getAll();
 
     for (const application of applications) {
       allEntities = new Map([

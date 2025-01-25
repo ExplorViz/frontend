@@ -10,7 +10,7 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import ApplicationData, { K8sData } from 'react-lib/src/utils/application-data';
 import computeClassCommunication, {
@@ -37,7 +37,7 @@ import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/appli
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -52,8 +52,8 @@ interface Args {
 export default class LandscapeDataWatcherModifier extends Modifier<Args> {
   debug = debugLogger('LandscapeDataWatcherModifier');
 
-  @service('repos/application-repository')
-  private applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // private applicationRepo!: ApplicationRepository;
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
@@ -66,9 +66,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
-
-  @service('heatmap/heatmap-configuration')
-  private heatmapConf!: HeatmapConfiguration;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -440,8 +437,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       if (
         this.userSettings.applicationSettings.heatmapEnabled &&
-        this.heatmapConf.currentApplication?.dataModel.application.id ===
-          application.id
+        useHeatmapConfigurationStore.getState().currentApplication?.dataModel
+          .application.id === application.id
       ) {
         calculateHeatmap(
           applicationData.applicationMetrics,
@@ -449,7 +446,10 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         );
       }
 
-      this.applicationRepo.add(applicationData);
+      useApplicationRepositoryStore
+        .getState()
+        .addApplication(applicationData.application.id, applicationData);
+      // this.applicationRepo.add(applicationData);
 
       return applicationData;
     }

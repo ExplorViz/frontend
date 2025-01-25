@@ -22,6 +22,7 @@ import {
   EntityType,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 import SimpleParentMesh from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 
 export type DetailedInfo = {
   title: string;
@@ -120,6 +121,7 @@ function composeFoundationContent(componentMesh: FoundationMesh) {
   return content;
 }
 
+// TODO: Remove applicationRepo on migration
 function composeClazzContent(
   clazzMesh: ClazzMesh,
   applicationRepo: ApplicationRepository
@@ -131,9 +133,12 @@ function composeClazzContent(
     return null;
   }
   // TODO refactor, duplicated from clazz-popup
-  const applicationMetricsForCurrentApplication = applicationRepo.getById(
-    application.getModelId()
-  )?.applicationMetrics;
+  const applicationMetricsForCurrentApplication = useApplicationRepositoryStore
+    .getState()
+    .getById(application.getModelId())?.applicationMetrics;
+  // const applicationMetricsForCurrentApplication = applicationRepo.getById(
+  //   application.getModelId()
+  // )?.applicationMetrics;
 
   const content: DetailedInfo = {
     title: trimString(clazz.name, 40),

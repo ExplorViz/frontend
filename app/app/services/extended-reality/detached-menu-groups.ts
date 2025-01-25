@@ -1,7 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import * as THREE from 'three';
 import ActionIcon from 'explorviz-frontend/utils/extended-reality/view-objects/vr/action-icon';
 import HeatmapMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/heatmap-menu';
@@ -27,6 +26,7 @@ import {
   ObjectClosedResponse,
   isObjectClosedResponse,
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
+import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 export default class DetachedMenuGroupsService extends Service {
   @service('extended-reality/vr-asset-repo')
@@ -40,9 +40,6 @@ export default class DetachedMenuGroupsService extends Service {
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
-
-  @service('heatmap/heatmap-configuration')
-  heatmapConf!: HeatmapConfiguration;
 
   // TODO: After migration of the corresponding utils -> add stores
 
@@ -189,8 +186,8 @@ export default class DetachedMenuGroupsService extends Service {
         textures: this.assetRepo.shareIconTextures,
         color: new THREE.Color(color),
         onAction: () => {
-          this.heatmapConf.toggleShared();
-          if (this.heatmapConf.heatmapShared) {
+          useHeatmapConfigurationStore.getState().toggleShared();
+          if (useHeatmapConfigurationStore.getState().heatmapShared) {
             shareIcon.material.color = new THREE.Color(
               this.collaborationSession.getColor('')
             );
@@ -210,7 +207,7 @@ export default class DetachedMenuGroupsService extends Service {
         textures: this.assetRepo.fireIconTextures,
         color: new THREE.Color(color),
         onAction: () => {
-          this.heatmapConf.switchMetric();
+          useHeatmapConfigurationStore.getState().switchMetric();
           menu.redrawMenu();
           return Promise.resolve(true);
         },
