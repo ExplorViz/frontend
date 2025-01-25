@@ -51,7 +51,7 @@ export default async function layoutLandscape(
     edges: [],
     layoutOptions: {
       algorithm: 'stress',
-      desiredEdgeLength: 400,
+      desiredEdgeLength: 500,
       'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
     },
   };

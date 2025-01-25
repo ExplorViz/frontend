@@ -1,27 +1,15 @@
-import SimpleParentMesh, {
-  SimpleParentMeshParams,
-} from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
-import {
-  Application,
-  K8sDeployment,
-  K8sNamespace,
-  K8sNode,
-  K8sPod,
-} from './landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import { K8sNode } from './landscape-schemes/structure-data';
 import K8sNodeMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-node-mesh';
 import * as THREE from 'three';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
-import { VisualizationSettings } from './settings/settings-schemas';
 import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
 
 export default function visualizeK8sLandscape(
   landscape3D: Landscape3D,
   nodes: K8sNode[],
   params: { font: any; colors: ExplorVizColors },
-  boxLayoutMap: any,
-  appToApp3d: (app: Application) => ApplicationObject3D
+  boxLayoutMap: any
 ) {
   nodes.forEach((node) => {
     const nodeMesh = new K8sNodeMesh(
