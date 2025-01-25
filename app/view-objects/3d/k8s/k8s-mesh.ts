@@ -1,4 +1,5 @@
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { K8sEntity } from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import ComponentLabelMesh from 'explorviz-frontend/view-objects/3d/application/component-label-mesh';
@@ -6,12 +7,12 @@ import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 
-export default class K8sNodeMesh extends BoxMesh {
+export default class K8sMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
 
   material: THREE.MeshLambertMaterial;
 
-  dataModel: { id: string; name: string };
+  dataModel: K8sDataModel;
 
   opened: boolean = true;
 
@@ -31,7 +32,7 @@ export default class K8sNodeMesh extends BoxMesh {
 
   constructor(
     layout: BoxLayout,
-    dataModel: { id: string; name: string },
+    dataModel: K8sDataModel,
     defaultColor: THREE.Color,
     highlightingColor: THREE.Color
   ) {
@@ -70,3 +71,5 @@ export default class K8sNodeMesh extends BoxMesh {
     return this.dataModel.id;
   }
 }
+
+export type K8sDataModel = { id: string; name: string; type: K8sEntity };

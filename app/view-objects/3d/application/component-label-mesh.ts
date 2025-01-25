@@ -4,7 +4,7 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import LabelMesh from '../label-mesh';
 import ComponentMesh from './component-mesh';
 import FoundationMesh from './foundation-mesh';
-import K8sNodeMesh from '../k8s/k8s-node-mesh';
+import K8sMesh from '../k8s/k8s-mesh';
 
 export default class ComponentLabelMesh extends LabelMesh {
   minHeight: number;
@@ -12,7 +12,7 @@ export default class ComponentLabelMesh extends LabelMesh {
   minLength: number;
 
   constructor(
-    componentMesh: ComponentMesh | FoundationMesh | K8sNodeMesh,
+    componentMesh: ComponentMesh | FoundationMesh | K8sMesh,
     font: Font,
     textColor = new THREE.Color('black'),
     minHeight = 1.5,
@@ -34,7 +34,7 @@ export default class ComponentLabelMesh extends LabelMesh {
    * @param labelText The desired text for the label
    */
   computeLabel(
-    componentMesh: ComponentMesh | FoundationMesh | K8sNodeMesh,
+    componentMesh: ComponentMesh | FoundationMesh | K8sMesh,
     labelText = this.labelText,
     scalar = 1
   ) {

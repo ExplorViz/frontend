@@ -1,5 +1,5 @@
 import { K8sNode } from './landscape-schemes/structure-data';
-import K8sNodeMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-node-mesh';
+import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
 import * as THREE from 'three';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
@@ -13,9 +13,9 @@ export default function visualizeK8sLandscape(
   boxLayoutMap: any
 ) {
   nodes.forEach((node) => {
-    const nodeMesh = new K8sNodeMesh(
+    const nodeMesh = new K8sMesh(
       boxLayoutMap.get(node.name),
-      { id: node.name, name: node.name },
+      { id: node.name, name: node.name, type: K8sEntity.NODE },
       params.colors.k8sNodeColor,
       params.colors.highlightedEntityColor
     );
@@ -23,9 +23,9 @@ export default function visualizeK8sLandscape(
     addBoxTextLabel(nodeMesh, params.font, params.colors.k8sTextColor);
 
     node.k8sNamespaces.forEach((namespace) => {
-      const namespaceMesh = new K8sNodeMesh(
+      const namespaceMesh = new K8sMesh(
         boxLayoutMap.get(namespace.name),
-        { id: namespace.name, name: namespace.name },
+        { id: namespace.name, name: namespace.name, type: K8sEntity.NAMESPACE },
         params.colors.k8sNamespaceColor,
         params.colors.highlightedEntityColor
       );
@@ -33,9 +33,13 @@ export default function visualizeK8sLandscape(
       addBoxTextLabel(namespaceMesh, params.font, params.colors.k8sTextColor);
 
       namespace.k8sDeployments.forEach((deployment) => {
-        const deploymentMesh = new K8sNodeMesh(
+        const deploymentMesh = new K8sMesh(
           boxLayoutMap.get(deployment.name),
-          { id: deployment.name, name: deployment.name },
+          {
+            id: deployment.name,
+            name: deployment.name,
+            type: K8sEntity.DEPLOYMENT,
+          },
           params.colors.k8sDeploymentColor,
           params.colors.highlightedEntityColor
         );
@@ -47,9 +51,9 @@ export default function visualizeK8sLandscape(
         );
 
         deployment.k8sPods.forEach((pod) => {
-          const podMesh = new K8sNodeMesh(
+          const podMesh = new K8sMesh(
             boxLayoutMap.get(pod.name),
-            { id: deployment.name, name: pod.name },
+            { id: deployment.name, name: pod.name, type: K8sEntity.POD },
             params.colors.k8sPodColor,
             params.colors.highlightedEntityColor
           );
@@ -75,4 +79,11 @@ function addMeshToLandscape(mesh: BoxMesh, landscape3D: Landscape3D) {
   mesh.position.copy(centerPoint);
   mesh.saveOriginalAppearence();
   landscape3D.add(mesh);
+}
+
+export enum K8sEntity {
+  NODE = 'Node',
+  NAMESPACE = 'Namespace',
+  DEPLOYMENT = 'Deployment',
+  POD = 'Pod',
 }
