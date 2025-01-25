@@ -1,7 +1,6 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService, {
   TinySnapshot,
@@ -15,9 +14,6 @@ export default class ShareSnapshotComponent extends Component<TinySnapshot> {
 
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @tracked
   setExpireDateMenu: boolean = false;

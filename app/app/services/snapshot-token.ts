@@ -1,7 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
-import ToastHandlerService from './toast-handler';
 import { LandscapeToken } from './landscape-token';
 import { tracked } from '@glimmer/tracking';
 import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
@@ -11,6 +10,7 @@ import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-mes
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type SnapshotToken = {
   owner: string;
@@ -50,9 +50,6 @@ export default class SnapshotTokenService extends Service {
 
   @service('router')
   router!: any;
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   // @tracked
   // snapshotToken: SnapshotToken | null = null;
@@ -111,9 +108,9 @@ export default class SnapshotTokenService extends Service {
               sharedSnapshots: [],
               subsricedSnapshots: [],
             });
-            this.toastHandler.showErrorToastMessage(
-              'Snapshots could not be loaded.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage('Snapshots could not be loaded.');
           }
         })
         .catch(async () => {
@@ -122,9 +119,9 @@ export default class SnapshotTokenService extends Service {
             sharedSnapshots: [],
             subsricedSnapshots: [],
           });
-          this.toastHandler.showErrorToastMessage(
-            'Server for snapshots not available.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Server for snapshots not available.');
         });
     });
   }
@@ -156,9 +153,9 @@ export default class SnapshotTokenService extends Service {
               queryParams: { landscapeToken: undefined },
             });
             reject();
-            this.toastHandler.showErrorToastMessage(
-              'Snapshot could not be loaded.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage('Snapshot could not be loaded.');
           }
         })
         .catch(async () => {
@@ -168,9 +165,11 @@ export default class SnapshotTokenService extends Service {
             queryParams: { landscapeToken: undefined },
           });
           reject();
-          this.toastHandler.showErrorToastMessage(
-            'Shared snapshot does not exist or is expired.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage(
+              'Shared snapshot does not exist or is expired.'
+            );
         });
     });
   }
@@ -187,21 +186,25 @@ export default class SnapshotTokenService extends Service {
     })
       .then(async (response: Response) => {
         if (response.ok) {
-          this.toastHandler.showSuccessToastMessage(
-            'Successfully saved snapshot.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showSuccessToastMessage('Successfully saved snapshot.');
         } else if (response.status === 422) {
-          this.toastHandler.showErrorToastMessage('Snapshot already exists.');
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Snapshot already exists.');
         } else {
-          this.toastHandler.showErrorToastMessage(
-            'Something went wrong. Snapshot could not be saved.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage(
+              'Something went wrong. Snapshot could not be saved.'
+            );
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage(
-          'Snapshot server could not be reached.'
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Snapshot server could not be reached.');
       });
 
     if (name !== undefined) {
@@ -218,13 +221,15 @@ export default class SnapshotTokenService extends Service {
     })
       .then(async (response: Response) => {
         if (!response.ok) {
-          this.toastHandler.showErrorToastMessage('Something went wrong.');
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Something went wrong.');
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage(
-          'Snapshot server could not be reached.'
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Snapshot server could not be reached.');
       });
   }
 
@@ -252,23 +257,27 @@ export default class SnapshotTokenService extends Service {
           await navigator.clipboard.writeText(
             `${shareSnapshot}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
           );
-          this.toastHandler.showSuccessToastMessage(
-            'Successfully shared snapshot. Snaphsot URL copied to clipboard'
-          );
+          useToastHandlerStore
+            .getState()
+            .showSuccessToastMessage(
+              'Successfully shared snapshot. Snaphsot URL copied to clipboard'
+            );
         } else if (response.status === 222) {
-          this.toastHandler.showInfoToastMessage(
-            'A shared version already exists.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showInfoToastMessage('A shared version already exists.');
         } else {
-          this.toastHandler.showErrorToastMessage(
-            'Something went wrong. Snapshot could not be shared.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage(
+              'Something went wrong. Snapshot could not be shared.'
+            );
         }
       })
       .catch(async () => {
-        this.toastHandler.showErrorToastMessage(
-          'Snapshot server could not be reached.'
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Snapshot server could not be reached.');
       });
 
     this.router.refresh('landscapes');
@@ -287,13 +296,15 @@ export default class SnapshotTokenService extends Service {
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
       }).then(async (response: Response) => {
         if (!response.ok) {
-          this.toastHandler.showErrorToastMessage(
-            'Subscribed Snapshot could not be deleted.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Subscribed Snapshot could not be deleted.');
         } else {
-          this.toastHandler.showSuccessToastMessage(
-            'Subscribed Snapshot successfully deleted.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showSuccessToastMessage(
+              'Subscribed Snapshot successfully deleted.'
+            );
         }
       });
     } else {
@@ -304,19 +315,21 @@ export default class SnapshotTokenService extends Service {
       })
         .then(async (response: Response) => {
           if (response.ok) {
-            this.toastHandler.showSuccessToastMessage(
-              'Successfully deleted snapshot.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showSuccessToastMessage('Successfully deleted snapshot.');
           } else {
-            this.toastHandler.showErrorToastMessage(
-              'Something went wrong. Snapshot could not be deleted.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage(
+                'Something went wrong. Snapshot could not be deleted.'
+              );
           }
         })
         .catch(async () => {
-          this.toastHandler.showErrorToastMessage(
-            'Snapshot server could not be reached.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Snapshot server could not be reached.');
         });
     }
 
@@ -331,9 +344,9 @@ export default class SnapshotTokenService extends Service {
     this.snapshotToken = token;
 
     if (token) {
-      this.toastHandler.showInfoToastMessage(
-        `Set snapshot token to " ${token.name}"`
-      );
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage(`Set snapshot token to " ${token.name}"`);
     }
   }
 }

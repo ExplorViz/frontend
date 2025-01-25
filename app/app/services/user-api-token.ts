@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import Auth from './auth';
-import ToastHandlerService from './toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 const { userServiceApi } = ENV.backendAddresses;
 
@@ -21,9 +21,6 @@ export default class UserApiTokenService extends Service {
   @service('router')
   router!: any;
 
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
-
   retrieveApiTokens() {
     return new Promise<ApiToken[]>((resolve) => {
       const userId = encodeURI(this.auth.user?.sub || '');
@@ -42,16 +39,16 @@ export default class UserApiTokenService extends Service {
             resolve(tokens);
           } else {
             resolve([]);
-            this.toastHandler.showErrorToastMessage(
-              'API-Tokens could not be loaded.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage('API-Tokens could not be loaded.');
           }
         })
         .catch(async () => {
           resolve([]);
-          this.toastHandler.showErrorToastMessage(
-            'Server for Git APIs not available.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Server for Git APIs not available.');
         });
     });
   }
@@ -62,13 +59,15 @@ export default class UserApiTokenService extends Service {
       method: 'DELETE',
     });
     if (response.ok) {
-      this.toastHandler.showSuccessToastMessage(
-        'API-Token successfully deleted.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('API-Token successfully deleted.');
     } else {
-      this.toastHandler.showErrorToastMessage(
-        'Something went wrong. API-Token could not be deleted.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Something went wrong. API-Token could not be deleted.'
+        );
     }
 
     this.router.refresh('settings');
@@ -90,15 +89,19 @@ export default class UserApiTokenService extends Service {
       method: 'POST',
     });
     if (response.ok) {
-      this.toastHandler.showSuccessToastMessage(
-        'API-Token successfully saved.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('API-Token successfully saved.');
     } else if (response.status === 422) {
-      this.toastHandler.showErrorToastMessage('Token is already being used.');
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Token is already being used.');
     } else {
-      this.toastHandler.showErrorToastMessage(
-        'Something went wrong. API-Token could not be saved.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Something went wrong. API-Token could not be saved.'
+        );
     }
     this.router.refresh('settings');
   }

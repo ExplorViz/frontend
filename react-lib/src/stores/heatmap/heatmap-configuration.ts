@@ -5,6 +5,7 @@ import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/applic
 import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
 
 import { getDefaultGradient as getSimpleDefaultGradient } from "react-lib/src/utils/heatmap/simple-heatmap";
+import { useToastHandlerStore } from "../toast-handler";
 
 export type HeatmapMode =
   | "snapshotHeatmap"
@@ -120,7 +121,7 @@ export const useHeatmapConfigurationStore =
         get().getApplicationMetricsForEncompassingApplication()
           ?.latestClazzMetricScores;
       if (!applicationMetricsForCurrentApplication || !latestClazzMetricScores) {
-        // this.toastHandlerService.showErrorToastMessage('No heatmap found');
+        useToastHandlerStore.getState().showErrorToastMessage('No heatmap found');
         return undefined;
       }
   

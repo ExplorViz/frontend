@@ -5,8 +5,8 @@ import { action } from '@ember/object';
 import SnapshotTokenService, {
   SnapshotToken,
 } from 'explorviz-frontend/services/snapshot-token';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface Args {
   tokens: SnapshotToken[];
@@ -18,9 +18,6 @@ const { shareSnapshot } = ENV.backendAddresses;
 export default class SnapshotSelection extends Component<Args> {
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   @tracked
   sortPropertyPersonal: keyof SnapshotToken = 'createdAt';
@@ -147,13 +144,13 @@ export default class SnapshotSelection extends Component<Args> {
       await navigator.clipboard.writeText(
         `${shareSnapshot}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
       );
-      this.toastHandler.showSuccessToastMessage(
-        'Snapshot URL copied to clipboard.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('Snapshot URL copied to clipboard.');
     } catch (e) {
-      this.toastHandler.showErrorToastMessage(
-        'Failed to generate URL for snapshot.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Failed to generate URL for snapshot.');
     }
   }
 }

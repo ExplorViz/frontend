@@ -5,7 +5,6 @@ import { tracked } from '@glimmer/tracking';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
@@ -56,6 +55,7 @@ import {
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -63,9 +63,6 @@ export default class AnnotationHandlerService extends Service {
 
   @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
@@ -184,9 +181,9 @@ export default class AnnotationHandlerService extends Service {
 
     if (annotation) {
       if (annotation.inEdit && !annotation.hidden) {
-        this.toastHandlerService.showErrorToastMessage(
-          'Please exit edit mode before hiding.'
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Please exit edit mode before hiding.');
         return;
       }
 
@@ -206,9 +203,9 @@ export default class AnnotationHandlerService extends Service {
 
     if (annotation) {
       if (annotation.inEdit) {
-        this.toastHandlerService.showErrorToastMessage(
-          'Please exit edit mode before minimizing.'
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Please exit edit mode before minimizing.');
         return;
       }
 
@@ -259,9 +256,11 @@ export default class AnnotationHandlerService extends Service {
           responseType: isAnnotationEditResponse,
           onResponse: (response: AnnotationEditResponse) => {
             if (!response.isEditable) {
-              this.toastHandlerService.showErrorToastMessage(
-                'Another user is currently editing this annotation.'
-              );
+              useToastHandlerStore
+                .getState()
+                .showErrorToastMessage(
+                  'Another user is currently editing this annotation.'
+                );
               return false;
             }
 
@@ -314,9 +313,9 @@ export default class AnnotationHandlerService extends Service {
             annotation.inEdit = false;
             return true;
           } else {
-            this.toastHandlerService.showErrorToastMessage(
-              'Something went wrong.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage('Something went wrong.');
             return false;
           }
         },
@@ -353,9 +352,11 @@ export default class AnnotationHandlerService extends Service {
         (an) => an.annotationId !== annotationId
       );
     } else {
-      this.toastHandlerService.showErrorToastMessage(
-        'Could not remove popup since it is currently in use by another user.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Could not remove popup since it is currently in use by another user.'
+        );
     }
   }
 

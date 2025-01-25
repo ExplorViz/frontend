@@ -8,7 +8,6 @@ import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService, {
   SnapshotToken,
 } from 'explorviz-frontend/services/snapshot-token';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
@@ -32,9 +31,6 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
 
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   @service('collaboration/local-user')
   localUser!: LocalUser;

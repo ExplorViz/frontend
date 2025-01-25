@@ -7,8 +7,8 @@ import { Metrics } from 'react-lib/src/utils/landscape-schemes/metrics-data';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { tracked } from '@glimmer/tracking';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 const { metricsService } = ENV.backendAddresses;
 
@@ -23,9 +23,6 @@ export default class MetricDataComponent extends Component {
 
   @service('timestamp')
   timestampService!: TimestampService;
-
-  @service('toast-handler')
-  toast!: ToastHandlerService;
 
   @tracked
   metrics: Metrics = [];
@@ -54,9 +51,11 @@ export default class MetricDataComponent extends Component {
         `${metricsService}/metrics?landscapeToken=${this.tokenService.token.value}&timeStamp=${this.timestampService.timestamp}`
       );
       if (!response.ok) {
-        this.toast.showErrorToastMessage(
-          `HTTP error: ${response.status} when loading metrics`
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage(
+            `HTTP error: ${response.status} when loading metrics`
+          );
         return;
       }
       const rawData: any[] = await response.json();
@@ -71,9 +70,13 @@ export default class MetricDataComponent extends Component {
         landscapeToken: metricArray[6],
         unit: metricArray[7],
       }));
-      this.toast.showSuccessToastMessage(`${rawData.length} metrics loaded`);
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage(`${rawData.length} metrics loaded`);
     } catch (error) {
-      this.toast.showErrorToastMessage('Error loading metrics');
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Error loading metrics');
       console.error('Error loading metrics', error);
     }
   }

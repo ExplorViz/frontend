@@ -5,7 +5,7 @@ import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
 import { tracked } from '@glimmer/tracking';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface ShareLandscapeArgs {
   token: LandscapeToken;
@@ -17,9 +17,6 @@ const { userService } = ENV.backendAddresses;
 export default class ShareLandscape extends Component<ShareLandscapeArgs> {
   @service('auth')
   auth!: Auth;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   focusedClicks = 0;
 
@@ -36,11 +33,13 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
       );
       this.args.token.sharedUsersIds.addObject(this.username);
 
-      this.toastHandlerService.showSuccessToastMessage(
-        `Access of ${this.username} granted for token ${this.args.token.value}`
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage(
+          `Access of ${this.username} granted for token ${this.args.token.value}`
+        );
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   }
 
@@ -49,11 +48,13 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
     try {
       await this.sendModifyAccess(this.args.token.value, userId, 'revoke');
       this.args.token.sharedUsersIds.removeObject(userId);
-      this.toastHandlerService.showSuccessToastMessage(
-        `Access of ${userId} revoked for token ${this.args.token.value}`
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage(
+          `Access of ${userId} revoked for token ${this.args.token.value}`
+        );
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   }
 
@@ -62,11 +63,11 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
     try {
       await this.sendModifyAccess(this.args.token.value, userId, 'clone');
       this.args.reload();
-      this.toastHandlerService.showSuccessToastMessage(
-        `Cloned token ${this.args.token.value}`
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage(`Cloned token ${this.args.token.value}`);
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   }
 

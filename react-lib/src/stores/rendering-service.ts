@@ -5,9 +5,13 @@ import { Timestamp } from "react-lib/src/utils/landscape-schemes/timestamp";
 import { DynamicLandscapeData } from "react-lib/src/utils/landscape-schemes/dynamic/dynamic-data";
 import { StructureLandscapeData } from "react-lib/src/utils/landscape-schemes/structure-data";
 import { animatePlayPauseIcon } from "react-lib/src/utils/animate";
-import { combineStructureLandscapeData, getAllMethodHashesOfLandscapeStructureData } from "../utils/landscape-structure-helpers";
+import {
+  combineStructureLandscapeData,
+  getAllMethodHashesOfLandscapeStructureData,
+} from "../utils/landscape-structure-helpers";
 import { combineDynamicLandscapeData } from "../utils/landscape-dynamic-helpers";
-import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
+import { areArraysEqual } from "react-lib/src/utils/helpers/array-helpers";
+import { useToastHandlerStore } from "react-lib/src/stores/toast-handler";
 
 interface RenderingServiceState {
   previousMethodHashes: string[];
@@ -139,7 +143,7 @@ export const useRenderingServiceStore = createStore<RenderingServiceState>(
     // setRuntimeModeActive: () => {
     //   const state = get();
     //   if (state._visualizationMode === "evolution") {
-    //     state.toastHandlerService.showInfoToastMessage(
+    //     useToastHandlerStore.getState().showInfoToastMessage(
     //       "Switching to cross-commit runtime visualization."
     //     );
     //     state._visualizationMode = "runtime";
@@ -155,7 +159,7 @@ export const useRenderingServiceStore = createStore<RenderingServiceState>(
     // handleError:(e: any) => {
     // const state = get();
     //   state.debug("An error occured!", { error: e });
-    //   state.toastHandlerService.showErrorToastMessage(
+    //   useToastHandlerStore.getState().showErrorToastMessage(
     //     "An error occured for the rendering!"
     //   );
     //   state.resumeVisualizationUpdating();

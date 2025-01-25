@@ -4,11 +4,11 @@ import { action } from '@ember/object';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import ChatService from 'explorviz-frontend/services/chat';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { tracked } from '@glimmer/tracking';
 import * as THREE from 'three';
 import { next } from '@ember/runloop';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface chatUser {
   id: string;
@@ -24,9 +24,6 @@ export default class ChatBox extends Component {
 
   @service('chat')
   chatService!: ChatService;
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
@@ -155,7 +152,9 @@ export default class ChatBox extends Component {
   @action
   synchronize() {
     if (this.collaborationSession.connectionStatus == 'offline') {
-      this.toastHandler.showErrorToastMessage("Can't synchronize with server");
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage("Can't synchronize with server");
       return;
     }
     this.chatService.clearFilter();
@@ -318,7 +317,7 @@ export default class ChatBox extends Component {
     eventData: any[];
   }): any {
     if (chatMessage.eventData.length == 0) {
-      this.toastHandler.showErrorToastMessage('No event data');
+      useToastHandlerStore.getState().showErrorToastMessage('No event data');
       return;
     }
 
@@ -340,7 +339,7 @@ export default class ChatBox extends Component {
         }
         break;
       default:
-        this.toastHandler.showErrorToastMessage('Unknown event');
+        useToastHandlerStore.getState().showErrorToastMessage('Unknown event');
     }
   }
 

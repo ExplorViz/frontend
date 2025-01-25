@@ -3,14 +3,11 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { Auth0Error } from 'auth0-js';
 import Auth from 'explorviz-frontend/services/auth';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export default class BaseRoute extends Route {
   @service
   auth!: Auth;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   async beforeModel() {
     // this is where we check if a user is authenticated
@@ -21,7 +18,7 @@ export default class BaseRoute extends Route {
   @action
   error(error: Auth0Error | undefined) {
     if (error && error.description) {
-      this.toastHandlerService.showErrorToastMessage(error.description);
+      useToastHandlerStore.getState().showErrorToastMessage(error.description);
     }
     if (!error || error.statusCode !== 429) {
       this.auth.logout();

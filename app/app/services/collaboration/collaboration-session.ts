@@ -3,7 +3,6 @@ import { tracked } from '@glimmer/tracking';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import debugLogger from 'ember-debug-logger';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import * as THREE from 'three';
 import LocalUser from './local-user';
 import UserFactory from './user-factory';
@@ -42,6 +41,7 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -76,9 +76,6 @@ export default class CollaborationSession extends Service.extend({
 
   @service('router')
   router!: any;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
@@ -264,9 +261,9 @@ export default class CollaborationSession extends Service.extend({
       true,
       'connection_event'
     );
-    this.toastHandlerService.showSuccessToastMessage(
-      'Joined room successfully'
-    );
+    useToastHandlerStore
+      .getState()
+      .showSuccessToastMessage('Joined room successfully');
   }
 
   // Display to other users when another user joins the room
@@ -287,14 +284,14 @@ export default class CollaborationSession extends Service.extend({
     });
     this.addRemoteUser(remoteUser);
 
-    this.toastHandlerService.showInfoToastMessage(
-      `User connected: ${remoteUser.userName}`
-    );
+    useToastHandlerStore
+      .getState()
+      .showInfoToastMessage(`User connected: ${remoteUser.userName}`);
   }
 
   onUserKickEvent({ originalMessage }: ForwardedMessage<UserKickEvent>): void {
     if (this.localUser.userId == originalMessage.userId) {
-      this.toastHandlerService.showErrorToastMessage('You were kicked');
+      useToastHandlerStore.getState().showErrorToastMessage('You were kicked');
       this.onSelfDisconnected('kick_event');
     }
   }
@@ -308,9 +305,9 @@ export default class CollaborationSession extends Service.extend({
     // Remove user and show disconnect notification.
     const removedUser = this.removeRemoteUserById(id);
     if (removedUser) {
-      this.toastHandlerService.showInfoToastMessage(
-        `User disconnected: ${removedUser.userName}`
-      );
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage(`User disconnected: ${removedUser.userName}`);
     }
 
     // walk trough all highlighted entities and unhighlight them
@@ -344,20 +341,20 @@ export default class CollaborationSession extends Service.extend({
     this.localUser.isHost = false;
 
     if (this.isConnecting) {
-      this.toastHandlerService.showInfoToastMessage(
-        'Collaboration backend service not responding.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage('Collaboration backend service not responding.');
     } else if (event) {
       switch (event) {
         case 'io client disconnect':
-          this.toastHandlerService.showInfoToastMessage(
-            'Successfully disconnected'
-          );
+          useToastHandlerStore
+            .getState()
+            .showInfoToastMessage('Successfully disconnected');
           break;
         default:
-          this.toastHandlerService.showErrorToastMessage(
-            'Unexpected disconnect'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Unexpected disconnect');
       }
     }
 
@@ -400,9 +397,9 @@ export default class CollaborationSession extends Service.extend({
         return true;
       } catch (e: any) {
         // this.connectionStatus = 'offline';
-        this.toastHandlerService.showErrorToastMessage(
-          'Cannot reach Collaboration-Service.'
-        );
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Cannot reach Collaboration-Service.');
         return false;
       }
     } else {
@@ -412,18 +409,20 @@ export default class CollaborationSession extends Service.extend({
 
   async joinRoom(roomId: string, spectateDevice: string = 'default') {
     if (this.isConnecting) {
-      this.toastHandlerService.showErrorToastMessage(
-        'Tried to join room while already connecting to a room.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Tried to join room while already connecting to a room.'
+        );
       return;
     }
 
     const rooms = await this.roomService.listRooms();
     const room = rooms.find((room) => room.roomId === roomId);
     if (!room) {
-      this.toastHandlerService.showErrorToastMessage(
-        'Could not find room with ID ' + roomId
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Could not find room with ID ' + roomId);
       return;
     }
 
@@ -440,9 +439,11 @@ export default class CollaborationSession extends Service.extend({
         },
       });
     } else {
-      this.toastHandlerService.showErrorToastMessage(
-        'Could not find landscape token for room to join.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage(
+          'Could not find landscape token for room to join.'
+        );
       return;
     }
 
@@ -465,9 +466,11 @@ export default class CollaborationSession extends Service.extend({
           // If this is the last retry attempt, handle the error and break out of the loop
           this.connectionStatus = 'offline';
           this.currentRoomId = null;
-          this.toastHandlerService.showErrorToastMessage(
-            'Cannot reach Collaboration-Service after multiple retries.'
-          );
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage(
+              'Cannot reach Collaboration-Service after multiple retries.'
+            );
           break;
         }
         retries++;

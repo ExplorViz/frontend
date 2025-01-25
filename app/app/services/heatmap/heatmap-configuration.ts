@@ -3,14 +3,13 @@ import Evented from '@ember/object/evented';
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import debugLogger from 'ember-debug-logger';
-// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
 import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type HeatmapMode =
   | 'snapshotHeatmap'
@@ -20,9 +19,6 @@ export type HeatmapMode =
 export default class HeatmapConfiguration extends Service.extend(Evented) {
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   // @tracked
   // heatmapActive = false;
@@ -230,7 +226,7 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
       this.applicationMetricsForEncompassingApplication
         ?.latestClazzMetricScores;
     if (!applicationMetricsForCurrentApplication || !latestClazzMetricScores) {
-      this.toastHandlerService.showErrorToastMessage('No heatmap found');
+      useToastHandlerStore.getState().showErrorToastMessage('No heatmap found');
       return undefined;
     }
 

@@ -17,7 +17,6 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 // import SceneRepository from 'react-lib/src/stores/repos/scene-repository';
 import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'react-lib/src/utils/application-rendering/spheres';
 import hitTest from 'react-lib/src/utils/hit-test';
@@ -36,6 +35,7 @@ import {
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -73,9 +73,6 @@ export default class ArRendering extends Component<Args> {
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   debug = debugLogger('ArRendering');
 
@@ -488,9 +485,9 @@ export default class ArRendering extends Component<Args> {
   @action
   async handlePing() {
     if (!this.collaborationSession.isOnline) {
-      this.toastHandlerService.showInfoToastMessage(
-        'Offline. <br> Join session with users to ping.'
-      );
+      useToastHandlerStore
+        .getState()
+        .showInfoToastMessage('Offline. <br> Join session with users to ping.');
       return;
     }
 

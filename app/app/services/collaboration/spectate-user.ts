@@ -18,9 +18,9 @@ import * as VrPoses from 'explorviz-frontend/utils/extended-reality/vr-helpers/v
 import { VrPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
 import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import equal from 'fast-deep-equal';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -33,9 +33,6 @@ export default class SpectateUser extends Service {
 
   @service('collaboration/collaboration-session')
   collaborationSession!: CollaborationSession;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
@@ -308,7 +305,7 @@ export default class SpectateUser extends Service {
 
     const userName = spectatingUserNames || 'Unknown';
 
-    this.toastHandlerService.showInfoToastMessage(`${userName} ${text}`);
+    useToastHandlerStore.getState().showInfoToastMessage(`${userName} ${text}`);
   }
 
   applyCameraConfiguration(configuration: {

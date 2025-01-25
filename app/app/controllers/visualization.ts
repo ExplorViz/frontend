@@ -53,7 +53,6 @@ import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-rep
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import UserApiTokenService, {
   ApiToken,
 } from 'explorviz-frontend/services/user-api-token';
@@ -70,6 +69,7 @@ import RenderingService, {
 import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -168,9 +168,6 @@ export default class VisualizationController extends Controller {
 
   @service('user-api-token')
   userApiTokenService!: UserApiTokenService;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;
@@ -443,9 +440,9 @@ export default class VisualizationController extends Controller {
 
     this.highlightingService.updateHighlighting();
 
-    this.toastHandlerService.showInfoToastMessage(
-      'Room state synchronizing ...'
-    );
+    useToastHandlerStore
+      .getState()
+      .showInfoToastMessage('Room state synchronizing ...');
   }
 
   async loadSnapshot() {

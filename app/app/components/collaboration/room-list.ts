@@ -3,10 +3,10 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import RoomService from 'explorviz-frontend/services/collaboration/room-service';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface RoomListArgs {
   tokens: LandscapeToken[];
@@ -19,9 +19,6 @@ export default class RoomList extends Component<RoomListArgs> {
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -38,7 +35,9 @@ export default class RoomList extends Component<RoomListArgs> {
     try {
       rooms = await this.roomService.listRooms();
     } catch (error) {
-      this.toastHandlerService.showErrorToastMessage('Could not load rooms');
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Could not load rooms');
       return;
     }
 
@@ -54,7 +53,9 @@ export default class RoomList extends Component<RoomListArgs> {
     );
 
     if (alert) {
-      this.toastHandlerService.showSuccessToastMessage('Updated room list');
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('Updated room list');
     }
   }
 

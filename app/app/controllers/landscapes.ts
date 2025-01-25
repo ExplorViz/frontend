@@ -5,12 +5,12 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import { inject as service } from '@ember/service';
 import Auth from 'explorviz-frontend/services/auth';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
 import SnapshotTokenService, {
   TinySnapshot,
 } from 'explorviz-frontend/services/snapshot-token';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 const { userService } = ENV.backendAddresses;
 
@@ -32,9 +32,6 @@ export default class Landscapes extends Controller {
 
   @tracked
   tokenAlias: string = '';
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @action
   openTokenCreationModal() {
@@ -92,12 +89,12 @@ export default class Landscapes extends Controller {
     try {
       const token = await this.sendTokenCreateRequest(this.tokenAlias);
       this.closeTokenCreationModal();
-      this.toastHandlerService.showSuccessToastMessage(
-        `Token created: ${token.value}`
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage(`Token created: ${token.value}`);
       this.send('refreshRoute');
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   }
 
@@ -108,11 +105,11 @@ export default class Landscapes extends Controller {
 
     try {
       await this.sendTokenDeleteRequest(tokenId);
-      this.toastHandlerService.showSuccessToastMessage(
-        'Token successfully deleted'
-      );
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage('Token successfully deleted');
     } catch (e) {
-      this.toastHandlerService.showErrorToastMessage(e.message);
+      useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
     if (this.tokenService.token?.value === tokenId) {
       this.tokenService.removeToken();

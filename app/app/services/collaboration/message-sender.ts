@@ -121,7 +121,6 @@ import {
   SyncRoomStateMessage,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
 import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import {
   USER_KICK_EVENT,
   UserKickEvent,
@@ -134,9 +133,6 @@ import {
 export default class MessageSender extends Service {
   @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   /**
    * Gets the next request identifier.

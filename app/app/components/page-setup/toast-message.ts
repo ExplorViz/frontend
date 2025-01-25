@@ -3,13 +3,10 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import generateUuidv4 from 'react-lib/src/utils/helpers/uuid4-generator';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export default class PageSetupToastMessageComponent extends Component {
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
-
   @tracked
   private toastMessages: {
     htmlId: string;
@@ -31,7 +28,8 @@ export default class PageSetupToastMessageComponent extends Component {
   constructor(owner: any, args: any) {
     super(owner, args);
     this.showToastCallback = this.addToastMessage.bind(this);
-    this.toastHandlerService.on('newToastMessage', this.showToastCallback);
+    // this.toastHandlerService.on('newToastMessage', this.showToastCallback);
+    eventEmitter.on('newToastMessage', this.showToastCallback);
   }
 
   private addToastMessage(type: string, message: string, header: string) {

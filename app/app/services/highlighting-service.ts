@@ -14,7 +14,6 @@ import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/cl
 import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import ToastHandlerService from './toast-handler';
 import ChatService from './chat';
 import {
   EntityMesh,
@@ -49,9 +48,6 @@ export default class HighlightingService extends Service.extend({
 
   @service('user-settings')
   private userSettings!: UserSettings;
-
-  @service('toast-handler')
-  toastHandler!: ToastHandlerService;
 
   @service('chat')
   chatService!: ChatService;
