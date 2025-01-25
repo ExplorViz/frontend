@@ -4,7 +4,7 @@ import Service, { inject as service } from '@ember/service';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { task } from 'ember-concurrency';
 import ApplicationData from 'react-lib/src/utils/application-data';
-import CommunicationRendering from 'explorviz-frontend/utils/application-rendering/communication-rendering';
+import CommunicationRendering from 'react-lib/src/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import {
@@ -119,11 +119,7 @@ export default class ApplicationRenderer extends Service.extend() {
   constructor(properties?: object) {
     super(properties);
     this._openApplicationsMap = new Map();
-    this._appCommRendering = new CommunicationRendering(
-      this.configuration,
-      this.userSettings,
-      this.localUser
-    );
+    this._appCommRendering = new CommunicationRendering();
 
     // const geometry = new THREE.BoxGeometry(1, 1, 1);
     // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });

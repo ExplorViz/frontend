@@ -2,45 +2,27 @@ import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/cl
 import applyCommunicationLayout, {
   calculateLineThickness,
 } from 'react-lib/src/utils/application-rendering/communication-layouter';
-import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';
-import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Vector3 } from 'three';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from 'react-lib/src/utils/link-helper';
 import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
+import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 
 export default class CommunicationRendering {
-  // Service to access preferences
-  configuration: Configuration;
-
-  userSettings: UserSettings;
-
-  localUser: LocalUser;
-
-  constructor(
-    configuration: Configuration,
-    userSettings: UserSettings,
-    localUser: LocalUser
-  ) {
-    this.configuration = configuration;
-    this.userSettings = userSettings;
-    this.localUser = localUser;
-  }
-
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return useUserSettingsStore.getState().applicationSettings;
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {
     let baseCurveHeight = 20;
 
-    if (this.configuration.commCurveHeightDependsOnDistance) {
+    if (useConfigurationStore.getState().commCurveHeightDependsOnDistance) {
       const classDistance = Math.hypot(
         commLayout.endX - commLayout.startX,
         commLayout.endZ - commLayout.startZ
@@ -60,8 +42,9 @@ export default class CommunicationRendering {
     const arrowOffset = 0.8;
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
-    const arrowColorHex =
-      this.userSettings.applicationColors.communicationArrowColor.getHex();
+    const arrowColorHex = useUserSettingsStore
+      .getState()
+      .applicationColors!.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(
@@ -89,7 +72,7 @@ export default class CommunicationRendering {
     applicationObject3D: ApplicationObject3D,
     settings: ApplicationSettings
   ) {
-    if (!this.configuration.isCommRendered) return;
+    if (!useConfigurationStore.getState().isCommRendered) return;
 
     const application = applicationObject3D.dataModel.application;
     const applicationLayout = applicationObject3D.boxLayoutMap.get(
@@ -126,7 +109,7 @@ export default class CommunicationRendering {
 
     // Retrieve color preferences
     const { communicationColor, highlightedEntityColor } =
-      this.userSettings.applicationColors;
+      useUserSettingsStore.getState().applicationColors!;
 
     const componentCommunicationMap = new Map<string, ComponentCommunication>();
 
@@ -183,7 +166,7 @@ export default class CommunicationRendering {
 
             commLayout.lineThickness = calculateLineThickness(
               componentCommunication,
-              this.userSettings.applicationSettings
+              useUserSettingsStore.getState().applicationSettings
             );
             // Create new component communication
           } else {
