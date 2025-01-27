@@ -1,6 +1,5 @@
 import { K8sNode } from './landscape-schemes/structure-data';
 import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
-import * as THREE from 'three';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
@@ -68,16 +67,7 @@ export default function visualizeK8sLandscape(
 }
 
 function addMeshToLandscape(mesh: BoxMesh, landscape3D: Landscape3D) {
-  const layoutPosition = mesh.layout.position;
-
-  const centerPoint = new THREE.Vector3(
-    layoutPosition.x + mesh.layout.width / 2.0,
-    layoutPosition.y + mesh.layout.height / 2.0,
-    layoutPosition.z + mesh.layout.depth / 2.0
-  );
-
-  mesh.position.copy(centerPoint);
-  mesh.saveOriginalAppearence();
+  mesh.updateLayout(mesh.layout);
   landscape3D.add(mesh);
 }
 

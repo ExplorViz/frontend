@@ -627,6 +627,10 @@ export default class ApplicationRenderer extends Service.extend() {
       apps
     );
 
+    // Center landscape
+    const landscapeLayout = boxLayoutMap.get(this.landscape3D.getModelId());
+    this.landscape3D.center(landscapeLayout);
+
     // Apply layout to each application
     this.openApplications.forEach((app3D) => {
       app3D.dataModel.boxLayoutMap = boxLayoutMap;

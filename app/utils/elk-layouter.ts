@@ -22,6 +22,7 @@ const APP_PREFIX = 'appl-';
 const PACKAGE_PREFIX = 'pack-';
 const CLASS_PREFIX = 'clss-';
 
+let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
 let CLASS_MARGIN: number;
@@ -37,6 +38,7 @@ export default async function layoutLandscape(
 ) {
   const elk = new ELK();
 
+  DESIRED_EDGE_LENGTH = getStoredNumberSetting('applicationDistance');
   ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
   CLASS_FOOTPRINT = getStoredNumberSetting('classFootprint');
   CLASS_MARGIN = getStoredNumberSetting('classMargin');
@@ -53,7 +55,7 @@ export default async function layoutLandscape(
     edges: [],
     layoutOptions: {
       algorithm: 'stress',
-      desiredEdgeLength: 500,
+      desiredEdgeLength: DESIRED_EDGE_LENGTH,
       'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
     },
   };

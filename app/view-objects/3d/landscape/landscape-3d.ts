@@ -34,4 +34,11 @@ export default class Landscape3D
   canBeIntersected() {
     return true;
   }
+
+  center(layout: BoxLayout | undefined) {
+    if (!layout) return;
+
+    this.position.x = (-layout.width * this.scale.x) / 2;
+    this.position.z = (-layout.depth * this.scale.z) / 2;
+  }
 }

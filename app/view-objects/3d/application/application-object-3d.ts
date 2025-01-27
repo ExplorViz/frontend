@@ -85,6 +85,15 @@ export default class ApplicationObject3D
   }
 
   updateLayout() {
+    const appLayout = this.boxLayoutMap.get(this.dataModel.getId());
+    if (appLayout) {
+      this.position.set(
+        appLayout?.positionX,
+        appLayout?.positionY,
+        appLayout?.positionZ
+      );
+    }
+
     this.children.forEach((mesh) => {
       if (
         mesh instanceof FoundationMesh ||

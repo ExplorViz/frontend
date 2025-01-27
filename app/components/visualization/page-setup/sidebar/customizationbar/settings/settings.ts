@@ -157,6 +157,7 @@ export default class Settings extends Component<Args> {
       this.userSettings.visualizationSettings.distanceLevel5,
     ];
     switch (settingId) {
+      case 'applicationDistance':
       case 'applicationAspectRatio':
       case 'classFootprint':
       case 'classMargin':

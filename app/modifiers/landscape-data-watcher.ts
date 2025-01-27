@@ -160,11 +160,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       )
     );
 
-    // Add kubernetes applications
-    // k8sApps.forEach((k8App) => {
-    //   applications.push(k8App.app);
-    // });
-
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
 
     // Center landscape
@@ -177,12 +172,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
       landscape3D.dataModel = landscapeModel;
     }
-    if (landscapeLayout && boxLayoutMap.size > 2) {
-      landscape3D.position.x =
-        (-landscapeLayout.width * landscape3D.scale.x) / 2;
-      landscape3D.position.z =
-        (-landscapeLayout.depth * landscape3D.scale.z) / 2;
-    }
+
+    landscape3D.center(landscapeLayout);
 
     // ToDo: This can take quite some time. Optimize.
     let classCommunications = computeClassCommunication(
@@ -245,9 +236,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return app3D;
     });
 
-    const k8sApp3Ds = (await Promise.all(
-      k8sAppPromises
-    )) as ApplicationObject3D[];
+    (await Promise.all(k8sAppPromises)) as ApplicationObject3D[];
 
     const k8sParameters = {
       font: this.fontRepo.font,
@@ -265,12 +254,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       landscape3D,
       this.landscapeData.structureLandscapeData.k8sNodes,
       k8sParameters,
-      boxLayoutMap,
-      (app) => {
-        return k8sApp3Ds.find(
-          (a) => a.dataModel.application.id === app.id
-        ) as ApplicationObject3D;
-      }
+      boxLayoutMap
     );
 
     // Apply restructure textures in restructure mode

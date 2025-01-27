@@ -227,6 +227,18 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   // Layout settings
+  applicationDistance: {
+    value: 500.0,
+    range: {
+      min: 100,
+      max: 2000,
+      step: 1,
+    },
+    group: 'Layout',
+    displayName: 'App Distance',
+    description: 'Determines a preferred distance between applications',
+    isRangeSetting: true,
+  },
   applicationAspectRatio: {
     value: 1.0,
     range: {
