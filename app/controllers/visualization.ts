@@ -102,7 +102,9 @@ export default class VisualizationController extends Controller {
 
   private sidebarHandler!: SidebarHandler;
 
+  @tracked
   private commit1: string | undefined | null;
+  @tracked
   private commit2: string | undefined | null;
 
   private bottomBar: RenderingVisualizationMode | undefined | null;
@@ -322,6 +324,22 @@ export default class VisualizationController extends Controller {
     await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
 
     let showEvolutionVisualization = false;
+
+    const selectedApp =
+      this.commitTreeStateService.currentSelectedApplicationName;
+    const selectedCommitsForCurrentSelectedApp =
+      this.commitTreeStateService.selectedCommits.get(selectedApp);
+    this.commit1 =
+      selectedCommitsForCurrentSelectedApp &&
+      selectedCommitsForCurrentSelectedApp.length > 0
+        ? selectedCommitsForCurrentSelectedApp[0].commitId
+        : undefined;
+
+    this.commit2 =
+      selectedCommitsForCurrentSelectedApp &&
+      selectedCommitsForCurrentSelectedApp.length > 1
+        ? selectedCommitsForCurrentSelectedApp[1].commitId
+        : undefined;
 
     // check what kind of rendering we should start
     if (this.commit1 && this.commit1.length > 0) {
