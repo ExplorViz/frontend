@@ -84,7 +84,11 @@ export default class ApplicationObject3D
     return this.dataModel.boxLayoutMap;
   }
 
-  updateLayout() {
+  updateLayout(boxLayoutMap: Map<string, BoxLayout> | undefined = undefined) {
+    if (boxLayoutMap) {
+      this.dataModel.boxLayoutMap = boxLayoutMap;
+    }
+
     const appLayout = this.boxLayoutMap.get(this.dataModel.getId());
     if (appLayout) {
       this.position.set(
@@ -490,7 +494,7 @@ export default class ApplicationObject3D
   /**
    * Disposes all meshes inside this object and clears all maps and sets
    */
-  removeAllEntities() {
+  removeAll() {
     this.getAllMeshes().forEach((mesh) => {
       SemanticZoomManager.instance.remove(mesh);
       mesh.deleteFromParent();

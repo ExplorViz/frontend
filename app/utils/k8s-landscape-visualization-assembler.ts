@@ -1,9 +1,8 @@
-import { K8sNode } from './landscape-schemes/structure-data';
 import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
-import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
 import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
-import { addBoxTextLabel } from './application-rendering/labeler';
+import { K8sNode } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { addBoxTextLabel } from 'explorviz-frontend/utils/application-rendering/labeler';
 
 export default function visualizeK8sLandscape(
   landscape3D: Landscape3D,
@@ -18,7 +17,7 @@ export default function visualizeK8sLandscape(
       params.colors.k8sNodeColor,
       params.colors.highlightedEntityColor
     );
-    addMeshToLandscape(nodeMesh, landscape3D);
+    landscape3D.addK8sMesh(nodeMesh);
     addBoxTextLabel(nodeMesh, params.font, params.colors.k8sTextColor);
 
     node.k8sNamespaces.forEach((namespace) => {
@@ -28,7 +27,7 @@ export default function visualizeK8sLandscape(
         params.colors.k8sNamespaceColor,
         params.colors.highlightedEntityColor
       );
-      addMeshToLandscape(namespaceMesh, landscape3D);
+      landscape3D.addK8sMesh(namespaceMesh);
       addBoxTextLabel(namespaceMesh, params.font, params.colors.k8sTextColor);
 
       namespace.k8sDeployments.forEach((deployment) => {
@@ -42,7 +41,7 @@ export default function visualizeK8sLandscape(
           params.colors.k8sDeploymentColor,
           params.colors.highlightedEntityColor
         );
-        addMeshToLandscape(deploymentMesh, landscape3D);
+        landscape3D.addK8sMesh(deploymentMesh);
         addBoxTextLabel(
           deploymentMesh,
           params.font,
@@ -52,24 +51,22 @@ export default function visualizeK8sLandscape(
         deployment.k8sPods.forEach((pod) => {
           const podMesh = new K8sMesh(
             boxLayoutMap.get(pod.name),
-            { id: deployment.name, name: pod.name, type: K8sEntity.POD },
+            { id: pod.name, name: pod.name, type: K8sEntity.POD },
             params.colors.k8sPodColor,
             params.colors.highlightedEntityColor
           );
-          addMeshToLandscape(podMesh, landscape3D);
+          landscape3D.addK8sMesh(podMesh);
           addBoxTextLabel(podMesh, params.font, params.colors.k8sTextColor);
         });
       });
     });
   });
-
-  // return nodes.map((n) => mapNode(n, params, appToApp3d));
 }
 
-function addMeshToLandscape(mesh: BoxMesh, landscape3D: Landscape3D) {
-  mesh.updateLayout(mesh.layout);
-  landscape3D.add(mesh);
-}
+// function landscape3D.addK8sMesh(mesh: BoxMesh, landscape3D: Landscape3D) {
+//   mesh.updateLayout(mesh.layout);
+//   landscape3D.add(mesh);
+// }
 
 export enum K8sEntity {
   NODE = 'Node',

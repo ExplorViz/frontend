@@ -19,6 +19,8 @@ import computeClassCommunication, {
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import {
   Application,
+  getApplicationsFromNodes,
+  getK8sAppsFromNodes,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
@@ -132,33 +134,9 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     this.debug('Update Visualization');
 
-    // Init computation of layout for applications
-    const applications: Application[] = [];
     const { nodes, k8sNodes } = this.structureLandscapeData;
-    for (let i = 0; i < nodes.length; ++i) {
-      const node = nodes[i];
-      for (let j = 0; j < node.applications.length; ++j) {
-        applications.push(node.applications[j]);
-      }
-    }
-
-    const k8sApps = k8sNodes.flatMap((n) =>
-      n.k8sNamespaces.flatMap((ns) =>
-        ns.k8sDeployments.flatMap((d) =>
-          d.k8sPods.flatMap((p) =>
-            p.applications.map((app) => {
-              return {
-                k8sNode: n,
-                k8sNamespace: ns,
-                k8sDeployment: d,
-                k8sPod: p,
-                app: app,
-              };
-            })
-          )
-        )
-      )
-    );
+    const applications = getApplicationsFromNodes(nodes);
+    const k8sApps = getK8sAppsFromNodes(k8sNodes);
 
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
 
@@ -246,7 +224,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     const app3Ds = this.applicationRenderer.getOpenApplications();
 
     app3Ds.forEach((application3D) => {
-      landscape3D.add(application3D);
+      landscape3D.addApplication(application3D);
     });
 
     // const rootParents =
@@ -257,36 +235,12 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       boxLayoutMap
     );
 
+    landscape3D.layoutLandscape(boxLayoutMap);
+
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
-    // const communicationLinks = interAppCommunications.map((communication) => ({
-    //   source: graphNodes.find(
-    //     (node) => node.id == communication.sourceApp?.id
-    //   ) as GraphNode,
-    //   target: graphNodes.find(
-    //     (node) => node.id == communication.targetApp?.id
-    //   ) as GraphNode,
-    //   value: calculateLineThickness(
-    //     communication,
-    //     this.userSettings.visualizationSettings
-    //   ),
-    //   communicationData: communication,
-    // }));
-    // // const gData = {
-    //   nodes: [
-    //     ...rootParents.map((p) => {
-    //       const d = p.dimensions;
-    //       const collisionRadius = Math.hypot(d.x, d.z) / 2 + 3;
-    //       return {
-    //         __threeObj: p,
-    //         fy: 0, // positions all nodes on the same height
-    //         collisionRadius,
-    //       };
-    //     }),
-    //     ...graphNodes.filter((n) => !apps.includes((n as any).__threeObj)),
-    //   ],
-    //   links: [...communicationLinks, ...nodeLinks],
-    // };
+
+    // TODO: Calculate line thickness for communication lines
 
     // Add communication
     const interAppCommunications = classCommunications.filter(

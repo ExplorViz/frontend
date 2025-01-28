@@ -37,6 +37,7 @@
       {{/if}}
 
       <canvas
+        id='threejs-canvas'
         class='webgl {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
         {{collaboration/sync-state}}
         {{interaction-modifier
@@ -54,7 +55,10 @@
           spaceDown=this.handleSpaceBar
         }}
         {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{landscape-data-watcher landscapeData=@landscapeData landscape3D=this.landscape3D}}
+        {{landscape-data-watcher
+          landscapeData=@landscapeData
+          landscape3D=this.landscape3D
+        }}
         {{collaboration/collaborative-modifier
           raycastObject3D=this.raycastObjects
           camera=this.localUser.camera

@@ -13,8 +13,8 @@ import {
 } from 'explorviz-frontend/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
-  Application,
   Class,
+  getApplicationsFromNodes,
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
@@ -252,7 +252,7 @@ export default class ApplicationRenderer extends Service.extend() {
           : addApplicationArgs;
 
       if (addedClasses) {
-        app3D.removeAllEntities();
+        app3D.removeAll();
 
         const appLayout = boxLayoutMap.get(applicationData.getId());
         if (appLayout) {
@@ -560,7 +560,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   removeApplicationLocally(application: ApplicationObject3D) {
     application.parent?.remove(application);
-    application.removeAllEntities();
+    application.removeAll();
     this._openApplicationsMap.delete(application.getModelId());
   }
 
@@ -616,26 +616,12 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   async updateApplicationLayout() {
-    const apps: Application[] = [];
-
-    this.openApplications.forEach((app3D) => {
-      apps.push(app3D.dataModel.application);
-    });
-
     const boxLayoutMap = await layoutLandscape(
       this.landscape3D.dataModel.structure.k8sNodes,
-      apps
+      getApplicationsFromNodes(this.landscape3D.dataModel.structure.nodes)
     );
 
-    // Center landscape
-    const landscapeLayout = boxLayoutMap.get(this.landscape3D.getModelId());
-    this.landscape3D.center(landscapeLayout);
-
-    // Apply layout to each application
-    this.openApplications.forEach((app3D) => {
-      app3D.dataModel.boxLayoutMap = boxLayoutMap;
-      app3D.updateLayout();
-    });
+    this.landscape3D.layoutLandscape(boxLayoutMap);
 
     // Update communication since position of classes may have changed
     this.addCommunicationForAllApplications();

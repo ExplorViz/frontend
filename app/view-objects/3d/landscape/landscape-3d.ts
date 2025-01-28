@@ -2,6 +2,8 @@ import { GrabbableObject } from 'explorviz-frontend/utils/extended-reality/view-
 import * as THREE from 'three';
 import LandscapeModel from './landscape-model';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
+import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
 
 export default class Landscape3D
   extends THREE.Group
@@ -16,6 +18,9 @@ export default class Landscape3D
     [],
     new BoxLayout()
   );
+
+  app3Ds: Map<string, ApplicationObject3D> = new Map();
+  k8sMeshes: Map<string, K8sMesh> = new Map();
 
   constructor() {
     super();
@@ -35,10 +40,72 @@ export default class Landscape3D
     return true;
   }
 
+  addApplication(app3D: ApplicationObject3D) {
+    this.add(app3D);
+    this.app3Ds.set(app3D.getModelId(), app3D);
+  }
+
+  getApplicationById(appId: string) {
+    return this.app3Ds.get(appId);
+  }
+
+  getAllApp3Ds() {
+    return Array.from(this.app3Ds.values());
+  }
+
+  removeApp3D(app3D: ApplicationObject3D) {
+    this.remove(app3D);
+    app3D.removeAll();
+    this.app3Ds.delete(app3D.getModelId());
+  }
+
+  addK8sMesh(k8sMesh: K8sMesh) {
+    this.add(k8sMesh);
+    this.k8sMeshes.set(k8sMesh.getModelId(), k8sMesh);
+  }
+
+  getK8sMeshById(k8sId: string) {
+    return this.k8sMeshes.get(k8sId);
+  }
+
+  getAllK8sMeshes() {
+    return Array.from(this.k8sMeshes.values());
+  }
+
+  removeK8sMesh(k8sMesh: K8sMesh) {
+    this.remove(k8sMesh);
+    k8sMesh.disposeRecursively();
+    this.k8sMeshes.delete(k8sMesh.getModelId());
+  }
+
+  removeAll() {
+    this.getAllApp3Ds().forEach((app3D) => {
+      this.removeApp3D(app3D);
+    });
+
+    this.getAllK8sMeshes().forEach((k8sMesh) => {
+      this.removeK8sMesh(k8sMesh);
+    });
+  }
+
   center(layout: BoxLayout | undefined) {
     if (!layout) return;
 
     this.position.x = (-layout.width * this.scale.x) / 2;
     this.position.z = (-layout.depth * this.scale.z) / 2;
+  }
+
+  layoutLandscape(boxLayoutMap: Map<string, BoxLayout>) {
+    this.dataModel.boxLayout = boxLayoutMap.get(this.getModelId())!;
+
+    this.center(this.dataModel.boxLayout);
+
+    this.app3Ds.forEach((app3D) => {
+      app3D.updateLayout(boxLayoutMap);
+    });
+
+    this.k8sMeshes.forEach((k8sMesh) => {
+      k8sMesh.updateLayout(boxLayoutMap.get(k8sMesh.getModelId()));
+    });
   }
 }
