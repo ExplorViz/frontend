@@ -6,6 +6,7 @@ import ComponentLabelMesh from './component-label-mesh';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import { positionBoxLabel } from 'explorviz-frontend/utils/application-rendering/labeler';
 
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -55,7 +56,15 @@ export default class ComponentMesh extends BoxMesh {
   }
 
   updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
+    const aspectRatioChanged = this.layout.aspectRatio != layout.aspectRatio;
     super.updateLayout(layout, offset);
+
+    // Avoid distorted text by recomputing text geometry
+    if (aspectRatioChanged && this.labelMesh) {
+      this.labelMesh.scale.set(1, 1, 1);
+      this.labelMesh.computeLabel(this);
+      positionBoxLabel(this);
+    }
 
     if (!this.opened) {
       const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');

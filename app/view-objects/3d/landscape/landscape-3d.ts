@@ -4,6 +4,7 @@ import LandscapeModel from './landscape-model';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
+import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 
 export default class Landscape3D
   extends THREE.Group
@@ -19,8 +20,10 @@ export default class Landscape3D
     new BoxLayout()
   );
 
+  // Landscape3D directly contains apps, k8s boxes and communication between apps
   app3Ds: Map<string, ApplicationObject3D> = new Map();
   k8sMeshes: Map<string, K8sMesh> = new Map();
+  interAppComms: Map<string, ClazzCommunicationMesh> = new Map();
 
   constructor() {
     super();
@@ -78,6 +81,25 @@ export default class Landscape3D
     this.k8sMeshes.delete(k8sMesh.getModelId());
   }
 
+  addCommunication(commMesh: ClazzCommunicationMesh) {
+    this.interAppComms.set(commMesh.getModelId(), commMesh);
+    this.add(commMesh);
+  }
+
+  getCommunicationById(id: string) {
+    return this.interAppComms.get(id);
+  }
+
+  getAllInterAppCommunications() {
+    return Array.from(this.interAppComms.values());
+  }
+
+  removeCommunication(commMesh: ClazzCommunicationMesh) {
+    this.remove(commMesh);
+    this.interAppComms.delete(commMesh.getModelId());
+    commMesh.disposeRecursively();
+  }
+
   removeAll() {
     this.getAllApp3Ds().forEach((app3D) => {
       this.removeApp3D(app3D);
@@ -85,6 +107,10 @@ export default class Landscape3D
 
     this.getAllK8sMeshes().forEach((k8sMesh) => {
       this.removeK8sMesh(k8sMesh);
+    });
+
+    this.getAllInterAppCommunications().forEach((comm) => {
+      this.removeCommunication(comm);
     });
   }
 

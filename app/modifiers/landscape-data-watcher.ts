@@ -15,7 +15,6 @@ import ApplicationData, {
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/utils/application-rendering/class-communication-computer';
-// import { calculateLineThickness } from 'explorviz-frontend/utils/application-rendering/communication-layouter';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
 import {
   Application,
@@ -35,11 +34,11 @@ import layoutLandscape from 'explorviz-frontend/utils/elk-layouter';
 import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import FontRepository from 'explorviz-frontend/services/repos/font-repository';
-// import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 import LandscapeModel from 'explorviz-frontend/view-objects/3d/landscape/landscape-model';
+import { CommunicationLink } from 'explorviz-frontend/ide/ide-cross-communication';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -132,7 +131,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return;
     }
 
-    this.debug('Update Visualization');
+    this.debug('Update Landscape Data');
 
     const { nodes, k8sNodes } = this.structureLandscapeData;
     const applications = getApplicationsFromNodes(nodes);
@@ -140,18 +139,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
 
-    // Center landscape
+    // Set data model for landscape
     const landscapeLayout = boxLayoutMap.get('landscape');
     if (landscapeLayout) {
-      const landscapeModel = new LandscapeModel(
+      landscape3D.dataModel = new LandscapeModel(
         this.structureLandscapeData,
         this.dynamicLandscapeData,
         landscapeLayout
       );
-      landscape3D.dataModel = landscapeModel;
     }
-
-    landscape3D.center(landscapeLayout);
 
     // ToDo: This can take quite some time. Optimize.
     let classCommunications = computeClassCommunication(
@@ -168,23 +164,24 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         this.landscapeRestructure.completelyDeletedClassCommunications
       );
     }
-
     this.landscapeRestructure.allClassCommunications = classCommunications;
 
+    const app3Ds: ApplicationObject3D[] = [];
+    // Compute app3Ds which are not part of Kubernetes deployment
     for (let i = 0; i < applications.length; ++i) {
-      const application = applications[i];
-
       const applicationData = await this.updateApplicationData.perform(
-        application,
+        applications[i],
         null,
         classCommunications,
         boxLayoutMap
       );
-      // Create or update applicationObject3D
 
-      await this.applicationRenderer.addApplicationTask.perform(
-        applicationData
-      );
+      // Create or update app3D
+      const app3D =
+        await this.applicationRenderer.addApplicationTask.perform(
+          applicationData
+        );
+      app3Ds.push(app3D);
     }
 
     // Add k8sApps
@@ -214,20 +211,21 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return app3D;
     });
 
-    (await Promise.all(k8sAppPromises)) as ApplicationObject3D[];
+    const k8sApp3Ds = (await Promise.all(
+      k8sAppPromises
+    )) as ApplicationObject3D[];
 
     const k8sParameters = {
       font: this.fontRepo.font,
       colors: this.userSettings.colors,
     };
 
-    const app3Ds = this.applicationRenderer.getOpenApplications();
+    app3Ds.concat(k8sApp3Ds);
 
     app3Ds.forEach((application3D) => {
       landscape3D.addApplication(application3D);
     });
 
-    // const rootParents =
     visualizeK8sLandscape(
       landscape3D,
       this.landscapeData.structureLandscapeData.k8sNodes,
@@ -240,9 +238,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // Apply restructure textures in restructure mode
     this.landscapeRestructure.applyTextureMappings();
 
-    // TODO: Calculate line thickness for communication lines
-
-    // Add communication
+    // Add inter-app communication
     const interAppCommunications = classCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
@@ -250,7 +246,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const commMesh =
         this.linkRenderer.createMeshFromCommunication(communication);
       if (commMesh) {
-        landscape3D.add(commMesh);
+        landscape3D.addCommunication(commMesh);
         this.linkRenderer.updateLinkPosition(commMesh);
       }
     });
@@ -278,27 +274,27 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         const applicationData = this.applicationRepo.getById(applicationId);
         if (!applicationData) {
           this.applicationRenderer.removeApplicationLocallyById(applicationId);
+          landscape3D.app3Ds.delete(applicationId);
         }
       }
       this.highlightingService.updateHighlighting();
     }
 
-    // TODO: Check if this code is still needed
     // Send new data to ide
-    // const cls: CommunicationLink[] = [];
-    // communicationLinks.forEach((element) => {
-    //   const meshIDs = element.communicationData.id.split('_');
-    //   const tempCL: CommunicationLink = {
-    //     meshID: element.communicationData.id,
-    //     sourceMeshID: meshIDs[0],
-    //     targetMeshID: meshIDs[1],
-    //     methodName: meshIDs[2],
-    //   };
-    //   cls.push(tempCL);
-    // });
-    // this.ideWebsocketFacade.refreshVizData(cls);
+    const cls: CommunicationLink[] = [];
+    landscape3D.getAllInterAppCommunications().forEach((communication) => {
+      const meshIDs = communication.getModelId().split('_');
+      const tempCL: CommunicationLink = {
+        meshID: communication.getModelId(),
+        sourceMeshID: meshIDs[0],
+        targetMeshID: meshIDs[1],
+        methodName: meshIDs[2],
+      };
+      cls.push(tempCL);
+    });
+    this.ideWebsocketFacade.refreshVizData(cls);
 
-    // apply new color for restructured communications in restructure mode
+    // Apply new color for restructured communications in restructure mode
     this.landscapeRestructure.applyColorMappings();
 
     document.dispatchEvent(new Event('Landscape initialized'));

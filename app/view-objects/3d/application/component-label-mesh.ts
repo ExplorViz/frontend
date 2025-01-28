@@ -111,9 +111,5 @@ export default class ComponentLabelMesh extends LabelMesh {
         this.computeLabel(componentMesh, shortenedLabel);
       }
     }
-
-    // Set label slightly transparent to avoid errors
-    // due to different render order (of transparent objects)
-    this.turnTransparent(0.99);
   }
 }

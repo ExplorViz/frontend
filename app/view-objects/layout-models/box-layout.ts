@@ -16,6 +16,11 @@ export default class BoxLayout {
   get position() {
     return new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
   }
+
+  get aspectRatio() {
+    return this.width / this.height;
+  }
+
   // Copy function
   copy(): BoxLayout {
     const copy = new BoxLayout();

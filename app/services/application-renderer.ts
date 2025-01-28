@@ -306,7 +306,7 @@ export default class ApplicationRenderer extends Service.extend() {
         }
       });
 
-      // reset highlights -------------------
+      // Reset highlights -------------------
 
       const currentSetting =
         this.userSettings.visualizationSettings.enableMultipleHighlighting

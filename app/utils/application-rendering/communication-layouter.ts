@@ -19,8 +19,8 @@ export function calculateLineThickness(
   // Normalized request count might be above 1 for component communication
   const normalizedRequestCount = clamp(
     communication.metrics.normalizedRequestCount,
-    0.5,
-    1.5
+    0.25,
+    2.0
   );
 
   // Apply line thickness depending on request count
