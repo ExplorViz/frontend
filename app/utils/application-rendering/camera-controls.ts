@@ -65,7 +65,8 @@ export default class CameraControls {
       if (Math.abs(currentDistance - this.lastDistance) > 0.001) {
         if (currentDistance < this.lastDistance) {
           //console.log('Zooming in');
-          ImmersiveView.instance.takeAction('zoomin');
+          // TODO: Enable this for entering immersive view with scroll wheel
+          // ImmersiveView.instance.takeAction('zoomin');
         } else {
           //console.log('Zooming out');
           ImmersiveView.instance.takeAction('zoomout');
