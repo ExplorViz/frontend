@@ -166,7 +166,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     }
     this.landscapeRestructure.allClassCommunications = classCommunications;
 
-    const app3Ds: ApplicationObject3D[] = [];
+    let app3Ds: ApplicationObject3D[] = [];
     // Compute app3Ds which are not part of Kubernetes deployment
     for (let i = 0; i < applications.length; ++i) {
       const applicationData = await this.updateApplicationData.perform(
@@ -220,8 +220,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       colors: this.userSettings.colors,
     };
 
-    app3Ds.concat(k8sApp3Ds);
-
+    app3Ds = app3Ds.concat(k8sApp3Ds);
     app3Ds.forEach((application3D) => {
       landscape3D.addApplication(application3D);
     });
