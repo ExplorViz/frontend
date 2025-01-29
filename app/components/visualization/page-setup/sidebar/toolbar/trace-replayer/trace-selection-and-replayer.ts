@@ -2,18 +2,13 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import {
   DynamicLandscapeData,
-  Span,
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
-import {
-  Class,
-  StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 
 interface Args {
   highlightTrace(trace: Trace, traceStep: string): void;
@@ -41,8 +36,6 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
 
   @action
   selectTrace(trace: Trace) {
-    console.log(this.args.renderingLoop);
-
     if (trace !== this.selectedTrace) {
       this.selectedTrace = trace;
       const traceSteps = getSortedTraceSpans(trace);
