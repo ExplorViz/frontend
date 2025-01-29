@@ -26,26 +26,33 @@ import { VisualizationSettings } from '../settings/settings-schemas';
  * Takes an application mesh, computes it position and adds it to the application object.
  *
  * @param mesh Mesh which should be added to the application
- * @param applicationObject3D Object which contains all application meshes
+ * @param app3D Object which contains all application meshes
  */
 export function addMeshToApplication(
   mesh: BoxMesh,
-  applicationObject3D: ApplicationObject3D
+  app3D: ApplicationObject3D
 ) {
   const layoutPosition = mesh.layout.position;
-  const applicationCenter = applicationObject3D.layout.center;
 
+  // Box meshes origin is in the center
   const centerPoint = new THREE.Vector3(
     layoutPosition.x + mesh.layout.width / 2.0,
     layoutPosition.y + mesh.layout.height / 2.0,
     layoutPosition.z + mesh.layout.depth / 2.0
   );
 
-  centerPoint.sub(applicationCenter);
+  // Offset position with applications position
+  const appLayoutPosition = new THREE.Vector3(
+    app3D.layout.positionX,
+    app3D.layout.positionY,
+    app3D.layout.positionZ
+  );
 
   mesh.position.copy(centerPoint);
+  mesh.position.sub(appLayoutPosition);
+
   mesh.saveOriginalAppearence();
-  applicationObject3D.add(mesh);
+  app3D.add(mesh);
   SemanticZoomManager.instance.add(mesh);
 }
 
@@ -65,7 +72,7 @@ export function updateMeshVisiblity(
     return;
   }
 
-  const parentMesh = applicationObject3D.getBoxMeshbyModelId(parent.id);
+  const parentMesh = applicationObject3D.getBoxMeshByModelId(parent.id);
   if (parentMesh instanceof ComponentMesh) {
     mesh.visible = parentMesh.opened;
   }

@@ -1,19 +1,18 @@
-import { Package } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { K8sEntity } from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
+import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import BoxMesh from 'explorviz-frontend/view-objects/3d/application/box-mesh';
+import ComponentLabelMesh from 'explorviz-frontend/view-objects/3d/application/component-label-mesh';
+import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import BoxLayout from 'explorviz-frontend/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
-import BoxMesh from './box-mesh';
-import ComponentLabelMesh from './component-label-mesh';
-import SemanticZoomManager from './utils/semantic-zoom-manager';
-import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
-import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
-import { positionBoxLabel } from 'explorviz-frontend/utils/application-rendering/labeler';
 
-export default class ComponentMesh extends BoxMesh {
+export default class K8sMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
 
   material: THREE.MeshLambertMaterial;
 
-  dataModel: Package;
+  dataModel: K8sDataModel;
 
   opened: boolean = true;
 
@@ -33,7 +32,7 @@ export default class ComponentMesh extends BoxMesh {
 
   constructor(
     layout: BoxLayout,
-    component: Package,
+    dataModel: K8sDataModel,
     defaultColor: THREE.Color,
     highlightingColor: THREE.Color
   ) {
@@ -46,7 +45,7 @@ export default class ComponentMesh extends BoxMesh {
     this.material.transparent = true;
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
-    this.dataModel = component;
+    this.dataModel = dataModel;
 
     // Semantic Zoom preparations
     this.useOrignalAppearence(false);
@@ -55,16 +54,13 @@ export default class ComponentMesh extends BoxMesh {
     this.layers.enable(SceneLayers.Component);
   }
 
-  updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
-    const aspectRatioChanged = this.layout.aspectRatio != layout.aspectRatio;
-    super.updateLayout(layout, offset);
+  updateLayout(
+    layout: BoxLayout | undefined,
+    offset: THREE.Vector3 = new THREE.Vector3()
+  ) {
+    if (!layout) return;
 
-    // Avoid distorted text by recomputing text geometry
-    if (aspectRatioChanged && this.labelMesh) {
-      this.labelMesh.scale.set(1, 1, 1);
-      this.labelMesh.computeLabel(this);
-      positionBoxLabel(this);
-    }
+    super.updateLayout(layout, offset);
 
     if (!this.opened) {
       const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');
@@ -80,3 +76,5 @@ export default class ComponentMesh extends BoxMesh {
     return this.dataModel.id;
   }
 }
+
+export type K8sDataModel = { id: string; name: string; type: K8sEntity };

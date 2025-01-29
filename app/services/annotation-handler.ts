@@ -8,7 +8,6 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
 import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import GrabbableForceGraph from 'explorviz-frontend/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import { SerializedAnnotation } from 'explorviz-frontend/utils/collaboration/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
@@ -52,6 +51,7 @@ import {
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { getStoredSettings } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -521,7 +521,7 @@ export default class AnnotationHandlerService extends Service {
           entity: mesh.dataModel,
           mesh,
           applicationId: (
-            mesh.parent as ApplicationObject3D | GrabbableForceGraph
+            mesh.parent as ApplicationObject3D | Landscape3D
           ).getModelId(),
           menuId: menuId || null,
           hovered: hovered || false,

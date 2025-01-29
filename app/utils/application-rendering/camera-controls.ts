@@ -65,7 +65,8 @@ export default class CameraControls {
       if (Math.abs(currentDistance - this.lastDistance) > 0.001) {
         if (currentDistance < this.lastDistance) {
           //console.log('Zooming in');
-          ImmersiveView.instance.takeAction('zoomin');
+          // TODO: Enable this for entering immersive view with scroll wheel
+          // ImmersiveView.instance.takeAction('zoomin');
         } else {
           //console.log('Zooming out');
           ImmersiveView.instance.takeAction('zoomout');
@@ -106,24 +107,20 @@ export default class CameraControls {
     const center = new Vector3();
     box.getSize(size);
     box.getCenter(center);
-    const labelerHeightAdjustment = 1.3;
-    center.y -= labelerHeightAdjustment;
 
-    const fitOffset = 1.2;
     const maxSize = Math.max(size.x, size.y, size.z);
 
-    // fit perspective camera
-
+    // Fit perspective camera
     const fitHeightDistance =
       maxSize / (2 * Math.atan((Math.PI * this.perspectiveCamera.fov) / 360));
     const fitWidthDistance = fitHeightDistance / this.perspectiveCamera.aspect;
 
-    const distance =
-      0.1 + Math.max(fitHeightDistance, fitWidthDistance) * fitOffset;
+    const distance = Math.max(fitHeightDistance, fitWidthDistance);
 
     const origin = keepCameraPerspective
       ? this.perspectiveCamera.position
       : new Vector3(1, 1, 1);
+
     const direction = center
       .clone()
       .sub(origin)
@@ -131,9 +128,6 @@ export default class CameraControls {
       .multiplyScalar(distance);
 
     const position = center.clone().sub(direction);
-
-    // This y-position is usually still above the classes
-    position.y = size.y / 2;
 
     // Center to turn camera around should always be on ground level
     center.y = 0;
@@ -165,7 +159,7 @@ export default class CameraControls {
     this.fitCamerasToBox(duration, this.getBoxForSelection(...selection));
   }
 
-  resetCameraFocusOn(duration: number = 1, ...selection: Object3D[]) {
+  resetCameraFocusOn(duration: number = 1, selection: Object3D[]) {
     this.fitCamerasToBox(
       duration,
       this.getBoxForSelection(...selection),

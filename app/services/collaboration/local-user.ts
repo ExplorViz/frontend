@@ -187,7 +187,7 @@ export default class LocalUser extends Service.extend({
       this.applicationRenderer.getApplicationById(appId);
 
     if (applicationObject3D) {
-      const mesh = applicationObject3D.getBoxMeshbyModelId(modelId);
+      const mesh = applicationObject3D.getBoxMeshByModelId(modelId);
       if (!mesh) return;
 
       if (options?.nonrestartable) {

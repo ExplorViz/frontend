@@ -1,12 +1,12 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as THREE from 'three';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import CameraControls from 'explorviz-frontend/utils/application-rendering/camera-controls';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 export enum SceneLayers {
   Default = 0,
@@ -45,7 +45,7 @@ export default class MinimapService extends Service {
 
   cameraControls!: CameraControls;
 
-  graph!: ForceGraph;
+  landscape3D!: Landscape3D;
 
   minimapUserMarkers: Map<string, THREE.Mesh> = new Map();
 
@@ -60,19 +60,19 @@ export default class MinimapService extends Service {
   /**
    * Initializes the minimap Service class
    * @param scene Scene containing all elements
-   * @param graph Graph including the boundingbox used by the minimap
+   * @param landscape3D Landscape to compute boundingBox used by the minimap
    * @param cameraControls CameraControls of the main camera
    */
   initializeMinimap(
     scene: THREE.Scene,
-    graph: ForceGraph,
+    landscape3D: Landscape3D,
     cameraControls: CameraControls
   ) {
     this.minimapEnabled = this.settings.visualizationSettings.minimap.value;
     this.userPosition = new THREE.Vector3(0, 0, 0);
     this.makeFullsizeMinimap = false;
     this.minimapSize = 4;
-    this.graph = graph;
+    this.landscape3D = landscape3D;
     this.scene = scene;
 
     this.setupCamera(cameraControls);
@@ -143,16 +143,17 @@ export default class MinimapService extends Service {
    * @param intersection Intersection of the user
    */
   private checkBoundingBox(intersection: THREE.Vector3): THREE.Vector3 {
-    if (this.graph.boundingBox) {
-      if (intersection.x > this.graph.boundingBox.max.x) {
-        intersection.x = this.graph.boundingBox.max.x;
-      } else if (intersection.x < this.graph.boundingBox.min.x) {
-        intersection.x = this.graph.boundingBox.min.x;
+    const boundingBox = new THREE.Box3().setFromObject(this.landscape3D);
+    if (boundingBox) {
+      if (intersection.x > boundingBox.max.x) {
+        intersection.x = boundingBox.max.x;
+      } else if (intersection.x < boundingBox.min.x) {
+        intersection.x = boundingBox.min.x;
       }
-      if (intersection.z > this.graph.boundingBox.max.z) {
-        intersection.z = this.graph.boundingBox.max.z;
-      } else if (intersection.z < this.graph.boundingBox.min.z) {
-        intersection.z = this.graph.boundingBox.min.z;
+      if (intersection.z > boundingBox.max.z) {
+        intersection.z = boundingBox.max.z;
+      } else if (intersection.z < boundingBox.min.z) {
+        intersection.z = boundingBox.min.z;
       }
     }
     return intersection;
@@ -252,12 +253,13 @@ export default class MinimapService extends Service {
   handleHit(userHit: RemoteUser) {
     if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera)
       return;
+    const boundingBox = new THREE.Box3().setFromObject(this.landscape3D);
     this.localUser.camera.position.copy(userHit.camera!.model.position);
     this.localUser.camera.quaternion.copy(userHit.camera!.model.quaternion);
     this.cameraControls.perspectiveCameraControls.target.copy(
       this.raycaster.raycastToCameraTarget(
         this.localUser.minimapCamera,
-        this.graph.boundingBox
+        boundingBox
       )
     );
   }
@@ -334,7 +336,7 @@ export default class MinimapService extends Service {
    */
   updateMinimapCamera() {
     // Call the new function to check and adjust minimap size
-    const boundingBox = this.graph.boundingBox;
+    const boundingBox = new THREE.Box3().setFromObject(this.landscape3D);
 
     // Calculate the size of the bounding box
     const size = boundingBox.getSize(new THREE.Vector3());
