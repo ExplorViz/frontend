@@ -145,6 +145,12 @@ export default class ApplicationObject3D
     return this;
   }
 
+  getClassMeshes() {
+    return Array.from(this.modelIdToMesh.values()).filter(
+      (mesh) => mesh instanceof ClazzMesh
+    );
+  }
+
   /**
    * Creates a GlobeMesh and adds it to the given application object.
    * Communication that come from the outside

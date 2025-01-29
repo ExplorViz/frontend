@@ -237,31 +237,31 @@ export default class ApplicationRenderer extends Service.extend() {
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let app3D = this.getApplicationById(applicationModel.id);
 
-      let addedClasses = true;
-      if (app3D) {
-        // Check if new classes have been discovered
-        addedClasses = boxLayoutMap.size !== app3D.boxLayoutMap.size;
-      } else {
+      if (!app3D) {
         app3D = new VrApplicationObject3D(applicationData);
         this._openApplicationsMap.set(applicationModel.id, app3D);
       }
 
+      // Check if new classes have been discovered
+      const oldClassCount = app3D.getClassMeshes().length;
+      const newClassCount = applicationData.getClassCount();
+      const hasStructureChanged = oldClassCount !== newClassCount;
+
       const applicationState =
-        Object.keys(addApplicationArgs).length === 0 && isOpen && addedClasses
+        Object.keys(addApplicationArgs).length === 0 &&
+        isOpen &&
+        hasStructureChanged
           ? this.roomSerializer.serializeToAddApplicationArgs(app3D)
           : addApplicationArgs;
 
-      if (addedClasses) {
-        app3D.removeAll();
+      // Set layout properties
+      const appLayout = boxLayoutMap.get(applicationData.getId());
+      if (appLayout) {
+        app3D.position.copy(appLayout.position);
+      }
 
-        const appLayout = boxLayoutMap.get(applicationData.getId());
-        if (appLayout) {
-          app3D.position.set(
-            appLayout.positionX,
-            appLayout.positionY,
-            appLayout.positionZ
-          );
-        }
+      if (hasStructureChanged) {
+        app3D.removeAll();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
@@ -270,7 +270,7 @@ export default class ApplicationRenderer extends Service.extend() {
           this.font
         );
 
-        // Restore state of open packages and transparent components (packages and clazzes)
+        // Restore state of open packages and transparent components (packages and classes)
         EntityManipulation.restoreComponentState(
           app3D,
           applicationState.openComponents,
