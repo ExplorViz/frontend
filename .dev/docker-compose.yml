@@ -18,6 +18,7 @@ services:
     ports:
       - ${SPAN_PORT}:8083
       - ${USER_PORT}:8084
+      - ${CODE_PORT}:8085
 
 networks:
   default:

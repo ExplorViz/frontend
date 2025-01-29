@@ -14,16 +14,11 @@
   <table class='table table-hover'>
     <thead>
       <tr style='cursor: pointer'>
-        <th {{on 'click' (fn this.sortByProperty 'traceId')}} scope='col'>Trace
-          ID</th>
+        <th {{on 'click' (fn this.sortByProperty 'traceId')}} scope='col'>Trace</th>
         <th
-          {{on 'click' (fn this.sortByProperty 'firstClassName')}}
+          {{on 'click' (fn this.sortByProperty 'steps')}}
           scope='col'
-        >First Clazz</th>
-        <th
-          {{on 'click' (fn this.sortByProperty 'lastClassName')}}
-          scope='col'
-        >Last Clazz</th>
+        >Requests</th>
         <th {{on 'click' (fn this.sortByProperty 'traceDuration')}} scope='col'>
           Duration in
           <BsButton
@@ -43,26 +38,9 @@
           bgcolor={{if @selectedTrace '#cc8a8a'}}
           {{on 'click' (fn @selectTrace trace)}}
         >
-          <th title={{trace.traceId}}>{{truncate trace.traceId 8 true}}</th>
-          {{#let
-            (get-value-of-map this.firstClasses trace.traceId)
-            as |firstClass|
-          }}
-            <td title={{firstClass.name}}>{{truncate
-                firstClass.name
-                12
-                true
-              }}</td>
-          {{/let}}
-          {{#let
-            (get-value-of-map this.lastClasses trace.traceId)
-            as |lastClass|
-          }}
-            <td title={{lastClass.name}}>{{truncate
-                lastClass.name
-                14
-                true
-              }}</td>
+          <th title={{trace.traceId}}>{{truncate trace.traceId 30 true}}</th>
+          {{#let (get this.requestCounts index) as |requestCounts|}}
+            <td>{{requestCounts}}</td>
           {{/let}}
           {{#let (get this.traceDurations index) as |duration|}}
             <td>{{format-number duration this.traceTimeUnit}}</td>

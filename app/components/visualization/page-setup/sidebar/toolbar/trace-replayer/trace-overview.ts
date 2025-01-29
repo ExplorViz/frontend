@@ -7,7 +7,9 @@ import { DynamicLandscapeData } from 'explorviz-frontend/utils/landscape-schemes
 interface Args {
   readonly dynamicData: DynamicLandscapeData;
   readonly visualizationPaused: boolean;
+
   toggleSettingsSidebarComponent(componentPath: string): void;
+
   toggleVisualizationUpdating(): void;
 }
 
