@@ -10,6 +10,7 @@ export default function visualizeK8sLandscape(
   params: { font: any; colors: ExplorVizColors },
   boxLayoutMap: any
 ) {
+  // Add nodes
   nodes.forEach((node) => {
     const nodeMesh = new K8sMesh(
       boxLayoutMap.get(node.name),
@@ -20,6 +21,7 @@ export default function visualizeK8sLandscape(
     landscape3D.addK8sMesh(nodeMesh);
     addBoxTextLabel(nodeMesh, params.font, params.colors.k8sTextColor);
 
+    // Add namespaces
     node.k8sNamespaces.forEach((namespace) => {
       const namespaceMesh = new K8sMesh(
         boxLayoutMap.get(namespace.name),
@@ -30,6 +32,7 @@ export default function visualizeK8sLandscape(
       landscape3D.addK8sMesh(namespaceMesh);
       addBoxTextLabel(namespaceMesh, params.font, params.colors.k8sTextColor);
 
+      // Add deployments
       namespace.k8sDeployments.forEach((deployment) => {
         const deploymentMesh = new K8sMesh(
           boxLayoutMap.get(deployment.name),
@@ -48,6 +51,7 @@ export default function visualizeK8sLandscape(
           params.colors.k8sTextColor
         );
 
+        // Add pods
         deployment.k8sPods.forEach((pod) => {
           const podMesh = new K8sMesh(
             boxLayoutMap.get(pod.name),
@@ -62,11 +66,6 @@ export default function visualizeK8sLandscape(
     });
   });
 }
-
-// function landscape3D.addK8sMesh(mesh: BoxMesh, landscape3D: Landscape3D) {
-//   mesh.updateLayout(mesh.layout);
-//   landscape3D.add(mesh);
-// }
 
 export enum K8sEntity {
   NODE = 'Node',
