@@ -14,13 +14,13 @@ import {
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
 import {
   Class,
+  getApplicationsFromNodes,
   Package,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 import VrApplicationObject3D from 'explorviz-frontend/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
@@ -51,9 +51,8 @@ import { FlatDataModelBasicInfo } from 'explorviz-frontend/utils/flat-data-schem
 import TextureService from './texture-service';
 import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
-import layoutCity, {
-  convertElkToBoxLayout,
-} from 'explorviz-frontend/utils/city-layouter';
+import layoutLandscape from 'explorviz-frontend/utils/elk-layouter';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -102,7 +101,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   //#region Fields
 
-  private _forceGraph!: ThreeForceGraph;
+  private _landscape3D!: Landscape3D;
 
   private _openApplicationsMap: Map<string, ApplicationObject3D>;
 
@@ -139,12 +138,12 @@ export default class ApplicationRenderer extends Service.extend() {
 
   // #region Get / Set
 
-  get forceGraph() {
-    return this._forceGraph;
+  get landscape3D() {
+    return this._landscape3D;
   }
 
-  set forceGraph(newForceGraph: ThreeForceGraph) {
-    this._forceGraph = newForceGraph;
+  set landscape3D(newLandscape3D: Landscape3D) {
+    this._landscape3D = newLandscape3D;
   }
 
   get appSettings() {
@@ -169,7 +168,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   getBoxMeshByModelId(id: string) {
     for (const application of this.getOpenApplications()) {
-      const mesh = application.getBoxMeshbyModelId(id);
+      const mesh = application.getBoxMeshByModelId(id);
       if (mesh) return mesh;
     }
     return null;
@@ -190,11 +189,11 @@ export default class ApplicationRenderer extends Service.extend() {
     return applicationData?.classCommunications || [];
   }
 
-  getGraphPosition(mesh: THREE.Object3D) {
-    const worldPosition = new THREE.Vector3();
-    mesh.getWorldPosition(worldPosition);
-    this._forceGraph.worldToLocal(worldPosition);
-    return worldPosition;
+  getPositionInLandscape(mesh: THREE.Object3D) {
+    const landscapePosition = new THREE.Vector3();
+    mesh.getWorldPosition(landscapePosition);
+    this._landscape3D.worldToLocal(landscapePosition);
+    return landscapePosition;
   }
 
   getMeshById(meshId: string): BaseMesh | undefined {
@@ -236,38 +235,44 @@ export default class ApplicationRenderer extends Service.extend() {
       const applicationModel = applicationData.application;
       const boxLayoutMap = applicationData.boxLayoutMap;
       const isOpen = this.isApplicationOpen(applicationModel.id);
-      let applicationObject3D = this.getApplicationById(applicationModel.id);
+      let app3D = this.getApplicationById(applicationModel.id);
 
-      let addedClasses = true;
-      if (applicationObject3D) {
-        // Check if new classes have been discovered
-        addedClasses =
-          boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
-      } else {
-        applicationObject3D = new VrApplicationObject3D(applicationData);
-        this._openApplicationsMap.set(applicationModel.id, applicationObject3D);
+      if (!app3D) {
+        app3D = new VrApplicationObject3D(applicationData);
+        this._openApplicationsMap.set(applicationModel.id, app3D);
       }
 
+      // Check if new classes have been discovered
+      const oldClassCount = app3D.getClassMeshes().length;
+      const newClassCount = applicationData.getClassCount();
+      const hasStructureChanged = oldClassCount !== newClassCount;
+
       const applicationState =
-        Object.keys(addApplicationArgs).length === 0 && isOpen && addedClasses
-          ? this.roomSerializer.serializeToAddApplicationArgs(
-              applicationObject3D
-            )
+        Object.keys(addApplicationArgs).length === 0 &&
+        isOpen &&
+        hasStructureChanged
+          ? this.roomSerializer.serializeToAddApplicationArgs(app3D)
           : addApplicationArgs;
 
-      if (addedClasses) {
-        applicationObject3D.removeAllEntities();
+      // Set layout properties
+      const appLayout = boxLayoutMap.get(applicationData.getId());
+      if (appLayout) {
+        app3D.position.copy(appLayout.position);
+      }
+
+      if (hasStructureChanged) {
+        app3D.removeAll();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
-          applicationObject3D,
+          app3D,
           this.userSettings.colors,
           this.font
         );
 
-        // Restore state of open packages and transparent components (packages and clazzes)
+        // Restore state of open packages and transparent components (packages and classes)
         EntityManipulation.restoreComponentState(
-          applicationObject3D,
+          app3D,
           applicationState.openComponents,
           applicationState.transparentComponents,
           this.highlightingService.opacity
@@ -275,19 +280,19 @@ export default class ApplicationRenderer extends Service.extend() {
 
         // Add labels to application
         Labeler.addApplicationLabels(
-          applicationObject3D,
+          app3D,
           this.font,
           this.userSettings.colors
         );
       } else {
         // Layout may have been changed in settings
-        applicationObject3D.updateLayout();
+        app3D.updateLayout();
       }
 
-      this.addCommunication(applicationObject3D);
+      this.addCommunication(app3D);
 
       // reset transparency of inner communication links
-      applicationObject3D.getCommMeshes().forEach((commMesh) => {
+      app3D.getCommMeshes().forEach((commMesh) => {
         if (applicationState.transparentComponents?.has(commMesh.getModelId()))
           commMesh.turnTransparent(this.highlightingService.opacity);
       });
@@ -301,7 +306,7 @@ export default class ApplicationRenderer extends Service.extend() {
         }
       });
 
-      // reset highlights -------------------
+      // Reset highlights -------------------
 
       const currentSetting =
         this.userSettings.visualizationSettings.enableMultipleHighlighting
@@ -337,9 +342,7 @@ export default class ApplicationRenderer extends Service.extend() {
         this.removeCommitComparisonVisualization(applicationData);
       }
 
-      applicationObject3D.resetRotation();
-
-      return applicationObject3D;
+      return app3D;
     }
   );
 
@@ -350,7 +353,7 @@ export default class ApplicationRenderer extends Service.extend() {
     const appId = this.getApplicationIdByMeshId(entityId);
     const applicationObject3D = this.getApplicationById(appId!);
 
-    const boxMesh = applicationObject3D!.getBoxMeshbyModelId(entityId) as
+    const boxMesh = applicationObject3D!.getBoxMeshByModelId(entityId) as
       | ComponentMesh
       | FoundationMesh;
 
@@ -382,7 +385,7 @@ export default class ApplicationRenderer extends Service.extend() {
   @action
   addCommunicationForAllApplications() {
     this.forEachOpenApplication(this.addCommunication);
-    this.updateLinks?.();
+    this.linkRenderer.updateLinkPositions();
   }
 
   @action
@@ -409,12 +412,10 @@ export default class ApplicationRenderer extends Service.extend() {
       this.userSettings.colors
     );
     // Update links
-    this.updateLinks?.();
+    this.linkRenderer.updateLinkPositions();
     // Update highlighting
     this.highlightingService.updateHighlighting(); // needs to be after update links
   }
-
-  updateLinks?: () => void;
 
   @action
   openAllComponentsOfAllApplications() {
@@ -432,7 +433,7 @@ export default class ApplicationRenderer extends Service.extend() {
     } else {
       this.removeCommunicationForAllApplications();
     }
-    this.updateLinks?.();
+    this.linkRenderer.updateLinkPositions();
   }
 
   /**
@@ -559,7 +560,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   removeApplicationLocally(application: ApplicationObject3D) {
     application.parent?.remove(application);
-    application.removeAllEntities();
+    application.removeAll();
     this._openApplicationsMap.delete(application.getModelId());
   }
 
@@ -615,26 +616,12 @@ export default class ApplicationRenderer extends Service.extend() {
   }
 
   async updateApplicationLayout() {
-    const elkPromises: any[] = [];
+    const boxLayoutMap = await layoutLandscape(
+      this.landscape3D.dataModel.structure.k8sNodes,
+      getApplicationsFromNodes(this.landscape3D.dataModel.structure.nodes)
+    );
 
-    // Compute layout asynchronously
-    this.openApplications.forEach((application) => {
-      elkPromises.push(layoutCity(application.dataModel.application));
-    });
-    const layoutGraphs = await Promise.all(elkPromises);
-
-    // Apply layout to each application
-    layoutGraphs.forEach((graph) => {
-      const boxLayoutMap = convertElkToBoxLayout(graph);
-
-      // Ids in ELK must not start with numbers, therefore we added 5 letters
-      const application = this.getApplicationById(graph.id.substring(5));
-
-      if (!application) return;
-
-      application.dataModel.boxLayoutMap = boxLayoutMap;
-      application.updateLayout();
-    });
+    this.landscape3D.layoutLandscape(boxLayoutMap);
 
     // Update communication since position of classes may have changed
     this.addCommunicationForAllApplications();

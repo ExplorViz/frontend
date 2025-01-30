@@ -13,7 +13,7 @@ import ApplicationData from 'explorviz-frontend/utils/application-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/utils/application-helpers';
 import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/utils/link-helper';
 import ClassCommunication from 'explorviz-frontend/utils/landscape-schemes/dynamic/class-communication';
-import { ChildMesh } from './simple-parent-mesh';
+import { ChildMesh } from './child-mesh-interface';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
@@ -84,7 +84,20 @@ export default class ApplicationObject3D
     return this.dataModel.boxLayoutMap;
   }
 
-  updateLayout() {
+  updateLayout(boxLayoutMap: Map<string, BoxLayout> | undefined = undefined) {
+    if (boxLayoutMap) {
+      this.dataModel.boxLayoutMap = boxLayoutMap;
+    }
+
+    const appLayout = this.boxLayoutMap.get(this.dataModel.getId());
+    if (appLayout) {
+      this.position.set(
+        appLayout?.positionX,
+        appLayout?.positionY,
+        appLayout?.positionZ
+      );
+    }
+
     this.children.forEach((mesh) => {
       if (
         mesh instanceof FoundationMesh ||
@@ -93,7 +106,7 @@ export default class ApplicationObject3D
       ) {
         const boxLayout = this.getBoxLayout(mesh.dataModel.id);
         if (boxLayout) {
-          mesh.updateLayout(boxLayout, this.layout.center);
+          mesh.updateLayout(boxLayout, this.layout.position);
         }
       }
     });
@@ -102,16 +115,6 @@ export default class ApplicationObject3D
   /* eslint @typescript-eslint/no-unused-vars: 'off' */
   tick(_delta: number): void {
     // will be overriden
-  }
-
-  /**
-   * Resets this object's rotation to default
-   * (x = 0.65, y = 0.80)
-   */
-  resetRotation() {
-    this.rotation.x = -90 * THREE.MathUtils.DEG2RAD;
-    this.rotation.y = 90 * THREE.MathUtils.DEG2RAD;
-    this.rotation.z = 90 * THREE.MathUtils.DEG2RAD;
   }
 
   /**
@@ -140,6 +143,12 @@ export default class ApplicationObject3D
     }
 
     return this;
+  }
+
+  getClassMeshes() {
+    return Array.from(this.modelIdToMesh.values()).filter(
+      (mesh) => mesh instanceof ClazzMesh
+    );
   }
 
   /**
@@ -213,12 +222,12 @@ export default class ApplicationObject3D
    *
    * @param id The mesh's id to lookup
    */
-  getBoxMeshbyModelId(id: string) {
+  getBoxMeshByModelId(id: string) {
     return this.modelIdToMesh.get(id);
   }
 
   getMeshById(id: string) {
-    return this.getBoxMeshbyModelId(id) || this.getCommMeshByModelId(id);
+    return this.getBoxMeshByModelId(id) || this.getCommMeshByModelId(id);
   }
 
   /**
@@ -252,7 +261,7 @@ export default class ApplicationObject3D
   }
 
   get foundationMesh() {
-    return this.getBoxMeshbyModelId(this.dataModel.getId());
+    return this.getBoxMeshByModelId(this.dataModel.getId());
   }
 
   /**
@@ -295,11 +304,11 @@ export default class ApplicationObject3D
         this,
         clazzParentPackage
       );
-      const pckgMesh = this.getBoxMeshbyModelId(pckg.id);
+      const pckgMesh = this.getBoxMeshByModelId(pckg.id);
       if (pckgMesh instanceof ComponentMesh) {
         if (pckgMesh.opened) {
           pckgMesh.dataModel.subPackages.forEach((subPckg) => {
-            const subPckgMesh = this.getBoxMeshbyModelId(subPckg.id);
+            const subPckgMesh = this.getBoxMeshByModelId(subPckg.id);
             if (
               subPckgMesh instanceof ComponentMesh &&
               subPckgMesh.material.opacity !== 1
@@ -313,7 +322,7 @@ export default class ApplicationObject3D
         }
       }
 
-      if (this.getBoxMeshbyModelId(clazz.id)?.material.opacity !== 1) {
+      if (this.getBoxMeshByModelId(clazz.id)?.material.opacity !== 1) {
         transparentComponentIds.add(clazz.id);
       }
     });
@@ -482,8 +491,8 @@ export default class ApplicationObject3D
   removeAllCommunication() {
     this.getCommMeshes().forEach((mesh) => {
       SemanticZoomManager.instance.remove(mesh);
-      mesh.disposeRecursively();
       mesh.deleteFromParent();
+      mesh.disposeRecursively();
     });
     this.commIdToMesh.clear();
   }
@@ -491,11 +500,11 @@ export default class ApplicationObject3D
   /**
    * Disposes all meshes inside this object and clears all maps and sets
    */
-  removeAllEntities() {
+  removeAll() {
     this.getAllMeshes().forEach((mesh) => {
       SemanticZoomManager.instance.remove(mesh);
-      mesh.disposeRecursively();
       mesh.deleteFromParent();
+      mesh.disposeRecursively();
     });
     this.resetMeshReferences();
     this.highlightedEntity = null;

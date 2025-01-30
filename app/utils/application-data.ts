@@ -50,6 +50,16 @@ export default class ApplicationData {
   getId() {
     return this.application.id;
   }
+
+  getClassCount(packages = this.application.packages, count = 0) {
+    let newCount = count;
+    packages.forEach((appPackage) => {
+      newCount += appPackage.classes.length;
+      newCount += this.getClassCount(appPackage.subPackages);
+    });
+
+    return newCount;
+  }
 }
 export interface K8sData {
   k8sNode: string;

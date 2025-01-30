@@ -95,7 +95,7 @@ export default class DetachedMenuRenderer extends Service.extend(Evented) {
     if (!isEntityMesh(mesh)) {
       return;
     }
-    const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
+    const worldPosition = this.applicationRenderer.getPositionInLandscape(mesh);
     worldPosition.y += 0.3;
 
     this.restoreDetachedMenu({

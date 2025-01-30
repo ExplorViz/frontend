@@ -39,7 +39,12 @@ export type ColorSettingId =
   | 'componentTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
-  | 'highlightedEntityColor';
+  | 'highlightedEntityColor'
+  | 'k8sNodeColor'
+  | 'k8sNamespaceColor'
+  | 'k8sDeploymentColor'
+  | 'k8sPodColor'
+  | 'k8sTextColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
@@ -106,6 +111,7 @@ export type HoveringSettingId =
 export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 
 export type LayoutSettingId =
+  | 'applicationDistance'
   | 'applicationAspectRatio'
   | 'classFootprint'
   | 'classMargin'
@@ -211,7 +217,6 @@ export type VisualizationSettings = AnnotationSettings &
 
 export interface Setting<T> {
   value: T;
-  orderNumber: number;
   group: SettingGroup;
 }
 

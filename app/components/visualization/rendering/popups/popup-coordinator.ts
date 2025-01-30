@@ -17,7 +17,7 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/view-objects/3d/applicat
 import PopupData from './popup-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import SimpleParentMesh from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
+import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
 
 interface IArgs {
   addAnnotationForPopup(popup: PopupData): void;
@@ -233,8 +233,8 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
       return 'classCommunication';
     }
-    if (this.args.popupData.mesh instanceof SimpleParentMesh) {
-      return 'simpleParentMesh';
+    if (this.args.popupData.mesh instanceof K8sMesh) {
+      return 'k8s';
     }
     return '';
   }

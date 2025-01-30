@@ -12,6 +12,7 @@ import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-me
 import { getStoredSettings } from '../settings/local-storage-settings';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -20,48 +21,53 @@ import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
  *
  * @param boxMesh Mesh which is labeled
  */
-export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
+export function positionBoxLabel(
+  boxMesh: ComponentMesh | FoundationMesh | K8sMesh
+) {
   const label = boxMesh.labelMesh;
 
   if (!label) {
     return;
   }
-
-  const foundationOffset = label.minHeight;
+  // Align text with component parent
+  label.rotation.x = -(Math.PI / 2);
 
   label.geometry.center();
 
   // Set y-position just above the box of the parent mesh
   label.position.y = boxMesh.geometry.parameters.height / 2 + 0.01;
 
-  // Align text with component parent
-  label.rotation.x = -(Math.PI / 2);
-  label.rotation.z = -(Math.PI / 2);
+  // TODO: The calculation of the z-position can still be off on tall boxes
+  const boxDimensions = new THREE.Vector3();
+  label.geometry.boundingBox?.getSize(boxDimensions);
+  const parentScale = label.parent!.scale;
+  const parentAspectRatio = parentScale.x / parentScale.z;
 
-  const xPosOfOpenedBox =
-    -boxMesh.geometry.parameters.width / 2 + foundationOffset / boxMesh.width;
+  const zPosOfOpenBox =
+    boxMesh.geometry.parameters.depth / 2 -
+    (boxDimensions.y * parentAspectRatio) / 2;
 
   // Foundation is labeled like an opened component
   if (boxMesh instanceof FoundationMesh) {
     // Do not animate label on foundation since it is always opened
-    label.position.x = xPosOfOpenedBox;
+    label.position.z = zPosOfOpenBox;
   } else if (boxMesh.opened) {
     if (getStoredSettings().enableAnimations.value) {
       gsap.to(label.position, {
         duration: 0.25,
-        x: xPosOfOpenedBox,
+        z: zPosOfOpenBox,
       });
     } else {
-      label.position.x = xPosOfOpenedBox;
+      label.position.x = zPosOfOpenBox;
     }
   } else {
     if (getStoredSettings().enableAnimations.value) {
       gsap.to(label.position, {
         duration: 0.25,
-        x: 0,
+        z: 0,
       });
     } else {
-      label.position.x = 0;
+      label.position.z = 0;
     }
   }
 }
@@ -105,7 +111,7 @@ export function addApplicationLabels(
  * @param scalar Allows to scale text size additionally
  */
 export function addBoxTextLabel(
-  boxMesh: ComponentMesh | FoundationMesh,
+  boxMesh: ComponentMesh | FoundationMesh | K8sMesh,
   font: Font,
   color: THREE.Color,
   minHeight = 1.5,
@@ -158,17 +164,18 @@ export function addClazzTextLabel(
 
 export function positionClassLabel(
   labelMesh: LabelMesh,
-  parentMesh: ClazzMesh
+  parentMesh: THREE.Mesh
 ) {
   if (!(parentMesh.geometry instanceof THREE.BoxGeometry)) return;
-
   // Set label origin to center of clazz mesh
   labelMesh.geometry.center();
+
   // Set y-position just above the clazz mesh
   labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + 0.01;
+
   // Rotate text
   labelMesh.rotation.x = -(Math.PI / 2);
-  labelMesh.rotation.z = -(Math.PI / 3);
+  labelMesh.rotation.z = 0.3;
 }
 
 export function createClazzTextLabelForZoomLevel(
@@ -231,7 +238,7 @@ export function addMinimapTextLabel(
 
   // Rotate text
   minimapLabelMesh.rotation.x = -(Math.PI / 2);
-  minimapLabelMesh.rotation.z = -(Math.PI / 2);
+  // minimapLabelMesh.rotation.z = -(Math.PI / 2);
 
   minimapLabelMesh.layers.set(SceneLayers.MinimapLabel);
 

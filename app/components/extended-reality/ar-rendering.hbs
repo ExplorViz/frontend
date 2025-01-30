@@ -52,6 +52,7 @@
       {{/each}}
 
       <canvas
+        id='threejs-canvas'
         class='webgl position-absolute
           {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
         {{did-insert this.canvasInserted}}
@@ -65,7 +66,10 @@
           rotate=this.handleRotate
         }}
         {{heatmap-renderer camera=this.camera scene=this.scene}}
-        {{landscape-data-watcher landscapeData=@landscapeData graph=this.graph}}
+        {{landscape-data-watcher
+          landscapeData=@landscapeData
+          landscape3D=this.landscape3D
+        }}
         {{collaboration/collaborative-modifier
           raycastObject3D=this.intersectableObjects
           camera=this.localUser.defaultCamera

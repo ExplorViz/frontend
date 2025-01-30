@@ -75,21 +75,23 @@ export default abstract class BoxMesh<
 
   updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
     this.layout = layout;
-    const layoutPosition = this.layout.position;
+    const layoutPosition = this.layout.position.clone();
 
+    // Box meshes origin is in the center
     const centerPoint = new THREE.Vector3(
-      layoutPosition.x + layout.width / 2.0,
-      layoutPosition.y + layout.height / 2.0,
-      layoutPosition.z + layout.depth / 2.0
+      layoutPosition.x + this.layout.width / 2.0,
+      layoutPosition.y + this.layout.height / 2.0,
+      layoutPosition.z + this.layout.depth / 2.0
     );
 
-    centerPoint.sub(offset);
+    this.position.copy(centerPoint);
+    this.position.sub(offset);
 
     this.height = layout.height;
     this.width = layout.width;
     this.depth = layout.depth;
 
-    this.position.copy(centerPoint);
+    this.saveOriginalAppearence();
   }
 
   get width() {
