@@ -189,10 +189,10 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Communication Settings
   commThickness: {
-    value: 0.5,
+    value: 2.0,
     range: {
       min: 0.05,
-      max: 1.5,
+      max: 5.0,
       step: 0.05,
     },
     group: 'Communication',
@@ -201,10 +201,10 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   commArrowSize: {
-    value: 1.0,
+    value: 2.0,
     range: {
       min: 0.0,
-      max: 2.0,
+      max: 5.0,
       step: 0.25,
     },
     group: 'Communication',

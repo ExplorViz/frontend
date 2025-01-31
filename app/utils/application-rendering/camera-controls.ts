@@ -119,7 +119,7 @@ export default class CameraControls {
 
     const origin = keepCameraPerspective
       ? this.perspectiveCamera.position
-      : new Vector3(1, 1, 1);
+      : box.max;
 
     const direction = center
       .clone()
