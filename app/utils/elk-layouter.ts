@@ -257,20 +257,18 @@ export function convertElkToBoxLayout(
   zOffset = 0,
   depth = 0
 ): Map<string, BoxLayout> {
-  const SCALAR = 0.3;
-
   let height = COMPONENT_HEIGHT;
   if (elkGraph.id.startsWith(CLASS_PREFIX)) {
     height = 5;
   }
 
   const boxLayout = new BoxLayout();
-  boxLayout.positionX = (xOffset + elkGraph.x!) * SCALAR;
+  boxLayout.positionX = xOffset + elkGraph.x!;
   boxLayout.positionY = COMPONENT_HEIGHT * depth;
-  boxLayout.positionZ = (zOffset + elkGraph.y!) * SCALAR;
+  boxLayout.positionZ = zOffset + elkGraph.y!;
   // Prevent 0 value for width and depth
-  boxLayout.width = elkGraph.width! * SCALAR || CLASS_FOOTPRINT;
-  boxLayout.depth = elkGraph.height! * SCALAR || CLASS_FOOTPRINT;
+  boxLayout.width = elkGraph.width || CLASS_FOOTPRINT;
+  boxLayout.depth = elkGraph.height || CLASS_FOOTPRINT;
   boxLayout.height = height;
 
   // Landscape and applications are on the same level

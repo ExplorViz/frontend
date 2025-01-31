@@ -327,10 +327,10 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   openedComponentHeight: {
-    value: 1.5,
+    value: 7.5,
     range: {
       min: 0.1,
-      max: 10.0,
+      max: 100.0,
       step: 0.1,
     },
     group: 'Layout',
@@ -340,10 +340,10 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   closedComponentHeight: {
-    value: 6,
+    value: 20,
     range: {
       min: 0.1,
-      max: 20.0,
+      max: 100,
       step: 0.1,
     },
     group: 'Layout',
