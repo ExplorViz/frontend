@@ -252,8 +252,9 @@ export default class VisualizationController extends Controller {
       this.renderingService.landscapeData !== null &&
       this.renderingService.landscapeData.structureLandscapeData?.nodes
         .length === 0 &&
-      this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
-        .length === 0
+      (!this.renderingService.landscapeData.structureLandscapeData.k8sNodes ||
+        this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
+          .length === 0)
     );
   }
 
@@ -262,8 +263,9 @@ export default class VisualizationController extends Controller {
       this.renderingService.landscapeData !== null &&
       (this.renderingService.landscapeData.structureLandscapeData?.nodes
         .length > 0 ||
-        this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
-          .length > 0)
+        (this.renderingService.landscapeData.structureLandscapeData.k8sNodes &&
+          this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
+            .length > 0))
     );
   }
 
@@ -349,7 +351,7 @@ export default class VisualizationController extends Controller {
         this.commit2
       );
 
-      // check which bottom bar should be displayed by default
+      // Check which bottom bar should be displayed by default
       if (this.bottomBar === 'runtime') {
         this.isRuntimeTimelineSelected = true;
         this.isCommitTreeSelected = false;
@@ -559,16 +561,11 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleBottomChart() {
-    // disable keyboard events for button to prevent space bar
+    // Disable keyboard events for button to prevent space bar
     document.getElementById('bottom-bar-toggle-chart-button')?.blur();
 
-    if (this.isCommitTreeSelected) {
-      this.isCommitTreeSelected = false;
-      this.isRuntimeTimelineSelected = true;
-    } else {
-      this.isRuntimeTimelineSelected = false;
-      this.isCommitTreeSelected = true;
-    }
+    this.isCommitTreeSelected = !this.isCommitTreeSelected;
+    this.isRuntimeTimelineSelected = !this.isCommitTreeSelected;
   }
 
   @action

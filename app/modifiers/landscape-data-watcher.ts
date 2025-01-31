@@ -6,7 +6,6 @@ import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landsc
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import Configuration from 'explorviz-frontend/services/configuration';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-// import { CommunicationLink } from 'explorviz-frontend/ide/ide-websocket';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import ApplicationData, {
@@ -133,9 +132,16 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     this.debug('Update Landscape Data');
 
-    const { nodes, k8sNodes } = this.structureLandscapeData;
+    const { nodes } = this.structureLandscapeData;
+    let { k8sNodes } = this.structureLandscapeData;
+    k8sNodes = k8sNodes || [];
     const applications = getApplicationsFromNodes(nodes);
     const k8sApps = getK8sAppsFromNodes(k8sNodes);
+
+    // Applications might be removed in evolution mode
+    if (applications.length !== this.applicationRepo.applications.size) {
+      landscape3D.removeAll();
+    }
 
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
 
@@ -181,6 +187,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
         await this.applicationRenderer.addApplicationTask.perform(
           applicationData
         );
+
       app3Ds.push(app3D);
     }
 
@@ -225,12 +232,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       landscape3D.addApplication(application3D);
     });
 
-    visualizeK8sLandscape(
-      landscape3D,
-      this.landscapeData.structureLandscapeData.k8sNodes,
-      k8sParameters,
-      boxLayoutMap
-    );
+    visualizeK8sLandscape(landscape3D, k8sNodes, k8sParameters, boxLayoutMap);
 
     landscape3D.layoutLandscape(boxLayoutMap);
 
