@@ -98,7 +98,7 @@ export interface K8sNode {
 export interface StructureLandscapeData {
   landscapeToken: string;
   nodes: Node[];
-  k8sNodes: K8sNode[];
+  k8sNodes: K8sNode[] | undefined;
 }
 
 export function isLandscape(x: any): x is StructureLandscapeData {
@@ -245,13 +245,16 @@ export function preProcessAndEnhanceStructureLandscape(
   const enhancedlandscapeStructure: StructureLandscapeData =
     structuredClone(landscapeStructure);
 
-  const pods = enhancedlandscapeStructure.k8sNodes.flatMap((k8sNode) =>
-    k8sNode.k8sNamespaces.flatMap((k8sNamespace) =>
-      k8sNamespace.k8sDeployments.flatMap(
-        (k8sDeployment) => k8sDeployment.k8sPods
+  let pods: K8sPod[] = [];
+  if (enhancedlandscapeStructure.k8sNodes) {
+    pods = enhancedlandscapeStructure.k8sNodes.flatMap((k8sNode) =>
+      k8sNode.k8sNamespaces.flatMap((k8sNamespace) =>
+        k8sNamespace.k8sDeployments.flatMap(
+          (k8sDeployment) => k8sDeployment.k8sPods
+        )
       )
-    )
-  );
+    );
+  }
 
   [...enhancedlandscapeStructure.nodes, ...pods].forEach((node) => {
     createNodeId(node);
