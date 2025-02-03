@@ -129,6 +129,9 @@ export default class CameraControls {
 
     const position = center.clone().sub(direction);
 
+    // Avoid camera being too high
+    position.y = Math.min(position.y, 20);
+
     // Center to turn camera around should always be on ground level
     center.y = 0;
 
