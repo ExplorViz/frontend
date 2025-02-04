@@ -4,9 +4,6 @@ import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
 // #region Template Imports
-import { on } from '@ember/modifier';
-import didInsert from '@ember/render-modifiers/modifiers/did-insert';
-import didUpdate from '@ember/render-modifiers/modifiers/did-update';
 import { TimelineDataObject } from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 // #endregion
 
@@ -40,6 +37,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
   timelineDiv: any;
 
   plotlyTimestampsWithoutNullValues: any;
+
+  minRequestFilter = 10;
+  maxRequestFilter = Number.MAX_SAFE_INTEGER;
 
   // BEGIN template-argument getters for default values
   get defaultMarkerColor() {
@@ -356,7 +356,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     }
 
     this.debug('updateMarkerStates');
-    this.resetHighlingInStateObjects();
+    this.resetHighlightInStateObjects();
 
     for (const [
       commitId,
@@ -376,10 +376,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
       selectedTimestampsForCommit.forEach((timestamp) => {
         const timestampId = timestamp.epochMilli;
-        markerStates[timestampId].color =
-          timelineDataForCommit.highlightedMarkerColor;
-        markerStates[timestampId].size = this.highlightedMarkerSize;
-        markerStates[timestampId].emberModel = timestamp;
+        if (markerStates[timestampId]) {
+          markerStates[timestampId].color =
+            timelineDataForCommit.highlightedMarkerColor;
+          markerStates[timestampId].size = this.highlightedMarkerSize;
+          markerStates[timestampId].emberModel = timestamp;
+        }
       });
       this.markerStateMap.set(commitId, markerStates);
     }
@@ -502,6 +504,30 @@ export default class PlotlyTimeline extends Component<IArgs> {
     };
   }
 
+  autoScale() {
+    Plotly.relayout(this.timelineDiv, {
+      'xaxis.autorange': true,
+      'yaxis.autorange': true,
+    });
+  }
+
+  @action
+  setMinRequestFilter(event: any) {
+    const minRequestInput = event.target.value;
+    this.minRequestFilter = Number.parseInt(minRequestInput) || 0;
+    this.updatePlotlyTimelineChart();
+    this.autoScale();
+  }
+
+  @action
+  setMaxRequestFilter(event: any) {
+    const maxRequestInput = event.target.value;
+    this.maxRequestFilter =
+      Number.parseInt(maxRequestInput) || Number.MAX_SAFE_INTEGER;
+    this.updatePlotlyTimelineChart();
+    this.autoScale();
+  }
+
   hoverText(x: (string | null)[], y: (number | null)[], commit: string) {
     return x.map(
       (xi, i) =>
@@ -518,10 +544,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
         hoverdistance: 3,
         hovermode: 'closest',
         margin: {
-          b: 40,
-          pad: 5,
-          t: 40,
-          r: 40,
+          b: 50,
+          pad: 0,
+          t: 0,
+          r: 20,
         },
         yaxis: {
           fixedrange: true,
@@ -539,7 +565,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   getUpdatedPlotlyDataObject(
-    timestampsOfOneCommit: Timestamp[],
+    unfilteredTimestampsOfOneCommit: Timestamp[],
     markerStatesOfOneCommit: IMarkerStates,
     commitId: string
   ) {
@@ -570,6 +596,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
       };
     }
 
+    const timestampsOfOneCommit = unfilteredTimestampsOfOneCommit.filter(
+      (timestamp) =>
+        timestamp.spanCount > this.minRequestFilter &&
+        timestamp.spanCount < this.maxRequestFilter
+    );
+
     const colors: string[] = [];
     const sizes: number[] = [];
 
@@ -580,7 +612,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const shapes = [];
 
-    let tempGapRectObj = null;
+    let tempDottedLine = null;
 
     let nextExpectedTimestamp = 0;
     let i = 0;
@@ -606,11 +638,11 @@ export default class PlotlyTimeline extends Component<IArgs> {
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         i++;
-        if (tempGapRectObj) {
-          tempGapRectObj.x1 = getTimestampTickLabel(timestampId);
-          tempGapRectObj.y1 = timestamp.spanCount;
-          shapes.push(tempGapRectObj);
-          tempGapRectObj = null;
+        if (tempDottedLine) {
+          tempDottedLine.x1 = getTimestampTickLabel(timestampId);
+          tempDottedLine.y1 = timestamp.spanCount;
+          shapes.push(tempDottedLine);
+          tempDottedLine = null;
         }
         addCurrentTimestampToDataObject = true;
         nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
@@ -621,16 +653,16 @@ export default class PlotlyTimeline extends Component<IArgs> {
         i++;
       } else {
         // Gap fills for missing timestamps (outside of expected timestamp interval)
-        if (!tempGapRectObj) {
+        if (!tempDottedLine) {
           addCurrentTimestampToDataObject = true;
           x.push(null);
           y.push(null);
-          tempGapRectObj = getDashedLine();
+          tempDottedLine = getDashedLine();
           const lastNonNullTimestamp =
             nextExpectedTimestamp - TIMESTAMP_INTERVAL;
-          tempGapRectObj.x0 = getTimestampTickLabel(lastNonNullTimestamp);
+          tempDottedLine.x0 = getTimestampTickLabel(lastNonNullTimestamp);
           // Get last non-null value
-          tempGapRectObj.y0 = y.filter((y) => y != null).at(-1);
+          tempDottedLine.y0 = y.filter((y) => y != null).at(-1)!;
         }
         nextExpectedTimestamp =
           timestampsOfOneCommit[i].epochMilli ||
@@ -697,7 +729,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     };
   }
 
-  resetHighlingInStateObjects() {
+  resetHighlightInStateObjects() {
     this.selectedCommitTimestampsMap = new Map();
     this.markerStateMap = new Map();
   }
@@ -725,29 +757,4 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   // END Helper functions
-
-  <template>
-    {{#if this.showDummyTimeline}}
-      <div class='timeline-no-timestamps-outer'>
-        <div class='timeline-no-timestamps-inner'>
-          No timestamps available!
-        </div>
-      </div>
-      <div
-        class='plotlyDiv timeline-blur-effect'
-        {{didInsert this.setupPlotlyTimelineChart}}
-      >
-      </div>
-
-    {{else}}
-      <div
-        class='plotlyDiv'
-        {{on 'mouseenter' this.handleMouseEnter}}
-        {{on 'mouseleave' this.handleMouseLeave}}
-        {{didUpdate this.updatePlotlyTimelineChart @timelineDataObject}}
-        {{didInsert this.setupPlotlyTimelineChart}}
-      >
-      </div>
-    {{/if}}
-  </template>
 }
