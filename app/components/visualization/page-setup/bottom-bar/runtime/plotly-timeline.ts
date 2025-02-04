@@ -596,6 +596,14 @@ export default class PlotlyTimeline extends Component<IArgs> {
       };
     }
 
+    function styleNewDayIndicator(gapIndicator: any) {
+      gapIndicator.type = 'rect';
+      gapIndicator.yref = 'paper';
+      gapIndicator.y0 = 0.05;
+      gapIndicator.y1 = 1;
+      gapIndicator.fillcolor = '#ff0000';
+    }
+
     const timestampsOfOneCommit = unfilteredTimestampsOfOneCommit.filter(
       (timestamp) =>
         timestamp.spanCount > this.minRequestFilter &&
@@ -612,7 +620,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const shapes = [];
 
-    let tempDottedLine = null;
+    let tempGapIndicator = null;
 
     let nextExpectedTimestamp = 0;
     let i = 0;
@@ -638,11 +646,20 @@ export default class PlotlyTimeline extends Component<IArgs> {
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         i++;
-        if (tempDottedLine) {
-          tempDottedLine.x1 = getTimestampTickLabel(timestampId);
-          tempDottedLine.y1 = timestamp.spanCount;
-          shapes.push(tempDottedLine);
-          tempDottedLine = null;
+        // Add missing coordinates to gap indicator
+        if (tempGapIndicator) {
+          tempGapIndicator.x1 = getTimestampTickLabel(timestampId);
+          tempGapIndicator.y1 = timestamp.spanCount;
+          const END_OF_ISO_DATE = 10;
+          if (
+            tempGapIndicator.x0.substring(0, END_OF_ISO_DATE) !=
+            tempGapIndicator.x1.substring(0, END_OF_ISO_DATE)
+          ) {
+            styleNewDayIndicator(tempGapIndicator);
+          }
+
+          shapes.push(tempGapIndicator);
+          tempGapIndicator = null;
         }
         addCurrentTimestampToDataObject = true;
         nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
@@ -653,16 +670,16 @@ export default class PlotlyTimeline extends Component<IArgs> {
         i++;
       } else {
         // Gap fills for missing timestamps (outside of expected timestamp interval)
-        if (!tempDottedLine) {
+        if (!tempGapIndicator) {
           addCurrentTimestampToDataObject = true;
           x.push(null);
           y.push(null);
-          tempDottedLine = getDashedLine();
+          tempGapIndicator = getDashedLine();
           const lastNonNullTimestamp =
             nextExpectedTimestamp - TIMESTAMP_INTERVAL;
-          tempDottedLine.x0 = getTimestampTickLabel(lastNonNullTimestamp);
+          tempGapIndicator.x0 = getTimestampTickLabel(lastNonNullTimestamp);
           // Get last non-null value
-          tempDottedLine.y0 = y.filter((y) => y != null).at(-1)!;
+          tempGapIndicator.y0 = y.filter((y) => y != null).at(-1)!;
         }
         nextExpectedTimestamp =
           timestampsOfOneCommit[i].epochMilli ||
