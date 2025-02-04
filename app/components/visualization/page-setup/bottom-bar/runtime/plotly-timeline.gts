@@ -551,12 +551,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
         .replace('.000Z', '');
     }
 
-    function getGapRectangleObj() {
+    function getDashedLine() {
       return {
         layer: 'below',
-        type: 'rect',
+        type: 'line',
         xref: 'x',
-        yref: 'paper',
+        yref: 'y',
         x0: '0',
         y0: 0.1,
         x1: '0',
@@ -564,7 +564,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
         fillcolor: '#d3d3d3',
         opacity: 0.4,
         line: {
-          width: 3,
+          width: 1,
           dash: 'dot',
         },
       };
@@ -585,54 +585,61 @@ export default class PlotlyTimeline extends Component<IArgs> {
     let nextExpectedTimestamp = 0;
     let i = 0;
 
+    const TIMESTAMP_INTERVAL = 10000;
+
     while (i < timestampsOfOneCommit.length) {
       const timestamp = timestampsOfOneCommit[i];
       const timestampId = timestamp.epochMilli;
 
-      // only add real timestamps and shapes in the data arrays
-      let addCurentTimestampToDataObject = false;
+      // Only add real timestamps and shapes in the data arrays
+      let addCurrentTimestampToDataObject = false;
 
       if (nextExpectedTimestamp === 0) {
-        // first timestamp in series
+        // First timestamp, must exist do to while loop condition
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
-        nextExpectedTimestamp = timestampId;
+        nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
         i++;
-        addCurentTimestampToDataObject = true;
-      } else if (nextExpectedTimestamp === timestampId) {
-        // subsequent timestamps
+        addCurrentTimestampToDataObject = true;
+      } else if (nextExpectedTimestamp >= timestampId) {
+        // Next timestamp is within expected time frame
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         i++;
         if (tempGapRectObj) {
           tempGapRectObj.x1 = getTimestampTickLabel(timestampId);
+          tempGapRectObj.y1 = timestamp.spanCount;
           shapes.push(tempGapRectObj);
           tempGapRectObj = null;
         }
-        addCurentTimestampToDataObject = true;
+        addCurrentTimestampToDataObject = true;
+        nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
       } else if (timestamp.epochMilli === null) {
-        // edge case if API will return null values in the future
+        // Edge case if API will return null values in the future
         x.push(null);
         y.push(null);
         i++;
       } else {
-        // gap fills for timestamps that did not occur
+        // Gap fills for missing timestamps (outside of expected timestamp interval)
         if (!tempGapRectObj) {
-          addCurentTimestampToDataObject = true;
+          addCurrentTimestampToDataObject = true;
           x.push(null);
           y.push(null);
-          tempGapRectObj = getGapRectangleObj();
-          tempGapRectObj.x0 = getTimestampTickLabel(
-            nextExpectedTimestamp - 10000
-          );
+          tempGapRectObj = getDashedLine();
+          const lastNonNullTimestamp =
+            nextExpectedTimestamp - TIMESTAMP_INTERVAL;
+          tempGapRectObj.x0 = getTimestampTickLabel(lastNonNullTimestamp);
+          // Get last non-null value
+          tempGapRectObj.y0 = y.filter((y) => y != null).at(-1);
         }
+        nextExpectedTimestamp =
+          timestampsOfOneCommit[i].epochMilli ||
+          timestampId + TIMESTAMP_INTERVAL;
       }
-
-      nextExpectedTimestamp += 10000;
 
       const markerState = markerStatesOfOneCommit[timestampId];
 
-      if (addCurentTimestampToDataObject) {
+      if (addCurrentTimestampToDataObject) {
         if (markerState) {
           colors.push(markerState.color);
           sizes.push(markerState.size);
@@ -651,7 +658,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
         }
         timestampIds.push(timestampId);
       }
-      addCurentTimestampToDataObject = false;
+      addCurrentTimestampToDataObject = false;
     }
 
     this.markerStateMap.set(commitId, markerStatesOfOneCommit);
