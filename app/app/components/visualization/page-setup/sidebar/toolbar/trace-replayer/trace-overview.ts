@@ -7,7 +7,9 @@ import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 interface Args {
   readonly dynamicData: DynamicLandscapeData;
   readonly visualizationPaused: boolean;
+
   toggleSettingsSidebarComponent(componentPath: string): void;
+
   toggleVisualizationUpdating(): void;
 }
 

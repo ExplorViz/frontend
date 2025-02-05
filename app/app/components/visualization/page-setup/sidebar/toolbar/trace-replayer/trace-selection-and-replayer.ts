@@ -7,7 +7,6 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
 import {
-  Application,
   Class,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
@@ -16,9 +15,11 @@ import { getSortedTraceSpans } from 'react-lib/src/utils/trace-helpers';
 
 interface Args {
   moveCameraTo(emberModel: Class | Span): void;
+
   highlightTrace(trace: Trace, traceStep: string): void;
+
   removeHighlighting(): void;
-  readonly application: Application;
+
   readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
 }
@@ -28,7 +29,7 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
   selectedTrace: Trace | null = null;
 
   get applicationTraces() {
-    const hashCodeToClassMap = getHashCodeToClassMap(this.args.application);
+    const hashCodeToClassMap = getHashCodeToClassMap(this.args.structureData);
 
     return this.args.dynamicData.filter((trace) =>
       trace.spanList.any(

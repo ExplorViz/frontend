@@ -83,7 +83,6 @@ jobs:
     needs: [test, linting]
     env:
       VERSION_TAG: ${{ github.ref_name }}-${{ github.sha }}
-      AUTH0_ENABLED: 'false'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -134,5 +133,5 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            --tag ${{ vars.DOCKER_IMAGE_NAME }}:latest --tag explorviz/frontend:latest . \
+            --tag ${{ vars.DOCKER_IMAGE_NAME }}:latest . \
             --push
