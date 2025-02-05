@@ -1,15 +1,21 @@
 import * as THREE from 'three';
 import calculateColorBrightness from 'react-lib/src/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
-// import { tracked } from '@glimmer/tracking';
+import SemanticZoomManager, {
+  SemanticZoomableObject,
+  Appearence,
+  Recipe,
+} from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default abstract class BaseMesh<
-  TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
-  TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
-> extends THREE.Mesh<TGeometry, TMaterial> {
+    TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
+    TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
+  >
+  extends THREE.Mesh<TGeometry, TMaterial>
+  implements SemanticZoomableObject
+{
   // @tracked
   highlighted: boolean = false;
-
   defaultColor: THREE.Color;
 
   defaultOpacity: number;
@@ -17,6 +23,20 @@ export default abstract class BaseMesh<
   highlightingColor: THREE.Color;
 
   isHovered = false;
+
+  appearenceLevel: number = 0;
+
+  appearencesMap: Array<Appearence | (() => void)> = [];
+
+  originalAppearence: Recipe | undefined = undefined;
+
+  canUseOrignal: boolean = true;
+  overrideVisibility: boolean = false;
+
+  callBeforeAppearenceAboveZero: (currentMesh: THREE.Mesh | undefined) => void =
+    () => {};
+  callBeforeAppearenceZero: (currentMesh: THREE.Mesh | undefined) => void =
+    () => {};
 
   constructor(
     defaultColor: THREE.Color = new THREE.Color(),
@@ -27,6 +47,165 @@ export default abstract class BaseMesh<
     this.defaultColor = defaultColor;
     this.defaultOpacity = defaultOpacity;
     this.highlightingColor = highlightingColor;
+  }
+  prio: number = 0;
+  useOrignalAppearence(yesno: boolean): void {
+    this.canUseOrignal = yesno;
+  }
+  setCallBeforeAppearenceAboveZero(
+    fn: (currentMesh: THREE.Mesh | undefined) => void
+  ): void {
+    this.callBeforeAppearenceAboveZero = fn;
+  }
+  setCallBeforeAppearenceZero(
+    fn: (currentMesh: THREE.Mesh | undefined) => void
+  ): void {
+    this.callBeforeAppearenceZero = fn;
+  }
+
+  saveOriginalAppearence() {
+    this.originalAppearence = Recipe.generateFromMesh(this);
+  }
+  restoreOriginalAppearence() {
+    const tmpAppearence = new Appearence();
+    if (this.originalAppearence == undefined) return;
+    tmpAppearence.setRecipe(this.originalAppearence);
+    tmpAppearence.setObject3D(this);
+    tmpAppearence.activate();
+    this.appearenceLevel = 0;
+  }
+  restoreAppearence() {
+    this.showAppearence(this.appearenceLevel, false, false);
+  }
+  showAppearence(
+    i: number,
+    fromBeginningOrig: boolean = true,
+    includeOrignalOrig: boolean = true
+  ): boolean {
+    let targetApNumber: number = i;
+    let fromBeginning: boolean = fromBeginningOrig;
+    let includeOrignal: boolean = includeOrignalOrig;
+
+    if (!this.visible && !this.overrideVisibility) {
+      return true;
+    }
+
+    if (this.getCurrentAppearenceLevel() == targetApNumber) {
+      return false;
+    } else if (this.getCurrentAppearenceLevel() < targetApNumber) {
+      fromBeginning = false;
+      includeOrignal = false;
+    } else if (this.getCurrentAppearenceLevel() > targetApNumber) {
+      fromBeginning = true;
+      includeOrignal = true;
+    }
+
+    if (targetApNumber == 0 && this.originalAppearence != undefined) {
+      // return to default look
+      this.callBeforeAppearenceZero(this);
+      if (this.canUseOrignal) {
+        this.restoreOriginalAppearence();
+      }
+      this.appearencesMap.forEach((v, k) => {
+        if (k != 0 && v instanceof Appearence) v.deactivate();
+      });
+      this.appearenceLevel = targetApNumber;
+      return true;
+    } else if (targetApNumber == 0 && this.originalAppearence == undefined) {
+      // Save Orignal
+      if (this.canUseOrignal) {
+        this.saveOriginalAppearence();
+      }
+      this.appearenceLevel = targetApNumber;
+      return true;
+    }
+    // Find the highest available Zoom Level
+    const highestAvailableTargetAppearence = Math.max(
+      this.getNumberOfLevels() - 1,
+      0
+    );
+    if (highestAvailableTargetAppearence < targetApNumber) {
+      targetApNumber = highestAvailableTargetAppearence;
+    }
+    // Check if the required level is registered, else abort
+    if (targetApNumber == 0) {
+      //Already handeled 0, since it is the original appearence
+      return true;
+    }
+    const targetAppearence = this.appearencesMap[targetApNumber];
+    if (targetAppearence == undefined) return false;
+    // throw new Error(
+    //   'Requestet Detail Level is not found: ' +
+    //     targetApNumber +
+    //     ' of ' +
+    //     Math.max(this.getNumberOfLevels() - 1, 0)
+    // );
+
+    // Possible manipulation before any changes
+    this.callBeforeAppearenceAboveZero(this);
+
+    // Start with Original Appearence
+    if (includeOrignal && this.canUseOrignal) this.restoreOriginalAppearence();
+
+    // Make sure to return to default Appearence first
+    //this.restoreOriginalAppearence();
+    if (targetAppearence instanceof Appearence) {
+      targetAppearence.activate();
+      this.appearencesMap.forEach((v) => {
+        if (v != targetAppearence && v instanceof Appearence) v.deactivate();
+      });
+    } else {
+      //console.log(`Calling Function with Level: ${i}`);
+      if (fromBeginning || this.appearenceLevel > targetApNumber) {
+        this.appearencesMap.forEach((v, idx) => {
+          if (idx < targetApNumber) {
+            if (v instanceof Appearence) v.activate();
+            else v();
+          }
+        });
+      } else if (this.appearenceLevel < targetApNumber) {
+        for (
+          let index = 1;
+          index < targetApNumber - this.appearenceLevel;
+          index++
+        ) {
+          // if (index + this.appearenceLevel < this.appearencesMap.size - 1)
+          //   break;
+          if (this.appearencesMap[index + this.appearenceLevel] == undefined)
+            continue;
+          if (
+            this.appearencesMap[index + this.appearenceLevel] instanceof
+            Appearence
+          )
+            (
+              this.appearencesMap[index + this.appearenceLevel] as Appearence
+            ).activate();
+          else {
+            (this.appearencesMap[index + this.appearenceLevel] as () => void)();
+          }
+        }
+      }
+      targetAppearence();
+    }
+
+    this.appearenceLevel = targetApNumber;
+    return true;
+  }
+  getCurrentAppearenceLevel(): number {
+    return this.appearenceLevel;
+  }
+  setAppearence(i: number, ap: Appearence | (() => void)): void {
+    if (ap instanceof Appearence) ap.setObject3D(this);
+    this.appearencesMap[i] = ap;
+  }
+  getNumberOfLevels(): number {
+    return this.appearencesMap.length;
+  }
+
+  getPoI(): Array<THREE.Vector3> {
+    const worldPos = new THREE.Vector3();
+    this.getWorldPosition(worldPos);
+    return [worldPos];
   }
 
   show() {
@@ -127,15 +306,19 @@ export default abstract class BaseMesh<
       this.material instanceof MeshLineMaterial
     ) {
       this.material.color = new THREE.Color('yellow');
-    } else {
-      return;
     }
 
     setTimeout(() => {
-      if (this.highlighted) {
-        this.material.color = this.highlightingColor;
-      } else {
-        this.material.color = this.defaultColor;
+      if (
+        this.material instanceof THREE.MeshLambertMaterial ||
+        this.material instanceof THREE.MeshBasicMaterial ||
+        this.material instanceof MeshLineMaterial
+      ) {
+        if (this.highlighted) {
+          this.material.color = this.highlightingColor;
+        } else {
+          this.material.color = this.defaultColor;
+        }
       }
     }, duration);
   }
@@ -233,6 +416,7 @@ export default abstract class BaseMesh<
       if (child instanceof BaseMesh) {
         if (child.geometry) {
           child.geometry.dispose();
+          SemanticZoomManager.instance.remove(child);
         }
         if (child.material instanceof THREE.Material) {
           child.material.dispose();

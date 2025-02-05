@@ -35,6 +35,7 @@ import {
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -56,7 +57,6 @@ export default class ArRendering extends Component<Args> {
 
   @service('collaboration/local-user')
   private localUser!: LocalUser;
-
 
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
@@ -211,6 +211,7 @@ export default class ArRendering extends Component<Args> {
       updatables: this.updatables,
       zoomHandler: this.arZoomHandler!,
     });
+    ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     const controller = this.renderer.xr.getController(0);
     // https://immersive-web.github.io/webxr/input-explainer.html
     // controller.addEventListener('select', this.onSelect);
@@ -708,7 +709,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   updateColors() {
-    updateColors(this.scene, this.userSettings.colors);
+    updateColors(this.scene, this.userSettings.colors!);
   }
 
   // #endregion UTILS

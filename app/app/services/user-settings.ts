@@ -109,7 +109,7 @@ export default class UserSettings extends Service {
     this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
-  updateApplicationSetting(name: VisualizationSettingId, value?: unknown) {
+  updateSetting(name: VisualizationSettingId, value?: unknown) {
     useUserSettingsStore.getState().updateSetting(name, value);
 
     // const setting = this.applicationSettings[name];

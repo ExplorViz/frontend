@@ -60,6 +60,24 @@ export function openComponentsByList(
 }
 
 /**
+ * Opens the component and its ancestors
+ *
+ * @param components List of components which shall be opened
+ * @param application Parent application object of the components
+ */
+export function openComponentAndAncestor(
+  component: Package | Class,
+  application: ApplicationObject3D
+) {
+  const ancestors = getAllAncestorComponents(component);
+  ancestors.forEach((ancestorComponent) => {
+    const ancestorMesh = application.getBoxMeshbyModelId(ancestorComponent.id);
+    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened)
+      openComponentMesh(ancestorMesh, application);
+  });
+}
+
+/**
  * Opens a given component mesh.
  *
  * @param mesh Component mesh which shall be opened
@@ -94,6 +112,7 @@ export function openComponentMesh(
 
   mesh.opened = true;
   mesh.visible = true;
+  mesh.saveOriginalAppearence();
   Labeler.positionBoxLabel(mesh);
 
   const childComponents = mesh.dataModel.subPackages;
@@ -111,6 +130,7 @@ export function openComponentMesh(
     const childMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
     if (childMesh) {
       childMesh.visible = true;
+      childMesh.saveOriginalAppearence();
     }
   });
 }
@@ -159,7 +179,7 @@ export function closeComponentMesh(
 
   mesh.opened = false;
   Labeler.positionBoxLabel(mesh);
-
+  mesh.saveOriginalAppearence();
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
     const childMesh = applicationObject3D.getBoxMeshbyModelId(
@@ -174,6 +194,7 @@ export function closeComponentMesh(
       if (!keepHighlighted && childMesh.highlighted) {
         removeHighlighting(childMesh, applicationObject3D);
       }
+      childMesh.saveOriginalAppearence();
     }
   });
 
@@ -219,7 +240,7 @@ export function closeAllComponents(
 export function openComponentsRecursively(
   component: Package,
   applicationObject3D: ApplicationObject3D,
-  sender: MessageSender
+  sender: MessageSender | undefined
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -228,7 +249,7 @@ export function openComponentsRecursively(
       // !mesh.opened needed!
 
       openComponentMesh(mesh, applicationObject3D);
-      sender.sendComponentUpdate(
+      sender?.sendComponentUpdate(
         applicationObject3D.getModelId(),
         mesh.getModelId(),
         mesh.opened,
@@ -236,6 +257,35 @@ export function openComponentsRecursively(
       );
     }
     openComponentsRecursively(child, applicationObject3D, sender);
+  });
+}
+
+/**
+ * Takes a component and closes all children component meshes recursively
+ *
+ * @param component Component of which the children shall be closed
+ * @param applicationObject3D Application object which contains the component
+ */
+export function closeComponentsRecursively(
+  component: Package,
+  applicationObject3D: ApplicationObject3D,
+  sender: MessageSender | undefined
+) {
+  const components = component.subPackages;
+  components.forEach((child) => {
+    const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
+    if (mesh !== undefined && mesh instanceof ComponentMesh && mesh.opened) {
+      // mesh.opened needed!
+
+      closeComponentMesh(mesh, applicationObject3D, false);
+      sender?.sendComponentUpdate(
+        applicationObject3D.getModelId(),
+        mesh.getModelId(),
+        mesh.opened,
+        mesh instanceof FoundationMesh
+      );
+    }
+    closeComponentsRecursively(child, applicationObject3D, sender);
   });
 }
 

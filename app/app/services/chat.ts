@@ -1,6 +1,5 @@
 import Service, { inject as service } from '@ember/service';
 import { registerDestructor } from '@ember/destroyable';
-import { tracked } from '@glimmer/tracking';
 import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
@@ -20,7 +19,6 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/delete-message';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { useChatStore } from 'react-lib/src/stores/chat.ts';
-import { string } from 'three/examples/jsm/nodes/shadernode/ShaderNode';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export interface ChatMessageInterface {

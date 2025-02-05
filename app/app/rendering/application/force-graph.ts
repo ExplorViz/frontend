@@ -9,6 +9,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
+import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { Object3D } from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import * as THREE from 'three';
@@ -45,7 +46,6 @@ export default class ForceGraph {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-
   @service('user-settings')
   userSettings!: UserSettings;
 
@@ -68,11 +68,11 @@ export default class ForceGraph {
       })
       .warmupTicks(100)
       .linkColor(
-        () => `#${this.userSettings.colors.communicationColor.getHexString()}`
+        () => `#${this.userSettings.colors!.communicationColor.getHexString()}`
       )
       .linkDirectionalParticleColor(
         () =>
-          `#${this.userSettings.colors.communicationArrowColor.getHexString()}`
+          `#${this.userSettings.colors!.communicationArrowColor.getHexString()}`
       )
       .linkOpacity(0.4)
       .linkThreeObject(this.linkRenderer.createMeshFromLink)
@@ -99,6 +99,12 @@ export default class ForceGraph {
         this.linkRenderer.linkPositionUpdate(lineObj, {}, link);
       });
     };
+    try {
+      SemanticZoomManager.instance.updateLinks =
+        this.applicationRenderer.updateLinks;
+    } catch (error) {
+      this.debug('LinkUpdater function not set in SemanticZoomManger!');
+    }
     this.graph.scale.setScalar(scale);
   }
 

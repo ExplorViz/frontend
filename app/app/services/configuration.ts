@@ -1,5 +1,4 @@
 import Service from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 
@@ -68,6 +67,14 @@ export default class Configuration extends Service {
 
   set annotationPosition(value: Position2D | undefined) {
     useConfigurationStore.setState({ annotationPosition: value });
+  }
+
+  get semanticZoomEnabled() {
+    return useConfigurationStore.getState().semanticZoomEnabled;
+  }
+
+  set semanticZoomEnabled(isEnabled: boolean) {
+    useConfigurationStore.setState({ semanticZoomEnabled: isEnabled });
   }
 
   // #endregion APPLICATION LAYOUT

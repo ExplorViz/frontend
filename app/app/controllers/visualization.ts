@@ -7,11 +7,9 @@ import { tracked } from '@glimmer/tracking';
 import LocalUser, {
   VisualizationMode,
 } from 'explorviz-frontend/services/collaboration/local-user';
-
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
@@ -24,10 +22,7 @@ import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
-import {
-  TIMESTAMP_UPDATE_EVENT,
-  TimestampUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
+import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
@@ -70,6 +65,7 @@ import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state'
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -126,7 +122,6 @@ export default class VisualizationController extends Controller {
 
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
-
 
   @service('landscape-token')
   landscapeTokenService!: LandscapeTokenService;
@@ -310,6 +305,12 @@ export default class VisualizationController extends Controller {
     this.sidebarHandler = new SidebarHandler();
     this.renderingService.visualizationPaused = false;
 
+    // start main loop
+    this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
+
+    // Delete all Semantic Zoom Objects and its tables
+    SemanticZoomManager.instance.reset();
+
     // fetch applications for evolution mode
     await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
 
@@ -391,23 +392,28 @@ export default class VisualizationController extends Controller {
     };
 
     this.highlightingService.updateHighlighting();
-    await this.renderingService.triggerRenderingForGivenTimestamp(
-      landscape.timestamp
-    );
+    // TODO
+    // await this.renderingService.triggerRenderingForGivenTimestamp(
+    //   landscape.timestamp
+    // );
     // Disable polling. It is now triggerd by the websocket.
   }
 
-  async onTimestampUpdate({
-    originalMessage: { timestamp },
-  }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> {
-    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
+  async onTimestampUpdate(/* {
+    originalMessage: {
+      timestamp
+    },
+  }: ForwardedMessage<TimestampUpdateMessage> */): Promise<void> {
+    // TODO
+    // this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onTimestampUpdateTimer({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
     await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
-    this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
+    // TODO
+    // this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }
 
   async onSyncRoomState(event: {
@@ -514,7 +520,7 @@ export default class VisualizationController extends Controller {
 
       if (this.vrSupported) {
         this.vrButtonText = 'Enter VR';
-      } else if (window.isSecureContext === false) {
+      } else if (!window.isSecureContext) {
         this.vrButtonText = 'WEBXR NEEDS HTTPS';
       } else {
         this.vrButtonText = 'WEBXR NOT AVAILABLE';

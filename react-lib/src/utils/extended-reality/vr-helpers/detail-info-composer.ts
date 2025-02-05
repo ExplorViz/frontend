@@ -1,4 +1,3 @@
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
@@ -23,6 +22,7 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 import SimpleParentMesh from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import { MethodMesh } from 'react-lib/src/view-objects/3d/application/method-mesh';
 
 export type DetailedInfo = {
   title: string;
@@ -122,10 +122,7 @@ function composeFoundationContent(componentMesh: FoundationMesh) {
 }
 
 // TODO: Remove applicationRepo on migration
-function composeClazzContent(
-  clazzMesh: ClazzMesh,
-  applicationRepo: ApplicationRepository
-) {
+function composeClazzContent(clazzMesh: ClazzMesh, applicationRepo: any) {
   const clazz = clazzMesh.dataModel;
 
   const application = clazzMesh.parent;
@@ -269,6 +266,7 @@ export type EntityMesh =
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
     object instanceof ComponentMesh ||
+    object instanceof MethodMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
     object instanceof SimpleParentMesh ||

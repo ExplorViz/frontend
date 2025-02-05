@@ -11,11 +11,14 @@ import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/cl
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';
-import { Vector3 } from 'three';
+import * as THREE from 'three';
 import ApplicationRenderer from './application-renderer';
 import Configuration from './configuration';
 import UserSettings from './user-settings';
 // import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
+import SemanticZoomManager, {
+  SemanticZoomableObject,
+} from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class LinkRenderer extends Service.extend({}) {
   @service('configuration')
@@ -26,7 +29,6 @@ export default class LinkRenderer extends Service.extend({}) {
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
-
 
   // TODO: Migrate after migration of ClazzCommunicationMesh
   // All changes are ready to get uncommented
@@ -95,14 +97,17 @@ export default class LinkRenderer extends Service.extend({}) {
     while (rootElement.parent?.type !== 'Scene') {
       rootElement = rootElement?.parent || rootElement;
     }
+    const forceGraph = sourceApp.parent!;
     const sourceClass = findFirstOpen(
       sourceApp,
       classCommunication.sourceClass
     );
     const sourceMesh = sourceApp.getBoxMeshbyModelId(sourceClass.id);
-    let start = new Vector3();
+    let start = new THREE.Vector3();
     if (sourceMesh) {
-      start = sourceMesh.getWorldPosition(new Vector3());
+      start = sourceMesh.getWorldPosition(new THREE.Vector3());
+      forceGraph.worldToLocal(start);
+      start = sourceMesh.getWorldPosition(new THREE.Vector3());
       rootElement.worldToLocal(start);
     } else {
       this.debug('Source mesh not found');
@@ -114,9 +119,11 @@ export default class LinkRenderer extends Service.extend({}) {
       classCommunication.targetClass
     );
     const targetMesh = targetApp.getBoxMeshbyModelId(targetClass.id);
-    let end = new Vector3();
+    let end = new THREE.Vector3();
     if (targetMesh) {
-      end = targetMesh.getWorldPosition(new Vector3());
+      end = targetMesh.getWorldPosition(new THREE.Vector3());
+      forceGraph.worldToLocal(end);
+      end = targetMesh.getWorldPosition(new THREE.Vector3());
       rootElement.worldToLocal(end);
     } else {
       this.debug('Target mesh not found');
@@ -134,14 +141,19 @@ export default class LinkRenderer extends Service.extend({}) {
     line.geometry.dispose();
 
     const curveHeight = this.computeCurveHeight(commLayout);
-    line.render(new Vector3(), curveHeight);
+    line.render(new THREE.Vector3(), curveHeight);
 
     // to move particles and arrow
     const curve = (line.geometry as THREE.TubeGeometry).parameters.path;
     link.__curve = curve;
+    line.children.forEach((child: unknown) =>
+      SemanticZoomManager.instance.remove(child as SemanticZoomableObject)
+    );
     line.children.clear();
-    this.addArrows(line, curveHeight, new Vector3());
-
+    this.addArrows(line, curveHeight, new THREE.Vector3());
+    // SemanticZoomManager: save the original appearence
+    line.saveOriginalAppearence();
+    line.saveCurrentlyActiveLayout();
     return true;
   }
 
@@ -157,7 +169,7 @@ export default class LinkRenderer extends Service.extend({}) {
       id
     );
     const { communicationColor, highlightedEntityColor } =
-      this.userSettings.colors;
+      this.userSettings.colors!;
 
     const existingMesh = this.linkIdToMesh.get(classCommunication.id);
     if (existingMesh) {
@@ -174,6 +186,7 @@ export default class LinkRenderer extends Service.extend({}) {
     this.linkIdToMesh.set(id, newMesh);
     // useLinkRendererStore.getState().addLinkIdToMesh(id, newMesh);
 
+    this.linkIdToMesh.set(id, newMesh);
     return newMesh;
   }
 
@@ -222,13 +235,13 @@ export default class LinkRenderer extends Service.extend({}) {
   private addArrows(
     pipe: ClazzCommunicationMesh,
     curveHeight: number,
-    viewCenterPoint: Vector3
+    viewCenterPoint: THREE.Vector3
   ) {
     const arrowOffset = 0.8;
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
     const arrowColorHex =
-      this.userSettings.colors.communicationArrowColor.getHex();
+      this.userSettings.colors!.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(

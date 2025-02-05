@@ -1,24 +1,26 @@
 import { createStore } from 'zustand/vanilla';
 
 interface ConfigurationState {
-    isCommRendered: boolean;
-    commCurveHeightDependsOnDistance: boolean;
-    commCurveHeightMultiplier: number;
-    commWidthMultiplier: number;
-    popupPosition: Position2D | undefined;
-    annotationPosition: Position2D | undefined;
+  annotationPosition: Position2D | undefined;
+  commCurveHeightDependsOnDistance: boolean;
+  commCurveHeightMultiplier: number;
+  commWidthMultiplier: number;
+  isCommRendered: boolean;
+  popupPosition: Position2D | undefined;
+  semanticZoomEnabled: boolean;
 }
 
 interface Position2D {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 export const useConfigurationStore = createStore<ConfigurationState>(() => ({
-    isCommRendered: true,
-    commCurveHeightDependsOnDistance: true,
-    commCurveHeightMultiplier: 1,
-    commWidthMultiplier: 1,
-    popupPosition: undefined,
-    annotationPosition: undefined,
+  annotationPosition: undefined,
+  commCurveHeightDependsOnDistance: true,
+  commCurveHeightMultiplier: 1,
+  commWidthMultiplier: 1,
+  isCommRendered: true,
+  popupPosition: undefined,
+  semanticZoomEnabled: false,
 }));

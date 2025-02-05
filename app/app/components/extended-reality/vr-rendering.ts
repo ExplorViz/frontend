@@ -93,6 +93,7 @@ import { JOIN_VR_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocke
 import { MENU_DETACHED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 
 interface Args {
   readonly id: string;
@@ -657,6 +658,7 @@ export default class VrRendering extends Component<Args> {
       renderer: this.renderer,
       updatables: this.updatables,
     });
+    ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.scene.add(this.collaborationSession.remoteUserGroup);
     this.renderingLoop.updatables.push(this);
     this.renderingLoop.start();

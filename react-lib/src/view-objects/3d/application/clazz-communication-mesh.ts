@@ -3,6 +3,7 @@ import CommunicationLayout from 'react-lib/src/view-objects/layout-models/commun
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import SemanticZoomManager from './utils/semantic-zoom-manager';
 import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 
@@ -10,7 +11,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
 
   layout: CommunicationLayout;
-
+  _layout_original: CommunicationLayout;
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
 
   curveHeight: number = 0.0;
@@ -25,12 +26,63 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   ) {
     super(defaultColor, highlightingColor);
     this.layout = layout;
+    this._layout_original = layout.copy();
     this.dataModel = dataModel;
 
     this.material = new THREE.MeshBasicMaterial({
       color: defaultColor,
     });
     this.material.transparent = true;
+    SemanticZoomManager.instance.add(this);
+    this.saveCurrentlyActiveLayout();
+    // this.setCallBeforeAppearenceZero(() => {
+    //   this.layout = this._layout_original;
+    // });
+    // this.setCallBeforeAppearenceAboveZero(() => {
+    //   this.layout = this._layout_original;
+    // });
+
+    this.setAppearence(2, () => {
+      this.layout.lineThickness = this._layout_original.lineThickness / 2;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+    });
+    this.setAppearence(3, () => {
+      this.layout.lineThickness = this._layout_original.lineThickness / 3;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+    });
+    this.setAppearence(4, () => {
+      this.layout.lineThickness = this._layout_original.lineThickness / 4;
+      this.geometry.dispose();
+      this.render(this.applicationCenter, this.curveHeight);
+    });
+  }
+
+  /**
+   * Override PoI in order to get start, center and end point
+   * @returns Array of PoI
+   */
+  getPoI(): Array<THREE.Vector3> {
+    let worldPosStart = new THREE.Vector3();
+    let worldPosEnd = new THREE.Vector3();
+    const orignalWorldPos: Array<THREE.Vector3> = super.getPoI();
+    const start = new THREE.Vector3();
+    start.subVectors(this.layout.startPoint, this.applicationCenter);
+
+    const end = new THREE.Vector3();
+    end.subVectors(this.layout.endPoint, this.applicationCenter);
+    worldPosStart = this.localToWorld(start);
+    worldPosEnd = this.localToWorld(end);
+    // this.getWorldPosition(this.layout.startPoint);
+    // this.getWorldPosition(this.layout.endPoint);
+    // const worldPosStart = this.layout.startPoint;
+    // const worldPosEnd = this.layout.endPoint;
+    return [...orignalWorldPos, worldPosStart, worldPosEnd];
+  }
+
+  saveCurrentlyActiveLayout() {
+    this._layout_original = this.layout.copy();
 
     this.layers.enable(SceneLayers.Communication);
   }
@@ -284,6 +336,16 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         headWidth
       );
       this.add(arrow);
+      // debugger;
+      // arrow.saveTheParent();
+      if (SemanticZoomManager.instance.isEnabled) {
+        arrow.line.layers.disableAll();
+        arrow.cone.layers.disableAll();
+        //this.remove(arrow);
+        // arrow.layers.disableAll();
+        // arrow.layers.set(2);
+      }
+      SemanticZoomManager.instance.add(arrow);
     }
   }
 
@@ -329,7 +391,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
-    if (arg === 'vr' && this.isHovered === false) {
+    if (arg === 'vr' && !this.isHovered) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
       this.render(this.applicationCenter, this.curveHeight);
@@ -338,7 +400,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.getArrowMeshes().forEach((arrowMesh) => {
         arrowMesh.applyHoverEffect(arg);
       });
-    } else if (this.isHovered === false) {
+    } else if (!this.isHovered) {
       super.applyHoverEffect();
     }
   }

@@ -24,7 +24,6 @@ import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 import VrApplicationObject3D from 'react-lib/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
-import LinkRenderer from './link-renderer';
 // import ApplicationRepository from './repos/application-repository';
 // import FontRepository from './repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
@@ -53,9 +52,12 @@ import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/fl
 import TextureService from './texture-service';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import layoutCity, {
   convertElkToBoxLayout,
 } from 'react-lib/src/utils/city-layouter';
+import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -123,6 +125,15 @@ export default class ApplicationRenderer extends Service.extend() {
     super(properties);
     this._openApplicationsMap = new Map();
     this._appCommRendering = new CommunicationRendering();
+    try {
+      SemanticZoomManager.instance.appCommRendering = this._appCommRendering;
+      SemanticZoomManager.instance.font = this.font;
+      ImmersiveView.instance.font = this.font;
+    } catch (error) {
+      console.error(
+        'Semantic Zoom Manger did not get any Settings by the Service Renderer. Zoom features are limited: {$error}'
+      );
+    }
 
     // const geometry = new THREE.BoxGeometry(1, 1, 1);
     // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -249,7 +260,8 @@ export default class ApplicationRenderer extends Service.extend() {
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.userSettings.colors!
+          this.userSettings.colors!,
+          this.font!
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)

@@ -9,6 +9,7 @@ import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/appli
 import gsap from 'gsap';
 import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
+import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 import { ExplorVizColors } from 'react-lib/src/stores/user-settings';
 
@@ -74,8 +75,8 @@ export function addApplicationLabels(
   /**
    * Adds labels to all box meshes of a given application
    */
-  const { clazzTextColor, componentTextColor, foundationTextColor } = colors;
-
+  const { componentTextColor, foundationTextColor, clazzTextColor } = colors;
+  // clazzTextColor was used for addClazzTextLabel
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
@@ -149,6 +150,48 @@ export function addClazzTextLabel(
 
   const labelMesh = new ClazzLabelMesh(font, text, color, size);
   clazzMesh.labelMesh = labelMesh;
+  //Rotate text and position
+  positionClassLabel(labelMesh, clazzMesh);
+  clazzMesh.add(labelMesh);
+  clazzMesh.saveOriginalAppearence();
+}
+
+export function positionClassLabel(
+  labelMesh: LabelMesh,
+  parentMesh: ClazzMesh
+) {
+  if (!(parentMesh.geometry instanceof THREE.BoxGeometry)) return;
+
+  // Set label origin to center of clazz mesh
+  labelMesh.geometry.center();
+  // Set y-position just above the clazz mesh
+  labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + 0.01;
+  // Rotate text
+  labelMesh.rotation.x = -(Math.PI / 2);
+  labelMesh.rotation.z = -(Math.PI / 3);
+}
+
+export function createClazzTextLabelForZoomLevel(
+  clazzMesh: ClazzMesh,
+  font: Font,
+  color: THREE.Color,
+  size = 0.75,
+  maxletters = -1,
+  replace = false
+) {
+  if (clazzMesh.labelMesh && !replace) return;
+  if (!(clazzMesh.geometry instanceof THREE.BoxGeometry)) return;
+
+  const text = clazzMesh.dataModel.name;
+
+  const labelMesh = new ClazzLabelMesh(
+    font,
+    text,
+    color,
+    size,
+    maxletters > -1 ? maxletters : undefined
+  );
+  //clazzMesh.labelMesh = labelMesh;
 
   // Set label origin to center of clazz mesh
   labelMesh.geometry.center();
@@ -159,7 +202,7 @@ export function addClazzTextLabel(
   labelMesh.rotation.x = -(Math.PI / 2);
   labelMesh.rotation.z = -(Math.PI / 3);
 
-  clazzMesh.add(labelMesh);
+  return labelMesh;
 }
 
 /**
