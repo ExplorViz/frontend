@@ -4,8 +4,8 @@ import debugLogger from 'ember-debug-logger';
 import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from 'explorviz-frontend/services/auth';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 const { userService } = ENV.backendAddresses;
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type LandscapeToken = {
   alias: string;
@@ -24,9 +24,9 @@ export default class LandscapeTokenService extends Service {
   @service('auth')
   private auth!: Auth;
 
-// TODO: Remove old tracked usage after migration.
-// Not possible until then, because header LandscapeToken wouldn't be
-// shown, so navigation would be impossible
+  // TODO: Remove old tracked usage after migration.
+  // Not possible until then, because header LandscapeToken wouldn't be
+  // shown, so navigation would be impossible
 
   @tracked
   token: LandscapeToken | null = null;
@@ -87,6 +87,9 @@ export default class LandscapeTokenService extends Service {
         })
         .catch(async (e) => {
           reject(e);
+          useToastHandlerStore
+            .getState()
+            .showErrorToastMessage('Server for landscapes not available.');
         });
     });
   }

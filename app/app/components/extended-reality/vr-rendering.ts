@@ -18,7 +18,6 @@ import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import * as THREE from 'three';
 import { Intersection } from 'three';
-import ThreeForceGraph from 'three-forcegraph';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
@@ -189,7 +188,7 @@ export default class VrRendering extends Component<Args> {
   scene: THREE.Scene;
 
   @tracked
-  readonly graph: ThreeForceGraph;
+  readonly graph: ForceGraph;
 
   // #endregion CLASS FIELDS
   //
@@ -213,7 +212,7 @@ export default class VrRendering extends Component<Args> {
     this.applicationRenderer.getOpenApplications().clear();
 
     const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph.graph;
+    this.graph = forceGraph;
     this.scene.add(forceGraph.graph);
     this.updatables.push(forceGraph);
     this.updatables.push(this.localUser);
@@ -1191,7 +1190,7 @@ export default class VrRendering extends Component<Args> {
     const x = new THREE.Vector3();
     x.fromArray(position);
     x.y += 15;
-    this.graph.localToWorld(x);
+    this.graph.graph.localToWorld(x);
     this.detachedMenuRenderer.restoreDetachedMenu({
       objectId,
       entityType,

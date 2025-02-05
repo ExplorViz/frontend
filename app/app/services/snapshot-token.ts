@@ -2,7 +2,6 @@ import Service, { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import Auth from './auth';
 import { LandscapeToken } from './landscape-token';
-import { tracked } from '@glimmer/tracking';
 import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
@@ -119,9 +118,7 @@ export default class SnapshotTokenService extends Service {
             sharedSnapshots: [],
             subsricedSnapshots: [],
           });
-          useToastHandlerStore
-            .getState()
-            .showErrorToastMessage('Server for snapshots not available.');
+          console.error('Server for snapshots not available.');
         });
     });
   }
