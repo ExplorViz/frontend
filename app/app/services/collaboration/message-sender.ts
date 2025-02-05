@@ -39,8 +39,6 @@ import {
   EntityType,
   RestructureAction,
 } from 'react-lib/src/utils/restructure-helper';
-import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import { default as VRController } from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import { getControllerPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import { JoinVrMessage } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
@@ -68,10 +66,6 @@ import {
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import * as THREE from 'three';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
-import {
-  APP_OPENED_EVENT,
-  AppOpenedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/app-opened';
 import {
   COMPONENT_UPDATE_EVENT,
   ComponentUpdateMessage,
@@ -129,6 +123,7 @@ import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/delete-message';
+import { VisualizationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 
 export default class MessageSender extends Service {
   @service('collaboration/web-socket')
@@ -259,7 +254,7 @@ export default class MessageSender extends Service {
     });
   }
 
-  sendSharedSettings(settings: ApplicationSettings) {
+  sendSharedSettings(settings: VisualizationSettings) {
     this.webSocket.send<ShareSettingsMessage>(SHARE_SETTINGS_EVENT, {
       event: SHARE_SETTINGS_EVENT,
       settings,
@@ -550,23 +545,6 @@ export default class MessageSender extends Service {
         controllerId: controller.gamepadIndex,
       }
     );
-  }
-
-  /**
-   * Informs the backend that an app was opened by this user.
-   *
-   * @param ApplicationObject3D Opened application
-   */
-  sendAppOpened(application: ApplicationObject3D) {
-    this.webSocket.send<AppOpenedMessage>(APP_OPENED_EVENT, {
-      event: 'app_opened',
-      id: application.getModelId(),
-      position: application.getWorldPosition(new THREE.Vector3()).toArray(),
-      quaternion: application
-        .getWorldQuaternion(new THREE.Quaternion())
-        .toArray(),
-      scale: application.scale.toArray(),
-    });
   }
 
   sendPingUpdate(controllerId: ControllerId, isPinging: boolean) {

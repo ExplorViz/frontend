@@ -217,7 +217,7 @@ export default class CollaborationControls extends Component {
 
   @action
   shareSettings() {
-    this.userSettings.shareApplicationSettings();
+    this.userSettings.shareSettings();
   }
 
   @action

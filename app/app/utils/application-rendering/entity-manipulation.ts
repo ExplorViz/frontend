@@ -1,4 +1,3 @@
-
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
@@ -20,8 +19,11 @@ import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation
 import gsap from 'gsap';
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
-import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
+import {
+  getStoredNumberSetting,
+  getStoredSettings,
+} from 'react-lib/src/utils/settings/local-storage-settings';
+import { ExplorVizColors } from 'react-lib/src/stores/user-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -71,7 +73,9 @@ export function openComponentMesh(
     return;
   }
 
-  const OPENED_COMPONENT_HEIGHT = 1.5;
+  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'openedComponentHeight'
+  );
 
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
@@ -126,19 +130,31 @@ export function closeComponentMesh(
     return;
   }
 
+  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'openedComponentHeight'
+  );
+
+  const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'closedComponentHeight'
+  );
+
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
       duration: 0.5,
-      height: mesh.layout.height,
+      height: CLOSED_COMPONENT_HEIGHT,
     });
 
     gsap.to(mesh.position, {
       duration: 0.5,
-      y: mesh.layout.positionY + 0.75,
+      y:
+        mesh.layout.positionY +
+        (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2,
     });
   } else {
-    mesh.height = mesh.layout.height;
-    mesh.position.y = mesh.layout.positionY + 0.75;
+    mesh.height = CLOSED_COMPONENT_HEIGHT;
+    mesh.position.y =
+      mesh.layout.positionY +
+      (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2;
   }
 
   mesh.opened = false;
@@ -405,7 +421,7 @@ export function moveCameraTo(
 
 export function updateColors(
   scene: THREE.Scene,
-  applicationColors: ApplicationColors
+  applicationColors: ExplorVizColors
 ) {
   scene.traverse((object3D) => {
     if (object3D instanceof BaseMesh) {

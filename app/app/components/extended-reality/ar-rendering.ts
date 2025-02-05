@@ -126,7 +126,7 @@ export default class ArRendering extends Component<Args> {
   configuration!: Configuration;
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   get rightClickMenuItems() {
@@ -710,7 +710,7 @@ export default class ArRendering extends Component<Args> {
 
   @action
   updateColors() {
-    updateColors(this.scene, this.userSettings.applicationColors);
+    updateColors(this.scene, this.userSettings.colors);
   }
 
   // #endregion UTILS

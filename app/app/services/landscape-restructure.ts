@@ -459,7 +459,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         const commMapping = this.commModelColorMappings.popObject();
         const commMesh = this.getCommMesh(commMapping);
         const commColor = new THREE.Color(
-          this.userSettings.applicationSettings.communicationColor.value
+          this.userSettings.visualizationSettings.communicationColor.value
         );
 
         commMesh?.changeColor(commColor);

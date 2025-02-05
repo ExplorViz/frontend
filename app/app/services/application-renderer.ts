@@ -19,7 +19,6 @@ import {
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
 import ThreeForceGraph from 'three-forcegraph';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
@@ -54,6 +53,9 @@ import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/fl
 import TextureService from './texture-service';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import layoutCity, {
+  convertElkToBoxLayout,
+} from 'react-lib/src/utils/city-layouter';
 // #endregion imports
 
 export default class ApplicationRenderer extends Service.extend() {
@@ -131,7 +133,7 @@ export default class ApplicationRenderer extends Service.extend() {
   // #region Get / Set
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   get font() {
@@ -220,42 +222,34 @@ export default class ApplicationRenderer extends Service.extend() {
       addApplicationArgs: AddApplicationArgs = {}
     ) => {
       const applicationModel = applicationData.application;
-      const boxLayoutMap = this.convertToBoxLayoutMap(
-        applicationData.layoutData
-      );
-
+      const boxLayoutMap = applicationData.boxLayoutMap;
       const isOpen = this.isApplicationOpen(applicationModel.id);
       let applicationObject3D = this.getApplicationById(applicationModel.id);
 
-      let layoutChanged = true;
+      let addedClasses = true;
       if (applicationObject3D) {
-        // Maps cannot be compared directly. Thus, we compare their size.
-        layoutChanged =
+        // Check if new classes have been discovered
+        addedClasses =
           boxLayoutMap.size !== applicationObject3D.boxLayoutMap.size;
-
-        applicationObject3D.boxLayoutMap = boxLayoutMap;
       } else {
-        applicationObject3D = new VrApplicationObject3D(
-          applicationData,
-          boxLayoutMap
-        );
+        applicationObject3D = new VrApplicationObject3D(applicationData);
         this._openApplicationsMap.set(applicationModel.id, applicationObject3D);
       }
 
       const applicationState =
-        Object.keys(addApplicationArgs).length === 0 && isOpen && layoutChanged
+        Object.keys(addApplicationArgs).length === 0 && isOpen && addedClasses
           ? this.roomSerializer.serializeToAddApplicationArgs(
               applicationObject3D
             )
           : addApplicationArgs;
 
-      if (layoutChanged) {
+      if (addedClasses) {
         applicationObject3D.removeAllEntities();
 
         // Add new meshes to application
         EntityRendering.addFoundationAndChildrenToApplication(
           applicationObject3D,
-          this.userSettings.applicationColors!
+          this.userSettings.colors!
         );
 
         // Restore state of open packages and transparent components (packages and clazzes)
@@ -270,8 +264,11 @@ export default class ApplicationRenderer extends Service.extend() {
         Labeler.addApplicationLabels(
           applicationObject3D,
           this.font!,
-          this.userSettings.applicationColors!
+          this.userSettings.colors!
         );
+      } else {
+        // Layout may have been changed in settings
+        applicationObject3D.updateLayout();
       }
 
       this.addCommunication(applicationObject3D);
@@ -294,8 +291,9 @@ export default class ApplicationRenderer extends Service.extend() {
       // reset highlights -------------------
 
       const currentSetting =
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value;
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+        this.userSettings.visualizationSettings.enableMultipleHighlighting
+          .value;
+      this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
         true; // so resetting multiple highlights within one application won't reset them
       applicationState.highlightedComponents?.forEach(
         (highlightedComponent) => {
@@ -305,7 +303,7 @@ export default class ApplicationRenderer extends Service.extend() {
           );
         }
       );
-      this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+      this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
         currentSetting;
       // ----------------------------------------
 
@@ -344,7 +342,7 @@ export default class ApplicationRenderer extends Service.extend() {
       | FoundationMesh;
 
     const { componentTextColor, foundationTextColor } =
-      this.userSettings.applicationColors;
+      this.userSettings.colors!;
 
     if (boxMesh instanceof ComponentMesh) {
       Labeler.updateBoxTextLabel(
@@ -369,7 +367,7 @@ export default class ApplicationRenderer extends Service.extend() {
   addCommunication(applicationObject3D: ApplicationObject3D) {
     this._appCommRendering.addCommunication(
       applicationObject3D,
-      this.userSettings.applicationSettings
+      this.userSettings.visualizationSettings
     );
   }
 
@@ -400,7 +398,7 @@ export default class ApplicationRenderer extends Service.extend() {
     Labeler.addApplicationLabels(
       applicationObject3D,
       this.font!,
-      this.userSettings.applicationColors
+      this.userSettings.colors!
     );
     // Update links
     this.updateLinks?.();
@@ -543,7 +541,7 @@ export default class ApplicationRenderer extends Service.extend() {
       if (this.arSettings.renderCommunication) {
         this._appCommRendering.addCommunication(
           application,
-          this.userSettings.applicationSettings
+          this.userSettings.visualizationSettings
         );
       } else {
         application.removeAllCommunication();
@@ -609,6 +607,32 @@ export default class ApplicationRenderer extends Service.extend() {
       });
     }
     this.highlightingService.updateHighlighting();
+  }
+
+  async updateApplicationLayout() {
+    const elkPromises: any[] = [];
+
+    // Compute layout asynchronously
+    this.openApplications.forEach((application) => {
+      elkPromises.push(layoutCity(application.dataModel.application));
+    });
+    const layoutGraphs = await Promise.all(elkPromises);
+
+    // Apply layout to each application
+    layoutGraphs.forEach((graph) => {
+      const boxLayoutMap = convertElkToBoxLayout(graph);
+
+      // Ids in ELK must not start with numbers, therefore we added 5 letters
+      const application = this.getApplicationById(graph.id.substring(5));
+
+      if (!application) return;
+
+      application.dataModel.boxLayoutMap = boxLayoutMap;
+      application.updateLayout();
+    });
+
+    // Update communication since position of classes may have changed
+    this.addCommunicationForAllApplications();
   }
 
   // #endregion
@@ -781,24 +805,6 @@ export default class ApplicationRenderer extends Service.extend() {
       }
     });
   }
-
-  private convertToBoxLayoutMap(layoutedApplication: Map<string, LayoutData>) {
-    const boxLayoutMap: Map<string, BoxLayout> = new Map();
-
-    layoutedApplication.forEach((value, key) => {
-      const boxLayout = new BoxLayout();
-      boxLayout.positionX = value.positionX;
-      boxLayout.positionY = value.positionY;
-      boxLayout.positionZ = value.positionZ;
-      boxLayout.width = value.width;
-      boxLayout.height = value.height;
-      boxLayout.depth = value.depth;
-      boxLayoutMap.set(key, boxLayout);
-    });
-
-    return boxLayoutMap;
-  }
-
   //#endregion
 
   //#region Cleanup

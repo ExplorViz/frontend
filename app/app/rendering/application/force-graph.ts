@@ -68,12 +68,11 @@ export default class ForceGraph {
       })
       .warmupTicks(100)
       .linkColor(
-        () =>
-          `#${this.userSettings.applicationColors.communicationColor.getHexString()}`
+        () => `#${this.userSettings.colors.communicationColor.getHexString()}`
       )
       .linkDirectionalParticleColor(
         () =>
-          `#${this.userSettings.applicationColors.communicationArrowColor.getHexString()}`
+          `#${this.userSettings.colors.communicationArrowColor.getHexString()}`
       )
       .linkOpacity(0.4)
       .linkThreeObject(this.linkRenderer.createMeshFromLink)

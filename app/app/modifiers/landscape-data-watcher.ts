@@ -1,6 +1,6 @@
 import { ForceGraph3DInstance } from '3d-force-graph';
 import { inject as service } from '@ember/service';
-import { task, all } from 'ember-concurrency';
+import { task } from 'ember-concurrency';
 import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
@@ -38,6 +38,9 @@ import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-reposito
 import { Object3D } from 'three';
 import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import layoutCity, {
+  convertElkToBoxLayout,
+} from 'react-lib/src/utils/city-layouter';
 
 interface NamedArgs {
   readonly landscapeData: LandscapeData | null;
@@ -124,6 +127,17 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
     this.debug('Update Visualization');
 
+    // Init computation of layout for applications
+    const graphLayoutMap = new Map();
+    const { nodes, k8sNodes } = this.structureLandscapeData;
+    for (let i = 0; i < nodes.length; ++i) {
+      const node = nodes[i];
+      for (let j = 0; j < node.applications.length; ++j) {
+        const application = node.applications[j];
+        graphLayoutMap.set(application.id, layoutCity(application));
+      }
+    }
+
     // ToDo: This can take quite some time. Optimize.
     let classCommunications = computeClassCommunication(
       this.structureLandscapeData,
@@ -146,7 +160,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     // This is done for all applications to have accurate heatmap data.
 
     let { nodes: graphNodes } = this.graph.graphData();
-    const { nodes, k8sNodes } = this.structureLandscapeData;
 
     const allAppsInNodes = [
       ...nodes.flatMap((n) => n.applications),
@@ -173,10 +186,15 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       const node = nodes[i];
       for (let j = 0; j < node.applications.length; ++j) {
         const application = node.applications[j];
+        const boxLayout = convertElkToBoxLayout(
+          await graphLayoutMap.get(application.id)
+        );
+
         const applicationData = await this.updateApplicationData.perform(
           application,
           null,
-          classCommunications
+          classCommunications,
+          boxLayout
         );
 
         // create or update applicationObject3D
@@ -243,7 +261,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     );
 
     // add k8sApps
-    const promises = k8sApps.map(async (k8sApp) => {
+    const k8sAppPromises = k8sApps.map(async (k8sApp) => {
       const applicationData = await this.updateApplicationData.perform(
         k8sApp.app,
         {
@@ -252,7 +270,8 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
           k8sDeployment: k8sApp.k8sDeployment.name,
           k8sPod: k8sApp.k8sPod.name,
         },
-        classCommunications
+        classCommunications,
+        convertElkToBoxLayout(await graphLayoutMap.get(k8sApp.app.id))
       );
 
       const app =
@@ -288,7 +307,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       return app;
     });
 
-    const apps = (await Promise.all(promises)) as ApplicationObject3D[];
+    const apps = (await Promise.all(k8sAppPromises)) as ApplicationObject3D[];
 
     const baseParams = {
       font: useFontRepositoryStore.getState().font,
@@ -318,7 +337,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       ) as GraphNode,
       value: calculateLineThickness(
         communication,
-        this.userSettings.applicationSettings
+        this.userSettings.visualizationSettings
       ),
       communicationData: communication,
     }));
@@ -354,7 +373,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       this.detachedMenuRenderer.restoreAnnotations(serializedRoom.annotations!);
       this.roomSerializer.serializedRoom = undefined;
     } else {
-      // Remove possibly oudated applications
+      // Remove possibly outdated applications
       // ToDo: Refactor
       const openApplicationsIds = this.applicationRenderer.openApplicationIds;
       for (let i = 0; i < openApplicationsIds.length; ++i) {
@@ -393,35 +412,29 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
     async (
       application: Application,
       k8sData: K8sData | null,
-      classCommunication: ClassCommunication[]
+      classCommunication: ClassCommunication[],
+      boxLayoutMap: any
     ) => {
       const workerPayload = {
         structure: application,
         dynamic: this.dynamicLandscapeData,
       };
 
-      const cityLayout = this.worker.postMessage(
-        'city-layouter',
-        workerPayload
-      );
-
-      const flatData = this.worker.postMessage(
+      const flatData = await this.worker.postMessage(
         'flat-data-worker',
         workerPayload
       );
-
-      const results = (await all([cityLayout, flatData])) as any[];
 
       let applicationData = useApplicationRepositoryStore
         .getState()
         .getById(application.id);
       if (applicationData) {
-        applicationData.updateApplication(application, results[0], results[1]);
+        applicationData.updateApplication(application, boxLayoutMap, flatData);
       } else {
         applicationData = new ApplicationData(
           application,
-          results[0],
-          results[1],
+          boxLayoutMap,
+          flatData,
           k8sData
         );
       }
@@ -436,7 +449,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
       );
 
       if (
-        this.userSettings.applicationSettings.heatmapEnabled &&
+        this.userSettings.visualizationSettings.heatmapEnabled &&
         useHeatmapConfigurationStore.getState().currentApplication?.dataModel
           .application.id === application.id
       ) {

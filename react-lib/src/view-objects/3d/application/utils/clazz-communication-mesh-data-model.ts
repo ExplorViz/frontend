@@ -7,6 +7,8 @@ export default class ClazzCommuMeshDataModel {
 
   id: string;
 
+  name: string;
+
   application: Application;
 
   originOfData: string = 'dynamic';
@@ -22,5 +24,6 @@ export default class ClazzCommuMeshDataModel {
     this.communication = communication;
 
     this.id = id;
+    this.name = id;
   }
 }

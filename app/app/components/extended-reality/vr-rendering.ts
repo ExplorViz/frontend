@@ -141,7 +141,6 @@ export default class VrRendering extends Component<Args> {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-
   @service('user-settings')
   userSettings!: UserSettings;
 
@@ -198,7 +197,7 @@ export default class VrRendering extends Component<Args> {
     super(owner, args);
 
     this.scene = useSceneRepositoryStore.getState().getScene('vr', true);
-    this.scene.background = this.userSettings.applicationColors.backgroundColor;
+    this.scene.background = this.userSettings.colors!.backgroundColor;
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera(
       75,
@@ -223,7 +222,7 @@ export default class VrRendering extends Component<Args> {
 
     this.scene.add(this.detachedMenuGroups.container);
 
-    this.userSettings.applicationSettings.enableMultipleHighlighting.value =
+    this.userSettings.visualizationSettings.enableMultipleHighlighting.value =
       true;
   }
 
@@ -299,11 +298,7 @@ export default class VrRendering extends Component<Args> {
     this.renderer.xr.enabled = true;
     this.localUser.xr = this.renderer.xr;
 
-    this.cameraControls = new CameraControls(
-      this.camera,
-      undefined,
-      this.canvas
-    );
+    this.cameraControls = new CameraControls(this.camera, this.canvas);
     this.updatables.push(this.cameraControls);
 
     this.initDone = true;
@@ -708,7 +703,7 @@ export default class VrRendering extends Component<Args> {
     this.debug('WebXRSession ended');
     this.vrSessionActive = false;
 
-    if (!this.userSettings.applicationSettings.showVrOnClick.value)
+    if (!this.userSettings.visualizationSettings.showVrOnClick.value)
       this.localUser.visualizationMode = 'browser'; // TODO
 
     const outerDiv = this.canvas?.parentElement;

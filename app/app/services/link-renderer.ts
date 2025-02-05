@@ -54,7 +54,7 @@ export default class LinkRenderer extends Service.extend({}) {
   readonly debug = debugLogger();
 
   get appSettings() {
-    return this.userSettings.applicationSettings;
+    return this.userSettings.visualizationSettings;
   }
 
   get flag() {
@@ -128,7 +128,7 @@ export default class LinkRenderer extends Service.extend({}) {
     commLayout.endPoint = end;
     commLayout.lineThickness = calculateLineThickness(
       classCommunication,
-      this.userSettings.applicationSettings
+      this.userSettings.visualizationSettings
     );
     line.layout = commLayout;
     line.geometry.dispose();
@@ -157,7 +157,7 @@ export default class LinkRenderer extends Service.extend({}) {
       id
     );
     const { communicationColor, highlightedEntityColor } =
-      this.userSettings.applicationColors;
+      this.userSettings.colors;
 
     const existingMesh = this.linkIdToMesh.get(classCommunication.id);
     if (existingMesh) {
@@ -228,7 +228,7 @@ export default class LinkRenderer extends Service.extend({}) {
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
     const arrowColorHex =
-      this.userSettings.applicationColors.communicationArrowColor.getHex();
+      this.userSettings.colors.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(

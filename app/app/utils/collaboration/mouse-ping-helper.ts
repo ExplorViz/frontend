@@ -26,7 +26,7 @@ export default class MousePing {
       parentObj,
       position,
       durationInMs,
-      replay,
+      replay = false,
     }: {
       parentObj: THREE.Object3D;
       position: THREE.Vector3;

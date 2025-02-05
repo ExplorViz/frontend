@@ -14,7 +14,6 @@ import { ANNOTATION_CLOSED_EVENT } from 'react-lib/src/utils/collaboration//web-
 import { ANNOTATION_EDIT_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/annotation-edit';
 import { ANNOTATION_OPENED_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/annotation-opened';
 import { ANNOTATION_UPDATED_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/annotation-updated';
-import { APP_OPENED_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/app-opened';
 import { CHANGE_LANDSCAPE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/change-landscape';
 import { COMPONENT_UPDATE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/component-update';
 import { HEATMAP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/heatmap-update';
@@ -33,7 +32,6 @@ import { OBJECT_CLOSED_RESPONSE_EVENT } from 'react-lib/src/utils/extended-reali
 import { OBJECT_GRABBED_RESPONSE_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-grabbed';
 import { JOIN_VR_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import { OBJECT_MOVED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
-import { APP_CLOSED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/app-closed';
 import { DETACHED_MENU_CLOSED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import { MENU_DETACHED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import { USER_CONTROLLER_CONNECT_EVENT } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
@@ -54,8 +52,6 @@ export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
 const RECEIVABLE_EVENTS = [
   ALL_HIGHLIGHTS_RESET_EVENT,
-  APP_CLOSED_EVENT,
-  APP_OPENED_EVENT,
   CHANGE_LANDSCAPE_EVENT,
   COMPONENT_UPDATE_EVENT,
   DETACHED_MENU_CLOSED_EVENT,

@@ -1,28 +1,28 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 import {
-  ApplicationColorSettingId,
-  ApplicationColorSettings,
-  ApplicationSettingId,
-  ApplicationSettings,
+  ColorSettingId,
+  ColorSettings,
+  VisualizationSettingId,
+  VisualizationSettings,
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
-} from "react-lib/src/utils/settings/settings-schemas";
+} from 'react-lib/src/utils/settings/settings-schemas';
 import {
   getStoredSettings,
   saveSettings,
   validateRangeSetting,
-} from "react-lib/src/utils/settings/local-storage-settings";
-import { defaultApplicationSettings } from "react-lib/src/utils/settings/default-settings";
+} from 'react-lib/src/utils/settings/local-storage-settings';
+import { defaultVizSettings } from 'react-lib/src/utils/settings/default-settings';
 import {
-  classicApplicationColors,
+  classicColors,
   ColorSchemeId,
-  darkApplicationColors,
-  defaultApplicationColors,
-  blueApplicationColors,
+  darkColors,
+  defaultColors,
+  blueColors,
   ColorScheme,
-} from "react-lib/src/utils/settings/color-schemes";
-import * as THREE from "three";
+} from 'react-lib/src/utils/settings/color-schemes';
+import * as THREE from 'three';
 // import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 // import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
 // import { useHighlightingStore } from 'react-lib/src/stores/highlighting-service';
@@ -30,18 +30,15 @@ import * as THREE from "three";
 // import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 
 interface UserSettingsState {
-  applicationSettings: ApplicationSettings;
+  visualizationSettings: VisualizationSettings;
   // TODO: undefined until full migration
   // Until that, constructor of Ember service will set the state
-  applicationColors: ApplicationColors | undefined;
+  colors: ExplorVizColors | undefined;
   // _constructApplicationColors: () => ApplicationColors;
-  applyDefaultApplicationSettings: (saveToLocalStorage: boolean) => void;
-  // shareApplicationSettings: () => void;
-  updateSettings: (settings: ApplicationSettings) => void;
-  updateApplicationSetting: (
-    name: ApplicationSettingId,
-    value?: unknown
-  ) => void;
+  applyDefaultVisualizationSettings: (saveToLocalStorage: boolean) => void;
+  // shareVisualizationSettings: () => void;
+  updateSettings: (settings: VisualizationSettings) => void;
+  updateSetting: (name: VisualizationSettingId, value?: unknown) => void;
   setColorScheme: (
     schemeId: ColorSchemeId,
     saveToLocalStorage: boolean
@@ -50,12 +47,12 @@ interface UserSettingsState {
   setColorsFromSettings: () => void;
 }
 
-export type ApplicationColors = Record<ApplicationColorSettingId, THREE.Color>;
+export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
 
 export const useUserSettingsStore = createStore<UserSettingsState>(
   (set, get) => ({
-    applicationSettings: getStoredSettings(),
-    applicationColors: undefined,
+    visualizationSettings: getStoredSettings(),
+    colors: undefined,
 
     // TODO: Clarify functionality!
     // Should be used as constructor for applicationColors
@@ -66,26 +63,24 @@ export const useUserSettingsStore = createStore<UserSettingsState>(
     //   return get().applicationColors;
     // },
 
-    applyDefaultApplicationSettings: (saveToLocalStorage = true) => {
+    applyDefaultVisualizationSettings: (saveToLocalStorage = true) => {
       set({
-        applicationSettings: JSON.parse(
-          JSON.stringify(defaultApplicationSettings)
-        ),
+        visualizationSettings: JSON.parse(JSON.stringify(defaultVizSettings)),
       });
 
       get().updateColors();
 
       if (saveToLocalStorage) {
-        saveSettings(get().applicationSettings);
+        saveSettings(get().visualizationSettings);
       }
     },
 
-    // shareApplicationSettings: () => {
+    // shareVisualizationSettings: () => {
     // useMessageSenderStore.getState().sendSharedSettings(get().applicationSettings);
     // },
 
-    updateSettings: (settings: ApplicationSettings) => {
-      set({ applicationSettings: settings });
+    updateSettings: (settings: VisualizationSettings) => {
+      set({ visualizationSettings: settings });
 
       get().updateColors();
       // useApplicationRendererStore.getState().addCommunicationForAllApplications();
@@ -96,82 +91,82 @@ export const useUserSettingsStore = createStore<UserSettingsState>(
       // useLocalUserStore.getState().defaultCamera.updateProjectionMatrix();
     },
 
-    updateApplicationSetting: (name: ApplicationSettingId, value?: unknown) => {
-      const setting = get().applicationSettings[name];
+    updateSetting: (name: VisualizationSettingId, value?: unknown) => {
+      const setting = get().visualizationSettings[name];
 
-      const newValue = value ?? defaultApplicationSettings[name].value;
+      const newValue = value ?? defaultVizSettings[name].value;
 
-      if (isRangeSetting(setting) && typeof newValue === "number") {
+      if (isRangeSetting(setting) && typeof newValue === 'number') {
         validateRangeSetting(setting, newValue);
         set({
-          applicationSettings: {
-            ...get().applicationSettings,
+          visualizationSettings: {
+            ...get().visualizationSettings,
             [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
           },
         });
-      } else if (isFlagSetting(setting) && typeof newValue === "boolean") {
+      } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
         set({
-          applicationSettings: {
-            ...get().applicationSettings,
+          visualizationSettings: {
+            ...get().visualizationSettings,
             [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
           },
         });
-      } else if (isColorSetting(setting) && typeof newValue === "string") {
+      } else if (isColorSetting(setting) && typeof newValue === 'string') {
         setting.value = newValue;
       }
 
-      saveSettings(get().applicationSettings);
+      saveSettings(get().visualizationSettings);
     },
 
     setColorScheme: (schemeId: ColorSchemeId, saveToLocalStorage = true) => {
-      let scheme = defaultApplicationColors;
+      let scheme = defaultColors;
 
       switch (schemeId) {
-        case "classic":
-          scheme = classicApplicationColors;
+        case 'classic':
+          scheme = classicColors;
           break;
-        case "blue":
-          scheme = blueApplicationColors;
+        case 'blue':
+          scheme = blueColors;
           break;
-        case "dark":
-          scheme = darkApplicationColors;
+        case 'dark':
+          scheme = darkColors;
           break;
         default:
           break;
       }
 
-      let settingId: keyof ApplicationColorSettings;
-      for (settingId in get().applicationColors) {
-        let newApplicationSettings = get().applicationSettings;
-        newApplicationSettings[settingId].value = scheme[settingId];
-        set({ applicationSettings: newApplicationSettings });
+      let settingId: keyof ColorSettings;
+      for (settingId in get().colors) {
+        let newVisualizationSettings = get().visualizationSettings;
+        newVisualizationSettings[settingId].value = scheme[settingId];
+        set({ visualizationSettings: newVisualizationSettings });
       }
 
       get().updateColors(scheme);
 
       if (saveToLocalStorage) {
-        saveSettings(get().applicationSettings);
+        saveSettings(get().visualizationSettings);
       }
     },
 
     updateColors: (updatedColors?: ColorScheme) => {
-      if (!get().applicationColors) {
+      if (!get().colors) {
         get().setColorsFromSettings();
         return;
       }
 
-      let settingId: keyof ApplicationColorSettings;
-      for (settingId in get().applicationColors) {
+      let settingId: keyof ColorSettings;
+      for (settingId in get().colors) {
         if (updatedColors) {
-          let newApplicationColors = get().applicationColors!;
+          let newApplicationColors = get().colors!;
           newApplicationColors[settingId].set(updatedColors[settingId]);
-          set({ applicationColors: newApplicationColors });
+          set({ colors: newApplicationColors });
         } else {
-          let newApplicationColors = get().applicationColors!;
+          let newApplicationColors = get().colors!;
           newApplicationColors[settingId].set(
-            get().applicationSettings[settingId].value
+            get().visualizationSettings[settingId].value
           );
-          set({ applicationColors: newApplicationColors });
+          set({ colors: newApplicationColors });
         }
       }
 
@@ -179,10 +174,10 @@ export const useUserSettingsStore = createStore<UserSettingsState>(
     },
 
     setColorsFromSettings: () => {
-      const applicationSettings = get().applicationSettings;
+      const applicationSettings = get().visualizationSettings;
 
       set({
-        applicationColors: {
+        colors: {
           foundationColor: new THREE.Color(
             applicationSettings.foundationColor.value
           ),

@@ -7,10 +7,10 @@ import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
-import { ApplicationColors } from 'explorviz-frontend/services/user-settings';
 import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { ExplorVizColors } from 'react-lib/src/stores/user-settings';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -68,7 +68,7 @@ export function positionBoxLabel(boxMesh: ComponentMesh | FoundationMesh) {
 export function addApplicationLabels(
   application: ApplicationObject3D,
   font: Font,
-  colors: ApplicationColors,
+  colors: ExplorVizColors,
   labelAll: boolean = false
 ) {
   /**

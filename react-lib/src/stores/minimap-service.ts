@@ -1,11 +1,11 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
-import { useUserSettingsStore } from "react-lib/src/stores/user-settings";
-import { useLocalUserStore } from "react-lib/src/stores/collaboration/local-user";
-import CameraControls from "react-lib/src/utils/application-rendering/camera-controls";
-import ForceGraph from "explorviz-frontend/rendering/application/force-graph";
-import Raycaster from "react-lib/src/utils/raycaster";
-import * as THREE from "three";
+import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
+import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
+import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
+import Raycaster from 'react-lib/src/utils/raycaster';
+import * as THREE from 'three';
 
 export enum SceneLayers {
   Default = 0,
@@ -69,7 +69,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
   makeFullsizeMinimap: false,
   minimapSize: 4,
   minimapEnabled:
-    useUserSettingsStore.getState().applicationSettings.minimap.value,
+    useUserSettingsStore.getState().visualizationSettings.minimap.value,
   cameraControls: undefined, // is set by browser-rendering / vr-rendering
   graph: undefined, // is set by browser-rendering / vr-rendering
   minimapUserMarkers: new Map(),
@@ -127,17 +127,17 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     get().initializeUserMinimapMarker(
       new THREE.Color(0x808080),
       get().userPosition,
-      "localUser"
+      'localUser'
     );
 
     get()
-      .minimapUserMarkers.get("localUser")!
+      .minimapUserMarkers.get('localUser')!
       .layers.enable(SceneLayers.LocalMinimapMarker);
     get()
-      .minimapUserMarkers.get("localUser")!
+      .minimapUserMarkers.get('localUser')!
       .layers.disable(SceneLayers.MinimapMarkers);
 
-    get().scene!.add(get().minimapUserMarkers.get("localUser")!);
+    get().scene!.add(get().minimapUserMarkers.get('localUser')!);
   },
 
   // TODO migrate updateUserMinimapMarker first
@@ -153,7 +153,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
   // TODO private
   getCurrentPosition: () => {
     const userPosition = new THREE.Vector3();
-    if (!useUserSettingsStore.getState().applicationSettings.version2.value) {
+    if (!useUserSettingsStore.getState().visualizationSettings.version2.value) {
       userPosition.copy(get().cameraControls!.perspectiveCameraControls.target);
     } else {
       userPosition.copy(useLocalUserStore.getState().getCamera().position);
@@ -303,10 +303,6 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     const cameraControls = get().cameraControls;
     cameraControls!.enabled = !value;
     cameraControls!.perspectiveCameraControls.enabled = !value;
-    // TODO undefined property? Was also wrong in original service
-    if (cameraControls!.orthographicCameraControls) {
-      cameraControls!.orthographicCameraControls.enabled = !value;
-    }
   },
 
   /**
@@ -383,7 +379,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     } else {
       set({
         distance:
-          useUserSettingsStore.getState().applicationSettings.zoom.value,
+          useUserSettingsStore.getState().visualizationSettings.zoom.value,
       });
     }
 
@@ -399,7 +395,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     minimapCamera.bottom = -boundingBoxHeight / 2 / distance;
 
     if (
-      useUserSettingsStore.getState().applicationSettings.zoom.value != 1 &&
+      useUserSettingsStore.getState().visualizationSettings.zoom.value != 1 &&
       !get().makeFullsizeMinimap
     ) {
       minimapCamera.position.set(
@@ -416,7 +412,9 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
   },
 
   calculateDistanceFactor: () => {
-    return 0.2 / useUserSettingsStore.getState().applicationSettings.zoom.value;
+    return (
+      0.2 / useUserSettingsStore.getState().visualizationSettings.zoom.value
+    );
   },
 
   updateSphereRadius: () => {

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
 import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { getStoredNumberSetting } from 'react-lib/src/utils/settings/local-storage-settings';
 
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -12,7 +13,7 @@ export default class ComponentMesh extends BoxMesh {
 
   dataModel: Package;
 
-  opened: boolean = false;
+  opened: boolean = true;
 
   // Set by labeler
   labelMesh: ComponentLabelMesh | null = null;
@@ -35,6 +36,19 @@ export default class ComponentMesh extends BoxMesh {
     this.dataModel = component;
 
     this.layers.enable(SceneLayers.Component);
+  }
+
+  updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
+    super.updateLayout(layout, offset);
+
+    if (!this.opened) {
+      const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');
+      const CLOSED_HEIGHT = getStoredNumberSetting('closedComponentHeight');
+
+      this.height = CLOSED_HEIGHT;
+      this.position.y =
+        this.layout.positionY + (CLOSED_HEIGHT - OPENED_HEIGHT) / 2;
+    }
   }
 
   getModelId() {

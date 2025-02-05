@@ -40,10 +40,7 @@ import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
-import {
-  AnnotationUpdatedForwardMessage,
-  isAnnotationUpdatedForwardMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
+import { AnnotationUpdatedForwardMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,

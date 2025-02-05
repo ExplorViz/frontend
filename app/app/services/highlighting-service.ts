@@ -68,18 +68,19 @@ export default class HighlightingService extends Service.extend({
   }
 
   get applyHighlightingOnHover() {
-    return this.userSettings.applicationSettings.applyHighlightingOnHover.value;
+    return this.userSettings.visualizationSettings.applyHighlightingOnHover
+      .value;
   }
 
   get opacity() {
-    return this.userSettings.applicationSettings.transparencyIntensity.value;
+    return this.userSettings.visualizationSettings.transparencyIntensity.value;
   }
 
   get highlightingColor() {
     if (this.collaborationSession.isOnline) {
       return this.localUser.color;
     } else {
-      return this.userSettings.applicationColors!.highlightedEntityColor;
+      return this.userSettings.colors!.highlightedEntityColor;
     }
   }
 
@@ -292,7 +293,7 @@ export default class HighlightingService extends Service.extend({
     options?: HighlightOptions
   ) {
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      !this.userSettings.visualizationSettings.enableMultipleHighlighting.value
     ) {
       this.removeHighlightingForAllApplications(false);
     }
@@ -312,7 +313,7 @@ export default class HighlightingService extends Service.extend({
         this.getEntityType(mesh),
         mesh.getModelId(),
         mesh.highlighted,
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+        this.userSettings.visualizationSettings.enableMultipleHighlighting.value
       );
       if (highlighted) {
         this.chatService.sendChatMessage(
@@ -370,7 +371,7 @@ export default class HighlightingService extends Service.extend({
         entityType,
         entityId,
         object.highlighted,
-        this.userSettings.applicationSettings.enableMultipleHighlighting.value
+        this.userSettings.visualizationSettings.enableMultipleHighlighting.value
       );
       if (highlighted) {
         this.chatService.sendChatMessage(
@@ -403,7 +404,7 @@ export default class HighlightingService extends Service.extend({
     mesh.highlightingColor = color || this.highlightingColor;
 
     if (
-      !this.userSettings.applicationSettings.enableMultipleHighlighting.value
+      !this.userSettings.visualizationSettings.enableMultipleHighlighting.value
     ) {
       this.removeHighlightingForAllApplications(false);
     }

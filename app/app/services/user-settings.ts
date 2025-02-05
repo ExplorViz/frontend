@@ -1,22 +1,19 @@
 import Service, { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import {
-  classicApplicationColors,
+  classicColors,
   ColorSchemeId,
-  darkApplicationColors,
-  defaultApplicationColors,
-  blueApplicationColors,
+  darkColors,
+  defaultColors,
+  blueColors,
   ColorScheme,
 } from 'react-lib/src/utils/settings/color-schemes';
-import { defaultApplicationSettings } from 'react-lib/src/utils/settings/default-settings';
+import { defaultVizSettings } from 'react-lib/src/utils/settings/default-settings';
 import {
-  ApplicationColorSettingId,
-  ApplicationColorSettings,
-  ApplicationSettingId,
-  ApplicationSettings,
-  isColorSetting,
-  isFlagSetting,
-  isRangeSetting,
+  ColorSettingId,
+  ColorSettings,
+  VisualizationSettingId,
+  VisualizationSettings,
 } from 'react-lib/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { updateColors } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
@@ -29,7 +26,6 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   getStoredSettings,
   saveSettings,
-  validateRangeSetting,
 } from 'react-lib/src/utils/settings/local-storage-settings';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 
@@ -50,13 +46,13 @@ export default class UserSettings extends Service {
   private highlightingService!: HighlightingService;
 
   // @tracked
-  // applicationSettings!: ApplicationSettings;
-  get applicationSettings(): ApplicationSettings {
-    return useUserSettingsStore.getState().applicationSettings;
+  // applicationSettings!: VisualizationSettings;
+  get visualizationSettings(): VisualizationSettings {
+    return useUserSettingsStore.getState().visualizationSettings;
   }
 
-  set applicationSettings(value: ApplicationSettings) {
-    useUserSettingsStore.setState({ applicationSettings: value });
+  set visualizationSettings(value: VisualizationSettings) {
+    useUserSettingsStore.setState({ visualizationSettings: value });
   }
 
   /**
@@ -67,18 +63,18 @@ export default class UserSettings extends Service {
    */
   // @tracked
   // applicationColors!: ApplicationColors;
-  get applicationColors(): ApplicationColors | undefined {
-    return useUserSettingsStore.getState().applicationColors;
+  get colors(): ApplicationColors | undefined {
+    return useUserSettingsStore.getState().colors;
   }
 
-  set applicationColors(value: ApplicationColors) {
-    useUserSettingsStore.setState({ applicationColors: value });
+  set colors(value: ApplicationColors) {
+    useUserSettingsStore.setState({ colors: value });
   }
 
   constructor() {
     super(...arguments);
 
-    this.applicationSettings = getStoredSettings();
+    this.visualizationSettings = getStoredSettings();
     this.setColorsFromSettings();
     this.updateColors();
   }
@@ -86,40 +82,39 @@ export default class UserSettings extends Service {
   // TODO: Wait for corresponding service to be fully migrated
   //        updateColors uses not migrated service
   @action
-  applyDefaultApplicationSettings(saveToLocalStorage = true) {
-    this.applicationSettings = JSON.parse(
-      JSON.stringify(defaultApplicationSettings)
-    );
+  applyDefaultVisualizationSettings(saveToLocalStorage = true) {
+    this.visualizationSettings = JSON.parse(JSON.stringify(defaultVizSettings));
 
     this.updateColors();
 
     if (saveToLocalStorage) {
-      saveSettings(this.applicationSettings);
+      saveSettings(this.visualizationSettings);
     }
   }
 
   // TODO: Wait for corresponding service to be fully migrated
-  shareApplicationSettings() {
-    this.sender.sendSharedSettings(this.applicationSettings);
+  shareVisualizationSettings() {
+    this.sender.sendSharedSettings(this.visualizationSettings);
   }
 
   // TODO: Wait for corresponding service to be fully migrated
-  updateSettings(settings: ApplicationSettings) {
-    this.applicationSettings = settings;
+  updateSettings(settings: VisualizationSettings) {
+    this.visualizationSettings = settings;
 
     this.updateColors();
     this.applicationRenderer.addCommunicationForAllApplications();
     this.highlightingService.updateHighlighting();
-    this.localUser.defaultCamera.fov = this.applicationSettings.cameraFov.value;
+    this.localUser.defaultCamera.fov =
+      this.visualizationSettings.cameraFov.value;
     this.localUser.defaultCamera.updateProjectionMatrix();
   }
 
-  updateApplicationSetting(name: ApplicationSettingId, value?: unknown) {
-    useUserSettingsStore.getState().updateApplicationSetting(name, value);
+  updateApplicationSetting(name: VisualizationSettingId, value?: unknown) {
+    useUserSettingsStore.getState().updateSetting(name, value);
 
     // const setting = this.applicationSettings[name];
 
-    // const newValue = value ?? defaultApplicationSettings[name].value;
+    // const newValue = value ?? defaultVizSettings[name].value;
 
     // if (isRangeSetting(setting) && typeof newValue === 'number') {
     //   validateRangeSetting(setting, newValue);
@@ -142,55 +137,53 @@ export default class UserSettings extends Service {
   // TODO: Wait for corresponding service to be fully migrated
   //        updateColors uses not migrated service
   setColorScheme(schemeId: ColorSchemeId, saveToLocalStorage = true) {
-    let scheme = defaultApplicationColors;
+    let scheme = defaultColors;
 
     switch (schemeId) {
       case 'classic':
-        scheme = classicApplicationColors;
+        scheme = classicColors;
         break;
       case 'blue':
-        scheme = blueApplicationColors;
+        scheme = blueColors;
         break;
       case 'dark':
-        scheme = darkApplicationColors;
+        scheme = darkColors;
         break;
       default:
         break;
     }
 
-    let settingId: keyof ApplicationColorSettings;
-    for (settingId in this.applicationColors) {
-      this.applicationSettings[settingId].value = scheme[settingId];
+    let settingId: keyof ColorSettings;
+    for (settingId in this.colors) {
+      this.visualizationSettings[settingId].value = scheme[settingId];
     }
 
     this.updateColors(scheme);
 
     if (saveToLocalStorage) {
-      saveSettings(this.applicationSettings);
+      saveSettings(this.visualizationSettings);
     }
   }
 
   // TODO: Wait for corresponding services and utils to be migrated
   updateColors(updatedColors?: ColorScheme) {
-    if (!this.applicationColors) {
+    if (!this.colors) {
       this.setColorsFromSettings();
       return;
     }
 
-    let settingId: keyof ApplicationColorSettings;
-    for (settingId in this.applicationColors) {
+    let settingId: keyof ColorSettings;
+    for (settingId in this.colors) {
       if (updatedColors) {
-        this.applicationColors[settingId].set(updatedColors[settingId]);
+        this.colors[settingId].set(updatedColors[settingId]);
       } else {
-        this.applicationColors[settingId].set(
-          this.applicationSettings[settingId].value
-        );
+        this.colors[settingId].set(this.visualizationSettings[settingId].value);
       }
     }
 
     updateColors(
       useSceneRepositoryStore.getState().getScene('browser', false),
-      this.applicationColors
+      this.colors
     );
   }
 
@@ -233,7 +226,7 @@ export default class UserSettings extends Service {
   }
 }
 
-export type ApplicationColors = Record<ApplicationColorSettingId, THREE.Color>;
+export type ApplicationColors = Record<ColorSettingId, THREE.Color>;
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {

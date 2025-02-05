@@ -1,5 +1,4 @@
 // import { tracked } from '@glimmer/tracking';
-import { LayoutData } from 'react-lib/src/stores/application-renderer';
 import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import {
@@ -7,12 +6,13 @@ import {
   Metric,
 } from 'react-lib/src/utils/metric-schemes/metric-data';
 import { FlatData } from 'react-lib/src/utils/flat-data-schemes/flat-data';
+import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout';
 
 export default class ApplicationData {
   application: Application;
   k8sData: K8sData | null;
 
-  layoutData: Map<string, LayoutData>;
+  boxLayoutMap: Map<string, BoxLayout>;
 
   flatData: FlatData;
 
@@ -23,12 +23,12 @@ export default class ApplicationData {
 
   constructor(
     application: Application,
-    layoutData: Map<string, LayoutData>,
+    boxLayoutMap: Map<string, BoxLayout>,
     flatData: FlatData,
     k8sData: K8sData | null
   ) {
     this.application = application;
-    this.layoutData = layoutData;
+    this.boxLayoutMap = boxLayoutMap;
     this.flatData = flatData;
     this.applicationMetrics = {
       metrics: [],
@@ -42,11 +42,11 @@ export default class ApplicationData {
 
   updateApplication(
     newApplication: Application,
-    layoutData: Map<string, LayoutData>,
+    boxLayoutMap: Map<string, BoxLayout>,
     flatData: FlatData
   ) {
     this.application = newApplication;
-    this.layoutData = layoutData;
+    this.boxLayoutMap = boxLayoutMap;
     this.flatData = flatData;
   }
 

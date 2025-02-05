@@ -10,13 +10,13 @@ import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 import { findFirstOpen } from 'react-lib/src/utils/link-helper';
 import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
-import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 import { useConfigurationStore } from 'react-lib/src/stores/configuration';
+import { VisualizationSettings } from '../settings/settings-schemas';
 
 export default class CommunicationRendering {
-  get appSettings() {
-    return useUserSettingsStore.getState().applicationSettings;
+  get vizSettings() {
+    return useUserSettingsStore.getState().visualizationSettings;
   }
 
   private computeCurveHeight(commLayout: CommunicationLayout) {
@@ -30,7 +30,7 @@ export default class CommunicationRendering {
       baseCurveHeight = classDistance * 0.5;
     }
 
-    return baseCurveHeight * this.appSettings.curvyCommHeight.value;
+    return baseCurveHeight * this.vizSettings.curvyCommHeight.value;
   }
 
   // Add arrow indicators for class communication
@@ -41,10 +41,10 @@ export default class CommunicationRendering {
   ) {
     const arrowOffset = 0.8;
     const arrowHeight = curveHeight / 2 + arrowOffset;
-    const arrowThickness = this.appSettings.commArrowSize.value;
+    const arrowThickness = this.vizSettings.commArrowSize.value;
     const arrowColorHex = useUserSettingsStore
       .getState()
-      .applicationColors!.communicationArrowColor.getHex();
+      .colors!.communicationArrowColor.getHex();
 
     if (arrowThickness > 0.0) {
       pipe.addArrows(
@@ -70,7 +70,7 @@ export default class CommunicationRendering {
    */
   addCommunication(
     applicationObject3D: ApplicationObject3D,
-    settings: ApplicationSettings
+    settings: VisualizationSettings
   ) {
     if (!useConfigurationStore.getState().isCommRendered) return;
 
@@ -109,7 +109,7 @@ export default class CommunicationRendering {
 
     // Retrieve color preferences
     const { communicationColor, highlightedEntityColor } =
-      useUserSettingsStore.getState().applicationColors!;
+      useUserSettingsStore.getState().colors!;
 
     const componentCommunicationMap = new Map<string, ComponentCommunication>();
 
@@ -166,7 +166,7 @@ export default class CommunicationRendering {
 
             commLayout.lineThickness = calculateLineThickness(
               componentCommunication,
-              useUserSettingsStore.getState().applicationSettings
+              useUserSettingsStore.getState().visualizationSettings
             );
             // Create new component communication
           } else {

@@ -7,10 +7,6 @@ import WebSocketService from 'explorviz-frontend/services/collaboration/web-sock
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { ALL_HIGHLIGHTS_RESET_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
 import {
-  APP_OPENED_EVENT,
-  AppOpenedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/app-opened';
-import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/change-landscape';
@@ -84,7 +80,7 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { getApplicationInLandscapeById } from 'react-lib/src/utils/landscape-structure-helpers';
 import { getPackageById } from 'react-lib/src/utils/package-helpers';
-import { ApplicationSettings } from 'react-lib/src/utils/settings/settings-schemas';
+import { VisualizationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import WaypointIndicator from 'react-lib/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
@@ -166,7 +162,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   constructor(owner: any, args: ArgsFor<IModifierArgs>) {
     super(owner, args);
     this.args = args as IModifierArgs;
-    this.webSocket.on(APP_OPENED_EVENT, this, this.onAppOpened);
     this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
     this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
     this.webSocket.on(
@@ -262,7 +257,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   removeEventListener() {
     this.webSocket.off(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
-    this.webSocket.off(APP_OPENED_EVENT, this, this.onAppOpened);
     this.webSocket.off(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
     this.webSocket.off(
       HIGHLIGHTING_UPDATE_EVENT,
@@ -347,20 +341,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     );
   }
 
-  async onAppOpened({
-    originalMessage: { id, position, quaternion, scale },
-  }: ForwardedMessage<AppOpenedMessage>): Promise<void> {
-    this.applicationRenderer.openApplicationTask.perform(
-      id,
-      {
-        position: new THREE.Vector3(...position),
-        quaternion: new THREE.Quaternion(...quaternion),
-        scale: new THREE.Vector3(...scale),
-      },
-      false
-    );
-  }
-
   onComponentUpdate({
     originalMessage: { isFoundation, appId, isOpened, componentId },
   }: ForwardedMessage<ComponentUpdateMessage>): void {
@@ -442,7 +422,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     userId,
     originalMessage: { settings },
   }: ForwardedMessage<ShareSettingsMessage>): void {
-    this.userSettings.updateSettings(settings as ApplicationSettings);
+    this.userSettings.updateSettings(settings as VisualizationSettings);
 
     const remoteUser = this.collaborationSession.lookupRemoteUserById(userId);
     useToastHandlerStore
@@ -717,6 +697,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
         parentObj: applicationObj,
         position: point,
         durationInMs: 5000,
+        replay: false,
       });
     }
 

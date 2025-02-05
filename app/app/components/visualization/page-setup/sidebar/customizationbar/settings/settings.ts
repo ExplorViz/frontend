@@ -4,8 +4,8 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { ColorSchemeId } from 'react-lib/src/utils/settings/color-schemes';
 import {
-  ApplicationSettingId,
-  ApplicationSettings,
+  VisualizationSettingId,
+  VisualizationSettings,
   SettingGroup,
 } from 'react-lib/src/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -25,7 +25,7 @@ interface Args {
   enterFullscreen?(): void;
   popups: PopupData[];
   redrawCommunication?(): void;
-  resetSettings?(): void;
+  resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
   updateColors?(): void;
   updateHighlighting?(): void;
@@ -64,28 +64,29 @@ export default class Settings extends Component<Args> {
     { name: 'Dark', id: 'dark' },
   ];
 
-  get applicationSettingsSortedByGroup() {
-    const { applicationSettings } = this.userSettings;
+  get settingsSortedByGroup() {
+    const { visualizationSettings: applicationSettings } = this.userSettings;
 
     const settingGroupToSettingIds: Record<
       SettingGroup,
-      ApplicationSettingId[]
+      VisualizationSettingId[]
     > = {
+      Annotations: [],
       Camera: [],
-      Minimap: [],
       Colors: [],
-      Controls: [],
       Communication: [],
+      Controls: [],
+      Effects: [],
       Heatmap: [],
       Highlighting: [],
-      Effects: [],
+      Layout: [],
+      Minimap: [],
       Popups: [],
-      Annotations: [],
       'Virtual Reality': [],
       Debugging: [],
     };
 
-    let settingId: keyof ApplicationSettings;
+    let settingId: keyof VisualizationSettings;
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in applicationSettings) {
       const setting = applicationSettings[settingId];
@@ -107,18 +108,29 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateRangeSetting(name: ApplicationSettingId, event?: Event) {
+  updateRangeSetting(name: VisualizationSettingId, event?: Event) {
     const input = event?.target
       ? (event.target as HTMLInputElement).valueAsNumber
       : undefined;
-    const settingId = name as ApplicationSettingId;
+    const settingId = name as VisualizationSettingId;
     try {
-      this.userSettings.updateApplicationSetting(settingId, input);
+      this.userSettings.updateSetting(settingId, input);
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
 
     switch (settingId) {
+      case 'applicationAspectRatio':
+      case 'classFootprint':
+      case 'classMargin':
+      case 'appLabelMargin':
+      case 'appMargin':
+      case 'packageLabelMargin':
+      case 'packageMargin':
+      case 'openedComponentHeight':
+      case 'closedComponentHeight':
+        this.applicationRenderer.updateApplicationLayout();
+        break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();
@@ -134,17 +146,17 @@ export default class Settings extends Component<Args> {
         break;
       case 'cameraNear':
         this.localUser.defaultCamera.near =
-          this.userSettings.applicationSettings.cameraNear.value;
+          this.userSettings.visualizationSettings.cameraNear.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'cameraFar':
         this.localUser.defaultCamera.far =
-          this.userSettings.applicationSettings.cameraFar.value;
+          this.userSettings.visualizationSettings.cameraFar.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'cameraFov':
         this.localUser.defaultCamera.fov =
-          this.userSettings.applicationSettings.cameraFov.value;
+          this.userSettings.visualizationSettings.cameraFov.value;
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'zoom':
@@ -156,7 +168,7 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateButtonSetting(settingId: ApplicationSettingId) {
+  updateButtonSetting(settingId: VisualizationSettingId) {
     switch (settingId) {
       case 'syncRoomState':
         if (
@@ -186,11 +198,11 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateFlagSetting(name: ApplicationSettingId, value: boolean) {
+  updateFlagSetting(name: VisualizationSettingId, value: boolean) {
     const settingId = name;
     const settingString = settingId as string;
     try {
-      this.userSettings.updateApplicationSetting(settingId, value);
+      this.userSettings.updateSetting(settingId, value);
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
@@ -252,10 +264,10 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateColorSetting(name: ApplicationSettingId, value: string) {
-    const settingId = name as ApplicationSettingId;
+  updateColorSetting(name: VisualizationSettingId, value: string) {
+    const settingId = name as VisualizationSettingId;
     try {
-      this.userSettings.updateApplicationSetting(settingId, value);
+      this.userSettings.updateSetting(settingId, value);
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
@@ -268,15 +280,16 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  resetSettings() {
+  async resetSettings() {
     if (this.args.resetSettings) {
-      this.args.resetSettings();
+      this.args.resetSettings(true);
       this.args.updateColors?.();
-      this.applicationRenderer.addCommunicationForAllApplications();
       this.highlightingService.updateHighlighting();
       this.localUser.defaultCamera.fov =
-        this.userSettings.applicationSettings.cameraFov.value;
+        this.userSettings.visualizationSettings.cameraFov.value;
       this.localUser.defaultCamera.updateProjectionMatrix();
+      this.applicationRenderer.updateApplicationLayout();
+      this.applicationRenderer.addCommunicationForAllApplications();
     }
   }
 }

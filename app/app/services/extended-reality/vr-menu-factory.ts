@@ -86,7 +86,7 @@ export default class VrMenuFactoryService extends Service {
     return useVrMenuFactoryStore.getState().renderer;
   }
 
-  set scerendererne(value: THREE.WebGLRenderer) {
+  set renderer(value: THREE.WebGLRenderer) {
     useVrMenuFactoryStore.setState({ renderer: value });
   }
 
