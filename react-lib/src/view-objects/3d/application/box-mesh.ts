@@ -1,6 +1,6 @@
-import * as THREE from "three";
-import BoxLayout from "react-lib/src/view-objects/layout-models/box-layout.ts";
-import BaseMesh from "react-lib/src/view-objects/3d/base-mesh.ts";
+import * as THREE from 'three';
+import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 
 export default abstract class BoxMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -40,14 +40,17 @@ export default abstract class BoxMesh<
 
       // https://codepen.io/boytchev/pen/wvYeMrG
 
-      const pos = this.geometry.getAttribute("position");
-      const uv = this.geometry.getAttribute("uv");
+      const pos = this.geometry.getAttribute('position');
+      const uv = this.geometry.getAttribute('uv');
 
-      const width = this.geometry.parameters.width * this.scale.x;
-
-      const height = this.geometry.parameters.height * this.scale.y;
-
-      const depth = this.geometry.parameters.depth * this.scale.z;
+      let width = 1;
+      let height = 1;
+      let depth = 1;
+      if (this.geometry instanceof THREE.BoxGeometry) {
+        width = this.geometry.parameters.width * this.scale.x;
+        height = this.geometry.parameters.height * this.scale.y;
+        depth = this.geometry.parameters.depth * this.scale.z;
+      }
 
       for (let i = 0; i < pos.count; i++) {
         const x = width * (pos.getX(i) + 0.5);

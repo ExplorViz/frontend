@@ -50,15 +50,15 @@ import AnnotationHandlerService from 'explorviz-frontend/services/annotation-han
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
 import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
-import SemanticZoomManager from 'explorviz-frontend/view-objects/3d/application/utils/semantic-zoom-manager';
+import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
-import ClazzCommunicationMesh from 'explorviz-frontend/view-objects/3d/application/clazz-communication-mesh';
-import ToastHandlerService from 'explorviz-frontend/services/toast-handler';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'react-lib/src/utils/raycaster';
 import PopupData from './popups/popup-data';
 import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -108,9 +108,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   // @service('repos/scene-repository')
   // sceneRepo!: SceneRepository;
-
-  @service('toast-handler')
-  toastHandlerService!: ToastHandlerService;
 
   @service('minimap-service')
   minimapService!: MinimapService;
@@ -302,9 +299,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
             this.userSettings.visualizationSettings.semanticZoomState.value ==
               true
           ) {
-            this.toastHandlerService.showErrorToastMessage(
-              'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
-            );
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage(
+                'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
+              );
             return;
           }
           this.applicationRenderer.openAllComponentsOfAllApplications();
