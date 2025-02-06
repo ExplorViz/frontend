@@ -11,7 +11,6 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
 import {
   getTypeOfEntity,
@@ -36,6 +35,7 @@ import {
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import * as THREE from 'three';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 
 export default class PopupHandler {
   @service('application-renderer')
@@ -90,7 +90,7 @@ export default class PopupHandler {
 
     const { mesh } = popup;
     const entityId = mesh.getModelId();
-    const worldPosition = this.applicationRenderer.getGraphPosition(mesh);
+    const worldPosition = this.applicationRenderer.getPositionInLandscape(mesh);
     worldPosition.y += 0.3;
 
     this.webSocket.sendRespondableMessage<
@@ -235,7 +235,7 @@ export default class PopupHandler {
       entity: mesh.dataModel,
       mesh,
       applicationId: (
-        mesh.parent as ApplicationObject3D | GrabbableForceGraph
+        mesh.parent as ApplicationObject3D | Landscape3D
       ).getModelId(),
       menuId: menuId || null,
       isPinned: pinned || false,

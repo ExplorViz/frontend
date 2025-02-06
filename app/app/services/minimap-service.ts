@@ -1,29 +1,16 @@
 import Service, { inject as service } from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as THREE from 'three';
 import Raycaster from 'react-lib/src/utils/raycaster';
 import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
-
-export enum SceneLayers {
-  Default = 0,
-  Foundation = 1,
-  Component = 2,
-  Clazz = 3,
-  Communication = 4,
-  Ping = 5,
-  MinimapLabel = 6,
-  MinimapMarkers = 7,
-  LocalMinimapMarker = 8,
-}
+import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 
 const MARKER_HEIGHT = 101;
 
-const MINIMAP_HEIGHT = 102;
+// const MINIMAP_HEIGHT = 102;
 
 export default class MinimapService extends Service {
   @service('user-settings')
@@ -74,15 +61,6 @@ export default class MinimapService extends Service {
     useMinimapStore.setState({ cameraControls: value });
   }
 
-  // graph!: ForceGraph;
-  get graph(): ForceGraph {
-    return useMinimapStore.getState().graph!;
-  }
-
-  set graph(value) {
-    useMinimapStore.setState({ graph: value });
-  }
-
   // minimapUserMarkers: Map<string, THREE.Mesh> = new Map();
   get minimapUserMarkers(): Map<string, THREE.Mesh> {
     return useMinimapStore.getState().minimapUserMarkers;
@@ -131,15 +109,17 @@ export default class MinimapService extends Service {
   /**
    * Initializes the minimap Service class
    * @param scene Scene containing all elements
-   * @param graph Graph including the boundingbox used by the minimap
+   * @param landscape3D Landscape for computation of bounding box
    * @param cameraControls CameraControls of the main camera
    */
   initializeMinimap(
     scene: THREE.Scene,
-    graph: ForceGraph,
+    landscape3D: Landscape3D,
     cameraControls: CameraControls
   ) {
-    useMinimapStore.getState().initializeMinimap(scene, graph, cameraControls);
+    useMinimapStore
+      .getState()
+      .initializeMinimap(scene, landscape3D, cameraControls);
   }
 
   tick() {
@@ -220,14 +200,13 @@ export default class MinimapService extends Service {
    * @returns true if the user was hit
    */
   handleHit(userHit: RemoteUser) {
-    if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera)
-      return;
+    if (!userHit) return;
     this.localUser.camera.position.copy(userHit.camera!.model.position);
     this.localUser.camera.quaternion.copy(userHit.camera!.model.quaternion);
     this.cameraControls.perspectiveCameraControls.target.copy(
       this.raycaster.raycastToCameraTarget(
         this.localUser.minimapCamera,
-        this.graph.boundingBox
+        new THREE.Box3().setFromObject(useMinimapStore.getState().landscape3D)
       )
     );
   }

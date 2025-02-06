@@ -7,7 +7,6 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import GrabbableForceGraph from 'react-lib/src/view-objects/3d/landscape/grabbable-force-graph';
 import * as THREE from 'three';
 import { SerializedAnnotation } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
@@ -53,6 +52,7 @@ import CollaborationSession from 'explorviz-frontend/services/collaboration/coll
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -543,7 +543,7 @@ export default class AnnotationHandlerService extends Service {
           entity: mesh.dataModel,
           mesh,
           applicationId: (
-            mesh.parent as ApplicationObject3D | GrabbableForceGraph
+            mesh.parent as ApplicationObject3D | Landscape3D
           ).getModelId(),
           menuId: menuId || null,
           hovered: hovered || false,

@@ -7,7 +7,6 @@ import CollaborationSession from 'explorviz-frontend/services/collaboration/coll
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
@@ -94,6 +93,7 @@ import { MENU_DETACHED_EVENT } from 'react-lib/src/utils/extended-reality/vr-web
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
+import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 
 interface Args {
   readonly id: string;
@@ -189,7 +189,7 @@ export default class VrRendering extends Component<Args> {
   scene: THREE.Scene;
 
   @tracked
-  readonly graph: ForceGraph;
+  readonly landscape3D: Landscape3D;
 
   // #endregion CLASS FIELDS
   //
@@ -212,10 +212,8 @@ export default class VrRendering extends Component<Args> {
 
     this.applicationRenderer.getOpenApplications().clear();
 
-    const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph;
-    this.scene.add(forceGraph.graph);
-    this.updatables.push(forceGraph);
+    this.landscape3D = new Landscape3D();
+    this.scene.add(this.landscape3D);
     this.updatables.push(this.localUser);
 
     this.menuFactory.scene = this.scene;
@@ -1192,7 +1190,7 @@ export default class VrRendering extends Component<Args> {
     const x = new THREE.Vector3();
     x.fromArray(position);
     x.y += 15;
-    this.graph.graph.localToWorld(x);
+    this.landscape3D.localToWorld(x);
     this.detachedMenuRenderer.restoreDetachedMenu({
       objectId,
       entityType,

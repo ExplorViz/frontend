@@ -209,6 +209,19 @@ export const useUserSettingsStore = createStore<UserSettingsState>(
           backgroundColor: new THREE.Color(
             visualizationSettings.backgroundColor.value
           ),
+          k8sNodeColor: new THREE.Color(
+            visualizationSettings.k8sNodeColor.value
+          ),
+          k8sNamespaceColor: new THREE.Color(
+            visualizationSettings.k8sNamespaceColor.value
+          ),
+          k8sDeploymentColor: new THREE.Color(
+            visualizationSettings.k8sDeploymentColor.value
+          ),
+          k8sPodColor: new THREE.Color(visualizationSettings.k8sPodColor.value),
+          k8sTextColor: new THREE.Color(
+            visualizationSettings.k8sTextColor.value
+          ),
         },
       });
     },

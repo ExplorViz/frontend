@@ -91,7 +91,7 @@ export default class DetailInfoMenu
   }
 
   createMenu() {
-    const content = composeContent(this.object, this.applicationRepo);
+    const content = composeContent(this.object);
     let sourceClass: string;
     let targetClass: string;
     let sourceClassId: string;
@@ -200,7 +200,7 @@ export default class DetailInfoMenu
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
 
-    const content = composeContent(this.object, this.applicationRepo);
+    const content = composeContent(this.object);
     if (content) {
       const isEqual = (a: typeof this.entries, b: typeof content.entries) =>
         a &&

@@ -1,9 +1,9 @@
-import ApplicationObject3D from "react-lib/src/view-objects/3d/application/application-object-3d";
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import {
   Class,
   Package,
-} from "react-lib/src/utils/landscape-schemes/structure-data";
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 /* eslint-disable no-underscore-dangle */
 
@@ -22,7 +22,7 @@ export function findFirstOpenOrLastClosedAncestorComponent(
   if (!parentComponent) return component;
 
   // Check open status in corresponding component mesh
-  const parentMesh = app.getBoxMeshbyModelId(parentComponent.id);
+  const parentMesh = app.getBoxMeshByModelId(parentComponent.id);
   if (parentMesh instanceof ComponentMesh && parentMesh.opened) {
     return component;
   }
@@ -31,13 +31,16 @@ export function findFirstOpenOrLastClosedAncestorComponent(
   return findFirstOpenOrLastClosedAncestorComponent(app, parentComponent);
 }
 
-export function findFirstOpen(app: ApplicationObject3D, clazz: Class) {
-  const sourceParent = clazz.parent;
-  const sourceParentMesh = app.getBoxMeshbyModelId(sourceParent.id);
+export function findFirstOpen(
+  app: ApplicationObject3D,
+  entity: Class | Package
+) {
+  const sourceParent = entity.parent;
+  const sourceParentMesh = app.getBoxMeshByModelId(sourceParent.id);
   // Determine where the communication should begin
   // (clazz or component - based upon their visiblity)
   if (sourceParentMesh instanceof ComponentMesh && sourceParentMesh.opened) {
-    return clazz;
+    return entity;
   }
   return findFirstOpenOrLastClosedAncestorComponent(app, sourceParent);
 }

@@ -124,14 +124,6 @@ export default class CommunicationRendering {
           return;
         }
 
-        const viewCenterPoint = applicationLayout.center;
-
-        const start = new Vector3();
-        start.subVectors(commLayout.startPoint, viewCenterPoint);
-
-        const end = new Vector3();
-        end.subVectors(commLayout.endPoint, viewCenterPoint);
-
         const visibleSource = findFirstOpen(
           applicationObject3D,
           classCommunication.sourceClass
@@ -209,11 +201,13 @@ export default class CommunicationRendering {
 
         const curveHeight = this.computeCurveHeight(commLayout);
 
-        pipe.render(viewCenterPoint, curveHeight);
+        const appOffset = applicationObject3D.layout.position;
+
+        pipe.render(appOffset, curveHeight);
 
         applicationObject3D.add(pipe);
 
-        this.addArrows(pipe, curveHeight, viewCenterPoint);
+        this.addArrows(pipe, curveHeight, appOffset);
 
         if (classCommunication.isBidirectional) {
           this.addBidirectionalArrow(pipe);

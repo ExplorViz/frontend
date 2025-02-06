@@ -274,7 +274,7 @@ export default class HighlightingService extends Service.extend({
     communicationMeshes: ClazzCommunicationMesh[];
     applications: ApplicationObject3D[];
   } {
-    const communicationMeshes = this.linkRenderer.getLinks();
+    const communicationMeshes = this.linkRenderer.getAllLinks();
 
     const applications = this.applicationRenderer.getOpenApplications();
     applications.forEach((applicationObject3D: ApplicationObject3D) => {

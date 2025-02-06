@@ -14,10 +14,10 @@ import {
   isPackage,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import PopupData from './popup-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import SimpleParentMesh from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
+import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
+import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 
 interface IArgs {
   addAnnotationForPopup(popup: PopupData): void;
@@ -233,8 +233,8 @@ export default class PopupCoordinator extends Component<IArgs> {
     if (this.args.popupData.entity instanceof ClazzCommuMeshDataModel) {
       return 'classCommunication';
     }
-    if (this.args.popupData.mesh instanceof SimpleParentMesh) {
-      return 'simpleParentMesh';
+    if (this.args.popupData.mesh instanceof K8sMesh) {
+      return 'k8s';
     }
     return '';
   }

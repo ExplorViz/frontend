@@ -1,4 +1,3 @@
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
@@ -21,8 +20,8 @@ import {
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
-import SimpleParentMesh from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
 
 export type DetailedInfo = {
   title: string;
@@ -122,10 +121,7 @@ function composeFoundationContent(componentMesh: FoundationMesh) {
 }
 
 // TODO: Remove applicationRepo on migration
-function composeClazzContent(
-  clazzMesh: ClazzMesh,
-  applicationRepo: ApplicationRepository
-) {
+function composeClazzContent(clazzMesh: ClazzMesh) {
   const clazz = clazzMesh.dataModel;
 
   const application = clazzMesh.parent;
@@ -239,17 +235,14 @@ function composeAggregatedClassCommunicationContent(
 
 // #endregion APPLICATION CONTENT COMPOSER
 
-export default function composeContent(
-  object: THREE.Object3D,
-  applicationRepo: ApplicationRepository
-) {
+export default function composeContent(object: THREE.Object3D) {
   let content: DetailedInfo | null = null;
 
   // Meshes of Applications
   if (object instanceof ComponentMesh) {
     content = composeComponentContent(object);
   } else if (object instanceof ClazzMesh) {
-    content = composeClazzContent(object, applicationRepo);
+    content = composeClazzContent(object);
   } else if (object instanceof ClazzCommunicationMesh) {
     content = composeAggregatedClassCommunicationContent(object);
   } else if (object instanceof FoundationMesh) {
@@ -264,14 +257,14 @@ export type EntityMesh =
   | ClazzMesh
   | ClazzCommunicationMesh
   | FoundationMesh
-  | SimpleParentMesh;
+  | K8sMesh;
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
     object instanceof ComponentMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
-    object instanceof SimpleParentMesh ||
+    object instanceof K8sMesh ||
     object instanceof FoundationMesh
   );
 }

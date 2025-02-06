@@ -3,9 +3,9 @@ import { createStore } from 'zustand/vanilla';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import Raycaster from 'react-lib/src/utils/raycaster';
 import * as THREE from 'three';
+import Landscape3D from '../view-objects/3d/landscape/landscape-3d';
 
 export enum SceneLayers {
   Default = 0,
@@ -28,7 +28,7 @@ interface MinimapState {
   minimapSize: number;
   minimapEnabled: boolean;
   cameraControls?: CameraControls;
-  graph?: ForceGraph;
+  landscape3D: Landscape3D;
   minimapUserMarkers: Map<string, THREE.Mesh>;
   userPosition: THREE.Vector3;
   distance?: number;
@@ -36,7 +36,7 @@ interface MinimapState {
   scene?: THREE.Scene;
   initializeMinimap: (
     scene: THREE.Scene,
-    graph: ForceGraph,
+    landscape3D: Landscape3D,
     cameraControls: CameraControls
   ) => void;
   setupCamera: (cameraControls: CameraControls) => void;
@@ -71,7 +71,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
   minimapEnabled:
     useUserSettingsStore.getState().visualizationSettings.minimap.value,
   cameraControls: undefined, // is set by browser-rendering / vr-rendering
-  graph: undefined, // is set by browser-rendering / vr-rendering
+  landscape3D: new Landscape3D(), // is set by browser-rendering / vr-rendering
   minimapUserMarkers: new Map(),
   userPosition: new THREE.Vector3(0, 0, 0),
   distance: undefined,
@@ -81,15 +81,15 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
   /**
    * Initializes the minimap Service class
    * @param scene Scene containing all elements
-   * @param graph Graph including the boundingbox used by the minimap
+   * @param Landscape3D Graph including the boundingbox used by the minimap
    * @param cameraControls CameraControls of the main camera
    */
   initializeMinimap: (
     scene: THREE.Scene,
-    graph: ForceGraph,
+    landscape3D: Landscape3D,
     cameraControls: CameraControls
   ) => {
-    set({ graph: graph, scene: scene });
+    set({ landscape3D: landscape3D, scene: scene });
     get().setupCamera(cameraControls);
     get().setupLocalUserMarker();
   },
@@ -167,7 +167,9 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
    */
   // TODO private
   checkBoundingBox: (intersection: THREE.Vector3) => {
-    const boundingBox = get().graph!.boundingBox;
+    const boundingBox = new THREE.Box3().setFromObject(
+      useMinimapStore.getState().landscape3D
+    );
     if (boundingBox) {
       if (intersection.x > boundingBox.max.x) {
         intersection.x = boundingBox.max.x;
@@ -367,7 +369,9 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
    */
   updateMinimapCamera: () => {
     // Call the new function to check and adjust minimap size
-    const boundingBox = get().graph!.boundingBox;
+    const boundingBox = new THREE.Box3().setFromObject(
+      useMinimapStore.getState().landscape3D
+    );
 
     // Calculate the size of the bounding box
     const size = boundingBox.getSize(new THREE.Vector3());

@@ -12,7 +12,7 @@ import gsap from 'gsap';
 import ImmsersiveClassScene from 'react-lib/src/utils/class-immersive-scene';
 import { MethodGroupMesh } from './method-mesh';
 import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
-import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { SceneLayers } from 'react-lib/src/stores/minimap-service';
 
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
@@ -189,7 +189,7 @@ export class _ClazzMesh extends BoxMesh {
     this.addEventListenerToExitOnEscapeKey();
 
     // Register exit when zooming out
-    //this.addEventListenerToExitWhenScrollingOut();
+    this.addEventListenerToExitWhenScrollingOut();
 
     // Register Exit when camera is at minimum zoom level
 

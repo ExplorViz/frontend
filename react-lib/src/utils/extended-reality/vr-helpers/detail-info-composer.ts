@@ -20,9 +20,10 @@ import {
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
-import SimpleParentMesh from 'react-lib/src/view-objects/3d/application/simple-parent-mesh';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { MethodMesh } from 'react-lib/src/view-objects/3d/application/method-mesh';
+import K8sMesh from '../../../view-objects/3d/k8s/k8s-mesh';
+import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 
 export type DetailedInfo = {
   title: string;
@@ -261,7 +262,7 @@ export type EntityMesh =
   | ClazzMesh
   | ClazzCommunicationMesh
   | FoundationMesh
-  | SimpleParentMesh;
+  | K8sMesh;
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
@@ -269,8 +270,8 @@ export function isEntityMesh(object: any): object is EntityMesh {
     object instanceof MethodMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
-    object instanceof SimpleParentMesh ||
-    object instanceof FoundationMesh
+    object instanceof FoundationMesh ||
+    object instanceof K8sMesh
   );
 }
 

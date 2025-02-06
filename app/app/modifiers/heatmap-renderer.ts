@@ -150,7 +150,7 @@ export default class HeatmapRenderer extends Modifier<Args> {
   ) {
     // Calculate center point of the clazz floor. This is used for computing the corresponding
     // face on the foundation box.
-    const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id) as
+    const clazzMesh = applicationObject3D.getBoxMeshByModelId(clazz.id) as
       | ClazzMesh
       | undefined;
 

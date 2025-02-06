@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
 import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
 import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
-import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
+import { SceneLayers } from 'react-lib/src/stores/minimap-service';
 
 export default class FoundationMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,

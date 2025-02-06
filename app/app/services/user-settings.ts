@@ -46,7 +46,7 @@ export default class UserSettings extends Service {
   private highlightingService!: HighlightingService;
 
   // @tracked
-  // applicationSettings!: VisualizationSettings;
+  // visualizationSettings!: VisualizationSettings;
   get visualizationSettings(): VisualizationSettings {
     return useUserSettingsStore.getState().visualizationSettings;
   }
@@ -58,16 +58,16 @@ export default class UserSettings extends Service {
   /**
    * Colors for application visualization
    *
-   * @property applicationColors
-   * @type ApplicationColors
+   * @property colors
+   * @type ExplorVizColors
    */
   // @tracked
-  // applicationColors!: ApplicationColors;
-  get colors(): ApplicationColors | undefined {
+  // colors!: ExplorVizColors;
+  get colors(): ExplorVizColors | undefined {
     return useUserSettingsStore.getState().colors;
   }
 
-  set colors(value: ApplicationColors) {
+  set colors(value: ExplorVizColors) {
     useUserSettingsStore.setState({ colors: value });
   }
 
@@ -226,7 +226,7 @@ export default class UserSettings extends Service {
   }
 }
 
-export type ApplicationColors = Record<ColorSettingId, THREE.Color>;
+export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your services.
 declare module '@ember/service' {

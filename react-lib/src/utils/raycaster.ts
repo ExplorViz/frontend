@@ -5,9 +5,7 @@ import LogoMesh from 'react-lib/src/view-objects/3d/logo-mesh';
 import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
-import MinimapService, {
-  SceneLayers,
-} from 'explorviz-frontend/services/minimap-service';
+import { SceneLayers } from 'react-lib/src/stores/minimap-service';
 
 export function defaultRaycastFilter(
   intersection: THREE.Intersection
@@ -41,8 +39,6 @@ export default class Raycaster extends THREE.Raycaster {
    * @param possibleObjects Objects to check for raycasting
    */
 
-  minimapService?: MinimapService;
-
   groundPlane = new THREE.Plane();
 
   cam: THREE.Camera | null = null;
@@ -51,13 +47,9 @@ export default class Raycaster extends THREE.Raycaster {
 
   boundingBox!: THREE.Box3;
 
-  constructor(
-    minimap?: THREE.OrthographicCamera,
-    minimapService?: MinimapService
-  ) {
+  constructor(minimap?: THREE.OrthographicCamera) {
     super();
     this.minimapCam = minimap;
-    this.minimapService = minimapService;
     this.groundPlane.set(new THREE.Vector3(0, TARGET_Y_VALUE, 0), 0);
   }
 

@@ -8,12 +8,19 @@ import {
   Package,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import { K8sDataModel } from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
 
 export interface PopupDataArgs {
   mouseX: number;
   mouseY: number;
   wasMoved: boolean;
-  entity: Node | Application | Package | Class | ClazzCommuMeshDataModel;
+  entity:
+    | K8sDataModel
+    | Node
+    | Application
+    | Package
+    | Class
+    | ClazzCommuMeshDataModel;
   mesh: EntityMesh;
   applicationId: string;
   isPinned: boolean;
@@ -33,6 +40,7 @@ export default class PopupData {
   wasMoved: boolean;
 
   entity:
+    | K8sDataModel
     | Node
     | Application
     | Package

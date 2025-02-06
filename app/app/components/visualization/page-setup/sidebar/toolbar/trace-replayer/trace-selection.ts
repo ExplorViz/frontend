@@ -126,8 +126,6 @@ export default class TraceSelection extends Component<Args> {
     const filter = this.filterTerm;
 
     this.args.applicationTraces.forEach((trace) => {
-      console.log(`id: ${trace.traceId}`);
-
       if (filter === '' || trace.traceId.toLowerCase().includes(filter)) {
         filteredTraces.push(trace);
         return;

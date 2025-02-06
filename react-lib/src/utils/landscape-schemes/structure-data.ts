@@ -125,6 +125,37 @@ export function isMethod(x: any): x is Method {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'methodHash');
 }
 
+export function getApplicationsFromNodes(nodes: Node[]) {
+  const applications: Application[] = [];
+  for (let i = 0; i < nodes.length; ++i) {
+    const node = nodes[i];
+    for (let j = 0; j < node.applications.length; ++j) {
+      applications.push(node.applications[j]);
+    }
+  }
+  return applications;
+}
+
+export function getK8sAppsFromNodes(k8sNodes: K8sNode[]) {
+  return k8sNodes.flatMap((n) =>
+    n.k8sNamespaces.flatMap((ns) =>
+      ns.k8sDeployments.flatMap((d) =>
+        d.k8sPods.flatMap((p) =>
+          p.applications.map((app) => {
+            return {
+              k8sNode: n,
+              k8sNamespace: ns,
+              k8sDeployment: d,
+              k8sPod: p,
+              app: app,
+            };
+          })
+        )
+      )
+    )
+  );
+}
+
 export function getNodeById(
   landscapeStructure: StructureLandscapeData,
   id: string

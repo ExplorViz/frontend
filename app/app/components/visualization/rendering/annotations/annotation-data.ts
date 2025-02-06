@@ -7,6 +7,7 @@ import {
   Package,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import { K8sDataModel } from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
 
 export interface AnnotationDataArgs {
   annotationId: number | undefined;
@@ -14,7 +15,13 @@ export interface AnnotationDataArgs {
   mouseY: number;
   wasMoved: boolean;
   isAssociated: boolean;
-  entity?: Node | Application | Package | Class | ClazzCommuMeshDataModel;
+  entity?:
+    | Node
+    | Application
+    | Package
+    | Class
+    | ClazzCommuMeshDataModel
+    | K8sDataModel;
   mesh?: EntityMesh;
   applicationId?: string;
   menuId: string | null;
@@ -45,7 +52,13 @@ export default class AnnotationData {
 
   isAssociated: boolean;
 
-  entity?: Node | Application | Package | Class | ClazzCommuMeshDataModel;
+  entity?:
+    | Node
+    | Application
+    | Package
+    | Class
+    | ClazzCommuMeshDataModel
+    | K8sDataModel;
 
   mesh?: EntityMesh;
 

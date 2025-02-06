@@ -29,7 +29,6 @@ import {
 } from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
-  // SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
@@ -318,10 +317,13 @@ export default class VisualizationController extends Controller {
 
     let showEvolutionVisualization = false;
 
-    const selectedApp =
-      this.commitTreeStateService.currentSelectedApplicationName;
-    const selectedCommitsForCurrentSelectedApp =
-      this.commitTreeStateService.selectedCommits.get(selectedApp);
+    const selectedApp = useCommitTreeStateStore
+      .getState()
+      .getCurrentSelectedApplicationName();
+    const selectedCommitsForCurrentSelectedApp = useCommitTreeStateStore
+      .getState()
+      .getSelectedCommits()
+      .get(selectedApp);
     this.commit1 =
       selectedCommitsForCurrentSelectedApp &&
       selectedCommitsForCurrentSelectedApp.length > 0
