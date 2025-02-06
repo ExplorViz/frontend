@@ -10,7 +10,7 @@ import {
 } from 'explorviz-frontend/rendering/application/immersive-view';
 import gsap from 'gsap';
 import ImmsersiveClassScene from 'react-lib/src/utils/class-immersive-scene';
-import { MethodGroup } from './method-mesh';
+import { MethodGroup } from './method-group';
 import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 import { SceneLayers } from 'react-lib/src/stores/minimap-service';
 

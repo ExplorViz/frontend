@@ -38,7 +38,7 @@ export type TinySnapshot = {
 export type SnapshotInfo = {
   personalSnapshots: TinySnapshot[];
   sharedSnapshots: TinySnapshot[];
-  subsricedSnapshots: TinySnapshot[];
+  subscribedSnapshots: TinySnapshot[];
 };
 
 const { userServiceApi, shareSnapshot } = ENV.backendAddresses;
@@ -88,7 +88,7 @@ export default class SnapshotTokenService extends Service {
         resolve({
           personalSnapshots: [],
           sharedSnapshots: [],
-          subsricedSnapshots: [],
+          subscribedSnapshots: [],
         });
       }
 
@@ -105,7 +105,7 @@ export default class SnapshotTokenService extends Service {
             resolve({
               personalSnapshots: [],
               sharedSnapshots: [],
-              subsricedSnapshots: [],
+              subscribedSnapshots: [],
             });
             useToastHandlerStore
               .getState()
@@ -116,7 +116,7 @@ export default class SnapshotTokenService extends Service {
           resolve({
             personalSnapshots: [],
             sharedSnapshots: [],
-            subsricedSnapshots: [],
+            subscribedSnapshots: [],
           });
           console.error('Server for snapshots not available.');
         });
