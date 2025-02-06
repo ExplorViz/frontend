@@ -1,6 +1,6 @@
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
+import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import {
   Class,

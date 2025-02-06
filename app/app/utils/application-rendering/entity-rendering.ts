@@ -23,7 +23,7 @@ import {
   openComponentsRecursively,
 } from './entity-manipulation';
 
-import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
+import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';
 import CommunicationRendering from 'react-lib/src/utils/application-rendering/communication-rendering';
 
 /**

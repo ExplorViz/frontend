@@ -6,7 +6,7 @@ import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/compon
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import { SceneLayers } from 'react-lib/src/stores/minimap-service';
 import { getStoredNumberSetting } from 'react-lib/src/utils/settings/local-storage-settings';
-// import { positionBoxLabel } from 'explorviz/utils/application-rendering/labeler';
+import { positionBoxLabel } from 'react-lib/src/utils/application-rendering/labeler';
 import ApplicationObject3D from './application-object-3d';
 
 export default class ComponentMesh extends BoxMesh {
@@ -64,7 +64,7 @@ export default class ComponentMesh extends BoxMesh {
     if (aspectRatioChanged && this.labelMesh) {
       this.labelMesh.scale.set(1, 1, 1);
       this.labelMesh.computeLabel(this);
-      // positionBoxLabel(this);
+      positionBoxLabel(this);
     }
 
     if (!this.opened && this.parent instanceof ApplicationObject3D) {

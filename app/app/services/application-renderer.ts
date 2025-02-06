@@ -11,7 +11,7 @@ import {
   HightlightComponentArgs,
   removeAllHighlightingFor,
 } from 'react-lib/src/utils/application-rendering/highlighting';
-import * as Labeler from 'explorviz-frontend/utils/application-rendering/labeler';
+import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';
 import {
   Class,
   getApplicationsFromNodes,

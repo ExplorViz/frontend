@@ -1,4 +1,4 @@
-import { addBoxTextLabel } from 'explorviz-frontend/utils/application-rendering/labeler';
+import { addBoxTextLabel } from 'react-lib/src/utils/application-rendering/labeler';
 import { ExplorVizColors } from 'react-lib/src/stores/user-settings';
 import { K8sNode } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';

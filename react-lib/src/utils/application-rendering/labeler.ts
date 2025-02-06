@@ -116,7 +116,6 @@ export function addBoxTextLabel(
   color: THREE.Color,
   minHeight = 1.5,
   minLength = 4,
-  scalar = 1,
   replace = false
 ) {
   if (boxMesh.labelMesh && !replace) return;
@@ -127,7 +126,7 @@ export function addBoxTextLabel(
     minHeight,
     minLength
   );
-  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
+  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name);
 
   boxMesh.labelMesh = labelMesh;
   boxMesh.add(labelMesh);
@@ -251,8 +250,7 @@ export function updateBoxTextLabel(
   color: THREE.Color,
   label: string,
   minHeight = 1.5,
-  minLength = 4,
-  scalar = 1
+  minLength = 4
 ) {
   const labelMesh = new ComponentLabelMesh(
     boxMesh,
@@ -264,7 +262,7 @@ export function updateBoxTextLabel(
 
   boxMesh.remove(boxMesh.labelMesh!);
 
-  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name + label, scalar);
+  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name + label);
 
   boxMesh.labelMesh = labelMesh;
   boxMesh.add(labelMesh);

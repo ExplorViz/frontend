@@ -1,5 +1,5 @@
 /* import applicationRenderingLabeler
-  from 'explorviz-frontend/utils/application-rendering/labeler'; */
+  from 'react-lib/src/utils/application-rendering/labeler'; */
 import { module, test } from 'qunit';
 
 module(
