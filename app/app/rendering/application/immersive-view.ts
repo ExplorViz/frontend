@@ -1,7 +1,6 @@
-import debugLogger from 'ember-debug-logger';
 import { createScene } from 'react-lib/src//utils/scene';
 import * as THREE from 'three';
-import RenderingLoop from './rendering-loop';
+import RenderingLoop from 'explorviz-frontend/app/rendering/application/rendering-loop';
 import { MapControls } from 'react-lib/src/utils/controls/MapControls';
 import { OrbitControls } from 'react-lib/src/utils/controls/OrbitControls';
 import { PointerLockControls } from 'react-lib/src/utils/controls/PointerLockControls';
@@ -144,7 +143,6 @@ export class ImmersiveView {
 
   // Singleton
   static #instance: ImmersiveView;
-  debug = debugLogger('ImmersiveViewManager');
   /**
    *
    */

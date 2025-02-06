@@ -3,7 +3,6 @@ import { Clock } from 'three';
 import THREEPerformance from 'react-lib/src/utils/threejs-performance';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
-import debugLogger from 'ember-debug-logger';
 import ArZoomHandler from 'explorviz-frontend/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
@@ -25,8 +24,6 @@ export default class RenderingLoop {
   axesHelper: THREE.AxesHelper | undefined;
 
   lightHelper: THREE.DirectionalLightHelper | undefined;
-
-  debug = debugLogger('RenderingLoop');
 
   @service('user-settings')
   userSettings!: UserSettings;
@@ -204,7 +201,7 @@ export default class RenderingLoop {
     this.renderer.render(this.scene, this.minimapCamera);
 
     // Restore original viewport and disable scissor test
-    this.renderer.setViewport(...this.currentViewport);
+    this.renderer.setViewport(this.currentViewport);
     this.renderer.setScissorTest(false);
   }
 }

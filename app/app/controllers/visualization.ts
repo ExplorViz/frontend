@@ -291,8 +291,6 @@ export default class VisualizationController extends Controller {
 
   @action
   async initRenderingAndSetupListeners() {
-    console.log('Setup');
-
     this.debug('initRenderingAndSetupListeners');
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
