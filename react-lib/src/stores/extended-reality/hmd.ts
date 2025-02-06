@@ -5,7 +5,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { TGALoader } from 'three/examples/jsm/loaders/TGALoader';
 
 interface HMDState {
-    headsetModel: Promise<THREE.Group>;
+  headsetModel: Promise<THREE.Group>;
 }
 
 let loadObjWithMtl = ({
@@ -32,15 +32,12 @@ let loadObjWithMtl = ({
       objLoader.load(objFile, resolve);
     });
   });
-}
+};
 
 export const useHMDStore = createStore<HMDState>(() => ({
-    headsetModel: loadObjWithMtl({
-        path: '/generic_hmd/',
-        objFile: 'generic_hmd.obj',
-        mtlFile: 'generic_hmd.mtl',
-      }),
+  headsetModel: loadObjWithMtl({
+    path: '/extended-reality/generic_hmd/',
+    objFile: 'generic_hmd.obj',
+    mtlFile: 'generic_hmd.mtl',
+  }),
 }));
-
-
-
