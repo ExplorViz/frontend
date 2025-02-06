@@ -108,7 +108,7 @@ export default class CameraControls {
 
     const origin = keepCameraPerspective
       ? this.perspectiveCamera.position
-      : new Vector3(1, 1, 1);
+      : box.max;
 
     const direction = center
       .clone()
@@ -117,6 +117,9 @@ export default class CameraControls {
       .multiplyScalar(distance);
 
     const position = center.clone().sub(direction);
+
+    // Avoid camera being too high
+    position.y = Math.min(position.y, 20);
 
     // Center to turn camera around should always be on ground level
     center.y = 0;

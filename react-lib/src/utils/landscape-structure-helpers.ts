@@ -266,11 +266,24 @@ export function combineStructureLandscapeData(
   }
 
   // TODO: Combine properly
-  for (const node of structureA.k8sNodes) {
-    structure.k8sNodes.push(node);
+  if (structureA.k8sNodes) {
+    for (const node of structureA.k8sNodes) {
+      if (structure.k8sNodes) {
+        structure.k8sNodes.push(node);
+      } else {
+        structure.k8sNodes = [node];
+      }
+    }
   }
-  for (const node of structureB.k8sNodes) {
-    structure.k8sNodes.push(node);
+
+  if (structureB.k8sNodes) {
+    for (const node of structureB.k8sNodes) {
+      if (structure.k8sNodes) {
+        structure.k8sNodes.push(node);
+      } else {
+        structure.k8sNodes = [node];
+      }
+    }
   }
 
   return structure;

@@ -55,6 +55,8 @@ export default class CommitTreeStateService extends Service {
 
   // #region Default state function
 
+  // Called when at least one non-empty commit is selected
+  // Sets selected Commits and current application name
   setDefaultState(
     currentAppNameCommitTreeMap: AppNameCommitTreeMap,
     commit1: string,
@@ -62,44 +64,42 @@ export default class CommitTreeStateService extends Service {
   ): boolean {
     const defaultSelectedCommits = new Map<string, SelectedCommit[]>();
 
-    // Find location for commit1
-    const commit1Location = findAppNameAndBranchNameForCommit(
+    // Find app and branch of first commit
+    const commit1AppAndBranch = findAppNameAndBranchNameForCommit(
       currentAppNameCommitTreeMap,
       commit1
     );
-    if (commit1Location) {
-      if (!defaultSelectedCommits.has(commit1Location.appName)) {
-        defaultSelectedCommits.set(commit1Location.appName, []);
-      }
-      defaultSelectedCommits.get(commit1Location.appName)?.push({
+    if (!commit1AppAndBranch) {
+      return false;
+    }
+
+    defaultSelectedCommits.set(commit1AppAndBranch.appName, [
+      {
         commitId: commit1,
-        branchName: commit1Location.branchName,
-      });
+        branchName: commit1AppAndBranch.branchName,
+      },
+    ]);
 
-      // Find location for commit2 if commit1 was found and commit2 is not null or undefined
-      if (defaultSelectedCommits.size > 0 && commit2) {
-        const commit2Location = findAppNameAndBranchNameForCommit(
-          currentAppNameCommitTreeMap,
-          commit2
-        );
-        if (commit2Location) {
-          if (!defaultSelectedCommits.has(commit2Location.appName)) {
-            defaultSelectedCommits.set(commit2Location.appName, []);
-          }
-          defaultSelectedCommits.get(commit2Location.appName)?.push({
-            commitId: commit2,
-            branchName: commit2Location.branchName,
-          });
+    if (commit2) {
+      // Find app and branch of second commit
+      const commit2AppAndBranch = findAppNameAndBranchNameForCommit(
+        currentAppNameCommitTreeMap,
+        commit2
+      );
+      if (commit2AppAndBranch) {
+        if (!defaultSelectedCommits.has(commit2AppAndBranch.appName)) {
+          defaultSelectedCommits.set(commit2AppAndBranch.appName, []);
         }
-      }
-
-      if (defaultSelectedCommits.size > 0) {
-        this._selectedCommits = defaultSelectedCommits;
-        this._currentSelectedApplicationName = commit1Location.appName;
-        return true;
+        defaultSelectedCommits.get(commit2AppAndBranch.appName)?.push({
+          commitId: commit2,
+          branchName: commit2AppAndBranch.branchName,
+        });
       }
     }
-    return false;
+
+    this._selectedCommits = defaultSelectedCommits;
+    this._currentSelectedApplicationName = commit1AppAndBranch.appName;
+    return true;
   }
 
   // #endregion
@@ -107,8 +107,8 @@ export default class CommitTreeStateService extends Service {
   // #region Template actions
   @action
   setCurrentSelectedApplicationName(appName: string) {
+    // Don't trigger unnecessary rerendering of components by setting tracked property
     if (this._currentSelectedApplicationName !== appName) {
-      // don't trigger unnecessary rerendering of components
       this._currentSelectedApplicationName = appName;
     }
   }

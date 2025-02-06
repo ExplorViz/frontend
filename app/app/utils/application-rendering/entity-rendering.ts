@@ -102,6 +102,7 @@ export function addComponentAndChildrenToScene(
   const applicationLayout = applicationObject3D.getBoxLayout(application.id);
 
   if (componentLayout === undefined || applicationLayout === undefined) {
+    console.error('Layout undefined for:', component);
     return;
   }
 

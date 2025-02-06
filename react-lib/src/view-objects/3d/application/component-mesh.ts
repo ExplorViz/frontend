@@ -6,7 +6,8 @@ import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/compon
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import { SceneLayers } from 'react-lib/src/stores/minimap-service';
 import { getStoredNumberSetting } from 'react-lib/src/utils/settings/local-storage-settings';
-import { positionBoxLabel } from 'explorviz-frontend/utils/application-rendering/labeler';
+// import { positionBoxLabel } from 'explorviz/utils/application-rendering/labeler';
+import ApplicationObject3D from './application-object-3d';
 
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -63,16 +64,19 @@ export default class ComponentMesh extends BoxMesh {
     if (aspectRatioChanged && this.labelMesh) {
       this.labelMesh.scale.set(1, 1, 1);
       this.labelMesh.computeLabel(this);
-      positionBoxLabel(this);
+      // positionBoxLabel(this);
     }
 
-    if (!this.opened) {
-      const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');
-      const CLOSED_HEIGHT = getStoredNumberSetting('closedComponentHeight');
+    if (!this.opened && this.parent instanceof ApplicationObject3D) {
+      const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
+        'closedComponentHeight'
+      );
 
-      this.height = CLOSED_HEIGHT;
+      this.height = CLOSED_COMPONENT_HEIGHT;
       this.position.y =
-        this.layout.positionY + (CLOSED_HEIGHT - OPENED_HEIGHT) / 2;
+        this.layout.positionY +
+        CLOSED_COMPONENT_HEIGHT / 2 -
+        this.parent.layout.positionY;
     }
   }
 

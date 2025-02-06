@@ -244,7 +244,9 @@ export default class ApplicationRenderer extends Service.extend() {
       // Check if new classes have been discovered
       const oldClassCount = app3D.getClassMeshes().length;
       const newClassCount = applicationData.getClassCount();
-      const hasStructureChanged = oldClassCount !== newClassCount;
+      // Might happen in evolution that we have no classes at all
+      const hasStructureChanged =
+        oldClassCount === 0 || oldClassCount !== newClassCount;
 
       const applicationState =
         Object.keys(addApplicationArgs).length === 0 &&

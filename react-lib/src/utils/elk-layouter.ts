@@ -9,10 +9,11 @@ import {
 } from './landscape-schemes/structure-data';
 import { getStoredNumberSetting } from './settings/local-storage-settings';
 import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout';
+import generateUuidv4 from 'react-lib/src/utils/helpers/uuid4-generator';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
-// We rely on prefixes having the same length for later removal
+// We rely on prefixes having the same length for their later removal
 const LANDSCAPE_PREFIX = 'land-';
 const K8S_NODE_PREFIX = 'node-';
 const K8S_NAMESPACE_PREFIX = 'nspc-';
@@ -21,6 +22,7 @@ const K8S_POD_PREFIX = 'kpod-';
 const APP_PREFIX = 'appl-';
 const PACKAGE_PREFIX = 'pack-';
 const CLASS_PREFIX = 'clss-';
+const DUMMY_PREFIX = 'dumy-';
 
 let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
@@ -195,17 +197,17 @@ function populateAppGraph(appGraph: any, application: Application) {
 
 function populatePackage(packageGraphChildren: any[], component: Package) {
   component.classes.forEach((clazz) => {
-    const node = {
+    const classNode = {
       id: CLASS_PREFIX + clazz.id,
       children: [],
       width: CLASS_FOOTPRINT,
       height: CLASS_FOOTPRINT,
     };
-    packageGraphChildren.push(node);
+    packageGraphChildren.push(classNode);
   });
 
   component.subPackages.forEach((subPackage) => {
-    const node = {
+    const packageNode = {
       id: PACKAGE_PREFIX + subPackage.id,
       children: [],
       layoutOptions: {
@@ -215,12 +217,25 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
       },
     };
-    packageGraphChildren.push(node);
+    packageGraphChildren.push(packageNode);
 
     if (subPackage.subPackages.length > 0 || subPackage.classes.length > 0) {
-      populatePackage(node.children, subPackage);
+      populatePackage(packageNode.children, subPackage);
+    } else {
+      // Add dummy class, otherwise package would be assigned with zero width/depth
+      populateWithDummyClass(packageNode.children);
     }
   });
+}
+
+function populateWithDummyClass(packageGraphChildren: any[]) {
+  const dummyClassNode = {
+    id: DUMMY_PREFIX + generateUuidv4(),
+    children: [],
+    width: CLASS_FOOTPRINT,
+    height: CLASS_FOOTPRINT,
+  };
+  packageGraphChildren.push(dummyClassNode);
 }
 
 function addEdges(landscapeGraph: any, applications: Application[]) {
@@ -242,20 +257,19 @@ export function convertElkToBoxLayout(
   zOffset = 0,
   depth = 0
 ): Map<string, BoxLayout> {
-  const SCALAR = 0.3;
-
   let height = COMPONENT_HEIGHT;
   if (elkGraph.id.startsWith(CLASS_PREFIX)) {
     height = 5;
   }
 
   const boxLayout = new BoxLayout();
-  boxLayout.positionX = (xOffset + elkGraph.x!) * SCALAR;
+  boxLayout.positionX = xOffset + elkGraph.x!;
   boxLayout.positionY = COMPONENT_HEIGHT * depth;
-  boxLayout.positionZ = (zOffset + elkGraph.y!) * SCALAR;
-  boxLayout.width = elkGraph.width! * SCALAR;
+  boxLayout.positionZ = zOffset + elkGraph.y!;
+  // Prevent 0 value for width and depth
+  boxLayout.width = elkGraph.width || CLASS_FOOTPRINT;
+  boxLayout.depth = elkGraph.height || CLASS_FOOTPRINT;
   boxLayout.height = height;
-  boxLayout.depth = elkGraph.height! * SCALAR;
 
   // Landscape and applications are on the same level
   if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
@@ -263,8 +277,10 @@ export function convertElkToBoxLayout(
     depth = depth - 1;
   }
 
-  // Ids in ELK must not start with numbers, therefore we added 5 letters
-  layoutMap.set(elkGraph.id.substring(APP_PREFIX.length), boxLayout);
+  // Ids in ELK must not start with numbers, therefore we added letters as prefix
+  if (elkGraph.id.substring(APP_PREFIX.length) !== DUMMY_PREFIX) {
+    layoutMap.set(elkGraph.id.substring(APP_PREFIX.length), boxLayout);
+  }
 
   elkGraph.children?.forEach((child: any) => {
     convertElkToBoxLayout(

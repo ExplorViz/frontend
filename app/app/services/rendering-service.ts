@@ -270,7 +270,7 @@ export default class RenderingService extends Service {
       const appNameToSelectedCommits: Map<string, SelectedCommit[]> =
         useCommitTreeStateStore.getState().getSelectedCommits();
 
-      // always pause when the selected commits change
+      // Always pause when the selected commits change
       this.pauseVisualizationUpdating();
       this.timestampRepo.stopTimestampPolling();
 
@@ -376,7 +376,7 @@ export default class RenderingService extends Service {
         .showInfoToastMessage('Switching to evolution mode.');
       this._visualizationMode = 'evolution';
 
-      // reset all timestamp data upon first change to this mode
+      // Reset all timestamp data upon first change to evolution mode
       this.timestampRepo.resetState();
     }
 
@@ -415,7 +415,7 @@ export default class RenderingService extends Service {
         }
       }
 
-      // remove timestamp and landscapedata with commits that are not selected anymore
+      // Remove timestamp and landscape data with commits that are not selected anymore
 
       let notSelectedCommitIds: string[] = Array.from(
         this.currentRuntimeLandscapeData.keys()

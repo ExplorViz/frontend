@@ -4,9 +4,6 @@ import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
 // #region Template Imports
-import { on } from '@ember/modifier';
-import didInsert from '@ember/render-modifiers/modifiers/did-insert';
-import didUpdate from '@ember/render-modifiers/modifiers/did-update';
 import { TimelineDataObject } from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 // #endregion
 
@@ -40,6 +37,9 @@ export default class PlotlyTimeline extends Component<IArgs> {
   timelineDiv: any;
 
   plotlyTimestampsWithoutNullValues: any;
+
+  minRequestFilter = 10;
+  maxRequestFilter = Number.MAX_SAFE_INTEGER;
 
   // BEGIN template-argument getters for default values
   get defaultMarkerColor() {
@@ -356,7 +356,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     }
 
     this.debug('updateMarkerStates');
-    this.resetHighlingInStateObjects();
+    this.resetHighlightInStateObjects();
 
     for (const [
       commitId,
@@ -376,10 +376,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
       selectedTimestampsForCommit.forEach((timestamp) => {
         const timestampId = timestamp.epochMilli;
-        markerStates[timestampId].color =
-          timelineDataForCommit.highlightedMarkerColor;
-        markerStates[timestampId].size = this.highlightedMarkerSize;
-        markerStates[timestampId].emberModel = timestamp;
+        if (markerStates[timestampId]) {
+          markerStates[timestampId].color =
+            timelineDataForCommit.highlightedMarkerColor;
+          markerStates[timestampId].size = this.highlightedMarkerSize;
+          markerStates[timestampId].emberModel = timestamp;
+        }
       });
       this.markerStateMap.set(commitId, markerStates);
     }
@@ -502,6 +504,30 @@ export default class PlotlyTimeline extends Component<IArgs> {
     };
   }
 
+  autoScale() {
+    Plotly.relayout(this.timelineDiv, {
+      'xaxis.autorange': true,
+      'yaxis.autorange': true,
+    });
+  }
+
+  @action
+  setMinRequestFilter(event: any) {
+    const minRequestInput = event.target.value;
+    this.minRequestFilter = Number.parseInt(minRequestInput) || 0;
+    this.updatePlotlyTimelineChart();
+    this.autoScale();
+  }
+
+  @action
+  setMaxRequestFilter(event: any) {
+    const maxRequestInput = event.target.value;
+    this.maxRequestFilter =
+      Number.parseInt(maxRequestInput) || Number.MAX_SAFE_INTEGER;
+    this.updatePlotlyTimelineChart();
+    this.autoScale();
+  }
+
   hoverText(x: (string | null)[], y: (number | null)[], commit: string) {
     return x.map(
       (xi, i) =>
@@ -518,10 +544,10 @@ export default class PlotlyTimeline extends Component<IArgs> {
         hoverdistance: 3,
         hovermode: 'closest',
         margin: {
-          b: 40,
-          pad: 5,
-          t: 40,
-          r: 40,
+          b: 50,
+          pad: 0,
+          t: 0,
+          r: 20,
         },
         yaxis: {
           fixedrange: true,
@@ -539,7 +565,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   getUpdatedPlotlyDataObject(
-    timestampsOfOneCommit: Timestamp[],
+    unfilteredTimestampsOfOneCommit: Timestamp[],
     markerStatesOfOneCommit: IMarkerStates,
     commitId: string
   ) {
@@ -551,12 +577,12 @@ export default class PlotlyTimeline extends Component<IArgs> {
         .replace('.000Z', '');
     }
 
-    function getGapRectangleObj() {
+    function getDashedLine() {
       return {
         layer: 'below',
-        type: 'rect',
+        type: 'line',
         xref: 'x',
-        yref: 'paper',
+        yref: 'y',
         x0: '0',
         y0: 0.1,
         x1: '0',
@@ -564,11 +590,25 @@ export default class PlotlyTimeline extends Component<IArgs> {
         fillcolor: '#d3d3d3',
         opacity: 0.4,
         line: {
-          width: 3,
+          width: 1,
           dash: 'dot',
         },
       };
     }
+
+    function styleNewDayIndicator(gapIndicator: any) {
+      gapIndicator.type = 'rect';
+      gapIndicator.yref = 'paper';
+      gapIndicator.y0 = 0.05;
+      gapIndicator.y1 = 1;
+      gapIndicator.fillcolor = '#ff0000';
+    }
+
+    const timestampsOfOneCommit = unfilteredTimestampsOfOneCommit.filter(
+      (timestamp) =>
+        timestamp.spanCount > this.minRequestFilter &&
+        timestamp.spanCount < this.maxRequestFilter
+    );
 
     const colors: string[] = [];
     const sizes: number[] = [];
@@ -580,59 +620,75 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
     const shapes = [];
 
-    let tempGapRectObj = null;
+    let tempGapIndicator = null;
 
     let nextExpectedTimestamp = 0;
     let i = 0;
+
+    const TIMESTAMP_INTERVAL = 10000;
 
     while (i < timestampsOfOneCommit.length) {
       const timestamp = timestampsOfOneCommit[i];
       const timestampId = timestamp.epochMilli;
 
-      // only add real timestamps and shapes in the data arrays
-      let addCurentTimestampToDataObject = false;
+      // Only add real timestamps and shapes in the data arrays
+      let addCurrentTimestampToDataObject = false;
 
       if (nextExpectedTimestamp === 0) {
-        // first timestamp in series
+        // First timestamp, must exist do to while loop condition
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
-        nextExpectedTimestamp = timestampId;
+        nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
         i++;
-        addCurentTimestampToDataObject = true;
-      } else if (nextExpectedTimestamp === timestampId) {
-        // subsequent timestamps
+        addCurrentTimestampToDataObject = true;
+      } else if (nextExpectedTimestamp >= timestampId) {
+        // Next timestamp is within expected time frame
         x.push(getTimestampTickLabel(timestampId));
         y.push(timestamp.spanCount);
         i++;
-        if (tempGapRectObj) {
-          tempGapRectObj.x1 = getTimestampTickLabel(timestampId);
-          shapes.push(tempGapRectObj);
-          tempGapRectObj = null;
+        // Add missing coordinates to gap indicator
+        if (tempGapIndicator) {
+          tempGapIndicator.x1 = getTimestampTickLabel(timestampId);
+          tempGapIndicator.y1 = timestamp.spanCount;
+          const END_OF_ISO_DATE = 10;
+          if (
+            tempGapIndicator.x0.substring(0, END_OF_ISO_DATE) !=
+            tempGapIndicator.x1.substring(0, END_OF_ISO_DATE)
+          ) {
+            styleNewDayIndicator(tempGapIndicator);
+          }
+
+          shapes.push(tempGapIndicator);
+          tempGapIndicator = null;
         }
-        addCurentTimestampToDataObject = true;
+        addCurrentTimestampToDataObject = true;
+        nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
       } else if (timestamp.epochMilli === null) {
-        // edge case if API will return null values in the future
+        // Edge case if API will return null values in the future
         x.push(null);
         y.push(null);
         i++;
       } else {
-        // gap fills for timestamps that did not occur
-        if (!tempGapRectObj) {
-          addCurentTimestampToDataObject = true;
+        // Gap fills for missing timestamps (outside of expected timestamp interval)
+        if (!tempGapIndicator) {
+          addCurrentTimestampToDataObject = true;
           x.push(null);
           y.push(null);
-          tempGapRectObj = getGapRectangleObj();
-          tempGapRectObj.x0 = getTimestampTickLabel(
-            nextExpectedTimestamp - 10000
-          );
+          tempGapIndicator = getDashedLine();
+          const lastNonNullTimestamp =
+            nextExpectedTimestamp - TIMESTAMP_INTERVAL;
+          tempGapIndicator.x0 = getTimestampTickLabel(lastNonNullTimestamp);
+          // Get last non-null value
+          tempGapIndicator.y0 = y.filter((y) => y != null).at(-1)!;
         }
+        nextExpectedTimestamp =
+          timestampsOfOneCommit[i].epochMilli ||
+          timestampId + TIMESTAMP_INTERVAL;
       }
-
-      nextExpectedTimestamp += 10000;
 
       const markerState = markerStatesOfOneCommit[timestampId];
 
-      if (addCurentTimestampToDataObject) {
+      if (addCurrentTimestampToDataObject) {
         if (markerState) {
           colors.push(markerState.color);
           sizes.push(markerState.size);
@@ -651,7 +707,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
         }
         timestampIds.push(timestampId);
       }
-      addCurentTimestampToDataObject = false;
+      addCurrentTimestampToDataObject = false;
     }
 
     this.markerStateMap.set(commitId, markerStatesOfOneCommit);
@@ -690,7 +746,7 @@ export default class PlotlyTimeline extends Component<IArgs> {
     };
   }
 
-  resetHighlingInStateObjects() {
+  resetHighlightInStateObjects() {
     this.selectedCommitTimestampsMap = new Map();
     this.markerStateMap = new Map();
   }
@@ -718,29 +774,4 @@ export default class PlotlyTimeline extends Component<IArgs> {
   }
 
   // END Helper functions
-
-  <template>
-    {{#if this.showDummyTimeline}}
-      <div class='timeline-no-timestamps-outer'>
-        <div class='timeline-no-timestamps-inner'>
-          No timestamps available!
-        </div>
-      </div>
-      <div
-        class='plotlyDiv timeline-blur-effect'
-        {{didInsert this.setupPlotlyTimelineChart}}
-      >
-      </div>
-
-    {{else}}
-      <div
-        class='plotlyDiv'
-        {{on 'mouseenter' this.handleMouseEnter}}
-        {{on 'mouseleave' this.handleMouseLeave}}
-        {{didUpdate this.updatePlotlyTimelineChart @timelineDataObject}}
-        {{didInsert this.setupPlotlyTimelineChart}}
-      >
-      </div>
-    {{/if}}
-  </template>
 }

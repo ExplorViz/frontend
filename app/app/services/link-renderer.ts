@@ -205,7 +205,7 @@ export default class LinkRenderer extends Service.extend({}) {
       pipe.remove(child);
     });
 
-    const arrowOffset = 0.8;
+    const arrowOffset = 1;
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
     const arrowColorHex =
