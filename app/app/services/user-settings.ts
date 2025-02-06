@@ -82,7 +82,7 @@ export default class UserSettings extends Service {
   // TODO: Wait for corresponding service to be fully migrated
   //        updateColors uses not migrated service
   @action
-  applyDefaultVisualizationSettings(saveToLocalStorage = true) {
+  applyDefaultSettings(saveToLocalStorage = true) {
     this.visualizationSettings = JSON.parse(JSON.stringify(defaultVizSettings));
 
     this.updateColors();
