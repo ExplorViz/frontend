@@ -98,7 +98,7 @@ export default class VisualizationController extends Controller {
     'bottomBar',
   ];
 
-  private sidebarHandler!: SidebarHandler;
+  private sidebarHandler = new SidebarHandler();
 
   @tracked
   private commit1: string | undefined | null;
@@ -291,6 +291,8 @@ export default class VisualizationController extends Controller {
 
   @action
   async initRenderingAndSetupListeners() {
+    console.log('Setup');
+
     this.debug('initRenderingAndSetupListeners');
     this.timelineDataObjectHandler = new TimelineDataObjectHandler(
       getOwner(this)
@@ -305,7 +307,6 @@ export default class VisualizationController extends Controller {
     this.timestampRepo.timelineDataObjectHandler =
       this.timelineDataObjectHandler;
 
-    this.sidebarHandler = new SidebarHandler();
     this.renderingService.visualizationPaused = false;
 
     // start main loop

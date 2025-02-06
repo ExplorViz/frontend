@@ -493,10 +493,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.cameraControls
     );
 
-    this.minimapService.raycaster = new Raycaster(
-      this.localUser.minimapCamera,
-      this.minimapService
-    );
+    this.minimapService.raycaster = new Raycaster(this.localUser.minimapCamera);
   }
 
   /**
