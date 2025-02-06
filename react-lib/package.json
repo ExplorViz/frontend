@@ -1,28 +1,28 @@
 {
-    "name": "react-lib",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "peerDependencies": {
-        "@types/react": "18",
-        "@types/react-dom": "18",
-        "react": "18",
-        "typescript": "5"
-    },
-    "devDependencies": {
-        "events": "^3.3.0",
-        "zustand": "^5.0.2"
-    },
-    "dependencies": {
-        "@primer/octicons-react": "^19.14.0",
-        "bootstrap": "^4.6.2",
-        "react-bootstrap": "^2.10.7",
-        "react-select": "^5.9.0"
-    }
+  "name": "react-lib",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@types/react": "18",
+    "@types/react-dom": "18",
+    "react": "^19.0.0",
+    "typescript": "5"
+  },
+  "devDependencies": {
+    "events": "^3.3.0",
+    "zustand": "^5.0.2"
+  },
+  "dependencies": {
+    "@primer/octicons-react": "^19.14.0",
+    "bootstrap": "^4.6.2",
+    "react-bootstrap": "^2.10.7",
+    "react-select": "^5.9.0"
+  }
 }
