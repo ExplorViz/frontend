@@ -3,12 +3,11 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { isBlank } from '@ember/utils';
 import $ from 'jquery';
-import { getOwner } from '@ember/application';
 import { htmlSafe } from '@ember/template';
 import { tracked } from '@glimmer/tracking';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
-import ApplicationSearchLogic from 'explorviz-frontend/utils/application-search-logic';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import getPossibleEntityNames from 'explorviz-frontend/utils/application-search-logic';
 
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent {
@@ -23,14 +22,6 @@ export default class ApplicationSearch extends GlimmerComponent {
 
   @tracked
   selected: any[] = [];
-
-  searchLogic!: ApplicationSearchLogic;
-
-  constructor(owner: any, args: any) {
-    super(owner, args);
-
-    this.searchLogic = new ApplicationSearchLogic(getOwner(this));
-  }
 
   @action
   formatEntry(potentialResult: string) {
@@ -143,6 +134,6 @@ export default class ApplicationSearch extends GlimmerComponent {
     // used for highlighting of substring in found matches
     this.searchString = term;
 
-    return this.searchLogic.getPossibleEntityNames(term);
+    return getPossibleEntityNames(term);
   }
 }

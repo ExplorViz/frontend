@@ -1,6 +1,5 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { setOwner } from '@ember/application';
-import { getOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
 import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 import * as THREE from 'three';
@@ -11,7 +10,7 @@ import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import ApplicationSearchLogic from 'react-lib/src/utils/application-search-logic'; // TODO: migrate
+// import getPossibleEntityNames from 'react-lib/utils/application-search-logic';
 
 export type SearchMenuArgs = UiMenuArgs & {
   owner: any;
@@ -41,7 +40,6 @@ const colors = {
 };
 
 export default class SearchMenu extends InteractiveMenu {
-
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
   keyboard!: ThreeMeshUI.Keyboard;
@@ -53,7 +51,6 @@ export default class SearchMenu extends InteractiveMenu {
   searchList!: SearchList;
   _isNewInput: boolean = false;
   oldContent?: string;
-  searchLogic!: ApplicationSearchLogic;
 
   constructor({ owner, renderer, ...args }: SearchMenuArgs) {
     super(args);
@@ -61,7 +58,6 @@ export default class SearchMenu extends InteractiveMenu {
     setOwner(this, owner);
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
-    this.searchLogic = new ApplicationSearchLogic(getOwner(this));
     this.makeUI();
     this.makeKeyboard();
   }
@@ -117,7 +113,7 @@ export default class SearchMenu extends InteractiveMenu {
     textPanel.add(title, textField);
 
     // @ts-ignore no types atm
-    this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
+    // this.list = getPossibleEntityNames(this.userText.content);
     this.searchListContainer = new ThreeMeshUI.Block({
       hiddenOverflow: true,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
@@ -172,7 +168,7 @@ export default class SearchMenu extends InteractiveMenu {
     this.oldContent = this.userText.content;
 
     // @ts-ignore no types atm
-    this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
+    // this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
     this.searchListContainer.remove(this.searchList);
     this.searchList = new SearchList({
