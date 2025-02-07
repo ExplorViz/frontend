@@ -7,7 +7,7 @@ import { htmlSafe } from '@ember/template';
 import { tracked } from '@glimmer/tracking';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import getPossibleEntityNames from 'explorviz-frontend/utils/application-search-logic';
+import getPossibleEntityNames from 'react-lib/src/utils/application-search-logic';
 
 /* eslint-disable require-yield */
 export default class ApplicationSearch extends GlimmerComponent {

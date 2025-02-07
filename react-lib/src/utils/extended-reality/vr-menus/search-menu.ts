@@ -10,7 +10,7 @@ import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-// import getPossibleEntityNames from 'react-lib/utils/application-search-logic';
+import getPossibleEntityNames from 'react-lib/src/utils/application-search-logic';
 
 export type SearchMenuArgs = UiMenuArgs & {
   owner: any;
@@ -113,7 +113,7 @@ export default class SearchMenu extends InteractiveMenu {
     textPanel.add(title, textField);
 
     // @ts-ignore no types atm
-    // this.list = getPossibleEntityNames(this.userText.content);
+    this.list = getPossibleEntityNames(this.userText.content);
     this.searchListContainer = new ThreeMeshUI.Block({
       hiddenOverflow: true,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
@@ -168,7 +168,7 @@ export default class SearchMenu extends InteractiveMenu {
     this.oldContent = this.userText.content;
 
     // @ts-ignore no types atm
-    // this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
+    this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
     this.searchListContainer.remove(this.searchList);
     this.searchList = new SearchList({

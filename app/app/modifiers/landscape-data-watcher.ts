@@ -33,7 +33,7 @@ import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dyna
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 // import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
-import visualizeK8sLandscape from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
+import visualizeK8sLandscape from 'react-lib/src/utils/k8s-landscape-visualization-assembler';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { CommunicationLink } from 'explorviz-frontend/ide/ide-cross-communication';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';

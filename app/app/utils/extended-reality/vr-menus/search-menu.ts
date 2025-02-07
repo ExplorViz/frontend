@@ -10,7 +10,7 @@ import VRController from 'explorviz-frontend/utils/extended-reality/vr-controlle
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import getPossibleEntityNames from 'explorviz-frontend/utils/application-search-logic';
+import getPossibleEntityNames from 'react-lib/src/utils/application-search-logic';
 
 export type SearchMenuArgs = UiMenuArgs & {
   owner: any;
