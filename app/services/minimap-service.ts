@@ -233,7 +233,9 @@ export default class MinimapService extends Service {
    * @param event MouseEvent of the click
    * @returns true if the click is inside the minimap
    */
-  isClickInsideMinimap(event: MouseEvent) {
+  isMouseInsideMinimap(event: MouseEvent) {
+    if (!this.minimapEnabled) return false;
+
     const minimap = this.minimap();
     const minimapHeight = minimap[0];
     const minimapWidth = minimap[1];
@@ -380,6 +382,18 @@ export default class MinimapService extends Service {
       );
     }
     this.localUser.minimapCamera.updateProjectionMatrix();
+  }
+
+  addZoomDelta(zoomDelta: number) {
+    const zoomSetting = this.userSettings.visualizationSettings.zoom;
+    const newZoom = zoomSetting.value + zoomDelta;
+    if (newZoom < zoomSetting.range.min) {
+      this.userSettings.updateSetting('zoom', zoomSetting.range.min);
+    } else if (newZoom > zoomSetting.range.max) {
+      this.userSettings.updateSetting('zoom', zoomSetting.range.max);
+    } else {
+      this.userSettings.updateSetting('zoom', newZoom);
+    }
   }
 
   calculateDistanceFactor(): number {

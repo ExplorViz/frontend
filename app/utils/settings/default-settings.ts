@@ -664,9 +664,9 @@ export const defaultVizSettings: VisualizationSettings = {
   zoom: {
     value: 1,
     range: {
-      min: 0.5,
-      max: 3.0,
-      step: 0.1,
+      min: 0.1,
+      max: 5,
+      step: 0.05,
     },
     group: 'Minimap',
     displayName: 'Zoom of Minimap',

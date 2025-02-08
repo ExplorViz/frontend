@@ -69,6 +69,7 @@ function cleanup(instance: InteractionModifierModifier) {
   canvas.removeEventListener('pointercancel', instance.onPointerCancel);
   canvas.removeEventListener('pointermove', instance.onPointerMove);
   canvas.removeEventListener('pointerstop', instance.onPointerStop);
+  canvas.removeEventListener('wheel', instance.onWheel);
   document.removeEventListener('keydown', instance.keyDown);
   document.removeEventListener('keyup', instance.keyUp);
 }
@@ -138,6 +139,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
       this.canvas.addEventListener('pointerout', this.onPointerOut);
       this.canvas.addEventListener('pointercancel', this.onPointerCancel);
       this.canvas.addEventListener('pointermove', this.onPointerMove);
+      this.canvas.addEventListener('wheel', this.onWheel);
 
       document.addEventListener('keydown', this.keyDown);
       document.addEventListener('keyup', this.keyUp);
@@ -244,6 +246,13 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   }
 
   @action
+  onWheel(event: WheelEvent) {
+    if (this.minimapService.isMouseInsideMinimap(event)) {
+      this.minimapService.addZoomDelta(-event.deltaY / 1000);
+    }
+  }
+
+  @action
   onPointerStop(customEvent: CustomEvent<MouseStopEvent>) {
     if (this.pointers.length > 0) {
       return;
@@ -309,7 +318,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
   ) {
     // check for click on Minimap
     let intersectedViewObjectCopy = intersectedViewObj;
-    const isOnMinimap = this.minimapService.isClickInsideMinimap(event);
+    const isOnMinimap = this.minimapService.isMouseInsideMinimap(event);
     const rayMarkers = this.minimapService.raycastForMarkers(event);
     // if rayMarkers are present, it means that the click was on a marker
     if (rayMarkers) {
@@ -378,7 +387,7 @@ export default class InteractionModifierModifier extends Modifier<InteractionMod
    * @returns The object that was hit by the ray
    */
   private handleMinimapDoubleClick(event: MouseEvent) {
-    if (this.minimapService.isClickInsideMinimap(event)) {
+    if (this.minimapService.isMouseInsideMinimap(event)) {
       return this.minimapService.raycastForObjects(
         event,
         this.localUser.minimapCamera,
