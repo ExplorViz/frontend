@@ -349,11 +349,14 @@ export default class MinimapService extends Service {
       this.distance = this.userSettings.visualizationSettings.zoom.value;
     }
 
-    this.localUser.minimapCamera.left = -boundingBoxWidth / 2 / this.distance;
-    this.localUser.minimapCamera.right = boundingBoxWidth / 2 / this.distance;
-    this.localUser.minimapCamera.top = boundingBoxHeight / 2 / this.distance;
-    this.localUser.minimapCamera.bottom =
-      -boundingBoxHeight / 2 / this.distance;
+    // Compute angle such that landscape fits by default (+ distance modifier)
+    const cameraAngle =
+      Math.max(boundingBoxWidth, boundingBoxHeight) / 2 / this.distance;
+    // Use same camera angle for all directions since minimap is a square
+    this.localUser.minimapCamera.left = -cameraAngle;
+    this.localUser.minimapCamera.right = cameraAngle;
+    this.localUser.minimapCamera.top = cameraAngle;
+    this.localUser.minimapCamera.bottom = -cameraAngle;
 
     if (
       this.userSettings.visualizationSettings.zoom.value != 1 &&
