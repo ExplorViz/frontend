@@ -120,6 +120,9 @@ export default class MinimapService extends Service {
   }
 
   tick() {
+    // Avoid unnecessary computations
+    if (!this.minimapEnabled) return;
+
     this.getCurrentPosition();
     this.updateMinimapCamera();
     this.updateUserMinimapMarker(this.userPosition, 'localUser');
