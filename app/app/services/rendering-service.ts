@@ -26,7 +26,7 @@ import TimestampRepository from './repos/timestamp-repository';
 import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
-export type VisualizationMode = 'evolution' | 'runtime';
+export type AnalysisMode = 'evolution' | 'runtime';
 
 export type EvolutionModeRenderingConfiguration = {
   renderDynamic: boolean;
@@ -101,11 +101,11 @@ export default class RenderingService extends Service {
   }
 
   // @tracked
-  // private _visualizationMode: VisualizationMode = 'runtime';
-  get _visualizationMode(): VisualizationMode {
+  // private _analysisMode: AnalysisMode = 'runtime';
+  get _analysisMode(): AnalysisMode {
     return useRenderingServiceStore.getState()._visualizationMode;
   }
-  set _visualizationMode(value: VisualizationMode) {
+  set _analysisMode(value: AnalysisMode) {
     useRenderingServiceStore.setState({ _visualizationMode: value });
   }
 
@@ -124,7 +124,7 @@ export default class RenderingService extends Service {
 
   // #region  Getter / Setter
 
-  get visualizationMode(): VisualizationMode {
+  get analysisMode(): AnalysisMode {
     return useRenderingServiceStore.getState()._visualizationMode;
   }
 
@@ -196,7 +196,7 @@ export default class RenderingService extends Service {
     }
 
     if (
-      this._visualizationMode === 'evolution' &&
+      this._analysisMode === 'evolution' &&
       !this._userInitiatedStaticDynamicCombination
     ) {
       return;
@@ -370,11 +370,11 @@ export default class RenderingService extends Service {
   private async setEvolutionModeActiveAndHandleRendering(
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) {
-    if (this._visualizationMode === 'runtime') {
+    if (this._analysisMode === 'runtime') {
       useToastHandlerStore
         .getState()
         .showInfoToastMessage('Switching to evolution mode.');
-      this._visualizationMode = 'evolution';
+      this._analysisMode = 'evolution';
 
       // Reset all timestamp data upon first change to evolution mode
       this.timestampRepo.resetState();
@@ -448,13 +448,13 @@ export default class RenderingService extends Service {
   }
 
   private setRuntimeModeActive() {
-    if (this._visualizationMode === 'evolution') {
+    if (this._analysisMode === 'evolution') {
       useToastHandlerStore
         .getState()
         .showInfoToastMessage(
           'Switching to cross-commit runtime visualization.'
         );
-      this._visualizationMode = 'runtime';
+      this._analysisMode = 'runtime';
 
       this._userInitiatedStaticDynamicCombination = false;
     }

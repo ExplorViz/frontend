@@ -1,6 +1,6 @@
 import Evented from '@ember/object/evented';
 import Service from '@ember/service';
-import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 import { INITIAL_LANDSCAPE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/receivable/landscape';
 import { ANNOTATION_EDIT_RESPONSE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/receivable/response/annotation-edit-response';
 import { ANNOTATION_RESPONSE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/receivable/response/annotation-response';

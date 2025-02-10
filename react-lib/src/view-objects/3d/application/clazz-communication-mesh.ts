@@ -4,7 +4,7 @@ import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
-import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 import { SceneLayers } from 'react-lib/src/stores/minimap-service';
 
 export default class ClazzCommunicationMesh extends BaseMesh {

@@ -4,9 +4,7 @@ import Controller from '@ember/controller';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import LocalUser, {
-  VisualizationMode,
-} from 'explorviz-frontend/services/collaboration/local-user';
+import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
@@ -58,13 +56,14 @@ import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timelin
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
 import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
 import RenderingService, {
-  VisualizationMode as RenderingVisualizationMode,
+  AnalysisMode,
 } from 'explorviz-frontend/services/rendering-service';
 import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -105,7 +104,7 @@ export default class VisualizationController extends Controller {
   @tracked
   private commit2: string | undefined | null;
 
-  private bottomBar: RenderingVisualizationMode | undefined | null;
+  private bottomBar: AnalysisMode | undefined | null;
 
   // #region Services
 

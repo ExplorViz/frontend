@@ -42,7 +42,7 @@ export default class EvolutionRenderingButtons extends Component<IArgs> {
   }
 
   @action
-  changeRenderingMode(x: any) {
+  changeAnalysisMode(x: any) {
     const newEvolutionModeRenderingConfiguration =
       this.visibilityService.getCloneOfEvolutionModeRenderingConfiguration();
     if (x === 'dynamic') {

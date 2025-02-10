@@ -1,8 +1,8 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
-import * as THREE from "three";
+import * as THREE from 'three';
 
-export type VisualizationMode = "browser" | "ar" | "vr";
+export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
 interface LocalUserState {
   userId: string;
@@ -87,12 +87,12 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
   const initAnimationMixer = new THREE.AnimationMixer(initUserGroup);
 
   return {
-    userId: "unknown",
-    userName: "You",
-    color: new THREE.Color("red"),
+    userId: 'unknown',
+    userName: 'You',
+    color: new THREE.Color('red'),
     defaultCamera: initDefaultCamera,
     minimapCamera: new THREE.OrthographicCamera(),
-    visualizationMode: "browser",
+    visualizationMode: 'browser',
     // mousePing: new MousePing(new THREE.Color('red'), initAnimationMixer),
     userGroup: initUserGroup,
     task: undefined,

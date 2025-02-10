@@ -71,7 +71,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
   // #region Timestamp Polling
 
   restartTimestampPollingAndVizUpdate(commits: SelectedCommit[]): void {
-    if (this.renderingService.visualizationMode === 'runtime') {
+    if (this.renderingService.analysisMode === 'runtime') {
       // reset states when going back to runtime mode
       this.commitToTimestampMap = new Map();
       this._timelineDataObjectHandler?.resetState();

@@ -1,4 +1,4 @@
-import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 
 export const VISUALIZATION_MODE_UPDATE_EVENT = 'visualization_mode_update';
 

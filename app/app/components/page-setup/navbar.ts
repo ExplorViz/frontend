@@ -72,15 +72,15 @@ export default class Navbar extends Component {
     });
   }
 
-  get renderingMode() {
-    let currentRenderingMode = this.renderingService.visualizationMode;
+  get analysisMode() {
+    let currentAnalysisMode = this.renderingService.analysisMode;
 
-    currentRenderingMode =
+    currentAnalysisMode =
       'Active mode: ' +
-      currentRenderingMode.charAt(0).toUpperCase() +
-      currentRenderingMode.slice(1);
+      currentAnalysisMode.charAt(0).toUpperCase() +
+      currentAnalysisMode.slice(1);
 
-    return currentRenderingMode;
+    return currentAnalysisMode;
   }
 
   get isSingleLandscapeMode() {

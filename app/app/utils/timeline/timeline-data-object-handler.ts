@@ -65,7 +65,7 @@ export default class TimelineDataObjectHandler {
 
     this.renderingService.pauseVisualizationUpdating(true);
 
-    if (this.renderingService.visualizationMode === 'evolution') {
+    if (this.renderingService.analysisMode === 'evolution') {
       this.renderingService.userInitiatedStaticDynamicCombination = true;
     }
 

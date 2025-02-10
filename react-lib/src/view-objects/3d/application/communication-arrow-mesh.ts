@@ -1,4 +1,4 @@
-import { VisualizationMode } from 'explorviz-frontend/services/collaboration/local-user';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';

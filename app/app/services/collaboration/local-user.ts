@@ -16,9 +16,12 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import {
+  useLocalUserStore,
+  VisualizationMode,
+} from 'react-lib/src/stores/collaboration/local-user';
 
-export type VisualizationMode = 'browser' | 'ar' | 'vr';
+// export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
 export default class LocalUser extends Service.extend({
   // anything which *must* be merged to prototype here
@@ -90,7 +93,7 @@ export default class LocalUser extends Service.extend({
     return useLocalUserStore.getState().visualizationMode;
   }
 
-  set visualizationMode(value) {
+  set visualizationMode(value: VisualizationMode) {
     useLocalUserStore.setState({ visualizationMode: value });
   }
 
