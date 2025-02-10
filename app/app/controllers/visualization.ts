@@ -24,7 +24,7 @@ import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration/web-so
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
-} from 'explorviz-frontend/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
+} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
   SerializedApp,
