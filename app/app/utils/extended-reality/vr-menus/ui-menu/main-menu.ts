@@ -1,6 +1,8 @@
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import UiMenu, { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
+import UiMenu, {
+  UiMenuArgs,
+} from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
 
 export default class MainMenu extends UiMenu {
   constructor(args: UiMenuArgs) {

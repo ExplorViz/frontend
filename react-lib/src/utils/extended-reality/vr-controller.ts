@@ -1,4 +1,3 @@
-import debugLogger from 'ember-debug-logger';
 import { defaultRaycastFilter } from 'react-lib/src/utils/raycaster';
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import * as THREE from 'three';
@@ -52,8 +51,6 @@ export type VRControllerCallbackFunctions = {
  * a VR controller and provides update and callback functionalities.
  */
 export default class VRController extends BaseMesh {
-  debug = debugLogger('VRController');
-
   gamepadIndex: ControllerId;
 
   gamepad: Gamepad | null = null;

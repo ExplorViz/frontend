@@ -3,7 +3,7 @@ import ScrollUpButton from 'react-lib/src/utils/extended-reality/view-objects/vr
 import ScrollDownButton from 'react-lib/src/utils/extended-reality/view-objects/vr/scroll-down-button';
 import OpenEntityButton from 'react-lib/src/utils/extended-reality/view-objects/vr/open-entity-button';
 import ThreeMeshUI from 'three-mesh-ui';
-import DetailInfoScrollarea from './detail-info-scrollarea';
+import DetailInfoScrollarea from 'react-lib/src/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
 // import VrMenuFactoryService from 'explorviz-frontend/services/extended-reality/vr-menu-factory';
 import * as THREE from 'three';
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
