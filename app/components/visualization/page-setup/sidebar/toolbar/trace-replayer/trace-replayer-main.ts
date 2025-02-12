@@ -31,14 +31,14 @@ class Blob extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
   constructor(
     radius: number,
     color: THREE.Color = new THREE.Color('red'),
-    opacity:number = 1
+    opacity: number = 1
   ) {
     super(color, color, opacity);
     this.highlight();
     this.geometry = new THREE.SphereGeometry(radius, 8, 8);
   }
 
-  move( position: THREE.Vector3): void {
+  move(position: THREE.Vector3): void {
     this.position.copy(position);
   }
 }
@@ -254,13 +254,16 @@ export default class TraceReplayerMain extends Component<Args> {
         // this.afterimages.add(new Afterimage(origin.mesh));
         // this.afterimages.add(new Afterimage(target.mesh));
 
-        let scale = this.applicationRenderer.forceGraph.scale;
+        let scale = this.applicationRenderer.landscape3D.scale;
+        let support = this.applicationRenderer.landscape3D.position;
         let start = this.applicationRenderer
-          .getGraphPosition(origin.mesh)
-          .multiply(scale);
+          .getPositionInLandscape(origin.mesh)
+          .multiply(scale)
+          .add(support);
         let end = this.applicationRenderer
-          .getGraphPosition(target.mesh)
-          .multiply(scale);
+          .getPositionInLandscape(target.mesh)
+          .multiply(scale)
+          .add(support);
 
         const classDistance = Math.hypot(end.x - start.x, end.z - start.z);
         const height =
@@ -327,7 +330,7 @@ export default class TraceReplayerMain extends Component<Args> {
       });
 
       for (let i = 0; i < 3; ++i) {
-        const blob = new Blob(0.02)
+        const blob = new Blob(0.02);
         blob.hide();
         this.args.renderingLoop.scene.add(blob);
         this.blob = blob;
