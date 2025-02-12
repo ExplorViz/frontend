@@ -1,5 +1,5 @@
 {{! template-lint-disable simple-unless }}
-{{#each-in this.settingsSortedByGroup as |groupId settingIdArray|}}
+{{#each-in this.filteredSettingsByGroup as |groupId settingIdArray|}}
   {{#unless (is-empty settingIdArray)}}
     <h6 class='mt-3'><strong>{{groupId}}</strong></h6>
     {{#if (eq groupId 'Colors')}}

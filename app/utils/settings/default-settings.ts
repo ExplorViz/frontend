@@ -1,106 +1,139 @@
 import { defaultColors } from './color-schemes';
-import { VisualizationSettings } from './settings-schemas';
+import { SettingLevel, VisualizationSettings } from './settings-schemas';
 
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   backgroundColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.backgroundColor,
     group: 'Colors',
     displayName: 'Background',
+    description: '',
     isColorSetting: true,
   },
   clazzColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.clazzColor,
     group: 'Colors',
     displayName: 'Class',
+    description: '',
     isColorSetting: true,
   },
   clazzTextColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.clazzTextColor,
     group: 'Colors',
     displayName: 'Class Label',
+    description: '',
     isColorSetting: true,
   },
   communicationArrowColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.communicationArrowColor,
     group: 'Colors',
     displayName: 'Communication Arrow',
+    description: '',
     isColorSetting: true,
   },
   communicationColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.communicationColor,
     group: 'Colors',
     displayName: 'Communication',
+    description: '',
     isColorSetting: true,
   },
   componentEvenColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.componentEvenColor,
     group: 'Colors',
     displayName: 'Component Even',
+    description: '',
     isColorSetting: true,
   },
   componentOddColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.componentOddColor,
     group: 'Colors',
     displayName: 'Component Odd',
+    description: '',
     isColorSetting: true,
   },
   componentTextColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.componentTextColor,
     group: 'Colors',
     displayName: 'Component Label',
+    description: '',
     isColorSetting: true,
   },
   foundationColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.foundationColor,
     group: 'Colors',
     displayName: 'Foundation',
+    description: '',
     isColorSetting: true,
   },
   foundationTextColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.foundationTextColor,
     group: 'Colors',
     displayName: 'Foundation Label',
+    description: '',
     isColorSetting: true,
   },
   highlightedEntityColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.highlightedEntityColor,
     group: 'Colors',
     displayName: 'Highlighted Entity',
+    description: '',
     isColorSetting: true,
   },
   k8sNodeColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.k8sNodeColor,
     group: 'Colors',
     displayName: 'K8s Node',
+    description: '',
     isColorSetting: true,
   },
   k8sNamespaceColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.k8sNamespaceColor,
     group: 'Colors',
     displayName: 'K8s Namespace',
+    description: '',
     isColorSetting: true,
   },
   k8sDeploymentColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.k8sDeploymentColor,
     group: 'Colors',
     displayName: 'K8s Deployment',
+    description: '',
     isColorSetting: true,
   },
   k8sPodColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.k8sPodColor,
     group: 'Colors',
     displayName: 'K8s Pod',
+    description: '',
     isColorSetting: true,
   },
   k8sTextColor: {
+    level: SettingLevel.DEFAULT,
     value: defaultColors.k8sTextColor,
     group: 'Colors',
     displayName: 'K8s Text',
+    description: '',
     isColorSetting: true,
   },
   // Control Settings
   enableGamepadControls: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Controls',
     displayName: 'Enable Gamepad Controls',
@@ -108,12 +141,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   selectedGamepadIndex: {
+    level: SettingLevel.EXTENDED,
     value: 0,
-    range: {
-      min: 0,
-      max: 10,
-      step: 1,
-    },
+    range: { min: 0, max: 10, step: 1 },
     group: 'Controls',
     displayName: 'Selected Gamepad Index',
     description: 'Index of the gamepad to be used for navigation',
@@ -121,6 +151,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Heatmap Settings
   heatmapEnabled: {
+    level: SettingLevel.DEFAULT,
     value: false,
     group: 'Heatmap',
     displayName: 'Show Heatmap',
@@ -129,6 +160,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Highlighting Settings
   applyHighlightingOnHover: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Highlighting',
     displayName: 'Only Apply Highlighting Effect on Hover',
@@ -137,6 +169,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   keepHighlightingOnOpenOrClose: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Highlighting',
     displayName: 'Keep Highlighting on Open or Close',
@@ -145,12 +178,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   transparencyIntensity: {
+    level: SettingLevel.DEFAULT,
     value: 0.1,
-    range: {
-      min: 0.0,
-      max: 1.0,
-      step: 0.05,
-    },
+    range: { min: 0.0, max: 1.0, step: 0.05 },
     group: 'Highlighting',
     displayName: 'Transparency Intensity in Application Visualization',
     description:
@@ -158,6 +188,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   enableMultipleHighlighting: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Highlighting',
     displayName: 'Enable Multiple Highlighting',
@@ -167,6 +198,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Effect Settings
   enableHoverEffects: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Effects',
     displayName: 'Enable Hover Effect',
@@ -174,6 +206,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   enableAnimations: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Effects',
     displayName: 'Enable Animations',
@@ -181,6 +214,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   castShadows: {
+    level: SettingLevel.DEFAULT,
     value: false,
     group: 'Effects',
     displayName: 'Cast Shadows',
@@ -189,24 +223,18 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Communication Settings
   commThickness: {
+    level: SettingLevel.DEFAULT,
     value: 2.0,
-    range: {
-      min: 0.05,
-      max: 5.0,
-      step: 0.05,
-    },
+    range: { min: 0.05, max: 5.0, step: 0.05 },
     group: 'Communication',
     displayName: 'Communication Line Thickness',
     description: 'Factor that scales thickness of communication lines',
     isRangeSetting: true,
   },
   commArrowSize: {
+    level: SettingLevel.DEFAULT,
     value: 2.0,
-    range: {
-      min: 0.0,
-      max: 5.0,
-      step: 0.25,
-    },
+    range: { min: 0.0, max: 5.0, step: 0.25 },
     group: 'Communication',
     displayName: 'Arrow Size in Application Visualization',
     description:
@@ -214,12 +242,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   curvyCommHeight: {
+    level: SettingLevel.DEFAULT,
     value: 1.0,
-    range: {
-      min: 0.0,
-      max: 5.0,
-      step: 0.1,
-    },
+    range: { min: 0.0, max: 5.0, step: 0.1 },
     group: 'Communication',
     displayName: 'Curviness Factor of the Communication Lines',
     description:
@@ -228,48 +253,36 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Layout settings
   applicationDistance: {
+    level: SettingLevel.DEFAULT,
     value: 500.0,
-    range: {
-      min: 100,
-      max: 2000,
-      step: 1,
-    },
+    range: { min: 100, max: 2000, step: 1 },
     group: 'Layout',
     displayName: 'App Distance',
     description: 'Determines a preferred distance between applications',
     isRangeSetting: true,
   },
   applicationAspectRatio: {
+    level: SettingLevel.DEFAULT,
     value: 1.0,
-    range: {
-      min: 0.25,
-      max: 2.0,
-      step: 0.05,
-    },
+    range: { min: 0.25, max: 2.0, step: 0.05 },
     group: 'Layout',
     displayName: 'App Aspect Ratio',
     description: 'Determines a preferred aspect ratio for applications',
     isRangeSetting: true,
   },
   classFootprint: {
+    level: SettingLevel.DEFAULT,
     value: 5.0,
-    range: {
-      min: 0.5,
-      max: 20.0,
-      step: 0.5,
-    },
+    range: { min: 0.5, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'Class Footprint',
     description: 'Determines width and depth of classes',
     isRangeSetting: true,
   },
   classMargin: {
+    level: SettingLevel.DEFAULT,
     value: 20.0,
-    range: {
-      min: 0.0,
-      max: 50.0,
-      step: 1.0,
-    },
+    range: { min: 0.0, max: 50.0, step: 1.0 },
     group: 'Layout',
     displayName: 'Class Margin',
     description:
@@ -277,12 +290,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   appLabelMargin: {
+    level: SettingLevel.DEFAULT,
     value: 15.0,
-    range: {
-      min: 0.0,
-      max: 20.0,
-      step: 0.5,
-    },
+    range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'App Label Margin',
     description:
@@ -290,24 +300,18 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   appMargin: {
+    level: SettingLevel.DEFAULT,
     value: 6.0,
-    range: {
-      min: 0.0,
-      max: 20.0,
-      step: 0.5,
-    },
+    range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'App Margin',
     description: 'Determines margin of applications',
     isRangeSetting: true,
   },
   packageLabelMargin: {
+    level: SettingLevel.DEFAULT,
     value: 13.0,
-    range: {
-      min: 0.0,
-      max: 20.0,
-      step: 0.5,
-    },
+    range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'Package Label Margin',
     description:
@@ -315,24 +319,18 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   packageMargin: {
+    level: SettingLevel.DEFAULT,
     value: 6.0,
-    range: {
-      min: 0.0,
-      max: 20.0,
-      step: 0.5,
-    },
+    range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
     displayName: 'Package Margin',
     description: 'Determines margin of packages',
     isRangeSetting: true,
   },
   openedComponentHeight: {
+    level: SettingLevel.DEFAULT,
     value: 7.5,
-    range: {
-      min: 0.1,
-      max: 100.0,
-      step: 0.1,
-    },
+    range: { min: 0.1, max: 100.0, step: 0.1 },
     group: 'Layout',
     displayName: 'Opened Component Height',
     description:
@@ -340,12 +338,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   closedComponentHeight: {
+    level: SettingLevel.DEFAULT,
     value: 20,
-    range: {
-      min: 0.1,
-      max: 100,
-      step: 0.1,
-    },
+    range: { min: 0.1, max: 100, step: 0.1 },
     group: 'Layout',
     displayName: 'Closed Component Height',
     description:
@@ -354,12 +349,9 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Popup settings
   hidePopupDelay: {
+    level: SettingLevel.DEFAULT,
     value: 1.0,
-    range: {
-      min: 0.0,
-      max: 3.0,
-      step: 0.25,
-    },
+    range: { min: 0.0, max: 3.0, step: 0.25 },
     group: 'Popups',
     displayName: 'Hide Popups After',
     description: 'Determines how many seconds popups stay on screen',
@@ -367,6 +359,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Annotation Settings
   enableCustomAnnotationPosition: {
+    level: SettingLevel.EXTENDED,
     value: true,
     group: 'Annotations',
     displayName: 'Enable Custom Annotation Positioning',
@@ -376,36 +369,27 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Camera settings
   cameraNear: {
+    level: SettingLevel.EXTENDED,
     value: 0.1,
-    range: {
-      min: 0.01,
-      max: 5.0,
-      step: 0.01,
-    },
+    range: { min: 0.01, max: 5.0, step: 0.01 },
     group: 'Camera',
     displayName: 'Render Near',
     description: 'Determines near render distance',
     isRangeSetting: true,
   },
   cameraFar: {
+    level: SettingLevel.EXTENDED,
     value: 100,
-    range: {
-      min: 5.0,
-      max: 500.0,
-      step: 1.0,
-    },
+    range: { min: 5.0, max: 500.0, step: 1.0 },
     group: 'Camera',
     displayName: 'Render Far',
     description: 'Determines far render distance',
     isRangeSetting: true,
   },
   cameraFov: {
+    level: SettingLevel.EXTENDED,
     value: 75,
-    range: {
-      min: 50.0,
-      max: 150.0,
-      step: 5.0,
-    },
+    range: { min: 50.0, max: 150.0, step: 5.0 },
     group: 'Camera',
     displayName: 'Field of View',
     description: 'Set field of view for the perspective camera',
@@ -413,6 +397,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // VR Settings
   showVrButton: {
+    level: SettingLevel.DEFAULT,
     value: false,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
@@ -420,6 +405,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   showVrOnClick: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',
@@ -428,7 +414,16 @@ export const defaultVizSettings: VisualizationSettings = {
   },
 
   // Debug Settings
+  showExtendedSettings: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Debugging',
+    displayName: 'Show Extended Settings',
+    description: 'Shows/hides additional settings',
+    isFlagSetting: true,
+  },
   showFpsCounter: {
+    level: SettingLevel.EXTENDED,
     value: false,
     group: 'Debugging',
     displayName: 'Show FPS Counter',
@@ -436,6 +431,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   showAxesHelper: {
+    level: SettingLevel.EXTENDED,
     value: false,
     group: 'Debugging',
     displayName: 'Show Axes Helper',
@@ -443,6 +439,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   showLightHelper: {
+    level: SettingLevel.EXTENDED,
     value: false,
     group: 'Debugging',
     displayName: 'Show Light Helper',
@@ -450,6 +447,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   showSemanticZoomCenterPoints: {
+    level: SettingLevel.EXTENDED,
     value: false,
     type: 'primary',
     group: 'Debugging',
@@ -459,6 +457,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isButtonSetting: true,
   },
   fullscreen: {
+    level: SettingLevel.DEFAULT,
     value: false,
     type: 'primary',
     group: 'Debugging',
@@ -469,6 +468,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isButtonSetting: true,
   },
   syncRoomState: {
+    level: SettingLevel.DEFAULT,
     value: false,
     type: 'danger',
     group: 'Debugging',
@@ -478,6 +478,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isButtonSetting: true,
   },
   resetToDefaults: {
+    level: SettingLevel.DEFAULT,
     value: false,
     type: 'danger',
     group: 'Debugging',
@@ -488,6 +489,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Semantic Zoom Settings
   semanticZoomState: {
+    level: SettingLevel.DEFAULT,
     value: false,
     group: 'Semantic Zoom',
     displayName: 'Semantic Zoom',
@@ -496,6 +498,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   autoOpenCloseFeature: {
+    level: SettingLevel.DEFAULT,
     value: false,
     group: 'Semantic Zoom',
     displayName: 'Auto Open/Close of Components',
@@ -504,6 +507,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   useKmeansInsteadOfMeanShift: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Semantic Zoom',
     displayName: 'Use k-Means instead of Shift-Mean',
@@ -512,12 +516,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   clusterBasedOnMembers: {
+    level: SettingLevel.DEFAULT,
     value: 40.0,
-    range: {
-      min: 1.0,
-      max: 100.0,
-      step: 1.0,
-    },
+    range: { min: 1.0, max: 100.0, step: 1.0 },
     group: 'Semantic Zoom',
     displayName: 'Relative # of clusters',
     description:
@@ -525,6 +526,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   usePredefinedSet: {
+    level: SettingLevel.DEFAULT,
     value: false,
     group: 'Semantic Zoom',
     displayName: 'Use Predefined Set',
@@ -533,12 +535,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   distancePreSet: {
+    level: SettingLevel.DEFAULT,
     value: 1,
-    range: {
-      min: 1.0,
-      max: 6.0,
-      step: 1.0,
-    },
+    range: { min: 1.0, max: 6.0, step: 1.0 },
     group: 'Semantic Zoom',
     displayName: 'Predefined Zoom Sets',
     description:
@@ -546,12 +545,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   distanceLevel1: {
+    level: SettingLevel.EXTENDED,
     value: 20,
-    range: {
-      min: 1.0,
-      max: 100.0,
-      step: 2.0,
-    },
+    range: { min: 1.0, max: 100.0, step: 2.0 },
     group: 'Semantic Zoom',
     displayName: 'Level 1',
     description:
@@ -559,12 +555,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   distanceLevel2: {
+    level: SettingLevel.EXTENDED,
     value: 65,
-    range: {
-      min: 1.0,
-      max: 100.0,
-      step: 2.0,
-    },
+    range: { min: 1.0, max: 100.0, step: 2.0 },
     group: 'Semantic Zoom',
     displayName: 'Level 2',
     description:
@@ -572,12 +565,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   distanceLevel3: {
+    level: SettingLevel.EXTENDED,
     value: 70,
-    range: {
-      min: 1.0,
-      max: 100.0,
-      step: 2.0,
-    },
+    range: { min: 1.0, max: 100.0, step: 2.0 },
     group: 'Semantic Zoom',
     displayName: 'Level 3',
     description:
@@ -585,12 +575,9 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   distanceLevel4: {
+    level: SettingLevel.EXTENDED,
     value: 80,
-    range: {
-      min: 1.0,
-      max: 100.0,
-      step: 2.0,
-    },
+    range: { min: 1.0, max: 100.0, step: 2.0 },
     group: 'Semantic Zoom',
     displayName: 'Level 4',
     description:
@@ -598,63 +585,18 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   distanceLevel5: {
+    level: SettingLevel.EXTENDED,
     value: 90,
-    range: {
-      min: 1.0,
-      max: 100.0,
-      step: 2.0,
-    },
+    range: { min: 1.0, max: 100.0, step: 2.0 },
     group: 'Semantic Zoom',
     displayName: 'Level 5',
     description:
       'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
     isRangeSetting: true,
   },
-  layer1: {
-    value: true,
-    group: 'Minimap',
-    displayName: 'Enable foundation visibility',
-    description: 'Toggle foundation visibility for the minimap',
-    isFlagSetting: true,
-  },
-  layer2: {
-    value: true,
-    group: 'Minimap',
-    displayName: 'Enable component visibility',
-    description: 'Toggle component visibility for the minimap',
-    isFlagSetting: true,
-  },
-  layer3: {
-    value: true,
-    group: 'Minimap',
-    displayName: 'Enable clazz visibility',
-    description: 'Toggle clazz visibility for the minimap',
-    isFlagSetting: true,
-  },
-  layer4: {
-    value: true,
-    group: 'Minimap',
-    displayName: 'Enable communication visibility',
-    description: 'Toggle communication visibility for the minimap',
-    isFlagSetting: true,
-  },
-  layer6: {
-    value: true,
-    group: 'Minimap',
-    displayName: 'Enable labels visibility',
-    description: 'Toggle labels visibility for the minimap',
-    isFlagSetting: true,
-  },
-  layer7: {
-    value: true,
-    group: 'Minimap',
-    displayName: 'Enable visibility of different user-markers',
-    description:
-      'Toggle the different users position markers visibility for the minimap',
-    isFlagSetting: true,
-  },
   // Minimap Settings
   minimap: {
+    level: SettingLevel.DEFAULT,
     value: false,
     group: 'Minimap',
     displayName: 'Enable Minimap',
@@ -662,23 +604,70 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   zoom: {
+    level: SettingLevel.DEFAULT,
     value: 1,
-    range: {
-      min: 0.1,
-      max: 5,
-      step: 0.05,
-    },
+    range: { min: 0.1, max: 5, step: 0.05 },
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
     description: 'Set zoom of the minimap',
     isRangeSetting: true,
   },
-  version2: {
+  useCameraPosition: {
+    level: SettingLevel.DEFAULT,
     value: true,
     group: 'Minimap',
     displayName: 'Use Camera Position',
     description:
       'If off, calculate minimap position via intersection of camera with ground plane.',
+    isFlagSetting: true,
+  },
+  layer1: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Minimap',
+    displayName: 'Enable foundation visibility',
+    description: 'Toggle foundation visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer2: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Minimap',
+    displayName: 'Enable component visibility',
+    description: 'Toggle component visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer3: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Minimap',
+    displayName: 'Enable clazz visibility',
+    description: 'Toggle clazz visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer4: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Minimap',
+    displayName: 'Enable communication visibility',
+    description: 'Toggle communication visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer6: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Minimap',
+    displayName: 'Enable labels visibility',
+    description: 'Toggle labels visibility for the minimap',
+    isFlagSetting: true,
+  },
+  layer7: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Minimap',
+    displayName: 'Enable visibility of different user-markers',
+    description:
+      'Toggle the different users position markers visibility for the minimap',
     isFlagSetting: true,
   },
 };

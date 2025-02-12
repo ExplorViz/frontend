@@ -9,6 +9,7 @@ import {
   VisualizationSettings,
   SettingGroup,
   RangeSetting,
+  SettingLevel,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -76,7 +77,7 @@ export default class Settings extends Component<Args> {
     { name: 'Dark', id: 'dark' },
   ];
 
-  get settingsSortedByGroup() {
+  get filteredSettingsByGroup() {
     const { visualizationSettings } = this.userSettings;
 
     const settingGroupToSettingIds: Record<
@@ -103,7 +104,14 @@ export default class Settings extends Component<Args> {
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in visualizationSettings) {
       const setting = visualizationSettings[settingId];
-      settingGroupToSettingIds[setting.group].push(settingId);
+      // Filter Settings level
+      if (
+        setting.level <=
+        (visualizationSettings.showExtendedSettings
+          .value as unknown as SettingLevel)
+      ) {
+        settingGroupToSettingIds[setting.group].push(settingId);
+      }
     }
 
     return settingGroupToSettingIds;
