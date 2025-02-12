@@ -177,6 +177,12 @@ export default class Settings extends Component<Args> {
       case 'closedComponentHeight':
         this.applicationRenderer.updateApplicationLayout();
         break;
+      case 'classLabelFontSize':
+      case 'classLabelLength':
+      case 'classLabelOffset':
+      case 'classLabelOrientation':
+        this.applicationRenderer.updateLabels();
+        break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();
