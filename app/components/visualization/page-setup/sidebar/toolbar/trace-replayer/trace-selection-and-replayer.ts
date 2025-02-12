@@ -9,8 +9,8 @@ import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schem
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import {service} from "@ember/service";
-import RenderingService from "explorviz-frontend/services/rendering-service";
+import { service } from '@ember/service';
+import RenderingService from 'explorviz-frontend/services/rendering-service';
 
 interface Args {
   highlightTrace(trace: Trace, traceStep: string): void;
@@ -52,8 +52,8 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
         this.args.highlightTrace(trace, firstStep.spanId);
       }
     } else {
-      this.renderingService.pauseVisualizationUpdating();
       // Reset highlighting when highlighted trace is clicked again
+      this.renderingService.resumeVisualizationUpdating();
       this.selectedTrace = null;
       this.args.removeHighlighting();
     }

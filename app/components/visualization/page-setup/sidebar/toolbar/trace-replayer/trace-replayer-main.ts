@@ -212,9 +212,9 @@ export default class TraceReplayerMain extends Component<Args> {
     if (this.blob && this.curve) {
       const progress = this.delta / this.duration;
       if (0.0 <= progress && progress <= 1.0) {
-        const afterimage = this.blob.clone();
-        this.args.renderingLoop.scene.add(afterimage);
-        this.afterimages.add(new Afterimage(afterimage));
+        // const afterimage = this.blob.clone();
+        // this.args.renderingLoop.scene.add(afterimage);
+        // this.afterimages.add(new Afterimage(afterimage));
         this.blob.move(this.curve.getPoint(progress));
       }
     }
@@ -251,8 +251,8 @@ export default class TraceReplayerMain extends Component<Args> {
         //   );
         // }
 
-        // this.afterimages.add(new Afterimage(origin.mesh));
-        // this.afterimages.add(new Afterimage(target.mesh));
+        this.afterimages.add(new Afterimage(origin.mesh));
+        this.afterimages.add(new Afterimage(target.mesh));
 
         let scale = this.applicationRenderer.landscape3D.scale;
         let support = this.applicationRenderer.landscape3D.position;
