@@ -189,7 +189,7 @@ export class _ClazzMesh extends BoxMesh {
     this.addEventListenerToExitOnEscapeKey();
 
     // Register exit when zooming out
-    //this.addEventListenerToExitWhenScrollingOut();
+    this.addEventListenerToExitWhenScrollingOut();
 
     // Register Exit when camera is at minimum zoom level
 

@@ -371,7 +371,7 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
       this.applicationRenderer.getApplicationById(appId);
     if (!applicationObject3D) return;
 
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
+    const componentMesh = applicationObject3D.getBoxMeshByModelId(componentId);
 
     if (isFoundation) {
       if (isOpened) {

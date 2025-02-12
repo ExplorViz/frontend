@@ -3,87 +3,105 @@ import { VisualizationSettings } from './settings-schemas';
 
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
-  foundationColor: {
-    value: defaultColors.foundationColor,
-    orderNumber: 1,
+  backgroundColor: {
+    value: defaultColors.backgroundColor,
     group: 'Colors',
-    displayName: 'Foundation',
-    isColorSetting: true,
-  },
-  componentOddColor: {
-    value: defaultColors.componentOddColor,
-    orderNumber: 2,
-    group: 'Colors',
-    displayName: 'Component Odd',
-    isColorSetting: true,
-  },
-  componentEvenColor: {
-    value: defaultColors.componentEvenColor,
-    orderNumber: 3,
-    group: 'Colors',
-    displayName: 'Component Even',
+    displayName: 'Background',
     isColorSetting: true,
   },
   clazzColor: {
     value: defaultColors.clazzColor,
-    orderNumber: 4,
     group: 'Colors',
     displayName: 'Class',
     isColorSetting: true,
   },
-  highlightedEntityColor: {
-    value: defaultColors.highlightedEntityColor,
-    orderNumber: 5,
-    group: 'Colors',
-    displayName: 'Highlighted Entity',
-    isColorSetting: true,
-  },
-  componentTextColor: {
-    value: defaultColors.componentTextColor,
-    orderNumber: 6,
-    group: 'Colors',
-    displayName: 'Component Label',
-    isColorSetting: true,
-  },
   clazzTextColor: {
     value: defaultColors.clazzTextColor,
-    orderNumber: 7,
     group: 'Colors',
     displayName: 'Class Label',
     isColorSetting: true,
   },
-  foundationTextColor: {
-    value: defaultColors.foundationTextColor,
-    orderNumber: 8,
-    group: 'Colors',
-    displayName: 'Foundation Label',
-    isColorSetting: true,
-  },
-  communicationColor: {
-    value: defaultColors.communicationColor,
-    orderNumber: 9,
-    group: 'Colors',
-    displayName: 'Communication',
-    isColorSetting: true,
-  },
   communicationArrowColor: {
     value: defaultColors.communicationArrowColor,
-    orderNumber: 10,
     group: 'Colors',
     displayName: 'Communication Arrow',
     isColorSetting: true,
   },
-  backgroundColor: {
-    value: defaultColors.backgroundColor,
-    orderNumber: 11,
+  communicationColor: {
+    value: defaultColors.communicationColor,
     group: 'Colors',
-    displayName: 'Background',
+    displayName: 'Communication',
+    isColorSetting: true,
+  },
+  componentEvenColor: {
+    value: defaultColors.componentEvenColor,
+    group: 'Colors',
+    displayName: 'Component Even',
+    isColorSetting: true,
+  },
+  componentOddColor: {
+    value: defaultColors.componentOddColor,
+    group: 'Colors',
+    displayName: 'Component Odd',
+    isColorSetting: true,
+  },
+  componentTextColor: {
+    value: defaultColors.componentTextColor,
+    group: 'Colors',
+    displayName: 'Component Label',
+    isColorSetting: true,
+  },
+  foundationColor: {
+    value: defaultColors.foundationColor,
+    group: 'Colors',
+    displayName: 'Foundation',
+    isColorSetting: true,
+  },
+  foundationTextColor: {
+    value: defaultColors.foundationTextColor,
+    group: 'Colors',
+    displayName: 'Foundation Label',
+    isColorSetting: true,
+  },
+  highlightedEntityColor: {
+    value: defaultColors.highlightedEntityColor,
+    group: 'Colors',
+    displayName: 'Highlighted Entity',
+    isColorSetting: true,
+  },
+  k8sNodeColor: {
+    value: defaultColors.k8sNodeColor,
+    group: 'Colors',
+    displayName: 'K8s Node',
+    isColorSetting: true,
+  },
+  k8sNamespaceColor: {
+    value: defaultColors.k8sNamespaceColor,
+    group: 'Colors',
+    displayName: 'K8s Namespace',
+    isColorSetting: true,
+  },
+  k8sDeploymentColor: {
+    value: defaultColors.k8sDeploymentColor,
+    group: 'Colors',
+    displayName: 'K8s Deployment',
+    isColorSetting: true,
+  },
+  k8sPodColor: {
+    value: defaultColors.k8sPodColor,
+    group: 'Colors',
+    displayName: 'K8s Pod',
+    isColorSetting: true,
+  },
+  k8sTextColor: {
+    value: defaultColors.k8sTextColor,
+    group: 'Colors',
+    displayName: 'K8s Text',
     isColorSetting: true,
   },
   // Control Settings
   enableGamepadControls: {
     value: true,
-    orderNumber: 1,
     group: 'Controls',
     displayName: 'Enable Gamepad Controls',
     description: 'Toggle gamepad controls for navigation',
@@ -96,7 +114,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 10,
       step: 1,
     },
-    orderNumber: 2,
     group: 'Controls',
     displayName: 'Selected Gamepad Index',
     description: 'Index of the gamepad to be used for navigation',
@@ -105,7 +122,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // Heatmap Settings
   heatmapEnabled: {
     value: false,
-    orderNumber: 1,
     group: 'Heatmap',
     displayName: 'Show Heatmap',
     description: 'Toggle visibility of the heatmap',
@@ -114,7 +130,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // Highlighting Settings
   applyHighlightingOnHover: {
     value: true,
-    orderNumber: 1,
     group: 'Highlighting',
     displayName: 'Only Apply Highlighting Effect on Hover',
     description:
@@ -123,7 +138,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   keepHighlightingOnOpenOrClose: {
     value: true,
-    orderNumber: 2,
     group: 'Highlighting',
     displayName: 'Keep Highlighting on Open or Close',
     description:
@@ -137,7 +151,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 1.0,
       step: 0.05,
     },
-    orderNumber: 3,
     group: 'Highlighting',
     displayName: 'Transparency Intensity in Application Visualization',
     description:
@@ -146,7 +159,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   enableMultipleHighlighting: {
     value: true,
-    orderNumber: 4,
     group: 'Highlighting',
     displayName: 'Enable Multiple Highlighting',
     description:
@@ -156,7 +168,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // Effect Settings
   enableHoverEffects: {
     value: true,
-    orderNumber: 1,
     group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
@@ -164,7 +175,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   enableAnimations: {
     value: true,
-    orderNumber: 2,
     group: 'Effects',
     displayName: 'Enable Animations',
     description: 'Toggle animations for opening and closing components',
@@ -172,7 +182,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   castShadows: {
     value: false,
-    orderNumber: 3,
     group: 'Effects',
     displayName: 'Cast Shadows',
     description: 'Enable casting shadows from light (can be expensive)',
@@ -180,26 +189,24 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Communication Settings
   commThickness: {
-    value: 0.5,
+    value: 2.0,
     range: {
       min: 0.05,
-      max: 1.5,
+      max: 5.0,
       step: 0.05,
     },
-    orderNumber: 1,
     group: 'Communication',
     displayName: 'Communication Line Thickness',
     description: 'Factor that scales thickness of communication lines',
     isRangeSetting: true,
   },
   commArrowSize: {
-    value: 1.0,
+    value: 2.0,
     range: {
       min: 0.0,
-      max: 2.0,
+      max: 5.0,
       step: 0.25,
     },
-    orderNumber: 2,
     group: 'Communication',
     displayName: 'Arrow Size in Application Visualization',
     description:
@@ -213,7 +220,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 5.0,
       step: 0.1,
     },
-    orderNumber: 3,
     group: 'Communication',
     displayName: 'Curviness Factor of the Communication Lines',
     description:
@@ -221,6 +227,18 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   // Layout settings
+  applicationDistance: {
+    value: 500.0,
+    range: {
+      min: 100,
+      max: 2000,
+      step: 1,
+    },
+    group: 'Layout',
+    displayName: 'App Distance',
+    description: 'Determines a preferred distance between applications',
+    isRangeSetting: true,
+  },
   applicationAspectRatio: {
     value: 1.0,
     range: {
@@ -228,7 +246,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 2.0,
       step: 0.05,
     },
-    orderNumber: 1,
     group: 'Layout',
     displayName: 'App Aspect Ratio',
     description: 'Determines a preferred aspect ratio for applications',
@@ -241,7 +258,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 20.0,
       step: 0.5,
     },
-    orderNumber: 3,
     group: 'Layout',
     displayName: 'Class Footprint',
     description: 'Determines width and depth of classes',
@@ -254,7 +270,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 50.0,
       step: 1.0,
     },
-    orderNumber: 4,
     group: 'Layout',
     displayName: 'Class Margin',
     description:
@@ -268,7 +283,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 20.0,
       step: 0.5,
     },
-    orderNumber: 5,
     group: 'Layout',
     displayName: 'App Label Margin',
     description:
@@ -282,7 +296,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 20.0,
       step: 0.5,
     },
-    orderNumber: 6,
     group: 'Layout',
     displayName: 'App Margin',
     description: 'Determines margin of applications',
@@ -295,7 +308,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 20.0,
       step: 0.5,
     },
-    orderNumber: 7,
     group: 'Layout',
     displayName: 'Package Label Margin',
     description:
@@ -309,20 +321,18 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 20.0,
       step: 0.5,
     },
-    orderNumber: 8,
     group: 'Layout',
     displayName: 'Package Margin',
     description: 'Determines margin of packages',
     isRangeSetting: true,
   },
   openedComponentHeight: {
-    value: 1.5,
+    value: 7.5,
     range: {
       min: 0.1,
-      max: 10.0,
+      max: 100.0,
       step: 0.1,
     },
-    orderNumber: 9,
     group: 'Layout',
     displayName: 'Opened Component Height',
     description:
@@ -330,13 +340,12 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   closedComponentHeight: {
-    value: 6,
+    value: 20,
     range: {
       min: 0.1,
-      max: 20.0,
+      max: 100,
       step: 0.1,
     },
-    orderNumber: 10,
     group: 'Layout',
     displayName: 'Closed Component Height',
     description:
@@ -351,7 +360,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 3.0,
       step: 0.25,
     },
-    orderNumber: 1,
     group: 'Popups',
     displayName: 'Hide Popups After',
     description: 'Determines how many seconds popups stay on screen',
@@ -360,7 +368,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // Annotation Settings
   enableCustomAnnotationPosition: {
     value: true,
-    orderNumber: 1,
     group: 'Annotations',
     displayName: 'Enable Custom Annotation Positioning',
     description:
@@ -375,7 +382,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 5.0,
       step: 0.01,
     },
-    orderNumber: 1,
     group: 'Camera',
     displayName: 'Render Near',
     description: 'Determines near render distance',
@@ -385,10 +391,9 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 100,
     range: {
       min: 5.0,
-      max: 150.0,
+      max: 500.0,
       step: 1.0,
     },
-    orderNumber: 2,
     group: 'Camera',
     displayName: 'Render Far',
     description: 'Determines far render distance',
@@ -401,7 +406,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 150.0,
       step: 5.0,
     },
-    orderNumber: 3,
     group: 'Camera',
     displayName: 'Field of View',
     description: 'Set field of view for the perspective camera',
@@ -410,7 +414,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // VR Settings
   showVrButton: {
     value: false,
-    orderNumber: 1,
     group: 'Virtual Reality',
     displayName: 'Show VR Button',
     description: 'Toggle visibility of VR button',
@@ -418,7 +421,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   showVrOnClick: {
     value: true,
-    orderNumber: 2,
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',
     description: 'Shows the VR room in the browser after joining',
@@ -428,7 +430,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // Debug Settings
   showFpsCounter: {
     value: false,
-    orderNumber: 1,
     group: 'Debugging',
     displayName: 'Show FPS Counter',
     description: "'Frames Per Second' metrics in visualizations",
@@ -436,7 +437,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   showAxesHelper: {
     value: false,
-    orderNumber: 2,
     group: 'Debugging',
     displayName: 'Show Axes Helper',
     description: 'Visualizes the Three Dimensional Cartesian Coordinate System',
@@ -444,7 +444,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   showLightHelper: {
     value: false,
-    orderNumber: 3,
     group: 'Debugging',
     displayName: 'Show Light Helper',
     description: 'Visualizes the Directional Light',
@@ -452,7 +451,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   showSemanticZoomCenterPoints: {
     value: false,
-    orderNumber: 5,
     type: 'primary',
     group: 'Debugging',
     displayName: 'Semantic Zoom',
@@ -462,7 +460,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   fullscreen: {
     value: false,
-    orderNumber: 6,
     type: 'primary',
     group: 'Debugging',
     displayName: 'Fullscreen',
@@ -473,7 +470,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   syncRoomState: {
     value: false,
-    orderNumber: 7,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Synchronize Room State',
@@ -483,7 +479,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   resetToDefaults: {
     value: false,
-    orderNumber: 8,
     type: 'danger',
     group: 'Debugging',
     displayName: 'Reset Settings to Default',
@@ -494,7 +489,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // Semantic Zoom Settings
   semanticZoomState: {
     value: false,
-    orderNumber: 1,
     group: 'Semantic Zoom',
     displayName: 'Semantic Zoom',
     description:
@@ -503,7 +497,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   autoOpenCloseFeature: {
     value: false,
-    orderNumber: 2,
     group: 'Semantic Zoom',
     displayName: 'Auto Open/Close of Components',
     description:
@@ -512,7 +505,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   useKmeansInsteadOfMeanShift: {
     value: true,
-    orderNumber: 2,
     group: 'Semantic Zoom',
     displayName: 'Use k-Means instead of Shift-Mean',
     description:
@@ -526,7 +518,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 100.0,
       step: 1.0,
     },
-    orderNumber: 5,
     group: 'Semantic Zoom',
     displayName: 'Relative # of clusters',
     description:
@@ -535,7 +526,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   usePredefinedSet: {
     value: false,
-    orderNumber: 2,
     group: 'Semantic Zoom',
     displayName: 'Use Predefined Set',
     description:
@@ -549,7 +539,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 6.0,
       step: 1.0,
     },
-    orderNumber: 3,
     group: 'Semantic Zoom',
     displayName: 'Predefined Zoom Sets',
     description:
@@ -563,7 +552,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 1',
     description:
@@ -577,7 +565,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 2',
     description:
@@ -591,7 +578,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 3',
     description:
@@ -605,7 +591,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 4',
     description:
@@ -619,7 +604,6 @@ export const defaultVizSettings: VisualizationSettings = {
       max: 100.0,
       step: 2.0,
     },
-    orderNumber: 4,
     group: 'Semantic Zoom',
     displayName: 'Level 5',
     description:
@@ -628,7 +612,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer1: {
     value: true,
-    orderNumber: 4,
     group: 'Minimap',
     displayName: 'Enable foundation visibility',
     description: 'Toggle foundation visibility for the minimap',
@@ -636,7 +619,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer2: {
     value: true,
-    orderNumber: 5,
     group: 'Minimap',
     displayName: 'Enable component visibility',
     description: 'Toggle component visibility for the minimap',
@@ -644,7 +626,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer3: {
     value: true,
-    orderNumber: 6,
     group: 'Minimap',
     displayName: 'Enable clazz visibility',
     description: 'Toggle clazz visibility for the minimap',
@@ -652,7 +633,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer4: {
     value: true,
-    orderNumber: 7,
     group: 'Minimap',
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
@@ -660,7 +640,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer6: {
     value: true,
-    orderNumber: 8,
     group: 'Minimap',
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',
@@ -668,7 +647,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer7: {
     value: true,
-    orderNumber: 9,
     group: 'Minimap',
     displayName: 'Enable visibility of different user-markers',
     description:
@@ -678,7 +656,6 @@ export const defaultVizSettings: VisualizationSettings = {
   // Minimap Settings
   minimap: {
     value: false,
-    orderNumber: 1,
     group: 'Minimap',
     displayName: 'Enable Minimap',
     description: 'Toggle visibility of the minimap',
@@ -687,11 +664,10 @@ export const defaultVizSettings: VisualizationSettings = {
   zoom: {
     value: 1,
     range: {
-      min: 0.5,
-      max: 3.0,
-      step: 0.1,
+      min: 0.1,
+      max: 5,
+      step: 0.05,
     },
-    orderNumber: 2,
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
     description: 'Set zoom of the minimap',
@@ -699,7 +675,6 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   version2: {
     value: true,
-    orderNumber: 3,
     group: 'Minimap',
     displayName: 'Use Camera Position',
     description:

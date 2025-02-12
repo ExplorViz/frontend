@@ -6,6 +6,8 @@ import ComponentLabelMesh from './component-label-mesh';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
+import { positionBoxLabel } from 'explorviz-frontend/utils/application-rendering/labeler';
+import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
 
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -55,15 +57,26 @@ export default class ComponentMesh extends BoxMesh {
   }
 
   updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
+    const aspectRatioChanged = this.layout.aspectRatio != layout.aspectRatio;
     super.updateLayout(layout, offset);
 
-    if (!this.opened) {
-      const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');
-      const CLOSED_HEIGHT = getStoredNumberSetting('closedComponentHeight');
+    // Avoid distorted text by recomputing text geometry
+    if (aspectRatioChanged && this.labelMesh) {
+      this.labelMesh.scale.set(1, 1, 1);
+      this.labelMesh.computeLabel(this);
+      positionBoxLabel(this);
+    }
 
-      this.height = CLOSED_HEIGHT;
+    if (!this.opened && this.parent instanceof ApplicationObject3D) {
+      const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
+        'closedComponentHeight'
+      );
+
+      this.height = CLOSED_COMPONENT_HEIGHT;
       this.position.y =
-        this.layout.positionY + (CLOSED_HEIGHT - OPENED_HEIGHT) / 2;
+        this.layout.positionY +
+        CLOSED_COMPONENT_HEIGHT / 2 -
+        this.parent.layout.positionY;
     }
   }
 

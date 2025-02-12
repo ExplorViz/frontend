@@ -41,7 +41,7 @@ export type SnapshotInfo = {
   subsricedSnapshots: TinySnapshot[];
 };
 
-const { userServiceApi, shareSnapshot } = ENV.backendAddresses;
+const { userService, shareSnapshot } = ENV.backendAddresses;
 
 export default class SnapshotTokenService extends Service {
   @service('auth')
@@ -74,7 +74,7 @@ export default class SnapshotTokenService extends Service {
         });
       }
 
-      fetch(`${userServiceApi}/snapshot?owner=${userId}`, {
+      fetch(`${userService}/snapshot?owner=${userId}`, {
         headers: {
           Authorization: `Bearer ${this.auth.accessToken}`,
         },
@@ -114,7 +114,7 @@ export default class SnapshotTokenService extends Service {
   retrieveToken(owner: string, createdAt: number, isShared: boolean) {
     return new Promise<SnapshotToken | null>((resolve) => {
       fetch(
-        `${userServiceApi}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${this.auth.user!.sub}`,
+        `${userService}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${this.auth.user!.sub}`,
         {
           headers: {
             Authorization: `Bearer ${this.auth.accessToken}`,
@@ -155,7 +155,7 @@ export default class SnapshotTokenService extends Service {
     const snapshotToken: SnapshotToken =
       name !== undefined ? { ...content, name: name } : content;
 
-    const url = `${userServiceApi}/snapshot/create`;
+    const url = `${userService}/snapshot/create`;
     await fetch(url, {
       method: 'POST',
       body: JSON.stringify(snapshotToken, getCircularReplacer()),
@@ -186,7 +186,7 @@ export default class SnapshotTokenService extends Service {
   }
 
   async subsribe(owner: string, createdAt: number, subscriber: string) {
-    const url = `${userServiceApi}/snapshot/subscribe?owner=${owner}&createdAt=${createdAt}&subscriber=${subscriber}`;
+    const url = `${userService}/snapshot/subscribe?owner=${owner}&createdAt=${createdAt}&subscriber=${subscriber}`;
 
     await fetch(url, {
       method: 'PUT',
@@ -216,7 +216,7 @@ export default class SnapshotTokenService extends Service {
   }
 
   async shareSnapshot(snapshot: TinySnapshot, expDate: number) {
-    const url = `${userServiceApi}/snapshot/share?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&deleteAt=${expDate}`;
+    const url = `${userService}/snapshot/share?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&deleteAt=${expDate}`;
 
     await fetch(url, {
       method: 'PUT',
@@ -256,7 +256,7 @@ export default class SnapshotTokenService extends Service {
     subscribed: boolean
   ) {
     if (subscribed) {
-      const url = `${userServiceApi}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${this.auth.user!.sub}`;
+      const url = `${userService}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${this.auth.user!.sub}`;
 
       await fetch(url, {
         method: 'PUT',
@@ -273,7 +273,7 @@ export default class SnapshotTokenService extends Service {
         }
       });
     } else {
-      const url = `${userServiceApi}/snapshot/delete?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&isShared=${isShared}`;
+      const url = `${userService}/snapshot/delete?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&isShared=${isShared}`;
 
       await fetch(url, {
         method: 'DELETE',

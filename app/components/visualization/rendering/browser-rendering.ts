@@ -8,7 +8,6 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import debugLogger from 'ember-debug-logger';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import ForceGraph from 'explorviz-frontend/rendering/application/force-graph';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
@@ -57,6 +56,7 @@ import MinimapService from 'explorviz-frontend/services/minimap-service';
 import Raycaster from 'explorviz-frontend/utils/raycaster';
 import PopupData from './popups/popup-data';
 import calculateHeatmap from 'explorviz-frontend/utils/calculate-heatmap';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -133,7 +133,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   private ideCrossCommunication: IdeCrossCommunication;
 
   @tracked
-  readonly graph: ForceGraph;
+  readonly landscape3D: Landscape3D;
 
   // Determines if landscape needs to be fully re-computed
   @tracked
@@ -211,11 +211,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.configuration.semanticZoomEnabled =
       SemanticZoomManager.instance.isEnabled;
 
-    // Force graph
-    const forceGraph = new ForceGraph(getOwner(this), 0.02);
-    this.graph = forceGraph;
-    this.scene.add(forceGraph.graph);
-    this.updatables.push(forceGraph);
+    // Landscape
+    this.landscape3D = new Landscape3D();
+    this.scene.add(this.landscape3D);
     this.updatables.push(this);
 
     // Spectate
@@ -232,7 +230,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     ImmersiveView.instance.callbackOnExit = () => {
       this.popupHandler.deactivated = false;
     };
-    this.applicationRenderer.forceGraph = this.graph.graph;
+    this.applicationRenderer.landscape3D = this.landscape3D;
     // Semantic Zoom Manager shows/removes all communication arrows, due to heigh rendering time.
     // If the Semantic zoom feature is enabled, all previously generated arrows are hidden. After that
     // the manager decides on which level to show.
@@ -270,7 +268,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     SemanticZoomManager.instance.toggleAutoOpenClose(
       this.userSettings.visualizationSettings.autoOpenCloseFeature.value
     );
-    this.applicationRenderer.forceGraph = this.graph.graph;
+    this.applicationRenderer.landscape3D = this.landscape3D;
 
     // IDE Websocket
     this.ideWebsocket = new IdeWebsocket(
@@ -408,10 +406,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @action
   async resetView() {
-    this.cameraControls.resetCameraFocusOn(
-      1.0,
-      ...this.applicationRenderer.getOpenApplications()
-    );
+    this.cameraControls.resetCameraFocusOn(1.0, [this.landscape3D]);
   }
 
   @action
@@ -451,7 +446,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     );
   }
 
-  // https://github.com/vasturiano/3d-force-graph/blob/master/example/custom-node-geometry/index.html
   @action
   async outerDivInserted(outerDiv: HTMLElement) {
     this.initCameras();
@@ -470,7 +464,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       settings.cameraNear.value,
       settings.cameraFar.value
     );
-    this.camera.position.set(5, 5, 5);
+    this.camera.position.set(1, 2, 3);
     this.scene.add(this.camera);
 
     // Add Camera to ImmersiveView manager
@@ -510,7 +504,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // initialize minimap
     this.minimapService.initializeMinimap(
       this.scene,
-      this.graph,
+      this.landscape3D,
       this.cameraControls
     );
 
@@ -546,14 +540,11 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     ImmersiveView.instance.registerRenderingLoop(this.renderingLoop);
     this.renderingLoop.start();
 
-    this.graph.graph.onFinishUpdate(() => {
-      if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+    document.addEventListener('Landscape initialized', () => {
+      if (!this.initDone && this.landscape3D.children.length > 0) {
         this.debug('initdone!');
         setTimeout(() => {
-          this.cameraControls.resetCameraFocusOn(
-            1.2,
-            ...this.applicationRenderer.getOpenApplications()
-          );
+          this.cameraControls.resetCameraFocusOn(1.2, [this.landscape3D]);
           if (
             SemanticZoomManager.instance.isEnabled ||
             this.userSettings.visualizationSettings.semanticZoomState.value ==
@@ -566,32 +557,25 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         }, 200);
         this.initDone = true;
       }
-    });
-    // if snapshot is loaded, set the camera position of the saved camera position of the snapshot
-    if (this.args.snapshot || this.args.snapshotReload) {
-      this.graph.graph.onFinishUpdate(() => {
-        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+
+      if (this.args.snapshot || this.args.snapshotReload) {
+        if (!this.initDone && this.landscape3D.children.length > 0) {
           this.debug('initdone!');
           setTimeout(() => {
             this.applicationRenderer.getOpenApplications();
           }, 200);
           this.initDone = true;
         }
-      });
-    } else {
-      this.graph.graph.onFinishUpdate(() => {
-        if (!this.initDone && this.graph.graph.graphData().nodes.length > 0) {
+      } else {
+        if (!this.initDone && this.landscape3D.children.length > 0) {
           this.debug('initdone!');
           setTimeout(() => {
-            this.cameraControls.resetCameraFocusOn(
-              1.2,
-              ...this.applicationRenderer.getOpenApplications()
-            );
+            this.cameraControls.resetCameraFocusOn(1.2, [this.landscape3D]);
           }, 200);
           this.initDone = true;
         }
-      });
-    }
+      }
+    });
   }
 
   @action
@@ -686,7 +670,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     }
 
     applicationObject3D.updateMatrixWorld();
-    this.applicationRenderer.updateLinks?.();
+    // TODO: Update links (make them invisible?)
   }
 
   @action
@@ -935,7 +919,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     this.configuration.isCommRendered = true;
     this.popupHandler.willDestroy();
     this.annotationHandler.willDestroy();
-    // this.graph.graphData([]);
 
     this.debug('Cleaned up application rendering');
 

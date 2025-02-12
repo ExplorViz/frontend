@@ -1,139 +1,75 @@
-import SimpleParentMesh, {
-  SimpleParentMeshParams,
-} from 'explorviz-frontend/view-objects/3d/application/simple-parent-mesh';
-import {
-  Application,
-  K8sDeployment,
-  K8sNamespace,
-  K8sNode,
-  K8sPod,
-} from './landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/application-object-3d';
-import { GenericPopupEntiresFromObject } from 'explorviz-frontend/components/visualization/rendering/popups/generic-popup';
+import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
+import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
+import { K8sNode } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { addBoxTextLabel } from 'explorviz-frontend/utils/application-rendering/labeler';
 
 export default function visualizeK8sLandscape(
-  k8sNodes: K8sNode[],
-  params: SimpleParentMeshParams,
-  appToApp3d: (app: Application) => ApplicationObject3D
-): SimpleParentMesh[] {
-  return k8sNodes.map((n) => mapNode(n, params, appToApp3d));
-}
+  landscape3D: Landscape3D,
+  nodes: K8sNode[],
+  params: { font: any; colors: ExplorVizColors },
+  boxLayoutMap: any
+) {
+  // Add nodes
+  nodes.forEach((node) => {
+    const nodeMesh = new K8sMesh(
+      boxLayoutMap.get(node.name),
+      { id: node.name, name: node.name, type: K8sEntity.NODE },
+      params.colors.k8sNodeColor,
+      params.colors.highlightedEntityColor
+    );
+    landscape3D.addK8sMesh(nodeMesh);
+    addBoxTextLabel(nodeMesh, params.font, params.colors.k8sTextColor);
 
-function mapNode(
-  node: K8sNode,
-  params: SimpleParentMeshParams,
-  appToApp3d: (app: Application) => ApplicationObject3D
-): SimpleParentMesh {
-  const meta: any = {
-    'Kubernetes Node': node.name,
-  };
+    // Add namespaces
+    node.k8sNamespaces.forEach((namespace) => {
+      const namespaceMesh = new K8sMesh(
+        boxLayoutMap.get(namespace.name),
+        { id: namespace.name, name: namespace.name, type: K8sEntity.NAMESPACE },
+        params.colors.k8sNamespaceColor,
+        params.colors.highlightedEntityColor
+      );
+      landscape3D.addK8sMesh(namespaceMesh);
+      addBoxTextLabel(namespaceMesh, params.font, params.colors.k8sTextColor);
 
-  const children = node.k8sNamespaces.map((ns) =>
-    mapNs(ns, params, appToApp3d, meta)
-  );
+      // Add deployments
+      namespace.k8sDeployments.forEach((deployment) => {
+        const deploymentMesh = new K8sMesh(
+          boxLayoutMap.get(deployment.name),
+          {
+            id: deployment.name,
+            name: deployment.name,
+            type: K8sEntity.DEPLOYMENT,
+          },
+          params.colors.k8sDeploymentColor,
+          params.colors.highlightedEntityColor
+        );
+        landscape3D.addK8sMesh(deploymentMesh);
+        addBoxTextLabel(
+          deploymentMesh,
+          params.font,
+          params.colors.k8sTextColor
+        );
 
-  return new SimpleParentMesh({
-    ...params,
-    children: children,
-    label: node.name,
-    color: 0x03045e,
-    popupData: {
-      title: node.name,
-      entries: [
-        { key: 'Type', value: 'Kubernetes Node' },
-        ...GenericPopupEntiresFromObject(meta),
-      ],
-      tabs: [],
-    },
+        // Add pods
+        deployment.k8sPods.forEach((pod) => {
+          const podMesh = new K8sMesh(
+            boxLayoutMap.get(pod.name),
+            { id: pod.name, name: pod.name, type: K8sEntity.POD },
+            params.colors.k8sPodColor,
+            params.colors.highlightedEntityColor
+          );
+          landscape3D.addK8sMesh(podMesh);
+          addBoxTextLabel(podMesh, params.font, params.colors.k8sTextColor);
+        });
+      });
+    });
   });
 }
 
-function mapNs(
-  ns: K8sNamespace,
-  params: SimpleParentMeshParams,
-  appToApp3d: (app: Application) => ApplicationObject3D,
-  meta: any
-): SimpleParentMesh {
-  const meta1 = {
-    ...meta,
-    'Kubernetes Namespace': ns.name,
-  };
-  const g = `ns:${ns.name}`;
-  const children = ns.k8sDeployments.map((d) =>
-    mapDeployment(d, params, appToApp3d, g, meta)
-  );
-  return new SimpleParentMesh({
-    ...params,
-    children: children,
-    label: ns.name,
-    group: g,
-    color: 0x0077b6,
-    popupData: {
-      title: ns.name,
-      entries: [
-        { key: 'Type', value: 'Kubernetes Namespace' },
-        ...GenericPopupEntiresFromObject(meta1),
-      ],
-      tabs: [],
-    },
-  });
-}
-
-function mapDeployment(
-  d: K8sDeployment,
-  params: SimpleParentMeshParams,
-  appToApp3d: (app: Application) => ApplicationObject3D,
-  group: string,
-  meta: any
-): SimpleParentMesh {
-  const meta1 = {
-    ...meta,
-    'Kubernetes Deployment': d.name,
-  };
-  const g = `${group};dp:${d.name}`;
-  const children = d.k8sPods.map((p) => mapPod(p, params, appToApp3d, g));
-  return new SimpleParentMesh({
-    ...params,
-    children: children,
-    label: d.name,
-    group: g,
-    color: 0x00b4d8,
-    popupData: {
-      title: d.name,
-      entries: [
-        { key: 'Type', value: 'Kubernetes Deployment' },
-        ...GenericPopupEntiresFromObject(meta1),
-      ],
-      tabs: [],
-    },
-  });
-}
-
-function mapPod(
-  p: K8sPod,
-  params: SimpleParentMeshParams,
-  appToApp3d: (app: Application) => ApplicationObject3D,
-  group: string,
-  meta: any
-): SimpleParentMesh {
-  const meta1 = {
-    ...meta,
-    'Kubernetes Pod': p.name,
-  };
-  const g = `${group};pod`;
-  return new SimpleParentMesh({
-    ...params,
-    label: p.name,
-    children: p.applications.map(appToApp3d),
-    group: g,
-    color: 0x90e0ef,
-    popupData: {
-      title: p.name,
-      entries: [
-        { key: 'Type', value: 'Kubernetes Pod' },
-        ...GenericPopupEntiresFromObject(meta1),
-      ],
-      tabs: [],
-    },
-  });
+export enum K8sEntity {
+  NODE = 'Node',
+  NAMESPACE = 'Namespace',
+  DEPLOYMENT = 'Deployment',
+  POD = 'Pod',
 }

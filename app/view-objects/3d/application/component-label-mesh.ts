@@ -4,6 +4,8 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import LabelMesh from '../label-mesh';
 import ComponentMesh from './component-mesh';
 import FoundationMesh from './foundation-mesh';
+import K8sMesh from '../k8s/k8s-mesh';
+import { getStoredNumberSetting } from 'explorviz-frontend/utils/settings/local-storage-settings';
 
 export default class ComponentLabelMesh extends LabelMesh {
   minHeight: number;
@@ -11,7 +13,7 @@ export default class ComponentLabelMesh extends LabelMesh {
   minLength: number;
 
   constructor(
-    componentMesh: ComponentMesh | FoundationMesh,
+    componentMesh: ComponentMesh | FoundationMesh | K8sMesh,
     font: Font,
     textColor = new THREE.Color('black'),
     minHeight = 1.5,
@@ -33,9 +35,8 @@ export default class ComponentLabelMesh extends LabelMesh {
    * @param labelText The desired text for the label
    */
   computeLabel(
-    componentMesh: ComponentMesh | FoundationMesh,
-    labelText = this.labelText,
-    scalar = 1
+    componentMesh: ComponentMesh | FoundationMesh | K8sMesh,
+    labelText = this.labelText
   ) {
     /**
      * Updates bounding box of geometry and returns respective dimensions
@@ -47,11 +48,19 @@ export default class ComponentLabelMesh extends LabelMesh {
       return { x: boxDimensions.x, y: boxDimensions.y, z: boxDimensions.z };
     }
 
+    let labelMargin;
+    if (componentMesh instanceof ComponentMesh) {
+      labelMargin = getStoredNumberSetting('packageLabelMargin') || 0.1;
+    } else {
+      labelMargin = getStoredNumberSetting('appLabelMargin') || 0.1;
+    }
+
     const parentScale = componentMesh.scale;
-    const parentAspectRatio = parentScale.x / parentScale.z;
+    const parentAspectRatio = parentScale.z / parentScale.x;
 
     // Adjust desired text size with possible scaling
-    const textSize = (2.0 / parentScale.x) * parentAspectRatio * scalar;
+    const textSize =
+      (2.0 / parentScale.z) * parentAspectRatio * (labelMargin / 4);
     // Text should look like it is written on the parent's box (no height required)
     const textHeight = 0.0;
 
@@ -80,7 +89,7 @@ export default class ComponentLabelMesh extends LabelMesh {
     }
 
     // Avoid distorted text due to parent scaling
-    this.scale.y /= componentMesh.scale.x / componentMesh.scale.z;
+    this.scale.y /= componentMesh.scale.z / componentMesh.scale.x;
 
     // Text height as percepted by the user
     const absoluteTextHeight = textDimensions.y * parentScale.x * scaleFactor;
@@ -110,9 +119,5 @@ export default class ComponentLabelMesh extends LabelMesh {
         this.computeLabel(componentMesh, shortenedLabel);
       }
     }
-
-    // Set label slightly transparent to avoid errors
-    // due to different render order (of transparent objects)
-    this.turnTransparent(0.99);
   }
 }

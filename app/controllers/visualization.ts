@@ -102,7 +102,9 @@ export default class VisualizationController extends Controller {
 
   private sidebarHandler!: SidebarHandler;
 
+  @tracked
   private commit1: string | undefined | null;
+  @tracked
   private commit2: string | undefined | null;
 
   private bottomBar: RenderingVisualizationMode | undefined | null;
@@ -250,8 +252,9 @@ export default class VisualizationController extends Controller {
       this.renderingService.landscapeData !== null &&
       this.renderingService.landscapeData.structureLandscapeData?.nodes
         .length === 0 &&
-      this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
-        .length === 0
+      (!this.renderingService.landscapeData.structureLandscapeData.k8sNodes ||
+        this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
+          .length === 0)
     );
   }
 
@@ -260,8 +263,9 @@ export default class VisualizationController extends Controller {
       this.renderingService.landscapeData !== null &&
       (this.renderingService.landscapeData.structureLandscapeData?.nodes
         .length > 0 ||
-        this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
-          .length > 0)
+        (this.renderingService.landscapeData.structureLandscapeData.k8sNodes &&
+          this.renderingService.landscapeData.structureLandscapeData?.k8sNodes
+            .length > 0))
     );
   }
 
@@ -323,6 +327,22 @@ export default class VisualizationController extends Controller {
 
     let showEvolutionVisualization = false;
 
+    const selectedApp =
+      this.commitTreeStateService.currentSelectedApplicationName;
+    const selectedCommitsForCurrentSelectedApp =
+      this.commitTreeStateService.selectedCommits.get(selectedApp);
+    this.commit1 =
+      selectedCommitsForCurrentSelectedApp &&
+      selectedCommitsForCurrentSelectedApp.length > 0
+        ? selectedCommitsForCurrentSelectedApp[0].commitId
+        : undefined;
+
+    this.commit2 =
+      selectedCommitsForCurrentSelectedApp &&
+      selectedCommitsForCurrentSelectedApp.length > 1
+        ? selectedCommitsForCurrentSelectedApp[1].commitId
+        : undefined;
+
     // check what kind of rendering we should start
     if (this.commit1 && this.commit1.length > 0) {
       showEvolutionVisualization = this.commitTreeStateService.setDefaultState(
@@ -331,7 +351,7 @@ export default class VisualizationController extends Controller {
         this.commit2
       );
 
-      // check which bottom bar should be displayed by default
+      // Check which bottom bar should be displayed by default
       if (this.bottomBar === 'runtime') {
         this.isRuntimeTimelineSelected = true;
         this.isCommitTreeSelected = false;
@@ -541,16 +561,11 @@ export default class VisualizationController extends Controller {
 
   @action
   toggleBottomChart() {
-    // disable keyboard events for button to prevent space bar
+    // Disable keyboard events for button to prevent space bar
     document.getElementById('bottom-bar-toggle-chart-button')?.blur();
 
-    if (this.isCommitTreeSelected) {
-      this.isCommitTreeSelected = false;
-      this.isRuntimeTimelineSelected = true;
-    } else {
-      this.isRuntimeTimelineSelected = false;
-      this.isCommitTreeSelected = true;
-    }
+    this.isCommitTreeSelected = !this.isCommitTreeSelected;
+    this.isRuntimeTimelineSelected = !this.isCommitTreeSelected;
   }
 
   @action

@@ -8,18 +8,20 @@
   >
   </div>
 {{else}}
-  <div class='timeline-no-timestamps-outer'>
-    <div class='timeline-no-timestamps-inner'>
-      {{#if @selectedAppName}}
-        No commit tree data available!
-      {{else}}
-        No application selected!
-      {{/if}}
+  {{#if (and @appNameCommitTreeMap (gt @appNameCommitTreeMap.size 0)) }}
+    <div class='timeline-no-timestamps-outer'>
+      <div class='timeline-no-timestamps-inner'>
+        {{#if @selectedAppName}}
+          No commit tree data available!
+        {{else}}
+          No application selected!
+        {{/if}}
+      </div>
     </div>
-  </div>
-  <div
-    class='plotlyDiv timeline-blur-effect'
-    {{did-insert this.setupPlotlyCommitTreeChart}}
-  >
-  </div>
+    <div
+      class='plotlyDiv timeline-blur-effect'
+      {{did-insert this.setupPlotlyCommitTreeChart}}
+    >
+    </div>
+  {{/if}}
 {{/if}}

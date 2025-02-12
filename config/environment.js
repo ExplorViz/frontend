@@ -57,7 +57,6 @@ module.exports = (environment) => {
     backendAddresses: {
       spanService: P_ENV.SPAN_SERV_URL,
       userService: P_ENV.USER_SERV_URL,
-      userServiceApi: P_ENV.USER_SERV_API_URL,
       vsCodeService: P_ENV.VSCODE_SERV_URL,
       collaborationService: P_ENV.COLLABORATION_SERV_URL,
       shareSnapshot: P_ENV.SHARE_SNAPSHOT_URL,

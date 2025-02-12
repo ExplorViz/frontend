@@ -205,8 +205,8 @@ export function highlightTrace(
 
   // turn classes and packages transparent, which are not involved in the trace
   nonInvolvedClazzes.forEach((clazz) => {
-    const clazzMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(
+    const clazzMesh = applicationObject3D.getBoxMeshByModelId(clazz.id);
+    const componentMesh = applicationObject3D.getBoxMeshByModelId(
       clazz.parent.id
     );
     if (
@@ -363,7 +363,7 @@ export function turnComponentAndAncestorsTransparent(
 
   const { parent } = component;
 
-  const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
+  const componentMesh = applicationObject3D.getBoxMeshByModelId(component.id);
 
   if (parent === undefined) {
     if (componentMesh instanceof ComponentMesh) {
@@ -372,7 +372,7 @@ export function turnComponentAndAncestorsTransparent(
     return;
   }
 
-  const parentMesh = applicationObject3D.getBoxMeshbyModelId(parent.id);
+  const parentMesh = applicationObject3D.getBoxMeshByModelId(parent.id);
   if (
     componentMesh instanceof ComponentMesh &&
     parentMesh instanceof ComponentMesh &&
@@ -401,7 +401,7 @@ export function turnComponentAndAncestorsOpaque(
 
   const { parent } = component;
 
-  const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
+  const componentMesh = applicationObject3D.getBoxMeshByModelId(component.id);
 
   if (parent === undefined) {
     if (componentMesh instanceof ComponentMesh) {
@@ -410,7 +410,7 @@ export function turnComponentAndAncestorsOpaque(
     return;
   }
 
-  const parentMesh = applicationObject3D.getBoxMeshbyModelId(parent.id);
+  const parentMesh = applicationObject3D.getBoxMeshByModelId(parent.id);
   if (
     componentMesh instanceof ComponentMesh &&
     parentMesh instanceof ComponentMesh &&
@@ -431,7 +431,7 @@ function turnClassesOpaque(
 ) {
   allInvolvedClassIds.forEach((classId) => {
     for (const application of applicationObject3DList) {
-      const classMesh = application.getBoxMeshbyModelId(classId);
+      const classMesh = application.getBoxMeshByModelId(classId);
 
       if (classMesh instanceof ClazzMesh) {
         classMesh.turnOpaque();

@@ -98,7 +98,7 @@ export interface K8sNode {
 export interface StructureLandscapeData {
   landscapeToken: string;
   nodes: Node[];
-  k8sNodes: K8sNode[];
+  k8sNodes: K8sNode[] | undefined;
 }
 
 export function isLandscape(x: any): x is StructureLandscapeData {
@@ -123,6 +123,37 @@ export function isClass(x: any): x is Class {
 
 export function isMethod(x: any): x is Method {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'methodHash');
+}
+
+export function getApplicationsFromNodes(nodes: Node[]) {
+  const applications: Application[] = [];
+  for (let i = 0; i < nodes.length; ++i) {
+    const node = nodes[i];
+    for (let j = 0; j < node.applications.length; ++j) {
+      applications.push(node.applications[j]);
+    }
+  }
+  return applications;
+}
+
+export function getK8sAppsFromNodes(k8sNodes: K8sNode[]) {
+  return k8sNodes.flatMap((n) =>
+    n.k8sNamespaces.flatMap((ns) =>
+      ns.k8sDeployments.flatMap((d) =>
+        d.k8sPods.flatMap((p) =>
+          p.applications.map((app) => {
+            return {
+              k8sNode: n,
+              k8sNamespace: ns,
+              k8sDeployment: d,
+              k8sPod: p,
+              app: app,
+            };
+          })
+        )
+      )
+    )
+  );
 }
 
 export function getNodeById(
@@ -214,13 +245,16 @@ export function preProcessAndEnhanceStructureLandscape(
   const enhancedlandscapeStructure: StructureLandscapeData =
     structuredClone(landscapeStructure);
 
-  const pods = enhancedlandscapeStructure.k8sNodes.flatMap((k8sNode) =>
-    k8sNode.k8sNamespaces.flatMap((k8sNamespace) =>
-      k8sNamespace.k8sDeployments.flatMap(
-        (k8sDeployment) => k8sDeployment.k8sPods
+  let pods: K8sPod[] = [];
+  if (enhancedlandscapeStructure.k8sNodes) {
+    pods = enhancedlandscapeStructure.k8sNodes.flatMap((k8sNode) =>
+      k8sNode.k8sNamespaces.flatMap((k8sNamespace) =>
+        k8sNamespace.k8sDeployments.flatMap(
+          (k8sDeployment) => k8sDeployment.k8sPods
+        )
       )
-    )
-  );
+    );
+  }
 
   [...enhancedlandscapeStructure.nodes, ...pods].forEach((node) => {
     createNodeId(node);

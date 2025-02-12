@@ -47,7 +47,7 @@ export function openComponentsByList(
 ) {
   let didOpenComponent = false;
   components.forEach((component) => {
-    const ancestorMesh = application.getBoxMeshbyModelId(component.id);
+    const ancestorMesh = application.getBoxMeshByModelId(component.id);
     if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened) {
       didOpenComponent = true;
       openComponentMesh(ancestorMesh, application);
@@ -68,7 +68,7 @@ export function openComponentAndAncestor(
 ) {
   const ancestors = getAllAncestorComponents(component);
   ancestors.forEach((ancestorComponent) => {
-    const ancestorMesh = application.getBoxMeshbyModelId(ancestorComponent.id);
+    const ancestorMesh = application.getBoxMeshByModelId(ancestorComponent.id);
     if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened)
       openComponentMesh(ancestorMesh, application);
   });
@@ -78,11 +78,11 @@ export function openComponentAndAncestor(
  * Opens a given component mesh.
  *
  * @param mesh Component mesh which shall be opened
- * @param applicationObject3D Application object which contains the mesh
+ * @param app3D Application object which contains the mesh
  */
 export function openComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D
+  app3D: ApplicationObject3D
 ) {
   if (mesh.opened) {
     return;
@@ -92,6 +92,10 @@ export function openComponentMesh(
     'openedComponentHeight'
   );
 
+  // Position is center of box, need to subtract apps layout position
+  const yPos =
+    mesh.layout.positionY + mesh.layout.height / 2 - app3D.layout.positionY;
+
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
       duration: 0.25,
@@ -100,11 +104,11 @@ export function openComponentMesh(
 
     gsap.to(mesh.position, {
       duration: 0.25,
-      y: mesh.layout.positionY,
+      y: yPos,
     });
   } else {
     mesh.height = OPENED_COMPONENT_HEIGHT;
-    mesh.position.y = mesh.layout.positionY;
+    mesh.position.y = yPos;
   }
 
   mesh.opened = true;
@@ -114,9 +118,7 @@ export function openComponentMesh(
 
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-    const childMesh = applicationObject3D.getBoxMeshbyModelId(
-      childComponent.id
-    );
+    const childMesh = app3D.getBoxMeshByModelId(childComponent.id);
     if (childMesh) {
       childMesh.visible = true;
     }
@@ -124,7 +126,7 @@ export function openComponentMesh(
 
   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
-    const childMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
+    const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh) {
       childMesh.visible = true;
       childMesh.saveOriginalAppearence();
@@ -136,24 +138,26 @@ export function openComponentMesh(
  * Closes a given component mesh.
  *
  * @param mesh Component mesh which shall be closed
- * @param applicationObject3D Application object which contains the mesh
+ * @param app3D Application object which contains the mesh
  */
 export function closeComponentMesh(
   mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D,
+  app3D: ApplicationObject3D,
   keepHighlighted: boolean
 ) {
   if (!mesh.opened) {
     return;
   }
 
-  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
-    'openedComponentHeight'
-  );
-
   const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
     'closedComponentHeight'
   );
+
+  // Position is in center of box, need to subtract apps layout position
+  const yPos =
+    mesh.layout.positionY +
+    CLOSED_COMPONENT_HEIGHT / 2 -
+    app3D.layout.positionY;
 
   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
@@ -163,15 +167,11 @@ export function closeComponentMesh(
 
     gsap.to(mesh.position, {
       duration: 0.5,
-      y:
-        mesh.layout.positionY +
-        (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2,
+      y: yPos,
     });
   } else {
     mesh.height = CLOSED_COMPONENT_HEIGHT;
-    mesh.position.y =
-      mesh.layout.positionY +
-      (CLOSED_COMPONENT_HEIGHT - OPENED_COMPONENT_HEIGHT) / 2;
+    mesh.position.y = yPos;
   }
 
   mesh.opened = false;
@@ -179,17 +179,15 @@ export function closeComponentMesh(
   mesh.saveOriginalAppearence();
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-    const childMesh = applicationObject3D.getBoxMeshbyModelId(
-      childComponent.id
-    );
+    const childMesh = app3D.getBoxMeshByModelId(childComponent.id);
     if (childMesh instanceof ComponentMesh) {
       childMesh.visible = false;
       if (childMesh.opened) {
-        closeComponentMesh(childMesh, applicationObject3D, keepHighlighted);
+        closeComponentMesh(childMesh, app3D, keepHighlighted);
       }
       // Reset highlighting if highlighted entity is no longer visible
       if (!keepHighlighted && childMesh.highlighted) {
-        removeHighlighting(childMesh, applicationObject3D);
+        removeHighlighting(childMesh, app3D);
       }
       childMesh.saveOriginalAppearence();
     }
@@ -197,12 +195,12 @@ export function closeComponentMesh(
 
   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
-    const childMesh = applicationObject3D.getBoxMeshbyModelId(clazz.id);
+    const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh instanceof ClazzMesh) {
       childMesh.visible = false;
       // Reset highlighting if highlighted entity is no longer visible
       if (!keepHighlighted && childMesh.highlighted) {
-        removeHighlighting(childMesh, applicationObject3D);
+        removeHighlighting(childMesh, app3D);
       }
     }
   });
@@ -221,7 +219,7 @@ export function closeAllComponents(
 
   // Close each component
   application.packages.forEach((component) => {
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(component.id);
+    const componentMesh = applicationObject3D.getBoxMeshByModelId(component.id);
     if (componentMesh instanceof ComponentMesh) {
       closeComponentMesh(componentMesh, applicationObject3D, keepHighlighted);
     }
@@ -241,7 +239,7 @@ export function openComponentsRecursively(
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
-    const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
+    const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
       // !mesh.opened needed!
 
@@ -270,7 +268,7 @@ export function closeComponentsRecursively(
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
-    const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
+    const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && mesh.opened) {
       // mesh.opened needed!
 
@@ -296,7 +294,7 @@ export function openAllComponents(
   sender: MessageSender
 ) {
   applicationObject3D.dataModel.application.packages.forEach((child) => {
-    const mesh = applicationObject3D.getBoxMeshbyModelId(child.id);
+    const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
       openComponentMesh(mesh, applicationObject3D);
       sender.sendComponentUpdate(
@@ -342,7 +340,7 @@ export function restoreComponentState(
   opacity?: number
 ) {
   openComponentIds?.forEach((componentId) => {
-    const boxMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
+    const boxMesh = applicationObject3D.getBoxMeshByModelId(componentId);
 
     if (boxMesh instanceof ComponentMesh) {
       openComponentMesh(boxMesh, applicationObject3D);
@@ -350,7 +348,7 @@ export function restoreComponentState(
   });
 
   transparentComponentIds?.forEach((componentId) => {
-    const componentMesh = applicationObject3D.getBoxMeshbyModelId(componentId);
+    const componentMesh = applicationObject3D.getBoxMeshByModelId(componentId);
 
     if (componentMesh) {
       if (
@@ -386,7 +384,7 @@ export function applyDefaultApplicationLayout(
     const component = components.objectAt(0);
 
     if (component !== undefined) {
-      const mesh = appObject3D.getBoxMeshbyModelId(component.id);
+      const mesh = appObject3D.getBoxMeshByModelId(component.id);
       if (mesh instanceof ComponentMesh) {
         openComponentMesh(mesh, applicationObject3D);
       }
@@ -434,10 +432,10 @@ export function moveCameraTo(
     const targetClass = spanIdToClass(application, traceOfSpan, model.spanId);
 
     if (sourceClass && targetClass) {
-      const sourceClazzMesh = applicationObject3D.getBoxMeshbyModelId(
+      const sourceClazzMesh = applicationObject3D.getBoxMeshByModelId(
         sourceClass.id
       );
-      const targetClazzMesh = applicationObject3D.getBoxMeshbyModelId(
+      const targetClazzMesh = applicationObject3D.getBoxMeshByModelId(
         targetClass.id
       );
 
@@ -450,7 +448,7 @@ export function moveCameraTo(
     } else if (sourceClass || targetClass) {
       const existendClass = (sourceClass || targetClass)!;
 
-      const clazzMesh = applicationObject3D.getBoxMeshbyModelId(
+      const clazzMesh = applicationObject3D.getBoxMeshByModelId(
         existendClass.id
       );
 
@@ -459,7 +457,7 @@ export function moveCameraTo(
       }
     }
   } else {
-    const clazzMesh = applicationObject3D.getBoxMeshbyModelId(model.id);
+    const clazzMesh = applicationObject3D.getBoxMeshByModelId(model.id);
     if (clazzMesh instanceof ClazzMesh) {
       cameraControls.focusCameraOn(0.6, clazzMesh);
     }

@@ -111,9 +111,9 @@
       @openParents={{@openParents}}
     />
   {{/if}}
-  {{#if (eq this.entityType 'simpleParentMesh')}}
-    <Visualization::Rendering::Popups::GenericPopup
-      @data={{@this.popupData.mesh.popupData}}
+  {{#if (eq this.entityType 'k8s')}}
+    <Visualization::Rendering::Popups::K8sPopups::K8sPopup
+      @data={{@popupData.entity}}
     />
   {{/if}}
 </div>

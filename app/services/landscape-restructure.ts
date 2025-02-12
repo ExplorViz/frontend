@@ -1548,7 +1548,7 @@ export default class LandscapeRestructure extends Service.extend(Evented, {
         const appObject3D: ApplicationObject3D | undefined =
           this.applicationRenderer.getApplicationById(app.id);
         if (appObject3D) {
-          appObject3D.removeAllEntities();
+          appObject3D.removeAll();
           appObject3D.removeAllCommunication();
         }
       }

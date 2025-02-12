@@ -106,13 +106,13 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetLandscape() {
-    const applicationGraph =
+    const landscape3D =
       this.applicationRenderer.getOpenApplications()[0].parent;
-    if (applicationGraph) {
-      applicationGraph.position.set(0, 0, 0);
-      applicationGraph.rotation.x = Math.PI / 180;
-      applicationGraph.rotation.y = Math.PI / 180;
-      applicationGraph.rotation.z = Math.PI / 180;
+    if (landscape3D) {
+      landscape3D.position.set(0, 0, 0);
+      landscape3D.rotation.x = Math.PI / 180;
+      landscape3D.rotation.y = Math.PI / 180;
+      landscape3D.rotation.z = Math.PI / 180;
     }
   }
 }
