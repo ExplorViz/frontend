@@ -399,18 +399,30 @@ export default class Settings extends Component<Args> {
   }
 
   @action
+  resetGroup(groupId: string) {
+    this.userSettings.applyDefaultSettingsForGroup(groupId);
+    this.updateVisualizationState();
+  }
+
+  @action
   async resetSettings() {
     if (this.args.resetSettings) {
       this.args.resetSettings(true);
-      this.args.updateColors?.();
-      this.highlightingService.updateHighlighting();
-      this.localUser.defaultCamera.fov =
-        this.userSettings.visualizationSettings.cameraFov.value;
-      this.localUser.defaultCamera.updateProjectionMatrix();
-      this.applicationRenderer.updateApplicationLayout();
-      this.applicationRenderer.addCommunicationForAllApplications();
+      this.updateVisualizationState();
     }
   }
+
+  updateVisualizationState() {
+    this.args.updateColors?.();
+    this.highlightingService.updateHighlighting();
+    this.localUser.defaultCamera.fov =
+      this.userSettings.visualizationSettings.cameraFov.value;
+    this.localUser.defaultCamera.updateProjectionMatrix();
+    this.applicationRenderer.updateApplicationLayout();
+    this.applicationRenderer.updateLabels();
+    this.applicationRenderer.addCommunicationForAllApplications();
+  }
+
   private semanticZoomPreSetSetter(targetPreset: number, valueArray: any) {
     if (targetPreset == 1) {
       valueArray[0].value = 5;
