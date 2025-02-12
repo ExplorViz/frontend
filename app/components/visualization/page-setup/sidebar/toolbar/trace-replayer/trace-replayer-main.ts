@@ -27,7 +27,23 @@ import { getAllAncestorComponents } from 'explorviz-frontend/utils/application-r
 
 const DEFAULT_OPACITY = 1;
 
-export class HighlightedClass {
+class Blob extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
+  constructor(
+    radius: number,
+    color: THREE.Color = new THREE.Color('red'),
+    opacity:number = 1
+  ) {
+    super(color, color, opacity);
+    this.highlight();
+    this.geometry = new THREE.SphereGeometry(radius, 8, 8);
+  }
+
+  move( position: THREE.Vector3): void {
+    this.position.copy(position);
+  }
+}
+
+export class Afterimage {
   private mesh: BaseMesh;
 
   private opacity: number = DEFAULT_OPACITY;
@@ -44,21 +60,42 @@ export class HighlightedClass {
     this.opacity = -1;
   }
 
-  tick(): boolean {
+  tick(): void {
     if (this.opacity >= 0.3) {
+      this.mesh.show();
       this.mesh.highlight();
       this.mesh.turnTransparent(this.opacity);
     } else {
+      this.mesh.hide();
       this.mesh.unhighlight();
     }
     this.opacity -= 0.01;
-    return this.opacity < 0;
+  }
+
+  alive(): boolean {
+    return this.opacity > 0;
   }
 
   reset() {
     this.opacity = DEFAULT_OPACITY;
     this.mesh.highlight();
     this.mesh.turnTransparent(this.opacity);
+  }
+}
+
+class Leg {
+  constructor() {}
+}
+
+class Record {
+  public clazz: Class;
+  public mesh: BaseMesh;
+  public duration: number;
+
+  constructor(clazz: Class, mesh: BaseMesh, duration: number) {
+    this.clazz = clazz;
+    this.mesh = mesh;
+    this.duration = duration;
   }
 }
 
@@ -73,9 +110,6 @@ interface Args {
 }
 
 export default class TraceReplayerMain extends Component<Args> {
-  @tracked
-  isReplayAnimated: boolean = false;
-
   @tracked
   currentTraceStep: Span | null = null;
 
@@ -104,6 +138,18 @@ export default class TraceReplayerMain extends Component<Args> {
     }
 
     this.classMap = getHashCodeToClassMap(this.args.structureData);
+
+    this.trace.forEach((span) => {
+      const clazz = this.classMap.get(span.methodHash);
+      if (clazz) {
+        const mesh = this.applicationRenderer.getMeshById(clazz.id);
+        if (mesh) {
+          this.records.push(new Record(clazz, mesh, calculateDuration(span)));
+        }
+      }
+    });
+
+    console.log(this.records);
   }
 
   public minSpeed = 1;
@@ -125,127 +171,129 @@ export default class TraceReplayerMain extends Component<Args> {
   }
 
   private delta: number = 0;
-  private steps: Span[] = [];
+  private records: Record[] = [];
 
-  private cloud: THREE.Mesh[] = [];
+  private blob: Blob | undefined = undefined;
   private curve: THREE.QuadraticBezierCurve3 | undefined = undefined;
   private duration = 0;
 
   @tracked
   progress = 0;
 
-  private originClass: Class | undefined = undefined;
-  private targetClass: Class | undefined = undefined;
-  private highlights = new Map<string, HighlightedClass>();
+  @tracked
+  paused: boolean = true;
+
+  @tracked
+  stopped: boolean = true;
+
+  @tracked
+  index: number = -1;
+
+  private meshes = new Set<BaseMesh>();
+  private afterimages = new Set<Afterimage>();
+
+  @action
+  next() {
+    if (this.paused) {
+      this.index = Math.min(this.index + 1, this.records.length);
+    }
+  }
+
+  @action
+  previous() {
+    if (this.paused) {
+      this.index = Math.max(this.index - 1, 0);
+    }
+  }
 
   tick(delta: number) {
     this.delta += delta;
 
-    if (this.curve) {
+    if (this.blob && this.curve) {
       const progress = this.delta / this.duration;
       if (0.0 <= progress && progress <= 1.0) {
-        this.cloud[0].position.copy(this.curve.getPoint(progress));
+        const afterimage = this.blob.clone();
+        this.args.renderingLoop.scene.add(afterimage);
+        this.afterimages.add(new Afterimage(afterimage));
+        this.blob.move(this.curve.getPoint(progress));
       }
     }
-    this.progress = Math.ceil(
-      ((this.trace.length - this.steps.length) / this.trace.length) * 100
-    );
+    this.progress = Math.ceil((this.index / this.trace.length) * 100);
 
-    if (this.delta > this.duration) {
+    if (!this.stopped && !this.paused && this.delta > this.duration) {
       this.delta = 0;
 
-      if (this.steps.length > 1) {
-        const origin = this.steps.shift();
-        const target = this.steps[0];
+      if (this.index >= 0 && this.index < this.records.length - 1) {
+        const origin = this.records[this.index++];
+        const target = this.records[this.index];
 
-        if (origin && target) {
-          this.duration =
-            (1 + calculateDuration(origin) / 1000.0) / this.selectedSpeed;
+        this.duration = (1 + origin.duration / 1000.0) / this.selectedSpeed;
 
-          this.originClass = this.classMap.get(origin.methodHash);
-          this.targetClass = this.classMap.get(target.methodHash);
-          // let method = clazz?.methods.find(
-          //   (method) => method.methodHash === current?.methodHash
-          // );
+        getAllAncestorComponents(origin.clazz).forEach((component) => {
+          this.applicationRenderer.getMeshById(component.id);
+        });
 
-          if (this.originClass && this.targetClass) {
-            getAllAncestorComponents(this.originClass).forEach((component) => {
-              this.applicationRenderer.getMeshById(component.id);
-            });
+        // if (this.highlights.has(origin.clazz.id)) {
+        //   this.highlights.get(origin.clazz.id)?.reset();
+        // } else {
+        //   this.highlights.set(
+        //     origin.clazz.id,
+        //     new Afterimage(origin.mesh)
+        //   );
+        // }
+        //
+        // if (this.highlights.has(target.clazz.id)) {
+        //   this.highlights.get(target.clazz.id)?.reset();
+        // } else {
+        //   this.highlights.set(
+        //     target.clazz.id,
+        //     new Afterimage(target.mesh)
+        //   );
+        // }
 
-            let originMesh = this.applicationRenderer.getMeshById(
-              this.originClass.id
-            );
-            let targetMesh = this.applicationRenderer.getMeshById(
-              this.targetClass.id
-            );
-            if (originMesh && targetMesh) {
-              if (this.highlights.has(this.originClass.id)) {
-                this.highlights.get(this.originClass.id)?.reset();
-              } else {
-                this.highlights.set(
-                  this.originClass.id,
-                  new HighlightedClass(originMesh)
-                );
-              }
+        // this.afterimages.add(new Afterimage(origin.mesh));
+        // this.afterimages.add(new Afterimage(target.mesh));
 
-              if (this.highlights.has(this.targetClass.id)) {
-                this.highlights.get(this.targetClass.id)?.reset();
-              } else {
-                this.highlights.set(
-                  this.targetClass.id,
-                  new HighlightedClass(targetMesh)
-                );
-              }
+        let scale = this.applicationRenderer.forceGraph.scale;
+        let start = this.applicationRenderer
+          .getGraphPosition(origin.mesh)
+          .multiply(scale);
+        let end = this.applicationRenderer
+          .getGraphPosition(target.mesh)
+          .multiply(scale);
 
-              let scale = this.applicationRenderer.forceGraph.scale;
-              let start = this.applicationRenderer
-                .getGraphPosition(originMesh)
-                .multiply(scale);
-              let end = this.applicationRenderer
-                .getGraphPosition(targetMesh)
-                .multiply(scale);
+        const classDistance = Math.hypot(end.x - start.x, end.z - start.z);
+        const height =
+          classDistance *
+          0.2 *
+          this.applicationRenderer.appSettings.curvyCommHeight.value;
+        const middle = new THREE.Vector3(
+          start.x + (end.x - start.x) / 2.0,
+          height + start.y + (end.y - start.y) / 2.0,
+          start.z + (end.z - start.z) / 2.0
+        );
 
-              const classDistance = Math.hypot(
-                end.x - start.x,
-                end.z - start.z
-              );
-              const height =
-                classDistance *
-                0.2 *
-                this.applicationRenderer.appSettings.curvyCommHeight.value;
-              const middle = new THREE.Vector3(
-                start.x + (end.x - start.x) / 2.0,
-                height + start.y + (end.y - start.y) / 2.0,
-                start.z + (end.z - start.z) / 2.0
-              );
+        this.curve = new THREE.QuadraticBezierCurve3(start, middle, end);
 
-              this.curve = new THREE.QuadraticBezierCurve3(start, middle, end);
+        this.blob?.move(start);
+        this.blob?.show();
 
-              this.cloud[0].position.copy(start);
-              this.cloud[0].visible = true;
-            }
-          }
-
-          // this.args.highlightTrace(this.args.selectedTrace, current.spanId);
-        }
+        // this.args.highlightTrace(this.args.selectedTrace, current.spanId);
       } else {
         this.stop();
       }
     }
 
-    const prune = new Set<string>();
-    this.highlights.forEach((clazz, id) => {
-      if (
-        (!this.originClass || id !== this.originClass.id) &&
-        (!this.targetClass || id !== this.targetClass.id)
-      ) {
-        if (clazz.tick()) {
-          prune.add(id);
+    if (this.afterimages.size > 0) {
+      const prune = new Set<Afterimage>();
+      this.afterimages.forEach((afterimage) => {
+        afterimage.tick();
+        if (!afterimage.alive()) {
+          prune.add(afterimage);
         }
-      }
-    });
-    prune.forEach((id) => this.highlights.delete(id));
+      });
+      prune.forEach((afterimage) => this.afterimages.delete(afterimage));
+    }
   }
 
   turnComponentAndAncestorsTransparent(component: Package, opacity: number) {
@@ -262,38 +310,44 @@ export default class TraceReplayerMain extends Component<Args> {
 
   @action
   start() {
-    this.isReplayAnimated = true;
-    this.steps = [...this.trace];
-    this.args.renderingLoop.updatables.push(this);
+    if (this.stopped) {
+      this.stopped = false;
+      this.index = 0;
+      this.args.renderingLoop.updatables.push(this);
 
-    this.isCommRendered = this.configuration.isCommRendered;
-    this.configuration.isCommRendered = false;
-    this.applicationRenderer.openAllComponentsOfAllApplications();
-    this.applicationRenderer.removeCommunicationForAllApplications();
+      this.isCommRendered = this.configuration.isCommRendered;
+      this.configuration.isCommRendered = false;
+      this.applicationRenderer.openAllComponentsOfAllApplications();
+      this.applicationRenderer.removeCommunicationForAllApplications();
 
-    this.classMap.forEach((clazz) => {
-      const mesh = this.applicationRenderer.getMeshById(clazz.id);
-      mesh?.turnTransparent();
-      this.turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
-    });
+      this.classMap.forEach((clazz) => {
+        const mesh = this.applicationRenderer.getMeshById(clazz.id);
+        mesh?.turnTransparent();
+        this.turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
+      });
 
-    const geometry = new THREE.SphereGeometry(0.02, 8, 8);
-
-    const colors = ['red', 'green', 'blue'];
-
-    for (let i = 0; i < 3; ++i) {
-      const material = new THREE.MeshBasicMaterial({ color: colors[i] });
-      let mesh = new THREE.Mesh(geometry, material);
-      mesh.visible = false;
-      this.args.renderingLoop.scene.add(mesh);
-      this.cloud.push(mesh);
+      for (let i = 0; i < 3; ++i) {
+        const blob = new Blob(0.02)
+        blob.hide();
+        this.args.renderingLoop.scene.add(blob);
+        this.blob = blob;
+        this.meshes.add(blob);
+      }
     }
+
+    this.paused = false;
+  }
+
+  @action
+  pause() {
+    this.paused = true;
   }
 
   @action
   stop() {
-    this.isReplayAnimated = false;
-    this.steps.clear();
+    this.paused = true;
+    this.stopped = true;
+    this.index = -1;
     this.args.renderingLoop.updatables.removeObject(this);
     this.progress = 0;
 
@@ -308,15 +362,15 @@ export default class TraceReplayerMain extends Component<Args> {
       this.turnComponentAndAncestorsTransparent(clazz.parent, 1);
     });
 
-    for (let mesh of this.cloud) {
+    for (let mesh of this.meshes) {
       this.args.renderingLoop.scene.remove(mesh);
     }
-    this.cloud.clear();
+    this.meshes.clear();
 
-    this.highlights.forEach((clazz) => {
+    this.afterimages.forEach((clazz) => {
       clazz.delete();
     });
-    this.highlights.clear();
+    this.afterimages.clear();
   }
 
   @action

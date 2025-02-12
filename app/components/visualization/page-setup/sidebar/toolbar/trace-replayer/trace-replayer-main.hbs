@@ -1,25 +1,55 @@
 <h5 align='center'>
   Trace Player
-  {{#if this.isReplayAnimated}}
-    <BsButton
-      class='th-btn navbar-highlight playing'
-      title='Stop animation'
-      @onClick={{this.stop}}
-      @type='button'
-    >
-      {{svg-jar 'x-circle-16' class='octicon align-middle'}}
-    </BsButton>
-  {{else}}
+</h5>
+
+<div align='center' class='mb-3'>
+  <BsButton
+    class='th-btn'
+    title='Previous'
+    @onClick={{this.previous}}
+    @type='button'
+  >
+    {{svg-jar 'chevron-left-16' class='octicon align-middle'}}
+  </BsButton>
+
+  <BsButton
+    class='th-btn'
+    title='Next'
+    @onClick={{this.stop}}
+    @type='button'
+  >
+    {{svg-jar 'square-fill-16' class='octicon align-middle'}}
+  </BsButton>
+
+  {{#if this.paused}}
     <BsButton
       class='th-btn'
-      title='Play animation'
+      title='Play'
       @onClick={{this.start}}
       @type='button'
     >
       {{svg-jar 'play-16' class='octicon align-middle'}}
     </BsButton>
+  {{else}}
+    <BsButton
+      class='th-btn navbar-highlight playing'
+      title='Stop'
+      @onClick={{this.pause}}
+      @type='button'
+    >
+      {{svg-jar 'x-circle-16' class='octicon align-middle'}}
+    </BsButton>
   {{/if}}
-</h5>
+
+  <BsButton
+    class='th-btn'
+    title='Next'
+    @onClick={{this.next}}
+    @type='button'
+  >
+    {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
+  </BsButton>
+</div>
 
 <div class='mb-3'>
   <div class='range-slider--container'>
@@ -60,9 +90,9 @@
 </div>
 
 <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation
-  @selectPreviousTraceStep={{this.selectPreviousTraceStep}}
-  @selectNextTraceStep={{this.selectNextTraceStep}}
-  @currentTraceStepIndex={{this.currentTraceStepIndex}}
+  @selectPreviousTraceStep={{this.previous}}
+  @selectNextTraceStep={{this.next}}
+  @currentTraceStepIndex={{this.index}}
   @traceStepCount={{this.traceSteps.length}}
 />
 
