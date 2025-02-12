@@ -18,6 +18,7 @@ export function defaultRaycastFilter(
     intersection.object.parent instanceof CommunicationArrowMesh ||
     intersection.object instanceof PingMesh ||
     intersection.object instanceof CrosshairMesh ||
+    intersection.object.type === 'AxesHelper' ||
     isChildOfText(intersection)
   );
 }
