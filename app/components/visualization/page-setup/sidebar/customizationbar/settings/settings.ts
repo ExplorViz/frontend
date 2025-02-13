@@ -190,6 +190,7 @@ export default class Settings extends Component<Args> {
         break;
       case 'commThickness':
       case 'commArrowSize':
+      case 'commArrowOffset':
       case 'curvyCommHeight':
         if (this.args.redrawCommunication && this.args.updateHighlighting) {
           this.args.redrawCommunication();

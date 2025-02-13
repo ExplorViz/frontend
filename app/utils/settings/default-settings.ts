@@ -234,11 +234,20 @@ export const defaultVizSettings: VisualizationSettings = {
   commArrowSize: {
     level: SettingLevel.DEFAULT,
     value: 2.0,
-    range: { min: 0.0, max: 5.0, step: 0.25 },
+    range: { min: 0.0, max: 10.0, step: 0.25 },
     group: 'Communication',
-    displayName: 'Arrow Size in Application Visualization',
+    displayName: 'Arrow Size',
     description:
       'Arrow Size for selected communications in application visualization',
+    isRangeSetting: true,
+  },
+  commArrowOffset: {
+    level: SettingLevel.EXTENDED,
+    value: 4.0,
+    range: { min: -20.0, max: 20.0, step: 0.25 },
+    group: 'Communication',
+    displayName: 'Arrow Offset',
+    description: 'Distance between arrow and communication line',
     isRangeSetting: true,
   },
   curvyCommHeight: {
@@ -246,7 +255,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 1.0,
     range: { min: 0.0, max: 5.0, step: 0.1 },
     group: 'Communication',
-    displayName: 'Curviness Factor of the Communication Lines',
+    displayName: 'Communication Curviness',
     description:
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,

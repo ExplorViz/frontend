@@ -58,19 +58,14 @@ export default class CommunicationRendering {
     curveHeight: number,
     viewCenterPoint: Vector3
   ) {
-    const arrowOffset = 0.8;
+    const arrowOffset =
+      this.userSettings.visualizationSettings.commArrowOffset.value;
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
-    const arrowColorHex =
-      this.userSettings.colors.communicationArrowColor.getHex();
+    const arrowColor = this.userSettings.colors.communicationArrowColor;
 
     if (arrowThickness > 0.0) {
-      pipe.addArrows(
-        viewCenterPoint,
-        arrowThickness,
-        arrowHeight,
-        arrowColorHex
-      );
+      pipe.addArrows(viewCenterPoint, arrowThickness, arrowHeight, arrowColor);
     }
   }
 
