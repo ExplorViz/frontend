@@ -21,7 +21,7 @@ export default class ReactModifier extends Modifier {
   ) {
     if (!this.root) {
       this.root = createRoot(element);
-      registerDestructor(this, () => this.root.unmount());
+      registerDestructor(this, () => this.root!.unmount());
     }
     this.root.render(createElement(reactComponent, { ...props }));
   }
