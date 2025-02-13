@@ -2,24 +2,22 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import {
   DynamicLandscapeData,
-  Span,
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { action } from '@ember/object';
-import {
-  Class,
-  StructureLandscapeData,
-} from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { StructureLandscapeData } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
+import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
+import { service } from '@ember/service';
+import RenderingService from 'explorviz-frontend/services/rendering-service';
 
 interface Args {
-  moveCameraTo(emberModel: Class | Span): void;
-
   highlightTrace(trace: Trace, traceStep: string): void;
 
   removeHighlighting(): void;
 
+  renderingLoop: RenderingLoop;
   readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
 }
@@ -38,9 +36,13 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
     );
   }
 
+  @service('rendering-service')
+  renderingService!: RenderingService;
+
   @action
   selectTrace(trace: Trace) {
     if (trace !== this.selectedTrace) {
+      this.renderingService.pauseVisualizationUpdating(true);
       this.selectedTrace = trace;
       const traceSteps = getSortedTraceSpans(trace);
 
@@ -51,6 +53,7 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
       }
     } else {
       // Reset highlighting when highlighted trace is clicked again
+      this.renderingService.resumeVisualizationUpdating();
       this.selectedTrace = null;
       this.args.removeHighlighting();
     }

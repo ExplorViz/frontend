@@ -65,8 +65,11 @@ interface BrowserRenderingArgs {
   readonly isDisplayed: boolean;
   readonly snapshot: boolean | undefined | null;
   readonly snapshotReload: SnapshotToken | undefined | null;
+
   openSettingsSidebar(): void;
+
   toggleVisualizationUpdating(): void;
+
   switchToAR(): void;
 }
 
@@ -171,6 +174,12 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   semanticZoomToggle: boolean = false;
 
   get selectedApplicationObject3D() {
+    if (this.selectedApplicationId === '') {
+      // TODO
+      this.selectedApplicationId = this.applicationRenderer
+        .getOpenApplications()[0]
+        .getModelId();
+    }
     return this.applicationRenderer.getApplicationById(
       this.selectedApplicationId
     );
@@ -671,6 +680,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       this.handleDoubleClickOnMesh(mesh);
     }
   }
+
   @action
   handleDoubleClickOnMesh(mesh: THREE.Object3D) {
     if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
