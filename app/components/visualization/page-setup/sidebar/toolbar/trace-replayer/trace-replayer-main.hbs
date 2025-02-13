@@ -12,12 +12,7 @@
     {{svg-jar 'chevron-left-16' class='octicon align-middle'}}
   </BsButton>
 
-  <BsButton
-    class='th-btn'
-    title='Next'
-    @onClick={{this.stop}}
-    @type='button'
-  >
+  <BsButton class='th-btn' title='Next' @onClick={{this.stop}} @type='button'>
     {{svg-jar 'square-fill-16' class='octicon align-middle'}}
   </BsButton>
 
@@ -41,12 +36,7 @@
     </BsButton>
   {{/if}}
 
-  <BsButton
-    class='th-btn'
-    title='Next'
-    @onClick={{this.next}}
-    @type='button'
-  >
+  <BsButton class='th-btn' title='Next' @onClick={{this.next}} @type='button'>
     {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
   </BsButton>
 </div>
@@ -54,7 +44,9 @@
 <div class='mb-3'>
   <div class='range-slider--container'>
     <div style='width: 100%;'>
+      <label for='trace-speed-selector'>Playback speed</label>
       <input
+        id='trace-speed-slider'
         value={{this.selectedSpeed}}
         min={{this.minSpeed}}
         max={{this.maxSpeed}}
@@ -76,10 +68,12 @@
 <div class='mb-3'>
   <div class='range-slider--container'>
     <div style='width: 100%;'>
+      <label for='trace-progress'>Progress</label>
       <input
+        id='trace-progress'
         value={{this.progress}}
-        min=0
-        max=100
+        min='0'
+        max='100'
         type='range'
         step='1'
         class='form-control mr-2'
@@ -96,7 +90,7 @@
   @traceStepCount={{this.traceSteps.length}}
 />
 
-<hr/>
+<hr />
 
 <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
   @operationName={{this.operationName}}

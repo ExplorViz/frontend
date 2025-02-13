@@ -83,9 +83,9 @@ export class Afterimage {
   }
 }
 
-class Leg {
-  constructor() {}
-}
+// class Leg {
+//   constructor() {}
+// }
 
 class Record {
   public clazz: Class;
@@ -254,13 +254,13 @@ export default class TraceReplayerMain extends Component<Args> {
         this.afterimages.add(new Afterimage(origin.mesh));
         this.afterimages.add(new Afterimage(target.mesh));
 
-        let scale = this.applicationRenderer.landscape3D.scale;
-        let support = this.applicationRenderer.landscape3D.position;
-        let start = this.applicationRenderer
+        const scale = this.applicationRenderer.landscape3D.scale;
+        const support = this.applicationRenderer.landscape3D.position;
+        const start = this.applicationRenderer
           .getPositionInLandscape(origin.mesh)
           .multiply(scale)
           .add(support);
-        let end = this.applicationRenderer
+        const end = this.applicationRenderer
           .getPositionInLandscape(target.mesh)
           .multiply(scale)
           .add(support);
@@ -365,7 +365,7 @@ export default class TraceReplayerMain extends Component<Args> {
       this.turnComponentAndAncestorsTransparent(clazz.parent, 1);
     });
 
-    for (let mesh of this.meshes) {
+    for (const mesh of this.meshes) {
       this.args.renderingLoop.scene.remove(mesh);
     }
     this.meshes.clear();
