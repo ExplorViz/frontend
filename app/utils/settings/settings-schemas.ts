@@ -58,6 +58,7 @@ export type ControlSettings = {
 export type CommunicationSettingId =
   | 'commThickness'
   | 'commArrowSize'
+  | 'commArrowOffset'
   | 'curvyCommHeight';
 
 export type CommunicationSettings = Record<

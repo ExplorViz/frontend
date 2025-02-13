@@ -182,23 +182,19 @@ export default class LinkRenderer extends Service.extend({}) {
     viewCenterPoint: THREE.Vector3
   ) {
     pipe.children.forEach((child) => {
-      if (child instanceof CommunicationArrowMesh) child.dispose();
-      pipe.remove(child);
+      if (child instanceof CommunicationArrowMesh) {
+        pipe.remove(child);
+        child.disposeRecursively();
+      }
     });
 
-    const arrowOffset = 1;
+    const arrowOffset = this.appSettings.commArrowOffset.value;
     const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness = this.appSettings.commArrowSize.value;
-    const arrowColorHex =
-      this.userSettings.colors.communicationArrowColor.getHex();
+    const arrowColor = this.userSettings.colors.communicationArrowColor;
 
     if (arrowThickness > 0.0) {
-      pipe.addArrows(
-        viewCenterPoint,
-        arrowThickness,
-        arrowHeight,
-        arrowColorHex
-      );
+      pipe.addArrows(viewCenterPoint, arrowThickness, arrowHeight, arrowColor);
     }
 
     if (pipe.material.opacity !== 1) {
