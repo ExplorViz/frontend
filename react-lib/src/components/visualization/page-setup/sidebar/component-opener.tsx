@@ -1,12 +1,11 @@
 import React, { useCallback } from 'react';
-import PropTypes from 'prop-types'; // Optional, for type checking
 
 export default function ComponentOpener({
   openedComponent,
   componentTitle,
   componentId,
   toggleComponent,
-}) {
+}: ComponentOpenerProps) {
   const isOpen = openedComponent === componentId;
 
   const handleToggleComponent = useCallback(() => {
@@ -28,9 +27,9 @@ export default function ComponentOpener({
   );
 }
 
-ComponentOpener.propTypes = {
-  openedComponent: PropTypes.string, // Or PropTypes.oneOf([PropTypes.string, PropTypes.oneOf([null])]) if null is allowed
-  componentTitle: PropTypes.string.isRequired,
-  componentId: PropTypes.string.isRequired,
-  toggleComponent: PropTypes.func.isRequired,
+type ComponentOpenerProps = {
+  openedComponent: string;
+  componentTitle: string;
+  componentId: string;
+  toggleComponent: (componentId: string) => void;
 };

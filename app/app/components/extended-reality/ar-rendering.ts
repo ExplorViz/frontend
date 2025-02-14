@@ -37,6 +37,11 @@ import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
+import ArSettingsOpener from 'react-lib/src/components/extended-reality/visualization/page-setup/navbar/ar-settings-opener.tsx';
+import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
+import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
+import MetricsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/metrics/metrics-opener.tsx';
+
 interface Args {
   readonly landscapeData: LandscapeData;
   readonly openedSettingComponent: string | null;
@@ -52,6 +57,10 @@ interface Args {
 export default class ArRendering extends Component<Args> {
   // React component refs
   loadingIndicator = LoadingIndicator;
+  arSettingsOpener = ArSettingsOpener;
+  collaborationOpener = CollaborationOpener;
+  metricsOpener = MetricsOpener;
+  settingsOpener = SettingsOpener;
 
   // #region CLASS FIELDS AND GETTERS
 

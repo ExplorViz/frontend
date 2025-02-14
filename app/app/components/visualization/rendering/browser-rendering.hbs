@@ -117,17 +117,26 @@
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              <Visualization::PageSetup::Sidebar::Toolbar::EntityFiltering::EntityFilteringOpener
-                @openedComponent={{@openedToolComponent}}
-                @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
+              <div
+                {{react
+                  this.entityFilteringOpener
+                  openedComponent=@openedToolComponent
+                  toggleToolsSidebarComponent=@toggleToolsSidebarComponent
+                }}
               />
-              <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearchOpener
-                @openedComponent={{@openedToolComponent}}
-                @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
+              <div
+                {{react
+                  this.applicationSearchOpener
+                  openedComponent=@openedToolComponent
+                  toggleToolsSidebarComponent=@toggleToolsSidebarComponent
+                }}
               />
-              <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceReplayerOpener
-                @openedComponent={{@openedToolComponent}}
-                @toggleToolsSidebarComponent={{@toggleToolsSidebarComponent}}
+              <div
+                {{react
+                  this.traceReplayerOpener
+                  openedComponent=@openedToolComponent
+                  toggleToolsSidebarComponent=@toggleToolsSidebarComponent
+                }}
               />
             </ul>
           </div>
@@ -173,29 +182,47 @@
         >
           <div class='explorviz-visualization-navbar'>
             <ul class='nav justify-content-center'>
-              <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationOpener
-                @openedComponent={{@openedSettingComponent}}
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              <div
+                {{react
+                  this.collaborationOpener
+                  openedComponent=@openedSettingComponent
+                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
+                }}
               />
-              <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettingsOpener
-                @openedComponent={{@openedSettingComponent}}
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              <div
+                {{react
+                  this.vscodeExtensionOpener
+                  openedComponent=@openedSettingComponent
+                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
+                }}
               />
-              <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::RestructureOpener
-                @openedComponent={{@openedSettingComponent}}
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              <div
+                {{react
+                  this.restructureOpener
+                  openedComponent=@openedSettingComponent
+                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
+                }}
               />
-              <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsOpener
-                @openedComponent={{@openedSettingComponent}}
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              <div
+                {{react
+                  this.metricsOpener
+                  openedComponent=@openedSettingComponent
+                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
+                }}
               />
-              <Visualization::PageSetup::Sidebar::Customizationbar::Snapshot::SnapshotOpener
-                @openedComponent={{@openedSettingComponent}}
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              <div
+                {{react
+                  this.snapshotOpener
+                  openedComponent=@openedSettingComponent
+                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
+                }}
               />
-              <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingsOpener
-                @openedComponent={{@openedSettingComponent}}
-                @toggleSettingsSidebarComponent={{@toggleSettingsSidebarComponent}}
+              <div
+                {{react
+                  this.settingsOpener
+                  openedComponent=@openedSettingComponent
+                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
+                }}
               />
             </ul>
           </div>

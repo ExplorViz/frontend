@@ -60,6 +60,16 @@ import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
 import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
+import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
+import VscodeExtensionOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener.tsx';
+import RestructureOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener.tsx';
+import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
+import SnapshotOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener.tsx';
+import MetricsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/metrics/metrics-opener.tsx';
+import TraceReplayerOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener.tsx';
+import ApplicationSearchOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener.tsx';
+import EntityFilteringOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener.tsx';
+
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
@@ -78,6 +88,15 @@ interface BrowserRenderingArgs {
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   // React component refs
   loadingIndicator = LoadingIndicator;
+  collaborationOpener = CollaborationOpener;
+  vscodeExtensionOpener = VscodeExtensionOpener;
+  restructureOpener = RestructureOpener;
+  metricsOpener = MetricsOpener;
+  snapshotOpener = SnapshotOpener;
+  settingsOpener = SettingsOpener;
+  traceReplayerOpener = TraceReplayerOpener;
+  applicationSearchOpener = ApplicationSearchOpener;
+  entityFilteringOpener = EntityFilteringOpener;
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
