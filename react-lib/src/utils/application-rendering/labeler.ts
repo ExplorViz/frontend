@@ -10,7 +10,10 @@ import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
 import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh';
 import { SceneLayers } from 'react-lib/src/stores/minimap-service';
-import { ExplorVizColors } from 'react-lib/src/stores/user-settings';
+import {
+  ExplorVizColors,
+  useUserSettingsStore,
+} from 'react-lib/src/stores/user-settings';
 import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
 import ClazzLabelMesh from 'react-lib/src/view-objects/3d/application/clazz-label-mesh';
 
@@ -76,19 +79,19 @@ export function addApplicationLabels(
   application: ApplicationObject3D,
   font: Font,
   colors: ExplorVizColors,
-  labelAll: boolean = false
+  labelAll: boolean = false,
+  replace = false
 ) {
   /**
    * Adds labels to all box meshes of a given application
    */
   const { componentTextColor, foundationTextColor, clazzTextColor } = colors;
-  // clazzTextColor was used for addClazzTextLabel
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
       if (mesh instanceof ClazzMesh) {
-        addClazzTextLabel(mesh, font, clazzTextColor);
+        addClazzTextLabel(mesh, font, clazzTextColor, replace);
       } else if (mesh instanceof ComponentMesh) {
         addBoxTextLabel(mesh, font, componentTextColor);
       } else if (mesh instanceof FoundationMesh) {
@@ -115,10 +118,9 @@ export function addBoxTextLabel(
   font: Font,
   color: THREE.Color,
   minHeight = 1.5,
-  minLength = 4,
-  replace = false
+  minLength = 4
 ) {
-  if (boxMesh.labelMesh && !replace) return;
+  if (boxMesh.labelMesh) return;
   const labelMesh = new ComponentLabelMesh(
     boxMesh,
     font,
@@ -146,14 +148,25 @@ export function addClazzTextLabel(
   clazzMesh: ClazzMesh,
   font: Font,
   color: THREE.Color,
-  size = 0.75,
   replace = false
 ) {
   if (clazzMesh.labelMesh && !replace) return;
+  if (clazzMesh.labelMesh && replace) {
+    clazzMesh.remove(clazzMesh.labelMesh);
+    clazzMesh.labelMesh.disposeRecursively();
+  }
+
+  const size =
+    useUserSettingsStore.getState().visualizationSettings.classLabelFontSize
+      .value;
+  const letterLimit =
+    useUserSettingsStore.getState().visualizationSettings.classLabelLength
+      .value;
+  if (size <= 0 || letterLimit <= 0) return;
 
   const text = clazzMesh.dataModel.name;
 
-  const labelMesh = new ClazzLabelMesh(font, text, color, size);
+  const labelMesh = new ClazzLabelMesh(font, text, color, size, letterLimit);
   clazzMesh.labelMesh = labelMesh;
   //Rotate text and position
   positionClassLabel(labelMesh, clazzMesh);
@@ -169,12 +182,20 @@ export function positionClassLabel(
   // Set label origin to center of clazz mesh
   labelMesh.geometry.center();
 
+  const offset =
+    useUserSettingsStore.getState().visualizationSettings.classLabelOffset
+      .value;
+
   // Set y-position just above the clazz mesh
-  labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + 0.01;
+  labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + offset;
 
   // Rotate text
   labelMesh.rotation.x = -(Math.PI / 2);
-  labelMesh.rotation.z = 0.3;
+
+  const rotation =
+    useUserSettingsStore.getState().visualizationSettings.classLabelOrientation
+      .value;
+  labelMesh.rotation.z = rotation;
 }
 
 export function createClazzTextLabelForZoomLevel(

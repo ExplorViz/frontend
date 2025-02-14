@@ -35,6 +35,7 @@ interface UserSettingsState {
   // Until that, constructor of Ember service will set the state
   colors: ExplorVizColors | undefined;
   // _constructApplicationColors: () => ApplicationColors;
+  applyDefaultSettingsForGroup: (groupId: string) => void;
   applyDefaultSettings: (saveToLocalStorage: boolean) => void;
   // shareVisualizationSettings: () => void;
   updateSettings: (settings: VisualizationSettings) => void;
@@ -62,6 +63,19 @@ export const useUserSettingsStore = createStore<UserSettingsState>(
 
     //   return get().applicationColors;
     // },
+
+    applyDefaultSettingsForGroup(groupId: string) {
+      const defaultSettings = JSON.parse(JSON.stringify(defaultVizSettings));
+      let settingId: keyof VisualizationSettings;
+      const visualizationSettings = get().visualizationSettings;
+      for (settingId in visualizationSettings) {
+        const setting = visualizationSettings[settingId];
+        if (setting.group === groupId) {
+          visualizationSettings[settingId] = defaultSettings[settingId];
+        }
+      }
+      saveSettings(get().visualizationSettings);
+    },
 
     applyDefaultSettings: (saveToLocalStorage = true) => {
       set({

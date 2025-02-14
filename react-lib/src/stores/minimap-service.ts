@@ -50,7 +50,7 @@ interface MinimapState {
     name: string
   ) => void;
   deleteUserMinimapMarker: (name: string) => void;
-  isClickInsideMinimap: (event: MouseEvent) => boolean;
+  isMouseInsideMinimap: (event: MouseEvent) => boolean;
   // handleHit: (userHit: RemoteUser) => void;
   toggleFullsizeMinimap: (value: boolean) => void;
   raycastForObjects: (
@@ -153,7 +153,10 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
   // TODO private
   getCurrentPosition: () => {
     const userPosition = new THREE.Vector3();
-    if (!useUserSettingsStore.getState().visualizationSettings.version2.value) {
+    if (
+      !useUserSettingsStore.getState().visualizationSettings.useCameraPosition
+        .value
+    ) {
       userPosition.copy(get().cameraControls!.perspectiveCameraControls.target);
     } else {
       userPosition.copy(useLocalUserStore.getState().getCamera().position);
@@ -257,7 +260,10 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
    * @param event MouseEvent of the click
    * @returns true if the click is inside the minimap
    */
-  isClickInsideMinimap: (event: MouseEvent) => {
+  isMouseInsideMinimap: (event: MouseEvent) => {
+    // Avoid unnecessary computations
+    if (!get().minimapEnabled) return false;
+
     const minimap = get().minimap();
     const minimapHeight = minimap[0];
     const minimapWidth = minimap[1];
@@ -393,10 +399,14 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     const minimapCamera = useLocalUserStore.getState().minimapCamera;
     const distance = get().distance!;
 
-    minimapCamera.left = -boundingBoxWidth / 2 / distance;
-    minimapCamera.right = boundingBoxWidth / 2 / distance;
-    minimapCamera.top = boundingBoxHeight / 2 / distance;
-    minimapCamera.bottom = -boundingBoxHeight / 2 / distance;
+    // Compute angle such that landscape fits by default (+ distance modifier)
+    const cameraAngle =
+      Math.max(boundingBoxWidth, boundingBoxHeight) / 2 / distance;
+    // Use same camera angle for all directions since minimap is a square
+    minimapCamera.left = -cameraAngle;
+    minimapCamera.right = cameraAngle;
+    minimapCamera.top = cameraAngle;
+    minimapCamera.bottom = -cameraAngle;
 
     if (
       useUserSettingsStore.getState().visualizationSettings.zoom.value != 1 &&

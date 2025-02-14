@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+sed -i "s#change-code-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html
+
 sed -i "s#change-span-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html
 
 sed -i "s#change-user-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html

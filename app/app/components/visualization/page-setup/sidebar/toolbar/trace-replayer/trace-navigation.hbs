@@ -12,14 +12,14 @@
     Step
     <strong>{{inc @currentTraceStepIndex}}</strong>
     of
-    {{@traceStepCount}}
+    {{@traceLength}}
   </div>
   <BsButton
     title='One step forward'
     @onClick={{@selectNextTraceStep}}
     @type='secondary'
     @outline={{true}}
-    @disabled={{gte @currentTraceStepIndex (dec @traceStepCount)}}
+    @disabled={{gte @currentTraceStepIndex (dec @traceLength)}}
   >
     {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
   </BsButton>

@@ -626,7 +626,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
   async updateApplicationLayout() {
     const boxLayoutMap = await layoutLandscape(
-      this.landscape3D.dataModel.structure.k8sNodes,
+      this.landscape3D.dataModel.structure.k8sNodes!,
       getApplicationsFromNodes(this.landscape3D.dataModel.structure.nodes)
     );
 
@@ -634,6 +634,18 @@ export default class ApplicationRenderer extends Service.extend() {
 
     // Update communication since position of classes may have changed
     this.addCommunicationForAllApplications();
+  }
+
+  updateLabels() {
+    this.getOpenApplications().forEach((app3D) => {
+      Labeler.addApplicationLabels(
+        app3D,
+        this.font,
+        this.userSettings.colors,
+        false,
+        true
+      );
+    });
   }
 
   // #endregion

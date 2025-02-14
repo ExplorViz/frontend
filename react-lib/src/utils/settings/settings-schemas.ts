@@ -58,6 +58,7 @@ export type ControlSettings = {
 export type CommunicationSettingId =
   | 'commThickness'
   | 'commArrowSize'
+  | 'commArrowOffset'
   | 'curvyCommHeight';
 
 export type CommunicationSettings = Record<
@@ -66,6 +67,7 @@ export type CommunicationSettings = Record<
 >;
 
 export type DebugSettingId =
+  | 'showExtendedSettings'
   | 'showFpsCounter'
   | 'showAxesHelper'
   | 'showLightHelper'
@@ -75,6 +77,7 @@ export type DebugSettingId =
   | 'resetToDefaults';
 
 export type DebugSettings = {
+  showExtendedSettings: FlagSetting;
   showFpsCounter: FlagSetting;
   showAxesHelper: FlagSetting;
   showLightHelper: FlagSetting;
@@ -115,6 +118,10 @@ export type LayoutSettingId =
   | 'applicationAspectRatio'
   | 'classFootprint'
   | 'classMargin'
+  | 'classLabelFontSize'
+  | 'classLabelLength'
+  | 'classLabelOffset'
+  | 'classLabelOrientation'
   | 'appLabelMargin'
   | 'appMargin'
   | 'packageLabelMargin'
@@ -127,7 +134,7 @@ export type LayoutSettings = Record<LayoutSettingId, RangeSetting>;
 export type MinimapSettingId =
   | 'minimap'
   | 'zoom'
-  | 'version2'
+  | 'useCameraPosition'
   | 'layer1'
   | 'layer2'
   | 'layer3'
@@ -138,7 +145,7 @@ export type MinimapSettingId =
 export type MinimapSettings = {
   minimap: FlagSetting;
   zoom: RangeSetting;
-  version2: FlagSetting;
+  useCameraPosition: FlagSetting;
   layer1: FlagSetting;
   layer2: FlagSetting;
   layer3: FlagSetting;
@@ -215,10 +222,19 @@ export type VisualizationSettings = AnnotationSettings &
   XrSettings &
   ColorSettings;
 
-export interface Setting<T> {
+export enum SettingLevel {
+  DEFAULT,
+  EXTENDED,
+  DEVELOPER,
+}
+
+export type Setting<T> = {
   value: T;
   group: SettingGroup;
-}
+  displayName: string;
+  description: string;
+  level: SettingLevel;
+};
 
 export interface ButtonSetting extends Setting<boolean> {
   type:
@@ -231,26 +247,19 @@ export interface ButtonSetting extends Setting<boolean> {
     | 'light'
     | 'dark'
     | 'link';
-  displayName: string;
-  description: string;
   buttonText: string;
   readonly isButtonSetting: true;
 }
 
 export interface FlagSetting extends Setting<boolean> {
-  displayName: string;
-  description: string;
   readonly isFlagSetting: true;
 }
 
 export interface ColorSetting extends Setting<string> {
-  displayName: string;
   readonly isColorSetting: true;
 }
 
 export interface RangeSetting extends Setting<number> {
-  displayName: string;
-  description: string;
   range: {
     min: number;
     max: number;

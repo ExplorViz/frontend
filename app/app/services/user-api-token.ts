@@ -3,7 +3,7 @@ import Auth from './auth';
 import ENV from 'explorviz-frontend/config/environment';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
-const { userServiceApi } = ENV.backendAddresses;
+const { userService } = ENV.backendAddresses;
 
 export type ApiToken = {
   uid: string;
@@ -28,7 +28,7 @@ export default class UserApiTokenService extends Service {
         resolve([]);
       }
 
-      fetch(`${userServiceApi}/userapi?uId=${this.auth.user!.sub}`, {
+      fetch(`${userService}/userapi?uId=${this.auth.user!.sub}`, {
         headers: {
           Authorization: `Bearer ${this.auth.accessToken}`,
         },
@@ -54,7 +54,7 @@ export default class UserApiTokenService extends Service {
   }
 
   async deleteApiToken(apiToken: string, uId: string) {
-    const url = `${userServiceApi}/userapi/delete?uId=${uId}&token=${apiToken}`;
+    const url = `${userService}/userapi/delete?uId=${uId}&token=${apiToken}`;
     const response = await fetch(url, {
       method: 'DELETE',
     });
@@ -83,8 +83,8 @@ export default class UserApiTokenService extends Service {
 
     const url =
       expDate !== null
-        ? `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}&expires=${expDate}`
-        : `${userServiceApi}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}`;
+        ? `${userService}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}&expires=${expDate}`
+        : `${userService}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}`;
     const response = await fetch(url, {
       method: 'POST',
     });

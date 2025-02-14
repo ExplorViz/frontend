@@ -1,15 +1,96 @@
 <h5 align='center'>
-  Trace Replayer
+  Trace Player
 </h5>
 
+<div align='center' class='mb-3'>
+  <BsButton
+    class='th-btn'
+    title='Previous'
+    @onClick={{this.previous}}
+    @type='button'
+  >
+    {{svg-jar 'chevron-left-16' class='octicon align-middle'}}
+  </BsButton>
+
+  <BsButton class='th-btn' title='Next' @onClick={{this.stop}} @type='button'>
+    {{svg-jar 'square-fill-16' class='octicon align-middle'}}
+  </BsButton>
+
+  {{#if this.paused}}
+    <BsButton
+      class='th-btn'
+      title='Play'
+      @onClick={{this.start}}
+      @type='button'
+    >
+      {{svg-jar 'play-16' class='octicon align-middle'}}
+    </BsButton>
+  {{else}}
+    <BsButton
+      class='th-btn navbar-highlight playing'
+      title='Stop'
+      @onClick={{this.pause}}
+      @type='button'
+    >
+      {{svg-jar 'x-circle-16' class='octicon align-middle'}}
+    </BsButton>
+  {{/if}}
+
+  <BsButton class='th-btn' title='Next' @onClick={{this.next}} @type='button'>
+    {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
+  </BsButton>
+</div>
+
+<div class='mb-3'>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <label for='trace-speed-selector'>Playback speed</label>
+      <input
+        id='trace-speed-slider'
+        value={{this.selectedSpeed}}
+        min={{this.minSpeed}}
+        max={{this.maxSpeed}}
+        type='range'
+        step='1'
+        class='form-control mr-2'
+        onchange={{this.changeSpeed}}
+        oninput={{fn this.inputSpeed this}}
+      />
+      <div class='range-slider--values'>
+        <span>{{this.minSpeed}}</span>
+        <span style='font-weight: bold;'>{{this.selectedSpeed}}</span>
+        <span>{{this.maxSpeed}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class='mb-3'>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <label for='trace-progress'>Progress</label>
+      <input
+        id='trace-progress'
+        value={{this.progress}}
+        min='0'
+        max='100'
+        type='range'
+        step='1'
+        class='form-control mr-2'
+      />
+      {{this.progress}}%
+    </div>
+  </div>
+</div>
+
 <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation
-  @selectPreviousTraceStep={{this.selectPreviousTraceStep}}
-  @selectNextTraceStep={{this.selectNextTraceStep}}
-  @currentTraceStepIndex={{this.currentTraceStepIndex}}
-  @traceStepCount={{this.traceSteps.length}}
+  @selectPreviousTraceStep={{this.previous}}
+  @selectNextTraceStep={{this.next}}
+  @currentTraceStepIndex={{this.index}}
+  @traceLength={{this.trace.length}}
 />
 
-<hr/>
+<hr />
 
 <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
   @operationName={{this.operationName}}

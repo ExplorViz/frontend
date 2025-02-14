@@ -248,9 +248,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    */
   addArrows(
     applicationCenter = new THREE.Vector3(),
-    width = 1,
-    yOffset = 1,
-    color = 0x000000
+    width: number,
+    yOffset: number,
+    color: THREE.Color
   ) {
     const { layout } = this;
     // Scale arrow with communication line thickness
@@ -307,7 +307,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     end: THREE.Vector3,
     width: number,
     yOffset: number,
-    color: number
+    color: THREE.Color
   ) {
     const dir = new THREE.Vector3().subVectors(end, start);
     const len = dir.length();
@@ -354,7 +354,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     end: THREE.Vector3,
     width: number,
     yOffset: number,
-    color: number
+    color: THREE.Color
   ) {
     const dir = new THREE.Vector3().subVectors(end, start);
     const len = dir.length();

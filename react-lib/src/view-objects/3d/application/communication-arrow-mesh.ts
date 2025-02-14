@@ -3,10 +3,12 @@ import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/cl
 import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
 import { SemanticZoomableObjectBaseMixin } from './utils/semantic-zoom-manager';
+import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh';
 
-class CommunicationArrowMeshPrivate extends THREE.ArrowHelper {
+class CommunicationArrowMeshPrivate extends BaseMesh {
   dataModel: ClassCommunication | ComponentCommunication;
 
+  _axis = new THREE.Vector3();
   isHovered = false;
 
   HOVER_Y_TRANSLATION = 2;
@@ -17,42 +19,51 @@ class CommunicationArrowMeshPrivate extends THREE.ArrowHelper {
     dir: THREE.Vector3,
     origin: THREE.Vector3,
     length: number,
-    color: number,
+    color: THREE.Color,
     headLength: number,
     headWidth: number
   ) {
-    super(dir, origin, length, color, headLength, headWidth);
+    super(color);
     this.dataModel = dataModel;
+
+    this.material = new THREE.MeshBasicMaterial({
+      color: color,
+      toneMapped: false,
+    });
+    this.geometry = new THREE.CylinderGeometry(0, 0.5, 1, 5, 1);
+    this.geometry.translate(0, -0.5, 0);
+
+    this.position.copy(origin);
+
+    this.matrixAutoUpdate = true;
+
+    this.setDirection(dir);
+    this.setLength(length, headLength, headWidth);
   }
 
-  /**
-   * Deletes this arrow from its parent and dispose the arrow's geomeries and materials
-   */
-  delete() {
-    if (this.parent) {
-      this.parent.remove(this);
-    }
-    const { line } = this;
-    line.geometry.dispose();
+  setDirection(dir: THREE.Vector3) {
+    // dir is assumed to be normalized
 
-    if (line.material instanceof THREE.Material) {
-      line.material.dispose();
-    }
+    if (dir.y > 0.99999) {
+      this.quaternion.set(0, 0, 0, 1);
+    } else if (dir.y < -0.99999) {
+      this.quaternion.set(1, 0, 0, 0);
+    } else {
+      this._axis.set(dir.z, 0, -dir.x).normalize();
 
-    const { cone } = this;
-    cone.geometry.dispose();
-    if (cone.material instanceof THREE.Material) {
-      cone.material.dispose();
+      const radians = Math.acos(dir.y);
+
+      this.quaternion.setFromAxisAngle(this._axis, radians);
     }
   }
 
-  updateColor(color: THREE.Color) {
-    if (this.line.material instanceof THREE.LineBasicMaterial) {
-      this.line.material.color = color;
-    }
-    if (this.cone.material instanceof THREE.MeshBasicMaterial) {
-      this.cone.material.color = color;
-    }
+  setLength(
+    length: number,
+    headLength = length * 0.2,
+    headWidth = headLength * 0.2
+  ) {
+    this.scale.set(headWidth, headLength, headWidth);
+    this.updateMatrix();
   }
 
   /**
@@ -63,40 +74,24 @@ class CommunicationArrowMeshPrivate extends THREE.ArrowHelper {
   changeOpacity(opacity: number) {
     const isTransparent = opacity < 1;
 
-    if (this.line.material instanceof THREE.Material) {
-      this.line.material.opacity = opacity;
-      this.line.material.transparent = isTransparent;
-      this.line.material.needsUpdate = true;
-    }
-
-    if (this.cone.material instanceof THREE.Material) {
-      this.cone.material.opacity = opacity;
-      this.cone.material.transparent = isTransparent;
-      this.cone.material.needsUpdate = true;
+    if (this.material instanceof THREE.Material) {
+      this.material.opacity = opacity;
+      this.material.transparent = isTransparent;
+      this.material.needsUpdate = true;
     }
   }
 
   hide() {
-    if (this.line.material instanceof THREE.Material) {
-      this.line.material.visible = false;
-      this.line.material.needsUpdate = true;
-    }
-
-    if (this.cone.material instanceof THREE.Material) {
-      this.cone.material.visible = false;
-      this.cone.material.needsUpdate = true;
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = false;
+      this.material.needsUpdate = true;
     }
   }
 
   show() {
-    if (this.line.material instanceof THREE.Material) {
-      this.line.material.visible = true;
-      this.line.material.needsUpdate = true;
-    }
-
-    if (this.cone.material instanceof THREE.Material) {
-      this.cone.material.visible = true;
-      this.cone.material.needsUpdate = true;
+    if (this.material instanceof THREE.Material) {
+      this.material.visible = true;
+      this.material.needsUpdate = true;
     }
   }
 
@@ -153,7 +148,7 @@ export default class CommunicationArrowMesh extends SemanticZoomableObjectBaseMi
     dir: THREE.Vector3,
     origin: THREE.Vector3,
     length: number,
-    color: number,
+    color: THREE.Color,
     headLength: number,
     headWidth: number
   ) {

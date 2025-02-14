@@ -29,7 +29,6 @@ declare const config: {
     gitlabApi: string;
     spanService: string;
     userService: string;
-    userServiceApi: string;
     vsCodeService: string;
     collaborationService: string;
     metricsService: string;

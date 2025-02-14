@@ -123,6 +123,9 @@ export default class MinimapService extends Service {
   }
 
   tick() {
+    // Avoid unnecessary computations
+    if (!useMinimapStore.getState().minimapEnabled) return;
+
     useMinimapStore.getState().getCurrentPosition();
     this.updateMinimapCamera();
     this.updateUserMinimapMarker(this.userPosition, 'localUser');
@@ -132,6 +135,18 @@ export default class MinimapService extends Service {
   // tick() {
   //   useMinimapStore.getState().tick();
   // }
+
+  addZoomDelta(zoomDelta: number) {
+    const zoomSetting = this.userSettings.visualizationSettings.zoom;
+    const newZoom = zoomSetting.value + zoomDelta;
+    if (newZoom < zoomSetting.range.min) {
+      this.userSettings.updateSetting('zoom', zoomSetting.range.min);
+    } else if (newZoom > zoomSetting.range.max) {
+      this.userSettings.updateSetting('zoom', zoomSetting.range.max);
+    } else {
+      this.userSettings.updateSetting('zoom', newZoom);
+    }
+  }
 
   /**
    * Function used for initializing a minimap marker for a user
@@ -190,8 +205,8 @@ export default class MinimapService extends Service {
    * @param event MouseEvent of the click
    * @returns true if the click is inside the minimap
    */
-  isClickInsideMinimap(event: MouseEvent): boolean {
-    return useMinimapStore.getState().isClickInsideMinimap(event);
+  isMouseInsideMinimap(event: MouseEvent): boolean {
+    return useMinimapStore.getState().isMouseInsideMinimap(event);
   }
 
   /**

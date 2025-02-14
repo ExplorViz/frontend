@@ -79,6 +79,19 @@ export default class UserSettings extends Service {
     this.updateColors();
   }
 
+  applyDefaultSettingsForGroup(groupId: string) {
+    const defaultSettings = JSON.parse(JSON.stringify(defaultVizSettings));
+    let settingId: keyof VisualizationSettings;
+    const visualizationSettings = this.visualizationSettings;
+    for (settingId in visualizationSettings) {
+      const setting = visualizationSettings[settingId];
+      if (setting.group === groupId) {
+        visualizationSettings[settingId] = defaultSettings[settingId];
+      }
+    }
+    saveSettings(this.visualizationSettings);
+  }
+
   // TODO: Wait for corresponding service to be fully migrated
   //        updateColors uses not migrated service
   @action
