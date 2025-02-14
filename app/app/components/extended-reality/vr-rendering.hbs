@@ -29,13 +29,9 @@
     </canvas>
 
     {{#if this.loadNewLandscape.isRunning}}
-      <Visualization::Rendering::LoadingIndicator
-        @text='Loading New Landscape'
-      />
+      <div {{react this.loadingIndicator text='Loading New Landscape'}} />
     {{else if this.addApplication.isRunning}}
-      <Visualization::Rendering::LoadingIndicator
-        @text='Loading New Application'
-      />
+      <div {{react this.loadingIndicator text='Loading New Application'}} />
     {{/if}}
   </div>
   <ExtendedReality::VrButton

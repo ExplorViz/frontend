@@ -1,11 +1,9 @@
 import { action } from '@ember/object';
 import Service, { inject as service } from '@ember/service';
-import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
-  getAllMethodHashesOfLandscapeStructureData,
 } from 'react-lib/src/utils/landscape-structure-helpers';
 import ReloadHandler from './reload-handler';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';

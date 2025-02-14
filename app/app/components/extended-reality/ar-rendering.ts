@@ -36,7 +36,7 @@ import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatm
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-
+import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
 interface Args {
   readonly landscapeData: LandscapeData;
   readonly openedSettingComponent: string | null;
@@ -50,6 +50,9 @@ interface Args {
 }
 
 export default class ArRendering extends Component<Args> {
+  // React component refs
+  loadingIndicator = LoadingIndicator;
+
   // #region CLASS FIELDS AND GETTERS
 
   @service('collaboration/collaboration-session')

@@ -64,6 +64,7 @@ import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-d
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
+import PlayPauseButton from 'react-lib/src/components/visualization/rendering/play-pause-button.tsx';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -79,6 +80,9 @@ export const earthTexture = new THREE.TextureLoader().load(
  * @submodule visualization
  */
 export default class VisualizationController extends Controller {
+  // React template references
+  playPauseButton = PlayPauseButton;
+
   @service('router')
   router!: any;
 

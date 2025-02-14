@@ -94,6 +94,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
+import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
 
 interface Args {
   readonly id: string;
@@ -107,6 +108,9 @@ const MOUSE_MOVE_SPEED = 3.0;
 const MOUSE_ROTATION_SPEED = Math.PI;
 
 export default class VrRendering extends Component<Args> {
+  // React components Refs
+  loadingIndicator = LoadingIndicator;
+
   // #region SERVICES
   @service('extended-reality/detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;

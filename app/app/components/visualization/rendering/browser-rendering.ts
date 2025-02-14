@@ -59,7 +59,7 @@ import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatm
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
-
+import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
 interface BrowserRenderingArgs {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
@@ -76,6 +76,9 @@ interface BrowserRenderingArgs {
 }
 
 export default class BrowserRendering extends Component<BrowserRenderingArgs> {
+  // React component refs
+  loadingIndicator = LoadingIndicator;
+
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 

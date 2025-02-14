@@ -112,8 +112,6 @@
     />
   {{/if}}
   {{#if (eq this.entityType 'k8s')}}
-    <Visualization::Rendering::Popups::K8sPopups::K8sPopup
-      @data={{@popupData.entity}}
-    />
+    <div {{react this.k8sPopup data=@popupData.entity}} />
   {{/if}}
 </div>

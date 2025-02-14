@@ -69,9 +69,7 @@
       </canvas>
       {{#if this.loadNewLandscape.isRunning}}
         <div class='position-absolute mt-6 pt-5 ml-3 pointer-events-none'>
-          <Visualization::Rendering::LoadingIndicator
-            @text='Loading New Landscape'
-          />
+          <div {{react this.loadingIndicator text='Loading new Landscape'}} />
         </div>
       {{/if}}
 

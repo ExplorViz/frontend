@@ -105,7 +105,6 @@
   {{/if}}
 </div>
 
-
 {{! Bottom Bar }}
 {{#if this.shouldDisplayBottomBar}}
   <div id='bottom-bar-container'>
@@ -207,5 +206,4 @@
   </div>
 {{/if}}
 
-
-<Visualization::Rendering::PlayPauseButton />
+<div {{react this.playPauseButton}} />
