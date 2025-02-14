@@ -2,6 +2,7 @@ import Controller from '@ember/controller';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Auth from 'explorviz-frontend/services/auth';
+import ToastMessage from 'react-lib/src/components/page-setup/toast-message.tsx';
 
 /**
  *
@@ -12,6 +13,9 @@ import Auth from 'explorviz-frontend/services/auth';
  * @submodule page
  */
 export default class ApplicationController extends Controller {
+  // React component refs
+  toastMessage = ToastMessage;
+
   @service('auth') auth!: Auth;
 
   @tracked

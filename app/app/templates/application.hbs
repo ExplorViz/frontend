@@ -3,7 +3,7 @@
 <div id='main-container'>
   {{#if this.auth.user}}
     <PageSetup::Navbar />
-    <PageSetup::ToastMessage />
+    <div {{react this.toastMessage}} />
   {{/if}}
   {{outlet}}
 </div>
