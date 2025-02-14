@@ -34,7 +34,6 @@ export default class SidebarHandler {
 
   @action
   openToolsSidebar() {
-    console.log('OPENED');
     this.debug('openToolsSidebar');
     this.showToolsSidebar = true;
   }
