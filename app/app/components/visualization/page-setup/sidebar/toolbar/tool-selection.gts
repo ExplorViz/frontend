@@ -1,6 +1,5 @@
 import { on } from '@ember/modifier';
 import Component from '@glimmer/component';
-import UndoRestructure from 'explorviz-frontend/components/visualization/page-setup/sidebar/customizationbar/restructure/undo-restructure';
 import SidebarResizer from 'react-lib/src/components/visualization/page-setup/sidebar/sidebar-resizer.tsx';
 import svgJar from 'ember-svg-jar/helpers/svg-jar';
 import react from 'explorviz-frontend/modifiers/react';

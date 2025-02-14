@@ -25,6 +25,8 @@ import { Mesh } from 'three';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { defaultVizSettings } from 'react-lib/src/utils/settings/default-settings';
+import ColorSchemeSelector from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector.tsx';
+import ColorPicker from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker.tsx';
 
 interface Args {
   enterFullscreen(): void;
@@ -38,6 +40,9 @@ interface Args {
 }
 
 export default class Settings extends Component<Args> {
+  colorSchemeSelector = ColorSchemeSelector;
+  colorPicker = ColorPicker;
+
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 

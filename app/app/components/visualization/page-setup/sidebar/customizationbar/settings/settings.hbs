@@ -9,9 +9,12 @@
     </div>
     {{#if (eq groupId 'Colors')}}
       <div id='colorHeader' class='mb-2'>
-        <Visualization::PageSetup::Sidebar::Customizationbar::Settings::ColorSchemeSelector
-          @colorSchemes={{this.colorSchemes}}
-          @applyColorScheme={{this.applyColorScheme}}
+        <div
+          {{react
+            this.colorSchemeSelector
+            colorSchemes=this.colorSchemes
+            applyColorScheme=this.applyColorScheme
+          }}
         />
       </div>
     {{/if}}
@@ -32,10 +35,13 @@
               @onChange={{fn this.updateRangeSetting settingId}}
             />
           {{else if setting.isColorSetting}}
-            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::ColorPicker
-              @id={{settingId}}
-              @setting={{setting}}
-              @updateColors={{@updateColors}}
+            <div
+              {{react
+                this.colorPicker
+                id=settingId
+                setting=setting
+                updateColors=@updateColors
+              }}
             />
           {{else if setting.isButtonSetting}}
             <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::ButtonSetting
