@@ -107,8 +107,8 @@ export default function HeatmapInfo({
         onPointerDown={() => dragMouseDown}
         ref={heatmapRef}
         >
-        <MetricSelector/>
         {/* TODO: Insert HeatmapLegend <Heatmap::HeatmapLegend /> */}
+        <MetricSelector/>
     </div>
     )
 
