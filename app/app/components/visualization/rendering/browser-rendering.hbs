@@ -205,13 +205,6 @@
               />
               <div
                 {{react
-                  this.metricsOpener
-                  openedComponent=@openedSettingComponent
-                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
-                }}
-              />
-              <div
-                {{react
                   this.snapshotOpener
                   openedComponent=@openedSettingComponent
                   toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
@@ -261,10 +254,6 @@
                   @annotationData={{this.annotationHandler.annotationData}}
                   @minimizedAnnotations={{this.annotationHandler.minimizedAnnotations}}
                   @landscapeToken={{@landscapeToken}}
-                />
-              {{/if}}
-              {{#if (eq @openedSettingComponent 'Metrics')}}
-                <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsViewer
                 />
               {{/if}}
               {{#if (eq @openedSettingComponent 'trace-selection')}}

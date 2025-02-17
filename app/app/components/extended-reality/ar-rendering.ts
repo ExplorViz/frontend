@@ -40,7 +40,6 @@ import LoadingIndicator from 'react-lib/src/components/visualization/rendering/l
 import ArSettingsOpener from 'react-lib/src/components/extended-reality/visualization/page-setup/navbar/ar-settings-opener.tsx';
 import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
 import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
-import MetricsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/metrics/metrics-opener.tsx';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -59,7 +58,6 @@ export default class ArRendering extends Component<Args> {
   loadingIndicator = LoadingIndicator;
   arSettingsOpener = ArSettingsOpener;
   collaborationOpener = CollaborationOpener;
-  metricsOpener = MetricsOpener;
   settingsOpener = SettingsOpener;
 
   // #region CLASS FIELDS AND GETTERS

@@ -194,13 +194,6 @@
               />
               <div
                 {{react
-                  this.metricsOpener
-                  openedComponent=@openedSettingComponent
-                  toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
-                }}
-              />
-              <div
-                {{react
                   this.settingsOpener
                   openedComponent=@openedSettingComponent
                   toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
@@ -221,10 +214,6 @@
                   @updateView={{this.updateColors}}
                   @updateCameraResolution={{this.initArJs}}
                   @updateRendererResolution={{this.updateRendererResolution}}
-                />
-              {{/if}}
-              {{#if (eq @openedSettingComponent 'Metrics')}}
-                <Visualization::PageSetup::Sidebar::Customizationbar::Metrics::MetricsViewer
                 />
               {{/if}}
               {{#if (eq @openedSettingComponent 'trace-selection')}}

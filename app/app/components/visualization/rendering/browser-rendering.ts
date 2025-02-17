@@ -65,7 +65,6 @@ import VscodeExtensionOpener from 'react-lib/src/components/collaboration/visual
 import RestructureOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener.tsx';
 import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
 import SnapshotOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener.tsx';
-import MetricsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/metrics/metrics-opener.tsx';
 import TraceReplayerOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener.tsx';
 import ApplicationSearchOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener.tsx';
 import EntityFilteringOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener.tsx';
@@ -91,7 +90,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   collaborationOpener = CollaborationOpener;
   vscodeExtensionOpener = VscodeExtensionOpener;
   restructureOpener = RestructureOpener;
-  metricsOpener = MetricsOpener;
   snapshotOpener = SnapshotOpener;
   settingsOpener = SettingsOpener;
   traceReplayerOpener = TraceReplayerOpener;
