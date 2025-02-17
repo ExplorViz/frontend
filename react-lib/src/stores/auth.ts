@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla';
 // TODO: Wait for router to be migrated
 
 interface AuthState {
-  user: any;
+  user: AuthenticatedUser | undefined;
   accessToken: string | undefined;
   // login: () =>void;
   // checkLogin: () => Promise<unknown>;

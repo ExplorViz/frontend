@@ -13,8 +13,8 @@ sed -i "s#change-collaboration-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/i
 
 sed -i "s#change-frontend-host-name#$FRONTEND_HOST_NAME#g" /usr/share/nginx/html/index.html
 
-DEFAULT_NICKNAME="${NO_AUTH_USER_NICKNAME:-JOHNNY}"
-sed -i "s#JOHNNY#$DEFAULT_NICKNAME#g" /usr/share/nginx/html/index.html
+DEFAULT_NICKNAME="${NO_AUTH_USER_NICKNAME:-Jessy}"
+sed -i "s#Jessy#$DEFAULT_NICKNAME#g" /usr/share/nginx/html/index.html
 
 DEFAULT_TOKEN="${ONLY_SHOW_TOKEN:-}"
 sed -i "s#change-token#$DEFAULT_TOKEN#g" /usr/share/nginx/html/index.html

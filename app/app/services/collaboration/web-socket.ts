@@ -43,6 +43,7 @@ import { io, Socket } from 'socket.io-client';
 import { USER_KICK_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/kick-user';
 import { MESSAGE_DELETE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/delete-message';
 import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 type ResponseHandler<T> = (msg: T) => void;
 
@@ -148,7 +149,7 @@ export default class WebSocketService extends Service.extend(Evented) {
       transports: ['websocket'],
       query: {
         ticketId: ticketId,
-        userName: 'JOHNNY',
+        userName: useAuthStore.getState().user?.name,
         deviceId: urlParams.get('deviceId'),
         mode: mode,
       },
