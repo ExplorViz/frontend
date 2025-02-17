@@ -12,7 +12,7 @@ export default function HelpTooltip(args: {
   placement?: Placement;
 }) {
   return (
-    <div className="inline tooltip-component">
+    <div className="inline" style={{ marginRight: '0.25rem' }}>
       <OverlayTrigger
         placement={args.placement ?? 'left'}
         trigger={['hover', 'focus']}

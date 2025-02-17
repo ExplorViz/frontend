@@ -8,7 +8,7 @@ import {
   VisualizationSettings,
   SettingLevel,
   SettingGroup,
-  RangeSetting,
+  RangeSetting as RangeSettingSchema,
 } from 'react-lib/src/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -27,6 +27,10 @@ import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { defaultVizSettings } from 'react-lib/src/utils/settings/default-settings';
 import ColorSchemeSelector from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector.tsx';
 import ColorPicker from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker.tsx';
+import ResetButton from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import FlagSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting.tsx';
+import RangeSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting.tsx';
+import ButtonSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting.tsx';
 
 interface Args {
   enterFullscreen(): void;
@@ -40,8 +44,13 @@ interface Args {
 }
 
 export default class Settings extends Component<Args> {
+  // React component refs
   colorSchemeSelector = ColorSchemeSelector;
   colorPicker = ColorPicker;
+  resetButton = ResetButton;
+  flagSetting = FlagSetting;
+  rangeSetting = RangeSetting;
+  buttonSetting = ButtonSetting;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
@@ -118,7 +127,7 @@ export default class Settings extends Component<Args> {
   }
 
   cleanArray(
-    targets: Array<RangeSetting>,
+    targets: Array<RangeSettingSchema>,
     inverse: boolean = false,
     alreadyReversed: boolean = false
   ) {
@@ -146,18 +155,15 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateRangeSetting(name: VisualizationSettingId, event?: Event) {
-    const input = event?.target
-      ? (event.target as HTMLInputElement).valueAsNumber
-      : undefined;
+  updateRangeSetting(name: VisualizationSettingId, value: number) {
     const pre_input: string | number | boolean = defaultVizSettings[name].value;
     const settingId = name as VisualizationSettingId;
     try {
-      this.userSettings.updateSetting(settingId, input);
+      this.userSettings.updateSetting(settingId, value);
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
-    const valueArray = [
+    const semZoomLevels = [
       this.userSettings.visualizationSettings.distanceLevel1,
       this.userSettings.visualizationSettings.distanceLevel2,
       this.userSettings.visualizationSettings.distanceLevel3,
@@ -213,7 +219,7 @@ export default class Settings extends Component<Args> {
         this.localUser.defaultCamera.updateProjectionMatrix();
         break;
       case 'distancePreSet':
-        this.semanticZoomPreSetSetter(input!, valueArray);
+        this.semanticZoomPreSetSetter(value!, semZoomLevels);
         this.userSettings.updateSetting('usePredefinedSet', true);
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
           this.localUser.defaultCamera
@@ -225,8 +231,8 @@ export default class Settings extends Component<Args> {
       case 'distanceLevel3':
       case 'distanceLevel4':
       case 'distanceLevel5':
-        if (pre_input != undefined && input != undefined) {
-          this.cleanArray(valueArray, (pre_input as number) < input, false);
+        if (pre_input != undefined && value != undefined) {
+          this.cleanArray(semZoomLevels, (pre_input as number) < value, false);
           this.userSettings.updateSetting('usePredefinedSet', false);
         }
         SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
@@ -283,14 +289,13 @@ export default class Settings extends Component<Args> {
   }
 
   @action
-  updateFlagSetting(name: VisualizationSettingId, value: boolean) {
-    const settingId = name;
-    const settingString = settingId as string;
+  updateFlagSetting(settingId: VisualizationSettingId, value: boolean) {
     try {
       this.userSettings.updateSetting(settingId, value);
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
+
     const valueArray = [
       this.userSettings.visualizationSettings.distanceLevel1,
       this.userSettings.visualizationSettings.distanceLevel2,
@@ -298,8 +303,8 @@ export default class Settings extends Component<Args> {
       this.userSettings.visualizationSettings.distanceLevel4,
       this.userSettings.visualizationSettings.distanceLevel5,
     ];
-    if (settingString.startsWith('layer')) {
-      const layerNumber = parseInt(settingString.slice(5), 10); // Extract the layer number from settingId
+    if (settingId.startsWith('layer')) {
+      const layerNumber = parseInt(settingId.slice(5), 10); // Extract the layer number from settingId
       if (!isNaN(layerNumber)) {
         // Ensure it's a valid number
         if (value || value === undefined) {
@@ -416,7 +421,7 @@ export default class Settings extends Component<Args> {
   }
 
   updateVisualizationState() {
-    this.args.updateColors?.();
+    this.userSettings.updateColors();
     this.highlightingService.updateHighlighting();
     this.localUser.defaultCamera.fov =
       this.userSettings.visualizationSettings.cameraFov.value;

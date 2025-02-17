@@ -89,9 +89,12 @@
           }}
         />
       </div>
-      <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
-        @value={{this.heatmapConf.useHelperLines}}
-        @onToggle={{this.toggleHelperLines}}
+      <div
+        {{react
+          this.wideCheckbox
+          value=this.heatmapConf.useHelperLines
+          onToggle=this.toggleHelperLines
+        }}
       />
     </div>
   </div>
@@ -108,9 +111,12 @@
           }}
         />
       </div>
-      <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
-        @value={{this.heatmapConf.showLegendValues}}
-        @onToggle={{this.toggleLegendValues}}
+      <div
+        {{react
+          this.wideCheckbox
+          value=this.heatmapConf.showLegendValues
+          onToggle=this.toggleLegendValues
+        }}
       />
     </div>
   </div>
@@ -128,9 +134,12 @@
         />
       </h4>
     </div>
-    <Visualization::PageSetup::Sidebar::Settings::WideCheckbox
-      @value={{this.showSimpleHeatSettings}}
-      @onToggle={{this.toggleSimpleHeatSettings}}
+    <div
+      {{react
+        this.wideCheckbox
+        value=this.showSimpleHeatSettings
+        onToggle=this.toggleSimpleHeatSettings
+      }}
     />
   </div>
   {{#if this.showSimpleHeatSettings}}

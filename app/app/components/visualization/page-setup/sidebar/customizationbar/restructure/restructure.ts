@@ -23,6 +23,7 @@ import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import { ApiToken } from 'explorviz-frontend/services/user-api-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import WideCheckbox from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox.tsx';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -43,6 +44,9 @@ interface VisualizationPageSetupSidebarRestructureArgs {
 const { shareSnapshot, gitlabApi } = ENV.backendAddresses;
 
 export default class VisualizationPageSetupSidebarRestructure extends Component<VisualizationPageSetupSidebarRestructureArgs> {
+  // React component refs
+  wideCheckbox = WideCheckbox;
+
   today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
 
   @service('auth')

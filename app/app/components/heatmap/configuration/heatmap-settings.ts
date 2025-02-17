@@ -14,9 +14,12 @@ interface HeatmapMode {
   name: string;
   id: string;
 }
+import WideCheckbox from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox.tsx';
 
 export default class HeatmapSettings extends Component {
+  // React component refs
   helpTooltipComponent = HelpTooltip;
+  wideCheckbox = WideCheckbox;
 
   // @service('heatmap/heatmap-configuration')
   // heatmapConf!: HeatmapConfiguration;

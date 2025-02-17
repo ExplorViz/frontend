@@ -260,11 +260,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
           currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
             if (onOff) {
-              arrow.cone.layers.disableAll();
-              arrow.line.layers.disableAll();
+              arrow.layers.disableAll();
             } else {
-              arrow.cone.layers.set(0);
-              arrow.line.layers.set(0);
+              arrow.layers.set(0);
             }
           });
         });
@@ -272,11 +270,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         ap.getCommMeshes().forEach((currentCommunicationMesh) => {
           currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
             if (onOff) {
-              arrow.cone.layers.disableAll();
-              arrow.line.layers.disableAll();
+              arrow.layers.disableAll();
             } else {
-              arrow.cone.layers.set(0);
-              arrow.line.layers.set(0);
+              arrow.layers.set(0);
             }
           });
         });

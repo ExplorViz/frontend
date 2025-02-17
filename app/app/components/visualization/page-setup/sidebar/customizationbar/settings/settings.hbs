@@ -3,9 +3,7 @@
   {{#unless (is-empty settingIdArray)}}
     <div style='display:flex; justify-content:space-between'>
       <h6 class='mt-3'><strong>{{groupId}}</strong></h6>
-      <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::ResetButton
-        @onClick={{fn this.resetGroup groupId}}
-      />
+      <div {{react this.resetButton onClick=this.resetGroup args=groupId}} />
     </div>
     {{#if (eq groupId 'Colors')}}
       <div id='colorHeader' class='mb-2'>
@@ -25,14 +23,22 @@
           as |setting|
         }}
           {{#if setting.isFlagSetting}}
-            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::FlagSetting
-              @setting={{setting}}
-              @onChange={{fn this.updateFlagSetting settingId}}
+            <div
+              {{react
+                this.flagSetting
+                setting=setting
+                onChange=this.updateFlagSetting
+                settingId=settingId
+              }}
             />
           {{else if setting.isRangeSetting}}
-            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::RangeSetting
-              @setting={{setting}}
-              @onChange={{fn this.updateRangeSetting settingId}}
+            <div
+              {{react
+                this.rangeSetting
+                setting=setting
+                onChange=this.updateRangeSetting
+                settingId=settingId
+              }}
             />
           {{else if setting.isColorSetting}}
             <div
@@ -44,9 +50,13 @@
               }}
             />
           {{else if setting.isButtonSetting}}
-            <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::ButtonSetting
-              @setting={{setting}}
-              @onClick={{fn this.updateButtonSetting settingId}}
+            <div
+              {{react
+                this.buttonSetting
+                setting=setting
+                onClick=this.updateButtonSetting
+                settingId=settingId
+              }}
             />
           {{/if}}
         {{/let}}

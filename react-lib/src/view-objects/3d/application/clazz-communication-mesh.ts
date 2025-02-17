@@ -339,8 +339,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       // debugger;
       // arrow.saveTheParent();
       if (SemanticZoomManager.instance.isEnabled) {
-        arrow.line.layers.disableAll();
-        arrow.cone.layers.disableAll();
+        arrow.layers.disableAll();
         //this.remove(arrow);
         // arrow.layers.disableAll();
         // arrow.layers.set(2);
