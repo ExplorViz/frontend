@@ -1,7 +1,6 @@
 import Route from '@ember/routing/route';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import { Auth0Error } from 'auth0-js';
 import Auth from 'explorviz-frontend/services/auth';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
@@ -14,22 +13,12 @@ export default class BaseRoute extends Route {
     // if not authenticated, kick them to the home page
     return this.auth.checkLogin();
   }
-
   @action
-  error(error: Auth0Error | undefined) {
-    if (error && error.description) {
-      useToastHandlerStore.getState().showErrorToastMessage(error.description);
+  error(error: unknown) {
+    if (error) {
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('An unknown error occured');
     }
-    if (error && Object.keys(error).length === 0) {
-      // Network error -> timeout
-      setTimeout(() => {
-        this.auth.logout();
-      }, 5000);
-      return true;
-    }
-    if (!error || error?.statusCode !== 429) {
-      this.auth.logout();
-    }
-    return true;
   }
 }

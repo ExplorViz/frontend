@@ -1,5 +1,3 @@
-import { Auth0UserProfile } from 'auth0-js';
-
 /**
  * Type declarations for
  *    import config from './config/environment'
@@ -13,17 +11,6 @@ declare const config: {
   podModulePrefix: string;
   locationType: string;
   rootURL: string;
-  auth0: {
-    enabled: string;
-    clientId: string;
-    domain: string;
-    logoUrl: string;
-    callbackUrl: string;
-    logoutReturnUrl: string;
-    routeAfterLogin: string;
-    accessToken: string;
-    profile: Auth0UserProfile;
-  };
   backendAddresses: {
     shareSnapshot: string;
     gitlabApi: string;

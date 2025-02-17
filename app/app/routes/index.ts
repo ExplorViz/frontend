@@ -13,6 +13,6 @@ export default class IndexRoute extends Route {
 
   beforeModel(transition: any) {
     super.beforeModel(transition);
-    this.router.replaceWith('login');
+    this.router.replaceWith('landscapes');
   }
 }

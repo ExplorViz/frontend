@@ -13,12 +13,6 @@ sed -i "s#change-collaboration-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/i
 
 sed -i "s#change-frontend-host-name#$FRONTEND_HOST_NAME#g" /usr/share/nginx/html/index.html
 
-sed -i "s#change-auth0-logo-url#$AUTH0_LOGO_URL#g" /usr/share/nginx/html/index.html
-
-sed -i "s#change-auth0-callback-url#$AUTH0_CALLBACK_URL#g" /usr/share/nginx/html/index.html
-
-sed -i "s#change-auth0-logout-url#$AUTH0_LOGOUT_URL#g" /usr/share/nginx/html/index.html
-
 DEFAULT_NICKNAME="${NO_AUTH_USER_NICKNAME:-JOHNNY}"
 sed -i "s#JOHNNY#$DEFAULT_NICKNAME#g" /usr/share/nginx/html/index.html
 

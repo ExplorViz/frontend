@@ -26,9 +26,6 @@ module.exports = {
     browser: true,
     node: true,
   },
-  globals: {
-    auth0: false,
-  },
   rules: {
     'prettier/prettier': 'error',
     '@typescript-eslint/no-explicit-any': 'off',

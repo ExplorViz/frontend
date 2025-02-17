@@ -39,21 +39,6 @@ module.exports = (environment) => {
         // e.g. 'with-controller': true
       },
     },
-    auth0: {
-      enabled: P_ENV.AUTH0_ENABLED,
-      clientId: P_ENV.AUTH0_CLIENT_ID,
-      domain: P_ENV.AUTH0_DOMAIN,
-      logoUrl: P_ENV.AUTH0_LOGO_URL,
-      callbackUrl: P_ENV.AUTH0_CALLBACK_URL,
-      logoutReturnUrl: P_ENV.AUTH0_LOGOUT_URL,
-      routeAfterLogin: P_ENV.AUTH0_ROUTE_AFTER_LOGIN,
-      accessToken: P_ENV.AUTH0_DISABLED_ACCESS_TOKEN,
-      profile: {
-        name: P_ENV.AUTH0_DISABLED_PROFILE_NAME,
-        nickname: P_ENV.AUTH0_DISABLED_NICKNAME,
-        sub: P_ENV.AUTH0_DISABLED_SUB,
-      },
-    },
     backendAddresses: {
       spanService: P_ENV.SPAN_SERV_URL,
       userService: P_ENV.USER_SERV_URL,

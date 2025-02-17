@@ -53,8 +53,6 @@ module.exports = (defaults) => {
   // Separated imports as shown above do not work
   app.import('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js');
 
-  //app.import('node_modules/auth0-js/dist/auth0.js');
-
   //app.import('node_modules/crypto-js/crypto-js.js');
 
   //return app.toTree();

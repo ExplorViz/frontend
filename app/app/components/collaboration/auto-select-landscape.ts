@@ -34,9 +34,6 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
     // Authentication might take some time and is needed to request landscape token
     if (this.auth.user) {
       this.autoSelectLandscape();
-    } else {
-      this.autoSelectCallback = this.autoSelectLandscape.bind(this);
-      this.auth.on('user_authenticated', this.autoSelectCallback);
     }
   }
 
@@ -109,11 +106,5 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
     }
 
     return (await response.json()) as LandscapeToken[];
-  }
-
-  willDestroy(): void {
-    if (this.autoSelectCallback) {
-      this.auth.off('user_authenticated', this.autoSelectCallback);
-    }
   }
 }

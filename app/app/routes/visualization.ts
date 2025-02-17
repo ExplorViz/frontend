@@ -49,7 +49,7 @@ export default class VisualizationRoute extends BaseRoute {
       useFontRepositoryStore.getState().font = font;
       // controller.set('font', font);
     }
-    // handle auth0 authorization
+    // handle authentication
     return super.beforeModel();
   }
 

@@ -18,8 +18,6 @@ const Router = EmberRouter.extend({
 // eslint-disable-next-line func-names, array-callback-return
 Router.map(function () {
   this.route('badroute', { path: '/*path' });
-  this.route('login');
-  this.route('callback');
   this.route('visualization');
   this.route('landscapes');
   this.route('settings');
