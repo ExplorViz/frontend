@@ -65,6 +65,7 @@ import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 import PlayPauseButton from 'react-lib/src/components/visualization/rendering/play-pause-button.tsx';
+import CommitTreeApplicationSelection from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection.tsx';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -82,6 +83,7 @@ export const earthTexture = new THREE.TextureLoader().load(
 export default class VisualizationController extends Controller {
   // React template references
   playPauseButton = PlayPauseButton;
+  commitTreeApplicationSelection = CommitTreeApplicationSelection;
 
   @service('router')
   router!: any;

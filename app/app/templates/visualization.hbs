@@ -181,11 +181,13 @@
 
       {{#if this.isCommitTreeSelected}}
         <div class='row justify-content-md-center'>
-          <Visualization::PageSetup::BottomBar::Evolution::CommitTreeApplicationSelection
-            @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-            @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
-            @setSelectedAppName={{this.commitTreeStateService.setCurrentSelectedApplicationName}}
-          />
+          {{!-- TODO: CommitTreeApplicationSelection is a bit off to the left. Find solution.  --}}
+          <div class='row justify-content-md-center'
+          {{react
+            this.commitTreeApplicationSelection
+            appNameCommitTreeMap=this.evolutionDataRepository.appNameCommitTreeMap
+            selectedAppName=this.commitTreeStateService.currentSelectedApplicationName
+          }} />
           <Visualization::PageSetup::BottomBar::Evolution::EvolutionRenderingButtons
             @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
             @selectedCommits={{this.commitTreeStateService.selectedCommits}}

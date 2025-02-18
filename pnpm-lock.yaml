@@ -469,6 +469,9 @@ importers:
         specifier: '5'
         version: 5.3.3
     devDependencies:
+      downshift:
+        specifier: ^9.0.8
+        version: 9.0.8(react@19.0.0)
       events:
         specifier: ^3.3.0
         version: 3.3.0
@@ -3547,6 +3550,9 @@ packages:
     resolution: {integrity: sha512-bQJ0YRck5ak3LgtnpKkiabX5pNF7tMUh1BSy2ZBOTh0Dim0BUu6aPPwByIns6/A5Prh8PufSPerMDUklpzes2Q==}
     engines: {node: '>= 0.8.0'}
 
+  compute-scroll-into-view@3.1.1:
+    resolution: {integrity: sha512-VRhuHOLoKYOy4UbilLbUzbYg93XLjv2PncJC50EuTWPA3gaja1UjBsUP/D/9/juV3vQFr6XBEzn9KCAHdUvOHw==}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -4243,6 +4249,11 @@ packages:
   dotenv@16.4.7:
     resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
+
+  downshift@9.0.8:
+    resolution: {integrity: sha512-59BWD7+hSUQIM1DeNPLirNNnZIO9qMdIK5GQ/Uo8q34gT4B78RBlb9dhzgnh0HfQTJj4T/JKYD8KoLAlMWnTsA==}
+    peerDependencies:
+      react: '>=16.12.0'
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -7851,6 +7862,9 @@ packages:
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
+
+  react-is@18.2.0:
+    resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
 
   react-lifecycles-compat@3.0.4:
     resolution: {integrity: sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==}
@@ -14185,6 +14199,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  compute-scroll-into-view@3.1.1: {}
+
   concat-map@0.0.1: {}
 
   concat-stream@1.6.2:
@@ -14750,6 +14766,15 @@ snapshots:
       dotenv: 16.4.7
 
   dotenv@16.4.7: {}
+
+  downshift@9.0.8(react@19.0.0):
+    dependencies:
+      '@babel/runtime': 7.26.0
+      compute-scroll-into-view: 3.1.1
+      prop-types: 15.8.1
+      react: 19.0.0
+      react-is: 18.2.0
+      tslib: 2.8.1
 
   dunder-proto@1.0.1:
     dependencies:
@@ -19547,6 +19572,8 @@ snapshots:
       scheduler: 0.25.0
 
   react-is@16.13.1: {}
+
+  react-is@18.2.0: {}
 
   react-lifecycles-compat@3.0.4: {}
 
