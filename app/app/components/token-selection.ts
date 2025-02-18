@@ -5,6 +5,7 @@ import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import { action } from '@ember/object';
 import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
+import AdditionalTokenInfo from 'react-lib/src/components/additional-token-info.tsx';
 const { spanService } = ENV.backendAddresses;
 
 interface Args {
@@ -16,6 +17,9 @@ interface Args {
 }
 
 export default class TokenSelection extends Component<Args> {
+  // React component refs
+  additionalTokenInfo = AdditionalTokenInfo;
+
   @service('auth')
   auth!: Auth;
 

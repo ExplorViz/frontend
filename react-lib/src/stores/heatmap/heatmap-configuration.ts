@@ -1,16 +1,19 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import { ApplicationMetrics, Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
+import {
+  ApplicationMetrics,
+  Metric,
+} from 'react-lib/src/utils/metric-schemes/metric-data';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
 
-import { getDefaultGradient as getSimpleDefaultGradient } from "react-lib/src/utils/heatmap/simple-heatmap";
-import { useToastHandlerStore } from "../toast-handler";
+import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
+import { useToastHandlerStore } from '../toast-handler';
 
 export type HeatmapMode =
-  | "snapshotHeatmap"
-  | "aggregatedHeatmap"
-  | "windowedHeatmap";
+  | 'snapshotHeatmap'
+  | 'aggregatedHeatmap'
+  | 'windowedHeatmap';
 
 interface HeatmapConfigurationState {
   heatmapActive: boolean; // tracked
@@ -19,7 +22,7 @@ interface HeatmapConfigurationState {
   largestValue: number;
   legendActive: boolean;
   windowSize: number;
-  selectedMode: HeatmapMode;  //tracked
+  selectedMode: HeatmapMode; //tracked
   selectedMetricName: string; //tracked
   useHelperLines: boolean;
   opacityValue: number;
@@ -34,7 +37,9 @@ interface HeatmapConfigurationState {
   getLatestClazzMetricScores: () => Metric[];
   setActiveApplication: (applicationObject3D: ApplicationObject3D) => void;
   updateActiveApplication: (applicationObject3D: ApplicationObject3D) => void;
-  getApplicationMetricsForEncompassingApplication: () => ApplicationMetrics | undefined;
+  getApplicationMetricsForEncompassingApplication: () =>
+    | ApplicationMetrics
+    | undefined;
   getSelectedMetric: () => Metric | undefined;
   updateMetric: (metric: Metric) => void;
   switchMode: () => void;
@@ -47,7 +52,7 @@ interface HeatmapConfigurationState {
 
 export const useHeatmapConfigurationStore =
   createStore<HeatmapConfigurationState>((set, get) => ({
-    heatmapActive: false,
+    heatmapActive: true,
     heatmapShared: false,
     currentApplication: undefined,
     legendActive: true,
@@ -55,8 +60,8 @@ export const useHeatmapConfigurationStore =
     largestValue: 0,
     windowSize: 9,
     // TODO methods
-    selectedMode: "snapshotHeatmap",
-    selectedMetricName: "Instance Count",
+    selectedMode: 'snapshotHeatmap',
+    selectedMetricName: 'Instance Count',
     useHelperLines: true,
     opacityValue: 0.03,
     heatmapRadius: 2,
@@ -82,8 +87,10 @@ export const useHeatmapConfigurationStore =
     },
 
     getLatestClazzMetricScores: () => {
-      return get().getApplicationMetricsForEncompassingApplication()
-      ?.latestClazzMetricScores || []
+      return (
+        get().getApplicationMetricsForEncompassingApplication()
+          ?.latestClazzMetricScores || []
+      );
     },
 
     setActiveApplication: (applicationObject3D: ApplicationObject3D) => {
@@ -93,7 +100,8 @@ export const useHeatmapConfigurationStore =
 
     updateActiveApplication: (applicationObject3D: ApplicationObject3D) => {
       if (
-        !get().currentApplication || get().currentApplication === applicationObject3D
+        !get().currentApplication ||
+        get().currentApplication === applicationObject3D
       ) {
         set({ currentApplication: applicationObject3D });
       }
@@ -120,11 +128,16 @@ export const useHeatmapConfigurationStore =
       const latestClazzMetricScores =
         get().getApplicationMetricsForEncompassingApplication()
           ?.latestClazzMetricScores;
-      if (!applicationMetricsForCurrentApplication || !latestClazzMetricScores) {
-        useToastHandlerStore.getState().showErrorToastMessage('No heatmap found');
+      if (
+        !applicationMetricsForCurrentApplication ||
+        !latestClazzMetricScores
+      ) {
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('No heatmap found');
         return undefined;
       }
-  
+
       switch (get().selectedMode) {
         case 'snapshotHeatmap':
           if (applicationMetricsForCurrentApplication.latestClazzMetricScores) {
@@ -176,13 +189,13 @@ export const useHeatmapConfigurationStore =
           set({ selectedMode: 'aggregatedHeatmap' });
           break;
         case 'aggregatedHeatmap':
-          set({ selectedMode: 'windowedHeatmap'});
+          set({ selectedMode: 'windowedHeatmap' });
           break;
         case 'windowedHeatmap':
-          set({ selectedMode: 'snapshotHeatmap'});
+          set({ selectedMode: 'snapshotHeatmap' });
           break;
         default:
-          set({ selectedMode: 'snapshotHeatmap'});
+          set({ selectedMode: 'snapshotHeatmap' });
           break;
       }
     },
@@ -190,11 +203,13 @@ export const useHeatmapConfigurationStore =
     switchMetric: () => {
       const numOfMetrics = get().getLatestClazzMetricScores().length;
       if (numOfMetrics > 0) {
-        const index = get().getLatestClazzMetricScores().findIndex(
-          (metric) => metric.name === get().selectedMetricName
-        );
-        set({ selectedMetricName:
-          get().getLatestClazzMetricScores()[(index + 1) % numOfMetrics].name });
+        const index = get()
+          .getLatestClazzMetricScores()
+          .findIndex((metric) => metric.name === get().selectedMetricName);
+        set({
+          selectedMetricName:
+            get().getLatestClazzMetricScores()[(index + 1) % numOfMetrics].name,
+        });
       }
     },
 

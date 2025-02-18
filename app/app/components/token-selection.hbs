@@ -32,7 +32,7 @@
               </button>
             </li>
             <li>
-              <AdditionalTokenInfo @token={{token}} />
+              <div {{react this.additionalTokenInfo token=token}} />
             </li>
             {{#if (eq token.ownerId this.auth.user.sub)}}
               <li>
