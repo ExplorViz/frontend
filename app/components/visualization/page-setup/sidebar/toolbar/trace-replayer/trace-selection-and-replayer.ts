@@ -26,6 +26,8 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
   @tracked
   selectedTrace: Trace | null = null;
 
+  callback: (() => void)[] = [];
+
   get applicationTraces() {
     const hashCodeToClassMap = getHashCodeToClassMap(this.args.structureData);
 
@@ -39,10 +41,15 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
   @service('rendering-service')
   renderingService!: RenderingService;
 
+  private visualizationPaused: boolean = false;
+
   @action
   selectTrace(trace: Trace) {
     if (trace !== this.selectedTrace) {
-      this.renderingService.pauseVisualizationUpdating(true);
+      this.visualizationPaused = this.renderingService.visualizationPaused;
+      if (!this.visualizationPaused) {
+        this.renderingService.pauseVisualizationUpdating(true);
+      }
       this.selectedTrace = trace;
       const traceSteps = getSortedTraceSpans(trace);
 
@@ -52,8 +59,12 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
         this.args.highlightTrace(trace, firstStep.spanId);
       }
     } else {
+      this.callback.forEach((fn) => fn());
+
       // Reset highlighting when highlighted trace is clicked again
-      this.renderingService.resumeVisualizationUpdating();
+      if (!this.visualizationPaused) {
+        this.renderingService.resumeVisualizationUpdating();
+      }
       this.selectedTrace = null;
       this.args.removeHighlighting();
     }

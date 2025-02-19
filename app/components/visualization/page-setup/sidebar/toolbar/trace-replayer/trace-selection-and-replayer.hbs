@@ -11,6 +11,7 @@
 {{#if this.selectedTrace}}
   <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceReplayerMain
     @selectedTrace={{this.selectedTrace}}
+    @callback={{this.callback}}
     @structureData={{@structureData}}
     @dynamicData={{@dynamicData}}
     @renderingLoop={{@renderingLoop}}

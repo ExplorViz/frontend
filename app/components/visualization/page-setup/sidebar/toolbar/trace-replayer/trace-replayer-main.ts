@@ -12,10 +12,7 @@ import {
   Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import {
-  calculateDuration,
-  getSortedTraceSpans,
-} from 'explorviz-frontend/utils/trace-helpers';
+import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
@@ -23,86 +20,23 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import Configuration from 'explorviz-frontend/services/configuration';
-import { getAllAncestorComponents } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-
-const DEFAULT_OPACITY = 1;
-
-class Blob extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
-  constructor(
-    radius: number,
-    color: THREE.Color = new THREE.Color('red'),
-    opacity: number = 1
-  ) {
-    super(color, color, opacity);
-    this.highlight();
-    this.geometry = new THREE.SphereGeometry(radius, 8, 8);
-  }
-
-  move(position: THREE.Vector3): void {
-    this.position.copy(position);
-  }
-}
-
-export class Afterimage {
-  private mesh: BaseMesh;
-
-  private opacity: number = DEFAULT_OPACITY;
-
-  constructor(mesh: BaseMesh) {
-    this.mesh = mesh;
-    this.mesh.highlight();
-    this.mesh.turnTransparent(this.opacity);
-  }
-
-  delete() {
-    this.mesh.turnOpaque();
-    this.mesh.unhighlight();
-    this.opacity = -1;
-  }
-
-  tick(): void {
-    if (this.opacity >= 0.3) {
-      this.mesh.show();
-      this.mesh.highlight();
-      this.mesh.turnTransparent(this.opacity);
-    } else {
-      this.mesh.hide();
-      this.mesh.unhighlight();
-    }
-    this.opacity -= 0.01;
-  }
-
-  alive(): boolean {
-    return this.opacity > 0;
-  }
-
-  reset() {
-    this.opacity = DEFAULT_OPACITY;
-    this.mesh.highlight();
-    this.mesh.turnTransparent(this.opacity);
-  }
-}
-
-// class Leg {
-//   constructor() {}
-// }
-
-class Record {
-  public clazz: Class;
-  public mesh: BaseMesh;
-  public duration: number;
-
-  constructor(clazz: Class, mesh: BaseMesh, duration: number) {
-    this.clazz = clazz;
-    this.mesh = mesh;
-    this.duration = duration;
-  }
-}
+import {
+  TraceNode,
+  TraceNodeVisitor,
+  TraceTree,
+  TraceTreeBuilder,
+} from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
+import {
+  Blob,
+  PathAnimation,
+} from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
 
 interface Args {
   selectedTrace: Trace;
   structureData: StructureLandscapeData;
   renderingLoop: RenderingLoop;
+
+  callback: (() => void)[];
 
   highlightTrace(trace: Trace, traceStep: string): void;
 
@@ -112,9 +46,6 @@ interface Args {
 export default class TraceReplayerMain extends Component<Args> {
   @tracked
   currentTraceStep: Span | null = null;
-
-  @tracked
-  trace: Span[] = [];
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
@@ -127,29 +58,32 @@ export default class TraceReplayerMain extends Component<Args> {
 
   private classMap: Map<string, Class>;
 
+  private tree: TraceTree;
+
   constructor(owner: any, args: Args) {
     super(owner, args);
-    const { selectedTrace } = this.args;
-    this.trace = getSortedTraceSpans(selectedTrace);
+    const selectedTrace = this.args.selectedTrace;
+    const trace = getSortedTraceSpans(selectedTrace);
 
-    if (this.trace.length > 0) {
-      const [firstStep] = this.trace;
+    this.args.callback.push(this.stop);
+
+    if (trace.length > 0) {
+      const [firstStep] = trace;
       this.currentTraceStep = firstStep;
     }
 
     this.classMap = getHashCodeToClassMap(this.args.structureData);
 
-    this.trace.forEach((span) => {
-      const clazz = this.classMap.get(span.methodHash);
-      if (clazz) {
-        const mesh = this.applicationRenderer.getMeshById(clazz.id);
-        if (mesh) {
-          this.records.push(new Record(clazz, mesh, calculateDuration(span)));
-        }
-      }
-    });
+    this.tree = new TraceTreeBuilder(
+      trace,
+      this.classMap,
+      this.applicationRenderer
+    ).build();
 
-    console.log(this.records);
+    const visitor = new TraceNodeVisitor((node: TraceNode): void => {
+      console.log(node);
+    });
+    this.tree.accept(visitor);
   }
 
   public minSpeed = 1;
@@ -170,15 +104,8 @@ export default class TraceReplayerMain extends Component<Args> {
     this.selectedSpeed = Number(event.target.value);
   }
 
-  private delta: number = 0;
-  private records: Record[] = [];
-
-  private blob: Blob | undefined = undefined;
-  private curve: THREE.QuadraticBezierCurve3 | undefined = undefined;
-  private duration = 0;
-
   @tracked
-  progress = 0;
+  private animations: PathAnimation[] = [];
 
   @tracked
   paused: boolean = true;
@@ -186,117 +113,89 @@ export default class TraceReplayerMain extends Component<Args> {
   @tracked
   stopped: boolean = true;
 
-  @tracked
-  index: number = -1;
-
-  private meshes = new Set<BaseMesh>();
-  private afterimages = new Set<Afterimage>();
-
   @action
   next() {
     if (this.paused) {
-      this.index = Math.min(this.index + 1, this.records.length);
+      this.animations.forEach((animation: PathAnimation) => {
+        animation.delta = 0;
+
+        if (!animation.target.isLeaf) {
+          animation.origin = animation.target;
+          animation.target = animation.origin.children[0];
+
+          animation.path = this.path(animation.origin, animation.target);
+          animation.mesh.move(animation.path.getPoint(0));
+          animation.mesh.show();
+        }
+      });
     }
   }
 
   @action
   previous() {
     if (this.paused) {
-      this.index = Math.max(this.index - 1, 0);
+      this.animations.forEach((animation: PathAnimation) => {
+        animation.delta = 0;
+
+        if (!animation.origin.isRoot) {
+          animation.target = animation.origin;
+          animation.origin = animation.target.parents[0];
+
+          animation.path = this.path(animation.origin, animation.target);
+          animation.mesh.move(animation.path.getPoint(0));
+          animation.mesh.show();
+        }
+      });
     }
   }
 
+  path(origin: TraceNode, target: TraceNode) {
+    const scale = this.applicationRenderer.landscape3D.scale;
+    const support = this.applicationRenderer.landscape3D.position;
+    const start = this.applicationRenderer
+      .getPositionInLandscape(origin.mesh)
+      .multiply(scale)
+      .add(support);
+    const end = this.applicationRenderer
+      .getPositionInLandscape(target.mesh)
+      .multiply(scale)
+      .add(support);
+
+    const classDistance = Math.hypot(end.x - start.x, end.z - start.z);
+    const height =
+      classDistance *
+      0.2 *
+      this.applicationRenderer.appSettings.curvyCommHeight.value;
+    const middle = new THREE.Vector3(
+      start.x + (end.x - start.x) / 2.0,
+      height + start.y + (end.y - start.y) / 2.0,
+      start.z + (end.z - start.z) / 2.0
+    );
+    return new THREE.QuadraticBezierCurve3(start, middle, end);
+  }
+
   tick(delta: number) {
-    this.delta += delta;
-
-    if (this.blob && this.curve) {
-      const progress = this.delta / this.duration;
+    this.animations.forEach((animation: PathAnimation) => {
+      animation.delta += delta;
+      const progress =
+        animation.delta / (animation.duration / this.selectedSpeed);
       if (0.0 <= progress && progress <= 1.0) {
-        // const afterimage = this.blob.clone();
-        // this.args.renderingLoop.scene.add(afterimage);
-        // this.afterimages.add(new Afterimage(afterimage));
-        this.blob.move(this.curve.getPoint(progress));
-      }
-    }
-    this.progress = Math.ceil((this.index / this.trace.length) * 100);
+        animation.mesh.move(animation.path.getPoint(progress));
+      } else if (!this.stopped && !this.paused) {
+        animation.delta = 0;
 
-    if (!this.stopped && !this.paused && this.delta > this.duration) {
-      this.delta = 0;
+        if (!animation.target.isLeaf) {
+          animation.origin = animation.target;
+          animation.target = animation.origin.children[0];
 
-      if (this.index >= 0 && this.index < this.records.length - 1) {
-        const origin = this.records[this.index++];
-        const target = this.records[this.index];
-
-        this.duration = (1 + origin.duration / 1000.0) / this.selectedSpeed;
-
-        getAllAncestorComponents(origin.clazz).forEach((component) => {
-          this.applicationRenderer.getMeshById(component.id);
-        });
-
-        // if (this.highlights.has(origin.clazz.id)) {
-        //   this.highlights.get(origin.clazz.id)?.reset();
-        // } else {
-        //   this.highlights.set(
-        //     origin.clazz.id,
-        //     new Afterimage(origin.mesh)
-        //   );
-        // }
-        //
-        // if (this.highlights.has(target.clazz.id)) {
-        //   this.highlights.get(target.clazz.id)?.reset();
-        // } else {
-        //   this.highlights.set(
-        //     target.clazz.id,
-        //     new Afterimage(target.mesh)
-        //   );
-        // }
-
-        this.afterimages.add(new Afterimage(origin.mesh));
-        this.afterimages.add(new Afterimage(target.mesh));
-
-        const scale = this.applicationRenderer.landscape3D.scale;
-        const support = this.applicationRenderer.landscape3D.position;
-        const start = this.applicationRenderer
-          .getPositionInLandscape(origin.mesh)
-          .multiply(scale)
-          .add(support);
-        const end = this.applicationRenderer
-          .getPositionInLandscape(target.mesh)
-          .multiply(scale)
-          .add(support);
-
-        const classDistance = Math.hypot(end.x - start.x, end.z - start.z);
-        const height =
-          classDistance *
-          0.2 *
-          this.applicationRenderer.appSettings.curvyCommHeight.value;
-        const middle = new THREE.Vector3(
-          start.x + (end.x - start.x) / 2.0,
-          height + start.y + (end.y - start.y) / 2.0,
-          start.z + (end.z - start.z) / 2.0
-        );
-
-        this.curve = new THREE.QuadraticBezierCurve3(start, middle, end);
-
-        this.blob?.move(start);
-        this.blob?.show();
-
-        // this.args.highlightTrace(this.args.selectedTrace, current.spanId);
-      } else {
-        this.stop();
-      }
-    }
-
-    if (this.afterimages.size > 0) {
-      const prune = new Set<Afterimage>();
-      this.afterimages.forEach((afterimage) => {
-        afterimage.tick();
-        if (!afterimage.alive()) {
-          prune.add(afterimage);
+          animation.path = this.path(animation.origin, animation.target);
+          animation.mesh.move(animation.path.getPoint(0));
+          animation.mesh.show();
+        } else {
+          this.stop();
         }
-      });
-      prune.forEach((afterimage) => this.afterimages.delete(afterimage));
-    }
+      }
+    });
   }
 
   turnComponentAndAncestorsTransparent(component: Package, opacity: number) {
@@ -315,7 +214,6 @@ export default class TraceReplayerMain extends Component<Args> {
   start() {
     if (this.stopped) {
       this.stopped = false;
-      this.index = 0;
       this.args.renderingLoop.updatables.push(this);
 
       this.isCommRendered = this.configuration.isCommRendered;
@@ -329,15 +227,27 @@ export default class TraceReplayerMain extends Component<Args> {
         this.turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
       });
 
-      for (let i = 0; i < 3; ++i) {
+      {
         const blob = new Blob(0.02);
         blob.hide();
         this.args.renderingLoop.scene.add(blob);
-        this.blob = blob;
-        this.meshes.add(blob);
+
+        const origin = this.tree.root[0];
+        const target = origin.children[0];
+        const path = this.path(origin, target);
+        this.animations.push(new PathAnimation(origin, target, path, blob));
+      }
+      {
+        const blob = new Blob(0.02, new THREE.Color('blue'));
+        blob.hide();
+        this.args.renderingLoop.scene.add(blob);
+
+        const origin = this.tree.root[0].children[0].children[0];
+        const target = origin.children[0];
+        const path = this.path(origin, target);
+        this.animations.push(new PathAnimation(origin, target, path, blob));
       }
     }
-
     this.paused = false;
   }
 
@@ -350,9 +260,7 @@ export default class TraceReplayerMain extends Component<Args> {
   stop() {
     this.paused = true;
     this.stopped = true;
-    this.index = -1;
     this.args.renderingLoop.updatables.removeObject(this);
-    this.progress = 0;
 
     this.configuration.isCommRendered = this.isCommRendered;
     if (this.configuration.isCommRendered) {
@@ -365,72 +273,9 @@ export default class TraceReplayerMain extends Component<Args> {
       this.turnComponentAndAncestorsTransparent(clazz.parent, 1);
     });
 
-    for (const mesh of this.meshes) {
-      this.args.renderingLoop.scene.remove(mesh);
+    for (const node of this.animations) {
+      this.args.renderingLoop.scene.remove(node.mesh);
     }
-    this.meshes.clear();
-
-    this.afterimages.forEach((clazz) => {
-      clazz.delete();
-    });
-    this.afterimages.clear();
-  }
-
-  @action
-  selectNextTraceStep() {
-    // Can only select next step if a trace is selected
-    if (!this.currentTraceStep) {
-      return;
-    }
-
-    const currentTracePosition = this.trace.findIndex(
-      (span) => span === this.currentTraceStep
-    );
-
-    if (currentTracePosition === -1) {
-      return;
-    }
-
-    const nextStepPosition = currentTracePosition + 1;
-
-    if (nextStepPosition > this.trace.length - 1) {
-      return;
-    }
-
-    this.currentTraceStep = this.trace[nextStepPosition];
-
-    this.args.highlightTrace(
-      this.args.selectedTrace,
-      this.currentTraceStep.spanId
-    );
-  }
-
-  @action
-  selectPreviousTraceStep() {
-    // Can only select next step if a trace is selected
-    if (!this.currentTraceStep) {
-      return;
-    }
-
-    const currentTracePosition = this.trace.findIndex(
-      (span) => span === this.currentTraceStep
-    );
-
-    if (currentTracePosition === -1) {
-      return;
-    }
-
-    const previousStepPosition = currentTracePosition - 1;
-
-    if (previousStepPosition < 0) {
-      return;
-    }
-
-    this.currentTraceStep = this.trace[previousStepPosition];
-
-    this.args.highlightTrace(
-      this.args.selectedTrace,
-      this.currentTraceStep.spanId
-    );
+    this.animations.clear();
   }
 }
