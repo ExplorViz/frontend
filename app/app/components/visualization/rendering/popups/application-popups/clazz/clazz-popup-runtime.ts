@@ -21,7 +21,6 @@ export default class ClazzPopup extends Component<Args> {
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
 
-
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
