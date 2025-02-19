@@ -61,7 +61,7 @@ export function positionBoxLabel(
         z: zPosOfOpenBox,
       });
     } else {
-      label.position.x = zPosOfOpenBox;
+      label.position.z = zPosOfOpenBox;
     }
   } else {
     if (getStoredSettings().enableAnimations.value) {
