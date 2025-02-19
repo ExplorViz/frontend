@@ -68,6 +68,19 @@ export default class UserSettings extends Service {
     this.updateColors();
   }
 
+  applyDefaultSettingsForGroup(groupId: string) {
+    const defaultSettings = JSON.parse(JSON.stringify(defaultVizSettings));
+    let settingId: keyof VisualizationSettings;
+    for (settingId in this.visualizationSettings) {
+      const setting = this.visualizationSettings[settingId];
+      if (setting.group === groupId) {
+        this.visualizationSettings[settingId] = defaultSettings[settingId];
+      }
+    }
+    this.notifyPropertyChange('visualizationSettings');
+    saveSettings(this.visualizationSettings);
+  }
+
   @action
   applyDefaultSettings(saveToLocalStorage = true) {
     this.visualizationSettings = JSON.parse(JSON.stringify(defaultVizSettings));

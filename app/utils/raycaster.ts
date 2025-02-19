@@ -15,9 +15,10 @@ export function defaultRaycastFilter(
   return !(
     intersection.object instanceof LabelMesh ||
     intersection.object instanceof LogoMesh ||
-    intersection.object.parent instanceof CommunicationArrowMesh ||
     intersection.object instanceof PingMesh ||
     intersection.object instanceof CrosshairMesh ||
+    intersection.object instanceof CommunicationArrowMesh ||
+    intersection.object.type === 'AxesHelper' ||
     isChildOfText(intersection)
   );
 }

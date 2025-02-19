@@ -9,7 +9,10 @@ import ApplicationObject3D from 'explorviz-frontend/view-objects/3d/application/
 import gsap from 'gsap';
 import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
 import MinimapLabelMesh from '../../view-objects/3d/application/minimap-label-mesh';
-import { getStoredSettings } from '../settings/local-storage-settings';
+import {
+  getStoredSettings,
+  getStoredSettingValueById,
+} from '../settings/local-storage-settings';
 import LabelMesh from 'explorviz-frontend/view-objects/3d/label-mesh';
 import { SceneLayers } from 'explorviz-frontend/services/minimap-service';
 import K8sMesh from 'explorviz-frontend/view-objects/3d/k8s/k8s-mesh';
@@ -76,19 +79,19 @@ export function addApplicationLabels(
   application: ApplicationObject3D,
   font: Font,
   colors: ExplorVizColors,
-  labelAll: boolean = false
+  labelAll: boolean = false,
+  replace = false
 ) {
   /**
    * Adds labels to all box meshes of a given application
    */
   const { componentTextColor, foundationTextColor, clazzTextColor } = colors;
-  // clazzTextColor was used for addClazzTextLabel
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
       if (mesh instanceof ClazzMesh) {
-        addClazzTextLabel(mesh, font, clazzTextColor);
+        addClazzTextLabel(mesh, font, clazzTextColor, replace);
       } else if (mesh instanceof ComponentMesh) {
         addBoxTextLabel(mesh, font, componentTextColor);
       } else if (mesh instanceof FoundationMesh) {
@@ -115,11 +118,9 @@ export function addBoxTextLabel(
   font: Font,
   color: THREE.Color,
   minHeight = 1.5,
-  minLength = 4,
-  scalar = 1,
-  replace = false
+  minLength = 4
 ) {
-  if (boxMesh.labelMesh && !replace) return;
+  if (boxMesh.labelMesh) return;
   const labelMesh = new ComponentLabelMesh(
     boxMesh,
     font,
@@ -127,7 +128,7 @@ export function addBoxTextLabel(
     minHeight,
     minLength
   );
-  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name, scalar);
+  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name);
 
   boxMesh.labelMesh = labelMesh;
   boxMesh.add(labelMesh);
@@ -147,14 +148,21 @@ export function addClazzTextLabel(
   clazzMesh: ClazzMesh,
   font: Font,
   color: THREE.Color,
-  size = 0.75,
   replace = false
 ) {
   if (clazzMesh.labelMesh && !replace) return;
+  if (clazzMesh.labelMesh && replace) {
+    clazzMesh.remove(clazzMesh.labelMesh);
+    clazzMesh.labelMesh.disposeRecursively();
+  }
+
+  const size = Number(getStoredSettingValueById('classLabelFontSize'));
+  const letterLimit = Number(getStoredSettingValueById('classLabelLength'));
+  if (size <= 0 || letterLimit <= 0) return;
 
   const text = clazzMesh.dataModel.name;
 
-  const labelMesh = new ClazzLabelMesh(font, text, color, size);
+  const labelMesh = new ClazzLabelMesh(font, text, color, size, letterLimit);
   clazzMesh.labelMesh = labelMesh;
   //Rotate text and position
   positionClassLabel(labelMesh, clazzMesh);
@@ -170,12 +178,16 @@ export function positionClassLabel(
   // Set label origin to center of clazz mesh
   labelMesh.geometry.center();
 
+  const offset = Number(getStoredSettingValueById('classLabelOffset'));
+
   // Set y-position just above the clazz mesh
-  labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + 0.01;
+  labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + offset;
 
   // Rotate text
   labelMesh.rotation.x = -(Math.PI / 2);
-  labelMesh.rotation.z = 0.3;
+
+  const rotation = Number(getStoredSettingValueById('classLabelOrientation'));
+  labelMesh.rotation.z = rotation;
 }
 
 export function createClazzTextLabelForZoomLevel(
@@ -251,8 +263,7 @@ export function updateBoxTextLabel(
   color: THREE.Color,
   label: string,
   minHeight = 1.5,
-  minLength = 4,
-  scalar = 1
+  minLength = 4
 ) {
   const labelMesh = new ComponentLabelMesh(
     boxMesh,
@@ -264,7 +275,7 @@ export function updateBoxTextLabel(
 
   boxMesh.remove(boxMesh.labelMesh!);
 
-  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name + label, scalar);
+  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name + label);
 
   boxMesh.labelMesh = labelMesh;
   boxMesh.add(labelMesh);

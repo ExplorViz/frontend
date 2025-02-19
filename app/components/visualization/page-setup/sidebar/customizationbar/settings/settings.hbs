@@ -1,7 +1,12 @@
 {{! template-lint-disable simple-unless }}
-{{#each-in this.settingsSortedByGroup as |groupId settingIdArray|}}
+{{#each-in this.filteredSettingsByGroup as |groupId settingIdArray|}}
   {{#unless (is-empty settingIdArray)}}
-    <h6 class='mt-3'><strong>{{groupId}}</strong></h6>
+    <div style='display:flex; justify-content:space-between'>
+      <h6 class='mt-3'><strong>{{groupId}}</strong></h6>
+      <Visualization::PageSetup::Sidebar::Customizationbar::Settings::SettingType::ResetButton
+        @onClick={{fn this.resetGroup groupId}}
+      />
+    </div>
     {{#if (eq groupId 'Colors')}}
       <div id='colorHeader' class='mb-2'>
         <Visualization::PageSetup::Sidebar::Customizationbar::Settings::ColorSchemeSelector

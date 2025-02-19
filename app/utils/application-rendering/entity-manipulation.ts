@@ -15,7 +15,6 @@ import MessageSender from 'explorviz-frontend/services/collaboration/message-sen
 import FoundationMesh from 'explorviz-frontend/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/view-objects/3d/application/communication-arrow-mesh';
 import { ExplorVizColors } from 'explorviz-frontend/services/user-settings';
 import {
   getStoredNumberSetting,
@@ -471,9 +470,6 @@ export function updateColors(
   scene.traverse((object3D) => {
     if (object3D instanceof BaseMesh) {
       object3D.updateColor();
-      // Special case because communication arrow is no base mesh
-    } else if (object3D instanceof CommunicationArrowMesh) {
-      object3D.updateColor(applicationColors.communicationArrowColor);
     }
   });
   scene.background = applicationColors.backgroundColor;

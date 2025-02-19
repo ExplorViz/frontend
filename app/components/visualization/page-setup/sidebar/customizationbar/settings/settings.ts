@@ -9,6 +9,7 @@ import {
   VisualizationSettings,
   SettingGroup,
   RangeSetting,
+  SettingLevel,
 } from 'explorviz-frontend/utils/settings/settings-schemas';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
@@ -76,7 +77,7 @@ export default class Settings extends Component<Args> {
     { name: 'Dark', id: 'dark' },
   ];
 
-  get settingsSortedByGroup() {
+  get filteredSettingsByGroup() {
     const { visualizationSettings } = this.userSettings;
 
     const settingGroupToSettingIds: Record<
@@ -103,7 +104,14 @@ export default class Settings extends Component<Args> {
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in visualizationSettings) {
       const setting = visualizationSettings[settingId];
-      settingGroupToSettingIds[setting.group].push(settingId);
+      // Filter Settings level
+      if (
+        setting.level <=
+        (visualizationSettings.showExtendedSettings
+          .value as unknown as SettingLevel)
+      ) {
+        settingGroupToSettingIds[setting.group].push(settingId);
+      }
     }
 
     return settingGroupToSettingIds;
@@ -169,6 +177,12 @@ export default class Settings extends Component<Args> {
       case 'closedComponentHeight':
         this.applicationRenderer.updateApplicationLayout();
         break;
+      case 'classLabelFontSize':
+      case 'classLabelLength':
+      case 'classLabelOffset':
+      case 'classLabelOrientation':
+        this.applicationRenderer.updateLabels();
+        break;
       case 'transparencyIntensity':
         if (this.args.updateHighlighting) {
           this.args.updateHighlighting();
@@ -176,6 +190,7 @@ export default class Settings extends Component<Args> {
         break;
       case 'commThickness':
       case 'commArrowSize':
+      case 'commArrowOffset':
       case 'curvyCommHeight':
         if (this.args.redrawCommunication && this.args.updateHighlighting) {
           this.args.redrawCommunication();
@@ -385,18 +400,30 @@ export default class Settings extends Component<Args> {
   }
 
   @action
+  resetGroup(groupId: string) {
+    this.userSettings.applyDefaultSettingsForGroup(groupId);
+    this.updateVisualizationState();
+  }
+
+  @action
   async resetSettings() {
     if (this.args.resetSettings) {
       this.args.resetSettings(true);
-      this.args.updateColors?.();
-      this.highlightingService.updateHighlighting();
-      this.localUser.defaultCamera.fov =
-        this.userSettings.visualizationSettings.cameraFov.value;
-      this.localUser.defaultCamera.updateProjectionMatrix();
-      this.applicationRenderer.updateApplicationLayout();
-      this.applicationRenderer.addCommunicationForAllApplications();
+      this.updateVisualizationState();
     }
   }
+
+  updateVisualizationState() {
+    this.args.updateColors?.();
+    this.highlightingService.updateHighlighting();
+    this.localUser.defaultCamera.fov =
+      this.userSettings.visualizationSettings.cameraFov.value;
+    this.localUser.defaultCamera.updateProjectionMatrix();
+    this.applicationRenderer.updateApplicationLayout();
+    this.applicationRenderer.updateLabels();
+    this.applicationRenderer.addCommunicationForAllApplications();
+  }
+
   private semanticZoomPreSetSetter(targetPreset: number, valueArray: any) {
     if (targetPreset == 1) {
       valueArray[0].value = 5;

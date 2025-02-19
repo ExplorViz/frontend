@@ -133,7 +133,7 @@ export default class MinimapService extends Service {
    */
   private getCurrentPosition() {
     const userPosition = new THREE.Vector3();
-    if (!this.settings.visualizationSettings.version2.value) {
+    if (!this.settings.visualizationSettings.useCameraPosition.value) {
       userPosition.copy(this.cameraControls.perspectiveCameraControls.target);
     } else {
       userPosition.copy(this.localUser.camera.position);
