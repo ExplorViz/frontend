@@ -1,15 +1,9 @@
 import { action } from '@ember/object';
 import Evented from '@ember/object/evented';
 import Service, { inject as service } from '@ember/service';
-import { tracked } from '@glimmer/tracking';
-import debugLogger from 'ember-debug-logger';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
-import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type HeatmapMode =
   | 'snapshotHeatmap'
@@ -157,178 +151,88 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
     useHeatmapConfigurationStore.setState({ simpleHeatGradient: value });
   }
 
-  debug = debugLogger();
-
   @action
   toggleShared() {
-    this.heatmapShared = !this.heatmapShared;
+    useHeatmapConfigurationStore.getState().toggleShared();
   }
 
   @action
   setActive(isActive: boolean) {
-    this.heatmapActive = isActive;
+    useHeatmapConfigurationStore.getState().setActive(isActive);
   }
 
   @action
   deactivate() {
-    this.heatmapActive = false;
-    this.currentApplication = null;
+    useHeatmapConfigurationStore.getState().deactivate();
   }
 
   @action
   activate() {
-    this.heatmapActive = true;
+    useHeatmapConfigurationStore.getState().activate();
   }
 
   get latestClazzMetricScores() {
-    return (
-      this.applicationMetricsForEncompassingApplication
-        ?.latestClazzMetricScores || []
-    );
+    return useHeatmapConfigurationStore.getState().getLatestClazzMetricScores();
   }
 
   setActiveApplication(applicationObject3D: ApplicationObject3D) {
-    this.currentApplication = applicationObject3D;
-    this.updateActiveApplication(applicationObject3D);
+    useHeatmapConfigurationStore
+      .getState()
+      .setActiveApplication(applicationObject3D);
   }
 
   updateActiveApplication(applicationObject3D: ApplicationObject3D) {
-    if (
-      !this.currentApplication ||
-      this.currentApplication === applicationObject3D
-    ) {
-      this.debug('Ayy?');
-      this.currentApplication = applicationObject3D;
-    }
+    useHeatmapConfigurationStore
+      .getState()
+      .updateActiveApplication(applicationObject3D);
   }
 
   get applicationMetricsForEncompassingApplication() {
-    if (!this.currentApplication) {
-      return undefined;
-    }
-    const applicationData = useApplicationRepositoryStore
+    return useHeatmapConfigurationStore
       .getState()
-      .getById(this.currentApplication.getModelId());
-    // const applicationData = this.applicationRepo.getById(
-    //   this.currentApplication.getModelId()
-    // );
-    return applicationData?.applicationMetrics;
+      .getApplicationMetricsForEncompassingApplication();
   }
 
   get selectedMetric() {
-    if (!this.heatmapActive || !this.currentApplication) {
-      return undefined;
-    }
-    let chosenMetric = null;
-    const applicationMetricsForCurrentApplication =
-      this.applicationMetricsForEncompassingApplication;
-    const latestClazzMetricScores =
-      this.applicationMetricsForEncompassingApplication
-        ?.latestClazzMetricScores;
-    if (!applicationMetricsForCurrentApplication || !latestClazzMetricScores) {
-      useToastHandlerStore.getState().showErrorToastMessage('No heatmap found');
-      return undefined;
-    }
-
-    switch (this.selectedMode) {
-      case 'snapshotHeatmap':
-        if (applicationMetricsForCurrentApplication.latestClazzMetricScores) {
-          chosenMetric =
-            applicationMetricsForCurrentApplication.latestClazzMetricScores.find(
-              (metric) => metric.name === this.selectedMetricName
-            );
-          if (chosenMetric) {
-            return chosenMetric;
-          }
-        }
-        break;
-      case 'aggregatedHeatmap':
-        if (applicationMetricsForCurrentApplication.aggregatedMetricScores) {
-          chosenMetric =
-            applicationMetricsForCurrentApplication.aggregatedMetricScores.get(
-              this.selectedMetricName
-            );
-          if (chosenMetric) {
-            return chosenMetric;
-          }
-        }
-        break;
-      case 'windowedHeatmap':
-        if (applicationMetricsForCurrentApplication.differenceMetricScores) {
-          chosenMetric =
-            applicationMetricsForCurrentApplication.differenceMetricScores.get(
-              this.selectedMetricName
-            );
-          if (chosenMetric && chosenMetric[chosenMetric.length - 1]) {
-            return chosenMetric[chosenMetric.length - 1];
-          }
-        }
-        break;
-      default:
-        break;
-    }
-    return latestClazzMetricScores.firstObject;
+    return useHeatmapConfigurationStore.getState().getSelectedMetric();
   }
 
   @action
   updateMetric(metric: Metric) {
-    const metricName = metric.name;
-    this.selectedMetricName = metricName;
+    useHeatmapConfigurationStore.getState().updateMetric(metric);
   }
 
   switchMode() {
-    switch (this.selectedMode) {
-      case 'snapshotHeatmap':
-        this.selectedMode = 'aggregatedHeatmap';
-        break;
-      case 'aggregatedHeatmap':
-        this.selectedMode = 'windowedHeatmap';
-        break;
-      case 'windowedHeatmap':
-        this.selectedMode = 'snapshotHeatmap';
-        break;
-      default:
-        this.selectedMode = 'snapshotHeatmap';
-        break;
-    }
+    useHeatmapConfigurationStore.getState().switchMode();
   }
 
   switchMetric() {
-    const numOfMetrics = this.latestClazzMetricScores.length;
-    if (numOfMetrics > 0) {
-      const index = this.latestClazzMetricScores.findIndex(
-        (metric) => metric.name === this.selectedMetricName
-      );
-      this.selectedMetricName =
-        this.latestClazzMetricScores[(index + 1) % numOfMetrics].name;
-    }
+    useHeatmapConfigurationStore.getState().switchMetric();
   }
 
   toggleLegend() {
-    this.set('legendActive', !this.legendActive);
+    useHeatmapConfigurationStore.getState().toggleLegend();
   }
 
   /**
    * Return a gradient where the '_' character in the keys is replaced with '.'.
    */
   getSimpleHeatGradient() {
-    return revertKey(this.simpleHeatGradient);
+    return useHeatmapConfigurationStore.getState().getSimpleHeatGradient();
   }
 
   /**
    * Reset the gradient to default values.
    */
   resetSimpleHeatGradient() {
-    this.set('simpleHeatGradient', getSimpleDefaultGradient());
+    useHeatmapConfigurationStore.getState().resetSimpleHeatGradient();
   }
 
   /**
    * Reset all class attribute values to null;
    */
   cleanup() {
-    this.set('currentApplication', null);
-    this.set('heatmapActive', false);
-    this.set('largestValue', 0);
+    useHeatmapConfigurationStore.getState().cleanup();
   }
 }
 

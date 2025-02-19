@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import {
   ApplicationMetrics,
@@ -50,8 +50,8 @@ interface HeatmapConfigurationState {
   cleanup: () => void;
 }
 
-export const useHeatmapConfigurationStore =
-  createStore<HeatmapConfigurationState>((set, get) => ({
+export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
+  (set, get) => ({
     heatmapActive: true,
     heatmapShared: false,
     currentApplication: undefined,
@@ -59,7 +59,6 @@ export const useHeatmapConfigurationStore =
     // TODO this is never assigned another value, but used in calculation. What is it supposed to do?
     largestValue: 0,
     windowSize: 9,
-    // TODO methods
     selectedMode: 'snapshotHeatmap',
     selectedMetricName: 'Instance Count',
     useHelperLines: true,
@@ -239,4 +238,5 @@ export const useHeatmapConfigurationStore =
       set({ heatmapActive: false });
       set({ largestValue: 0 });
     },
-  }));
+  })
+);
