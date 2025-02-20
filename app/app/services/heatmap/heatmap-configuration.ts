@@ -1,5 +1,6 @@
 import { action } from '@ember/object';
 import Evented from '@ember/object/evented';
+import { tracked } from '@glimmer/tracking';
 import Service, { inject as service } from '@ember/service';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
@@ -14,15 +15,16 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
 
-  // @tracked
-  // heatmapActive = false;
-  get heatmapActive(): boolean {
-    return useHeatmapConfigurationStore.getState().heatmapActive;
-  }
+  @tracked
+  heatmapActive = false; // TODO for testing heatmap
 
-  set heatmapActive(value: boolean) {
-    useHeatmapConfigurationStore.setState({ heatmapActive: value });
-  }
+  // get heatmapActive(): boolean {
+  //   return useHeatmapConfigurationStore.getState().heatmapActive;
+  // }
+
+  // set heatmapActive(value: boolean) {
+  //   useHeatmapConfigurationStore.setState({ heatmapActive: value });
+  // }
 
   // @tracked
   // heatmapShared = false;
@@ -158,16 +160,19 @@ export default class HeatmapConfiguration extends Service.extend(Evented) {
 
   @action
   setActive(isActive: boolean) {
+    this.heatmapActive = isActive; // TODO for testing heatmap
     useHeatmapConfigurationStore.getState().setActive(isActive);
   }
 
   @action
   deactivate() {
+    this.heatmapActive = false; // TODO for testing heatmap
     useHeatmapConfigurationStore.getState().deactivate();
   }
 
   @action
   activate() {
+    this.heatmapActive = true; // TODO for testing heatmap
     useHeatmapConfigurationStore.getState().activate();
   }
 

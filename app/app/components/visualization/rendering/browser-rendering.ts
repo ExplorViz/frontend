@@ -68,6 +68,7 @@ import SnapshotOpener from 'react-lib/src/components/visualization/page-setup/si
 import TraceReplayerOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener.tsx';
 import ApplicationSearchOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener.tsx';
 import EntityFilteringOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener.tsx';
+import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -140,6 +141,9 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('auth')
   private auth!: Auth;
+
+  @service('heatmap/heatmap-configuration')
+  private heatmapConf!: HeatmapConfiguration; // TODO for testing heatmap
 
   @service
   private worker!: any;
