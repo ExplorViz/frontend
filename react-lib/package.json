@@ -16,7 +16,6 @@
     "typescript": "5"
   },
   "devDependencies": {
-    "downshift": "^9.0.8",
     "events": "^3.3.0",
     "zustand": "^5.0.2"
   },
