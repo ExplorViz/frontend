@@ -7,5 +7,6 @@
   {{did-insert this.setPopupPosition}}
 >
   <Heatmap::HeatmapLegend />
-  <Heatmap::MetricSelector @selectMetric={{@updateMetric}} />
+  {{!-- <Heatmap::MetricSelector @selectMetric={{@updateMetric}} /> --}}
+  <div {{react this.metricSelectorComponent}} />
 </div>

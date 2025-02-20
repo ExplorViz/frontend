@@ -4,6 +4,7 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
+import MetricSelector from 'react-lib/src/components/heatmap/metric-selector.tsx';
 
 interface HeatmapInfoArgs {
   metrics: Metric[];
@@ -12,6 +13,8 @@ interface HeatmapInfoArgs {
 }
 
 export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
+  metricSelectorComponent = MetricSelector;
+
   @service('user-settings')
   userSettings!: UserSettings;
 
