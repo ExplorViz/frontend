@@ -6,7 +6,8 @@
   {{on 'pointerdown' this.dragMouseDown}}
   {{did-insert this.setPopupPosition}}
 >
-  <Heatmap::HeatmapLegend />
+  {{! <Heatmap::HeatmapLegend /> }}
+  <div {{react this.heatmapLegendComponent}} />
   {{!-- <Heatmap::MetricSelector @selectMetric={{@updateMetric}} /> --}}
   <div {{react this.metricSelectorComponent}} />
 </div>

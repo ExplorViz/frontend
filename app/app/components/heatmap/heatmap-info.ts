@@ -5,6 +5,7 @@ import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { inject as service } from '@ember/service';
 import MetricSelector from 'react-lib/src/components/heatmap/metric-selector.tsx';
+import HeatmapLegend from 'react-lib/src/components/heatmap/heatmap-legend.tsx';
 
 interface HeatmapInfoArgs {
   metrics: Metric[];
@@ -14,6 +15,7 @@ interface HeatmapInfoArgs {
 
 export default class HeatmapInfo extends Component<HeatmapInfoArgs> {
   metricSelectorComponent = MetricSelector;
+  heatmapLegendComponent = HeatmapLegend;
 
   @service('user-settings')
   userSettings!: UserSettings;
