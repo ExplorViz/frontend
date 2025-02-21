@@ -27,6 +27,7 @@ export default function MetricSelector() {
   );
 
   useHeatmapConfigurationStore((state) => state.selectedMetricName); // For reactivity on metric change
+  useHeatmapConfigurationStore((state) => state.currentApplication); // For reactivity on application change
 
   return (
     <Select
