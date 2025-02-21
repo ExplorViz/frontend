@@ -59,8 +59,6 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
         this.args.highlightTrace(trace, firstStep.spanId);
       }
     } else {
-      this.callback.forEach((fn) => fn());
-
       // Reset highlighting when highlighted trace is clicked again
       if (!this.visualizationPaused) {
         this.renderingService.resumeVisualizationUpdating();

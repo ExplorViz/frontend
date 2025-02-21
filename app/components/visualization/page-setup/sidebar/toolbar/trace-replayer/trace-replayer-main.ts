@@ -3,6 +3,7 @@ import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import * as THREE from 'three';
+import { Vector3 } from 'three';
 import {
   Span,
   Trace,
@@ -27,6 +28,7 @@ import {
   TraceTreeBuilder,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import {
+  Arc,
   Blob,
   PathAnimation,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
@@ -35,8 +37,6 @@ interface Args {
   selectedTrace: Trace;
   structureData: StructureLandscapeData;
   renderingLoop: RenderingLoop;
-
-  callback: (() => void)[];
 
   highlightTrace(trace: Trace, traceStep: string): void;
 
@@ -60,12 +60,12 @@ export default class TraceReplayerMain extends Component<Args> {
 
   private tree: TraceTree;
 
+  private scene;
+
   constructor(owner: any, args: Args) {
     super(owner, args);
     const selectedTrace = this.args.selectedTrace;
     const trace = getSortedTraceSpans(selectedTrace);
-
-    this.args.callback.push(this.stop);
 
     if (trace.length > 0) {
       const [firstStep] = trace;
@@ -73,6 +73,7 @@ export default class TraceReplayerMain extends Component<Args> {
     }
 
     this.classMap = getHashCodeToClassMap(this.args.structureData);
+    this.scene = this.args.renderingLoop.scene;
 
     this.tree = new TraceTreeBuilder(
       trace,
@@ -161,40 +162,24 @@ export default class TraceReplayerMain extends Component<Args> {
       .multiply(scale)
       .add(support);
 
-    const classDistance = Math.hypot(end.x - start.x, end.z - start.z);
-    const height =
-      classDistance *
-      0.2 *
-      this.applicationRenderer.appSettings.curvyCommHeight.value;
-    const middle = new THREE.Vector3(
-      start.x + (end.x - start.x) / 2.0,
-      height + start.y + (end.y - start.y) / 2.0,
-      start.z + (end.z - start.z) / 2.0
-    );
-    return new THREE.QuadraticBezierCurve3(start, middle, end);
+    return new Arc(start, end);
   }
 
-  tick(delta: number) {
-    this.animations.forEach((animation: PathAnimation) => {
-      animation.delta += delta;
-      const progress =
-        animation.delta / (animation.duration / this.selectedSpeed);
-      if (0.0 <= progress && progress <= 1.0) {
-        animation.mesh.move(animation.path.getPoint(progress));
-      } else if (!this.stopped && !this.paused) {
-        animation.delta = 0;
+  trail(start: Vector3, end: Vector3, radius: number) {
+    const shape = new THREE.Shape().ellipse(
+      0.0,
+      0.0,
+      radius,
+      radius,
+      0.0,
+      2.0 * Math.PI
+    );
 
-        if (!animation.target.isLeaf) {
-          animation.origin = animation.target;
-          animation.target = animation.origin.children[0];
+    const spline = new Arc(start, end);
 
-          animation.path = this.path(animation.origin, animation.target);
-          animation.mesh.move(animation.path.getPoint(0));
-          animation.mesh.show();
-        } else {
-          this.stop();
-        }
-      }
+    return new THREE.ExtrudeGeometry(shape, {
+      steps: 32,
+      extrudePath: spline,
     });
   }
 
@@ -205,6 +190,110 @@ export default class TraceReplayerMain extends Component<Args> {
         mesh.turnTransparent(opacity);
         this.turnComponentAndAncestorsTransparent(component.parent, opacity);
       }
+    }
+  }
+
+  tick(delta: number) {
+    if (this.animations.length > 0) {
+      this.animations.forEach((animation: PathAnimation) => {
+        animation.delta += delta;
+        const progress =
+          animation.delta / (animation.duration / this.selectedSpeed);
+        if (0.0 <= progress && progress <= 1.0) {
+          animation.mesh.move(animation.path.getPoint(progress));
+
+          const shape = new THREE.Shape().ellipse(
+            0.0,
+            0.0,
+            0.02,
+            0.02,
+            0.0,
+            2.0 * Math.PI
+          );
+
+          if (progress > 0.2) {
+            const spline = new THREE.QuadraticBezierCurve3(
+              animation.path.getPoint(progress - 0.2),
+              animation.path.getPoint(progress - 0.1),
+              animation.path.getPoint(progress)
+            );
+            const geometry = new THREE.ExtrudeGeometry(shape, {
+              steps: 12,
+              extrudePath: spline,
+            });
+            animation.trail.geometry.copy(geometry);
+          } else {
+            const spline = new THREE.QuadraticBezierCurve3(
+              animation.path.getPoint(0),
+              animation.path.getPoint(progress / 2),
+              animation.path.getPoint(progress)
+            );
+            const geometry = new THREE.ExtrudeGeometry(shape, {
+              steps: 12,
+              extrudePath: spline,
+            });
+            animation.trail.geometry.copy(geometry);
+
+            animation.prune(3).forEach((mesh) => this.scene.remove(mesh));
+          }
+        } else if (!this.stopped && !this.paused) {
+          animation.delta = 0;
+
+          if (!animation.target.isLeaf) {
+            animation.origin.mesh.unhighlight();
+            animation.origin.mesh.turnTransparent(0.3);
+            this.turnComponentAndAncestorsTransparent(
+              animation.origin.clazz.parent,
+              0.3
+            );
+
+            animation.origin = animation.target;
+            animation.target = animation.origin.children[0];
+
+            animation.path = this.path(animation.origin, animation.target);
+            animation.mesh.move(animation.path.getPoint(0));
+            animation.mesh.show();
+
+            // animation.line.forEach((line) => {
+            //   if (line.material instanceof THREE.LineBasicMaterial) {
+            //     line.material = new THREE.LineBasicMaterial({
+            //       color: line.material.color,
+            //       opacity: line.material.opacity - 0.3,
+            //     });
+            //   }
+            // });
+
+            const line = new THREE.Mesh(
+              this.trail(
+                animation.path.getPoint(0),
+                animation.path.getPoint(1),
+                0.005
+              ),
+              animation.trail.material
+            );
+            this.scene.add(line);
+            animation.line.push(line);
+          } else {
+            this.stop();
+          }
+        }
+
+        animation.origin.mesh.highlight();
+        animation.origin.mesh.turnOpaque();
+        this.turnComponentAndAncestorsTransparent(
+          animation.origin.clazz.parent,
+          1
+        );
+
+        animation.target.mesh.highlight();
+        animation.target.mesh.turnOpaque();
+        this.turnComponentAndAncestorsTransparent(
+          animation.target.clazz.parent,
+          1
+        );
+      });
+    } else {
+      this.stop();
     }
   }
 
@@ -227,25 +316,68 @@ export default class TraceReplayerMain extends Component<Args> {
         this.turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
       });
 
-      {
-        const blob = new Blob(0.02);
-        blob.hide();
-        this.args.renderingLoop.scene.add(blob);
+      if (this.tree.root.length > 0) {
+        {
+          const origin = this.tree.root[0];
 
-        const origin = this.tree.root[0];
-        const target = origin.children[0];
-        const path = this.path(origin, target);
-        this.animations.push(new PathAnimation(origin, target, path, blob));
-      }
-      {
-        const blob = new Blob(0.02, new THREE.Color('blue'));
-        blob.hide();
-        this.args.renderingLoop.scene.add(blob);
+          const target = !origin.isLeaf ? origin.children[0] : origin;
 
-        const origin = this.tree.root[0].children[0].children[0];
-        const target = origin.children[0];
-        const path = this.path(origin, target);
-        this.animations.push(new PathAnimation(origin, target, path, blob));
+          const path = this.path(origin, target);
+
+          const material = new THREE.LineBasicMaterial({
+            color: new THREE.Color('red'),
+          });
+          const trail = new THREE.Mesh(
+            this.trail(path.start, path.end, 0.015),
+            material
+          );
+          this.scene.add(trail);
+
+          const line = new THREE.Mesh(
+            this.trail(path.start, path.end, 0.005),
+            material
+          );
+          this.scene.add(line);
+
+          const blob = new Blob(0.02);
+          blob.hide();
+          this.scene.add(blob);
+
+          this.animations.push(
+            new PathAnimation(origin, target, path, blob, [line], trail)
+          );
+        }
+        {
+          const origin = this.tree.root[0].children[0].children[0];
+
+          if (!origin.isLeaf) {
+            const target = origin.children[0];
+            const path = this.path(origin, target);
+
+            const material = new THREE.LineBasicMaterial({
+              color: new THREE.Color('blue'),
+            });
+            const trail = new THREE.Mesh(
+              this.trail(path.start, path.end, 0.015),
+              material
+            );
+            this.scene.add(trail);
+
+            const line = new THREE.Mesh(
+              this.trail(path.start, path.end, 0.005),
+              material
+            );
+            this.scene.add(line);
+
+            const blob = new Blob(0.02, new THREE.Color('blue'));
+            blob.hide();
+            this.scene.add(blob);
+
+            this.animations.push(
+              new PathAnimation(origin, target, path, blob, [line], trail)
+            );
+          }
+        }
       }
     }
     this.paused = false;
@@ -273,9 +405,31 @@ export default class TraceReplayerMain extends Component<Args> {
       this.turnComponentAndAncestorsTransparent(clazz.parent, 1);
     });
 
-    for (const node of this.animations) {
-      this.args.renderingLoop.scene.remove(node.mesh);
-    }
+    this.animations.forEach((animation) => {
+      animation.origin.mesh.unhighlight();
+      animation.target.mesh.unhighlight();
+
+      this.scene.remove(animation.mesh);
+      this.scene.remove(animation.trail);
+      animation.line.forEach((line) => {
+        this.scene.remove(line);
+      });
+    });
     this.animations.clear();
+
+    if (
+      this.args.selectedTrace &&
+      this.args.selectedTrace.spanList.length > 0
+    ) {
+      this.args.highlightTrace(
+        this.args.selectedTrace,
+        this.args.selectedTrace.spanList[0].spanId
+      );
+    }
+  }
+
+  willDestroy() {
+    super.willDestroy();
+    this.stop();
   }
 }

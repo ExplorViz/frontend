@@ -62,12 +62,35 @@ export class Afterimage {
   }
 }
 
+export class Arc extends THREE.Curve<Vector3> {
+  start: Vector3;
+  middle: Vector3;
+  end: Vector3;
+
+  constructor(start: Vector3, end: Vector3) {
+    super();
+    this.start = start;
+    this.end = end;
+    this.middle = new THREE.Vector3(
+      start.x + (end.x - start.x) / 2.0,
+      1 + start.y + (end.y - start.y) / 2.0,
+      start.z + (end.z - start.z) / 2.0
+    );
+  }
+
+  getPoint(t: number) {
+    return new THREE.QuadraticBezierCurve3(this.start, this.middle, this.end).getPoint(t);
+  }
+}
+
 export class PathAnimation {
   origin: TraceNode;
   target: TraceNode;
   path: Curve<Vector3>;
   mesh: Blob;
   delta: number;
+  line: THREE.Mesh[];
+  trail: THREE.Mesh;
   duration: number;
 
   constructor(
@@ -75,6 +98,8 @@ export class PathAnimation {
     target: TraceNode,
     path: Curve<Vector3>,
     mesh: Blob,
+    line: THREE.Mesh[],
+    trail: THREE.Mesh,
     delta: number = 0
   ) {
     this.origin = origin;
@@ -82,6 +107,17 @@ export class PathAnimation {
     this.path = path;
     this.mesh = mesh;
     this.delta = delta;
+    this.trail = trail;
+    this.line = line;
     this.duration = 1 + origin.duration / 1000.0;
+  }
+
+  prune(n: number): THREE.Mesh[] {
+    if (this.line.length > n) {
+      const slice = this.line.slice( 0, n);
+      this.line = this.line.slice( n);
+      return slice;
+    }
+    return []
   }
 }
