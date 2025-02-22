@@ -3,6 +3,13 @@ import * as THREE from 'three';
 import { TraceNode } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import { Curve } from 'three/src/extras/core/Curve';
 import { Vector3 } from 'three/src/math/Vector3';
+import { tracked } from '@glimmer/tracking';
+import { htmlSafe } from '@ember/template';
+import Ember from 'ember';
+import SafeString = Ember.Handlebars.SafeString;
+import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import Component from '@glimmer/component';
+import { action } from '@ember/object';
 
 const DEFAULT_OPACITY = 1;
 
@@ -70,6 +77,89 @@ export class Spline extends BaseMesh<THREE.ExtrudeGeometry, THREE.Material> {
   }
 }
 
+export default class Details {
+  @tracked
+  public name: string;
+  @tracked
+  public origin: Class | undefined;
+  @tracked
+  public target: Class | undefined;
+  @tracked
+  public originApp: string | undefined;
+  @tracked
+  public targetApp: string | undefined;
+  @tracked
+  public start: number;
+  @tracked
+  public end: number;
+
+  constructor(
+    name: string,
+    origin: Class | undefined,
+    target: Class | undefined,
+    originApp: string | undefined,
+    targetApp: string | undefined,
+    start: number,
+    end: number
+  ) {
+    this.name = name;
+    this.origin = origin;
+    this.target = target;
+    this.originApp = originApp;
+    this.targetApp = targetApp;
+    this.start = start;
+    this.end = end;
+  }
+}
+
+export class Tab {
+  public readonly label: string;
+  public readonly callback: () => void;
+  public readonly style: SafeString;
+
+  @tracked
+  public __active: boolean;
+
+  @tracked
+  public __alive: boolean[];
+
+  @tracked
+  public details: Details;
+
+  get active() {
+    return this.__active;
+  }
+
+  set active(value) {
+    this.__active = value;
+  }
+
+  get alive() {
+    return this.__alive[0];
+  }
+
+  set alive(value) {
+    this.__alive = [value];
+  }
+
+  constructor(
+    label: string,
+    callback: () => void,
+    color: THREE.Color,
+    details: Details
+  ) {
+    this.label = label;
+    this.callback = () => {
+      callback();
+      this.active = true;
+    };
+    this.details = Details;
+    this.style = htmlSafe(`color: ${color.offsetHSL(0, 0, -0.25).getStyle()}`);
+    this.__active = false;
+    this.__alive = [true];
+  }
+}
+
 export class HueSpace {
   private readonly min: number;
   private readonly max: number;
@@ -99,10 +189,7 @@ export class HueSpace {
 
     for (let i = 0; i < n; ++i) {
       partitions.push(
-        new HueSpace(
-          this.min + i * offset,
-          this.min + (i + 1) * offset
-        )
+        new HueSpace(this.min + i * offset, this.min + (i + 1) * offset)
       );
     }
 
@@ -184,7 +271,9 @@ export class AnimationEntity {
   line: THREE.Mesh[];
   trail: THREE.Mesh;
   duration: number;
+  tab: Tab;
   color: HueSpace;
+  alive: boolean;
 
   constructor(
     origin: TraceNode,
@@ -193,6 +282,7 @@ export class AnimationEntity {
     mesh: Sphere,
     line: THREE.Mesh[],
     trail: THREE.Mesh,
+    tab: [Tab],
     color: HueSpace = HueSpace.default,
     delta: number = 0
   ) {
@@ -203,8 +293,10 @@ export class AnimationEntity {
     this.delta = delta;
     this.line = line;
     this.trail = trail;
+    this.tab = tab[0];
     this.color = color;
     this.duration = 1 + origin.duration / 1000.0;
+    this.alive = true;
   }
 
   prune(n: number): THREE.Mesh[] {

@@ -117,13 +117,16 @@
 <!--/>-->
 
 <!--<hr />-->
-
-<!--<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails-->
-<!--  @operationName={{this.operationName}}-->
-<!--  @sourceClass={{this.sourceClass}}-->
-<!--  @targetClass={{this.targetClass}}-->
-<!--  @sourceApplicationName={{this.sourceApplication.name}}-->
-<!--  @targetApplicationName={{this.targetApplication.name}}-->
-<!--  @spanStartTime={{this.currentTraceStep.startTime}}-->
-<!--  @spanEndTime={{this.currentTraceStep.endTime}}-->
-<!--/>-->
+<div class='mb-3'>
+  <ul class="nav nav-tabs">
+      <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
+        @operationName={{this.tab.details.name}}
+        @sourceClass={{this.tab.details.origin}}
+        @targetClass={{this.tab.details.target}}
+        @sourceApplicationName=
+        @targetApplicationName=
+        @spanStartTime=
+        @spanEndTime=
+      />
+  </ul>
+</div>
