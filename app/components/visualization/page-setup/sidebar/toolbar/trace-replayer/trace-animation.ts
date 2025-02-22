@@ -6,7 +6,7 @@ import { Vector3 } from 'three/src/math/Vector3';
 
 const DEFAULT_OPACITY = 1;
 
-export class Blob extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
+export class Sphere extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
   constructor(
     radius: number,
     color: THREE.Color = new THREE.Color('red'),
@@ -19,6 +19,94 @@ export class Blob extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
 
   move(position: THREE.Vector3): void {
     this.position.copy(position);
+  }
+}
+
+export class Bullet extends BaseMesh<THREE.BufferGeometry, THREE.Material> {
+  constructor(
+    radius: number,
+    path: Curve<Vector3>,
+    color: THREE.Color = new THREE.Color('red'),
+    opacity: number = 1
+  ) {
+    super(color, color, opacity);
+    this.highlight();
+    const shape = new THREE.Shape().ellipse(
+      0.0,
+      0.0,
+      radius,
+      radius,
+      0.0,
+      2.0 * Math.PI
+    );
+    this.geometry = new THREE.ExtrudeGeometry(shape, {
+      steps: 12,
+      extrudePath: path,
+    });
+  }
+}
+
+export class Spline extends BaseMesh<THREE.ExtrudeGeometry, THREE.Material> {
+  constructor(
+    radius: number,
+    path: Curve<Vector3>,
+    color: THREE.Color = new THREE.Color('red'),
+    opacity: number = 1
+  ) {
+    super(color, color, opacity);
+    this.highlight();
+    const shape = new THREE.Shape().ellipse(
+      0.0,
+      0.0,
+      radius,
+      radius,
+      0.0,
+      2.0 * Math.PI
+    );
+    this.geometry = new THREE.ExtrudeGeometry(shape, {
+      steps: 12,
+      extrudePath: path,
+    });
+  }
+}
+
+export class HueSpace {
+  private readonly min: number;
+  private readonly max: number;
+  public readonly color: THREE.Color;
+
+  private constructor(min: number, max: number) {
+    this.min = min;
+    this.max = max;
+    this.color = new THREE.Color().setHSL(
+      this.min + (this.max - this.min) / 2.0,
+      1.0,
+      0.5
+    );
+  }
+
+  static get default(): HueSpace {
+    return new HueSpace(0.0, 1.0);
+  }
+
+  partition(n: number): HueSpace[] {
+    if (n < 1) {
+      return [this];
+    }
+
+    const partitions = [];
+    const offset = (this.max - this.min) / n;
+
+    for (let i = 0; i < n; ++i) {
+      partitions.push(
+        new HueSpace(
+          this.min + i * offset,
+          this.min + (i + 1) * offset
+        )
+      );
+    }
+
+    return partitions;
   }
 }
 
@@ -79,27 +167,33 @@ export class Arc extends THREE.Curve<Vector3> {
   }
 
   getPoint(t: number) {
-    return new THREE.QuadraticBezierCurve3(this.start, this.middle, this.end).getPoint(t);
+    return new THREE.QuadraticBezierCurve3(
+      this.start,
+      this.middle,
+      this.end
+    ).getPoint(t);
   }
 }
 
-export class PathAnimation {
+export class AnimationEntity {
   origin: TraceNode;
   target: TraceNode;
   path: Curve<Vector3>;
-  mesh: Blob;
+  mesh: Sphere;
   delta: number;
   line: THREE.Mesh[];
   trail: THREE.Mesh;
   duration: number;
+  color: HueSpace;
 
   constructor(
     origin: TraceNode,
     target: TraceNode,
     path: Curve<Vector3>,
-    mesh: Blob,
+    mesh: Sphere,
     line: THREE.Mesh[],
     trail: THREE.Mesh,
+    color: HueSpace = HueSpace.default,
     delta: number = 0
   ) {
     this.origin = origin;
@@ -107,17 +201,18 @@ export class PathAnimation {
     this.path = path;
     this.mesh = mesh;
     this.delta = delta;
-    this.trail = trail;
     this.line = line;
+    this.trail = trail;
+    this.color = color;
     this.duration = 1 + origin.duration / 1000.0;
   }
 
   prune(n: number): THREE.Mesh[] {
     if (this.line.length > n) {
-      const slice = this.line.slice( 0, n);
-      this.line = this.line.slice( n);
+      const slice = this.line.slice(0, n);
+      this.line = this.line.slice(n);
       return slice;
     }
-    return []
+    return [];
   }
 }
