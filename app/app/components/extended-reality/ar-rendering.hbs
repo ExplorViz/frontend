@@ -6,11 +6,12 @@
       {{did-resize this.resize debounce=100}}
     >
       {{#if this.heatmapConf.heatmapActive}}
-        <Heatmap::HeatmapInfo
+        {{!-- <Heatmap::HeatmapInfo
           @metrics={{this.heatmapConf.metrics}}
           @updateMetric={{this.heatmapConf.updateMetric}}
           @selectedMetric={{this.heatmapConf.selectedMetric}}
-        />
+        /> --}}
+        <div {{react this.heatmapInfo}} />
       {{/if}}
 
       {{#if this.loadNewLandscape.isRunning}}

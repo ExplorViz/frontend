@@ -40,6 +40,7 @@ import LoadingIndicator from 'react-lib/src/components/visualization/rendering/l
 import ArSettingsOpener from 'react-lib/src/components/extended-reality/visualization/page-setup/navbar/ar-settings-opener.tsx';
 import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
 import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
+import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info.tsx';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -59,6 +60,7 @@ export default class ArRendering extends Component<Args> {
   arSettingsOpener = ArSettingsOpener;
   collaborationOpener = CollaborationOpener;
   settingsOpener = SettingsOpener;
+  heatmapInfo = HeatmapInfo;
 
   // #region CLASS FIELDS AND GETTERS
 

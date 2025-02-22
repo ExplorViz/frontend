@@ -69,6 +69,7 @@ import TraceReplayerOpener from 'react-lib/src/components/visualization/page-set
 import ApplicationSearchOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener.tsx';
 import EntityFilteringOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener.tsx';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
+import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info.tsx';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -96,6 +97,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   traceReplayerOpener = TraceReplayerOpener;
   applicationSearchOpener = ApplicationSearchOpener;
   entityFilteringOpener = EntityFilteringOpener;
+  heatmapInfo = HeatmapInfo;
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
