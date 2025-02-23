@@ -1,5 +1,5 @@
-import { createStore } from "zustand/vanilla";
-import { LandscapeData } from "react-lib/src/utils/landscape-schemes/landscape-data";
+import { create } from 'zustand';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
   Class,
@@ -8,29 +8,29 @@ import {
   isClass,
   isPackage,
   StructureLandscapeData,
-} from "react-lib/src/utils/landscape-schemes/structure-data";
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   RestructureAction,
   EntityType,
-} from "react-lib/src/utils/restructure-helper";
-import ClassCommunication from "react-lib/src/utils/landscape-schemes/dynamic/class-communication";
-import { getClassById } from "react-lib/src/utils/class-helpers";
+} from 'react-lib/src/utils/restructure-helper';
+import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import { getClassById } from 'react-lib/src/utils/class-helpers';
 import {
   getApplicationFromClass,
   getApplicationFromPackage,
   getApplicationFromSubPackage,
   getApplicationInLandscapeById,
-} from "react-lib/src/utils/landscape-structure-helpers";
+} from 'react-lib/src/utils/landscape-structure-helpers';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from "react-lib/src/utils/application-helpers";
+} from 'react-lib/src/utils/application-helpers';
 import {
   getClassesInPackage,
   getPackageById,
   getSubPackagesOfPackage,
-} from "react-lib/src/utils/package-helpers";
-import { BaseChangeLogEntry } from "../utils/changelog-entry";
+} from 'react-lib/src/utils/package-helpers';
+import { BaseChangeLogEntry } from '../utils/changelog-entry';
 
 type MeshModelTextureMapping = {
   action: RestructureAction;
@@ -116,8 +116,8 @@ interface LandscapeRestructureState {
   // sendCutInsertMessage(destination: Application | Package): void;
 }
 
-export const useLandscapeRestructureStore =
-  createStore<LandscapeRestructureState>((set, get) => ({
+export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
+  (set, get) => ({
     restructureMode: false,
     landscapeData: null,
     meshModelTextureMappings: [],
@@ -125,14 +125,17 @@ export const useLandscapeRestructureStore =
     deletedDataModels: [],
     newMeshCounter: 1,
     canvas: undefined,
-    clipboard: "",
+    clipboard: '',
     clippedMesh: null,
     createdClassCommunication: [],
     allClassCommunications: [],
     copiedClassCommunications: new Map<string, ClassCommunication[]>(),
     removeCopiedClassCommunication,
     updatedClassCommunications: new Map<string, ClassCommunication[]>(),
-    completelyDeletedClassCommunications: new Map<string,ClassCommunication[]>(),
+    completelyDeletedClassCommunications: new Map<
+      string,
+      ClassCommunication[]
+    >(),
     deletedClassCommunications: [],
     sourceClass: null,
     targetClass: null,
@@ -144,7 +147,7 @@ export const useLandscapeRestructureStore =
       state.meshModelTextureMappings = [];
       state.commModelColorMappings = [];
       state.deletedDataModels = [];
-      state.clipboard = "";
+      state.clipboard = '';
       state.clippedMesh = null;
       state.createdClassCommunication = [];
       state.allClassCommunications = [];
@@ -157,9 +160,9 @@ export const useLandscapeRestructureStore =
     },
     setSourceOrTargetClass: (type: string) => {
       const state = get();
-      if (type == "source" && isClass(state.clippedMesh))
+      if (type == 'source' && isClass(state.clippedMesh))
         state.sourceClass = state.clippedMesh;
-      else if (type == "target" && isClass(state.clippedMesh))
+      else if (type == 'target' && isClass(state.clippedMesh))
         state.targetClass = state.clippedMesh;
     },
     setCommunicationSourceClass: (clazz: Class) => {
@@ -240,7 +243,7 @@ export const useLandscapeRestructureStore =
         undoMapping as MeshModelTextureMapping
       );
 
-      const keyToRemove = "DUPLICATED|" + app.id;
+      const keyToRemove = 'DUPLICATED|' + app.id;
 
       state.copiedClassCommunications.delete(keyToRemove);
     },
@@ -257,14 +260,14 @@ export const useLandscapeRestructureStore =
         undoMapping as MeshModelTextureMapping
       );
 
-      const keyToRemove = "COPIED|" + pckg.id;
+      const keyToRemove = 'COPIED|' + pckg.id;
 
       state.copiedClassCommunications.delete(keyToRemove);
     },
     //TODO: app gets passed but not used
     undoCopyClass(app: Application, clazz: Class) {
       const state = get();
-      const keyToRemove = "DUPLICATED|" + clazz.id;
+      const keyToRemove = 'DUPLICATED|' + clazz.id;
       const copiedComms = state.copiedClassCommunications.get(keyToRemove);
       if (copiedComms) {
         copiedComms.forEach((comm) => {
@@ -353,7 +356,7 @@ export const useLandscapeRestructureStore =
     },
     resetClipboard() {
       const state = get();
-      state.clipboard = "";
+      state.clipboard = '';
       state.clippedMesh = null;
     },
     getApp(appChild: Package | Class) {
@@ -383,7 +386,8 @@ export const useLandscapeRestructureStore =
         state.deletedDataModels.removeObject(clazz);
       });
     },
-  }));
+  })
+);
 
 function removeCopiedClassCommunication(key: string) {
   useLandscapeRestructureStore.setState((prev) => {
