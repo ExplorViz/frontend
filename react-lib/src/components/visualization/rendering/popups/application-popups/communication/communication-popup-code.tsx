@@ -7,7 +7,7 @@ export default function CommunicationPopupCode() {
       <tbody>
         <tr>
           <td className="text-nowrap align-top">
-            <CodeIcon verticalAlign="middle" size="small" fill="#777" />
+            <CodeIcon verticalAlign="middle" size="small" />
           </td>
           <td className="text-right text-break pl-1">Work in progress</td>
         </tr>
