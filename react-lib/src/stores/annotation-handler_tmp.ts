@@ -135,19 +135,16 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     isShiftPressed: false,
 
     handleMouseMove: (event: MouseEvent) => {
-      const state = get();
-      state.latestMousePosition = {
+      set({ latestMousePosition: {
         timestamp: Date.now(),
         x: event.pageX,
         y: event.pageY,
-      };
-      state.isShiftPressed = event.shiftKey;
+      } });
+      set({ isShiftPressed: event.shiftKey });
     },
 
     clearAnnotation: () => {
-        const state = get();
-
-        state.annotationData.forEach((an) => {
+        get().annotationData.forEach((an) => {
           if (an.entity) {
             useApplicationRendererStore.getState().updateLabel(an.entity.id, '');
           }
@@ -157,26 +154,24 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     removeUnmovedAnnotations: () => {
-        const state = get();
-
         // remvove annotation from minimized, if minimized one was opened and moved again
-        state.minimizedAnnotations.forEach((man) => {
-          state.annotationData.forEach((an) => {
+        get().minimizedAnnotations.forEach((man) => {
+          get().annotationData.forEach((an) => {
             if (man.annotationId === an.annotationId && an.wasMoved) {
-                set({ minimizedAnnotations: state.minimizedAnnotations.filter((data) => data.annotationId !== an.annotationId) });
+                set({ minimizedAnnotations: get().minimizedAnnotations.filter((data) => data.annotationId !== an.annotationId) });
             }
           });
         });
     
-        const unmovedAnnotations = state.annotationData.filter(
+        const unmovedAnnotations = get().annotationData.filter(
           (data) => !data.wasMoved
         );
-        set({ annotationData: state.annotationData.filter((data) => data.wasMoved) });
+        set({ annotationData: get().annotationData.filter((data) => data.wasMoved) });
     
         unmovedAnnotations.forEach((an) => {
           let found = false;
           if (an.entity) {
-            state.minimizedAnnotations.forEach((man) => {
+            get().minimizedAnnotations.forEach((man) => {
               if (an.annotationId === man.annotationId) {
                 found = true;
               }
@@ -192,9 +187,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     hideAnnotation: (annotationId: number) => {
-        const state = get();
-
-        const annotation = state.annotationData.find(
+        const annotation = get().annotationData.find(
           (an) => an.annotationId === annotationId
         );
     
@@ -215,9 +208,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     minimizeAnnotation: (annotationId: number) => {
-        const state = get();
-
-        const annotation = state.annotationData.find(
+        const annotation = get().annotationData.find(
           (an) => an.annotationId === annotationId
         );
     
@@ -239,17 +230,15 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     
           annotation.wasMoved = false; // TODO: How to change tracked variable of annotationData
     
-          set({ minimizedAnnotations: [...state.minimizedAnnotations, annotation] });
-          set({ annotationData: state.annotationData.filter(
+          set({ minimizedAnnotations: [...get().minimizedAnnotations, annotation] });
+          set({ annotationData: get().annotationData.filter(
             (an) => an.annotationId !== annotationId
           ) });
         }
     },
 
     editAnnotation: (annotationId: number) => {
-        const state = get();
-
-        const annotation = state.annotationData.find(
+        const annotation = get().annotationData.find(
           (an) => an.annotationId === annotationId
         );
     
@@ -297,9 +286,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     updateAnnotation: (annotationId: number) => {
-      const state = get();
-
-      const annotation = state.annotationData.find(
+      const annotation = get().annotationData.find(
         (an) => an.annotationId === annotationId
       );
   
@@ -349,16 +336,14 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     }, 
 
     removeAnnotation: async (annotationId: number) : Promise<void> => {
-      const state = get();
-
-      const annotation = state.annotationData.find(
+      const annotation = get().annotationData.find(
         (an) => an.annotationId === annotationId
       );
       if (!annotation) {
         return;
       }
   
-      if (await state.canRemoveAnnotation(annotation)) {
+      if (await get().canRemoveAnnotation(annotation)) {
         // remove potential toggle effects
         if (annotation.entity) {
           const mesh = useApplicationRendererStore.getState().getMeshById(annotation.entity.id);
@@ -371,7 +356,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           }
         }
   
-        set({ annotationData: state.annotationData.filter(
+        set({ annotationData: get().annotationData.filter(
           (an) => an.annotationId !== annotationId
         ) });
       } else {
@@ -384,8 +369,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     canRemoveAnnotation: async (annotation: AnnotationData): Promise<boolean> => {
-      const state = get();
-
       if (!annotation.menuId) {
         return true;
       }
@@ -413,15 +396,13 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     removeAnnotationAfterTimeout:(annotation: AnnotationData) => {
-      const state = get();
-
-      const latestMousePosition = state.latestMousePosition;
+      const latestMousePosition = get().latestMousePosition;
       // Store popup position
       const mouseX = annotation.mouseX;
       const mouseY = annotation.mouseY;
 
       setTimeout(() => {
-        const maybeAnnotation = state.annotationData.find(
+        const maybeAnnotation = get().annotationData.find(
           (ad) => ad.annotationId === annotation.annotationId
         );
 
@@ -432,11 +413,11 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
         // Do not remove popup when mouse stayed (recently) on target entity or shift is pressed
         if (
-          state.isShiftPressed ||
-          (latestMousePosition.x == state.latestMousePosition.x &&
-            latestMousePosition.y == state.latestMousePosition.y)
+          get().isShiftPressed ||
+          (latestMousePosition.x == get().latestMousePosition.x &&
+            latestMousePosition.y == get().latestMousePosition.y)
         ) {
-          state.removeAnnotationAfterTimeout(annotation);
+          get().removeAnnotationAfterTimeout(annotation);
           return;
         }
 
@@ -445,18 +426,16 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           maybeAnnotation.mouseX == mouseX &&
           maybeAnnotation.mouseY == mouseY
         ) {
-          state.removeAnnotation(annotation.annotationId);
+          get().removeAnnotation(annotation.annotationId);
           return;
         }
 
-        state.removeAnnotationAfterTimeout(annotation);
+        get().removeAnnotationAfterTimeout(annotation);
       }, getStoredSettings().hidePopupDelay.value * 1000);
     },
 
     shareAnnotation: (annotation: AnnotationData) => {
-      const state = get();
-
-      state.updateMeshReference(annotation);
+      get().updateMeshReference(annotation);
   
       let mesh = undefined;
       let entityId = undefined;
@@ -499,16 +478,14 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     handleHoverOnMesh: (mesh?: THREE.Object3D) => {
-      const state = get();
-
       if (isEntityMesh(mesh)) {
-        state.annotationData.forEach((an) => {
+        get().annotationData.forEach((an) => {
           if (an.entity !== undefined) {
             an.hovered = an.entity.id === mesh.getModelId(); // TODO: How to change tracked variable of annotationData
           }
         });
       } else {
-        state.annotationData.forEach((an) => {
+        get().annotationData.forEach((an) => {
           an.hovered = false; // TODO: How to change tracked variable of annotationData
         });
       }
@@ -543,25 +520,23 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       inEdit: boolean | undefined;
       lastEditor: string | undefined;
     }) => {
-      const state = get();
-
       let minimized = false;
       let alreadyExists = false;
   
       if (isEntityMesh(mesh)) {
-        const annotations = state.minimizedAnnotations.filter(
+        const annotations = get().minimizedAnnotations.filter(
           (an) => an.entity?.id === mesh.dataModel.id
         );
         if (annotations.length === 1) {
-          set({ annotationData: [...state.annotationData, annotations[0]] });
-          // set({ minimizedAnnotations: state.minimizedAnnotations.filter(
+          set({ annotationData: [...get().annotationData, annotations[0]] });
+          // set({ minimizedAnnotations: get().minimizedAnnotations.filter(
           //   (an) => an.annotationId !== annotation[0].annotationId
           // ) });
           minimized = true;
-          state.removeAnnotationAfterTimeout(annotations[0]);
+          get().removeAnnotationAfterTimeout(annotations[0]);
         }
   
-        const anno = state.annotationData.filter(
+        const anno = get().annotationData.filter(
           (an) => an.entity?.id === mesh.dataModel.id
         );
         if (anno.length === 1) {
@@ -570,14 +545,14 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       }
   
       if (!minimized && !alreadyExists && wasMoved) {
-        state.removeUnmovedAnnotations();
+        get().removeUnmovedAnnotations();
   
         let annotationPosition = position;
   
         if (!annotationPosition) {
           annotationPosition = {
             x: 100,
-            y: 200 + state.annotationData.length * 50,
+            y: 200 + get().annotationData.length * 50,
           };
         }
   
@@ -638,19 +613,19 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
   
         // Check if annotation for entity already exists and update it if so
         if (newAnnotation.entity !== undefined) {
-          const maybeAnnotation = state.annotationData.find(
+          const maybeAnnotation = get().annotationData.find(
             (an) =>
               an.entity !== undefined && an.entity.id === newAnnotation.entity?.id
           );
           if (maybeAnnotation) {
-            state.updateExistingAnnotation(maybeAnnotation, newAnnotation);
+            get().updateExistingAnnotation(maybeAnnotation, newAnnotation);
             return;
           }
         }
   
-        set({ annotationData: [...state.annotationData, newAnnotation] });
+        set({ annotationData: [...get().annotationData, newAnnotation] });
   
-        state.removeAnnotationAfterTimeout(newAnnotation);
+        get().removeAnnotationAfterTimeout(newAnnotation);
       }
     },
 
@@ -664,14 +639,12 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       owner,
       lastEditor,
     }: AnnotationForwardMessage) => {
-      const state = get();
-
       let mesh = undefined;
       if (entityId) {
         mesh = useApplicationRendererStore.getState().getMeshById(entityId);
       }
 
-      state.addAnnotation({
+      get().addAnnotation({
         annotationId: annotationId,
         mesh: mesh,
         position: undefined,
@@ -694,14 +667,12 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotationText,
       lastEditor,
     }: AnnotationUpdatedForwardMessage) => {
-      const state = get();
-
-      let annotation = state.annotationData.find(
+      let annotation = get().annotationData.find(
         (an) => an.menuId === objectId
       );
 
       if (!annotation) {
-        annotation = state.minimizedAnnotations.find(
+        annotation = get().minimizedAnnotations.find(
           (an) => an.menuId === objectId
         );
 
@@ -716,8 +687,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     onRestoreAnnotations:(annotations: SerializedAnnotation[]) => {
-      const state = get();
-
       set({ annotationData: [] });
 
       for (const annotation of annotations) {
@@ -728,7 +697,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           mesh = undefined;
         }
 
-        state.addAnnotation({
+        get().addAnnotation({
           annotationId: annotation.annotationId,
           sharedBy: annotation.userId,
           mesh: mesh,
@@ -759,12 +728,10 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     onMenuClosed: ({
       originalMessage: { menuId },
     }: ForwardedMessage<AnnotationForwardMessage>): void => {
-      const state = get();
-
       if (menuId) {
         const allAnnotations = [
-          ...state.annotationData,
-          ...state.minimizedAnnotations,
+          ...get().annotationData,
+          ...get().minimizedAnnotations,
         ];
   
         const anno = allAnnotations.find((an) => an.menuId === menuId);
@@ -782,10 +749,10 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           }
         }
   
-        set({ minimizedAnnotations: state.minimizedAnnotations.filter(
+        set({ minimizedAnnotations: get().minimizedAnnotations.filter(
           (an) => an.menuId !== menuId
         ) });
-        set({ annotationData: state.annotationData.filter(
+        set({ annotationData: get().annotationData.filter(
           (an) => an.menuId !== menuId
         ) });
       }
@@ -801,22 +768,20 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     willDestroy: () => {
-      const state = get();
-
       set({ annotationData: [] });
       set({ minimizedAnnotations: [] });
       // TODO: This can create errors when leaving a landscape a second time
-      // useWebSocketStore.getState().off(ANNOTATION_OPENED_EVENT, state, state.onAnnotation);
-      // useWebSocketStore.getState().off(ANNOTATION_CLOSED_EVENT, state, state.onMenuClosed);
+      // useWebSocketStore.getState().off(ANNOTATION_OPENED_EVENT, get(), get().onAnnotation);
+      // useWebSocketStore.getState().off(ANNOTATION_CLOSED_EVENT, get(), get().onMenuClosed);
       // useWebSocketStore.getState().off(
       //   ANNOTATION_UPDATED_EVENT,
-      //   state,
-      //   state.onUpdatedAnnotation
+      //   get(),
+      //   get().onUpdatedAnnotation
       // );
       // useDetachedMenuRendererStore.getState().off(
       //   "restore_annotations",
-      //   state,
-      //   state.onRestoreAnnotations
+      //   get(),
+      //   get().onRestoreAnnotations
       // );
     },
   })
