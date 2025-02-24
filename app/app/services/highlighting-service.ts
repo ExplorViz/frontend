@@ -18,7 +18,7 @@ import ChatService from './chat';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import LinkRenderer from './link-renderer';
 import {
   getAllAncestorComponents,

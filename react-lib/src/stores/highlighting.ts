@@ -1,4 +1,4 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 // import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 // import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 // import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
@@ -6,20 +6,20 @@ import { createStore } from "zustand/vanilla";
 // import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 // import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
 // import { useChatStore } from 'react-lib/src/stores/chat';
-import * as Highlighting from "react-lib/src/utils/application-rendering/highlighting";
-import { Color } from "../utils/collaboration/web-socket-messages/types/color";
-import { Trace } from "react-lib/src/utils/landscape-schemes/dynamic/dynamic-data";
-import { StructureLandscapeData } from "react-lib/src/utils/landscape-schemes/structure-data";
-import ApplicationObject3D from "react-lib/src/view-objects/3d/application/application-object-3d";
-import ClazzCommunicationMesh from "react-lib/src/view-objects/3d/application/clazz-communication-mesh";
-import ClazzMesh from "react-lib/src/view-objects/3d/application/clazz-mesh";
-import ComponentMesh from "react-lib/src/view-objects/3d/application/component-mesh";
-import FoundationMesh from "react-lib/src/view-objects/3d/application/foundation-mesh";
+import * as Highlighting from 'react-lib/src/utils/application-rendering/highlighting';
+import { Color } from '../utils/collaboration/web-socket-messages/types/color';
+import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 // import ChatService from './chat';
 import {
   EntityMesh,
   isEntityMesh,
-} from "explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer";
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 // import LinkRenderer from './link-renderer';
 // import {
 //   getAllAncestorComponents,

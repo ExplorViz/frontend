@@ -37,7 +37,7 @@ import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-use
 import {
   EntityMesh,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import IdeWebsocket from 'explorviz-frontend/ide/ide-websocket';
 import IdeCrossCommunication from 'explorviz-frontend/ide/ide-cross-communication';
 import { removeAllHighlightingFor } from 'react-lib/src/utils/application-rendering/highlighting';

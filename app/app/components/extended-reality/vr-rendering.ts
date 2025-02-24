@@ -40,7 +40,7 @@ import VrInputManager from 'explorviz-frontend/utils/extended-reality/vr-control
 import {
   EntityMesh,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
 import MenuGroup from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-group';
 import MenuQueue from 'explorviz-frontend/utils/extended-reality/vr-menus/menu-queue';

@@ -15,7 +15,7 @@ import collaborationSession from 'explorviz-frontend/services/collaboration/coll
 import {
   EntityMesh,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import {
   useLocalUserStore,
   VisualizationMode,

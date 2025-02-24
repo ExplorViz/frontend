@@ -46,10 +46,12 @@ export default class OpenEntityButton
   }
 
   triggerDown() {
-    const mesh = useApplicationRendererStore.getState().getBoxMeshByModelId(this.classId);
-    const application = useApplicationRendererStore.getState().getApplicationById(
-      this.applicationId
-    );
+    const mesh = useApplicationRendererStore
+      .getState()
+      .getBoxMeshByModelId(this.classId);
+    const application = useApplicationRendererStore
+      .getState()
+      .getApplicationById(this.applicationId);
     if (application) {
       useApplicationRendererStore.getState().openAllComponents(application);
       if (mesh) {
