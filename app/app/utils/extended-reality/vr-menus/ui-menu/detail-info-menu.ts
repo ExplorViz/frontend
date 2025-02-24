@@ -12,7 +12,7 @@ import composeContent, {
   getCommunicationTargetClassId,
   getIdOfEntity,
   getTypeOfEntity,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import ThreeMeshUI from 'three-mesh-ui';
 import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
 import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';

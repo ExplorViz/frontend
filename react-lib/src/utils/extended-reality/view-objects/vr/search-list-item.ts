@@ -50,10 +50,12 @@ export default class SearchListItem
   }
 
   triggerDown() {
-    const mesh = useApplicationRendererStore.getState().getBoxMeshByModelId(this.meshId);
-    const application = useApplicationRendererStore.getState().getApplicationById(
-      this.applicationId
-    );
+    const mesh = useApplicationRendererStore
+      .getState()
+      .getBoxMeshByModelId(this.meshId);
+    const application = useApplicationRendererStore
+      .getState()
+      .getApplicationById(this.applicationId);
     if (application) {
       useApplicationRendererStore.getState().openAllComponents(application);
       if (mesh)

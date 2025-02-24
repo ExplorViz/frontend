@@ -3,7 +3,7 @@ import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { Texture, TextureLoader } from 'three';
 import Service from '@ember/service';
 import { useTextureServiceStore } from 'react-lib/src/stores/texture-service';

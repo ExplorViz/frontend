@@ -6,7 +6,7 @@ import { setOwner } from '@ember/application';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 
 export type OpenEntityButtonArgs = ThreeMeshUI.BlockOptions & {
   owner: any;

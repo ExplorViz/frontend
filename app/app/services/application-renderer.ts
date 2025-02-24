@@ -37,7 +37,7 @@ import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-mes
 import {
   EntityMesh,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 // import SceneRepository from './repos/scene-repository'; Not being used
 // import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';

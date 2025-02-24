@@ -6,7 +6,7 @@ import Configuration from 'explorviz-frontend/services/configuration';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import AnnotationData from './annotation-data';
-import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import * as THREE from 'three';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';

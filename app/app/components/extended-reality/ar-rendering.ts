@@ -31,7 +31,7 @@ import ArZoomHandler from 'explorviz-frontend/utils/extended-reality/ar-helpers/
 import {
   EntityMesh,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';

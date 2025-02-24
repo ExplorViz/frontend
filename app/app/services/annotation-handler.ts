@@ -5,7 +5,7 @@ import { tracked } from '@glimmer/tracking';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { isEntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import * as THREE from 'three';
 import { SerializedAnnotation } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';

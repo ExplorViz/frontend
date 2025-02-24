@@ -4,7 +4,7 @@ import Evented from '@ember/object/evented';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import VrMenuFactoryService from 'explorviz-frontend/services/extended-reality/vr-menu-factory';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';

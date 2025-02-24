@@ -15,7 +15,7 @@ import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/d
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { MenuDetachedForwardMessage } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   MenuDetachedResponse,
