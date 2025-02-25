@@ -1,16 +1,16 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 import {
   Commit,
   CommitComparison,
   CommitTree,
-} from "react-lib/src/utils/evolution-schemes/evolution-data";
-import { ApplicationMetricsCode } from "../utils/metric-schemes/metric-data";
-import { SelectedCommit } from "react-lib/src/stores/commit-tree-state";
+} from 'react-lib/src/utils/evolution-schemes/evolution-data';
+import { ApplicationMetricsCode } from '../utils/metric-schemes/metric-data';
+import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
-} from "react-lib/src/utils/landscape-schemes/structure-data";
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 interface EvolutionDataFetchState {
   //   fetchApplication: () => Promise<string[]>;
@@ -37,5 +37,5 @@ interface EvolutionDataFetchState {
   //   fetchFromService<T>(url: string): Promise<T>;
 }
 
-export const useEvolutionDataFetchServiceState =
+export const useEvolutionDataFetchServiceStore =
   createStore<EvolutionDataFetchState>((set, get) => ({}));
