@@ -10,7 +10,7 @@ import CollaborationSession from 'explorviz-frontend/services/collaboration/coll
 import Changelog from 'explorviz-frontend/services/changelog';
 import { format } from 'date-fns';
 import convertDate from 'react-lib/src/utils/helpers/time-convter';
-import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import SnapshotTokenService, {

@@ -8,7 +8,7 @@ import {
   ApplicationMetricsCode,
   ClassMetricCode,
 } from 'react-lib/src/utils/metric-schemes/metric-data';
-import PopupData from '../../popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { calculateFqn } from 'react-lib/src/utils/landscape-structure-helpers';
 import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';

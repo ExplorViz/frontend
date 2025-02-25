@@ -15,7 +15,7 @@ import HighlightingService from 'explorviz-frontend/services/highlighting-servic
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
-import PopupData from '../../../../rendering/popups/popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import Configuration from 'explorviz-frontend/services/configuration';
 import MinimapService from 'explorviz-frontend/services/minimap-service';

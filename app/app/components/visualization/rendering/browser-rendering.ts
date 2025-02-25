@@ -58,7 +58,7 @@ import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
 import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
 import VscodeExtensionOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener.tsx';

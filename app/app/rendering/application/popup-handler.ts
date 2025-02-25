@@ -6,7 +6,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';

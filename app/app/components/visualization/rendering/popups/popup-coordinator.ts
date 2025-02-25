@@ -17,7 +17,7 @@ import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/u
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import K8sPopup from 'react-lib/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
 interface IArgs {
   addAnnotationForPopup(popup: PopupData): void;

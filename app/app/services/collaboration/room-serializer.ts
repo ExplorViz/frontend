@@ -26,7 +26,7 @@ import {
   SerializedPopup,
   SerializedRoom,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import { useRoomSerializerStore } from 'react-lib/src/stores/collaboration/room-serializer';
 

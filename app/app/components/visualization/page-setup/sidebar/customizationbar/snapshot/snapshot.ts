@@ -3,7 +3,7 @@ import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
-import PopupData from 'explorviz-frontend/components/visualization/rendering/popups/popup-data';
+import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService, {
   SnapshotToken,
