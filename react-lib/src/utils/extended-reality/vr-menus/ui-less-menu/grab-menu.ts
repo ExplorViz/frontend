@@ -1,15 +1,18 @@
 import * as THREE from 'three';
-import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
+// import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
+import { useGrabbedObjectStore } from 'react-lib/src/stores/extended-reality/grabbed-object';
 import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import BaseMenu, { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
-import { useGrabbedObjectStore } from 'react-lib/src/stores/extended-reality/grabbed-object';
+import BaseMenu, {
+  BaseMenuArgs,
+} from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 
 export type GrabMenuArgs = BaseMenuArgs & {
   grabbedObject: GrabbableObject;
-  grabbedObjectService: GrabbedObjectService;
+  // grabbedObjectService: GrabbedObjectService;
+  grabbedObjectService: typeof useGrabbedObjectStore; //TODO: does this work?
 };
 
 export default class GrabMenu extends BaseMenu {
@@ -19,7 +22,8 @@ export default class GrabMenu extends BaseMenu {
 
   private allowedToGrab: boolean;
 
-  private grabbedObjectService: GrabbedObjectService;
+  // private grabbedObjectService: GrabbedObjectService;
+  private grabbedObjectService: typeof useGrabbedObjectStore;
 
   constructor({ grabbedObject, grabbedObjectService, ...args }: GrabMenuArgs) {
     super(args);
@@ -59,9 +63,9 @@ export default class GrabMenu extends BaseMenu {
   async onOpenMenu() {
     super.onOpenMenu();
     // Grab the object only when we are allowed to grab it.
-    this.allowedToGrab = await useGrabbedObjectStore.getState().grabObject(
-      this.grabbedObject
-    );
+    this.allowedToGrab = await useGrabbedObjectStore
+      .getState()
+      .grabObject(this.grabbedObject);
     if (this.allowedToGrab) {
       // If the object is grabbed by another menu already, open the scale
       // menu instead.

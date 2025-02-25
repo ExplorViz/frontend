@@ -1,15 +1,16 @@
 import * as THREE from 'three';
-import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+// import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
+import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
 import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import AnimatedMenu from 'react-lib/src/utils/extended-reality/vr-menus/animated-menu';
 import { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
 
 export type PingMenuArgs = BaseMenuArgs & {
   scene: THREE.Scene;
-  sender: MessageSender;
+  // sender: MessageSender;
+  sender: typeof useMessageSenderStore;
 };
 
 export default class PingMenu extends AnimatedMenu {
@@ -17,7 +18,8 @@ export default class PingMenu extends AnimatedMenu {
 
   private scene: THREE.Scene;
 
-  private sender: MessageSender;
+  // private sender: MessageSender;
+  private sender: typeof useMessageSenderStore; // TODO: does this work?
 
   constructor({ scene, sender, ...args }: PingMenuArgs) {
     super(args);
@@ -60,14 +62,18 @@ export default class PingMenu extends AnimatedMenu {
     return new VRControllerButtonBinding('Ping', {
       onButtonDown: (controller: VRController) => {
         this.mesh?.startPinging();
-        useMessageSenderStore.getState().sendPingUpdate(controller.gamepadIndex, true);
+        useMessageSenderStore
+          .getState()
+          .sendPingUpdate(controller.gamepadIndex, true);
       },
       onButtonPress: (controller: VRController) => {
         this.updatePing(controller);
       },
       onButtonUp: (controller: VRController) => {
         this.mesh?.stopPinging();
-        useMessageSenderStore.getState().sendPingUpdate(controller.gamepadIndex, false);
+        useMessageSenderStore
+          .getState()
+          .sendPingUpdate(controller.gamepadIndex, false);
       },
     });
   }

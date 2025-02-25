@@ -1,24 +1,31 @@
-import CollaborationSession, {
-  ConnectionStatus,
-} from 'explorviz-frontend/services/collaboration/collaboration-session';
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+// import CollaborationSession, {
+//   ConnectionStatus,
+// } from 'explorviz-frontend/services/collaboration/collaboration-session';
+// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import UiMenu, {
   UiMenuArgs,
 } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import {
+  useCollaborationSessionStore,
+  ConnectionStatus,
+} from 'react-lib/src/stores/collaboration/collaboration-session';
 
 export type ConnectionBaseMenuArgs = UiMenuArgs & {
-  collaborationSession: CollaborationSession;
-  localUser: LocalUser;
+  // collaborationSession: CollaborationSession;
+  collaborationSession: typeof useCollaborationSessionStore; // TODO: does this work?
+  // localUser: LocalUser;
+  localUser: typeof useLocalUserStore; // TODO: does this work?
 };
 
 export default abstract class ConnectionBaseMenu extends UiMenu {
   private initialConnectionStatus: ConnectionStatus;
 
-  readonly collaborationSession: CollaborationSession;
+  // readonly collaborationSession: CollaborationSession;
+  readonly collaborationSession: typeof useCollaborationSessionStore; // TODO: does this work?
 
-  readonly localUser: LocalUser;
-
+  // readonly localUser: LocalUser;
+  readonly localUser: typeof useLocalUserStore; // TODO: does this work?
   constructor({
     collaborationSession,
     localUser,
