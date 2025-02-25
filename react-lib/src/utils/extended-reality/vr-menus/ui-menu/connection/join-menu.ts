@@ -1,4 +1,5 @@
-import RoomService from 'explorviz-frontend/services/collaboration/room-service';
+// import RoomService from 'explorviz-frontend/services/collaboration/room-service';
+import { useRoomStore } from 'react-lib/src/stores/collaboration/room-service';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
@@ -6,7 +7,6 @@ import ConnectionBaseMenu, {
   ConnectionBaseMenuArgs,
 } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
-import { useRoomStore } from 'react-lib/src/stores/collaboration/room-service';
 
 /**
  * Time in seconds before the new room list should be fetched.
@@ -14,11 +14,13 @@ import { useRoomStore } from 'react-lib/src/stores/collaboration/room-service';
 const REFRESH_TIMEOUT = 3.0;
 
 export type JoinMenuArgs = ConnectionBaseMenuArgs & {
-  roomService: RoomService;
+  // roomService: RoomService;
+  roomService: typeof useRoomStore; // TODO: does this work?
 };
 
 export default class JoinMenu extends ConnectionBaseMenu {
-  private roomService: RoomService;
+  // private roomService: RoomService;
+  private roomService: typeof useRoomStore; // TODO: does this work?
 
   private refreshTimeout: number;
 

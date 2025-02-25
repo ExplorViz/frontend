@@ -1,7 +1,8 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import composeContent, {
   EntityMesh,
   getCommunicationSourceAppId,
@@ -59,8 +60,8 @@ export default class DetailInfoMenu
 {
   private object: EntityMesh;
 
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
+  // @service('repos/application-repository')
+  // applicationRepo!: ApplicationRepository;
 
   private renderer: THREE.WebGLRenderer;
   private owner: any;
@@ -91,7 +92,8 @@ export default class DetailInfoMenu
   }
 
   createMenu() {
-    const content = composeContent(this.object, this.applicationRepo);
+    // const content = composeContent(this.object, this.applicationRepo); // only expects 1 argument
+    const content = composeContent(this.object);
     let sourceClass: string;
     let targetClass: string;
     let sourceClassId: string;
@@ -200,7 +202,8 @@ export default class DetailInfoMenu
     super.onUpdateMenu(delta);
     ThreeMeshUI.update();
 
-    const content = composeContent(this.object, this.applicationRepo);
+    // const content = composeContent(this.object, this.applicationRepo); // only expects 1 argument
+    const content = composeContent(this.object);
     if (content) {
       const isEqual = (a: typeof this.entries, b: typeof content.entries) =>
         a &&
