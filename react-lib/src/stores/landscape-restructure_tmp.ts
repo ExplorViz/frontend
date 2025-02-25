@@ -22,7 +22,6 @@ import {
   pasteClass,
   duplicateApplication,
 } from 'react-lib/src/utils/restructure-helper';
-import { useApplicationRendererStore } from './application-renderer';
 import {
   Application,
   Class,
@@ -38,7 +37,6 @@ import {
   getApplicationFromSubPackage,
   getApplicationInLandscapeById,
 } from 'react-lib/src/utils/landscape-structure-helpers';
-import { useChangelogStore } from './changelog';
 import {
   getClassesInPackage,
   getPackageById,
@@ -58,7 +56,6 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'react-lib/src/utils/application-helpers';
-import { useUserSettingsStore } from './user-settings';
 import {
   AppChangeLogEntry,
   BaseChangeLogEntry,
@@ -68,10 +65,13 @@ import {
   SubPackageChangeLogEntry,
 } from 'react-lib/src/utils/changelog-entry';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import eventEmitter from '../utils/event-emitter';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
+import { useApplicationRendererStore } from './application-renderer';
+import { useChangelogStore } from './changelog';
 import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
+import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useUserSettingsStore } from './user-settings';
 
 // TODO: How to handle removeObject & pushObject on list attributes? (Doesn't exist)
 

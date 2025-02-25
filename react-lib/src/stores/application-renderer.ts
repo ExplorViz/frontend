@@ -1,7 +1,7 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
-import * as THREE from "three";
-import ThreeForceGraph from "three-forcegraph";
+import * as THREE from 'three';
+import ThreeForceGraph from 'three-forcegraph';
 import {
   HightlightComponentArgs,
   removeAllHighlightingFor,

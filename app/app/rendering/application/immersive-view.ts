@@ -5,6 +5,7 @@ import { MapControls } from 'react-lib/src/utils/controls/MapControls';
 import { OrbitControls } from 'react-lib/src/utils/controls/OrbitControls';
 import { PointerLockControls } from 'react-lib/src/utils/controls/PointerLockControls';
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 
 type UserActionType = 'zoomin' | 'zoomout' | 'rotate' | 'move';
 
@@ -149,6 +150,7 @@ export class ImmersiveView {
   constructor() {
     // Init
     this.resetData();
+    this.font = useFontRepositoryStore.getState().font;
   }
 
   public static get instance(): ImmersiveView {

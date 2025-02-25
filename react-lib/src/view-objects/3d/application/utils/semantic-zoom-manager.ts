@@ -4,7 +4,8 @@ import CommunicationRendering from 'react-lib/src/utils/application-rendering/co
 import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import { VisualizationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
-
+import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
+import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 // Mixin Version for SemanticZoomableObject that implement the Interface `SemanticZoomableObject` with basic functionality
 
 type Constructor = new (...args: any[]) => any;
@@ -717,7 +718,11 @@ export default class SemanticZoomManager {
   /**
    *
    */
-  constructor() {}
+  constructor() {
+    this.appCommRendering =
+      useApplicationRendererStore.getState().appCommRendering;
+    this.font = useFontRepositoryStore.getState().font;
+  }
 
   public static get instance(): SemanticZoomManager {
     if (!SemanticZoomManager.#instance) {
