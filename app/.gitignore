@@ -27,3 +27,6 @@
 
 # Ignore custom pre-commit hooks
 .husky/*
+
+# Temp files for react live reload feature
+public/react-live-reload/

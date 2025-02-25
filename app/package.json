@@ -21,6 +21,7 @@
     "typescript": "tsc",
     "dev": "cross-env DOTENV=.env-custom ember serve --environment=development",
     "start": "ember serve",
+    "react-live-reload": "fswatch -o ../react-lib | xargs -n1 -I{} rsync -a -r ../react-lib/src public/react-live-reload",
     "test": "npm-run-all lint test:*",
     "test:ember": "ember test",
     "prepare": "node .husky/install.mjs"
