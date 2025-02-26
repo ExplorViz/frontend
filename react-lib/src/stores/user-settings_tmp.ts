@@ -38,7 +38,7 @@ interface UserSettingsState {
   _constructApplicationColors: () => void;
   applyDefaultSettingsForGroup: (groupId: string) => void;
   applyDefaultSettings: (saveToLocalStorage: boolean) => void;
-  // shareVisualizationSettings: () => void;
+  shareVisualizationSettings: () => void;
   updateSettings: (settings: VisualizationSettings) => void;
   updateSetting: (name: VisualizationSettingId, value?: unknown) => void;
   setColorScheme: (
