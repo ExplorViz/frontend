@@ -231,8 +231,9 @@
                 />
               {{/if}}
               {{#if (eq @openedSettingComponent 'VSCode-Extension-Settings')}}
-                <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettings
-                />
+                {{! <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Vscode::VscodeExtensionSettings
+                /> }}
+                <div {{react this.vscodeExtensionSettings}} />
               {{/if}}
               {{#if (eq @openedSettingComponent 'Restructure-Landscape')}}
                 <Visualization::PageSetup::Sidebar::Customizationbar::Restructure::Restructure

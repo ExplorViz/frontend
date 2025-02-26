@@ -70,6 +70,7 @@ import ApplicationSearchOpener from 'react-lib/src/components/visualization/page
 import EntityFilteringOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener.tsx';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info.tsx';
+import VscodeExtensionSettings from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings.tsx';
 
 interface BrowserRenderingArgs {
   readonly id: string;
@@ -98,6 +99,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   applicationSearchOpener = ApplicationSearchOpener;
   entityFilteringOpener = EntityFilteringOpener;
   heatmapInfo = HeatmapInfo;
+  vscodeExtensionSettings = VscodeExtensionSettings;
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
