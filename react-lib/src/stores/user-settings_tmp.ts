@@ -32,8 +32,6 @@ import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user
 
 interface UserSettingsState {
   visualizationSettings: VisualizationSettings; // tracked
-  // TODO: undefined until full migration -> Find Solution for this!!!
-  // Until that, constructor of Ember service will set the state
   colors: ExplorVizColors | undefined; // tracked
   _constructApplicationColors: () => void;
   applyDefaultSettingsForGroup: (groupId: string) => void;
