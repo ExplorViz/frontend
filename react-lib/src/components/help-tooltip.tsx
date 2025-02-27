@@ -10,10 +10,13 @@ interface HelpTooltipProps {
   placement?: Placement;
 }
 
-export default function HelpTooltip({ title, placement }: HelpTooltipProps) {
+export default function HelpTooltip({
+  title,
+  placement = 'left',
+}: HelpTooltipProps) {
   return (
     <OverlayTrigger
-      placement={placement ?? 'left'}
+      placement={placement}
       trigger={['hover', 'focus']}
       overlay={<Tooltip>{title}</Tooltip>}
     >
