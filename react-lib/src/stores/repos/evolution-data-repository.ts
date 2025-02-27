@@ -1,18 +1,18 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 import {
   CommitTree,
   AppNameCommitTreeMap,
   CommitComparison,
-} from "react-lib/src/utils/evolution-schemes/evolution-data";
-import { StructureLandscapeData } from "../../utils/landscape-schemes/structure-data";
+} from 'react-lib/src/utils/evolution-schemes/evolution-data';
+import { StructureLandscapeData } from '../../utils/landscape-schemes/structure-data';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
-} from "react-lib/src/utils/landscape-structure-helpers";
+} from 'react-lib/src/utils/landscape-structure-helpers';
 import {
   ApplicationMetrics,
   ApplicationMetricsCode,
-} from "../../utils/metric-schemes/metric-data";
+} from '../../utils/metric-schemes/metric-data';
 
 interface EvolutionDataRepositoryState {
   _appNameCommitTreeMap: AppNameCommitTreeMap;
@@ -29,7 +29,7 @@ interface EvolutionDataRepositoryState {
   resetCommitsToCommitComparisonMap: () => void;
 }
 
-export const useEvolutionDataRepositoryeState =
+export const useEvolutionDataRepositoryState =
   createStore<EvolutionDataRepositoryState>((set, get) => ({
     _appNameCommitTreeMap: new Map<string, CommitTree>(),
     _evolutionStructureLandscapeData: new Map<string, StructureLandscapeData>(),
