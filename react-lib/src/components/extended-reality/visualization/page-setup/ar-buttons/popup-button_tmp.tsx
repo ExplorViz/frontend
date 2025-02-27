@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Button from 'react-bootstrap/Button';
-import { InfoIcon } from '@primer/octicons-react'; // Replace with correct icon if needed
+import { InfoIcon } from '@primer/octicons-react';
 
 interface PopupButtonArgs {
   handleInfoInteraction(): void;
@@ -13,7 +13,6 @@ export default function PopupButton({
 }: PopupButtonArgs) {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Add long press listener
   useEffect(() => {
     const button = buttonRef.current;
 

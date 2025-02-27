@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Button from 'react-bootstrap/Button';
-import { UnfoldIcon } from '@primer/octicons-react'; // Replace with correct icon if needed
+import { UnfoldIcon } from '@primer/octicons-react';
 
 interface PrimaryInteractionButtonArgs {
   handlePrimaryCrosshairInteraction(): void;
@@ -13,7 +13,6 @@ export default function PrimaryInteractionButton({
 }: PrimaryInteractionButtonArgs) {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Add long press listener
   useEffect(() => {
     const button = buttonRef.current;
 
@@ -38,7 +37,6 @@ export default function PrimaryInteractionButton({
         button.onmouseup = () => checkForLongPress(start);
       };
 
-      // Add touch and mouse listeners
       button.addEventListener('contextmenu', (ev) => {
         ev.preventDefault();
         openAllComponents();
@@ -48,7 +46,6 @@ export default function PrimaryInteractionButton({
       button.addEventListener('touchstart', handleTouchStart);
       button.addEventListener('mousedown', handleMouseDown);
 
-      // Cleanup listeners when component unmounts
       return () => {
         button.removeEventListener('contextmenu', (ev) => {
           ev.preventDefault();

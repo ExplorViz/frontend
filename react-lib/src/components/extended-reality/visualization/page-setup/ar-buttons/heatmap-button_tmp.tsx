@@ -1,7 +1,7 @@
 import React from 'react';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import Button from 'react-bootstrap/Button';
-import { FlameIcon } from '@primer/octicons-react'; // Adjust based on your icon library
+import { FlameIcon } from '@primer/octicons-react';
 
 interface HeatmapButtonProps {
   toggleHeatmap: () => void;
