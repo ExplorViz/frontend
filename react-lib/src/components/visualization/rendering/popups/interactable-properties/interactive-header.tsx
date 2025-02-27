@@ -7,12 +7,15 @@ import {
   isPackage,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 
-interface EditMeshProps {
+interface InteractiveHeaderProps {
   entity: any;
   appId?: string;
 }
 
-export default function InteractiveHeader({ entity, appId }: EditMeshProps) {
+export default function InteractiveHeader({
+  entity,
+  appId,
+}: InteractiveHeaderProps) {
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode
   );
