@@ -1,7 +1,9 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
-interface RoomState {}
+interface RoomServiceState {}
 
-export const useRoomStore = createStore<RoomState>((set, get) => ({
-  // TODO methods
-}));
+export const useRoomServiceStore = createStore<RoomServiceState>(
+  (set, get) => ({
+    // TODO methods
+  })
+);
