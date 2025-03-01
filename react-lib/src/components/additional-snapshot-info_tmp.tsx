@@ -10,6 +10,14 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { InfoIcon } from '@primer/octicons-react';
 import { Tooltip, Popover } from 'react-bootstrap';
 
+// Added could help migration
+// type TinySnapshot = {
+//   owner: string;
+//   createdAt: number;
+//   name: string;
+//   landscapeToken: LandscapeToken;
+// };
+
 // Temporary because the .ts and handlebars file don't contain a token eventhough its use in the handlebars file, maybe just use LandscapeToken?
 // This file seems like a direct copy of AdditionalTokenInfo.ts/.hbs/.tsx
 interface AdditionalSnapshotInfoProps {
@@ -24,7 +32,7 @@ interface AdditionalSnapshotInfoProps {
 }
 
 export default function AdditionalSnapshotInfo(
-  token: AdditionalSnapshotInfoProps
+  args: AdditionalSnapshotInfoProps
 ) {
   const hidePopover = (event: Event) => {
     if (this.isMouseOnPopover()) {
@@ -45,7 +53,7 @@ export default function AdditionalSnapshotInfo(
   };
 
   const popover = (
-    <Popover id={token.value} title={token.alias}>
+    <Popover id={args.token.value} title={args.token.alias}>
       <table className="table-striped" style={{ width: '100%' }}>
         <tbody>
           <tr>
@@ -53,30 +61,32 @@ export default function AdditionalSnapshotInfo(
               <b>Owner</b>
             </td>
             <td style={{ wordBreak: 'break-all' }}>
-              {Number(token.ownerId) === user?.sub ? 'You' : token.ownerId}
+              {Number(args.token.ownerId) === user?.sub
+                ? 'You'
+                : args.token.ownerId}
             </td>
             <td>
-              <CopyButton text={token.ownerId} />
+              <CopyButton text={args.token.ownerId} />
             </td>
           </tr>
           <tr>
             <td>
               <b>ID</b>
             </td>
-            <td>{token.value}</td>
+            <td>{args.token.value}</td>
             <td>
-              <CopyButton text={token.value} />
+              <CopyButton text={args.token.value} />
             </td>
           </tr>
-          {token.secret && (
+          {args.token.secret && (
             <tr>
               <td>
                 {' '}
                 <b>Secret</b>
               </td>
-              <td style={{ wordBreak: 'break-all' }}>{token.secret}</td>
+              <td style={{ wordBreak: 'break-all' }}>{args.token.secret}</td>
               <td>
-                <CopyButton text={token.secret} />
+                <CopyButton text={args.token.secret} />
               </td>
             </tr>
           )}
