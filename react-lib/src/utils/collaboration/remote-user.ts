@@ -84,8 +84,8 @@ export default class RemoteUser extends THREE.Object3D {
     this.controllers = [null, null];
     this.nameTag = null;
 
-    this.localUser = localUser;
-    this.minimapService = minimapService;
+    this.localUser = localUser; // Remooooove this
+    this.minimapService = minimapService; // Remooove this
     // this.minimapService.initializeUserMinimapMarker(
     //   this.color,
     //   new THREE.Vector3(0, 0, 0),
