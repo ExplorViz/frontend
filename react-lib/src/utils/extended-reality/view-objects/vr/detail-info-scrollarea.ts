@@ -13,23 +13,15 @@ export default class DetailInfoScrollarea
   isHovered: boolean = false;
   isTriggered: boolean = false;
   text: ThreeMeshUI.Text;
-  // menuFactory: VrMenuFactoryService;
-  menuFactory: typeof useVrMenuFactoryStore; // TODO: Does this work?
   controllerIdToAuxiliaryMenuOpenFlag: Map<string, boolean>;
   controllerIdToIntersection: Map<string, THREE.Intersection>;
   readonly initialY: number;
   cx!: number;
   cy!: number;
 
-  constructor(
-    text: ThreeMeshUI.Text,
-    // menuFactory: VrMenuFactoryService,
-    menuFactory: typeof useVrMenuFactoryStore,
-    options: ThreeMeshUI.BlockOptions
-  ) {
+  constructor(text: ThreeMeshUI.Text, options: ThreeMeshUI.BlockOptions) {
     super(options);
     this.text = text;
-    this.menuFactory = menuFactory;
     this.controllerIdToAuxiliaryMenuOpenFlag = new Map<string, boolean>();
     this.controllerIdToIntersection = new Map<string, THREE.Intersection>();
     this.initialY = this.text.position.y;
@@ -87,11 +79,9 @@ export default class DetailInfoScrollarea
 
       if (!controller.gripIsPressed && !controller.triggerIsPressed) {
         if (!this.controllerIdToAuxiliaryMenuOpenFlag.get(controllerId)) {
-          const auxiliaryMenu = this.menuFactory.buildAuxiliaryMenu(
-            this,
-            controller,
-            renderer
-          );
+          const auxiliaryMenu = useVrMenuFactoryStore
+            .getState()
+            .buildAuxiliaryMenu(this, controller, renderer);
           controller.menuGroup.openMenu(auxiliaryMenu);
           this.controllerIdToAuxiliaryMenuOpenFlag.set(controllerId, true);
         }

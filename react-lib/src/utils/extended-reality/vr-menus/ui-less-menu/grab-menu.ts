@@ -11,8 +11,6 @@ import BaseMenu, {
 
 export type GrabMenuArgs = BaseMenuArgs & {
   grabbedObject: GrabbableObject;
-  // grabbedObjectService: GrabbedObjectService;
-  grabbedObjectService: typeof useGrabbedObjectStore; //TODO: does this work?
 };
 
 export default class GrabMenu extends BaseMenu {
@@ -22,15 +20,11 @@ export default class GrabMenu extends BaseMenu {
 
   private allowedToGrab: boolean;
 
-  // private grabbedObjectService: GrabbedObjectService;
-  private grabbedObjectService: typeof useGrabbedObjectStore;
-
-  constructor({ grabbedObject, grabbedObjectService, ...args }: GrabMenuArgs) {
+  constructor({ grabbedObject, ...args }: GrabMenuArgs) {
     super(args);
     this.grabbedObject = grabbedObject;
     this.grabbedObjectParent = null;
     this.allowedToGrab = false;
-    this.grabbedObjectService = grabbedObjectService;
   }
 
   /**

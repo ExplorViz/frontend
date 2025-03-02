@@ -237,9 +237,9 @@ export function closeAllComponents(
  */
 export function openComponentsRecursively(
   component: Package,
-  applicationObject3D: ApplicationObject3D,
+  applicationObject3D: ApplicationObject3D
   // sender: MessageSender | undefined
-  sender: typeof useMessageSenderStore | undefined // TODO: does this work?
+  // sender: typeof useMessageSenderStore | undefined // TODO: does this work?
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -248,14 +248,16 @@ export function openComponentsRecursively(
       // !mesh.opened needed!
 
       openComponentMesh(mesh, applicationObject3D);
-      sender?.sendComponentUpdate(
-        applicationObject3D.getModelId(),
-        mesh.getModelId(),
-        mesh.opened,
-        mesh instanceof FoundationMesh
-      );
+      useMessageSenderStore
+        .getState()
+        .sendComponentUpdate(
+          applicationObject3D.getModelId(),
+          mesh.getModelId(),
+          mesh.opened,
+          mesh instanceof FoundationMesh
+        );
     }
-    openComponentsRecursively(child, applicationObject3D, sender);
+    openComponentsRecursively(child, applicationObject3D);
   });
 }
 
@@ -267,9 +269,9 @@ export function openComponentsRecursively(
  */
 export function closeComponentsRecursively(
   component: Package,
-  applicationObject3D: ApplicationObject3D,
+  applicationObject3D: ApplicationObject3D
   // sender: MessageSender | undefined
-  sender: typeof useMessageSenderStore | undefined // TODO: does this work?
+  // sender: typeof useMessageSenderStore | undefined // TODO: does this work?
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -278,14 +280,16 @@ export function closeComponentsRecursively(
       // mesh.opened needed!
 
       closeComponentMesh(mesh, applicationObject3D, false);
-      sender?.sendComponentUpdate(
-        applicationObject3D.getModelId(),
-        mesh.getModelId(),
-        mesh.opened,
-        mesh instanceof FoundationMesh
-      );
+      useMessageSenderStore
+        .getState()
+        .sendComponentUpdate(
+          applicationObject3D.getModelId(),
+          mesh.getModelId(),
+          mesh.opened,
+          mesh instanceof FoundationMesh
+        );
     }
-    closeComponentsRecursively(child, applicationObject3D, sender);
+    closeComponentsRecursively(child, applicationObject3D);
   });
 }
 
@@ -295,22 +299,24 @@ export function closeComponentsRecursively(
  * @param applicationObject3D Application object which contains the components
  */
 export function openAllComponents(
-  applicationObject3D: ApplicationObject3D,
+  applicationObject3D: ApplicationObject3D
   // sender: MessageSender
-  sender: typeof useMessageSenderStore // TODO: does this work?
+  // sender: typeof useMessageSenderStore // TODO: does this work?
 ) {
   applicationObject3D.dataModel.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
       openComponentMesh(mesh, applicationObject3D);
-      sender.sendComponentUpdate(
-        applicationObject3D.getModelId(),
-        mesh.getModelId(),
-        mesh.opened,
-        mesh instanceof FoundationMesh
-      );
+      useMessageSenderStore
+        .getState()
+        .sendComponentUpdate(
+          applicationObject3D.getModelId(),
+          mesh.getModelId(),
+          mesh.opened,
+          mesh instanceof FoundationMesh
+        );
     }
-    openComponentsRecursively(child, applicationObject3D, sender);
+    openComponentsRecursively(child, applicationObject3D);
   });
 }
 

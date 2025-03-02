@@ -6,7 +6,6 @@ import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from 'react-lib/src/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
 // import VrMenuFactoryService from 'explorviz-frontend/services/extended-reality/vr-menu-factory';
 import * as THREE from 'three';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {
   owner: any;
@@ -18,8 +17,6 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
   sourceAppId: string | undefined;
   targetAppId: string | undefined;
   content: string;
-  // menuFactory: VrMenuFactoryService;
-  menuFactory: typeof useVrMenuFactoryStore; // TODO: Does this work?
   text: ThreeMeshUI.Text;
   constructor(
     owner: any,
@@ -30,14 +27,11 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     sourceAppId: string | undefined,
     targetAppId: string | undefined,
     content: string,
-    // menuFactory: VrMenuFactoryService,
-    menuFactory: typeof useVrMenuFactoryStore,
     options: ThreeMeshUI.BlockOptions
   ) {
     super({ ...options, justifyContent: 'start' }); // make sure we have justifyContent: 'start'
     this.owner = owner;
     this.content = content;
-    this.menuFactory = menuFactory;
     this.sourceClass = sourceClass;
     this.targetClass = targetClass;
     this.sourceClassId = sourceClassId;
@@ -64,7 +58,7 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
       content: this.content,
       backgroundOpacity: 0,
     });
-    const textBlock = new DetailInfoScrollarea(this.text, this.menuFactory, {
+    const textBlock = new DetailInfoScrollarea(this.text, {
       height: boxhight,
       width: 0.64,
       backgroundOpacity: 0,

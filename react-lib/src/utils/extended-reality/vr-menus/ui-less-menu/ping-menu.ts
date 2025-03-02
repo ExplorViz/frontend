@@ -9,8 +9,6 @@ import { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base
 
 export type PingMenuArgs = BaseMenuArgs & {
   scene: THREE.Scene;
-  // sender: MessageSender;
-  sender: typeof useMessageSenderStore;
 };
 
 export default class PingMenu extends AnimatedMenu {
@@ -18,14 +16,10 @@ export default class PingMenu extends AnimatedMenu {
 
   private scene: THREE.Scene;
 
-  // private sender: MessageSender;
-  private sender: typeof useMessageSenderStore; // TODO: does this work?
-
-  constructor({ scene, sender, ...args }: PingMenuArgs) {
+  constructor({ scene, ...args }: PingMenuArgs) {
     super(args);
 
     this.scene = scene;
-    this.sender = sender;
   }
 
   updatePing(controller: VRController) {

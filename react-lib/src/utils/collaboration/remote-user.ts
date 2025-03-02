@@ -33,8 +33,6 @@ type Controller = {
 };
 
 export default class RemoteUser extends THREE.Object3D {
-  minimapService: typeof useMinimapStore; // TODO: Does this work?
-
   userName: string;
 
   userId: string;
@@ -53,23 +51,16 @@ export default class RemoteUser extends THREE.Object3D {
 
   nameTag: NameTagSprite | null;
 
-  localUser: typeof useLocalUserStore; // TODO: Does this work?;
-
   constructor({
     userName,
     userId,
     color,
     state,
-    localUser,
-    minimapService,
   }: {
     userName: string;
     userId: string;
     color: THREE.Color;
     state: string;
-    // localUser: LocalUser;
-    localUser: typeof useLocalUserStore; // TODO: Does this work?
-    minimapService: typeof useMinimapStore; // TODO: Does this work?
   }) {
     super();
     this.userName = userName;
@@ -84,13 +75,6 @@ export default class RemoteUser extends THREE.Object3D {
     this.controllers = [null, null];
     this.nameTag = null;
 
-    this.localUser = localUser; // Remooooove this
-    this.minimapService = minimapService; // Remooove this
-    // this.minimapService.initializeUserMinimapMarker(
-    //   this.color,
-    //   new THREE.Vector3(0, 0, 0),
-    //   this.userId
-    // );
     useMinimapStore
       .getState()
       .initializeUserMinimapMarker(
