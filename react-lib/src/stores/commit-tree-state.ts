@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 import {
   AppNameCommitTreeMap,
   Commit,
@@ -29,7 +29,7 @@ interface CommitTreeStateState {
   ) => void;
 }
 
-export const useCommitTreeStateStore = createStore<CommitTreeStateState>(
+export const useCommitTreeStateStore = create<CommitTreeStateState>(
   (set, get) => ({
     _selectedCommits: new Map(),
     _appNameAndBranchNameToColorMap: new Map(),
