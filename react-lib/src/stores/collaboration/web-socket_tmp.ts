@@ -97,19 +97,19 @@ const RESPONSE_EVENTS = [
 ];
 
 interface WebSocketState {
-  currentSocket: Socket | null;
-  currentSocketUrl: string | null;
+  _currentSocket: Socket | null;
+  _currentSocketUrl: string | null;
   responseHandlers: Map<Nonce, ResponseHandler<any>>;
   lastNonce: Nonce;
   nextNonce: () => number;
-  getSocketUrl: () => string;
+  _getSocketUrl: () => string;
   initSocket: (ticketId: string, mode: VisualizationMode) => Promise<void>;
   closeSocket: () => void;
-  closeHandler: (event: any) => void;
+  _closeHandler: (event: any) => void;
   send: <T>(event: string, msg: T) => void;
   isWebSocketOpen: () => boolean;
   reset: () => void;
-  awaitResponse: <T>({
+  _awaitResponse: <T>({
     nonce,
     responseType,
     onResponse,
@@ -138,13 +138,10 @@ interface WebSocketState {
 }
 
 export const useWebSocketStore = create<WebSocketState>((set, get) => ({
-  // TODO private
-  currentSocket: null, // WebSocket to send/receive messages to/from backend
-  // TODO private
-  currentSocketUrl: null,
+  _currentSocket: null, // WebSocket to send/receive messages to/from backend
+  _currentSocketUrl: null,
   responseHandlers: new Map<Nonce, ResponseHandler<any>>(),
   lastNonce: 0,
-  // TODO methods
 
   nextNonce: () => {
     set({ lastNonce: get().lastNonce++ });
@@ -152,15 +149,15 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   },
 
   // private
-  getSocketUrl: () => {
+  _getSocketUrl: () => {
     return collaborationService;
   },
 
   initSocket: async (ticketId: string, mode: VisualizationMode) => {
-    set({ currentSocketUrl: get().getSocketUrl() });
+    set({ _currentSocketUrl: get()._getSocketUrl() });
     const urlParams = new URLSearchParams(window.location.search);
     set({
-      currentSocket: io(get().currentSocketUrl!, {
+      _currentSocket: io(get()._currentSocketUrl!, {
         transports: ['websocket'],
         query: {
           ticketId: ticketId,
@@ -170,16 +167,16 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
         },
       }),
     });
-    get().currentSocket!.on('disconnect', get().closeHandler.bind(this)); // TODO: Does this work?
+    get()._currentSocket!.on('disconnect', get()._closeHandler.bind(this)); // TODO: Does this work?
 
     RECEIVABLE_EVENTS.forEach((event) => {
-      get().currentSocket?.on(event, (message) => {
+      get()._currentSocket?.on(event, (message) => {
         eventEmitter.emit(event, message);
       });
     });
 
     RESPONSE_EVENTS.forEach((event) => {
-      get().currentSocket?.on(event, (message) => {
+      get()._currentSocket?.on(event, (message) => {
         const handler = get().responseHandlers.get(message.nonce);
         if (handler) handler(message.response);
       });
@@ -187,18 +184,18 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   },
 
   closeSocket: () => {
-    if (get().isWebSocketOpen()) get().currentSocket?.disconnect();
+    if (get().isWebSocketOpen()) get()._currentSocket?.disconnect();
   },
 
   // private
-  closeHandler: (event: any) => {
+  _closeHandler: (event: any) => {
     // Invoke external event listener for close event.
     eventEmitter.emit(SELF_DISCONNECTED_EVENT, event);
 
     // Remove internal event listeners.
-    get().currentSocket?.disconnect();
-    set({ currentSocket: null });
-    set({ currentSocketUrl: null });
+    get()._currentSocket?.disconnect();
+    set({ _currentSocket: null });
+    set({ _currentSocketUrl: null });
   },
 
   /**
@@ -210,16 +207,16 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
    * @param msg The message to send.
    */
   send: <T>(event: string, msg: T) => {
-    if (get().isWebSocketOpen()) get().currentSocket?.emit(event, msg);
+    if (get().isWebSocketOpen()) get()._currentSocket?.emit(event, msg);
   },
 
   isWebSocketOpen: (): boolean => {
-    return get().currentSocket != null && get().currentSocket!.connected;
+    return get()._currentSocket != null && get()._currentSocket!.connected;
   },
 
   reset: () => {
-    get().currentSocket?.disconnect();
-    set({ currentSocket: null });
+    get()._currentSocket?.disconnect();
+    set({ _currentSocket: null });
   },
 
   // private
@@ -239,7 +236,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
    * @param onOffline The callback to invoke instead of listening for responses when the client is
    * not connected.
    */
-  awaitResponse: <T>({
+  _awaitResponse: <T>({
     nonce,
     responseType: isValidResponse,
     onResponse,
@@ -300,7 +297,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
 
     // handle response
     return new Promise<boolean>((resolve) => {
-      get().awaitResponse({
+      get()._awaitResponse({
         nonce,
         responseType,
         onResponse: (response: R) => {
