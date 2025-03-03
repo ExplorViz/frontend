@@ -83,8 +83,8 @@ export const useCommitTreeStateStore = createStore<CommitTreeStateState>(
         }
       }
 
-      this._selectedCommits = defaultSelectedCommits;
-      this._currentSelectedApplicationName = commit1AppAndBranch.appName;
+      set({ _selectedCommits: defaultSelectedCommits });
+      set({ _currentSelectedApplicationName: commit1AppAndBranch.appName });
       return true;
     },
 
