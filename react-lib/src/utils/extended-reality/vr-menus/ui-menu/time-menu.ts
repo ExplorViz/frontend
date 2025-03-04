@@ -1,4 +1,4 @@
-import TimestampService from 'explorviz-frontend/services/timestamp';
+// import TimestampService from 'explorviz-frontend/services/timestamp';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
@@ -7,15 +7,18 @@ import ArrowbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import UiMenu, { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import UiMenu, {
+  UiMenuArgs,
+} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 
 const MS_PER_SECOND = 1000;
 const TIMESTAMP_INTERVAL = 10 * MS_PER_SECOND;
 
-export type TimeMenuArgs = UiMenuArgs & {
-  timestampService: TimestampService;
-};
+// TODO: Remove because store variables aren't used
+// export type TimeMenuArgs = UiMenuArgs & {
+//   timestampService: TimestampService;
+// };
 
 export default class TimeMenu extends UiMenu {
   private date: Date;
@@ -26,14 +29,14 @@ export default class TimeMenu extends UiMenu {
 
   private timeForthButton: ArrowbuttonItem;
 
-  private timestampService: TimestampService;
+  // private timestampService: TimestampService;
 
   private timestampTextItem: TextItem;
 
-  constructor({ timestampService, ...args }: TimeMenuArgs) {
+  constructor({ ...args }: UiMenuArgs) {
     super(args);
 
-    this.timestampService = timestampService;
+    // this.timestampService = timestampService;
     // this.date = new Date(timestampService.timestamp);
     this.date = new Date(useTimestampStore.getState().timestamp);
 

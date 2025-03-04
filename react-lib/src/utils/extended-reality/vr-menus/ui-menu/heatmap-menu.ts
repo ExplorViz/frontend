@@ -8,12 +8,13 @@ import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-i
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
 import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
-export type HeatmapMenuArgs = UiMenuArgs & {
-  heatmapConfiguration: HeatmapConfiguration;
-};
+// TODO: Remove because store variables aren't used
+// export type HeatmapMenuArgs = UiMenuArgs & {
+//   heatmapConfiguration: HeatmapConfiguration;
+// };
 
 export default class HeatmapMenu extends UiMenu implements DetachableMenu {
-  private heatmapConfiguration: HeatmapConfiguration;
+  // private heatmapConfiguration: HeatmapConfiguration;
 
   private entryItems: Map<string, TextItem>;
 
@@ -22,11 +23,9 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
       width: 1.5 * DEFAULT_MENU_RESOLUTION,
       height: DEFAULT_MENU_RESOLUTION,
     },
-    heatmapConfiguration,
     ...args
-  }: HeatmapMenuArgs) {
+  }: UiMenuArgs) {
     super({ resolution, ...args });
-    this.heatmapConfiguration = heatmapConfiguration;
     this.entryItems = new Map<string, TextItem>();
   }
 
@@ -123,7 +122,7 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
     };
   }
 
-  @action
+  // @action
   onUpdateMenu(delta: number) {
     super.onUpdateMenu(delta);
 
