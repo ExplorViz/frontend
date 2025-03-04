@@ -11,30 +11,20 @@ import {
   ConnectionStatus,
 } from 'react-lib/src/stores/collaboration/collaboration-session';
 
-export type ConnectionBaseMenuArgs = UiMenuArgs & {
-  // collaborationSession: CollaborationSession;
-  collaborationSession: typeof useCollaborationSessionStore; // TODO: does this work?
-  // localUser: LocalUser;
-  localUser: typeof useLocalUserStore; // TODO: does this work?
-};
+// TODO: Remove
+// export type ConnectionBaseMenuArgs = UiMenuArgs & {
+//   // collaborationSession: CollaborationSession;
+//   collaborationSession: typeof useCollaborationSessionStore; // TODO: does this work?
+//   // localUser: LocalUser;
+//   localUser: typeof useLocalUserStore; // TODO: does this work?
+// };
 
 export default abstract class ConnectionBaseMenu extends UiMenu {
   private initialConnectionStatus: ConnectionStatus;
-
-  // readonly collaborationSession: CollaborationSession;
-  readonly collaborationSession: typeof useCollaborationSessionStore; // TODO: does this work?
-
-  // readonly localUser: LocalUser;
-  readonly localUser: typeof useLocalUserStore; // TODO: does this work?
-  constructor({
-    collaborationSession,
-    localUser,
-    ...args
-  }: ConnectionBaseMenuArgs) {
+  constructor({ ...args }: UiMenuArgs) {
     super(args);
-    this.collaborationSession = collaborationSession;
-    this.localUser = localUser;
-    this.initialConnectionStatus = collaborationSession.connectionStatus;
+    this.initialConnectionStatus =
+      useCollaborationSessionStore.getState().connectionStatus;
   }
 
   onUpdateMenu(delta: number) {

@@ -3,30 +3,27 @@ import { useRoomServiceStore } from 'react-lib/src/stores/collaboration/room-ser
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import ConnectionBaseMenu, {
-  ConnectionBaseMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
+import ConnectionBaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
+import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 
 /**
  * Time in seconds before the new room list should be fetched.
  */
 const REFRESH_TIMEOUT = 3.0;
 
-export type JoinMenuArgs = ConnectionBaseMenuArgs & {
-  // roomService: RoomService;
-  roomService: typeof useRoomServiceStore; // TODO: does this work?
-};
+// TODO: Remove because variables of stores aren't used anymore
+// export type JoinMenuArgs = UiMenuArgs & {
+//   // roomService: RoomService;
+//   roomService: typeof useRoomServiceStore; // TODO: does this work?
+// };
 
 export default class JoinMenu extends ConnectionBaseMenu {
-  // private roomService: RoomService;
-  private roomService: typeof useRoomServiceStore; // TODO: does this work?
-
   private refreshTimeout: number;
 
-  constructor({ roomService, ...args }: JoinMenuArgs) {
+  constructor({ ...args }: UiMenuArgs) {
     super(args);
-    this.roomService = roomService;
     this.refreshTimeout = 0;
 
     this.drawLoadingScreen();
@@ -64,7 +61,8 @@ export default class JoinMenu extends ConnectionBaseMenu {
         width: 316,
         height: 50,
         fontSize: 28,
-        onTriggerDown: () => this.collaborationSession.joinRoom(room.roomId),
+        onTriggerDown: () =>
+          useCollaborationSessionStore.getState().joinRoom(room.roomId),
       });
       this.items.push(roomButton);
       this.thumbpadTargets.push(roomButton);
@@ -111,7 +109,7 @@ export default class JoinMenu extends ConnectionBaseMenu {
 
   private async loadAndDrawRoomList() {
     try {
-      const rooms = await useRoomStore.getState().listRooms();
+      const rooms = await useRoomServiceStore.getState().listRooms();
       this.drawRoomList(rooms);
       this.refreshTimeout = REFRESH_TIMEOUT;
     } catch (e) {

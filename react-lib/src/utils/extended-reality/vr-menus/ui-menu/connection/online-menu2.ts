@@ -11,8 +11,9 @@ import VRControllerThumbpadBinding, {
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
 import DisconnectButton from 'react-lib/src/utils/extended-reality/view-objects/vr/disconnect-button';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+
+import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 
 export type UserMenuArgs = UiMenuArgs & {
   owner: any;
@@ -136,7 +137,9 @@ export default class OnlineMenu2 extends InteractiveMenu {
 
     if (
       !this.arrayEquals(
-        Array.from(useCollaborationSessionStore.getState().getAllRemoteUserIds()),
+        Array.from(
+          useCollaborationSessionStore.getState().getAllRemoteUserIds()
+        ),
         Array.from(this.remoteUsers) //this.remoteUserButtons.keys())
       )
     ) {

@@ -1,6 +1,6 @@
-import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
-import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
+// import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
+// import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import DisableInputMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/disable-input-menu';
@@ -9,41 +9,41 @@ import UiMenu, {
   SIZE_RESOLUTION_FACTOR,
   UiMenuArgs,
 } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import { useRemoteUserStore } from 'react-lib/src/stores/collaboration/remote-user';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
+import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 
-export type SpectateMenuArgs = UiMenuArgs & {
-  localUser: LocalUser;
-  remoteUser: RemoteUser;
-  spectateUserService: SpectateUser;
-};
+// TODO: Remove because variables of stores aren't used anymore
+// export type SpectateMenuArgs = UiMenuArgs & {
+//   localUser: LocalUser;
+//   remoteUser: RemoteUser;
+//   spectateUserService: SpectateUser;
+// };
 
 const HEIGHT = 60;
 
 export default class SpectateMenu extends UiMenu {
-  private localUser: LocalUser;
+  // private localUser: LocalUser;
 
-  private remoteUser: RemoteUser;
+  // private remoteUser: RemoteUser;
 
-  private spectateUserService: SpectateUser;
+  // private spectateUserService: SpectateUser;
 
   private disableInputMenu: DisableInputMenu;
 
   constructor({
-    localUser,
-    spectateUserService,
-    remoteUser,
     resolution = {
       width: DEFAULT_MENU_RESOLUTION,
       height: HEIGHT,
     },
     ...args
-  }: SpectateMenuArgs) {
+  }: UiMenuArgs) {
     super({ resolution, ...args });
 
-    this.localUser = localUser;
-    this.spectateUserService = spectateUserService;
-    this.remoteUser = remoteUser;
+    // this.localUser = localUser;
+    // this.spectateUserService = spectateUserService;
+    // this.remoteUser = remoteUser;
 
     this.disableInputMenu = this.menuFactory.buildDisableInputMenu();
   }
@@ -86,8 +86,8 @@ export default class SpectateMenu extends UiMenu {
     this.items.push(textItem);
 
     const userNameItem = new TextItem({
-      text: this.remoteUser.userName,
-      color: `#${this.remoteUser.color.getHexString()}`,
+      text: useRemoteUserStore.getState().userName,
+      color: `#${useRemoteUserStore.getState().color.getHexString()}`,
       fontSize: 28,
       alignment: 'left',
       position: { x: 256, y: 20 },
