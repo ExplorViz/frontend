@@ -40,6 +40,7 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/kick-user';
 import { useChatStore } from 'react-lib/src/stores/chat';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import eventEmitter from '../../utils/event-emitter';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -103,46 +104,22 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     },
 
     _constructor: () => {
-      useWebSocketStore
-        .getState()
-        .on(SELF_CONNECTED_EVENT, get(), get().onSelfConnected); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .on(USER_CONNECTED_EVENT, get(), get().onUserConnected); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .on(USER_DISCONNECTED_EVENT, get(), get().onUserDisconnect); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .on(USER_POSITIONS_EVENT, get(), get().onUserPositions); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .on(SELF_DISCONNECTED_EVENT, get(), get().onSelfDisconnected); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .on(USER_KICK_EVENT, get(), get().onUserKickEvent); // TODO: Does this work?
+      eventEmitter.on(SELF_CONNECTED_EVENT, get().onSelfConnected);
+      eventEmitter.on(USER_CONNECTED_EVENT, get().onUserConnected);
+      eventEmitter.on(USER_DISCONNECTED_EVENT, get().onUserDisconnect);
+      eventEmitter.on(USER_POSITIONS_EVENT, get().onUserPositions);
+      eventEmitter.on(SELF_DISCONNECTED_EVENT, get().onSelfDisconnected);
+      eventEmitter.on(USER_KICK_EVENT, get().onUserKickEvent);
     },
 
     // Must be called explicitly in React
     willDestroy: () => {
-      useWebSocketStore
-        .getState()
-        .off(SELF_CONNECTED_EVENT, get(), get().onSelfConnected); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .off(USER_CONNECTED_EVENT, get(), get().onUserConnected); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .off(USER_DISCONNECTED_EVENT, get(), get().onUserDisconnect); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .off(USER_POSITIONS_EVENT, get(), get().onUserPositions); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .off(SELF_DISCONNECTED_EVENT, get(), get().onSelfDisconnected); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .off(USER_KICK_EVENT, get(), get().onUserKickEvent); // TODO: Does this work?
+      eventEmitter.off(SELF_CONNECTED_EVENT, get().onSelfConnected);
+      eventEmitter.off(USER_CONNECTED_EVENT, get().onUserConnected);
+      eventEmitter.off(USER_DISCONNECTED_EVENT, get().onUserDisconnect);
+      eventEmitter.off(USER_POSITIONS_EVENT, get().onUserPositions);
+      eventEmitter.off(SELF_DISCONNECTED_EVENT, get().onSelfDisconnected);
+      eventEmitter.off(USER_KICK_EVENT, get().onUserKickEvent);
     },
 
     addRemoteUser: (remoteUser: RemoteUser) => {

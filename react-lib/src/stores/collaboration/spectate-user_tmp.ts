@@ -19,6 +19,7 @@ import { useMessageSenderStore } from './message-sender';
 import { useWebSocketStore, SELF_DISCONNECTED_EVENT } from './web-socket';
 import equal from 'fast-deep-equal';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import eventEmitter from '../../utils/event-emitter';
 
 interface SpectateUserState {
   spectatedUser: RemoteUser | null;
@@ -64,28 +65,16 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
   lastPose: undefined,
 
   _init: () => {
-    useWebSocketStore
-      .getState()
-      .on(USER_DISCONNECTED_EVENT, get(), get()._onUserDisconnect); // TODO: Does this work?
-    useWebSocketStore
-      .getState()
-      .on(SPECTATING_UPDATE_EVENT, get(), get()._onSpectatingUpdate); // TODO: Does this work?
-    useWebSocketStore
-      .getState()
-      .on(SELF_DISCONNECTED_EVENT, get(), get()._reset); // TODO: Does this work?
+    eventEmitter.on(USER_DISCONNECTED_EVENT, get()._onUserDisconnect);
+    eventEmitter.on(SPECTATING_UPDATE_EVENT, get()._onSpectatingUpdate);
+    eventEmitter.on(SELF_DISCONNECTED_EVENT, get()._reset);
   },
 
   // Must be called explicitly
   willDestroy: () => {
-    useMessageSenderStore
-      .getState()
-      .off(USER_DISCONNECTED_EVENT, get(), get()._onUserDisconnect); // TODO: Does this work?
-    useMessageSenderStore
-      .getState()
-      .off(SPECTATING_UPDATE_EVENT, get(), get()._onSpectatingUpdate); // TODO: Does this work?
-    useMessageSenderStore
-      .getState()
-      .off(SELF_DISCONNECTED_EVENT, get(), get()._reset); // TODO: Does this work?
+    eventEmitter.off(USER_DISCONNECTED_EVENT, get()._onUserDisconnect);
+    eventEmitter.off(SPECTATING_UPDATE_EVENT, get()._onSpectatingUpdate);
+    eventEmitter.off(SELF_DISCONNECTED_EVENT, get()._reset);
   },
 
   // private
