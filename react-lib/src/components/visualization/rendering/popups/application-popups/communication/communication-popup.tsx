@@ -15,7 +15,6 @@ import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/u
 interface CommunicationPopupProps {
   popupData: PopupData;
   restructureMode: boolean;
-  originOfData: TypeOfAnalysis;
   showApplication?(applicationId: string): void;
   toggleHighlightById(modelId: string): void;
   openParents(entity: Class | Package, applicationId: string): void;
@@ -24,7 +23,6 @@ interface CommunicationPopupProps {
 export default function CommunicationPopup({
   popupData,
   restructureMode,
-  originOfData,
   showApplication,
   toggleHighlightById,
   openParents,
@@ -40,7 +38,7 @@ export default function CommunicationPopup({
       </h3>
       <PopupTabs
         restructureMode={restructureMode}
-        originOfData={originOfData}
+        originOfData={communication.originOfData}
         runtimeTab={
           <CommunicationPopupRuntime
             communication={communication}

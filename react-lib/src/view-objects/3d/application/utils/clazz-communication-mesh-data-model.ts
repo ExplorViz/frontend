@@ -1,6 +1,9 @@
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
-import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  TypeOfAnalysis,
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
 
 export default class ClazzCommuMeshDataModel {
   communication: ClassCommunication | ComponentCommunication;
@@ -11,7 +14,7 @@ export default class ClazzCommuMeshDataModel {
 
   application: Application;
 
-  originOfData: string = 'dynamic';
+  originOfData: TypeOfAnalysis = TypeOfAnalysis.Dynamic;
 
   targetApplication?: Application;
 

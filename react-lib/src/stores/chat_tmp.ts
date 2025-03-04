@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
 import * as THREE from 'three';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
@@ -18,6 +17,7 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/delete-message';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import eventEmitter from '../utils/event-emitter';
 
 export interface ChatMessageInterface {
   msgId: number;
@@ -108,15 +108,9 @@ export const useChatStore = create<ChatState>((set, get) => {
     deletedMessageIds: [],
 
     _constructor: () => {
-      useWebSocketStore
-        .getState()
-        .on(CHAT_MESSAGE_EVENT, get(), get().onChatMessageEvent); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .on(CHAT_SYNC_EVENT, get(), get().onChatSyncEvent); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .on(MESSAGE_DELETE_EVENT, get(), get().onMessageDeleteEvent); // TODO: Does this work?
+      eventEmitter.on(CHAT_MESSAGE_EVENT, get().onChatMessageEvent);
+      eventEmitter.on(CHAT_SYNC_EVENT, get().onChatSyncEvent);
+      eventEmitter.on(MESSAGE_DELETE_EVENT, get().onMessageDeleteEvent);
     },
 
     cleanup: () => {
@@ -124,15 +118,9 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     removeEventListener: () => {
-      useWebSocketStore
-        .getState()
-        .off(CHAT_MESSAGE_EVENT, get(), get().onChatMessageEvent); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .off(CHAT_SYNC_EVENT, get(), get().onChatSyncEvent); // TODO: Does this work?
-      useWebSocketStore
-        .getState()
-        .off(MESSAGE_DELETE_EVENT, get(), get().onMessageDeleteEvent); // TODO: Does this work?
+      eventEmitter.off(CHAT_MESSAGE_EVENT, get().onChatMessageEvent);
+      eventEmitter.off(CHAT_SYNC_EVENT, get().onChatSyncEvent);
+      eventEmitter.off(MESSAGE_DELETE_EVENT, get().onMessageDeleteEvent);
     },
 
     /**

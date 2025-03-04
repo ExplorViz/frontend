@@ -1,17 +1,25 @@
-import { createStore } from "zustand/vanilla";
-export type VisualizationMode = "runtime" | "evolution";
-import { LandscapeData } from "react-lib/src/utils/landscape-schemes/landscape-data";
-import { Timestamp } from "react-lib/src/utils/landscape-schemes/timestamp";
-import { DynamicLandscapeData } from "react-lib/src/utils/landscape-schemes/dynamic/dynamic-data";
-import { StructureLandscapeData } from "react-lib/src/utils/landscape-schemes/structure-data";
-import { animatePlayPauseIcon } from "react-lib/src/utils/animate";
+import { createStore } from 'zustand/vanilla';
+export type VisualizationMode = 'runtime' | 'evolution';
+import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
 import {
   combineStructureLandscapeData,
   getAllMethodHashesOfLandscapeStructureData,
-} from "../utils/landscape-structure-helpers";
-import { combineDynamicLandscapeData } from "../utils/landscape-dynamic-helpers";
-import { areArraysEqual } from "react-lib/src/utils/helpers/array-helpers";
-import { useToastHandlerStore } from "react-lib/src/stores/toast-handler";
+} from '../utils/landscape-structure-helpers';
+import { combineDynamicLandscapeData } from '../utils/landscape-dynamic-helpers';
+import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+
+export type AnalysisMode = 'evolution' | 'runtime';
+
+export type EvolutionModeRenderingConfiguration = {
+  renderDynamic: boolean;
+  renderStatic: boolean;
+  renderOnlyDifferences: boolean;
+};
 
 interface RenderingServiceState {
   previousMethodHashes: string[];
@@ -51,7 +59,7 @@ export const useRenderingServiceStore = createStore<RenderingServiceState>(
     _timelineDataObjectHandler: null,
     _landscapeData: null,
     _visualizationPaused: false,
-    _visualizationMode: "runtime",
+    _visualizationMode: 'runtime',
     _userInitiatedStaticDynamicCombination: false,
     mapTimestampsToEpochs: (
       commitToSelectedTimestampMap: Map<string, Timestamp[]>
