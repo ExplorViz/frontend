@@ -1,15 +1,13 @@
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import BaseMenu, {
-  BaseMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
+import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import DetailInfoScrollarea from 'react-lib/src/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VrRendering from 'react-lib/src/components/extended-reality/vr-rendering'; // TODO: Migrate component
 
-export type AuxiliaryScrollMenuArgs = BaseMenuArgs & {
+export type AuxiliaryScrollMenuArgs = {
   object: DetailInfoScrollarea;
   controller: VRController;
   renderer: VrRendering;
@@ -21,13 +19,8 @@ export class AuxiliaryScrollMenu extends BaseMenu {
   controller: VRController;
   renderer: VrRendering;
 
-  constructor({
-    object,
-    controller,
-    renderer,
-    ...args
-  }: AuxiliaryScrollMenuArgs) {
-    super(args);
+  constructor({ object, controller, renderer }: AuxiliaryScrollMenuArgs) {
+    super();
     this.controller = controller;
     this.renderer = renderer;
     this.object = object;

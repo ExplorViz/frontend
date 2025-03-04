@@ -1,10 +1,8 @@
 import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
-import MenuGroup, {
-  MenuGroupArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/menu-group';
+import MenuGroup from 'react-lib/src/utils/extended-reality/vr-menus/menu-group';
 
-export type DetachedMenuGroupArgs = MenuGroupArgs & {
+export type DetachedMenuGroupArgs = {
   menu: DetachableMenu;
   menuId: string | null;
 };
@@ -20,8 +18,8 @@ export default class DetachedMenuGroup
 {
   menuId: string | null;
 
-  constructor({ menu, menuId, ...args }: DetachedMenuGroupArgs) {
-    super(args);
+  constructor({ menu, menuId }: DetachedMenuGroupArgs) {
+    super();
     this.menuId = menuId;
 
     // Add menu to menu group and notify it that it has been opened when it was

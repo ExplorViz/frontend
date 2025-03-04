@@ -17,7 +17,6 @@ import composeContent, {
 import ThreeMeshUI from 'three-mesh-ui';
 import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
 import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
-import { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import * as THREE from 'three';
 import VRControllerThumbpadBinding, {
@@ -31,7 +30,7 @@ import {
   EntityType,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
-export type DetailInfoMenuArgs = BaseMenuArgs & {
+export type DetailInfoMenuArgs = {
   owner: any;
   object: EntityMesh;
   renderer: THREE.WebGLRenderer;
@@ -75,7 +74,7 @@ export default class DetailInfoMenu
   private entries: { key: string; value: string }[] | undefined;
 
   constructor({ owner, object, renderer, ...args }: DetailInfoMenuArgs) {
-    super(args);
+    super();
     this.owner = owner;
     setOwner(this, owner);
     this.object = object;
@@ -169,7 +168,6 @@ export default class DetailInfoMenu
       sourceAppId,
       targetAppId,
       this.informationText,
-      this.menuFactory,
       {
         width: BLOCK_OPTIONS_INFO.width,
         height: BLOCK_OPTIONS_INFO.height,

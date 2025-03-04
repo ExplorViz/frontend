@@ -5,9 +5,8 @@ import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import AnimatedMenu from 'react-lib/src/utils/extended-reality/vr-menus/animated-menu';
-import { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 
-export type PingMenuArgs = BaseMenuArgs & {
+export type PingMenuArgs = {
   scene: THREE.Scene;
 };
 

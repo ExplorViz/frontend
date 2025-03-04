@@ -11,7 +11,7 @@ import {
   getApplicationFromSubPackage,
 } from 'react-lib/src/utils/landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
-import { tracked } from '@glimmer/tracking';
+// import { tracked } from '@glimmer/tracking';
 import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
 
 export abstract class BaseChangeLogEntry {
@@ -21,7 +21,7 @@ export abstract class BaseChangeLogEntry {
 
   app?: Application;
 
-  @tracked
+  // @tracked
   newName?: string;
 
   constructor(id: string, action: RestructureAction, app?: Application) {

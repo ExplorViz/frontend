@@ -14,6 +14,8 @@ import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+
 // TODO: Remove because variables of stores aren't used anymore
 // export type SpectateMenuArgs = UiMenuArgs & {
 //   localUser: LocalUser;
@@ -45,7 +47,9 @@ export default class SpectateMenu extends UiMenu {
     // this.spectateUserService = spectateUserService;
     // this.remoteUser = remoteUser;
 
-    this.disableInputMenu = this.menuFactory.buildDisableInputMenu();
+    this.disableInputMenu = useVrMenuFactoryStore
+      .getState()
+      .buildDisableInputMenu();
   }
 
   /**
@@ -73,7 +77,9 @@ export default class SpectateMenu extends UiMenu {
     otherController?.menuGroup?.openMenu(this.disableInputMenu);
 
     // Activate spectating.
-    useSpectateUserStore.getState().activate(this.remoteUser);
+    // Before:
+    // useSpectateUserStore.getState().activate(this.remoteUser);
+    useSpectateUserStore.getState().activate();
 
     // Show spectating user.
     const textItem = new TextItem({

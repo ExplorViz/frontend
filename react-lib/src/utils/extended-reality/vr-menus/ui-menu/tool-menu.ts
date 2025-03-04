@@ -4,9 +4,9 @@ import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-c
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
 } from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
 import { SIZE_RESOLUTION_FACTOR } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 type ToolArgs = {
   label: string;
@@ -59,8 +59,8 @@ export default class ToolMenu extends InteractiveMenu {
 
   private hoveredTool: Tool | null = null;
 
-  constructor(args: BaseMenuArgs) {
-    super(args);
+  constructor() {
+    super();
     this.tools = [];
     this.currentSelectAnimation = null;
 
@@ -68,31 +68,39 @@ export default class ToolMenu extends InteractiveMenu {
       label: 'Zoom',
       icon: 'search',
       action: () =>
-        this.menuGroup?.replaceMenu(this.menuFactory.buildZoomMenu()),
+        this.menuGroup?.replaceMenu(
+          useVrMenuFactoryStore.getState().buildZoomMenu()
+        ),
     });
     this.addDefaultTool({
       label: 'Options',
       icon: 'gear',
       action: () =>
-        this.menuGroup?.replaceMenu(this.menuFactory.buildMainMenu()),
+        this.menuGroup?.replaceMenu(
+          useVrMenuFactoryStore.getState().buildMainMenu()
+        ),
     });
     this.addTool({
       label: 'Heatmap',
       icon: 'flame',
       action: () =>
-        this.menuGroup?.replaceMenu(this.menuFactory.buildHeatmapMenu()),
+        this.menuGroup?.replaceMenu(
+          useVrMenuFactoryStore.getState().buildHeatmapMenu()
+        ),
     });
     // this.addTool({
     //   label: 'Ping',
     //   icon: 'north-star',
-    //   action: () => this.menuGroup?.replaceMenu(this.menuFactory.buildPingMenu()),
+    //   action: () => this.menuGroup?.replaceMenu(useVrMenuFactoryStore.getState().buildPingMenu()),
     // });
 
     this.addTool({
       label: 'Search',
       icon: 'keyboard',
       action: () =>
-        this.menuGroup?.replaceMenu(this.menuFactory.buildSearchMenu()),
+        this.menuGroup?.replaceMenu(
+          useVrMenuFactoryStore.getState().buildSearchMenu()
+        ),
     });
 
     this.selectTool(this.defaultToolIndex, { enableAnimation: false });

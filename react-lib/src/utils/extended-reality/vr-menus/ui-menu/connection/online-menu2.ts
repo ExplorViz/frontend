@@ -14,6 +14,7 @@ import DisconnectButton from 'react-lib/src/utils/extended-reality/view-objects/
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export type UserMenuArgs = UiMenuArgs & {
   owner: any;
@@ -158,7 +159,9 @@ export default class OnlineMenu2 extends InteractiveMenu {
   }
 
   openSpectateViewMenu(userId: string) {
-    this.menuGroup?.replaceMenu(this.menuFactory.buildSpectateViewMenu(userId));
+    this.menuGroup?.replaceMenu(
+      useVrMenuFactoryStore.getState().buildSpectateViewMenu(userId)
+    );
   }
 
   /**

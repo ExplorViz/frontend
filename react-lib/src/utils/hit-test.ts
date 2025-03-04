@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 let hitTestSource: unknown;
 let hitTestSourceRequested = false;
 

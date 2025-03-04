@@ -10,6 +10,7 @@ import {
   useCollaborationSessionStore,
   ConnectionStatus,
 } from 'react-lib/src/stores/collaboration/collaboration-session';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 // TODO: Remove
 // export type ConnectionBaseMenuArgs = UiMenuArgs & {
@@ -36,7 +37,9 @@ export default abstract class ConnectionBaseMenu extends UiMenu {
       useCollaborationSessionStore.getState().connectionStatus !==
       this.initialConnectionStatus
     ) {
-      this.menuGroup?.replaceMenu(this.menuFactory.buildConnectionMenu());
+      this.menuGroup?.replaceMenu(
+        useVrMenuFactoryStore.getState().buildConnectionMenu()
+      );
     }
   }
 }

@@ -48,9 +48,8 @@ export default abstract class UiMenu extends InteractiveMenu {
       height: DEFAULT_MENU_RESOLUTION,
     },
     backgroundColor = '#444444',
-    ...args
   }: UiMenuArgs) {
-    super(args);
+    super();
 
     this.resolution = resolution;
     this.items = [];

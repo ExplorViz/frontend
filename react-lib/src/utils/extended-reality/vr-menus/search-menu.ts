@@ -52,8 +52,8 @@ export default class SearchMenu extends InteractiveMenu {
   _isNewInput: boolean = false;
   oldContent?: string;
 
-  constructor({ owner, renderer, ...args }: SearchMenuArgs) {
-    super(args);
+  constructor({ owner, renderer }: SearchMenuArgs) {
+    super();
     this.owner = owner;
     setOwner(this, owner);
     this.renderer = renderer;

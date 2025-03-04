@@ -5,11 +5,10 @@ import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objec
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import BaseMenu, {
-  BaseMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
+import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
-export type GrabMenuArgs = BaseMenuArgs & {
+export type GrabMenuArgs = {
   grabbedObject: GrabbableObject;
 };
 
@@ -20,8 +19,8 @@ export default class GrabMenu extends BaseMenu {
 
   private allowedToGrab: boolean;
 
-  constructor({ grabbedObject, ...args }: GrabMenuArgs) {
-    super(args);
+  constructor({ grabbedObject }: GrabMenuArgs) {
+    super();
     this.grabbedObject = grabbedObject;
     this.grabbedObjectParent = null;
     this.allowedToGrab = false;
@@ -67,9 +66,9 @@ export default class GrabMenu extends BaseMenu {
       const otherController = VRController.findController(this.grabbedObject);
       const otherMenu = otherController?.menuGroup.currentMenu;
       if (controller && otherController && otherMenu instanceof GrabMenu) {
-        const { scaleMenu1, scaleMenu2 } = this.menuFactory.buildScaleMenus(
-          this.grabbedObject
-        );
+        const { scaleMenu1, scaleMenu2 } = useVrMenuFactoryStore
+          .getState()
+          .buildScaleMenus(this.grabbedObject);
         controller.menuGroup.openMenu(scaleMenu1);
         otherController.menuGroup.openMenu(scaleMenu2);
       } else {

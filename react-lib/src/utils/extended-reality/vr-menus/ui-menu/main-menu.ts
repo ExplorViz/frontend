@@ -1,6 +1,9 @@
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import UiMenu, { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import UiMenu, {
+  UiMenuArgs,
+} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export default class MainMenu extends UiMenu {
   constructor(args: UiMenuArgs) {
@@ -19,7 +22,9 @@ export default class MainMenu extends UiMenu {
       height: 50,
       fontSize: 28,
       onTriggerDown: () =>
-        this.menuGroup?.openMenu(this.menuFactory.buildConnectionMenu()),
+        this.menuGroup?.openMenu(
+          useVrMenuFactoryStore.getState().buildConnectionMenu()
+        ),
     });
     this.items.push(connectionButton);
     this.thumbpadTargets.push(connectionButton);
@@ -31,7 +36,9 @@ export default class MainMenu extends UiMenu {
       height: 50,
       fontSize: 28,
       onTriggerDown: () =>
-        this.menuGroup?.openMenu(this.menuFactory.buildTimeMenu()),
+        this.menuGroup?.openMenu(
+          useVrMenuFactoryStore.getState().buildTimeMenu()
+        ),
     });
     this.items.push(timeButton);
     this.thumbpadTargets.push(timeButton);
@@ -43,7 +50,9 @@ export default class MainMenu extends UiMenu {
       height: 50,
       fontSize: 28,
       onTriggerDown: () =>
-        this.menuGroup?.openMenu(this.menuFactory.buildSettingsMenu()),
+        this.menuGroup?.openMenu(
+          useVrMenuFactoryStore.getState().buildSettingsMenu()
+        ),
     });
     this.items.push(settingsButton);
     this.thumbpadTargets.push(settingsButton);
@@ -55,7 +64,9 @@ export default class MainMenu extends UiMenu {
       height: 50,
       fontSize: 28,
       onTriggerDown: () =>
-        this.menuGroup?.openMenu(this.menuFactory.buildResetMenu()),
+        this.menuGroup?.openMenu(
+          useVrMenuFactoryStore.getState().buildResetMenu()
+        ),
     });
     this.items.push(resetButton);
     this.thumbpadTargets.push(resetButton);

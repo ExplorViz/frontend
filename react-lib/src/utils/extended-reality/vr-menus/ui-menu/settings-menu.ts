@@ -3,7 +3,10 @@ import CheckboxItem from 'react-lib/src/utils/extended-reality/vr-menus/items/ch
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import UiMenu, { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import UiMenu, {
+  UiMenuArgs,
+} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export type SettingsMenuArgs = UiMenuArgs & {
   labelGroups: (VRControllerLabelGroup | undefined)[];
@@ -26,7 +29,9 @@ export default class SettingsMenu extends UiMenu {
       height: 50,
       fontSize: 28,
       onTriggerDown: () =>
-        this.menuGroup?.openMenu(this.menuFactory.buildCameraMenu()),
+        this.menuGroup?.openMenu(
+          useVrMenuFactoryStore.getState().buildCameraMenu()
+        ),
     });
     this.items.push(cameraButton);
     this.thumbpadTargets.push(cameraButton);

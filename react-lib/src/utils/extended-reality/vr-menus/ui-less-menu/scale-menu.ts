@@ -1,18 +1,18 @@
 import * as THREE from 'three';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import BaseMenu, { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
+import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 import GrabMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/grab-menu';
 import SharedScaleMenuState from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/scale-menu/shared-state';
 
-export type ScaleMenuArgs = BaseMenuArgs & {
+export type ScaleMenuArgs = {
   sharedState: SharedScaleMenuState;
 };
 
 export default class ScaleMenu extends BaseMenu {
   protected sharedState: SharedScaleMenuState;
 
-  constructor({ sharedState, ...args }: ScaleMenuArgs) {
-    super(args);
+  constructor({ sharedState }: ScaleMenuArgs) {
+    super();
     this.sharedState = sharedState;
   }
 

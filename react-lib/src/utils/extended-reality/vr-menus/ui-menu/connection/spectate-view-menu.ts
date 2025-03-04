@@ -1,7 +1,6 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
 import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
-import { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 import { inject as service } from '@ember/service';
 import * as THREE from 'three';
 import { SIZE_RESOLUTION_FACTOR } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
@@ -15,7 +14,7 @@ import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-message
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 
-export type SpectateViewMenuArgs = BaseMenuArgs & {
+export type SpectateViewMenuArgs = {
   owner: any;
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
@@ -40,14 +39,8 @@ export default class SpectateViewMenu
 
   private firstTime: boolean = true;
 
-  constructor({
-    owner,
-    renderer,
-    scene,
-    userId,
-    ...args
-  }: SpectateViewMenuArgs) {
-    super(args);
+  constructor({ owner, renderer, scene, userId }: SpectateViewMenuArgs) {
+    super();
     setOwner(this, owner);
     this.renderer = renderer;
     this.scene = scene;

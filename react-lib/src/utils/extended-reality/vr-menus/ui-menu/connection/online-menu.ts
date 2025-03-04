@@ -7,6 +7,8 @@ import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title
 import ConnectionBaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 // TODO: Remove because variables of stores aren't used anymore
 // type OnlineMenuArgs = UiMenuArgs & {
@@ -64,7 +66,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
     let yPos = 50 + yOffset;
 
     const localUserButton = new TextbuttonItem({
-      text: `${this.localUser.userName} (you)`,
+      text: `${useLocalUserStore.getState().userName} (you)`,
       position: { x: 100, y: yPos },
       width: 316,
       height: 50,
@@ -82,7 +84,9 @@ export default class OnlineMenu extends ConnectionBaseMenu {
         height: 50,
         fontSize: 28,
         onTriggerDown: () =>
-          this.menuGroup?.openMenu(this.menuFactory.buildSpectateMenu(user)),
+          this.menuGroup?.openMenu(
+            useVrMenuFactoryStore.getState().buildSpectateMenu(user)
+          ),
       });
       this.remoteUserButtons.set(user.userId, remoteUserButton);
       this.items.push(remoteUserButton);
@@ -123,7 +127,9 @@ export default class OnlineMenu extends ConnectionBaseMenu {
       },
       onButtonUp: () => {
         useCollaborationSessionStore.getState().disconnect();
-        this.menuGroup?.replaceMenu(this.menuFactory.buildConnectionMenu());
+        this.menuGroup?.replaceMenu(
+          useVrMenuFactoryStore.getState().buildConnectionMenu()
+        );
       },
     });
   }

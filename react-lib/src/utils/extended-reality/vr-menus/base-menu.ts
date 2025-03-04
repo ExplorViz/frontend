@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
-import VrMenuFactoryService from 'explorviz-frontend/services/extended-reality/vr-menu-factory';
 import VRControllerBindings from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-bindings';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';

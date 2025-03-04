@@ -4,6 +4,7 @@ import ConnectionBaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui
 
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export default class OfflineMenu extends ConnectionBaseMenu {
   constructor(args: UiMenuArgs) {
@@ -22,7 +23,9 @@ export default class OfflineMenu extends ConnectionBaseMenu {
       height: 50,
       fontSize: 28,
       onTriggerDown: () =>
-        this.menuGroup?.replaceMenu(this.menuFactory.buildJoinMenu()),
+        this.menuGroup?.replaceMenu(
+          useVrMenuFactoryStore.getState().buildJoinMenu()
+        ),
     });
     this.items.push(joinButton);
     this.thumbpadTargets.push(joinButton);

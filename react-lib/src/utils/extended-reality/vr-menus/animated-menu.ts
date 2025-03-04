@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import BaseMenu, {
-  BaseMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
+import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 
 /**
  * Base class for all menus that can be animated.
@@ -9,8 +7,8 @@ import BaseMenu, {
 export default abstract class AnimatedMenu extends BaseMenu {
   animationMixer: THREE.AnimationMixer;
 
-  constructor(args: BaseMenuArgs) {
-    super(args);
+  constructor() {
+    super();
     this.animationMixer = new THREE.AnimationMixer(this);
   }
 
