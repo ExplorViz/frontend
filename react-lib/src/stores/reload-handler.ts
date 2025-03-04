@@ -1,12 +1,11 @@
 import { create } from 'zustand';
-import eventEmitter from '../utils/event-emitter';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { useLandscapeHTTPRequestUtilStateStore } from './landscape-http-request-util';
+import { requestData } from 'react-lib/src/utils/landscape-http-request-util';
 
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
@@ -30,10 +29,10 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     interval: number = 10
   ) => {
     try {
-      const [structureDataPromise, dynamicDataPromise] =
-        await useLandscapeHTTPRequestUtilStateStore
-          .getState()
-          .requestData(timestamp, interval);
+      const [structureDataPromise, dynamicDataPromise] = await requestData(
+        timestamp,
+        interval
+      );
 
       if (
         structureDataPromise.status === 'fulfilled' &&
