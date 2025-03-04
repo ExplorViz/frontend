@@ -1,34 +1,39 @@
-// import { createStore } from 'zustand/vanilla';
-// import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { create } from 'zustand';
+import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
+import * as THREE from 'three';
+import { ActionIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/action-icon';
+import { CloseIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/close-icon';
 
+// TODO: Wait until required utils are migrated
 
-// // TODO: Wait until required utils are migrated
+interface VrAssetRepoState {
+  closeIconTextures: CloseIconTextures;
+  shareIconTextures: ActionIconTextures;
+  paintbrushIconTextures: ActionIconTextures;
+  fireIconTextures: ActionIconTextures;
+  font: Font | undefined;
+}
 
-// interface VrAssetRepoState {
-//     closeIconTextures: CloseIconTextures;
-//     shareIconTextures: ActionIconTextures;
-//     paintbrushIconTextures: ActionIconTextures;
-//     fireIconTextures: ActionIconTextures;
-//     font: Font | undefined;
-// }
+export const useVrAssetRepoStore = create<VrAssetRepoState>((set, get) => {
+  const textureLoader = new THREE.TextureLoader();
 
-// export const useVrAssetRepoStore = createStore<VrAssetRepoState>(() => ({
-//     closeIconTextures: {
-//         defaultTexture: textureLoader.load('images/x_white_transp.png'),
-//         hoverTexture: textureLoader.load('images/x_white.png'),
-//     },
-//     shareIconTextures: {
-//         defaultTexture: textureLoader.load('images/share.png'),
-//         hoverTexture: textureLoader.load('images/share.png'),
-//     },
-//     paintbrushIconTextures: {
-//         defaultTexture: textureLoader.load('images/paintbrush.png'),
-//         hoverTexture: textureLoader.load('images/paintbrush.png'),
-//     },
-//     fireIconTextures: {
-//         defaultTexture: textureLoader.load('images/fire_transp.png'),
-//         hoverTexture: textureLoader.load('images/fire.png'),
-//     },
-//     font: undefined,    
-// }));
-
+  return {
+    closeIconTextures: {
+      defaultTexture: textureLoader.load('images/x_white_transp.png'),
+      hoverTexture: textureLoader.load('images/x_white.png'),
+    },
+    shareIconTextures: {
+      defaultTexture: textureLoader.load('images/share.png'),
+      hoverTexture: textureLoader.load('images/share.png'),
+    },
+    paintbrushIconTextures: {
+      defaultTexture: textureLoader.load('images/paintbrush.png'),
+      hoverTexture: textureLoader.load('images/paintbrush.png'),
+    },
+    fireIconTextures: {
+      defaultTexture: textureLoader.load('images/fire_transp.png'),
+      hoverTexture: textureLoader.load('images/fire.png'),
+    },
+    font: undefined,
+  };
+});

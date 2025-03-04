@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 // TODO: Wait for router to be migrated
 
 interface AuthState {
@@ -9,7 +9,7 @@ interface AuthState {
   // logout: () => void;
 }
 
-export const useAuthStore = createStore<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: {
     name: 'Jessy Doe',
     nickname: 'Jessy',
