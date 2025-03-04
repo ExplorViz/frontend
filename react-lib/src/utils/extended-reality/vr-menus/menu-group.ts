@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
+// import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import FloorMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/floor-mesh';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerBindings from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-bindings';
@@ -7,22 +7,23 @@ import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 import { isDetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
 import { useDetachedMenuGroupsStore } from 'react-lib/src/stores/extended-reality/detached-menu-groups';
 
-export type MenuGroupArgs = {
-  detachedMenuGroups: DetachedMenuGroupsService;
-};
+// TODO: Remove because store variables aren't used
+// export type MenuGroupArgs = {
+//   detachedMenuGroups: DetachedMenuGroupsService;
+// };
 
 export default class MenuGroup extends THREE.Group {
   private menus: BaseMenu[];
 
-  private detachedMenuGroups: DetachedMenuGroupsService;
+  // private detachedMenuGroups: DetachedMenuGroupsService;
 
   readonly controllerBindings: VRControllerBindings[];
 
-  constructor({ detachedMenuGroups }: MenuGroupArgs) {
+  constructor() {
     super();
     this.menus = [];
     this.controllerBindings = [];
-    this.detachedMenuGroups = detachedMenuGroups;
+    // this.detachedMenuGroups = detachedMenuGroups;
   }
 
   /**

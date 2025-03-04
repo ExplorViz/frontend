@@ -3,7 +3,6 @@ import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-c
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import { BaseMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
 import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
 import InteractiveItem from 'react-lib/src/utils/extended-reality/vr-menus/items/interactive-item';
 import Item from 'react-lib/src/utils/extended-reality/vr-menus/items/item';
@@ -12,7 +11,7 @@ export const DEFAULT_MENU_RESOLUTION = 512;
 
 export const SIZE_RESOLUTION_FACTOR = 0.3 / DEFAULT_MENU_RESOLUTION;
 
-export type UiMenuArgs = BaseMenuArgs & {
+export type UiMenuArgs = {
   resolution?: { width: number; height: number };
   backgroundColor?: string;
 };

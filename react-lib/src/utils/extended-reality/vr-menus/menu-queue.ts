@@ -1,9 +1,7 @@
 import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
-import MenuGroup, {
-  MenuGroupArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/menu-group';
+import MenuGroup from 'react-lib/src/utils/extended-reality/vr-menus/menu-group';
 
-export type MenuQueueArgs = MenuGroupArgs & {
+export type MenuQueueArgs = {
   nextMenuDelay?: number;
 };
 
@@ -18,8 +16,8 @@ export default class MenuQueue extends MenuGroup {
 
   private nextMenuTime: number;
 
-  constructor({ nextMenuDelay = 0.75, ...args }: MenuQueueArgs) {
-    super(args);
+  constructor({ nextMenuDelay = 0.75 }: MenuQueueArgs) {
+    super();
     this.menuQueue = [];
     this.nextMenuDelay = nextMenuDelay;
     this.nextMenuTime = 0.0;
