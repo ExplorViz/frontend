@@ -1,4 +1,4 @@
-import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
+// import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
@@ -13,17 +13,15 @@ import { useApplicationRendererStore } from 'react-lib/src/stores/application-re
 export type ResetMenuArgs = UiMenuArgs & {
   owner: any;
   online: boolean;
-  detachedMenuGroups: DetachedMenuGroupsService;
+  // detachedMenuGroups: DetachedMenuGroupsService;
 };
 
 export default class ResetMenu extends UiMenu {
+  // private detachedMenuGroups: DetachedMenuGroupsService;
 
-  private detachedMenuGroups: DetachedMenuGroupsService;
-
-  constructor({ owner, online, detachedMenuGroups, ...args }: ResetMenuArgs) {
+  constructor({ owner, online, ...args }: ResetMenuArgs) {
     super(args);
     setOwner(this, owner);
-    this.detachedMenuGroups = detachedMenuGroups;
 
     const textItem = new TitleItem({
       text: 'Reset',
@@ -93,17 +91,21 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetApplications() {
-    useApplicationRendererStore.getState()
+    useApplicationRendererStore
+      .getState()
       .getOpenApplications()
       .forEach((applicationObject) => {
-        useApplicationRendererStore.getState().closeAllComponents(applicationObject);
+        useApplicationRendererStore
+          .getState()
+          .closeAllComponents(applicationObject);
         removeAllHighlightingFor(applicationObject);
       });
   }
 
   private resetLandscape() {
-    const applicationGraph =
-      useApplicationRendererStore.getState().getOpenApplications()[0].parent;
+    const applicationGraph = useApplicationRendererStore
+      .getState()
+      .getOpenApplications()[0].parent;
     if (applicationGraph) {
       applicationGraph.position.set(0, 0, 0);
       applicationGraph.rotation.x = Math.PI / 180;

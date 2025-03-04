@@ -35,9 +35,10 @@ export enum MenuState {
   DETACHED,
 }
 
-export type BaseMenuArgs = {
-  menuFactory: VrMenuFactoryService;
-};
+// TODO: Remove because store variables aren't used
+// export type BaseMenuArgs = {
+//   menuFactory: VrMenuFactoryService;
+// };
 
 /**
  * Base class for all menus that defines life cycle methods and callbacks for
@@ -51,11 +52,10 @@ export type BaseMenuArgs = {
 export default abstract class BaseMenu extends THREE.Group {
   private menuState: MenuState;
 
-  readonly menuFactory: VrMenuFactoryService;
+  // readonly menuFactory: VrMenuFactoryService;
 
-  constructor({ menuFactory }: BaseMenuArgs) {
+  constructor() {
     super();
-    this.menuFactory = menuFactory;
     this.menuState = MenuState.INIT;
   }
 

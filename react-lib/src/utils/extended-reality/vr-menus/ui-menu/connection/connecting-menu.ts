@@ -1,11 +1,11 @@
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
-import ConnectionBaseMenu, {
-  ConnectionBaseMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
+import ConnectionBaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
+import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
+import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 
 export default class ConnectingMenu extends ConnectionBaseMenu {
-  constructor(args: ConnectionBaseMenuArgs) {
+  constructor(args: UiMenuArgs) {
     super(args);
 
     const title = new TitleItem({
@@ -20,7 +20,7 @@ export default class ConnectingMenu extends ConnectionBaseMenu {
       width: 316,
       height: 50,
       fontSize: 28,
-      onTriggerDown: () => this.collaborationSession.disconnect(),
+      onTriggerDown: () => useCollaborationSessionStore.getState().disconnect(),
     });
     this.items.push(cancelButton);
     this.thumbpadTargets.push(cancelButton);

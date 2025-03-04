@@ -1,29 +1,30 @@
-import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+// import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
+
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import ConnectionBaseMenu, {
-  ConnectionBaseMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
-import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
+import ConnectionBaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
+import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 
-type OnlineMenuArgs = ConnectionBaseMenuArgs & {
-  spectateUserService: SpectateUser;
-};
+// TODO: Remove because variables of stores aren't used anymore
+// type OnlineMenuArgs = UiMenuArgs & {
+//   spectateUserService: SpectateUser;
+// };
 
 export default class OnlineMenu extends ConnectionBaseMenu {
   // THIS MENU WON'T BE USED AT THE MOMENT AND GOT REPLACED BY OnlineMenu2
   private remoteUserButtons: Map<string, TextbuttonItem>;
 
-  private spectateUserService: SpectateUser;
+  // private spectateUserService: SpectateUser;
 
   private disconnectButton?: TextbuttonItem;
 
-  constructor({ spectateUserService, ...args }: OnlineMenuArgs) {
+  constructor({ ...args }: UiMenuArgs) {
     super(args);
 
     this.remoteUserButtons = new Map<string, TextbuttonItem>();
-    this.spectateUserService = spectateUserService;
 
     this.initMenu();
   }
@@ -37,9 +38,11 @@ export default class OnlineMenu extends ConnectionBaseMenu {
   }
 
   private initMenu() {
-    const users = Array.from(this.collaborationSession.getAllRemoteUsers());
+    const users = Array.from(
+      useCollaborationSessionStore.getState().getAllRemoteUsers()
+    );
     const title = new TitleItem({
-      text: `Room ${this.collaborationSession.currentRoomId}`,
+      text: `Room ${useCollaborationSessionStore.getState().currentRoomId}`,
       position: { x: 256, y: 20 },
     });
     this.items.push(title);
@@ -53,7 +56,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
       buttonColor: '#aaaaaa',
       textColor: '#ffffff',
       hoverColor: '#dc3b00',
-      onTriggerDown: () => this.collaborationSession.disconnect(),
+      onTriggerDown: () => useCollaborationSessionStore.getState().disconnect(),
     });
     this.items.push(this.disconnectButton);
 
@@ -96,7 +99,9 @@ export default class OnlineMenu extends ConnectionBaseMenu {
 
     if (
       !this.arrayEquals(
-        Array.from(this.collaborationSession.getAllRemoteUserIds()),
+        Array.from(
+          useCollaborationSessionStore.getState().getAllRemoteUserIds()
+        ),
         Array.from(this.remoteUserButtons.keys())
       )
     ) {
@@ -117,7 +122,7 @@ export default class OnlineMenu extends ConnectionBaseMenu {
         this.redrawMenu();
       },
       onButtonUp: () => {
-        this.collaborationSession.disconnect();
+        useCollaborationSessionStore.getState().disconnect();
         this.menuGroup?.replaceMenu(this.menuFactory.buildConnectionMenu());
       },
     });

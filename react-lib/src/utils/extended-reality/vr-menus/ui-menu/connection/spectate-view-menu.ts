@@ -53,10 +53,12 @@ export default class SpectateViewMenu
     this.scene = scene;
     this.userId = userId;
     this.headsetCamera = new THREE.PerspectiveCamera();
-    if (useCollaborationSessionStore.getState().lookupRemoteUserById(this.userId)) {
-      this.name = useCollaborationSessionStore.getState().lookupRemoteUserById(
-        this.userId
-      )!.userName;
+    if (
+      useCollaborationSessionStore.getState().lookupRemoteUserById(this.userId)
+    ) {
+      this.name = useCollaborationSessionStore
+        .getState()
+        .lookupRemoteUserById(this.userId)!.userName;
     } else {
       this.name = 'you';
     }
@@ -67,16 +69,17 @@ export default class SpectateViewMenu
       return useLocalUserStore.getState().visualizationMode === 'vr';
     }
     return (
-      useCollaborationSessionStore.getState()
+      useCollaborationSessionStore
+        .getState()
         .lookupRemoteUserById(this.userId)
         ?.getVisualizationMode() === 'vr'
     );
   }
 
   private updatePositions() {
-    const cameraModel = useCollaborationSessionStore.getState().lookupRemoteUserById(
-      this.userId
-    )?.camera?.model;
+    const cameraModel = useCollaborationSessionStore
+      .getState()
+      .lookupRemoteUserById(this.userId)?.camera?.model;
     if (useLocalUserStore.getState().userId === this.userId) {
       this.headsetCamera = (
         useLocalUserStore.getState().camera as THREE.WebXRArrayCamera
