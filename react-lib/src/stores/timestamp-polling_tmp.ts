@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { CROSS_COMMIT_IDENTIFIER } from 'react-lib/src/utils/evolution-schemes/evolution-data';
@@ -31,7 +31,7 @@ interface TimestampPollingState {
   ) => Promise<Timestamp[]>;
 }
 
-export const useTimestampPollingStore = createStore<TimestampPollingState>(
+export const useTimestampPollingStore = create<TimestampPollingState>(
   (set, get) => ({
     timer: null,
 
