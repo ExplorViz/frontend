@@ -11,7 +11,7 @@ interface IdeWebsocketFacadeState {
 }
 
 export const useIdeWebsocketFacadeStore = create<IdeWebsocketFacadeState>(
-  () => ({
+  (set, get) => ({
     roomName: 'undefined', // tracked
     isConnected: false, // tracked
     numConnectedIDEs: 0, // tracked
