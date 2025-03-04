@@ -63,7 +63,7 @@ export const useRoomServiceStore = create<RoomServiceState>((set, get) => ({
     roomId: string
   ): InitialRoomPayload | undefined => {
     // Serialize room and remove unsupported properties.
-    const room = useRoomSerializerStore.getState().serializeRoom();
+    const room = useRoomSerializerStore.getState().serializeRoom(); //TODO: change it so it uses default values
 
     if (!room.landscape.landscapeToken) {
       return;

@@ -9,26 +9,25 @@ import UiMenu, {
   SIZE_RESOLUTION_FACTOR,
   UiMenuArgs,
 } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import { useRemoteUserStore } from 'react-lib/src/stores/collaboration/remote-user';
+import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 // TODO: Remove because variables of stores aren't used anymore
-// export type SpectateMenuArgs = UiMenuArgs & {
-//   localUser: LocalUser;
-//   remoteUser: RemoteUser;
-//   spectateUserService: SpectateUser;
-// };
+export type SpectateMenuArgs = UiMenuArgs & {
+  // localUser: LocalUser;
+  remoteUser: RemoteUser;
+  // spectateUserService: SpectateUser;
+};
 
 const HEIGHT = 60;
 
 export default class SpectateMenu extends UiMenu {
   // private localUser: LocalUser;
 
-  // private remoteUser: RemoteUser;
+  private remoteUser: RemoteUser;
 
   // private spectateUserService: SpectateUser;
 
@@ -40,12 +39,12 @@ export default class SpectateMenu extends UiMenu {
       height: HEIGHT,
     },
     ...args
-  }: UiMenuArgs) {
-    super({ resolution, ...args });
+  }: SpectateMenuArgs) {
+    super({ resolution });
 
     // this.localUser = localUser;
     // this.spectateUserService = spectateUserService;
-    // this.remoteUser = remoteUser;
+    this.remoteUser = args.remoteUser;
 
     this.disableInputMenu = useVrMenuFactoryStore
       .getState()
@@ -92,8 +91,8 @@ export default class SpectateMenu extends UiMenu {
     this.items.push(textItem);
 
     const userNameItem = new TextItem({
-      text: useRemoteUserStore.getState().userName,
-      color: `#${useRemoteUserStore.getState().color.getHexString()}`,
+      text: this.remoteUser.userName,
+      color: `#${this.remoteUser.color.getHexString()}`,
       fontSize: 28,
       alignment: 'left',
       position: { x: 256, y: 20 },

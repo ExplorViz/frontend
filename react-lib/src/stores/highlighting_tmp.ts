@@ -305,7 +305,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     communicationMeshes: ClazzCommunicationMesh[];
     applications: ApplicationObject3D[];
   } => {
-    const communicationMeshes = useLinkRenderer.getState().getLinks();
+    const communicationMeshes = useLinkRendererStore.getState().getLinks();
 
     const applications = useApplicationRendererStore
       .getState()

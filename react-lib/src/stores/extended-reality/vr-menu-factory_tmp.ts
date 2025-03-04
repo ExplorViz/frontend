@@ -88,11 +88,13 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   renderer: new THREE.WebGLRenderer(),
 
   buildMainMenu: (): MainMenu => {
-    return new MainMenu({ menuFactory: this });
+    //TODO: look into why any args are needed. Previously:
+    // return new MainMenu({ menuFactory: this });
+    return new MainMenu({});
   },
 
   buildToolMenu: (): ToolMenu => {
-    return new ToolMenu({ menuFactory: this });
+    return new ToolMenu();
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
@@ -102,16 +104,17 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
         useLocalUserStore.getState().controller1?.labelGroup,
         useLocalUserStore.getState().controller2?.labelGroup,
       ],
-      menuFactory: this,
     });
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildCameraMenu: (): CameraMenu => {
-    return new CameraMenu({
-      localUser: useLocalUserStore,
-      menuFactory: this,
-    });
+    //TODO: look into why any args are needed. Previously:
+    // return new CameraMenu({
+    //   localUser: useLocalUserStore,
+    //   menuFactory: this,
+    // });
+    return new CameraMenu({});
   },
 
   buildConnectionMenu: (): ConnectionBaseMenu | InteractiveMenu => {
@@ -127,20 +130,24 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildOfflineMenu: (): OfflineMenu => {
-    return new OfflineMenu({
-      collaborationSession: useCollaborationSessionStore,
-      localUser: useLocalUserStore,
-      menuFactory: this,
-    });
+    //TODO: look into why any args are needed. Previously:
+    // return new OfflineMenu({
+    //   collaborationSession: useCollaborationSessionStore,
+    //   localUser: useLocalUserStore,
+    //   menuFactory: this,
+    // });
+    return new OfflineMenu({});
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildConnectingMenu: (): ConnectingMenu => {
-    return new ConnectingMenu({
-      collaborationSession: useCollaborationSessionStore,
-      localUser: useLocalUserStore,
-      menuFactory: this,
-    });
+    //TODO: look into why any args are needed. Previously:
+    // return new ConnectingMenu({
+    //   collaborationSession: useCollaborationSessionStore,
+    //   localUser: useLocalUserStore,
+    //   menuFactory: this,
+    // });
+    return new ConnectingMenu({});
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
@@ -149,34 +156,34 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
       owner: getOwner(this),
       renderer: get().renderer,
       scene: get().scene,
-      menuFactory: this,
     });
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildJoinMenu: (): JoinMenu => {
-    return new JoinMenu({
-      collaborationSession: useCollaborationSessionStore,
-      localUser: useLocalUserStore,
-      roomService: useRoomServiceStore,
-      menuFactory: this,
-    });
+    //TODO: look into why any args are needed. Previously:
+    // return new JoinMenu({
+    //   collaborationSession: useCollaborationSessionStore,
+    //   localUser: useLocalUserStore,
+    //   roomService: useRoomServiceStore,
+    //   menuFactory: this,
+    // });
+    return new JoinMenu({});
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildTimeMenu: (): TimeMenu => {
-    return new TimeMenu({
-      timestampService: useTimestampStore,
-      menuFactory: this,
-    });
+    //TODO: look into why any args are needed. Previously:
+    // return new TimeMenu({
+    //   timestampService: useTimestampStore,
+    //   menuFactory: this,
+    // });
+    return new TimeMenu({});
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildSpectateMenu: (remoteUser: RemoteUser): SpectateMenu => {
     return new SpectateMenu({
-      menuFactory: this,
-      localUser: useLocalUserStore,
-      spectateUserService: useSpectateUserStore,
       remoteUser,
     });
   },
@@ -187,24 +194,23 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
       renderer: get().renderer,
       scene: get().scene,
       headsetCamera: useLocalUserStore.getState().camera,
-      menuFactory: this,
     });
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildHeatmapMenu: (): HeatmapMenu => {
-    return new HeatmapMenu({
-      heatmapConfiguration: useHeatmapConfigurationStore,
-      menuFactory: this,
-    });
+    //TODO: look into why any args are needed. Previously:
+    // return new HeatmapMenu({
+    //   heatmapConfiguration: useHeatmapConfigurationStore,
+    //   menuFactory: this,
+    // });
+    return new HeatmapMenu({});
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildPingMenu: (): PingMenu => {
     return new PingMenu({
       scene: get().scene,
-      sender: useMessageSenderStore,
-      menuFactory: this,
     });
   },
 
@@ -214,7 +220,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
       owner: getOwner(this), // TODO: How to to owner-things here?
       object: object,
       renderer: get().renderer,
-      menuFactory: this,
     });
   },
 
@@ -228,7 +233,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
       object: object,
       controller: controller,
       renderer: renderer,
-      menuFactory: this,
     });
   },
 
@@ -236,8 +240,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   buildGrabMenu: (grabbedObject: GrabbableObject): GrabMenu => {
     return new GrabMenu({
       grabbedObject,
-      grabbedObjectService: useGrabbedObjectStore,
-      menuFactory: this,
     });
   },
 
@@ -249,8 +251,8 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   } => {
     const sharedState = new SharedScaleMenuState(grabbedObject);
     return {
-      scaleMenu1: new ScaleMenu({ sharedState, menuFactory: this }),
-      scaleMenu2: new ScaleMenu({ sharedState, menuFactory: this }),
+      scaleMenu1: new ScaleMenu({ sharedState }),
+      scaleMenu2: new ScaleMenu({ sharedState }),
     };
   },
 
@@ -259,7 +261,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
     return new SearchMenu({
       owner: getOwner(this), // TODO: How to do owner-things here?
       renderer: get().renderer,
-      menuFactory: this,
     });
   },
 
@@ -270,7 +271,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
       renderer: get().renderer,
       scene: get().scene,
       userId: userId,
-      menuFactory: this,
     });
   },
 
@@ -279,7 +279,7 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
     title: string,
     text: string | undefined = undefined
   ): HintMenu => {
-    return new HintMenu({ title, text, menuFactory: this });
+    return new HintMenu({ title, text });
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
@@ -290,7 +290,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
     time: number;
   }): MessageBoxMenu => {
     return new MessageBoxMenu({
-      menuFactory: this,
       ...args,
     });
   },
@@ -301,15 +300,11 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
       owner: getOwner(this), // TODO: How to do owner-things here?
       online:
         useCollaborationSessionStore.getState().connectionStatus !== 'online',
-      menuFactory: this,
-      detachedMenuGroups: useDetachedMenuGroupsStore,
     });
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildDisableInputMenu: (): DisableInputMenu => {
-    return new DisableInputMenu({
-      menuFactory: this,
-    });
+    return new DisableInputMenu();
   },
 }));

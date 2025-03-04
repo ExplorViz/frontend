@@ -46,10 +46,6 @@ export const useUserFactoryStore = create<UserFactoryState>((set, get) => ({
       userId,
       color: new THREE.Color(color.red, color.green, color.blue),
       state: 'online',
-      // TODO: local-user and minimap-service should not be passed as arguments
-      // in RemoteUser constructor. CHANGE THIS
-      localUser: useLocalUserStore,
-      minimapService: useMinimapStore,
     });
     useHMDStore
       .getState()

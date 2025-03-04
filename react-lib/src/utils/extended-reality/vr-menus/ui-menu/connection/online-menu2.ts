@@ -50,7 +50,7 @@ export default class OnlineMenu2 extends InteractiveMenu {
   userList!: UserList;
 
   constructor({ owner, renderer, scene, ...args }: UserMenuArgs) {
-    super(args);
+    super();
     this.owner = owner;
     setOwner(this, owner);
     this.renderer = renderer;
