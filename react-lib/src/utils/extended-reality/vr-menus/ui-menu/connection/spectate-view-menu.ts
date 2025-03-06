@@ -1,11 +1,10 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
 import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
-import { inject as service } from '@ember/service';
 import * as THREE from 'three';
 import { SIZE_RESOLUTION_FACTOR } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import { setOwner } from '@ember/application';
+// import { setOwner } from '@ember/application';
 import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,

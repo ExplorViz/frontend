@@ -1,4 +1,3 @@
-import { action } from '@ember/object';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';

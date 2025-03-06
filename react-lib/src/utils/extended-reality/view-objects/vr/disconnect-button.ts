@@ -1,8 +1,7 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
-import { setOwner } from '@ember/application';
-import { inject as service } from '@ember/service';
+// import { setOwner } from '@ember/application';
 // import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 

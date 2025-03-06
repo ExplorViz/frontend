@@ -1,8 +1,7 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import * as THREE from 'three';
-import { inject as service } from '@ember/service';
-import { setOwner } from '@ember/application';
+// import { setOwner } from '@ember/application';
 import OnlineMenu2 from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/online-menu2';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
@@ -20,7 +19,6 @@ export default class UserListItem
   extends ThreeMeshUI.Block
   implements IntersectableObject
 {
-
   isHovered = false;
 
   menu: OnlineMenu2;

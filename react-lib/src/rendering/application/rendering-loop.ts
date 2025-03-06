@@ -1,9 +1,8 @@
-import { setOwner } from '@ember/application';
+// import { setOwner } from '@ember/application';
 import { Clock } from 'three';
 import THREEPerformance from 'react-lib/src/utils/threejs-performance';
 // import UserSettings from 'explorviz-frontend/services/user-settings';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { inject as service } from '@ember/service';
 // import ArZoomHandler from 'explorviz-frontend/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import ArZoomHandler from 'react-lib/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';

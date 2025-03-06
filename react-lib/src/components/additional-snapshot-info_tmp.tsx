@@ -1,8 +1,6 @@
 import React from 'react';
-import Component from '@glimmer/component';
+
 import Auth from 'explorviz-frontend/services/auth';
-import { inject as service } from '@ember/service';
-import { action } from '@ember/object';
 import { TinySnapshot } from 'explorviz-frontend/services/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import CopyButton from 'react-lib/src/components/copy-button.tsx';

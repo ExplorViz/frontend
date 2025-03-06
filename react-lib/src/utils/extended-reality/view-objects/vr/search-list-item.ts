@@ -1,8 +1,7 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import * as THREE from 'three';
-import { inject as service } from '@ember/service';
-import { setOwner } from '@ember/application';
+// import { setOwner } from '@ember/application';
 import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useHighlightingStore } from 'react-lib/src/stores/highlighting';

@@ -11,7 +11,7 @@ import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
-import debugLogger from 'ember-debug-logger';
+// import debugLogger from 'ember-debug-logger';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import * as VrPoses from 'react-lib/src/utils/extended-reality/vr-helpers/vr-poses';
 import { VrPose } from 'react-lib/src/utils/extended-reality/vr-helpers/vr-poses';

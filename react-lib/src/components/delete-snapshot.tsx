@@ -1,7 +1,4 @@
 import React from 'react';
-import Component from '@glimmer/component';
-import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { TrashIcon } from '@primer/octicons-react';
 import { Tooltip } from 'react-bootstrap';
