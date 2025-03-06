@@ -21,7 +21,6 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-import PopupHandler from 'react-lib/src/utils/popup-handler';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import FoundationPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup.tsx';
@@ -41,7 +40,6 @@ interface PopupCoordinatorProps {
   addAnnotationForPopup(popup: PopupData): void;
   pinPopup(popup: PopupData): void;
   popupData: PopupData;
-  popupHandler: PopupHandler;
   removePopup(entityId: string): void;
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
@@ -52,7 +50,6 @@ interface PopupCoordinatorProps {
 
 export default function PopupCoordinator({
   popupData,
-  popupHandler,
   pinPopup,
   removePopup,
   sharePopup,
@@ -307,7 +304,7 @@ export default function PopupCoordinator({
             <Button
               variant="secondary-outline"
               className="popup-close-button"
-              onClick={() => addAnnotationForPopup(popupData)}
+              onClick={() => removePopup(popupData.entity.id)}
             >
               <XIcon className="align-middle" />
             </Button>
@@ -335,7 +332,7 @@ export default function PopupCoordinator({
         <ClazzPopup restructureMode={restructureMode} popupData={popupData} />
       )}
       {entityType == 'method' && (
-        <ClazzPopup restructureMode={restructureMode} popupData={popupData} />
+        <MethodPopup restructureMode={restructureMode} popupData={popupData} />
       )}
       {entityType == 'classCommunication' && (
         <CommunicationPopup
