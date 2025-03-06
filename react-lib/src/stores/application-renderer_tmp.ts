@@ -37,7 +37,7 @@ import {
   isEntityMesh,
 } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import { useEvolutionDataRepositoryState } from './repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from './repos/evolution-data-repository';
 import { CommitComparison } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import {
   getAllClassesInApplication,
@@ -339,7 +339,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
 
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
-      const commitComparison = useEvolutionDataRepositoryState
+      const commitComparison = useEvolutionDataRepositoryStore
         .getState()
         .getCommitComparisonByAppName(applicationModel.name);
 

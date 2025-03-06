@@ -17,7 +17,7 @@ import {
   SelectedCommit,
   useCommitTreeStateStore,
 } from 'react-lib/src/stores/commit-tree-state';
-import { useEvolutionDataRepositoryeState } from 'react-lib/src/stores/repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 
 export default class EvolutionDataRepository extends Service {
   private readonly debug = debugLogger('EvolutionDataRepository');
@@ -37,11 +37,11 @@ export default class EvolutionDataRepository extends Service {
   // @tracked
   // private _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
   get _appNameCommitTreeMap(): AppNameCommitTreeMap {
-    return useEvolutionDataRepositoryeState.getState()._appNameCommitTreeMap;
+    return useEvolutionDataRepositoryStore.getState()._appNameCommitTreeMap;
   }
 
   set _appNameCommitTreeMap(value: AppNameCommitTreeMap) {
-    useEvolutionDataRepositoryeState.setState({ _appNameCommitTreeMap: value });
+    useEvolutionDataRepositoryStore.setState({ _appNameCommitTreeMap: value });
   }
 
   // private _evolutionStructureLandscapeData: Map<
@@ -50,14 +50,14 @@ export default class EvolutionDataRepository extends Service {
   // > = new Map();
   // <appName, StructureLandscapeData>
   get _evolutionStructureLandscapeData(): Map<string, StructureLandscapeData> {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._evolutionStructureLandscapeData;
   }
 
   set _evolutionStructureLandscapeData(
     value: Map<string, StructureLandscapeData>
   ) {
-    useEvolutionDataRepositoryeState.setState({
+    useEvolutionDataRepositoryStore.setState({
       _evolutionStructureLandscapeData: value,
     });
   }
@@ -65,12 +65,12 @@ export default class EvolutionDataRepository extends Service {
   // private _combinedStructureLandscapeData: StructureLandscapeData =
   //   createEmptyStructureLandscapeData();
   get _combinedStructureLandscapeData(): StructureLandscapeData {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._combinedStructureLandscapeData;
   }
 
   set _combinedStructureLandscapeData(value: StructureLandscapeData) {
-    useEvolutionDataRepositoryeState.setState({
+    useEvolutionDataRepositoryStore.setState({
       _combinedStructureLandscapeData: value,
     });
   }
@@ -83,14 +83,14 @@ export default class EvolutionDataRepository extends Service {
     string,
     Map<string, ApplicationMetricsCode>
   > {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._appNameToCommitIdToApplicationMetricsCodeMap;
   }
 
   set _appNameToCommitIdToApplicationMetricsCodeMap(
     value: Map<string, Map<string, ApplicationMetricsCode>>
   ) {
-    useEvolutionDataRepositoryeState.setState({
+    useEvolutionDataRepositoryStore.setState({
       _appNameToCommitIdToApplicationMetricsCodeMap: value,
     });
   }
@@ -98,12 +98,12 @@ export default class EvolutionDataRepository extends Service {
   // private _commitsToCommitComparisonMap: Map<string, CommitComparison> =
   //   new Map();
   get _commitsToCommitComparisonMap(): Map<string, CommitComparison> {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._commitsToCommitComparisonMap;
   }
 
   set _commitsToCommitComparisonMap(value: Map<string, CommitComparison>) {
-    useEvolutionDataRepositoryeState.setState({
+    useEvolutionDataRepositoryStore.setState({
       _commitsToCommitComparisonMap: value,
     });
   }
@@ -114,21 +114,21 @@ export default class EvolutionDataRepository extends Service {
   //
 
   get evolutionStructureLandscapeData(): Map<string, StructureLandscapeData> {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._evolutionStructureLandscapeData;
   }
 
   get appNameCommitTreeMap(): AppNameCommitTreeMap {
-    return useEvolutionDataRepositoryeState.getState()._appNameCommitTreeMap;
+    return useEvolutionDataRepositoryStore.getState()._appNameCommitTreeMap;
   }
 
   get combinedStructureLandscapeData(): StructureLandscapeData {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._combinedStructureLandscapeData;
   }
 
   get commitsToCommitComparisonMap(): Map<string, CommitComparison> {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._commitsToCommitComparisonMap;
   }
 
@@ -136,7 +136,7 @@ export default class EvolutionDataRepository extends Service {
     string,
     Map<string, ApplicationMetricsCode>
   > {
-    return useEvolutionDataRepositoryeState.getState()
+    return useEvolutionDataRepositoryStore.getState()
       ._appNameToCommitIdToApplicationMetricsCodeMap;
   }
 
@@ -170,7 +170,7 @@ export default class EvolutionDataRepository extends Service {
 
       this._appNameCommitTreeMap = appNameCommitTreeMap;
     } catch (error) {
-      useEvolutionDataRepositoryeState.getState().resetAppNameCommitTreeMap();
+      useEvolutionDataRepositoryStore.getState().resetAppNameCommitTreeMap();
       console.error(`Failed to build AppNameCommitTreeMap, reason: ${error}`);
     }
   }
@@ -250,10 +250,10 @@ export default class EvolutionDataRepository extends Service {
   // }
   resetAllEvolutionData(): void {
     this.debug('Reset All Evolution Data');
-    useEvolutionDataRepositoryeState
+    useEvolutionDataRepositoryStore
       .getState()
       .resetEvolutionStructureLandscapeData();
-    useEvolutionDataRepositoryeState.getState().resetAppNameCommitTreeMap();
+    useEvolutionDataRepositoryStore.getState().resetAppNameCommitTreeMap();
   }
 
   // resetStructureLandscapeData(): void {
@@ -264,13 +264,13 @@ export default class EvolutionDataRepository extends Service {
   // }
   resetStructureLandscapeData(): void {
     this.debug('Reset Evolution StructureLandscapeData');
-    useEvolutionDataRepositoryeState
+    useEvolutionDataRepositoryStore
       .getState()
       .resetAppNameToCommitIdToApplicationMetricsCodeMap();
-    useEvolutionDataRepositoryeState
+    useEvolutionDataRepositoryStore
       .getState()
       .resetEvolutionStructureLandscapeData();
-    useEvolutionDataRepositoryeState
+    useEvolutionDataRepositoryStore
       .getState()
       .resetCommitsToCommitComparisonMap();
   }

@@ -62,7 +62,7 @@ interface EvolutionDataRepositoryState {
   ) => Promise<CommitTree | undefined>;
 }
 
-export const useEvolutionDataRepositoryState =
+export const useEvolutionDataRepositoryStore =
   createStore<EvolutionDataRepositoryState>((set, get) => ({
     _appNameCommitTreeMap: new Map<string, CommitTree>(), // tracked
     _evolutionStructureLandscapeData: new Map<string, StructureLandscapeData>(),

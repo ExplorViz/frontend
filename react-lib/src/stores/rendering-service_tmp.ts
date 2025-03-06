@@ -14,7 +14,7 @@ import { useTimestampStore } from './timestamp';
 import TimelineDataObjectHandler from 'react-lib/src/utils/timeline/timeline-data-object-handler';
 import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
 import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
-import { useEvolutionDataRepositoryState } from './repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from './repos/evolution-data-repository';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
@@ -119,7 +119,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           });
 
           const structureToRender = combineStructureLandscapeData(
-            useEvolutionDataRepositoryState.getState()
+            useEvolutionDataRepositoryStore.getState()
               ._combinedStructureLandscapeData ||
               createEmptyStructureLandscapeData,
             combinedRuntimeLandscapeData.structureLandscapeData
@@ -318,12 +318,12 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         useTimestampRepositoryStore.getState().resetState();
       }
 
-      await useEvolutionDataRepositoryState
+      await useEvolutionDataRepositoryStore
         .getState()
         .fetchAndStoreEvolutionDataForSelectedCommits(appNameToSelectedCommits);
 
       const combinedEvolutionStructureLandscapeData =
-        useEvolutionDataRepositoryState.getState()
+        useEvolutionDataRepositoryStore.getState()
           ._combinedStructureLandscapeData;
 
       const flattenedSelectedCommits: SelectedCommit[] = Array.from(
@@ -406,7 +406,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       }
 
       get().resetAllRenderingStates();
-      useEvolutionDataRepositoryState.getState().resetStructureLandscapeData();
+      useEvolutionDataRepositoryStore.getState().resetStructureLandscapeData();
       useTimestampRepositoryStore.getState().resetState();
       useTimestampRepositoryStore
         .getState()

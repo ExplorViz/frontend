@@ -29,7 +29,7 @@ interface EvolutionDataRepositoryState {
   resetCommitsToCommitComparisonMap: () => void;
 }
 
-export const useEvolutionDataRepositoryState =
+export const useEvolutionDataRepositoryStore =
   createStore<EvolutionDataRepositoryState>((set, get) => ({
     _appNameCommitTreeMap: new Map<string, CommitTree>(),
     _evolutionStructureLandscapeData: new Map<string, StructureLandscapeData>(),
