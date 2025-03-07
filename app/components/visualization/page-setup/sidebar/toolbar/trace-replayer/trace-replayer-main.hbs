@@ -66,21 +66,9 @@
 </div>
 
 <div class='mb-3'>
-  <div class='range-slider--container'>
-    <div style='width: 100%;'>
-      <label for='trace-progress'>Progress</label>
-      <input
-        id='trace-progress'
-        value={{this.progress}}
-        min='0'
-        max='100'
-        type='range'
-        step='1'
-        class='form-control mr-2'
-      />
-      {{this.progress}}%
-    </div>
-  </div>
+  <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
+    @traceTimeline={{this.timeline}}
+  />
 </div>
 
 <div class='mb-3'>
@@ -119,14 +107,14 @@
 <!--<hr />-->
 <div class='mb-3'>
   <ul class="nav nav-tabs">
-      <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
-        @operationName={{this.tab.details.name}}
-        @sourceClass={{this.tab.details.origin}}
-        @targetClass={{this.tab.details.target}}
-        @sourceApplicationName=
+    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
+      @operationName={{this.tab.details.name}}
+      @sourceClass={{this.tab.details.origin}}
+      @targetClass={{this.tab.details.target}}
+      @sourceApplicationName=
         @targetApplicationName=
-        @spanStartTime=
+      @spanStartTime=
         @spanEndTime=
-      />
+    />
   </ul>
 </div>

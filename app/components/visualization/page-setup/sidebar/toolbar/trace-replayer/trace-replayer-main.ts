@@ -27,6 +27,7 @@ import {
   TraceNodeVisitor,
   TraceTree,
   TraceTreeBuilder,
+  TraceTreeWalker,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import Details, {
   AnimationEntity,
@@ -68,6 +69,8 @@ export default class TraceReplayerMain extends Component<Args> {
 
   private scene;
 
+  public timeline: number[][];
+
   constructor(owner: any, args: Args) {
     super(owner, args);
     const selectedTrace = this.args.selectedTrace;
@@ -98,10 +101,18 @@ export default class TraceReplayerMain extends Component<Args> {
       );
     }
 
-    const visitor = new TraceNodeVisitor((node: TraceNode): void => {
-      console.log(node);
+    this.timeline = [];
+
+    const start = this.tree.root.reduce((acc: number, node: TraceNode) => {
+      return Math.min(acc, node.start);
+    }, Infinity);
+
+    const visitor = new TraceTreeWalker((node: TraceNode): void => {
+      this.timeline.push([node.start - start, 1]);
     });
     this.tree.accept(visitor);
+
+    console.log(this.timeline);
   }
 
   public minSpeed = 1;

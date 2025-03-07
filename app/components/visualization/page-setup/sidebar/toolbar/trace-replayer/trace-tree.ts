@@ -3,25 +3,30 @@ import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { Span } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import { calculateDuration } from 'explorviz-frontend/utils/trace-helpers';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import {duration} from "moment";
 
 export class TraceNode {
   public clazz: Class;
   public mesh: BaseMesh;
   public duration: number;
+  public start: number;
+  public end: number;
 
   public parents: TraceNode[];
   public children: TraceNode[];
 
-  constructor(clazz: Class, mesh: BaseMesh, duration: number) {
+  constructor(clazz: Class, mesh: BaseMesh, start: number, end: number) {
     this.clazz = clazz;
     this.mesh = mesh;
-    this.duration = duration;
+    this.start = start;
+    this.end = start;
+    this.duration = end - start;
 
     this.parents = [];
     this.children = [];
   }
 
-  public accept(visitor: TraceNodeVisitor) {
+  public accept(visitor: TraceTreeVisitor) {
     visitor.visit(this);
   }
 
@@ -34,7 +39,7 @@ export class TraceNode {
   }
 }
 
-export class TraceNodeVisitor {
+export class TraceTreeVisitor {
   visit: (node: TraceNode) => void;
 
   constructor(visit: (node: TraceNode) => void) {
@@ -44,7 +49,7 @@ export class TraceNodeVisitor {
   }
 }
 
-export class TraceTreeVisitor extends TraceNodeVisitor {
+export class TraceTreeWalker extends TraceTreeVisitor {
   constructor(visit: (node: TraceNode) => void) {
     super((node: TraceNode): void => {
       visit(node);
@@ -62,7 +67,7 @@ export class TraceTree {
     this.root = [];
   }
 
-  public accept(visitor: TraceNodeVisitor) {
+  public accept(visitor: TraceTreeVisitor) {
     this.root.forEach((node: TraceNode): void => {
       node.accept(visitor);
     });
@@ -90,7 +95,7 @@ export class TraceTreeBuilder {
       const mesh = this.applicationRenderer.getMeshById(clazz.id);
       if (mesh) {
         // TODO: Implement recursive build, when Span is a tree structure / multiple (parallel) traces.
-        return new TraceNode(clazz, mesh, calculateDuration(span));
+        return new TraceNode(clazz, mesh, span.startTime, span.endTime);
       }
     }
     return undefined;
