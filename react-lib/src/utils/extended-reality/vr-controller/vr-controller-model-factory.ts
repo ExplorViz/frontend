@@ -20,8 +20,6 @@ const DEFAULT_PROFILE = 'generic-trigger';
 export default class VrControllerModelFactory {
   static INSTANCE = new VrControllerModelFactory();
 
-  debug = debugLogger('VrControllerModelFactory');
-
   gltfLoader: GLTFLoader;
 
   path: string;
