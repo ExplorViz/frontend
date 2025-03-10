@@ -55,7 +55,7 @@ export default function PopupButton({
         button.removeEventListener('mousedown', handleMouseDown);
       };
     }
-  }, [removeAllPopups]);
+  }, []);
 
   return (
     <div id="ar-info-interaction-container">
