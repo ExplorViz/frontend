@@ -40,18 +40,22 @@ export default function TraceDuration({
       }
     }
 
-    return { min: this.min, max: this.max, selected: selected ?? min.current };
+    return {
+      min: min.current,
+      max: max.current,
+      selected: selected ?? min.current,
+    };
   })();
 
-  const onInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value;
+  const onInput = (event: React.FormEvent<HTMLInputElement>) => {
+    const newValue = event.currentTarget.value;
     if (newValue) {
       pauseVisualizationUpdating();
       setSelected(Number(newValue));
     }
   };
 
-  const onChange = (event: any) => {
+  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected = Number(event.target.value);
     setSelected(newSelected);
     updateDuration(newSelected);
@@ -85,7 +89,7 @@ export default function TraceDuration({
             step="1000"
             className="form-control mr-2"
             onChange={onChange}
-            onInput={() => onInput(this)}
+            onInput={onInput}
           />
           <div className="range-slider--values">
             <span>{durations.min}</span>
