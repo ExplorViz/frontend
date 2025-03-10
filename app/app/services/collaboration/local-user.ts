@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import MousePing from 'explorviz-frontend/utils/collaboration/mouse-ping-helper';
+import MousePing from 'react-lib/src/utils/collaboration/mouse-ping-helper';
 import Configuration from 'explorviz-frontend/services/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
