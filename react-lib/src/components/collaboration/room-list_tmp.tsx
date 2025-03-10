@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 // import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
+import {
+  useLandscapeTokenStore,
+  LandscapeToken,
+} from 'react-lib/src/stores/landscape-token';
 // import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 // import RoomService from 'explorviz-frontend/services/collaboration/room-service';
@@ -14,8 +17,8 @@ import { SyncIcon } from '@primer/octicons-react';
 import Button from 'react-bootstrap/Button';
 
 interface RoomListArgs {
-  tokens: (typeof useLandscapeTokenStore)[];
-  selectToken(token: (typeof useLandscapeTokenStore)[]): void;
+  tokens: LandscapeToken[];
+  selectToken(token: LandscapeToken): void;
 }
 
 export default function RoomList({ tokens, selectToken }: RoomListArgs) {
@@ -25,30 +28,20 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
   const showSuccessToastMessage = useToastHandlerStore(
     (state) => state.showSuccessToastMessage
   );
-  const collaborationSession = useCollaborationSessionStore(
-    (state) => state.collaborationSession
-  );
-  const roomService = useRoomServiceStore((state) => state.roomService);
 
-  // Don't know how to implement this
-  // constructor(owner: any, args: RoomListArgs) {
-  //     super(owner, args);
+  const joinRoom = useCollaborationSessionStore((state) => state.joinRoom);
+  const listRooms = useRoomServiceStore((state) => state.listRooms);
 
-  //     this.loadRooms(false);
-  // }
-  // maybe like this:
-  // useEffect(() => {
-  //      loadRooms(false);
-  // }, []);
+  const [rooms, setRooms] = useState<RoomListRecord[]>([]);
 
-  //  @tracked
-  const rooms: RoomListRecord[] = [];
+  useEffect(() => {
+    loadRooms(false);
+  }, []);
 
-  // async
-  const loadRooms = (alert = true) => {
+  const loadRooms = async (alert = true) => {
     let rooms: RoomListRecord[] = [];
     try {
-      rooms = await roomService.listRooms();
+      rooms = await listRooms();
     } catch (error) {
       showErrorToastMessage('Could not load rooms');
       return;
@@ -59,17 +52,15 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
         (elem) => elem.value == room.landscapeToken
       )?.alias;
     });
-    rooms = rooms.filter(
-      (room) =>
-        tokens.find((elem) => elem.value == room.landscapeToken) !== undefined
+    setRooms(
+      rooms.filter(
+        (room) =>
+          tokens.find((elem) => elem.value == room.landscapeToken) !== undefined
+      )
     );
     if (alert) {
       showSuccessToastMessage('Updated room list');
     }
-  };
-
-  const joinRoom = (room: RoomListRecord) => {
-    collaborationSession.joinRoom(room.roomId);
   };
 
   return (
@@ -84,7 +75,6 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
           </tr>
         </thead>
         <tbody>
-          {/* </tbody>{{#each this.rooms as |room|}} */}
           {rooms.length > 0 ? (
             rooms.map((room) => (
               <tr
@@ -99,7 +89,7 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
                 <OverlayTrigger
                   placement="bottom"
                   trigger={['hover', 'focus']}
-                  overlay={<Tooltip> room.landscapeToken</Tooltip>}
+                  overlay={<Tooltip>{room.landscapeToken}</Tooltip>}
                 >
                   <td className="room-token">{room.landscapeToken}</td>
                 </OverlayTrigger>
