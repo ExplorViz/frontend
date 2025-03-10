@@ -1,25 +1,25 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
+import HelpTooltip from 'react-lib/src/components/help-tooltip';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import HelpTooltip from 'react-lib/src/components/help-tooltip';
 
-interface TraceStartProps {
+interface TraceDurationProps {
   readonly traces: DynamicLandscapeData;
   remainingTraceCount: number;
   initialTraceCount: number;
-  updateStartTimestamp(newMinStartTimestamp: number): void;
+  updateDuration(newMinDuration: number): void;
   pauseVisualizationUpdating(): void;
 }
 
-export default function ({
+export default function TraceDuration({
   traces,
   remainingTraceCount,
   initialTraceCount,
-  updateStartTimestamp,
+  updateDuration,
   pauseVisualizationUpdating,
-}: TraceStartProps) {
+}: TraceDurationProps) {
   const [selected, setSelected] = useState<number | null>(null);
 
   const min = useRef<number>(Number.MAX_VALUE);
@@ -27,23 +27,20 @@ export default function ({
 
   useEffect(() => {
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, onTimestampUpdate);
+    return () => {};
   }, []);
 
-  const timestamps = (() => {
+  const durations = (() => {
     if (!selected) {
       for (const trace of traces) {
         min.current =
-          trace.startTime <= min.current ? trace.startTime : min.current;
+          trace.duration <= min.current ? trace.duration : min.current;
         max.current =
-          trace.startTime >= max.current ? trace.startTime : max.current;
+          trace.duration >= max.current ? trace.duration : max.current;
       }
     }
 
-    return {
-      min: min.current,
-      max: max.current,
-      selected: selected ?? min.current,
-    };
+    return { min: this.min, max: this.max, selected: selected ?? min.current };
   })();
 
   const onInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +54,7 @@ export default function ({
   const onChange = (event: any) => {
     const newSelected = Number(event.target.value);
     setSelected(newSelected);
-    updateStartTimestamp(newSelected);
+    updateDuration(newSelected);
   };
 
   const onTimestampUpdate = () => {
@@ -70,8 +67,8 @@ export default function ({
   return (
     <div className="mb-3">
       <HelpTooltip title="bla" />
-      <label className="m-0" htmlFor="filtering-trace-start">
-        Min. start timestamp (# traces:
+      <label className="m-0" htmlFor="filtering-trace-duration">
+        Min. duration (# traces:
         <b>
           {remainingTraceCount} / {initialTraceCount}
         </b>
@@ -80,10 +77,10 @@ export default function ({
       <div className="range-slider--container">
         <div style={{ width: '100%' }}>
           <input
-            id="filtering-trace-start"
-            value={timestamps.selected!}
-            min={timestamps.min}
-            max={timestamps.max}
+            id="filtering-trace-duration"
+            value={durations.selected!}
+            min={durations.min}
+            max={durations.max}
             type="range"
             step="1000"
             className="form-control mr-2"
@@ -91,18 +88,12 @@ export default function ({
             onInput={() => onInput(this)}
           />
           <div className="range-slider--values">
-            <span>{formatTimestampToDate(timestamps.min)}</span>
-            <span style={{ fontWeight: 'bold' }}>
-              {formatTimestampToDate(timestamps.selected!)}
-            </span>
-            <span>{formatTimestampToDate(timestamps.max)}</span>
+            <span>{durations.min}</span>
+            <span style={{ fontWeight: 'bold' }}>{durations.selected!}</span>
+            <span>{durations.max}</span>
           </div>
         </div>
       </div>
     </div>
   );
-}
-
-function formatTimestampToDate(timestamp: number) {
-  return new Date(timestamp).toLocaleTimeString();
 }
