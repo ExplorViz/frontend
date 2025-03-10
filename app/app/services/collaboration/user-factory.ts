@@ -1,5 +1,5 @@
 import Service, { inject as service } from '@ember/service';
-import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
+import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import * as THREE from 'three';
 // import HmdService from 'explorviz-frontend/services/extended-reality/hmd-service';
 import LocalUser from './local-user';

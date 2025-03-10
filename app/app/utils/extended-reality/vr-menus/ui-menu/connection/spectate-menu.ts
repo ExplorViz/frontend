@@ -1,5 +1,5 @@
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
+import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';

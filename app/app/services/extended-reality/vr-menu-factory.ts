@@ -2,7 +2,7 @@ import { getOwner } from '@ember/application';
 import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
+import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
