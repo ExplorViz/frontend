@@ -1,4 +1,4 @@
-module.exports = {
+const config = {
   singleQuote: true,
   trailingComma: 'es5',
   printWidth: 80,
@@ -12,3 +12,5 @@ module.exports = {
     },
   ],
 };
+
+export default config;
