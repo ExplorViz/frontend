@@ -1,0 +1,221 @@
+:root {
+  --ar-button-padding: 2vmin;
+  --ar-button-size: 5vmin;
+}
+
+.ar-popover {
+  position: relative;
+  max-width: 276px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  text-align: start;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  word-break: normal;
+  word-spacing: normal;
+  white-space: normal;
+  line-break: auto;
+  font-size: 0.875rem;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.3rem;
+}
+
+.ar-popup-close {
+  margin-left: auto;
+  margin-right: 0;
+  margin-bottom: 5px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.settings-container {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.arSettingsGridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 250px));
+}
+
+.arSettingsGridItem {
+  padding: 3vh;
+  border-top: dotted lightgray;
+}
+
+.arPresetGridItem {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
+
+.arSettingsPropertyContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 180px));
+}
+
+.arSettingsSliderContainer {
+  display: flex;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.arSliderLabel {
+  margin-left: 1rem;
+}
+
+.center-horizontal {
+  display: flex;
+  justify-content: center;
+}
+
+.settings-pane {
+  margin: 10vh 20vw;
+}
+
+.white {
+  background-color: white;
+}
+
+.flex-space-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ar-right-button-container {
+  position: fixed;
+  pointer-events: none;
+  z-index: 749;
+  bottom: var(--ar-button-padding);
+  right: var(--ar-button-padding);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-areas:
+    'r t'
+    'x p'
+    'l s';
+  grid-gap: var(--ar-button-padding);
+  padding: var(--ar-button-padding);
+}
+
+.ar-right-button-container * {
+  pointer-events: all;
+}
+
+.syncPadding {
+  padding-bottom: 15px;
+}
+
+.ar-button-svg {
+  width: var(--ar-button-size);
+  height: var(--ar-button-size);
+  padding: 1px;
+}
+
+.ar-right-relative {
+  position: relative;
+  height: fit-content;
+  left: calc(100vw - 60px);
+}
+
+.ar-left-button-container {
+  position: fixed;
+  pointer-events: none;
+  z-index: 749;
+  bottom: var(--ar-button-padding);
+  left: var(--ar-button-padding);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-areas:
+    '- n'
+    'i m'
+    'h z';
+  grid-gap: var(--ar-button-padding);
+  padding: var(--ar-button-padding);
+}
+
+.ar-left-button-container * {
+  pointer-events: all;
+}
+
+.right {
+  right: 0 !important;
+}
+
+.left {
+  left: 0 !important;
+}
+
+.collaboration-list-item {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+#arSettingsOpener {
+  background-color: white;
+  opacity: 0.3;
+}
+
+#ar-primary-interaction-container {
+  grid-area: p;
+}
+
+#ar-secondary-interaction-container {
+  grid-area: s;
+}
+
+#ar-ping-interaction-container {
+  grid-area: l;
+}
+
+#ar-info-interaction-container {
+  grid-area: i;
+}
+
+#ar-plus-interaction-container {
+  grid-area: x;
+}
+
+#ar-minus-interaction-container {
+  grid-area: m;
+}
+
+#ar-three-bars-interaction-container {
+  grid-area: t;
+}
+
+#ar-left-interaction-container {
+  grid-area: n;
+}
+
+#ar-right-interaction-container {
+  grid-area: r;
+}
+
+#ar-settings {
+  padding-bottom: 25px;
+}
+
+#ar-heatmap-interaction-container {
+  grid-area: h;
+}
+
+#ar-zoom-container {
+  grid-area: z;
+}

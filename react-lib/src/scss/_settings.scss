@@ -1,0 +1,105 @@
+.range-slider--container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.range-slider--values {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.reset-all-button {
+  margin-top: 1rem;
+}
+
+/* Customize the label (the wide-checkbox-container) */
+.wide-checkbox-container {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  line-height: 1.25;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.wide-checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.wide-checkbox {
+  position: absolute;
+  border-radius: 0.25rem;
+  right: 0.5rem;
+  height: 1.25rem;
+  width: 3rem;
+  background-color: #ffbaba;
+}
+
+.setting-container:hover {
+  background-color: whitesmoke;
+}
+
+.setting-button {
+  height: 1.25rem !important;
+  padding: 0.25rem !important;
+  line-height: 0.5rem !important;
+  font-size: 0.75rem !important;
+}
+
+.setting-reset-button {
+  height: 1.25rem !important;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+/* On mouse-over, add a grey background color */
+.wide-checkbox-container:hover input ~ .wide-checkbox {
+  background-color: #ff9b9b;
+}
+
+/* When the checkbox is checked, add a blue background */
+.wide-checkbox-container input:checked ~ .wide-checkbox {
+  background-color: #86d993;
+}
+
+.wide-checkbox-container:hover input:checked ~ .wide-checkbox {
+  background-color: #5cc86c;
+}
+
+.wide-checkbox:before {
+  content: 'Off';
+  display: block;
+  color: white;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.wide-checkbox-container input:checked ~ .wide-checkbox:before {
+  display: none;
+}
+
+/* Create the wide-checkbox/indicator (hidden when not checked) */
+.wide-checkbox:after {
+  content: 'On';
+  display: none;
+  color: white;
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* Show the wide-checkbox when checked */
+.wide-checkbox-container input:checked ~ .wide-checkbox:after {
+  display: block;
+}

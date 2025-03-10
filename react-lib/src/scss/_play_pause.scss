@@ -1,0 +1,56 @@
+.center {
+  position: absolute;
+  width: var(--button-container-size);
+  height: var(--button-container-size);
+  top: calc(50% - var(--button-container-size) * 0.5);
+  left: calc(50% - var(--button-container-size) * 0.5);
+}
+.button {
+  --button-size: 75%;
+  width: var(--button-size);
+  height: var(--button-size);
+  border: 10px solid black;
+  position: relative;
+  top: calc(var(--button-container-size) * 0.5 - var(--button-size) * 0.5);
+  left: calc(var(--button-container-size) * 0.5 - var(--button-size) * 0.5);
+  border-radius: 50%;
+  background: black;
+}
+.play {
+  position: fixed;
+  top: calc(50% - var(--button-container-size) * 0.25);
+  left: calc(50% - var(--button-container-size) * 0.2);
+  border-style: solid;
+  border-color: white;
+  box-sizing: border-box;
+  width: calc(var(--button-container-size) * 0.5);
+  height: calc(var(--button-container-size) * 0.5);
+  border-width: calc(var(--button-container-size) * 0.25) 0px
+    calc(var(--button-container-size) * 0.25)
+    calc(var(--button-container-size) * 0.5);
+  border-color: transparent transparent transparent white;
+}
+.pause {
+  width: 100%;
+  height: 100%;
+  padding: 10%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pause > .line {
+  width: 18px;
+  height: 80px;
+  background: white;
+  border-radius: 5mm;
+  margin: 0 12px;
+}
+#play-pause-button-container {
+  user-select: none;
+  pointer-events: none;
+  --button-container-size: 12rem;
+  z-index: 3000;
+  background: black;
+  border-radius: 100%;
+  opacity: 0;
+}
