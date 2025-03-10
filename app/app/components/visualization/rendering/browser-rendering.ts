@@ -48,7 +48,7 @@ import RoomSerializer from 'explorviz-frontend/services/collaboration/room-seria
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
 import Auth from 'explorviz-frontend/services/auth';
-import GamepadControls from 'explorviz-frontend/utils/controls/gamepad/gamepad-controls';
+import GamepadControls from 'react-lib/src/utils/controls/gamepad/gamepad-controls';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';

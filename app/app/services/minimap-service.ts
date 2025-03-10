@@ -3,7 +3,7 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import * as THREE from 'three';
 import Raycaster from 'react-lib/src/utils/raycaster';
-import RemoteUser from 'explorviz-frontend/utils/collaboration/remote-user';
+import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';

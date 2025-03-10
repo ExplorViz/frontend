@@ -238,8 +238,6 @@ export function closeAllComponents(
 export function openComponentsRecursively(
   component: Package,
   applicationObject3D: ApplicationObject3D
-  // sender: MessageSender | undefined
-  // sender: typeof useMessageSenderStore | undefined // TODO: does this work?
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -270,8 +268,6 @@ export function openComponentsRecursively(
 export function closeComponentsRecursively(
   component: Package,
   applicationObject3D: ApplicationObject3D
-  // sender: MessageSender | undefined
-  // sender: typeof useMessageSenderStore | undefined // TODO: does this work?
 ) {
   const components = component.subPackages;
   components.forEach((child) => {
@@ -298,11 +294,7 @@ export function closeComponentsRecursively(
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function openAllComponents(
-  applicationObject3D: ApplicationObject3D
-  // sender: MessageSender
-  // sender: typeof useMessageSenderStore // TODO: does this work?
-) {
+export function openAllComponents(applicationObject3D: ApplicationObject3D) {
   applicationObject3D.dataModel.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {

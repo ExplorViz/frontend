@@ -7,7 +7,7 @@ import RayMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ray-me
 // import { DEFAULT_RAY_LENGTH } from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import { DEFAULT_RAY_LENGTH } from 'react-lib/src/utils/extended-reality/vr-controller';
 import VrControllerModelFactory from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
-import MousePing from './mouse-ping-helper';
+import MousePing from 'react-lib/src/utils/collaboration/mouse-ping-helper';
 import {
   ControllerPose,
   Pose,

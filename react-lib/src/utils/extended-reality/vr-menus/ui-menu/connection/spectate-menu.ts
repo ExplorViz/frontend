@@ -1,6 +1,3 @@
-// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-// import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
-// import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import DisableInputMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/disable-input-menu';
