@@ -118,16 +118,11 @@ export default function Landscapes() {
 
   // const createToken = async (tokenAlias: string) => {
   //   try {
-  //     // const token = await sendTokenCreateRequest(tokenAlias);
+  //     const token = await sendTokenCreateRequest(tokenAlias);
   //     closeTokenCreationModal();
-  //     // Just placeholder toast handler call for testing
   //     useToastHandlerStore
   //       .getState()
-  //       .showSuccessToastMessage(`Token created: placeholder`);
-
-  //     // useToastHandlerStore
-  //     //   .getState()
-  //     //   .showSuccessToastMessage(`Token created: ${token.value}`);
+  //       .showSuccessToastMessage(`Token created: ${token.value}`);
   //     refreshRoute();
   //   } catch (e) {
   //     useToastHandlerStore.getState().showErrorToastMessage(e.message);

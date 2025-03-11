@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import generateUuidv4 from 'react-lib/src/utils/helpers/uuid4-generator';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
-import $ from 'jquery';
+import { ToastContainer, Toast } from 'react-bootstrap';
+import { Toast as BootstrapToast } from 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 export default function ToastMessage() {
-  const [toastMessages, setToastMessages]: any = useState([]);
-
   const cssClassesValues: [string, string][] = [
     ['info', 'bg-info text-white'],
     ['error', 'bg-danger text-white'],
@@ -13,6 +14,16 @@ export default function ToastMessage() {
   ];
 
   const cssClasses = new Map<string, string>(cssClassesValues);
+
+  const [toastMessages, setToastMessages] = useState<
+    {
+      htmlId: string;
+      header: string | undefined;
+      message: string;
+      cssClasses: string;
+    }[]
+  >([]);
+  const toastRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   const addToastMessage = useCallback(
     (type: string, message: string, header: string) => {
@@ -43,55 +54,53 @@ export default function ToastMessage() {
     };
   }, [addToastMessage]);
 
-  const toastRenderIsComplete = useCallback((htmlElement: HTMLElement) => {
-    const id = htmlElement.id;
-    const toast: any = $(`#${id}`); // Requires jQuery
+  const toastRenderIsComplete = useCallback((id: string) => {
+    const toastElement = toastRefs.current[id];
 
-    if (toast) {
-      toast.toast('show');
-      toast.on('hidden.bs.toast', () => {
-        setToastMessages((prevMessages: any) =>
-          prevMessages.filter((item: any) => item.htmlId !== id)
-        );
+    if (toastElement) {
+      const bsToast = new BootstrapToast(toastElement, {
+        autohide: true,
+        delay: 5000,
+      });
+      bsToast.show();
+
+      toastElement.addEventListener('hidden.bs.toast', () => {
+        setToastMessages((prev) => prev.filter((item) => item.htmlId !== id));
       });
     }
   }, []);
 
   return (
-    <div className="toast-stack-container position-fixed">
+    <ToastContainer
+      position="bottom-end"
+      className={'p-3 toast-stack-container position-fixed'}
+    >
       <div className="toast-card-stack">
-        {toastMessages.map((toast: any) => (
-          <div
-            key={toast.htmlId}
-            id={toast.htmlId}
-            className={`toast toast-card ${toast.cssClasses}`}
-            data-delay="2000"
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-            ref={(element) => {
-              if (element) {
-                toastRenderIsComplete(element);
-              }
+        {toastMessages.map(({ htmlId, header, message, cssClasses }) => (
+          <Toast
+            className={`mb-3 toast toast-card ${cssClasses}`}
+            key={htmlId}
+            ref={(el) => {
+              toastRefs.current[htmlId] = el;
+              if (el) toastRenderIsComplete(htmlId);
             }}
+            onClose={() =>
+              setToastMessages((prev) =>
+                prev.filter((item) => item.htmlId !== htmlId)
+              )
+            }
+            autohide
+            delay={5000}
           >
-            {toast.header && (
-              <div className="toast-header">
-                <strong className="mr-auto">Information</strong>
-                <button
-                  type="button"
-                  className="ml-2 mb-1 close"
-                  data-dismiss="toast"
-                  aria-label="Close"
-                >
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
+            {header && (
+              <Toast.Header className={'toast-header'}>
+                <strong className={'me-auto'}>Information</strong>
+              </Toast.Header>
             )}
-            <div className="toast-body">{toast.message}</div>
-          </div>
+            <Toast.Body className={'toast-body'}>{message}</Toast.Body>
+          </Toast>
         ))}
       </div>
-    </div>
+    </ToastContainer>
   );
 }
