@@ -32,7 +32,7 @@
   "dependencies": {
     "@primer/octicons-react": "^19.14.0",
     "@radix-ui/react-context-menu": "^2.2.6",
-    "bootstrap": "^4.6.2",
+    "bootstrap": "^5.3.3",
     "jquery": "^3.7.1",
     "react-bootstrap": "^2.10.7",
     "react-dom": "^19.0.0",

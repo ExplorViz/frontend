@@ -4,8 +4,12 @@ import { useSnapshotTokenStore } from '../stores/snapshot-token';
 import { useNavigate, createSearchParams } from 'react-router-dom';
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { useAuthStore } from '../stores/auth';
+import { Tabs, Tab, Button } from 'react-bootstrap';
+import TokenSelection from 'react-lib/src/components/token-selection';
+import RoomList from 'react-lib/src/components/collaboration/room-list_tmp';
+import SnapshotSelection from 'react-lib/src/components/snapshot-selection';
+import TokenCreationModal from 'react-lib/src/components/token-creation-modal';
 
-// TODO: Just as placeholder
 export default function Landscapes() {
   // const [data, setData] = useState({
   //   landscapeTokens: null,
@@ -15,6 +19,7 @@ export default function Landscapes() {
   // const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
   //   useState<boolean>(false);
   // const [tokenAlias, setTokenAlias] = useState<string>('');
+  // const [activeKey, setActiveKey] = useState<string>('landscapes');
 
   // const landscapeToken = useLandscapeTokenStore((state) => state.token);
   // const removeLandscapeToken = useLandscapeTokenStore(
@@ -114,11 +119,16 @@ export default function Landscapes() {
 
   // const createToken = async () => {
   //   try {
-  //     const token = await sendTokenCreateRequest(tokenAlias);
+  //     // const token = await sendTokenCreateRequest(tokenAlias);
   //     closeTokenCreationModal();
+  //     // Just placeholder toast handler call for testing
   //     useToastHandlerStore
   //       .getState()
-  //       .showSuccessToastMessage(`Token created: ${token.value}`);
+  //       .showSuccessToastMessage(`Token created: placeholder`);
+
+  //     // useToastHandlerStore
+  //     //   .getState()
+  //     //   .showSuccessToastMessage(`Token created: ${token.value}`);
   //     refreshRoute();
   //   } catch (e) {
   //     useToastHandlerStore.getState().showErrorToastMessage(e.message);
@@ -208,58 +218,50 @@ export default function Landscapes() {
   );
 
   // return (
-  //   <div id='landscape-container'>
-  //     <BsTab id='tabnav' @type='pills' as |tab|>
-  //       <tab.pane @id='landscape-tab' @title='Landscapes'>
-  //         <div
-  //           class='d-flex flex-row justify-content-center overflow-auto'
-  //           style='max-height: 80vh; overflow-y: auto;'
-  //         >
-  //           <TokenSelection
-  //             @openTokenCreationModal={{this.openTokenCreationModal}}
-  //             @selectToken={{this.selectToken}}
-  //             @tokens={{@model.landscapeTokens}}
-  //             @deleteToken={{this.deleteToken}}
-  //             @reload={{this.reload}}
+  //   <>
+  //     <div id="landscape-container">
+  //       <Tabs
+  //         activeKey={activeKey}
+  //         onSelect={(k) => setActiveKey(k || 'landscapes')}
+  //         id="tabnav"
+  //       >
+  //         <Tab eventKey="landscapes" title="Landscapes" id="landscape-tab">
+  //           <div
+  //             className={'d-flex flex-row justify-content-center overflow-auto'}
+  //             style={{ maxHeight: '80vh', overflowY: 'auto' }}
+  //           >
+  //             <TokenSelection
+  //               openTokenCreationModal={openTokenCreationModal}
+  //               selectToken={selectToken}
+  //               tokens={data.landscapeTokens}
+  //               deleteToken={deleteToken}
+  //               reload={reload}
+  //             />
+  //           </div>
+  //         </Tab>
+  //         <Tab eventKey="rooms" title="Rooms" id="room-tab">
+  //           <RoomList
+  //             tokens={data.landscapeTokens!}
+  //             selectToken={selectToken}
   //           />
-  //         </div>
-  //       </tab.pane>
-  //       <tab.pane @id='room-tab' @title='Rooms'>
-  //         <Collaboration::RoomList
-  //           @tokens={{@model.landscapeTokens}}
-  //           @selectToken={{this.selectToken}}
-  //         />
-  //       </tab.pane>
-  //       <tab.pane @id='snapshot-tab' @title='Snapshots'>
-  //         <SnapshotSelection
-  //           @snapshotInfo={{@model.snapshotInfo}}
-  //           @selectPersonalToken={{this.selectPersonalSnapshot}}
-  //           @selectSharedToken={{this.selectSharedSnapshot}}
-  //         />
-  //       </tab.pane>
-  //     </BsTab>
-  //   </div>
+  //         </Tab>
+  //         <Tab eventKey="snapshots" title="Snapshots" id="snapshot-tab">
+  //           <SnapshotSelection
+  //             snapshotInfo={data.snapshotInfo}
+  //             selectPersonalToken={selectPersonalSnapshot}
+  //             selectSharedToken={selectSharedSnapshot}
+  //           />
+  //         </Tab>
+  //       </Tabs>
+  //     </div> */}
 
-  //   <BsModalSimple
-  //     @open={{this.tokenCreationModalIsOpen}}
-  //     @onHidden={{this.closeTokenCreationModal}}
-  //     @title='Create Landscape Token'
-  //     @closeTitle='Cancel'
-  //     @submitTitle='Create'
-  //   >
-  //     <BsForm
-  //       @model={{this}}
-  //       @onSubmit={{this.createToken}}
-  //       @submitOnError={{true}}
-  //       as |Form|
-  //     >
-  //       <Form.element
-  //         @controlType='text'
-  //         @label='Alias (may be left empty)'
-  //         @property='tokenAlias'
-  //         @autofocus={{true}}
+  //     {/* <div>
+  //       <TokenCreationModal
+  //         show={tokenCreationModalIsOpen}
+  //         handleClose={() => setTokenCreationModalIsOpen(false)}
+  //         createToken={createToken}
   //       />
-  //     </BsForm>
-  //   </BsModalSimple>
+  //     </div>
+  //   </>
   // );
 }
