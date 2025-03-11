@@ -15,7 +15,7 @@ export type ApiToken = {
 };
 
 interface UserApiTokenState {
-  retrieveApiTokens: () => void;
+  retrieveApiTokens: () => Promise<ApiToken[]>;
   deleteApiToken: (apiToken: string, uId: string) => Promise<void>;
   createApiToken: (
     name: string,
