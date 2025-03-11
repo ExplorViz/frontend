@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
-export default function TokenCreationModal({ show, handleClose, createToken }) {
+interface TokenCreationModalProps {
+  show: boolean;
+  handleClose: () => void;
+  createToken: (tokenAlias: string) => Promise<void>;
+}
+
+export default function TokenCreationModal({
+  show,
+  handleClose,
+  createToken,
+}: TokenCreationModalProps) {
   const [tokenAlias, setTokenAlias] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {

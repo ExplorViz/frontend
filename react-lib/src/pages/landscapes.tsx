@@ -18,7 +18,6 @@ export default function Landscapes() {
   // const [refreshKey, setRefreshKey] = useState<number>(0);
   // const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
   //   useState<boolean>(false);
-  // const [tokenAlias, setTokenAlias] = useState<string>('');
   // const [activeKey, setActiveKey] = useState<string>('landscapes');
 
   // const landscapeToken = useLandscapeTokenStore((state) => state.token);
@@ -117,7 +116,7 @@ export default function Landscapes() {
   //   });
   // };
 
-  // const createToken = async () => {
+  // const createToken = async (tokenAlias: string) => {
   //   try {
   //     // const token = await sendTokenCreateRequest(tokenAlias);
   //     closeTokenCreationModal();
