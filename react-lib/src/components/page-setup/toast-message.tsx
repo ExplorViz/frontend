@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import generateUuidv4 from 'react-lib/src/utils/helpers/uuid4-generator';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
+import $ from 'jquery';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 export default function ToastMessage() {
   const [toastMessages, setToastMessages]: any = useState([]);
