@@ -9,10 +9,7 @@ import {
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import {
-  useTimestampStore,
-  NEW_SELECTED_TIMESTAMP_EVENT,
-} from 'react-lib/src/stores/timestamp';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 interface TraceFilteringProps {
