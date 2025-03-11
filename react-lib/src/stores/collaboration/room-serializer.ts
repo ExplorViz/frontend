@@ -36,9 +36,9 @@ import PopupData from 'react-lib/src/components/visualization/rendering/popups/p
 interface RoomSerializerState {
   serializedRoom?: SerializedRoom;
   // serializeRoom: (
-  //   popupData: PopupData[],
-  //   annotationData: AnnotationData[],
-  //   snapshot: boolean
+  //   popupData?: PopupData[],
+  //   annotationData?: AnnotationData[],
+  //   snapshot?: boolean
   // ) => SerializedRoom;
   // _serializeLandscape: () => SerializedLandscape;
   // _serializeOpenApplications: () => SerializedApp[];
@@ -79,11 +79,16 @@ interface RoomSerializerState {
   // ) => SerializedAnnotation[];
   // _serializeDetachedMenus: () => SerializedDetachedMenu[];
   // _serializehighlightedExternCommunicationLinks: () => SerializedHighlightedComponent[];
+  setSerializedRoom: (room: SerializedRoom) => void;
 }
 
 export const useRoomSerializerStore = create<RoomSerializerState>(
   (set, get) => ({
     serializedRoom: undefined,
+
+    setSerializedRoom: (room: SerializedRoom) => {
+      set({ serializedRoom: room });
+    },
 
     // serializeRoom: (
     //   popupData: PopupData[] = [],

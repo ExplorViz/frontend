@@ -86,6 +86,8 @@ interface LocalUserState {
   resetPositionAndRotation: () => void;
   reset: () => void;
   _resetController: (controller: VRController | undefined) => void;
+  setDefaultCamera: (camera: THREE.PerspectiveCamera) => void;
+  setVisualizationMode: (mode: VisualizationMode) => void;
 }
 
 export const useLocalUserStore = create<LocalUserState>((set, get) => {
@@ -127,6 +129,14 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         mousePing: new MousePing(new THREE.Color('red'), get().animationMixer),
       });
       return undefined;
+    },
+
+    setDefaultCamera: (camera: THREE.PerspectiveCamera) => {
+      set({ defaultCamera: camera });
+    },
+
+    setVisualizationMode: (mode: VisualizationMode) => {
+      set({ visualizationMode: mode });
     },
 
     getCamera: () => {

@@ -29,12 +29,17 @@ interface LinkRendererState {
     curveHeight: number,
     viewCenterPoint: THREE.Vector3
   ) => void;
+  setFlag: (flag: boolean) => void;
 }
 
 export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
   linkIdToMesh: new Map(),
   addLinkIdToMesh,
   _flag: false,
+
+  setFlag: (flag: boolean) => {
+    set({ _flag: flag });
+  },
 
   appSettings: () => {
     return useUserSettingsStore.getState().visualizationSettings;

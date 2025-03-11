@@ -75,6 +75,8 @@ interface RenderingServiceState {
   resumeVisualizationUpdating: () => void;
   pauseVisualizationUpdating: (forceTimelineUpdate: boolean) => void;
   resetAllRenderingStates: () => void;
+  setLandscapeData: (data: LandscapeData | null) => void;
+  setVisualizationPaused: (data: boolean) => void;
 }
 
 export const useRenderingServiceStore = create<RenderingServiceState>(
@@ -86,6 +88,14 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _visualizationPaused: false, // tracked
     _analysisMode: 'runtime', // tracked
     _userInitiatedStaticDynamicCombination: false, // private
+
+    setLandscapeData: (data: LandscapeData | null) => {
+      set({ _landscapeData: data });
+    },
+
+    setVisualizationPaused: (data: boolean) => {
+      set({ _visualizationPaused: data });
+    },
 
     triggerRenderingForGivenTimestamps: async (
       commitToSelectedTimestampMap: Map<string, Timestamp[]>

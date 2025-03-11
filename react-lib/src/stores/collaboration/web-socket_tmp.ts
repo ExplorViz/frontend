@@ -40,13 +40,12 @@ import { io, Socket } from 'socket.io-client';
 import { USER_KICK_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/kick-user';
 import { MESSAGE_DELETE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/delete-message';
 import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
-import * as ENV from 'react-lib/src/env';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import eventEmitter from '../../utils/event-emitter';
 
 type ResponseHandler<T> = (msg: T) => void;
 
-const collaborationService = ENV.COLLABORATION_SERV_URL;
+const collaborationService = import.meta.env.VITE_COLLABORATION_SERV_URL;
 
 // TODO Evented
 

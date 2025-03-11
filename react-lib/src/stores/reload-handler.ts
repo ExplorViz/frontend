@@ -10,7 +10,7 @@ import { requestData } from 'react-lib/src/utils/landscape-http-request-util';
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
     timestamp: number,
-    interval: number
+    interval?: number
   ) => Promise<[StructureLandscapeData, DynamicLandscapeData]>;
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,

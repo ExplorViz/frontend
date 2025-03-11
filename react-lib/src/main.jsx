@@ -13,7 +13,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route element={<Application />}>
         <Route path="/" element={<Navigate to="/landscapes" />} />
         <Route path="/landscapes" element={<Landscapes />} />
-        {/* <Route path="/visualization" element={<Visualization />} /> */}
+        <Route path="/visualization">
+          {/* <Route index element={<Visualization />} />
+          <Route path="/ar" element={<ArVisualization />} />
+          <Route path="/vr" element={<VrVisualization />} /> */}
+        </Route>
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/landscapes" />} />
       </Route>
