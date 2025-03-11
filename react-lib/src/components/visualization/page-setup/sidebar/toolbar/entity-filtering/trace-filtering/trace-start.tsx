@@ -13,7 +13,7 @@ interface TraceStartProps {
   pauseVisualizationUpdating(): void;
 }
 
-export default function ({
+export default function TraceStart({
   traces,
   remainingTraceCount,
   initialTraceCount,
@@ -27,6 +27,9 @@ export default function ({
 
   useEffect(() => {
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, onTimestampUpdate);
+    return () => {
+      eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, onTimestampUpdate);
+    };
   }, []);
 
   const timestamps = (() => {
