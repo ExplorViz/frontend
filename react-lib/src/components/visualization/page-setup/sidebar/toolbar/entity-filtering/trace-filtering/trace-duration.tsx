@@ -27,7 +27,9 @@ export default function TraceDuration({
 
   useEffect(() => {
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, onTimestampUpdate);
-    return () => {};
+    return () => {
+      eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, onTimestampUpdate);
+    };
   }, []);
 
   const durations = (() => {
