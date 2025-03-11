@@ -154,8 +154,9 @@
                 {{/if}}
                 {{#if (eq @openedToolComponent 'application-search')}}
                   <h5 class='text-center'>Application Search</h5>
-                  <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearch
-                  />
+                  {{!-- <Visualization::PageSetup::Sidebar::Toolbar::ApplicationSearch::ApplicationSearch
+                  /> --}}
+                  <div {{react this.applicationSearchComponent}} />
                 {{/if}}
                 {{#if (eq @openedToolComponent 'Trace-Replayer')}}
                   <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSelectionAndReplayer
