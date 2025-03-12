@@ -4,6 +4,7 @@ import {
   AnalysisMode,
   useRenderingServiceStore,
 } from '../stores/rendering-service';
+import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { ApiToken } from '../stores/user-api-token';
 import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
 import { Timestamp } from '../utils/landscape-schemes/timestamp';
@@ -66,6 +67,13 @@ import { useUserSettingsStore } from '../stores/user-settings';
 import BrowserRendering from 'react-lib/src/components/visualization/rendering/browser-rendering';
 import { useLandscapeTokenStore } from '../stores/landscape-token';
 import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
+import { useNavigate } from 'react-router-dom';
+import { useFontRepositoryStore } from '../stores/repos/font-repository';
+import { Button } from 'react-bootstrap';
+import PlotlyTimeline from 'react-lib/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
+import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import EvolutionRenderingButtons from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
+import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 
 const queryParams = [
   'roomId',
@@ -81,6 +89,7 @@ const queryParams = [
 export default function Visualization() {
   const sidebarHandler = useRef<SidebarHandler>(new SidebarHandler());
   const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
+  const navigate = useNavigate();
 
   // #region States
   const [commit1, setCommit1] = useState<string | undefined | null>(undefined);
@@ -124,6 +133,48 @@ export default function Visualization() {
   // # endregion
 
   // #region useEffects
+
+  // beforeModel equivalent
+  useEffect(() => {
+    const loadFont = async () => {
+      return new Promise((resolve, reject) => {
+        new FontLoader().load(
+          // resource URL
+          '/three.js/fonts/roboto_mono_bold_typeface.json',
+
+          // onLoad callback
+          (font) => {
+            resolve(font);
+          },
+          undefined,
+          (e) => {
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage('Failed to load font for labels.');
+            reject(e);
+          }
+        );
+      });
+    };
+
+    if (
+      landscapeTokenServiceToken === null &&
+      snapshotToken === null &&
+      !snapshotSelected
+    ) {
+      navigate('/landscapes');
+    }
+
+    if (!font) {
+      const font = loadFont();
+
+      setFont(font);
+    }
+
+    return () => {
+      landscapeTokenRemoveToken();
+    };
+  }, []);
 
   useEffect(() => {
     const handleRestructureLandscapeData = (
@@ -173,9 +224,9 @@ export default function Visualization() {
   }, []);
 
   useEffect(() => {
-    await initRenderingAndSetupListeners(); 
+    initRenderingAndSetupListeners();
   }, []);
-  
+
   // #endregion
 
   // #region Store state declaration
@@ -188,7 +239,9 @@ export default function Visualization() {
   const setLandscapeDataRenderingService = useRenderingServiceStore(
     (state) => state.setLandscapeData
   );
-  const renderingServiceVisualizationPaused = useRenderingServiceStore((state) => state.visualizationPaused);
+  const renderingServiceVisualizationPaused = useRenderingServiceStore(
+    (state) => state.visualizationPaused
+  );
   const setVisualizationPausedRenderingService = useRenderingServiceStore(
     (state) => state.setVisualizationPaused
   );
@@ -227,8 +280,17 @@ export default function Visualization() {
   const getSelectedCommits = useCommitTreeStateStore(
     (state) => state.getSelectedCommits
   );
+  const setSelectedCommits = useCommitTreeStateStore(
+    (state) => state.setSelectedCommits
+  );
   const setDefaultState = useCommitTreeStateStore(
     (state) => state.setDefaultState
+  );
+  const getCloneOfAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
+    (state) => state.getCloneOfAppNameAndBranchNameToColorMap
+  );
+  const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
+    (state) => state.setAppNameAndBranchNameToColorMap
   );
   const linkRendererFlag = useLinkRendererStore((state) => state._flag);
   const setFlag = useLinkRendererStore((state) => state.setFlag);
@@ -258,9 +320,23 @@ export default function Visualization() {
   const setDefaultCamera = useLocalUserStore((state) => state.setDefaultCamera);
   const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
   const webSocketSend = useWebSocketStore((state) => state.send);
-  const visualizationSettings = useUserSettingsStore((state) => state.visualizationSettings);
-  const landscapeTokenServiceToken = useLandscapeTokenStore((state) => state.token);
-  const snapshotSelected = useSnapshotTokenStore((state) => state.snapshotSelected);
+  const visualizationSettings = useUserSettingsStore(
+    (state) => state.visualizationSettings
+  );
+  const landscapeTokenServiceToken = useLandscapeTokenStore(
+    (state) => state.token
+  );
+  const landscapeTokenRemoveToken = useLandscapeTokenStore(
+    (state) => state.removeToken
+  );
+  const snapshotSelected = useSnapshotTokenStore(
+    (state) => state.snapshotSelected
+  );
+  const font = useFontRepositoryStore((state) => state.font);
+  const setFont = useFontRepositoryStore((state) => state.setFont);
+  const currentSelectedApplicationName = useCommitTreeStateStore(
+    (state) => state.currentSelectedApplicationName
+  );
 
   // # endregion
 
@@ -325,7 +401,7 @@ export default function Visualization() {
     });
 
     useTimestampRepositoryStore.setState({
-      _timelineDataObjectHandler: this.timelineDataObjectHandler,
+      _timelineDataObjectHandler: timelineDataObjectHandler,
     });
 
     setVisualizationPausedRenderingService(false);
@@ -618,58 +694,58 @@ export default function Visualization() {
 
   // #endregion
 
-  // TODO: Add stuff from app/app/router/visualization 
   // TODO: Check for Args from parent
 
   return (
     <>
-    <AutoJoinLobby roomId={roomId} />
+      <AutoJoinLobby roomId={roomId} />
 
-    <div
-      id='vizspace'
-    >
-      <SyncState />
+      <div id="vizspace">
+        <SyncState />
 
-      {/* Loading screen  */}
-      {!allLandscapeDataExistsAndNotEmpty &&
-        <div className='container-fluid mt-6'>
-          <div className='jumbotron'>
-            {isLandscapeExistentAndEmpty ? 
-              <h2>Empty Landscape received.</h2>
-              :
-              <h2>Loading Landscape ...</h2>
-            }
-            <p>A new landscape will be fetched every 10 seconds.</p>
+        {/* Loading screen  */}
+        {!allLandscapeDataExistsAndNotEmpty && (
+          <div className="container-fluid mt-6">
+            <div className="jumbotron">
+              {isLandscapeExistentAndEmpty ? (
+                <h2>Empty Landscape received.</h2>
+              ) : (
+                <h2>Loading Landscape ...</h2>
+              )}
+              <p>A new landscape will be fetched every 10 seconds.</p>
+            </div>
+            <div className="spinner-center-3" role="status"></div>
           </div>
-          <div className='spinner-center-3' role='status'></div>
-        </div>
-      }
+        )}
 
-      {/* ! Rendering mode */}
-      {showAR ?
-        <ArRendering
-          id='ar-rendering'
-          landscapeData={renderingServiceLandscapeData}
-          switchToOnScreenMode={switchToOnScreenMode}
-          toggleVisualizationUpdating={renderingServiceToggleVisualizationUpdating}
-          visualizationPaused={renderingServiceVisualizationPaused}
-          openedSettingComponent={sidebarHandler.current.openedSettingComponent}
-          toggleSettingsSidebarComponent={sidebarHandler.current.toggleSettingsSidebarComponent}
-          showSettingsSidebar={sidebarHandler.current.showSettingsSidebar}
-          openSettingsSidebar={sidebarHandler.current.openSettingsSidebar}
-          closeSettingsSidebar={sidebarHandler.current.closeSettingsSidebar}
-        />
-
-      :
-        {showVR ?
-          <VrRendering 
-            id='vr-rendering'
+        {/* ! Rendering mode */}
+        {showAR ? (
+          <ArRendering
+            id="ar-rendering"
             landscapeData={renderingServiceLandscapeData}
             switchToOnScreenMode={switchToOnScreenMode}
-            debugMode={visualizationSettings!.showVrOnClick.value}
+            toggleVisualizationUpdating={
+              renderingServiceToggleVisualizationUpdating
+            }
+            visualizationPaused={renderingServiceVisualizationPaused}
+            openedSettingComponent={
+              sidebarHandler.current.openedSettingComponent
+            }
+            toggleSettingsSidebarComponent={
+              sidebarHandler.current.toggleSettingsSidebarComponent
+            }
+            showSettingsSidebar={sidebarHandler.current.showSettingsSidebar}
+            openSettingsSidebar={sidebarHandler.current.openSettingsSidebar}
+            closeSettingsSidebar={sidebarHandler.current.closeSettingsSidebar}
           />
-
-        :
+        ) : showVR ? (
+          <VrRendering
+            id="vr-rendering"
+            landscapeData={renderingServiceLandscapeData}
+            switchToOnScreenMode={switchToOnScreenMode}
+            debugMode={visualizationSettings?.showVrOnClick.value ?? false}
+          />
+        ) : (
           <BrowserRendering
             // addComponent={addComponent}
             // applicationArgs={applicationArgs}
@@ -678,11 +754,13 @@ export default function Visualization() {
             closeSettingsSidebar={sidebarHandler.current.closeSettingsSidebar}
             components={components}
             componentsToolsSidebar={componentsToolsSidebar}
-            id='browser-rendering'
+            id="browser-rendering"
             isDisplayed={allLandscapeDataExistsAndNotEmpty}
             landscapeData={renderingServiceLandscapeData}
             landscapeToken={landscapeTokenServiceToken}
-            openedSettingComponent={sidebarHandler.current.openedSettingComponent}
+            openedSettingComponent={
+              sidebarHandler.current.openedSettingComponent
+            }
             openedToolComponent={sidebarHandler.current.openedToolComponent}
             openSettingsSidebar={sidebarHandler.current.openSettingsSidebar}
             openToolsSidebar={sidebarHandler.current.openToolsSidebar}
@@ -695,122 +773,133 @@ export default function Visualization() {
             snapshot={snapshotSelected}
             snapshotReload={snapshotToken}
             switchToAR={switchToAR}
-            triggerRenderingForGivenLandscapeData={renderingServiceTriggerRenderingForGivenLandscapeData}
-            toggleSettingsSidebarComponent={sidebarHandler.current.toggleSettingsSidebarComponent}
-            toggleToolsSidebarComponent={sidebarHandler.current.toggleToolsSidebarComponent}
-            toggleVisualizationUpdating={renderingServiceToggleVisualizationUpdating}
+            triggerRenderingForGivenLandscapeData={
+              renderingServiceTriggerRenderingForGivenLandscapeData
+            }
+            toggleSettingsSidebarComponent={
+              sidebarHandler.current.toggleSettingsSidebarComponent
+            }
+            toggleToolsSidebarComponent={
+              sidebarHandler.current.toggleToolsSidebarComponent
+            }
+            toggleVisualizationUpdating={
+              renderingServiceToggleVisualizationUpdating
+            }
             // updateLandscape={updateLandscape}
             userApiTokens={userApiTokens}
             visualizationPaused={visualizationPaused}
           />
-        }
-      }
-    </div>
-
-    {/* {{! Bottom Bar }}
-    {{#if this.shouldDisplayBottomBar}}
-      <div id='bottom-bar-container'>
-
-        {{! Toggle Bottom Bar Button}}
-        <BsButton
-          @onClick={{this.toggleVisibilityBottomBar}}
-          @type='secondary'
-          @outline={{true}}
-          class='bottom-bar-toggle-btn'
-          title={{if this.isBottomBarMaximized 'Hide Bottom Bar' 'Show Bottom Bar'}}
-        >
-
-          {{#unless this.isBottomBarMaximized}}
-            <span class='pr-1'>Bottom Bar</span>
-          {{/unless}}
-          {{svg-jar
-            'chevron-up-16'
-            id='hide-bottom-bar-icon'
-            class=(if
-              this.isBottomBarMaximized
-              'octicon align-middle hide-bottom-bar-icon-down'
-              'octicon align-middle'
-            )
-          }}
-        </BsButton>
-
-        {{! VR Button}}
-        {{#if
-          (and
-            this.userSettings.visualizationSettings.showVrButton.value
-            (not this.showVR)
-          )
-        }}
-          <button
-            class='bottom-bar-vr-button'
-            type='button'
-            {{did-insert this.updateVrStatus}}
-            {{on 'click' this.switchToVR}}
-          >
-            {{this.vrButtonText}}
-          </button>
-        {{/if}}
-
-        {{! Runtime / Code Charts}}
-        <div
-          id='bottom-bar-chart-container'
-          class='bottom-bar-chart
-            {{if
-              (and this.isCommitTreeSelected this.isBottomBarMaximized)
-              "bottom-bar-chart-commitTree"
-            }}
-            {{unless this.isBottomBarMaximized "bottom-bar-chart-hide"}}'
-        >
-
-          <div id='bottom-bar-chart-button-div'>
-            <BsButton
-              id='bottom-bar-toggle-chart-button'
-              @onClick={{this.toggleBottomChart}}
-              @outline={{true}}
-              class='bottom-bar-chart-button'
-            >
-              {{if this.isRuntimeTimelineSelected 'Show Commit Chart'}}
-              {{if this.isCommitTreeSelected 'Show Runtime Chart'}}
-            </BsButton>
-          </div>
-
-          {{#if this.isRuntimeTimelineSelected}}
-            <Visualization::PageSetup::BottomBar::Runtime::PlotlyTimeline
-              @timelineDataObject={{this.timelineDataObjectHandler.timelineDataObject}}
-              @clicked={{this.timelineDataObjectHandler.timelineClicked}}
-            />
-          {{/if}}
-
-          {{#if this.isCommitTreeSelected}}
-            <div class='row justify-content-md-center'>
-              {{!-- TODO: CommitTreeApplicationSelection is a bit off to the left. Find solution.  --}}
-              <div class='row justify-content-md-center'
-              {{react
-                this.commitTreeApplicationSelection
-                appNameCommitTreeMap=this.evolutionDataRepository.appNameCommitTreeMap
-                selectedAppName=this.commitTreeStateService.currentSelectedApplicationName
-              }} />
-              <Visualization::PageSetup::BottomBar::Evolution::EvolutionRenderingButtons
-                @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
-                @selectedCommits={{this.commitTreeStateService.selectedCommits}}
-              />
-            </div>
-            <Visualization::PageSetup::BottomBar::Evolution::PlotlyCommitTree
-              @appNameCommitTreeMap={{this.evolutionDataRepository.appNameCommitTreeMap}}
-              @triggerVizRenderingForSelectedCommits={{this.renderingService.triggerRenderingForSelectedCommits}}
-              @selectedAppName={{this.commitTreeStateService.currentSelectedApplicationName}}
-              @selectedCommits={{this.commitTreeStateService.selectedCommits}}
-              @setSelectedCommits={{this.commitTreeStateService.setSelectedCommits}}
-              @getCloneOfAppNameAndBranchNameToColorMap={{this.commitTreeStateService.getCloneOfAppNameAndBranchNameToColorMap}}
-              @setAppNameAndBranchNameToColorMap={{this.commitTreeStateService.setAppNameAndBranchNameToColorMap}}
-            />
-          {{/if}}
-
-        </div>
+        )}
       </div>
-    {{/if}} */}
 
-    <PlayPauseButton />
+      {/* ! Bottom Bar */}
+      {shouldDisplayBottomBar() && (
+        <div id="bottom-bar-container">
+          <>
+            {/* ! Toggle Bottom Bar Button */}
+            <Button
+              onClick={toggleVisibilityBottomBar}
+              variant="secondary"
+              className="bottom-bar-toggle-btn"
+              title={
+                isBottomBarMaximized ? 'Hide Bottom Bar' : 'Show Bottom Bar'
+              }
+            >
+              {!isBottomBarMaximized && (
+                <span className="pr-1">Bottom Bar</span>
+              )}
+              {/* {{svg-jar
+              'chevron-up-16'
+              id='hide-bottom-bar-icon'
+              class=(if
+                this.isBottomBarMaximized
+                'octicon align-middle hide-bottom-bar-icon-down'
+                'octicon align-middle'
+              )
+            }} */}
+            </Button>
+
+            {/* ! VR Button */}
+            {visualizationSettings.showVrButton.value && !showVR && (
+              <button
+                className="bottom-bar-vr-button"
+                type="button"
+                // {{did-insert this.updateVrStatus}}
+                onClick={switchToVR}
+              >
+                {vrButtonText}
+              </button>
+            )}
+
+            {/* ! Runtime / Code Charts */}
+            <div
+              id="bottom-bar-chart-container"
+              className={`bottom-bar-chart 
+                ${isCommitTreeSelected && isBottomBarMaximized ? 'bottom-bar-chart-commitTree' : ''} 
+                ${!isBottomBarMaximized ? 'bottom-bar-chart-hide' : ''}`}
+            >
+              <div id="bottom-bar-chart-button-div">
+                <Button
+                  id="bottom-bar-toggle-chart-button"
+                  onClick={toggleBottomChart}
+                  className="bottom-bar-chart-button"
+                >
+                  {isRuntimeTimelineSelected ? 'Show Commit Chart' : ''}
+                  {isCommitTreeSelected ? 'Show Runtime Chart' : ''}
+                </Button>
+              </div>
+
+              {isRuntimeTimelineSelected && (
+                <PlotlyTimeline
+                  timelineDataObject={
+                    timelineDataObjectHandler?.timelineDataObject
+                  }
+                  clicked={timelineDataObjectHandler?.timelineClicked}
+                />
+              )}
+
+              {isCommitTreeSelected && (
+                <>
+                  <div className="row justify-content-md-center">
+                    {/* !-- TODO: CommitTreeApplicationSelection is a bit off to the left. Find solution. */}
+                    <div className="row justify-content-md-center">
+                      <CommitTreeApplicationSelection
+                        appNameCommitTreeMap={
+                          appNameCommitTreeMapEvolutionDataRepository
+                        }
+                        selectedAppName={currentSelectedApplicationName}
+                      />
+                    </div>
+                    <EvolutionRenderingButtons
+                      selectedAppName={currentSelectedApplicationName}
+                      selectedCommits={getSelectedCommits()}
+                    />
+                  </div>
+                  <PlotlyCommitTree
+                    appNameCommitTreeMap={
+                      appNameCommitTreeMapEvolutionDataRepository
+                    }
+                    triggerVizRenderingForSelectedCommits={
+                      renderingServiceTriggerRenderingForSelectedCommits
+                    }
+                    selectedAppName={currentSelectedApplicationName}
+                    selectedCommits={getSelectedCommits()}
+                    setSelectedCommits={setSelectedCommits}
+                    getCloneOfAppNameAndBranchNameToColorMap={
+                      getCloneOfAppNameAndBranchNameToColorMap
+                    }
+                    setAppNameAndBranchNameToColorMap={
+                      setAppNameAndBranchNameToColorMap
+                    }
+                  />
+                </>
+              )}
+            </div>
+          </>
+        </div>
+      )}
+
+      <PlayPauseButton />
     </>
   );
 }
