@@ -43,6 +43,17 @@ export default function AdditionalSnapshotInfo(
     }
     this.focusedClicks = 0;
   };
+  
+  isMouseOnPopover() {
+    const hoveredElements = document.querySelectorAll(':hover');
+
+    for (const element of hoveredElements) {
+      if (element.matches('.popover')) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   const onClick = (event: Event) => {
     this.focusedClicks += 1;

@@ -2,9 +2,6 @@ import React from 'react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { TrashIcon } from '@primer/octicons-react';
 import { Tooltip } from 'react-bootstrap';
-// import SnapshotTokenService, {
-//   TinySnapshot,
-// } from 'explorviz-frontend/services/snapshot-token';
 import {
   useSnapshotTokenStore,
   TinySnapshot,
@@ -25,8 +22,7 @@ export default function DeleteSnapshot({
     (state) => state.deleteSnapshot
   );
 
-  // async
-  const deleteSnapshot = (
+  const deleteSnapshot = async (
     snapShot: TinySnapshot,
     isShared: boolean,
     subscribed: boolean
@@ -47,9 +43,7 @@ export default function DeleteSnapshot({
           tabindex="0"
           href="#"
           onClick={deleteSnapshot(token, isShared, subscribed)}
-          // {{on 'click' (fn this.deleteSnapshot @token @isShared @subscribed)}}
         >
-          {/* {{svg-jar 'trash-16' className='octicon align-middle'}} */}
           <TrashIcon size="small" verticalAlign="middle" />
         </a>
       </OverlayTrigger>
