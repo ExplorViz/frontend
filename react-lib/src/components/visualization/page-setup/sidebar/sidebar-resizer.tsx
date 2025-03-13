@@ -5,7 +5,7 @@ interface SidebarArgs {
   readonly buttonName: string;
   readonly containerName: string;
   readonly sidebarName: string;
-  readonly expandToRight: boolean;
+  readonly expandToRight?: boolean;
 }
 
 export default function SidebarResizer({
