@@ -8,6 +8,7 @@ interface ConfigurationState {
   isCommRendered: boolean;
   popupPosition: Position2D | undefined;
   semanticZoomEnabled: boolean;
+  setSemanticZoomEnabled: (value: boolean) => void;
 }
 
 interface Position2D {
@@ -15,7 +16,7 @@ interface Position2D {
   y: number;
 }
 
-export const useConfigurationStore = createStore<ConfigurationState>(() => ({
+export const useConfigurationStore = createStore<ConfigurationState>((set) => ({
   annotationPosition: undefined,
   commCurveHeightDependsOnDistance: true,
   commCurveHeightMultiplier: 1,
@@ -23,4 +24,5 @@ export const useConfigurationStore = createStore<ConfigurationState>(() => ({
   isCommRendered: true,
   popupPosition: undefined,
   semanticZoomEnabled: false,
+  setSemanticZoomEnabled: (value) => set({ semanticZoomEnabled: value }),
 }));

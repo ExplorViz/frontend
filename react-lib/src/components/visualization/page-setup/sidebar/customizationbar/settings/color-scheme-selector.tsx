@@ -63,5 +63,5 @@ export default function ColorSchemeSelector({
 
 type ColorSchemeProps = {
   colorSchemes: { name: string; id: ColorSchemeId }[];
-  applyColorScheme: (colorSchemeId: string) => void;
+  applyColorScheme: (colorSchemeId: ColorSchemeId) => void;
 };

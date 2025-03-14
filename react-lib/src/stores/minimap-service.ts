@@ -63,6 +63,7 @@ interface MinimapState {
   calculateDistanceFactor: () => number;
   updateSphereRadius: () => void;
   minimap: () => number[];
+  setMinimapEnabled: (value: boolean) => void;
 }
 
 export const useMinimapStore = createStore<MinimapState>((set, get) => ({
@@ -470,4 +471,6 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
 
     return [minimapHeight, minimapWidth, minimapX, minimapY, borderWidth];
   },
+
+  setMinimapEnabled: (value: boolean) => set({ minimapEnabled: value }),
 }));
