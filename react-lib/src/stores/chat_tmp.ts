@@ -88,6 +88,7 @@ interface ChatState {
   _getTime: () => string;
   synchronizeWithServer: () => void;
   syncChatMessages: (messages: ChatSynchronizeMessage[]) => void;
+  setDeletedMessageIds: (deletedMessageIds: number[]) => void;
 }
 
 // Has to be explicitly called
@@ -392,6 +393,10 @@ export const useChatStore = create<ChatState>((set, get) => {
         )
       );
       useToastHandlerStore.getState().showInfoToastMessage('Synchronized');
+    },
+
+    setDeletedMessageIds: (deletedMessageIds) => {
+      set({ deletedMessageIds: deletedMessageIds });
     },
   };
 });
