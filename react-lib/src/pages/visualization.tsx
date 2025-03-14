@@ -74,6 +74,7 @@ import PlotlyTimeline from 'react-lib/src/components/visualization/page-setup/bo
 import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
 import EvolutionRenderingButtons from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
+import { ChevronUpIcon } from '@primer/octicons-react';
 
 const queryParams = [
   'roomId',
@@ -345,7 +346,7 @@ export default function Visualization() {
     return (
       renderingServiceLandscapeData !== null &&
       renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
-        0 &&
+      0 &&
       (!renderingServiceLandscapeData.structureLandscapeData.k8sNodes ||
         renderingServiceLandscapeData.structureLandscapeData?.k8sNodes
           .length === 0)
@@ -808,15 +809,14 @@ export default function Visualization() {
               {!isBottomBarMaximized && (
                 <span className="pr-1">Bottom Bar</span>
               )}
-              {/* {{svg-jar
-              'chevron-up-16'
-              id='hide-bottom-bar-icon'
-              class=(if
-                this.isBottomBarMaximized
-                'octicon align-middle hide-bottom-bar-icon-down'
-                'octicon align-middle'
-              )
-            }} */}
+              <ChevronUpIcon 
+                size="small" 
+                className={
+                  isBottomBarMaximized ? 
+                  'align-middle hide-bottom-bar-icon-down' : 
+                  'align-middle'
+                } 
+              />
             </Button>
 
             {/* ! VR Button */}
