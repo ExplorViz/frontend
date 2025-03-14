@@ -61,7 +61,7 @@ export default function EntityFiltering({
   return (
     <>
       <div className="mt-2 mb-2 col text-center">
-        <Button variant="secondary-outline" onClick={resetToInit}>
+        <Button variant="outline-secondary" onClick={resetToInit}>
           Reset Filtering
         </Button>
       </div>

@@ -322,7 +322,7 @@ export default function AnnotationCoordinator({
                       >
                         <Button
                           className="annotation-share-button"
-                          variant="secondary-outline"
+                          variant="outline-secondary"
                           disabled
                         >
                           <ShareAndroidIcon
@@ -339,7 +339,7 @@ export default function AnnotationCoordinator({
                       >
                         <Button
                           className="annotation-share-button"
-                          variant="secondary-outline"
+                          variant="outline-secondary"
                           disabled
                         >
                           <ShareAndroidIcon
@@ -376,7 +376,7 @@ export default function AnnotationCoordinator({
                     >
                       <Button
                         className="annotation-minimize-button"
-                        variant="secondary-outline"
+                        variant="outline-secondary"
                         onClick={() =>
                           minimizeAnnotation(annotationData.annotationId)
                         }
@@ -392,7 +392,7 @@ export default function AnnotationCoordinator({
                     >
                       <Button
                         className="annotation-close-button"
-                        variant="secondary-outline"
+                        variant="outline-secondary"
                         onClick={() =>
                           removeAnnotation(annotationData.annotationId)
                         }
@@ -427,7 +427,7 @@ export default function AnnotationCoordinator({
                               fontSize: 'large',
                               border: 'none',
                             }}
-                            variant="secondary-outline"
+                            variant="outline-secondary"
                             onClick={() =>
                               updateAnnotation(annotationData.annotationId)
                             }
@@ -460,7 +460,7 @@ export default function AnnotationCoordinator({
                               fontSize: 'large',
                               border: 'none',
                             }}
-                            variant="secondary-outline"
+                            variant="outline-secondary"
                             onClick={() =>
                               editAnnotation(annotationData.annotationId)
                             }
@@ -548,7 +548,7 @@ export default function AnnotationCoordinator({
                   >
                     <Button
                       className="annotation-share-button"
-                      variant="secondary-outline"
+                      variant="outline-secondary"
                       disabled
                     >
                       <ShareAndroidIcon size="small" className="align-right" />
@@ -562,7 +562,7 @@ export default function AnnotationCoordinator({
                   >
                     <Button
                       className="annotation-share-button"
-                      variant="secondary-outline"
+                      variant="outline-secondary"
                       disabled
                     >
                       <ShareAndroidIcon size="small" className="align-right" />
@@ -593,7 +593,7 @@ export default function AnnotationCoordinator({
                 >
                   <Button
                     className="annotation-minimize-button"
-                    variant="secondary-outline"
+                    variant="outline-secondary"
                     onClick={() =>
                       minimizeAnnotation(annotationData.annotationId)
                     }
@@ -609,7 +609,7 @@ export default function AnnotationCoordinator({
                 >
                   <Button
                     className="annotation-close-button"
-                    variant="secondary-outline"
+                    variant="outline-secondary"
                     onClick={() =>
                       removeAnnotation(annotationData.annotationId)
                     }
@@ -644,7 +644,7 @@ export default function AnnotationCoordinator({
                           fontSize: 'large',
                           border: 'none',
                         }}
-                        variant="secondary-outline"
+                        variant="outline-secondary"
                         onClick={() =>
                           updateAnnotation(annotationData.annotationId)
                         }
@@ -677,7 +677,7 @@ export default function AnnotationCoordinator({
                           fontSize: 'large',
                           border: 'none',
                         }}
-                        variant="secondary-outline"
+                        variant="outline-secondary"
                         onClick={() =>
                           editAnnotation(annotationData.annotationId)
                         }

@@ -93,12 +93,12 @@ export default function ApplicationSearch({}: ApplicationSearchProps) {
       />
       <div className="mt-3 col text-center">
         <Button
-          variant="secondary-outline"
+          variant="outline-secondary"
           onClick={highlightAllSelectedEntities}
         >
           Hightlight All
         </Button>
-        <Button variant="secondary-outline" onClick={pingAllSelectedEntities}>
+        <Button variant="outline-secondary" onClick={pingAllSelectedEntities}>
           Ping All
         </Button>
       </div>

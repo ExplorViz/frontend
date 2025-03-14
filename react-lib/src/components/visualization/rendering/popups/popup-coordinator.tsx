@@ -302,7 +302,7 @@ export default function PopupCoordinator({
             overlay={<Tooltip>Close</Tooltip>}
           >
             <Button
-              variant="secondary-outline"
+              variant="outline-secondary"
               className="popup-close-button"
               onClick={() => removePopup(popupData.entity.id)}
             >
@@ -311,7 +311,7 @@ export default function PopupCoordinator({
           </OverlayTrigger>
         </>
       ) : (
-        <Button variant="secondary-outline" size="sm" disabled>
+        <Button variant="outline-secondary" size="sm" disabled>
           Drag with Mouse
         </Button>
       )}
