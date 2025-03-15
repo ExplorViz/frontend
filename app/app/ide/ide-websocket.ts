@@ -17,7 +17,6 @@ import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation
 import debugLogger from 'ember-debug-logger';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 import { Object3DEventMap } from 'three';

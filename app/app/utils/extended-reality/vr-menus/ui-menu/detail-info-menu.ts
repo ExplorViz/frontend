@@ -1,7 +1,7 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { setOwner } from '@ember/application';
 import { inject as service } from '@ember/service';
-import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
+import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import composeContent, {
   EntityMesh,
   getCommunicationSourceAppId,
@@ -58,9 +58,6 @@ export default class DetailInfoMenu
   implements DetachableMenu
 {
   private object: EntityMesh;
-
-  @service('repos/application-repository')
-  applicationRepo!: ApplicationRepository;
 
   private renderer: THREE.WebGLRenderer;
   private owner: any;

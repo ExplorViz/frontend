@@ -12,8 +12,6 @@ export type HeatmapMode =
   | 'windowedHeatmap';
 
 export default class HeatmapConfiguration extends Service.extend(Evented) {
-  // @service('repos/application-repository')
-  // applicationRepo!: ApplicationRepository;
 
   @tracked
   heatmapActive = false; // TODO for testing heatmap

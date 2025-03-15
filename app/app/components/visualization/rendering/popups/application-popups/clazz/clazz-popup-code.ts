@@ -3,7 +3,6 @@ import { inject as service } from '@ember/service';
 // import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
 import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
-// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import {
   ApplicationMetricsCode,

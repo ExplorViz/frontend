@@ -24,7 +24,6 @@ import * as THREE from 'three';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 import VrApplicationObject3D from 'react-lib/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import Configuration from './configuration';
-// import ApplicationRepository from './repos/application-repository';
 // import FontRepository from './repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import UserSettings from './user-settings';
