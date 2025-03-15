@@ -45,7 +45,7 @@ import {
 } from 'react-lib/src/utils/application-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/flat-data';
-import { useTextureServiceStore } from './texture-service';
+import { useTextureServiceStore } from 'react-lib/src/stores/texture-service';
 import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 import layoutLandscape from 'react-lib/src/utils/elk-layouter';

@@ -49,7 +49,7 @@ import {
 } from 'react-lib/src/utils/application-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/flat-data';
-import TextureService from './texture-service';
+import { useTextureServiceStore } from 'react-lib/src/stores/texture-service';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
@@ -93,9 +93,6 @@ export default class ApplicationRenderer extends Service.extend() {
 
   // @service('repos/scene-repository')
   // sceneRepo!: SceneRepository;
-
-  @service('texture-service')
-  private textureService!: TextureService;
 
   // #endregion
 
@@ -641,8 +638,8 @@ export default class ApplicationRenderer extends Service.extend() {
     this.getOpenApplications().forEach((app3D) => {
       Labeler.addApplicationLabels(
         app3D,
-        this.font,
-        this.userSettings.colors,
+        this.font!,
+        this.userSettings.colors!,
         false,
         true
       );
@@ -702,7 +699,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
       if (id) {
         // Mark the class as added
-        this.textureService.applyAddedTextureToMesh(this.getMeshById(id));
+        useTextureServiceStore.getState().applyAddedTextureToMesh(this.getMeshById(id));
 
         if (addedPackages) {
           const clazz = flatDataModel.model as Class;
@@ -712,7 +709,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Traverse up the package hierarchy and mark packages as added
           while (packageNode && packageNode.name !== firstAddedPackageName) {
-            this.textureService.applyAddedTextureToMesh(
+            useTextureServiceStore.getState().applyAddedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
             packageNode = packageNode.parent;
@@ -720,7 +717,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Mark the first added package
           if (packageNode) {
-            this.textureService.applyAddedTextureToMesh(
+            useTextureServiceStore.getState().applyAddedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
           }
@@ -745,7 +742,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
       if (id) {
         // Mark the class as deleted
-        this.textureService.applyDeletedTextureToMesh(this.getMeshById(id));
+        useTextureServiceStore.getState().applyDeletedTextureToMesh(this.getMeshById(id));
 
         if (deletedPackages) {
           const clazz = flatDataModel.model as Class;
@@ -755,7 +752,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Traverse up the package hierarchy and mark packages as deleted
           while (packageNode && packageNode.name !== firstDeletedPackageName) {
-            this.textureService.applyDeletedTextureToMesh(
+            useTextureServiceStore.getState().applyDeletedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
             packageNode = packageNode.parent;
@@ -763,7 +760,7 @@ export default class ApplicationRenderer extends Service.extend() {
 
           // Mark the first deleted package
           if (packageNode) {
-            this.textureService.applyDeletedTextureToMesh(
+            useTextureServiceStore.getState().applyDeletedTextureToMesh(
               this.getMeshById(packageNode.id)
             );
           }
@@ -786,7 +783,7 @@ export default class ApplicationRenderer extends Service.extend() {
       )?.modelId;
 
       if (id) {
-        this.textureService.applyModifiedTextureToMesh(this.getMeshById(id));
+        useTextureServiceStore.getState().applyModifiedTextureToMesh(this.getMeshById(id));
       }
     }
   }
