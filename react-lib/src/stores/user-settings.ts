@@ -23,7 +23,7 @@ import {
   ColorScheme,
 } from 'react-lib/src/utils/settings/color-schemes';
 import * as THREE from 'three';
-// import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
+import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 // import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
 // import { useHighlightingStore } from 'react-lib/src/stores/highlighting-service';
 // import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
@@ -184,7 +184,10 @@ export const useUserSettingsStore = createStore<UserSettingsState>(
         }
       }
 
-      // updateColors(useSceneRepositoryStore.getState().getScene('browser', false), get().applicationColors);
+      updateColors(
+        useSceneRepositoryStore.getState().getScene('browser', false),
+        get().applicationColors
+      );
     },
 
     setColorsFromSettings: () => {

@@ -28,8 +28,6 @@ import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/cl
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-// import SceneRepository from 'explorviz-frontend/services/repos/scene-repository'; not being used
-// import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 // import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
