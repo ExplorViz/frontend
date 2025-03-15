@@ -2,15 +2,12 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
-import Configuration from 'explorviz-frontend/services/configuration';
 
 export default class StatusIcons extends Component {
   @service('collaboration/collaboration-session')
   collaboration!: CollaborationSession;
-
-  @service('configuration')
-  configuration!: Configuration;
 
   @service('collaboration/spectate-user')
   spectate!: SpectateUser;
@@ -26,11 +23,11 @@ export default class StatusIcons extends Component {
   }
 
   get isCommunicationHidden() {
-    return !this.configuration.isCommRendered;
+    return !useConfigurationStore.getState().isCommRendered;
   }
 
   get isSemanticZoomEnabled() {
-    return this.configuration.semanticZoomEnabled;
+    return useConfigurationStore.getState().semanticZoomEnabled;
   }
 
   get users() {

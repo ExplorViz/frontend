@@ -2,7 +2,6 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
-import Configuration from 'explorviz-frontend/services/configuration';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import AnnotationData from './annotation-data';
@@ -23,9 +22,6 @@ interface IArgs {
 export default class AnnotationCoordinatorComponent extends Component<IArgs> {
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('configuration')
-  configuration!: Configuration;
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;

@@ -23,8 +23,7 @@ import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-m
 import * as THREE from 'three';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 import VrApplicationObject3D from 'react-lib/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
-import Configuration from './configuration';
-// import ApplicationRepository from './repos/application-repository';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 // import FontRepository from './repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import UserSettings from './user-settings';
@@ -67,9 +66,6 @@ export default class ApplicationRenderer extends Service.extend() {
 
   @service('collaboration/local-user')
   private localUser!: LocalUser;
-
-  @service('configuration')
-  private configuration!: Configuration;
 
   @service('extended-reality/ar-settings')
   private arSettings!: ArSettings;
@@ -437,8 +433,9 @@ export default class ApplicationRenderer extends Service.extend() {
    */
   @action
   toggleCommunicationRendering() {
-    this.configuration.isCommRendered = !this.configuration.isCommRendered;
-    if (this.configuration.isCommRendered) {
+    useConfigurationStore.setState({
+      isCommRendered: !useConfigurationStore.getState().isCommRendered,});
+    if (useConfigurationStore.getState().isCommRendered) {
       this.addCommunicationForAllApplications();
     } else {
       this.removeCommunicationForAllApplications();

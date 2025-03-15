@@ -20,7 +20,7 @@ import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-h
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
-import Configuration from 'explorviz-frontend/services/configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import { getAllAncestorComponents } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
@@ -121,9 +121,6 @@ export default class TraceReplayerMain extends Component<Args> {
 
   @service('collaboration/local-user')
   localUser!: LocalUser;
-
-  @service('configuration')
-  private configuration!: Configuration;
 
   private classMap: Map<string, Class>;
 
@@ -318,8 +315,9 @@ export default class TraceReplayerMain extends Component<Args> {
       this.index = 0;
       this.args.renderingLoop.updatables.push(this);
 
-      this.isCommRendered = this.configuration.isCommRendered;
-      this.configuration.isCommRendered = false;
+
+      this.isCommRendered = useConfigurationStore.getState().isCommRendered;
+      useConfigurationStore.setState({ isCommRendered: false });
       this.applicationRenderer.openAllComponentsOfAllApplications();
       this.applicationRenderer.removeCommunicationForAllApplications();
 
@@ -354,8 +352,8 @@ export default class TraceReplayerMain extends Component<Args> {
     this.args.renderingLoop.updatables.removeObject(this);
     this.progress = 0;
 
-    this.configuration.isCommRendered = this.isCommRendered;
-    if (this.configuration.isCommRendered) {
+    useConfigurationStore.setState({ isCommRendered: this.isCommRendered });
+    if (useConfigurationStore.getState().isCommRendered) {
       this.applicationRenderer.addCommunicationForAllApplications();
     }
 

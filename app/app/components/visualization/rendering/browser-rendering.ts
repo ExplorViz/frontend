@@ -11,10 +11,9 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
@@ -68,7 +67,6 @@ import SnapshotOpener from 'react-lib/src/components/visualization/page-setup/si
 import TraceReplayerOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener.tsx';
 import ApplicationSearchOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener.tsx';
 import EntityFilteringOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener.tsx';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info.tsx';
 import VscodeExtensionSettings from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings.tsx';
 import ApplicationSearch from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search.tsx';
@@ -106,12 +104,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
-  // @service('repos/application-repository')
-  // applicationRepo!: ApplicationRepository;
-
-  @service('configuration')
-  configuration!: Configuration;
-
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
 
@@ -144,9 +136,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;
-
-  @service('heatmap/heatmap-configuration')
-  private heatmapConf!: HeatmapConfiguration; // TODO for testing heatmap
 
   @service
   private worker!: any;
@@ -231,8 +220,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
-    this.configuration.semanticZoomEnabled =
-      SemanticZoomManager.instance.isEnabled;
+    useConfigurationStore.setState({semanticZoomEnabled: SemanticZoomManager.instance.isEnabled});
 
     // Landscape
     this.landscape3D = new Landscape3D();
@@ -314,7 +302,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   get rightClickMenuItems() {
-    const commButtonTitle = this.configuration.isCommRendered
+    const commButtonTitle = useConfigurationStore.getState().isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
 
@@ -358,8 +346,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       'semanticZoomState',
       SemanticZoomManager.instance.isEnabled
     );
-    this.configuration.semanticZoomEnabled =
-      SemanticZoomManager.instance.isEnabled;
+    useConfigurationStore.setState({semanticZoomEnabled: SemanticZoomManager.instance.isEnabled});
   }
 
   @action
@@ -565,8 +552,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
               true
           ) {
             SemanticZoomManager.instance.activate();
-            this.configuration.semanticZoomEnabled =
-              SemanticZoomManager.instance.isEnabled;
+            useConfigurationStore.setState({semanticZoomEnabled: SemanticZoomManager.instance.isEnabled});
           }
         }, 200);
         this.initDone = true;
@@ -927,7 +913,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
     // is not called before other e.g. vr-rendering is inserted:
     // https://github.com/emberjs/ember.js/issues/18873
     this.applicationRenderer.cleanup();
-    useApplicationRepositoryStore.getState().clearApplication();
+    useApplicationRepositoryStore.getState().cleanup();
     // this.applicationRepo.cleanup();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
@@ -937,7 +923,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     useHeatmapConfigurationStore.getState().cleanup();
     this.renderingLoop.stop();
-    this.configuration.isCommRendered = true;
+    useConfigurationStore.setState({isCommRendered: true});
     this.popupHandler.willDestroy();
     this.annotationHandler.willDestroy();
 

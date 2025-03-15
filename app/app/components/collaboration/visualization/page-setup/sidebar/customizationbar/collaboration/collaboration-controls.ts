@@ -11,11 +11,7 @@ import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/r
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import { useLandscapeTokenStore, LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-// import SpectateConfigurationService, {
-//   SpectateConfig,
-// } from 'explorviz-frontend/services/spectate-configuration';
 import {
   useSpectateConfigurationStore,
   SpectateConfig,
@@ -28,9 +24,6 @@ import { useAuthStore } from 'react-lib/src/stores/auth';
 export default class CollaborationControls extends Component {
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
-
-  // @service('repos/application-repository')
-  // applicationRepo!: ApplicationRepository;
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -313,7 +306,7 @@ export default class CollaborationControls extends Component {
     // Cleanup old landscape
     this.applicationRenderer.cleanup();
     // this.applicationRepo.cleanup();
-    useApplicationRepositoryStore.getState().clearApplication();
+    useApplicationRepositoryStore.getState().cleanup();
     this.linkRenderer.getAllLinks().forEach((externLink) => {
       externLink.removeFromParent();
     });

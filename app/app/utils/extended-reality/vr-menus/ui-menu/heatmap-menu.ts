@@ -1,5 +1,4 @@
 import { action } from '@ember/object';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
 import RectangleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/rectangle-item';
@@ -8,12 +7,9 @@ import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
 import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
-export type HeatmapMenuArgs = UiMenuArgs & {
-  heatmapConfiguration: HeatmapConfiguration;
-};
+export type HeatmapMenuArgs = UiMenuArgs
 
 export default class HeatmapMenu extends UiMenu implements DetachableMenu {
-  private heatmapConfiguration: HeatmapConfiguration;
 
   private entryItems: Map<string, TextItem>;
 
@@ -22,11 +18,9 @@ export default class HeatmapMenu extends UiMenu implements DetachableMenu {
       width: 1.5 * DEFAULT_MENU_RESOLUTION,
       height: DEFAULT_MENU_RESOLUTION,
     },
-    heatmapConfiguration,
     ...args
   }: HeatmapMenuArgs) {
     super({ resolution, ...args });
-    this.heatmapConfiguration = heatmapConfiguration;
     this.entryItems = new Map<string, TextItem>();
   }
 

@@ -4,7 +4,6 @@ import Component from '@glimmer/component';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
-import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import {
   isApplication,
@@ -34,9 +33,6 @@ export default class PopupCoordinator extends Component<IArgs> {
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('configuration')
-  configuration!: Configuration;
 
   @service('highlighting-service')
   highlightingService!: HighlightingService;

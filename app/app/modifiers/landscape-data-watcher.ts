@@ -4,10 +4,9 @@ import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
-// import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import ApplicationData, { K8sData } from 'react-lib/src/utils/application-data';
 import computeClassCommunication, {
@@ -59,9 +58,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
-
-  @service('configuration')
-  configuration!: Configuration;
 
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
@@ -356,7 +352,7 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
       useApplicationRepositoryStore
         .getState()
-        .addApplication(applicationData.application.id, applicationData);
+        .add(applicationData.application.id, applicationData);
       // this.applicationRepo.add(applicationData);
 
       return applicationData;

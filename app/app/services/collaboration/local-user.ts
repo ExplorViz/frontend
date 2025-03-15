@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import MousePing from 'react-lib/src/utils/collaboration/mouse-ping-helper';
-import Configuration from 'explorviz-frontend/services/configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import * as THREE from 'three';
 import { WebXRManager } from 'three';
 import VRController from 'explorviz-frontend/utils/extended-reality/vr-controller';
@@ -26,9 +26,6 @@ import {
 export default class LocalUser extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
-  @service('configuration')
-  configuration!: Configuration;
-
   @service('collaboration/message-sender')
   sender!: MessageSender;
 

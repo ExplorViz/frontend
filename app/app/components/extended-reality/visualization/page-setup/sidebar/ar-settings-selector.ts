@@ -3,8 +3,8 @@ import { action } from '@ember/object';
 import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
-import Configuration from 'explorviz-frontend/services/configuration';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 
 interface ArSettingsSelectorArgs {
   updateCameraResolution(width: number, height: number): void;
@@ -15,9 +15,6 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
   @service('extended-reality/ar-settings')
   arSettings!: ArSettings;
 
-  @service('configuration')
-  configuration!: Configuration;
-
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
@@ -26,6 +23,10 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
 
   @tracked
   buttonPadding: number;
+
+  commWidthMutliplier = useConfigurationStore((state) => state.commWidthMultiplier);
+  commCurveHeightMultiplier = useConfigurationStore((state) => state.commCurveHeightMultiplier);
+  commCurveHeightDependsOnDistance = useConfigurationStore((state) => state.commCurveHeightDependsOnDistance);
 
   cameraPresets = [
     { name: '640 x 480', width: 640, height: 480 },
@@ -55,17 +56,17 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
 
   @action
   updateCommunicationWidth(event: any) {
-    this.configuration.commWidthMultiplier = Number.parseFloat(
-      event.target.value
-    );
+    useConfigurationStore.setState({
+      commWidthMultiplier: Number.parseFloat(event.target.value),
+    });
     this.applicationRenderer.updateCommunication();
   }
 
   @action
   updateCommunicationHeight(event: any) {
-    this.configuration.commCurveHeightMultiplier = Number.parseFloat(
-      event.target.value
-    );
+    useConfigurationStore.setState({
+      commCurveHeightMultiplier: Number.parseFloat(event.target.value),
+    });
     this.applicationRenderer.updateCommunication();
   }
 
@@ -81,8 +82,10 @@ export default class ArSettingsSelector extends Component<ArSettingsSelectorArgs
 
   @action
   toggleApplicationDependsOnDistance() {
-    const oldValue = this.configuration.commCurveHeightDependsOnDistance;
-    this.configuration.commCurveHeightDependsOnDistance = !oldValue;
+    const oldValue = useConfigurationStore.getState().commCurveHeightDependsOnDistance;
+    useConfigurationStore.setState({
+      commCurveHeightDependsOnDistance: !oldValue,
+    });
 
     this.applicationRenderer.updateCommunication();
   }
