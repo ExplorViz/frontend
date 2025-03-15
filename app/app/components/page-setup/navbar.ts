@@ -1,16 +1,13 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 
 export default class Navbar extends Component {
-  @service('landscape-token')
-  tokenService!: LandscapeTokenService;
-
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
 
@@ -18,6 +15,8 @@ export default class Navbar extends Component {
   router!: any;
 
   user = useAuthStore.getState().user;
+
+  landscapeToken = useLandscapeTokenStore.getState().token;
 
   @service('rendering-service')
   renderingService!: RenderingService;
@@ -30,7 +29,7 @@ export default class Navbar extends Component {
   @action
   goToLandscapeSelection() {
     this.snapshotService.snapshotSelected = false;
-    this.tokenService.setToken(null);
+    useLandscapeTokenStore.getState().setToken(null);
     this.snapshotService.setToken(null);
     this.router.transitionTo('landscapes', {
       queryParams: { landscapeToken: undefined },
@@ -53,7 +52,7 @@ export default class Navbar extends Component {
     } else {
       this.router.transitionTo('visualization', {
         queryParams: {
-          landscapeToken: this.tokenService.token!.value,
+          landscapeToken: useLandscapeTokenStore.getState().token!.value,
         },
       });
     }
@@ -61,7 +60,7 @@ export default class Navbar extends Component {
 
   @action
   goToSettings() {
-    this.tokenService.setToken(null);
+    useLandscapeTokenStore.getState().setToken(null);
     this.snapshotService.snapshotSelected = false;
     this.snapshotService.setToken(null);
     this.router.transitionTo('settings', {

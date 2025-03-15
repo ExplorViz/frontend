@@ -2,7 +2,7 @@ import Service, { inject as service } from '@ember/service';
 import ApplicationRenderer, {
   AddApplicationArgs,
 } from 'explorviz-frontend/services/application-renderer';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import TimestampService from 'explorviz-frontend/services/timestamp';
 import { isTrace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
@@ -36,9 +36,6 @@ export default class RoomSerializer extends Service {
 
   @service('extended-reality/detached-menu-groups')
   private detachedMenuGroups!: DetachedMenuGroupsService;
-
-  @service('landscape-token')
-  private landscapeTokenService!: LandscapeTokenService;
 
   @service('link-renderer')
   private linkRenderer!: LinkRenderer;
@@ -78,7 +75,7 @@ export default class RoomSerializer extends Service {
   // ToDo: Add both global and local positions
   private serializeLandscape(): SerializedLandscape {
     return {
-      landscapeToken: this.landscapeTokenService.token?.value,
+      landscapeToken: useLandscapeTokenStore.getState().token?.value,
       timestamp: this.timestampService.timestamp,
     };
   }

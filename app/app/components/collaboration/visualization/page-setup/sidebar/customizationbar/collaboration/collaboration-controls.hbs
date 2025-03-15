@@ -14,7 +14,7 @@
     >
       {{#each this.landscapeTokens as |token|}}
         <option
-          selected={{eq token.value this.tokenService.token.value}}
+          selected={{eq token.value this.landscapeToken.value}}
           value={{token.value}}
         >{{token.alias}}</option>
       {{/each}}

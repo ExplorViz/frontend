@@ -65,7 +65,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import Changelog from 'explorviz-frontend/services/changelog';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { BaseChangeLogEntry } from 'react-lib/src/utils/changelog-entry';
@@ -131,9 +131,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
 
   @service('link-renderer')
   private linkRenderer!: LinkRenderer;
-
-  @service('landscape-token')
-  private tokenService!: LandscapeTokenService;
 
   @service('collaboration/local-user')
   private localUser!: LocalUser;
@@ -371,10 +368,10 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
     // userId,
     originalMessage: { landscapeToken },
   }: ForwardedMessage<ChangeLandscapeMessage>): void {
-    if (this.tokenService.token?.value === landscapeToken) {
+    if (useLandscapeTokenStore.getState().token?.value === landscapeToken) {
       return;
     }
-    this.tokenService.setTokenByValue(landscapeToken);
+    useLandscapeTokenStore.getState().setTokenByValue(landscapeToken);
 
     this.applicationRenderer.cleanup();
     useApplicationRepositoryStore.getState().clearApplication();

@@ -11,7 +11,7 @@ import Changelog from 'explorviz-frontend/services/changelog';
 import { format } from 'date-fns';
 import convertDate from 'react-lib/src/utils/helpers/time-convter';
 import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import { LandscapeToken, useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import SnapshotTokenService, {
   SnapshotToken,
@@ -521,7 +521,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     );
 
     const timestamps = this.timestampRepo.getTimestampsForCommitId(
-      this.args.landscapeToken.value
+      useLandscapeTokenStore.getState().value
     );
 
     const sharedToken: SnapshotToken = {

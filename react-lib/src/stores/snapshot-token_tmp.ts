@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
-import { LandscapeToken } from './landscape-token';
+import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';

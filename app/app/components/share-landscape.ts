@@ -1,5 +1,5 @@
 import Component from '@glimmer/component';
-import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import { action } from '@ember/object';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';

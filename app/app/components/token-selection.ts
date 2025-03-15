@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import { action } from '@ember/object';
 import ENV from 'explorviz-frontend/config/environment';
 import AdditionalTokenInfo from 'react-lib/src/components/additional-token-info.tsx';

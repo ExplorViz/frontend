@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
-import LandscapeTokenService from './landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import TimestampRepository from './repos/timestamp-repository';
@@ -13,9 +13,6 @@ import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling
 const { spanService } = ENV.backendAddresses;
 
 export default class TimestampPollingService extends Service {
-  @service('landscape-token')
-  tokenService!: LandscapeTokenService;
-
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
 
@@ -126,12 +123,12 @@ export default class TimestampPollingService extends Service {
       'Polling timestamps for commitId: ' + (commit?.commitId ?? 'cross-commit')
     );
     return new Promise<Timestamp[]>((resolve, reject) => {
-      if (this.tokenService.token === null) {
+      if (useLandscapeTokenStore.getState().token === null) {
         reject(new Error('No landscape token selected'));
         return;
       }
 
-      let url = `${spanService}/v2/landscapes/${this.tokenService.token.value}/timestamps`;
+      let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
       if (newestLocalTimestamp) {
         url += `?newest=${newestLocalTimestamp.epochMilli}`;

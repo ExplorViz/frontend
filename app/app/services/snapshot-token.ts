@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { useAuthStore } from 'react-lib/src/stores/auth';
-import { LandscapeToken } from './landscape-token';
+import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';

@@ -7,7 +7,7 @@ import PopupData from 'react-lib/src/components/visualization/rendering/popups/p
 import SnapshotTokenService, {
   SnapshotToken,
 } from 'explorviz-frontend/services/snapshot-token';
-import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';

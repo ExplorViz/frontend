@@ -59,7 +59,7 @@ import RenderingService, {
   AnalysisMode,
 } from 'explorviz-frontend/services/rendering-service';
 import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
@@ -129,8 +129,7 @@ export default class VisualizationController extends Controller {
   @service('timestamp-polling')
   timestampPollingService!: TimestampPollingService;
 
-  @service('landscape-token')
-  landscapeTokenService!: LandscapeTokenService;
+  landscapeToken = useLandscapeTokenStore.getState().token;
 
   @service('snapshot-token') snapshotTokenService!: SnapshotTokenService;
 

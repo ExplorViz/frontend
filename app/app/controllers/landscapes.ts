@@ -1,9 +1,6 @@
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
-import LandscapeTokenService, {
-  LandscapeToken,
-} from 'explorviz-frontend/services/landscape-token';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token_tmp';
+import { useLandscapeTokenStore, LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
@@ -17,9 +14,6 @@ import { useAuthStore } from 'react-lib/src/stores/auth';
 const { userService } = ENV.backendAddresses;
 
 export default class Landscapes extends Controller {
-  @service('landscape-token')
-  tokenService!: LandscapeTokenService;
-
   @service('snapshot-token')
   snapShotTokenService!: SnapshotTokenService;
 
@@ -46,7 +40,7 @@ export default class Landscapes extends Controller {
 
   @action
   selectToken(token: LandscapeToken) {
-    this.tokenService.setToken(token);
+    useLandscapeTokenStore.getState().setToken(token);
     this.snapShotTokenService.latestSnapshotToken = null;
     this.router.transitionTo('visualization', {
       queryParams: { landscapeToken: token.value },
@@ -57,7 +51,7 @@ export default class Landscapes extends Controller {
   selectPersonalSnapshot(token: TinySnapshot) {
     this.snapShotTokenService.setToken(null);
     this.snapShotTokenService.snapshotSelected = true;
-    this.tokenService.setToken(null);
+    useLandscapeTokenStore.getState().setToken(null);
     this.router.transitionTo('visualization', {
       queryParams: {
         landscapeToken: token.landscapeToken.value,
@@ -72,7 +66,7 @@ export default class Landscapes extends Controller {
   selectSharedSnapshot(token: TinySnapshot) {
     // this.snapShotTokenService.setToken(null);
     this.snapShotTokenService.snapshotSelected = true;
-    this.tokenService.setToken(null);
+    useLandscapeTokenStore.getState().setToken(null);
     this.router.transitionTo('visualization', {
       queryParams: {
         landscapeToken: token.landscapeToken.value,
@@ -110,8 +104,8 @@ export default class Landscapes extends Controller {
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
-    if (this.tokenService.token?.value === tokenId) {
-      this.tokenService.removeToken();
+    if (useLandscapeTokenStore.getState().token?.value === tokenId) {
+      useLandscapeTokenStore.getState().removeToken();
     }
     this.send('refreshRoute');
   }

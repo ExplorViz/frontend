@@ -9,7 +9,7 @@
     draggable='false'
   />
   {{#unless this.isSingleLandscapeMode}}
-    {{#if this.tokenService.token}}
+    {{#if this.landscapeToken}}
       <div class='navbar-middle-row pointer-events-all d-none d-md-block'>
         <div class='navbar-token-link text-center'>
           <span
@@ -20,7 +20,7 @@
             {{svg-jar
               'undo-16'
               class='octicon'
-            }}&nbsp;{{this.tokenService.token.alias}}
+            }}&nbsp;{{this.landscapeToken.alias}}
           </span>
         </div>
         <div class='navbar-rendering-mode text-center'>
@@ -64,7 +64,7 @@
               }}
               {{this.user.sub}}</span>
           </div></li>
-        {{#if this.tokenService.token}}
+        {{#if this.landscapeToken}}
           <li>
             <button
               class='dropdown-item'
@@ -72,7 +72,7 @@
               {{on 'click' this.goToLandscapeSelection}}
             >
               {{svg-jar 'key-16' class='octicon'}}
-              {{this.tokenService.token.alias}}
+              {{this.landscapeToken.alias}}
             </button>
           </li>
         {{/if}}

@@ -2,7 +2,7 @@ import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
+import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import RoomService from 'explorviz-frontend/services/collaboration/room-service';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';

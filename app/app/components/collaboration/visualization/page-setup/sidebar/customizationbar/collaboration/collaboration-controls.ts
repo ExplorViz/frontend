@@ -9,9 +9,7 @@ import RoomService from 'explorviz-frontend/services/collaboration/room-service'
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import LandscapeTokenService, {
-  LandscapeToken,
-} from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore, LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 // import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
@@ -36,9 +34,6 @@ export default class CollaborationControls extends Component {
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('landscape-token')
-  private tokenService!: LandscapeTokenService;
 
   @service('link-renderer')
   private linkRenderer!: LinkRenderer;
@@ -70,6 +65,8 @@ export default class CollaborationControls extends Component {
 
   // @service('spectate-configuration')
   // spectateConfigurationService!: SpectateConfigurationService;
+
+  landscapeToken = useLandscapeTokenStore.getState().token;
 
   @tracked
   rooms: RoomListRecord[] = [];
@@ -185,7 +182,7 @@ export default class CollaborationControls extends Component {
     }
     const rooms = await this.roomService.listRooms();
     this.rooms = rooms;
-    this.landscapeTokens = await this.tokenService.retrieveTokens();
+    this.landscapeTokens = await useLandscapeTokenStore.getState().retrieveTokens();
 
     this.spectateConfigs = await useSpectateConfigurationStore
       .getState()
@@ -311,7 +308,7 @@ export default class CollaborationControls extends Component {
 
   @action
   landscapeSelected(event: any) {
-    this.tokenService.setTokenByValue(event.target.value);
+    useLandscapeTokenStore.getState().setTokenByValue(event.target.value);
 
     // Cleanup old landscape
     this.applicationRenderer.cleanup();
@@ -321,7 +318,6 @@ export default class CollaborationControls extends Component {
       externLink.removeFromParent();
     });
 
-    // this.tokenService.setToken(event.target.value);
     this.router.transitionTo('visualization', {
       queryParams: {
         landscapeToken: event.target.value,

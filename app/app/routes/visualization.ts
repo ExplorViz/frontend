@@ -1,7 +1,7 @@
 import VisualizationController from 'explorviz-frontend/controllers/visualization';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import debugLogger from 'ember-debug-logger';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 // import FontRepository from 'explorviz-frontend/services/repos/font-repository';
@@ -17,9 +17,6 @@ import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
  * @extends Ember.Route
  */
 export default class VisualizationRoute extends BaseRoute {
-  @service('landscape-token')
-  landscapeToken!: LandscapeTokenService;
-
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
 
@@ -33,7 +30,7 @@ export default class VisualizationRoute extends BaseRoute {
 
   async beforeModel() {
     if (
-      this.landscapeToken.token === null &&
+      useLandscapeTokenStore.getState().token === null &&
       this.snapshotService.snapshotToken === null &&
       !this.snapshotService.snapshotSelected
     ) {
@@ -91,7 +88,7 @@ export default class VisualizationRoute extends BaseRoute {
     isExiting: boolean /* , transition: any */
   ) {
     if (isExiting) {
-      this.landscapeToken.removeToken();
+      useLandscapeTokenStore.getState().removeToken();
 
       controller.willDestroy();
     }

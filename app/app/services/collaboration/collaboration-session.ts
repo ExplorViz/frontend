@@ -33,7 +33,7 @@ import {
   CONTROLLER_2_ID,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 import {
   USER_KICK_EVENT,
@@ -74,9 +74,6 @@ export default class CollaborationSession extends Service.extend({
 
   @service('router')
   router!: any;
-
-  @service('landscape-token')
-  tokenService!: LandscapeTokenService;
 
   @service('minimap-service')
   minimapService!: MinimapService;
@@ -423,11 +420,11 @@ export default class CollaborationSession extends Service.extend({
       return;
     }
 
-    const tokens = await this.tokenService.retrieveTokens();
+    const tokens = await useLandscapeTokenStore.getState().retrieveTokens();
     const token = tokens.find((elem) => elem.value === room.landscapeToken);
 
     if (token) {
-      this.tokenService.setToken(token);
+      useLandscapeTokenStore.getState().setToken(token);
       this.router.transitionTo('visualization', {
         queryParams: {
           landscapeToken: token.value,

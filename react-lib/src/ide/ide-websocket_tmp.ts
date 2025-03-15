@@ -11,7 +11,6 @@ import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import debugLogger from 'ember-debug-logger';
 import { useIdeWebsocketFacadeStore } from 'react-lib/src/stores/ide-websocket-facade';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
