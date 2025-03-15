@@ -39,7 +39,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import ReloadHandler from 'explorviz-frontend/services/reload-handler';
+import { useReloadHandlerStore } from 'react-lib/src/stores/reload-handler';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import TimestampService from 'explorviz-frontend/services/timestamp';
@@ -132,9 +132,6 @@ export default class VisualizationController extends Controller {
   landscapeToken = useLandscapeTokenStore.getState().token;
 
   @service('snapshot-token') snapshotTokenService!: SnapshotTokenService;
-
-  @service('reload-handler')
-  reloadHandler!: ReloadHandler;
 
   @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
@@ -433,7 +430,7 @@ export default class VisualizationController extends Controller {
   async onTimestampUpdateTimer({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> {
-    await this.reloadHandler.loadLandscapeByTimestamp(timestamp);
+    await useReloadHandlerStore.getState().loadLandscapeByTimestamp(timestamp);
     // TODO
     // this.renderingService.triggerRenderingForGivenTimestamp(timestamp);
   }

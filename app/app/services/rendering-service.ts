@@ -5,7 +5,7 @@ import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
 } from 'react-lib/src/utils/landscape-structure-helpers';
-import ReloadHandler from './reload-handler';
+import { useReloadHandlerStore } from 'react-lib/src/stores/reload-handler';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
@@ -37,9 +37,6 @@ export default class RenderingService extends Service {
   private readonly debug = debugLogger('RenderingService');
 
   // #region Services
-
-  @service('reload-handler')
-  private reloadHandler!: ReloadHandler;
 
   @service('timestamp')
   private timestampService!: TimestampService;
@@ -308,7 +305,7 @@ export default class RenderingService extends Service {
         const [
           latestFetchedStructureLandscapeData,
           latestFetchedDynamicLandscapeData,
-        ] = await this.reloadHandler.loadLandscapeByTimestamp(
+        ] = await useReloadHandlerStore.getState().loadLandscapeByTimestamp(
           selectedTimestamp.epochMilli
         );
 
