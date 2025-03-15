@@ -30,7 +30,7 @@ import {
   isObjectClosedResponse,
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import Auth from './auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import {
   ANNOTATION_UPDATED_EVENT,
   AnnotationUpdatedMessage,
@@ -66,9 +66,6 @@ export default class AnnotationHandlerService extends Service {
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
-
-  @service('auth')
-  private auth!: Auth;
 
   @tracked
   annotationData: AnnotationData[] = [];
@@ -282,7 +279,7 @@ export default class AnnotationHandlerService extends Service {
       return;
     }
 
-    annotation.lastEditor = this.auth.user!.name;
+    annotation.lastEditor = useAuthStore.getState().user!.name;
 
     if (!this.collaborationSession.isOnline || !annotation.shared) {
       annotation.inEdit = false;
@@ -417,7 +414,7 @@ export default class AnnotationHandlerService extends Service {
       {
         responseType: isAnnotationResponse,
         onResponse: (response: AnnotationResponse) => {
-          annotation.sharedBy = this.auth.user!.sub; // for production: user_id makes more sense
+          annotation.sharedBy = useAuthStore.getState().user!.sub.toString(); // for production: user_id makes more sense
           annotation.menuId = response.objectId;
           annotation.shared = true;
           return true;
@@ -527,11 +524,11 @@ export default class AnnotationHandlerService extends Service {
           annotationText: annotationText,
           annotationTitle: annotationTitle,
           hidden: false,
-          sharedBy: sharedBy || this.auth.user!.sub, // for production: user_id makes more sense
-          owner: owner || this.auth.user!.name,
+          sharedBy: sharedBy || useAuthStore.getState().user!.sub.toString(), // for production: user_id makes more sense
+          owner: owner || useAuthStore.getState().user!.name,
           shared: shared,
           inEdit: inEdit === undefined ? true : inEdit,
-          lastEditor: lastEditor || this.auth.user!.name,
+          lastEditor: lastEditor || useAuthStore.getState().user!.name,
         });
       } else {
         newAnnotation = new AnnotationData({
@@ -550,11 +547,11 @@ export default class AnnotationHandlerService extends Service {
           annotationText: annotationText,
           annotationTitle: annotationTitle,
           hidden: false,
-          sharedBy: sharedBy || this.auth.user!.sub, // for production: user_id makes more sense
-          owner: owner || this.auth.user!.name,
+          sharedBy: sharedBy || useAuthStore.getState().user!.sub.toString(), // for production: user_id makes more sense
+          owner: owner || useAuthStore.getState().user!.name,
           shared: shared,
           inEdit: inEdit === undefined ? true : inEdit,
-          lastEditor: lastEditor || this.auth.user!.name,
+          lastEditor: lastEditor || useAuthStore.getState().user!.name,
         });
 
         if (!(mesh.dataModel instanceof ClazzCommuMeshDataModel)) {

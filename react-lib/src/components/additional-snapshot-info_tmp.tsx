@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Auth from 'explorviz-frontend/services/auth';
+import { useAuthStore } from '../stores/auth';
 import { TinySnapshot } from 'explorviz-frontend/services/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import CopyButton from 'react-lib/src/components/copy-button.tsx';
@@ -32,8 +32,10 @@ interface AdditionalSnapshotInfoProps {
 export default function AdditionalSnapshotInfo(
   args: AdditionalSnapshotInfoProps
 ) {
+  const user = useAuthStore((state) => state.user);
+
   const hidePopover = (event: Event) => {
-    if (this.isMouseOnPopover()) {
+    if (isMouseOnPopover()) {
       return;
     }
 

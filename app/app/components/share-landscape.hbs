@@ -12,7 +12,7 @@
     <BsPopover @title='Manage Access'>
       <table class='table table-striped' style='width: 100%'>
         <tbody>
-          {{#if (eq @token.ownerId this.auth.user.sub)}}
+          {{#if (eq @token.ownerId this.user.sub)}}
             {{#each @token.sharedUsersIds as |userWithAccess|}}
               <tr class='d-flex'>
                 <td class='col-10'>{{userWithAccess}}</td>
@@ -59,7 +59,7 @@
                 <button
                   class='button-svg-with-hover'
                   type='button'
-                  {{on 'click' (fn this.revokeAccess this.auth.user.sub)}}
+                  {{on 'click' (fn this.revokeAccess this.user.sub)}}
                 >
                   {{svg-jar 'trash-16' class='octicon align-middle'}}
                   <BsTooltip @placement='bottom' @triggerEvents='hover'>
@@ -74,7 +74,7 @@
                 <button
                   class='button-svg-with-hover'
                   type='button'
-                  {{on 'click' (fn this.cloneToken this.auth.user.sub)}}
+                  {{on 'click' (fn this.cloneToken this.user.sub)}}
                 >
                   {{svg-jar 'repo-forked-16' class='octicon align-middle'}}
                   <BsTooltip @placement='bottom' @triggerEvents='hover'>

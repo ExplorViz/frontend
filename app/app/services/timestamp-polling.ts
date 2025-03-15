@@ -3,7 +3,7 @@ import debugLogger from 'ember-debug-logger';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import LandscapeTokenService from './landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
-import Auth from './auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import TimestampRepository from './repos/timestamp-repository';
 import SnapshotTokenService from './snapshot-token';
 import { CROSS_COMMIT_IDENTIFIER } from 'react-lib/src/utils/evolution-schemes/evolution-data';
@@ -18,9 +18,6 @@ export default class TimestampPollingService extends Service {
 
   @service('snapshot-token')
   snapshotService!: SnapshotTokenService;
-
-  @service('auth')
-  auth!: Auth;
 
   @service('repos/timestamp-repository')
   timestampRepo!: TimestampRepository;
@@ -150,7 +147,7 @@ export default class TimestampPollingService extends Service {
 
       fetch(url, {
         headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
           'Access-Control-Allow-Origin': '*',
         },
       })

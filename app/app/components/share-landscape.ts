@@ -1,11 +1,10 @@
 import Component from '@glimmer/component';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
-import Auth from 'explorviz-frontend/services/auth';
 import { tracked } from '@glimmer/tracking';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 interface ShareLandscapeArgs {
   token: LandscapeToken;
@@ -15,9 +14,7 @@ interface ShareLandscapeArgs {
 const { userService } = ENV.backendAddresses;
 
 export default class ShareLandscape extends Component<ShareLandscapeArgs> {
-  @service('auth')
-  auth!: Auth;
-
+  user = useAuthStore.getState().user;
   focusedClicks = 0;
 
   @tracked
@@ -95,7 +92,7 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
         `${userService}/token/${tokenId}/${encodedUserId}?method=${method}`,
         {
           headers: {
-            Authorization: `Bearer ${this.auth.accessToken}`,
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
           },
           method: 'POST',
         }

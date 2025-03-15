@@ -36,7 +36,6 @@ import debugLogger from 'ember-debug-logger';
 import ENV from 'explorviz-frontend/config/environment';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Auth from 'explorviz-frontend/services/auth';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
@@ -89,8 +88,6 @@ export default class VisualizationController extends Controller {
   @service('router')
   router!: any;
 
-  @service('auth')
-  auth!: Auth;
   private readonly debug = debugLogger('VisualizationController');
 
   queryParams = [

@@ -1,15 +1,13 @@
 import Component from '@glimmer/component';
-import Auth from 'explorviz-frontend/services/auth';
-import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { TinySnapshot } from 'explorviz-frontend/services/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 export default class AdditionalSnapshotInfoComponent extends Component<TinySnapshot> {
-  @service('auth')
-  auth!: Auth;
-
   focusedClicks = 0;
+
+  user = useAuthStore.getState().user;
 
   @action
   // eslint-disable-next-line class-methods-use-this

@@ -47,7 +47,7 @@ import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-reposi
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
-import Auth from 'explorviz-frontend/services/auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import GamepadControls from 'react-lib/src/utils/controls/gamepad/gamepad-controls';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
@@ -144,9 +144,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;
-
-  @service('auth')
-  private auth!: Auth;
 
   @service('heatmap/heatmap-configuration')
   private heatmapConf!: HeatmapConfiguration; // TODO for testing heatmap
@@ -802,7 +799,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       annotationTitle: '',
       annotationText: '',
       sharedBy: '',
-      owner: this.auth.user!.name,
+      owner: useAuthStore.getState().user!.name.toString(),
       shared: false,
       inEdit: true,
       lastEditor: undefined,
@@ -873,7 +870,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
         annotationTitle: '',
         annotationText: '',
         sharedBy: '',
-        owner: this.auth.user!.name,
+        owner: useAuthStore.getState().user!.name,
         shared: false,
         inEdit: true,
         lastEditor: undefined,

@@ -9,7 +9,6 @@ import RoomService from 'explorviz-frontend/services/collaboration/room-service'
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Auth from 'explorviz-frontend/services/auth';
 import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
@@ -26,11 +25,9 @@ import {
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import ChatService from 'explorviz-frontend/services/chat';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 export default class CollaborationControls extends Component {
-  @service('auth')
-  private auth!: Auth;
-
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
 
@@ -433,7 +430,7 @@ export default class CollaborationControls extends Component {
   async createSpectateConfig() {
     const spectateConfig = {
       id: this.spectateConfigName!,
-      user: this.auth.user!.sub,
+      user: useAuthStore.getState().user!.toString(),
       devices: this.spectateConfigDevices,
     };
 
@@ -457,7 +454,7 @@ export default class CollaborationControls extends Component {
       return;
     }
 
-    if (this.selectedConfig.user !== this.auth.user?.sub) {
+    if (this.selectedConfig.user !== useAuthStore.getState().user?.sub.toString()) {
       useToastHandlerStore
         .getState()
         .showErrorToastMessage('You are not the creator of the configuration.');
@@ -482,7 +479,7 @@ export default class CollaborationControls extends Component {
   async updateSpectateConfig() {
     const spectateConfig = {
       id: this.spectateConfigName!,
-      user: this.auth.user!.sub,
+      user: useAuthStore.getState().user!.sub.toString(),
       devices: this.spectateConfigDevices,
     };
 
@@ -503,7 +500,7 @@ export default class CollaborationControls extends Component {
   async deleteSpectateConfig() {
     const spectateConfig = {
       id: this.spectateConfigName!,
-      user: this.auth.user!.sub,
+      user: useAuthStore.getState().user!.sub.toString(),
       devices: this.spectateConfigDevices,
     };
 

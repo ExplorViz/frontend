@@ -2,10 +2,10 @@ import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import LandscapeTokenService from 'explorviz-frontend/services/landscape-token';
-import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 export default class Navbar extends Component {
   @service('landscape-token')
@@ -17,15 +17,14 @@ export default class Navbar extends Component {
   @service('router')
   router!: any;
 
-  @service('auth')
-  auth!: Auth;
+  user = useAuthStore.getState().user;
 
   @service('rendering-service')
   renderingService!: RenderingService;
 
   @action
   logout() {
-    this.auth.logout();
+    // useAuthStore.getState().logout(); // TODO: Gibt es nicht mehr
   }
 
   @action

@@ -4,8 +4,8 @@ import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
-import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 interface AutoSelectLandscapeArgs {
   roomId: string;
   landscapeToken: string;
@@ -23,16 +23,13 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
   @service('snapshot-token')
   private snapshotService!: SnapshotTokenService;
 
-  @service('auth')
-  auth!: Auth;
-
   autoSelectCallback: any;
 
   constructor(owner: unknown, args: AutoSelectLandscapeArgs) {
     super(owner, args);
 
     // Authentication might take some time and is needed to request landscape token
-    if (this.auth.user) {
+    if (useAuthStore.getState().user) {
       this.autoSelectLandscape();
     }
   }
@@ -88,7 +85,7 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
   }
 
   async getLandscapeTokens() {
-    const uId = this.auth.user?.sub;
+    const uId = useAuthStore.getState().user?.sub;
 
     if (!uId) {
       throw new Error('Could not find user');
@@ -97,7 +94,7 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
     const encodedUid = encodeURI(uId);
     const response = await fetch(`${userService}/user/${encodedUid}/token`, {
       headers: {
-        Authorization: `Bearer ${this.auth.accessToken}`,
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
       },
     });
 

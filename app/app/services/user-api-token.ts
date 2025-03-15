@@ -1,5 +1,5 @@
 import Service, { inject as service } from '@ember/service';
-import Auth from './auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
@@ -15,22 +15,19 @@ export type ApiToken = {
 };
 
 export default class UserApiTokenService extends Service {
-  @service('auth')
-  private auth!: Auth;
-
   @service('router')
   router!: any;
 
   retrieveApiTokens() {
     return new Promise<ApiToken[]>((resolve) => {
-      const userId = encodeURI(this.auth.user?.sub || '');
+      const userId = encodeURI(useAuthStore.getState().user?.sub.toString() || '');
       if (!userId) {
         resolve([]);
       }
 
-      fetch(`${userService}/userapi?uId=${this.auth.user!.sub}`, {
+      fetch(`${userService}/userapi?uId=${useAuthStore.getState().user!.sub.toString()}`, {
         headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
       })
         .then(async (response: Response) => {
@@ -83,8 +80,8 @@ export default class UserApiTokenService extends Service {
 
     const url =
       expDate !== null
-        ? `${userService}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}&expires=${expDate}`
-        : `${userService}/userapi/create?uId=${this.auth.user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}`;
+        ? `${userService}/userapi/create?uId=${useAuthStore.getState().user!.sub.toString()}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}&expires=${expDate}`
+        : `${userService}/userapi/create?uId=${useAuthStore.getState().user!.sub.toString()}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}`;
     const response = await fetch(url, {
       method: 'POST',
     });
