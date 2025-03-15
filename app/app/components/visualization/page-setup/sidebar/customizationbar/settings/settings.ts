@@ -31,7 +31,6 @@ import ResetButton from 'react-lib/src/components/visualization/page-setup/sideb
 import FlagSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting.tsx';
 import RangeSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting.tsx';
 import ButtonSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting.tsx';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 
 interface Args {
   enterFullscreen(): void;
@@ -52,9 +51,6 @@ export default class Settings extends Component<Args> {
   flagSetting = FlagSetting;
   rangeSetting = RangeSetting;
   buttonSetting = ButtonSetting;
-
-  @service('heatmap/heatmap-configuration')
-  private heatmapConfiguration!: HeatmapConfiguration;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
@@ -328,7 +324,7 @@ export default class Settings extends Component<Args> {
           this.args.setGamepadSupport(value);
           break;
         case 'heatmapEnabled':
-          this.heatmapConfiguration.heatmapActive = value; // TODO for testing heatmap
+          // this.heatmapConfiguration.heatmapActive = value; // TODO for testing heatmap
           useHeatmapConfigurationStore.getState().setActive(value);
           break;
         case 'minimap':

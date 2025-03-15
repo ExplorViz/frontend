@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import {
+  useHeatmapConfigurationStore,
+  HeatmapMode,
+} from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { ShareAndroidIcon } from '@primer/octicons-react';
-import { HeatmapMode } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 interface Args {
   descriptions?: {

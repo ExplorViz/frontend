@@ -8,7 +8,7 @@ import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/applic
 import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
 
 import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
-import { useToastHandlerStore } from '../toast-handler';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 export type HeatmapMode =
   | 'snapshotHeatmap'
@@ -174,7 +174,7 @@ export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
         default:
           break;
       }
-      return latestClazzMetricScores.firstObject;
+      return latestClazzMetricScores.firstObject; //TODO: does this work?
     },
 
     updateMetric: (metric: Metric) => {

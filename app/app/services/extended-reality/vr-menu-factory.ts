@@ -4,7 +4,6 @@ import CollaborationSession from 'explorviz-frontend/services/collaboration/coll
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import TimestampService from 'explorviz-frontend/services/timestamp';
-import HeatmapConfiguration from 'explorviz-frontend/services/heatmap/heatmap-configuration';
 import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
 import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
@@ -67,9 +66,6 @@ export default class VrMenuFactoryService extends Service {
 
   @service('timestamp')
   private timestampService!: TimestampService;
-
-  @service('heatmap/heatmap-configuration')
-  heatmapConfiguration!: HeatmapConfiguration;
 
   // TODO the factory should no be a singleton, but instantiated on each rendering.
   // scene!: THREE.Scene;
@@ -209,7 +205,6 @@ export default class VrMenuFactoryService extends Service {
 
   buildHeatmapMenu(): HeatmapMenu {
     return new HeatmapMenu({
-      heatmapConfiguration: this.heatmapConfiguration,
       menuFactory: this,
     });
   }
