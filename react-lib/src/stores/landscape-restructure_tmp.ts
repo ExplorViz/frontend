@@ -119,7 +119,7 @@ interface LandscapeRestructureState {
     targetClassId: string,
     methodName: string
   ) => void;
-  addCommunication: (methodName: string, collabMode: boolean) => void;
+  addCommunication: (methodName: string, collabMode?: boolean) => void;
   deleteCommunication: (
     comm: ClassCommunication,
     undo: boolean,
@@ -307,11 +307,11 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         set({ targetClass: get().clippedMesh });
     },
 
-    setCommunicationSourceClass: (clazz: Class) => {
+    setCommunicationSourceClass: (clazz: Class | null) => {
       set({ sourceClass: clazz });
     },
 
-    setCommunicationTargetClass: (clazz: Class) => {
+    setCommunicationTargetClass: (clazz: Class | null) => {
       set({ targetClass: clazz });
     },
 
