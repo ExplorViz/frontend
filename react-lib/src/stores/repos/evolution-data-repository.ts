@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 import {
   CommitTree,
   AppNameCommitTreeMap,
@@ -63,7 +63,7 @@ interface EvolutionDataRepositoryState {
 }
 
 export const useEvolutionDataRepositoryStore =
-  createStore<EvolutionDataRepositoryState>((set, get) => ({
+  create<EvolutionDataRepositoryState>((set, get) => ({
     _appNameCommitTreeMap: new Map<string, CommitTree>(), // tracked
     _evolutionStructureLandscapeData: new Map<string, StructureLandscapeData>(),
     _combinedStructureLandscapeData: createEmptyStructureLandscapeData(),
