@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
-import Auth from 'explorviz-frontend/services/auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import RoomSerializer from './room-serializer';
 import {
   RoomListRecord,
@@ -15,9 +15,6 @@ import {
 const { collaborationService } = ENV.backendAddresses;
 
 export default class RoomService extends Service {
-  @service('auth')
-  private auth!: Auth;
-
   @service('collaboration/room-serializer')
   private roomSerializer!: RoomSerializer;
 
@@ -25,7 +22,7 @@ export default class RoomService extends Service {
     const url = `${collaborationService}/rooms`;
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${this.auth.accessToken}`,
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
       },
     });
     const records = await response.json();
@@ -46,7 +43,7 @@ export default class RoomService extends Service {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.auth.accessToken}`,
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -79,7 +76,7 @@ export default class RoomService extends Service {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.auth.accessToken}`,
+        Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         'Content-Type': 'application/json',
       },
     });

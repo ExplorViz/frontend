@@ -3,14 +3,16 @@ import { action } from '@ember/object';
 import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token_tmp';
 import { inject as service } from '@ember/service';
-import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
 import SnapshotTokenService, {
   TinySnapshot,
 } from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 const { userService } = ENV.backendAddresses;
 
@@ -23,9 +25,6 @@ export default class Landscapes extends Controller {
 
   @service('router')
   router!: any;
-
-  @service('auth')
-  auth!: Auth;
 
   @tracked
   tokenCreationModalIsOpen: boolean = false;
@@ -118,7 +117,7 @@ export default class Landscapes extends Controller {
   }
 
   sendTokenCreateRequest(alias = '') {
-    let uId = this.auth.user?.sub;
+    let uId = useAuthStore.getState().user?.sub.toString();
 
     if (!uId) {
       return Promise.reject(new Error('User profile not set'));
@@ -129,7 +128,7 @@ export default class Landscapes extends Controller {
     return new Promise<any>((resolve, reject) => {
       fetch(`${userService}/user/${uId}/token`, {
         headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
           'Content-Type': 'application/json',
         },
         method: 'POST',
@@ -158,7 +157,7 @@ export default class Landscapes extends Controller {
     return new Promise<undefined>((resolve, reject) => {
       fetch(`${userService}/token/${tokenId}`, {
         headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
         method: 'DELETE',
       })

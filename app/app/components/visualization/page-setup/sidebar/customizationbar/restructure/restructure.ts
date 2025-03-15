@@ -19,11 +19,11 @@ import SnapshotTokenService, {
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import { ApiToken } from 'explorviz-frontend/services/user-api-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import WideCheckbox from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox.tsx';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 interface VisualizationPageSetupSidebarRestructureArgs {
   landscapeData: LandscapeData;
@@ -48,9 +48,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
   wideCheckbox = WideCheckbox;
 
   today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
-
-  @service('auth')
-  auth!: Auth;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -528,7 +525,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     );
 
     const sharedToken: SnapshotToken = {
-      owner: this.auth.user!.sub,
+      owner: useAuthStore.getState().user!.sub.toString(),
       createdAt: createdAt,
       name: this.snapshotName!,
       landscapeToken: this.args.landscapeToken,

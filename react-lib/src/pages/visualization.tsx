@@ -50,7 +50,7 @@ import { useApplicationRendererStore } from '../stores/application-renderer';
 import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { useSnapshotTokenStore } from '../stores/snapshot-token';
-import { useWebSocketStore } from '../stores/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,

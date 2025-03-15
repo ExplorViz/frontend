@@ -1,10 +1,9 @@
 import { create } from 'zustand';
-import * as ENV from 'react-lib/src/env';
 import { useAuthStore } from 'react-lib/src/stores/auth';
-const userService = ENV.USER_SERV_URL;
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
-const tokenToShow = ENV.ONLY_SHOW_TOKEN; // TODO: The right one?
+const userService = 'http://localhost:8084'; //import.meta.env.VITE_USER_SERV_URL;
+const tokenToShow = 'change-token'; //import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 interface LandscapeTokenState {
   token: LandscapeToken | null;

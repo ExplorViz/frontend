@@ -1,5 +1,4 @@
 import Service, { inject as service } from '@ember/service';
-import { tracked } from '@glimmer/tracking';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
@@ -17,10 +16,11 @@ import CameraControls from 'react-lib/src/utils/application-rendering/camera-con
 import * as VrPoses from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import { VrPose } from 'explorviz-frontend/utils/extended-reality/vr-helpers/vr-poses';
 import MessageSender from './message-sender';
-import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import { SELF_DISCONNECTED_EVENT } from 'react-lib/src/stores/collaboration/web-socket';
 import equal from 'fast-deep-equal';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -34,20 +34,17 @@ export default class SpectateUser extends Service {
   @service('collaboration/collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
-
-  @tracked
-  spectatedUser: RemoteUser | null = null;
+  // @tracked
+  // spectatedUser: RemoteUser | null = null;
 
   // TODO migrate RemoteUser first
-  // get spectatedUser(): RemoteUser | null {
-  //   return useSpectateUserStore.getState().spectatedUser;
-  // }
+  get spectatedUser(): RemoteUser | null {
+    return useSpectateUserStore.getState().spectatedUser;
+  }
 
-  // set spectatedUser(value: RemoteUser | null) {
-  //   useSpectateUserStore.setState({ spectatedUser: value });
-  // }
+  set spectatedUser(value: RemoteUser | null) {
+    useSpectateUserStore.setState({ spectatedUser: value });
+  }
 
   // cameraControls: CameraControls | null = null;
   get cameraControls(): CameraControls | null {
@@ -81,15 +78,15 @@ export default class SpectateUser extends Service {
     super.init();
 
     this.debug('Initializing collaboration session');
-    this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.on(SPECTATING_UPDATE_EVENT, this, this.onSpectatingUpdate);
-    this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.reset);
+    eventEmitter.on(USER_DISCONNECTED_EVENT, this.onUserDisconnect);
+    eventEmitter.on(SPECTATING_UPDATE_EVENT, this.onSpectatingUpdate);
+    eventEmitter.on(SELF_DISCONNECTED_EVENT, this.reset);
   }
 
   willDestroy() {
-    this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.off(SPECTATING_UPDATE_EVENT, this, this.onSpectatingUpdate);
-    this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.reset);
+    eventEmitter.off(USER_DISCONNECTED_EVENT, this.onUserDisconnect);
+    eventEmitter.off(SPECTATING_UPDATE_EVENT, this.onSpectatingUpdate);
+    eventEmitter.off(SELF_DISCONNECTED_EVENT, this.reset);
   }
 
   private reset() {

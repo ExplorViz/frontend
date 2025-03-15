@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import * as THREE from 'three';
 import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import {
@@ -16,9 +16,6 @@ import { useGrabbedObjectStore } from 'react-lib/src/stores/extended-reality/gra
 export default class GrabbedObjectService extends Service {
   @service('collaboration/message-sender')
   private sender!: MessageSender;
-
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
 
   /**
    * Counts how often an object has been requested to be grabbed.
@@ -75,7 +72,7 @@ export default class GrabbedObjectService extends Service {
     const objectId = object.getGrabId();
     if (!objectId) return Promise.resolve(true);
 
-    return this.webSocket.sendRespondableMessage<
+    return useWebSocketStore.getState().sendRespondableMessage<
       ObjectGrabbedMessage,
       ObjectGrabbedResponse
     >(

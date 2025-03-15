@@ -1,10 +1,11 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla';
 
-import CameraControls from "react-lib/src/utils/application-rendering/camera-controls";
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
+import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 
 interface SpectateUserState {
   // TODO migrate RemoteUser first
-  // spectatedUser: RemoteUser | null;
+  spectatedUser: RemoteUser | null;
   cameraControls: CameraControls | null;
   spectateConfigurationId: string;
   spectatingUsers: Set<string>;
@@ -16,7 +17,7 @@ export const useSpectateUserStore = createStore<SpectateUserState>(
   (set, get) => ({
     spectatedUser: null,
     cameraControls: null,
-    spectateConfigurationId: "default",
+    spectateConfigurationId: 'default',
     spectatingUsers: new Set<string>(),
     // lastPose: undefined,
   })

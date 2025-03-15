@@ -3,7 +3,7 @@ import Service, { inject as service } from '@ember/service';
 import debugLogger from 'ember-debug-logger';
 import { tracked } from '@glimmer/tracking';
 import ENV from 'explorviz-frontend/config/environment';
-import Auth from 'explorviz-frontend/services/auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 const { userService } = ENV.backendAddresses;
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
@@ -20,9 +20,6 @@ const tokenToShow = ENV.mode.tokenToShow;
 
 export default class LandscapeTokenService extends Service {
   private readonly debug = debugLogger('LandscapeTokenService');
-
-  @service('auth')
-  private auth!: Auth;
 
   // TODO: Remove old tracked usage after migration.
   // Not possible until then, because header LandscapeToken wouldn't be
@@ -67,14 +64,14 @@ export default class LandscapeTokenService extends Service {
 
   retrieveTokens() {
     return new Promise<LandscapeToken[]>((resolve, reject) => {
-      const userId = encodeURI(this.auth.user?.sub || '');
+      const userId = encodeURI(useAuthStore.getState().user?.sub.toString() || '');
       if (!userId) {
         resolve([]);
       }
 
       fetch(`${userService}/user/${userId}/token`, {
         headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
       })
         .then(async (response: Response) => {

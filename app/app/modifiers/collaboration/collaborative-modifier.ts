@@ -3,7 +3,6 @@ import { registerDestructor } from '@ember/destroyable';
 import { inject as service } from '@ember/service';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { ALL_HIGHLIGHTS_RESET_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
 import {
@@ -88,6 +87,8 @@ import * as THREE from 'three';
 import { Vector3 } from 'three';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { event } from 'jquery';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 interface IModifierArgs {
   positional: [];
@@ -140,9 +141,6 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   @service('user-settings')
   private userSettings!: UserSettings;
 
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
-
   get canvas(): HTMLCanvasElement {
     assert(
       `Element must be 'HTMLCanvasElement' but was ${typeof this.element}`,
@@ -162,89 +160,73 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   constructor(owner: any, args: ArgsFor<IModifierArgs>) {
     super(owner, args);
     this.args = args as IModifierArgs;
-    this.webSocket.on(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
-    this.webSocket.on(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
-    this.webSocket.on(
+    eventEmitter.on(MOUSE_PING_UPDATE_EVENT, this.onMousePingUpdate);
+    eventEmitter.on(COMPONENT_UPDATE_EVENT, this.onComponentUpdate);
+    eventEmitter.on(
       ALL_HIGHLIGHTS_RESET_EVENT,
-      this,
       this.onAllHighlightsReset
     );
-    this.webSocket.on(
+    eventEmitter.on(
       HIGHLIGHTING_UPDATE_EVENT,
-      this,
       this.onHighlightingUpdate
     );
-    this.webSocket.on(CHANGE_LANDSCAPE_EVENT, this, this.onChangeLandscape);
-    this.webSocket.on(SHARE_SETTINGS_EVENT, this, this.onShareSettings);
-    this.webSocket.on(
+    eventEmitter.on(CHANGE_LANDSCAPE_EVENT, this.onChangeLandscape);
+    eventEmitter.on(SHARE_SETTINGS_EVENT,  this.onShareSettings);
+    eventEmitter.on(
       RESTRUCTURE_MODE_UPDATE_EVENT,
-      this,
       this.onRestructureModeUpdate
     );
-    this.webSocket.on(RESTRUCTURE_UPDATE_EVENT, this, this.onRestructureUpdate);
-    this.webSocket.on(
+    eventEmitter.on(RESTRUCTURE_UPDATE_EVENT, this.onRestructureUpdate);
+    eventEmitter.on(
       RESTRUCTURE_CREATE_OR_DELETE_EVENT,
-      this,
       this.onRestructureCreateOrDelete
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
-      this,
       this.onRestructureCopyAndPastePackage
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
-      this,
       this.onRestructureCopyAndPasteClass
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_CUT_AND_INSERT_EVENT,
-      this,
       this.onRestructureCutAndInsert
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_COMMUNICATION_EVENT,
-      this,
       this.onRestructureCommunication
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
-      this,
       this.onRestructureDeleteCommunication
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_RENAME_OPERATION_EVENT,
-      this,
       this.onRestructureRenameOperationMessage
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_RESTORE_APP_EVENT,
-      this,
       this.onRestructureRestoreApp
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_RESTORE_PACKAGE_EVENT,
-      this,
       this.onRestructureRestorePackage
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_RESTORE_CLASS_EVENT,
-      this,
       this.onRestructureRestoreClass
     );
-    this.webSocket.on(
+    eventEmitter.on(
       CHANGELOG_REMOVE_ENTRY_EVENT,
-      this,
       this.onChangeLogRemoveEntry
     );
-    this.webSocket.on(
+    eventEmitter.on(
       CHANGELOG_RESTORE_ENTRIES_EVENT,
-      this,
       this.onChangeLogRestoreEntriesMessage
     );
-    this.webSocket.on(
+    eventEmitter.on(
       RESTRUCTURE_DUPLICATE_APP,
-      this,
       this.onRestructureDuplicateApp
     );
 
@@ -256,87 +238,71 @@ export default class CollaborativeModifierModifier extends Modifier<IModifierArg
   };
 
   removeEventListener() {
-    this.webSocket.off(MOUSE_PING_UPDATE_EVENT, this, this.onMousePingUpdate);
-    this.webSocket.off(COMPONENT_UPDATE_EVENT, this, this.onComponentUpdate);
-    this.webSocket.off(
+    eventEmitter.off(MOUSE_PING_UPDATE_EVENT, this.onMousePingUpdate);
+    eventEmitter.off(COMPONENT_UPDATE_EVENT,  this.onComponentUpdate);
+    eventEmitter.off(
       HIGHLIGHTING_UPDATE_EVENT,
-      this,
       this.onHighlightingUpdate
     );
-    this.webSocket.off(CHANGE_LANDSCAPE_EVENT, this, this.onChangeLandscape);
-    this.webSocket.off(
+    eventEmitter.off(CHANGE_LANDSCAPE_EVENT, this.onChangeLandscape);
+    eventEmitter.off(
       RESTRUCTURE_MODE_UPDATE_EVENT,
-      this,
       this.onRestructureModeUpdate
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_UPDATE_EVENT,
-      this,
       this.onRestructureUpdate
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_CREATE_OR_DELETE_EVENT,
-      this,
       this.onRestructureCreateOrDelete
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
-      this,
       this.onRestructureCopyAndPastePackage
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
-      this,
       this.onRestructureCopyAndPasteClass
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_CUT_AND_INSERT_EVENT,
-      this,
       this.onRestructureCutAndInsert
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_COMMUNICATION_EVENT,
-      this,
       this.onRestructureCommunication
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
-      this,
       this.onRestructureDeleteCommunication
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_RENAME_OPERATION_EVENT,
-      this,
       this.onRestructureRenameOperationMessage
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_RESTORE_APP_EVENT,
-      this,
       this.onRestructureRestoreApp
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_RESTORE_PACKAGE_EVENT,
-      this,
       this.onRestructureRestorePackage
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_RESTORE_CLASS_EVENT,
-      this,
       this.onRestructureRestoreClass
     );
-    this.webSocket.off(
+    eventEmitter.off(
       CHANGELOG_REMOVE_ENTRY_EVENT,
-      this,
       this.onChangeLogRemoveEntry
     );
-    this.webSocket.off(
+    eventEmitter.off(
       CHANGELOG_RESTORE_ENTRIES_EVENT,
-      this,
       this.onChangeLogRestoreEntriesMessage
     );
-    this.webSocket.off(
+    eventEmitter.off(
       RESTRUCTURE_DUPLICATE_APP,
-      this,
       this.onRestructureDuplicateApp
     );
   }

@@ -4,8 +4,6 @@ import * as THREE from 'three';
 import { ActionIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/action-icon';
 import { CloseIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/close-icon';
 
-// TODO: Wait until required utils are migrated
-
 interface VrAssetRepoState {
   closeIconTextures: CloseIconTextures;
   shareIconTextures: ActionIconTextures;
@@ -17,6 +15,7 @@ interface VrAssetRepoState {
 export const useVrAssetRepoStore = create<VrAssetRepoState>((set, get) => {
   const textureLoader = new THREE.TextureLoader();
 
+  // TODO: Check where the files come from
   return {
     closeIconTextures: {
       defaultTexture: textureLoader.load('images/x_white_transp.png'),

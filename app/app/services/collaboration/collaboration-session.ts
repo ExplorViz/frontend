@@ -10,7 +10,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import WebSocketService, { SELF_DISCONNECTED_EVENT } from './web-socket';
+import { useWebSocketStore, SELF_DISCONNECTED_EVENT } from 'react-lib/src/stores/collaboration/web-socket';
 import RoomService from './room-service';
 import {
   SELF_CONNECTED_EVENT,
@@ -42,6 +42,7 @@ import {
 import ChatService from 'explorviz-frontend/services/chat';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -49,9 +50,6 @@ export default class CollaborationSession extends Service.extend({
   // anything which *must* be merged to prototype here
 }) {
   debug = debugLogger('CollaborationSession');
-
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
 
   @service('collaboration/room-service')
   private roomService!: RoomService;
@@ -145,21 +143,21 @@ export default class CollaborationSession extends Service.extend({
   init() {
     super.init();
     this.debug('Initializing collaboration session');
-    this.webSocket.on(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
-    this.webSocket.on(USER_CONNECTED_EVENT, this, this.onUserConnected);
-    this.webSocket.on(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.on(USER_POSITIONS_EVENT, this, this.onUserPositions);
-    this.webSocket.on(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
-    this.webSocket.on(USER_KICK_EVENT, this, this.onUserKickEvent);
+    eventEmitter.on(SELF_CONNECTED_EVENT, this.onSelfConnected);
+    eventEmitter.on(USER_CONNECTED_EVENT, this.onUserConnected);
+    eventEmitter.on(USER_DISCONNECTED_EVENT, this.onUserDisconnect);
+    eventEmitter.on(USER_POSITIONS_EVENT, this.onUserPositions);
+    eventEmitter.on(SELF_DISCONNECTED_EVENT, this.onSelfDisconnected);
+    eventEmitter.on(USER_KICK_EVENT, this.onUserKickEvent);
   }
 
   willDestroy() {
-    this.webSocket.off(SELF_CONNECTED_EVENT, this, this.onSelfConnected);
-    this.webSocket.off(USER_CONNECTED_EVENT, this, this.onUserConnected);
-    this.webSocket.off(USER_DISCONNECTED_EVENT, this, this.onUserDisconnect);
-    this.webSocket.off(USER_POSITIONS_EVENT, this, this.onUserPositions);
-    this.webSocket.off(SELF_DISCONNECTED_EVENT, this, this.onSelfDisconnected);
-    this.webSocket.off(USER_KICK_EVENT, this, this.onUserKickEvent);
+    eventEmitter.off(SELF_CONNECTED_EVENT, this.onSelfConnected);
+    eventEmitter.off(USER_CONNECTED_EVENT, this.onUserConnected);
+    eventEmitter.off(USER_DISCONNECTED_EVENT, this.onUserDisconnect);
+    eventEmitter.off(USER_POSITIONS_EVENT, this.onUserPositions);
+    eventEmitter.off(SELF_DISCONNECTED_EVENT, this.onSelfDisconnected);
+    eventEmitter.off(USER_KICK_EVENT, this.onUserKickEvent);
   }
 
   addRemoteUser(remoteUser: RemoteUser) {
@@ -455,7 +453,7 @@ export default class CollaborationSession extends Service.extend({
     while (retries < maxRetries) {
       try {
         const response = await this.roomService.joinLobby(this.currentRoomId);
-        this.webSocket.initSocket(
+        useWebSocketStore.getState().initSocket(
           response.ticketId,
           this.localUser.visualizationMode
         );
@@ -491,7 +489,7 @@ export default class CollaborationSession extends Service.extend({
 
     this.connectionStatus = 'offline';
     this.currentRoomId = null;
-    this.webSocket.closeSocket();
+    useWebSocketStore.getState().closeSocket();
 
     // Remove roomId from URL
     if (this.router.currentRouteName === 'visualization') {

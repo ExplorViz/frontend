@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 
 import { INITIAL_LANDSCAPE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/receivable/landscape';
 import { ANNOTATION_EDIT_RESPONSE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/receivable/response/annotation-edit-response';
@@ -39,11 +39,13 @@ import { CHAT_SYNC_EVENT } from 'react-lib/src/utils/collaboration//web-socket-m
 import { io, Socket } from 'socket.io-client';
 import { USER_KICK_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/kick-user';
 import { MESSAGE_DELETE_EVENT } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/delete-message';
+import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
+import { useAuthStore } from 'react-lib/src/stores/auth';
+import eventEmitter from '../../utils/event-emitter';
 
 type ResponseHandler<T> = (msg: T) => void;
 
-// TODO read .env
-// const { collaborationService } = ENV.backendAddresses;
+const collaborationService = 'http://localhost:4444'; //import.meta.env.VITE_COLLABORATION_SERV_URL; // TODO: Use when fully migrated to React
 
 // TODO Evented
 
@@ -94,18 +96,217 @@ const RESPONSE_EVENTS = [
 ];
 
 interface WebSocketState {
-  currentSocket: Socket | null;
-  currentSocketUrl: string | null;
+  _currentSocket: Socket | null;
+  _currentSocketUrl: string | null;
   responseHandlers: Map<Nonce, ResponseHandler<any>>;
   lastNonce: Nonce;
+  nextNonce: () => number;
+  _getSocketUrl: () => string;
+  initSocket: (ticketId: string, mode: VisualizationMode) => Promise<void>;
+  closeSocket: () => void;
+  _closeHandler: (event: any) => void;
+  send: <T>(event: string, msg: T) => void;
+  isWebSocketOpen: () => boolean;
+  reset: () => void;
+  _awaitResponse: <T>({
+    nonce,
+    responseType,
+    onResponse,
+    onOnline,
+    onOffline,
+  }: {
+    nonce: Nonce;
+    responseType: (msg: any) => msg is T;
+    onResponse: ResponseHandler<T>;
+    onOnline?: () => void;
+    onOffline?: () => void;
+  }) => void;
+  sendRespondableMessage: <T, R>(
+    event: string,
+    message: T,
+    {
+      responseType,
+      onResponse,
+      onOffline,
+    }: {
+      responseType: (msg: any) => msg is R;
+      onResponse: (msg: R) => boolean;
+      onOffline?: () => void;
+    }
+  ) => Promise<boolean>;
 }
 
-export const useWebSocketStore = createStore<WebSocketState>((set, get) => ({
-  // TODO private
-  currentSocket: null, // WebSocket to send/receive messages to/from backend
-  // TODO private
-  currentSocketUrl: null,
+export const useWebSocketStore = create<WebSocketState>((set, get) => ({
+  _currentSocket: null, // WebSocket to send/receive messages to/from backend
+  _currentSocketUrl: null,
   responseHandlers: new Map<Nonce, ResponseHandler<any>>(),
   lastNonce: 0,
-  // TODO methods
+
+  nextNonce: () => {
+    set({ lastNonce: get().lastNonce++ });
+    return get().lastNonce;
+  },
+
+  // private
+  _getSocketUrl: () => {
+    return collaborationService;
+  },
+
+  initSocket: async (ticketId: string, mode: VisualizationMode) => {
+    set({ _currentSocketUrl: get()._getSocketUrl() });
+    const urlParams = new URLSearchParams(window.location.search);
+    set({
+      _currentSocket: io(get()._currentSocketUrl!, {
+        transports: ['websocket'],
+        query: {
+          ticketId: ticketId,
+          userName: useAuthStore.getState().user?.name,
+          deviceId: urlParams.get('deviceId'),
+          mode: mode,
+        },
+      }),
+    });
+    get()._currentSocket!.on('disconnect', get()._closeHandler.bind(this)); // TODO: Does this work?
+
+    RECEIVABLE_EVENTS.forEach((event) => {
+      get()._currentSocket?.on(event, (message) => {
+        eventEmitter.emit(event, message);
+      });
+    });
+
+    RESPONSE_EVENTS.forEach((event) => {
+      get()._currentSocket?.on(event, (message) => {
+        const handler = get().responseHandlers.get(message.nonce);
+        if (handler) handler(message.response);
+      });
+    });
+  },
+
+  closeSocket: () => {
+    if (get().isWebSocketOpen()) get()._currentSocket?.disconnect();
+  },
+
+  // private
+  _closeHandler: (event: any) => {
+    // Invoke external event listener for close event.
+    eventEmitter.emit(SELF_DISCONNECTED_EVENT, event);
+
+    // Remove internal event listeners.
+    get()._currentSocket?.disconnect();
+    set({ _currentSocket: null });
+    set({ _currentSocketUrl: null });
+  },
+
+  /**
+   * Sends a message to the backend.
+   *
+   * The type parameter `T` is used to validate the type of the sent message
+   * at compile time.
+   *
+   * @param msg The message to send.
+   */
+  send: <T>(event: string, msg: T) => {
+    if (get().isWebSocketOpen()) get()._currentSocket?.emit(event, msg);
+  },
+
+  isWebSocketOpen: (): boolean => {
+    return get()._currentSocket != null && get()._currentSocket!.connected;
+  },
+
+  reset: () => {
+    get()._currentSocket?.disconnect();
+    set({ _currentSocket: null });
+  },
+
+  // private
+  /**
+   * Adds an event listener that is invoked when a response with the given
+   * identifier is received.
+   *
+   * When the response is received, the listener is removed.
+   *
+   * If the user is offline, no listener will be created.
+   *
+   * @param nonce Locally unique identifier of the request whose response to wait for.
+   * @param responseType A type guard that tests whether the received response has the correct type.
+   * @param onResponse The callback to invoke when the response is received.
+   * @param onOnline The callback to invoke before staring to listen for responses when the client
+   * is connected.
+   * @param onOffline The callback to invoke instead of listening for responses when the client is
+   * not connected.
+   */
+  _awaitResponse: <T>({
+    nonce,
+    responseType: isValidResponse,
+    onResponse,
+    onOnline,
+    onOffline,
+  }: {
+    nonce: Nonce;
+    responseType: (msg: any) => msg is T;
+    onResponse: ResponseHandler<T>;
+    onOnline?: () => void;
+    onOffline?: () => void;
+  }) => {
+    // Don't wait for response unless there is a open websocket connection.
+    if (!get().isWebSocketOpen()) {
+      if (onOffline) onOffline();
+      return;
+    }
+
+    // If a websocket connection is open, notify callee that the listener is added.
+    if (onOnline) onOnline();
+
+    // Listen for responses.
+    const newResponseHandlers = get().responseHandlers;
+    const handler = (response: any) => {
+      if (isValidResponse(response)) {
+        newResponseHandlers.delete(nonce);
+        onResponse(response);
+      }
+    };
+    newResponseHandlers.set(nonce, handler);
+    set({ responseHandlers: newResponseHandlers });
+  },
+
+  /**
+   * Send a message to the backend that requires a response.
+   *
+   * This is usually used, when the backend is required to synchronize some actions.
+   * */
+  sendRespondableMessage: <T, R>(
+    event: string,
+    message: T,
+    {
+      responseType,
+      onResponse,
+      onOffline,
+    }: {
+      responseType: (msg: any) => msg is R;
+      onResponse: (msg: R) => boolean;
+      onOffline?: () => void;
+    }
+  ): Promise<boolean> => {
+    const nonce = get().nextNonce();
+    // send message
+    get().send<T>(event, {
+      ...message,
+      nonce,
+    });
+
+    // handle response
+    return new Promise<boolean>((resolve) => {
+      get()._awaitResponse({
+        nonce,
+        responseType,
+        onResponse: (response: R) => {
+          resolve(onResponse?.(response));
+        },
+        onOffline: () => {
+          onOffline?.();
+          resolve(true);
+        },
+      });
+    });
+  },
 }));

@@ -1,6 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
-import Auth from './auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import { LandscapeToken } from './landscape-token';
 import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
@@ -44,9 +44,6 @@ export type SnapshotInfo = {
 const { userService, shareSnapshot } = ENV.backendAddresses;
 
 export default class SnapshotTokenService extends Service {
-  @service('auth')
-  private auth!: Auth;
-
   @service('router')
   router!: any;
 
@@ -83,7 +80,7 @@ export default class SnapshotTokenService extends Service {
 
   retrieveTokens() {
     return new Promise<SnapshotInfo>((resolve) => {
-      const userId = encodeURI(this.auth.user?.sub || '');
+      const userId = encodeURI(useAuthStore.getState().user?.sub.toString() || '');
       if (!userId) {
         resolve({
           personalSnapshots: [],
@@ -94,7 +91,7 @@ export default class SnapshotTokenService extends Service {
 
       fetch(`${userService}/snapshot?owner=${userId}`, {
         headers: {
-          Authorization: `Bearer ${this.auth.accessToken}`,
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
       })
         .then(async (response: Response) => {
@@ -132,10 +129,10 @@ export default class SnapshotTokenService extends Service {
   retrieveToken(owner: string, createdAt: number, isShared: boolean) {
     return new Promise<SnapshotToken | null>((resolve) => {
       fetch(
-        `${userService}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${this.auth.user!.sub}`,
+        `${userService}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${useAuthStore.getState().user!.sub.toString()}`,
         {
           headers: {
-            Authorization: `Bearer ${this.auth.accessToken}`,
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
           },
         }
       )
@@ -286,7 +283,7 @@ export default class SnapshotTokenService extends Service {
     subscribed: boolean
   ) {
     if (subscribed) {
-      const url = `${userService}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${this.auth.user!.sub}`;
+      const url = `${userService}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${useAuthStore.getState().user!.sub.toString()}`;
 
       await fetch(url, {
         method: 'PUT',

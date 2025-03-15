@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { Font } from 'three/examples/jsm/loaders/FontLoader'; // TODO: Why not imported?
 
 interface FontRepositoryState {
   font?: Font;

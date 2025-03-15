@@ -2,7 +2,7 @@ import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { Socket, io } from 'socket.io-client';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import Auth from 'explorviz-frontend/services/auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import { setOwner } from '@ember/application';
 import {
   Application,
@@ -89,9 +89,6 @@ let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 const log = debugLogger('ide-websocket');
 
 export default class IdeWebsocket {
-  @service('auth')
-  auth!: Auth;
-
   @service('ide-websocket-facade')
   ideWebsocketFacade!: IdeWebsocketFacade;
 
@@ -149,7 +146,7 @@ export default class IdeWebsocket {
     socket!.on('connect', () => {
       socket!.emit(
         'update-user-info',
-        { userId: this.auth.user?.nickname },
+        { userId: useAuthStore.getState().user?.nickname },
         (roomName: string) => {
           this.ideWebsocketFacade.roomName = roomName;
           this.ideWebsocketFacade.isConnected = true;

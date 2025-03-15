@@ -8,26 +8,23 @@ import {
   HeatmapUpdateArgs,
   HeatmapUpdateMessage,
 } from 'react-lib/src/utils/collaboration//web-socket-messages/sendable/heatmap-update';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import equal from 'fast-deep-equal';
 import {
   useHeatmapConfigurationStore,
   HeatmapMode,
 } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 function cleanup(instance: SyncStateModifier) {
-  instance.webSocket.off(
+  eventEmitter.off(
     HEATMAP_UPDATE_EVENT,
-    instance,
     instance.onHeatmapUpdate
   );
 }
 
 export default class SyncStateModifier extends Modifier {
-  @service('collaboration/web-socket')
-  webSocket!: WebSocketService;
-
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
@@ -35,7 +32,7 @@ export default class SyncStateModifier extends Modifier {
 
   constructor(owner: any, args: any) {
     super(owner, args);
-    this.webSocket.on(HEATMAP_UPDATE_EVENT, this, this.onHeatmapUpdate);
+    eventEmitter.on(HEATMAP_UPDATE_EVENT, this.onHeatmapUpdate);
     registerDestructor(this, cleanup);
   }
 
@@ -92,7 +89,7 @@ export default class SyncStateModifier extends Modifier {
     // if (_.isEqual(object, other);)
     if (!equal(message, lastMessage)) {
       this.debug(`Sending${args.isActive}`);
-      this.webSocket.send(event, message);
+      useWebSocketStore.getState().send(event, message);
       this.state.set(message.event, message);
     }
   }

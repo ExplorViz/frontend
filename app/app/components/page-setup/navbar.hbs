@@ -38,9 +38,9 @@
         data-toggle='dropdown'
         aria-expanded='false'
       >
-        {{#if this.auth.user.picture}}
+        {{#if this.user.picture}}
           <img
-            src={{this.auth.user.picture}}
+            src={{this.user.picture}}
             alt='User profile'
             width='16px'
             height='16px'
@@ -57,12 +57,12 @@
                   'person-16'
                   class='octicon'
                 }}
-                {{this.auth.user.nickname}}</strong></div>
+                {{this.user.nickname}}</strong></div>
             <span class='truncate-text'>{{svg-jar
                 'id-badge-16'
                 class='octicon'
               }}
-              {{this.auth.user.sub}}</span>
+              {{this.user.sub}}</span>
           </div></li>
         {{#if this.tokenService.token}}
           <li>

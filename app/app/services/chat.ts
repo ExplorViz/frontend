@@ -1,7 +1,7 @@
 import Service, { inject as service } from '@ember/service';
 import { registerDestructor } from '@ember/destroyable';
 import collaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import * as THREE from 'three';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
@@ -20,6 +20,7 @@ import {
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { useChatStore } from 'react-lib/src/stores/chat.ts';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export interface ChatMessageInterface {
   msgId: number;
@@ -72,9 +73,6 @@ export default class ChatService extends Service {
   @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
-
   // @tracked
   get msgId(): number {
     return useChatStore.getState().msgId;
@@ -100,9 +98,9 @@ export default class ChatService extends Service {
   constructor() {
     super(...arguments);
 
-    this.webSocket.on(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
-    this.webSocket.on(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
-    this.webSocket.on(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
+    eventEmitter.on(CHAT_MESSAGE_EVENT, this.onChatMessageEvent);
+    eventEmitter.on(CHAT_SYNC_EVENT, this.onChatSyncEvent);
+    eventEmitter.on(MESSAGE_DELETE_EVENT, this.onMessageDeleteEvent);
 
     registerDestructor(this, this.cleanup);
   }
@@ -112,9 +110,9 @@ export default class ChatService extends Service {
   };
 
   removeEventListener() {
-    this.webSocket.off(CHAT_MESSAGE_EVENT, this, this.onChatMessageEvent);
-    this.webSocket.off(CHAT_SYNC_EVENT, this, this.onChatSyncEvent);
-    this.webSocket.off(MESSAGE_DELETE_EVENT, this, this.onMessageDeleteEvent);
+    eventEmitter.off(CHAT_MESSAGE_EVENT, this.onChatMessageEvent);
+    eventEmitter.off(CHAT_SYNC_EVENT, this.onChatSyncEvent);
+    eventEmitter.off(MESSAGE_DELETE_EVENT, this.onMessageDeleteEvent);
   }
 
   /**

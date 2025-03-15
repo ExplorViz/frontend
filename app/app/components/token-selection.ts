@@ -1,11 +1,10 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
 import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import { action } from '@ember/object';
-import Auth from 'explorviz-frontend/services/auth';
 import ENV from 'explorviz-frontend/config/environment';
 import AdditionalTokenInfo from 'react-lib/src/components/additional-token-info.tsx';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 const { spanService } = ENV.backendAddresses;
 
 interface Args {
@@ -20,8 +19,7 @@ export default class TokenSelection extends Component<Args> {
   // React component refs
   additionalTokenInfo = AdditionalTokenInfo;
 
-  @service('auth')
-  auth!: Auth;
+  user = useAuthStore.getState().user;
 
   @tracked
   sortProperty: keyof LandscapeToken = 'value';

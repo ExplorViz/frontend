@@ -4,7 +4,6 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import Auth from 'explorviz-frontend/services/auth';
 import SnapshotTokenService, {
   SnapshotToken,
 } from 'explorviz-frontend/services/snapshot-token';
@@ -13,6 +12,7 @@ import AnnotationData from 'explorviz-frontend/components/visualization/renderin
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 
 interface Args {
   landscapeData: LandscapeData;
@@ -23,9 +23,6 @@ interface Args {
 }
 
 export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapshotComponent extends Component<Args> {
-  @service('auth')
-  auth!: Auth;
-
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
 
@@ -77,7 +74,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       this.timestampRepo.getTimestampsForCommitId('cross-commit');
 
     const content: SnapshotToken = {
-      owner: this.auth.user!.sub,
+      owner: useAuthStore.getState().user!.sub.toString(),
       createdAt: createdAt,
       name: this.snapshotName,
       landscapeToken: this.args.landscapeToken,
@@ -118,7 +115,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       this.timestampRepo.getTimestampsForCommitId('cross-commit');
 
     const content: SnapshotToken = {
-      owner: this.auth.user!.sub,
+      owner: useAuthStore.getState().user!.sub.toString(),
       createdAt: createdAt,
       name: this.snapshotName,
       landscapeToken: this.args.landscapeToken,

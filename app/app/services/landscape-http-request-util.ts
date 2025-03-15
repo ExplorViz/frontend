@@ -2,16 +2,13 @@ import { inject as service } from '@ember/service';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import ENV from 'explorviz-frontend/config/environment';
-import Auth from './auth';
+import { useAuthStore } from 'react-lib/src/stores/auth';
 import LandscapeTokenService from './landscape-token';
 import { setOwner } from '@ember/application';
 
 const { spanService } = ENV.backendAddresses;
 
 export default class LandscapeHttpRequestUtil {
-  @service('auth')
-  auth!: Auth;
-
   @service('landscape-token')
   tokenService!: LandscapeTokenService;
 
@@ -44,7 +41,7 @@ export default class LandscapeHttpRequestUtil {
         `${spanService}/v2/landscapes/${this.tokenService.token.value}/structure`,
         {
           headers: {
-            Authorization: `Bearer ${this.auth.accessToken}`,
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
             'Access-Control-Allow-Origin': '*',
           },
         }
@@ -73,7 +70,7 @@ export default class LandscapeHttpRequestUtil {
         `${spanService}/v2/landscapes/${this.tokenService.token.value}/dynamic?from=${fromTimestamp}&to=${toTimestamp}`,
         {
           headers: {
-            Authorization: `Bearer ${this.auth.accessToken}`,
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
             'Access-Control-Allow-Origin': '*',
           },
         }

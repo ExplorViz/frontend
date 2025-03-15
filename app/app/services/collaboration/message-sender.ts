@@ -65,7 +65,7 @@ import {
   UserPositionsMessage,
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import * as THREE from 'three';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import {
   COMPONENT_UPDATE_EVENT,
   ComponentUpdateMessage,
@@ -126,9 +126,6 @@ import {
 import { VisualizationSettings } from 'react-lib/src/utils/settings/settings-schemas';
 
 export default class MessageSender extends Service {
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
-
   /**
    * Gets the next request identifier.
    *
@@ -144,7 +141,7 @@ export default class MessageSender extends Service {
     controller1?: ControllerPose | undefined,
     controller2?: ControllerPose | undefined
   ) {
-    this.webSocket.send<UserPositionsMessage>(USER_POSITIONS_EVENT, {
+    useWebSocketStore.getState().send<UserPositionsMessage>(USER_POSITIONS_EVENT, {
       event: USER_POSITIONS_EVENT,
       controller1,
       controller2,
@@ -153,7 +150,7 @@ export default class MessageSender extends Service {
   }
 
   sendChangeLandscape(landscapeToken: string) {
-    this.webSocket.send<ChangeLandscapeMessage>(CHANGE_LANDSCAPE_EVENT, {
+    useWebSocketStore.getState().send<ChangeLandscapeMessage>(CHANGE_LANDSCAPE_EVENT, {
       event: CHANGE_LANDSCAPE_EVENT,
       landscapeToken,
     });
@@ -163,7 +160,7 @@ export default class MessageSender extends Service {
    * Sends a message to indicate that every highlight from every user for all applications should be turned unhighlighted
    */
   sendAllHighlightsReset() {
-    this.webSocket.send<AllHighlightsResetMessage>('all_highlights_reset', {
+    useWebSocketStore.getState().send<AllHighlightsResetMessage>('all_highlights_reset', {
       event: 'all_highlights_reset',
     });
   }
@@ -181,7 +178,7 @@ export default class MessageSender extends Service {
     quaternion: THREE.Quaternion,
     scale: THREE.Vector3
   ) {
-    this.webSocket.send<ObjectMovedMessage>(OBJECT_MOVED_EVENT, {
+    useWebSocketStore.getState().send<ObjectMovedMessage>(OBJECT_MOVED_EVENT, {
       event: OBJECT_MOVED_EVENT,
       objectId,
       position: position.toArray(),
@@ -197,7 +194,7 @@ export default class MessageSender extends Service {
    * @param objectId The id of the object to request to grab.
    */
   sendObjectReleased(objectId: string) {
-    this.webSocket.send<ObjectReleasedMessage>(OBJECT_RELEASED_EVENT, {
+    useWebSocketStore.getState().send<ObjectReleasedMessage>(OBJECT_RELEASED_EVENT, {
       event: OBJECT_RELEASED_EVENT,
       objectId,
     });
@@ -218,7 +215,7 @@ export default class MessageSender extends Service {
     isFoundation: boolean,
     forward: boolean = true
   ) {
-    this.webSocket.send<ComponentUpdateMessage>(COMPONENT_UPDATE_EVENT, {
+    useWebSocketStore.getState().send<ComponentUpdateMessage>(COMPONENT_UPDATE_EVENT, {
       event: COMPONENT_UPDATE_EVENT,
       appId,
       componentId,
@@ -244,7 +241,7 @@ export default class MessageSender extends Service {
     isHighlighted: boolean,
     isMultiSelected: boolean
   ) {
-    this.webSocket.send<HighlightingUpdateMessage>(HIGHLIGHTING_UPDATE_EVENT, {
+    useWebSocketStore.getState().send<HighlightingUpdateMessage>(HIGHLIGHTING_UPDATE_EVENT, {
       event: HIGHLIGHTING_UPDATE_EVENT,
       appId,
       entityType,
@@ -255,14 +252,14 @@ export default class MessageSender extends Service {
   }
 
   sendSharedSettings(settings: VisualizationSettings) {
-    this.webSocket.send<ShareSettingsMessage>(SHARE_SETTINGS_EVENT, {
+    useWebSocketStore.getState().send<ShareSettingsMessage>(SHARE_SETTINGS_EVENT, {
       event: SHARE_SETTINGS_EVENT,
       settings,
     });
   }
 
   sendRestructureModeUpdate() {
-    this.webSocket.send<RestructureModeUpdateMessage>(
+    useWebSocketStore.getState().send<RestructureModeUpdateMessage>(
       RESTRUCTURE_MODE_UPDATE_EVENT,
       {
         event: RESTRUCTURE_MODE_UPDATE_EVENT,
@@ -277,7 +274,7 @@ export default class MessageSender extends Service {
     appId: string | null,
     undo: boolean
   ) {
-    this.webSocket.send<RestructureUpdateMessage>(RESTRUCTURE_UPDATE_EVENT, {
+    useWebSocketStore.getState().send<RestructureUpdateMessage>(RESTRUCTURE_UPDATE_EVENT, {
       event: RESTRUCTURE_UPDATE_EVENT,
       entityType: entityType,
       entityId: entityId,
@@ -295,7 +292,7 @@ export default class MessageSender extends Service {
     entityId: string | null,
     undo: boolean
   ) {
-    this.webSocket.send<RestructureCreateOrDeleteMessage>(
+    useWebSocketStore.getState().send<RestructureCreateOrDeleteMessage>(
       RESTRUCTURE_CREATE_OR_DELETE_EVENT,
       {
         event: RESTRUCTURE_CREATE_OR_DELETE_EVENT,
@@ -310,7 +307,7 @@ export default class MessageSender extends Service {
   }
 
   sendRestructureDuplicateAppMessage(appId: string) {
-    this.webSocket.send<RestructureDuplicateAppMessage>(
+    useWebSocketStore.getState().send<RestructureDuplicateAppMessage>(
       RESTRUCTURE_DUPLICATE_APP,
       {
         event: RESTRUCTURE_DUPLICATE_APP,
@@ -324,7 +321,7 @@ export default class MessageSender extends Service {
     destinationId: string,
     clippedEntityId: string
   ) {
-    this.webSocket.send<RestructureCopyAndPastePackageMessage>(
+    useWebSocketStore.getState().send<RestructureCopyAndPastePackageMessage>(
       RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
       {
         event: RESTRUCTURE_COPY_AND_PASTE_PACKAGE_EVENT,
@@ -339,7 +336,7 @@ export default class MessageSender extends Service {
     destinationId: string,
     clippedEntityId: string
   ) {
-    this.webSocket.send<RestructureCopyAndPasteClassMessage>(
+    useWebSocketStore.getState().send<RestructureCopyAndPasteClassMessage>(
       RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
       {
         event: RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -355,7 +352,7 @@ export default class MessageSender extends Service {
     clippedEntity: string,
     clippedEntityId: string
   ) {
-    this.webSocket.send<RestructureCutAndInsertMessage>(
+    useWebSocketStore.getState().send<RestructureCutAndInsertMessage>(
       RESTRUCTURE_CUT_AND_INSERT_EVENT,
       {
         event: RESTRUCTURE_CUT_AND_INSERT_EVENT,
@@ -372,7 +369,7 @@ export default class MessageSender extends Service {
     targetClassId: string,
     methodName: string
   ) {
-    this.webSocket.send<RestructureCommunicationMessage>(
+    useWebSocketStore.getState().send<RestructureCommunicationMessage>(
       RESTRUCTURE_COMMUNICATION_EVENT,
       {
         event: RESTRUCTURE_COMMUNICATION_EVENT,
@@ -384,7 +381,7 @@ export default class MessageSender extends Service {
   }
 
   sendRestructureDeleteCommunicationMessage(undo: boolean, commId: string) {
-    this.webSocket.send<RestructureDeleteCommunicationMessage>(
+    useWebSocketStore.getState().send<RestructureDeleteCommunicationMessage>(
       RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
       {
         event: RESTRUCTURE_DELETE_COMMUNICATION_EVENT,
@@ -399,7 +396,7 @@ export default class MessageSender extends Service {
     newName: string,
     undo: boolean
   ) {
-    this.webSocket.send<RestructureRenameOperationMessage>(
+    useWebSocketStore.getState().send<RestructureRenameOperationMessage>(
       RESTRUCTURE_RENAME_OPERATION_EVENT,
       {
         event: RESTRUCTURE_RENAME_OPERATION_EVENT,
@@ -411,7 +408,7 @@ export default class MessageSender extends Service {
   }
 
   sendRestructureRestoreAppMessage(appId: string, undoCutOperation: boolean) {
-    this.webSocket.send<RestructureRestoreAppMessage>(
+    useWebSocketStore.getState().send<RestructureRestoreAppMessage>(
       RESTRUCTURE_RESTORE_APP_EVENT,
       {
         event: RESTRUCTURE_RESTORE_APP_EVENT,
@@ -425,7 +422,7 @@ export default class MessageSender extends Service {
     pckgId: string,
     undoCutOperation: boolean
   ) {
-    this.webSocket.send<RestructureRestorePackageMessage>(
+    useWebSocketStore.getState().send<RestructureRestorePackageMessage>(
       RESTRUCTURE_RESTORE_PACKAGE_EVENT,
       {
         event: RESTRUCTURE_RESTORE_PACKAGE_EVENT,
@@ -440,7 +437,7 @@ export default class MessageSender extends Service {
     clazzId: string,
     undoCutOperation: boolean
   ) {
-    this.webSocket.send<RestructureRestoreClassMessage>(
+    useWebSocketStore.getState().send<RestructureRestoreClassMessage>(
       RESTRUCTURE_RESTORE_CLASS_EVENT,
       {
         event: RESTRUCTURE_RESTORE_CLASS_EVENT,
@@ -452,7 +449,7 @@ export default class MessageSender extends Service {
   }
 
   sendChangeLogRestoreEntriesMessage(key: string) {
-    this.webSocket.send<ChangeLogRestoreEntriesMessage>(
+    useWebSocketStore.getState().send<ChangeLogRestoreEntriesMessage>(
       CHANGELOG_RESTORE_ENTRIES_EVENT,
       {
         event: CHANGELOG_RESTORE_ENTRIES_EVENT,
@@ -462,7 +459,7 @@ export default class MessageSender extends Service {
   }
 
   sendChangeLogRemoveEntryMessage(entryIds: string[]) {
-    this.webSocket.send<ChangeLogRemoveEntryMessage>(
+    useWebSocketStore.getState().send<ChangeLogRemoveEntryMessage>(
       CHANGELOG_REMOVE_ENTRY_EVENT,
       {
         event: CHANGELOG_REMOVE_ENTRY_EVENT,
@@ -481,7 +478,7 @@ export default class MessageSender extends Service {
     spectatingUserIds: string[],
     configurationId = 'default'
   ) {
-    this.webSocket.send<SpectatingUpdateMessage>(SPECTATING_UPDATE_EVENT, {
+    useWebSocketStore.getState().send<SpectatingUpdateMessage>(SPECTATING_UPDATE_EVENT, {
       event: 'spectating_update',
       isSpectating,
       spectatedUserId,
@@ -495,7 +492,7 @@ export default class MessageSender extends Service {
     if (!room) {
       return;
     }
-    this.webSocket.send<SyncRoomStateMessage>(SYNC_ROOM_STATE_EVENT, {
+    useWebSocketStore.getState().send<SyncRoomStateMessage>(SYNC_ROOM_STATE_EVENT, {
       event: SYNC_ROOM_STATE_EVENT,
       landscape: room.landscape,
       openApps: room.openApps.map(({ ...app }) => app),
@@ -515,7 +512,7 @@ export default class MessageSender extends Service {
 
     const motionController =
       await controller.controllerModel.motionControllerPromise;
-    this.webSocket.send<UserControllerConnectMessage>(
+    useWebSocketStore.getState().send<UserControllerConnectMessage>(
       USER_CONTROLLER_CONNECT_EVENT,
       {
         event: 'user_controller_connect',
@@ -529,7 +526,7 @@ export default class MessageSender extends Service {
   }
 
   async sendJoinVr() {
-    this.webSocket.send<JoinVrMessage>('join_vr', {
+    useWebSocketStore.getState().send<JoinVrMessage>('join_vr', {
       event: 'join_vr',
     });
   }
@@ -538,7 +535,7 @@ export default class MessageSender extends Service {
    * Informs the backend if a controller was connected/disconnected.
    */
   sendControllerDisconnect(controller: VRController) {
-    this.webSocket.send<UserControllerDisconnectMessage>(
+    useWebSocketStore.getState().send<UserControllerDisconnectMessage>(
       USER_CONTROLLER_DISCONNECT_EVENT,
       {
         event: 'user_controller_disconnect',
@@ -548,7 +545,7 @@ export default class MessageSender extends Service {
   }
 
   sendPingUpdate(controllerId: ControllerId, isPinging: boolean) {
-    this.webSocket.send<PingUpdateMessage>(PING_UPDATE_EVENT, {
+    useWebSocketStore.getState().send<PingUpdateMessage>(PING_UPDATE_EVENT, {
       event: 'ping_update',
       controllerId,
       isPinging,
@@ -560,7 +557,7 @@ export default class MessageSender extends Service {
     isApplication: boolean,
     position: THREE.Vector3
   ) {
-    this.webSocket.send<MousePingUpdateMessage>(MOUSE_PING_UPDATE_EVENT, {
+    useWebSocketStore.getState().send<MousePingUpdateMessage>(MOUSE_PING_UPDATE_EVENT, {
       event: 'mouse_ping_update',
       modelId,
       isApplication,
@@ -569,7 +566,7 @@ export default class MessageSender extends Service {
   }
 
   sendTimestampUpdate(timestamp: number) {
-    this.webSocket.send<TimestampUpdateMessage>(TIMESTAMP_UPDATE_EVENT, {
+    useWebSocketStore.getState().send<TimestampUpdateMessage>(TIMESTAMP_UPDATE_EVENT, {
       event: 'timestamp_update',
       timestamp,
     });
@@ -584,7 +581,7 @@ export default class MessageSender extends Service {
     eventType: string,
     eventData: any[]
   ) {
-    this.webSocket.send<ChatMessage>(CHAT_MESSAGE_EVENT, {
+    useWebSocketStore.getState().send<ChatMessage>(CHAT_MESSAGE_EVENT, {
       event: 'chat_message',
       userId,
       msg,
@@ -597,27 +594,27 @@ export default class MessageSender extends Service {
   }
 
   sendChatSynchronize() {
-    this.webSocket.send<ChatSynchronizeMessage>(CHAT_SYNC_EVENT, {
+    useWebSocketStore.getState().send<ChatSynchronizeMessage>(CHAT_SYNC_EVENT, {
       event: 'chat_synchronization',
     });
   }
 
   sendUserMuteUpdate(userId: string) {
-    this.webSocket.send<UserMuteUpdate>(USER_MUTE_EVENT, {
+    useWebSocketStore.getState().send<UserMuteUpdate>(USER_MUTE_EVENT, {
       event: 'user_mute_update',
       userId,
     });
   }
 
   sendKickUser(userId: string) {
-    this.webSocket.send<UserKickEvent>(USER_KICK_EVENT, {
+    useWebSocketStore.getState().send<UserKickEvent>(USER_KICK_EVENT, {
       event: 'user_kick_event',
       userId,
     });
   }
 
   sendMessageDelete(msgId: number[]) {
-    this.webSocket.send<MessageDeleteEvent>(MESSAGE_DELETE_EVENT, {
+    useWebSocketStore.getState().send<MessageDeleteEvent>(MESSAGE_DELETE_EVENT, {
       event: 'message_delete_event',
       msgIds: msgId,
     });

@@ -17,7 +17,7 @@
           <tr>
             <td>Owner</td>
             <td style='word-break: break-all'>
-              {{if (eq @token.owner this.auth.user.sub) 'You' @token.owner}}
+              {{if (eq @token.owner this.user.sub) 'You' @token.owner}}
             </td>
             <td></td>
           </tr>

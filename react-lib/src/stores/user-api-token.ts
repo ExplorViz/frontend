@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
-import * as ENV from 'react-lib/src/env';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
-const userService = ENV.USER_SERV_URL;
+const userService = 'http://localhost:8080'; //import.meta.env.USER_SERV_URL;
 
 export type ApiToken = {
   uid: string;

@@ -9,7 +9,10 @@ import { useApplicationRendererStore } from 'react-lib/src/stores/application-re
 import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import { useWebSocketStore, SELF_DISCONNECTED_EVENT } from './web-socket';
+import {
+  useWebSocketStore,
+  SELF_DISCONNECTED_EVENT,
+} from 'react-lib/src/stores/collaboration/web-socket';
 import { useRoomServiceStore } from './room-service';
 import {
   SELF_CONNECTED_EVENT,
