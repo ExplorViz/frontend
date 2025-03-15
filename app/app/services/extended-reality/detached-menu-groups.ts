@@ -7,7 +7,7 @@ import HeatmapMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-m
 import CloseIcon from 'explorviz-frontend/utils/extended-reality/view-objects/vr/close-icon';
 import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-menus/detachable-menu';
 import DetachedMenuGroup from 'explorviz-frontend/utils/extended-reality/vr-menus/detached-menu-group';
-import VrAssetRepository from './vr-asset-repo';
+import { useVrAssetRepoStore } from 'react-lib/src/stores/extended-reality/vr-asset-repo';
 import SpectateViewMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/connection/spectate-view-menu';
 import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import {
@@ -29,9 +29,6 @@ import {
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 export default class DetachedMenuGroupsService extends Service {
-  @service('extended-reality/vr-asset-repo')
-  private assetRepo!: VrAssetRepository;
-
   @service('collaboration/web-socket')
   private webSocket!: WebSocketService;
 
@@ -175,7 +172,7 @@ export default class DetachedMenuGroupsService extends Service {
     // Since the menu has been scaled already and is not scaled when it has its
     // normal size, the close icon does not have to correct for the menu's scale.
     const closeIcon = new CloseIcon({
-      textures: this.assetRepo.closeIconTextures,
+      textures: useVrAssetRepoStore.getState().closeIconTextures,
       onClose: () => this.removeDetachedMenu(detachedMenuGroup),
       radius: 0.04,
     });
@@ -183,7 +180,7 @@ export default class DetachedMenuGroupsService extends Service {
 
     if (menu instanceof HeatmapMenu) {
       const shareIcon: ActionIcon = new ActionIcon({
-        textures: this.assetRepo.shareIconTextures,
+        textures: useVrAssetRepoStore.getState().shareIconTextures,
         color: new THREE.Color(color),
         onAction: () => {
           useHeatmapConfigurationStore.getState().toggleShared();
@@ -204,7 +201,7 @@ export default class DetachedMenuGroupsService extends Service {
       shareIcon.position.x -= 0.15;
 
       const metricIcon = new ActionIcon({
-        textures: this.assetRepo.fireIconTextures,
+        textures: useVrAssetRepoStore.getState().fireIconTextures,
         color: new THREE.Color(color),
         onAction: () => {
           useHeatmapConfigurationStore.getState().switchMetric();
@@ -218,7 +215,7 @@ export default class DetachedMenuGroupsService extends Service {
       metricIcon.position.x -= 0.25;
     } else if (!(menu instanceof SpectateViewMenu)) {
       const shareIcon: ActionIcon = new ActionIcon({
-        textures: this.assetRepo.shareIconTextures,
+        textures: useVrAssetRepoStore.getState().shareIconTextures,
         color: new THREE.Color(color),
         onAction: () => this.shareDetachedMenu(detachedMenuGroup, shareIcon),
         radius: 0.04,
@@ -230,7 +227,7 @@ export default class DetachedMenuGroupsService extends Service {
       color = this.collaborationSession.getColor('');
       // highlight icon
       const highlightIcon = new ActionIcon({
-        textures: this.assetRepo.paintbrushIconTextures,
+        textures: useVrAssetRepoStore.getState().paintbrushIconTextures,
         color: new THREE.Color(color),
         onAction: () => this.toggleHighlightComponent(menu.getDetachId()),
         radius: 0.04,
