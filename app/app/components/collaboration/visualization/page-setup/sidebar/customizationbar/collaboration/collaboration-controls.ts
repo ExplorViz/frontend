@@ -20,6 +20,7 @@ import UserSettings from 'explorviz-frontend/services/user-settings';
 import ChatService from 'explorviz-frontend/services/chat';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { useAuthStore } from 'react-lib/src/stores/auth';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 
 export default class CollaborationControls extends Component {
   @service('application-renderer')
@@ -49,9 +50,7 @@ export default class CollaborationControls extends Component {
   @service('collaboration/spectate-user')
   private spectateUserService!: SpectateUser;
 
-  @service('timestamp')
-  // @ts-ignore since it is used in template
-  private timestampService!: TimestampService;
+  timestamp = useTimestampStore.getState().timestamp;
 
   @service('user-settings')
   userSettings!: UserSettings;

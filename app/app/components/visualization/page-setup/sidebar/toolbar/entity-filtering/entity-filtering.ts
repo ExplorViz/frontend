@@ -4,9 +4,8 @@ import { action } from '@ember/object';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { inject as service } from '@ember/service';
-import TimestampService, {
-  NEW_SELECTED_TIMESTAMP_EVENT,
-} from 'explorviz-frontend/services/timestamp';
+import { useTimestampStore, NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -18,9 +17,6 @@ interface Args {
 }
 
 export default class EntityFiltering extends Component<Args> {
-  @service('timestamp')
-  timestampService!: TimestampService;
-
   private initialLandscapeData!: LandscapeData;
 
   constructor(owner: any, args: Args) {
@@ -28,9 +24,8 @@ export default class EntityFiltering extends Component<Args> {
 
     this.resetState();
 
-    this.timestampService.on(
+    eventEmitter.on(
       NEW_SELECTED_TIMESTAMP_EVENT,
-      this,
       this.resetState
     );
   }
@@ -43,8 +38,8 @@ export default class EntityFiltering extends Component<Args> {
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );
-    this.timestampService.updateSelectedTimestamp(
-      this.timestampService.timestamp
+    useTimestampStore.getState().updateSelectedTimestamp(
+      useTimestampStore.getState().timestamp
     );
   }
 
@@ -60,9 +55,8 @@ export default class EntityFiltering extends Component<Args> {
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );
-    this.timestampService.off(
+    eventEmitter.off(
       NEW_SELECTED_TIMESTAMP_EVENT,
-      this,
       this.resetState
     );
   }

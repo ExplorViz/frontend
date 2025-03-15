@@ -5,7 +5,7 @@ import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestam
 import { tracked } from '@glimmer/tracking';
 import TimestampPollingService from '../timestamp-polling';
 import RenderingService from '../rendering-service';
-import TimestampService from '../timestamp';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
 import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
@@ -24,9 +24,6 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   @service('rendering-service')
   renderingService!: RenderingService;
-
-  @service('timestamp')
-  timestampService!: TimestampService;
 
   // #endregion
 
@@ -109,7 +106,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
       );
 
       const lastSelectTimestamp =
-        this.timestampService.getLatestTimestampByCommitOrFallback(commitId);
+        useTimestampStore.getState().getLatestTimestampByCommitOrFallback(commitId);
 
       const nextOrLatestTimestamp = this.getNextTimestampOrLatest(
         commitId,
@@ -218,7 +215,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   resetState() {
     this.commitToTimestampMap = new Map();
-    this.timestampService.resetState();
+    useTimestampStore.getState().resetState();
     this.timelineDataObjectHandler?.resetState();
     this.timelineDataObjectHandler?.triggerTimelineUpdate();
   }

@@ -8,10 +8,8 @@ import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/st
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
 import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
-import { inject as service } from '@ember/service';
-import TimestampService, {
-  NEW_SELECTED_TIMESTAMP_EVENT,
-} from 'explorviz-frontend/services/timestamp';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -23,9 +21,6 @@ interface Args {
 }
 
 export default class TraceFiltering extends Component<Args> {
-  @service('timestamp')
-  timestampService!: TimestampService;
-
   @tracked
   numRemainingTracesAfterFilteredByDuration = 0;
 
@@ -43,9 +38,8 @@ export default class TraceFiltering extends Component<Args> {
 
     this.resetState();
 
-    this.timestampService.on(
+    eventEmitter.on(
       NEW_SELECTED_TIMESTAMP_EVENT,
-      this,
       this.resetState
     );
   }

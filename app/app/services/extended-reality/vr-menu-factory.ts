@@ -3,7 +3,7 @@ import Service, { inject as service } from '@ember/service';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
-import TimestampService from 'explorviz-frontend/services/timestamp';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
 import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
@@ -63,9 +63,6 @@ export default class VrMenuFactoryService extends Service {
 
   @service('collaboration/room-service')
   private roomService!: RoomService;
-
-  @service('timestamp')
-  private timestampService!: TimestampService;
 
   // TODO the factory should no be a singleton, but instantiated on each rendering.
   // scene!: THREE.Scene;
@@ -176,7 +173,6 @@ export default class VrMenuFactoryService extends Service {
 
   buildTimeMenu(): TimeMenu {
     return new TimeMenu({
-      timestampService: this.timestampService,
       menuFactory: this,
     });
   }

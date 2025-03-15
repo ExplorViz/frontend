@@ -11,7 +11,7 @@ import { tracked } from '@glimmer/tracking';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import debugLogger from 'ember-debug-logger';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import TimestampService from './timestamp';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
 import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
@@ -37,9 +37,6 @@ export default class RenderingService extends Service {
   private readonly debug = debugLogger('RenderingService');
 
   // #region Services
-
-  @service('timestamp')
-  private timestampService!: TimestampService;
 
   // @service('repos/evolution-data-repository')
   // private evolutionDataRepository!: EvolutionDataRepository;
@@ -238,7 +235,7 @@ export default class RenderingService extends Service {
 
       this.updateTimelineData(commitToSelectedTimestampMap);
 
-      this.timestampService.updateSelectedTimestamp(
+      useTimestampStore.getState().updateSelectedTimestamp(
         this.mapTimestampsToEpochs(commitToSelectedTimestampMap)
       );
 

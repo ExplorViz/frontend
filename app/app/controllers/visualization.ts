@@ -42,7 +42,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { useReloadHandlerStore } from 'react-lib/src/stores/reload-handler';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
-import TimestampService from 'explorviz-frontend/services/timestamp';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import UserApiTokenService, {
   ApiToken,
@@ -138,9 +138,6 @@ export default class VisualizationController extends Controller {
 
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
-
-  @service('timestamp')
-  timestampService!: TimestampService;
 
   @service('collaboration/local-user')
   localUser!: LocalUser;
@@ -606,12 +603,10 @@ export default class VisualizationController extends Controller {
       eventEmitter.off(SYNC_ROOM_STATE_EVENT, this.onSyncRoomState);
     }
 
-    if (this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
-      eventEmitter.off(
-        TIMESTAMP_UPDATE_EVENT,
-        this.onTimestampUpdate
-      );
-    }
+    eventEmitter.off(
+      TIMESTAMP_UPDATE_EVENT,
+      this.onTimestampUpdate
+    );
   }
 
   @action

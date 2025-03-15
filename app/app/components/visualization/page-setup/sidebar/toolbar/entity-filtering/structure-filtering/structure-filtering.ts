@@ -9,10 +9,8 @@ import {
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import { tracked } from '@glimmer/tracking';
 import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
-import { inject as service } from '@ember/service';
-import TimestampService, {
-  NEW_SELECTED_TIMESTAMP_EVENT,
-} from 'explorviz-frontend/services/timestamp';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -24,9 +22,6 @@ interface Args {
 }
 
 export default class StructureFiltering extends Component<Args> {
-  @service('timestamp')
-  timestampService!: TimestampService;
-
   @tracked
   classes: Class[] = [];
 
@@ -44,9 +39,8 @@ export default class StructureFiltering extends Component<Args> {
 
     this.resetState();
 
-    this.timestampService.on(
+    eventEmitter.on(
       NEW_SELECTED_TIMESTAMP_EVENT,
-      this,
       this.resetState
     );
   }
@@ -173,9 +167,8 @@ export default class StructureFiltering extends Component<Args> {
       this.initialLandscapeData.structureLandscapeData,
       this.initialLandscapeData.dynamicLandscapeData
     );
-    this.timestampService.off(
+    eventEmitter.off(
       NEW_SELECTED_TIMESTAMP_EVENT,
-      this,
       this.resetState
     );
   }

@@ -1,4 +1,3 @@
-import TimestampService from 'explorviz-frontend/services/timestamp';
 import VRControllerButtonBinding from 'explorviz-frontend/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
@@ -8,12 +7,12 @@ import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-i
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 
 const MS_PER_SECOND = 1000;
 const TIMESTAMP_INTERVAL = 10 * MS_PER_SECOND;
 
 export type TimeMenuArgs = UiMenuArgs & {
-  timestampService: TimestampService;
 };
 
 export default class TimeMenu extends UiMenu {
@@ -25,15 +24,12 @@ export default class TimeMenu extends UiMenu {
 
   private timeForthButton: ArrowbuttonItem;
 
-  private timestampService: TimestampService;
-
   private timestampTextItem: TextItem;
 
-  constructor({ timestampService, ...args }: TimeMenuArgs) {
+  constructor({...args }: TimeMenuArgs) {
     super(args);
 
-    this.timestampService = timestampService;
-    this.date = new Date(timestampService.timestamp);
+    this.date = new Date(useTimestampStore.getState().timestamp); // TODO: Does timestamp has the wrong type?
 
     const title = new TitleItem({
       text: 'Time',
@@ -112,7 +108,7 @@ export default class TimeMenu extends UiMenu {
   }
 
   private applySelectedTimestamp() {
-    this.timestampService.updateTimestampFromVr(this.date.getTime());
+    useTimestampStore.getState().updateTimestampFromVr(this.date.getTime());
   }
 
   makeThumbpadBinding() {

@@ -4,7 +4,7 @@ import ApplicationRenderer, {
 } from 'explorviz-frontend/services/application-renderer';
 import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
-import TimestampService from 'explorviz-frontend/services/timestamp';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 import { isTrace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
@@ -40,9 +40,6 @@ export default class RoomSerializer extends Service {
   @service('link-renderer')
   private linkRenderer!: LinkRenderer;
 
-  @service('timestamp')
-  private timestampService!: TimestampService;
-
   // public serializedRoom?: SerializedRoom;
   get serializedRoom(): SerializedRoom | undefined {
     return useRoomSerializerStore.getState().serializedRoom;
@@ -76,7 +73,7 @@ export default class RoomSerializer extends Service {
   private serializeLandscape(): SerializedLandscape {
     return {
       landscapeToken: useLandscapeTokenStore.getState().token?.value,
-      timestamp: this.timestampService.timestamp,
+      timestamp: useTimestampStore.getState().timestamp, // TODO: Why wrong type?
     };
   }
 

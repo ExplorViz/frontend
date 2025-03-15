@@ -2,11 +2,9 @@ import Component from '@glimmer/component';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { inject as service } from '@ember/service';
-import TimestampService, {
-  NEW_SELECTED_TIMESTAMP_EVENT,
-} from 'explorviz-frontend/services/timestamp';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 interface Args {
   readonly classes: Class[];
@@ -17,9 +15,6 @@ interface Args {
 export default class ClassMethodFiltering extends Component<Args> {
   helpTooltipComponent = HelpTooltip;
 
-  @service('timestamp')
-  timestampService!: TimestampService;
-
   @tracked
   selected: number | null = null;
 
@@ -29,9 +24,8 @@ export default class ClassMethodFiltering extends Component<Args> {
   constructor(owner: any, args: Args) {
     super(owner, args);
 
-    this.timestampService.on(
+    eventEmitter.on(
       NEW_SELECTED_TIMESTAMP_EVENT,
-      this,
       this.onTimestampUpdate
     );
   }
@@ -88,9 +82,8 @@ export default class ClassMethodFiltering extends Component<Args> {
   }
 
   willDestroy(): void {
-    this.timestampService.off(
+    eventEmitter.off(
       NEW_SELECTED_TIMESTAMP_EVENT,
-      this,
       this.onTimestampUpdate
     );
   }
