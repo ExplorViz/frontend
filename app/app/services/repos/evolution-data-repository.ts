@@ -12,7 +12,8 @@ import {
   createEmptyStructureLandscapeData,
 } from 'react-lib/src/utils/landscape-structure-helpers';
 import { ApplicationMetricsCode } from 'react-lib/src/utils/metric-schemes/metric-data';
-import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
+// import EvolutionDataFetchServiceService from '../evolution-data-fetch-service';
+import { useEvolutionDataFetchServiceStore } from 'react-lib/src/stores/evolution-data-fetch-service';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
@@ -24,8 +25,8 @@ export default class EvolutionDataRepository extends Service {
 
   // #region Services
 
-  @service('evolution-data-fetch-service')
-  evolutionDataFetchService!: EvolutionDataFetchServiceService;
+  // @service('evolution-data-fetch-service')
+  // evolutionDataFetchService!: EvolutionDataFetchServiceService;
 
   // @service('commit-tree-state')
   // commitTreeStateService!: CommitTreeStateService;
@@ -164,7 +165,8 @@ export default class EvolutionDataRepository extends Service {
 
     try {
       const applicationNames =
-        await this.evolutionDataFetchService.fetchApplications();
+        await useEvolutionDataFetchServiceStore.getState().fetchApplications();
+        // await this.evolutionDataFetchService.fetchApplications();
       const appNameCommitTreeMap =
         await this.buildAppNameCommitTreeMap(applicationNames);
 
@@ -210,10 +212,14 @@ export default class EvolutionDataRepository extends Service {
 
         // fetch single landscape structure for appName and commits
         const combinedLandscapeStructure =
-          await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
+          await useEvolutionDataFetchServiceStore.getState().fetchStaticLandscapeStructuresForAppName(
             appName,
             selectedCommits
           );
+        // await this.evolutionDataFetchService.fetchStaticLandscapeStructuresForAppName(
+          //   appName,
+          //   selectedCommits
+          // );
 
         newEvolutionStructureLandscapeData.set(
           appName,
@@ -321,10 +327,14 @@ export default class EvolutionDataRepository extends Service {
     for (const selectedCommit of selectedCommits) {
       if (!commitIdToApplicationMetricsCode.has(selectedCommit.commitId)) {
         const commitIdToAppMetricsCode =
-          await this.evolutionDataFetchService.fetchApplicationMetricsCodeForAppNameAndCommit(
+          await useEvolutionDataFetchServiceStore.getState().fetchApplicationMetricsCodeForAppNameAndCommit(
             appName,
             selectedCommit
           );
+        // await this.evolutionDataFetchService.fetchApplicationMetricsCodeForAppNameAndCommit(
+          //   appName,
+          //   selectedCommit
+          // );
         commitIdToApplicationMetricsCode.set(
           selectedCommit.commitId,
           commitIdToAppMetricsCode
@@ -349,11 +359,20 @@ export default class EvolutionDataRepository extends Service {
       const mapKey = `${selectedCommits[0].commitId}-${selectedCommits[1].commitId}`;
       const commitComparison =
         this.commitsToCommitComparisonMap.get(mapKey) ??
-        (await this.evolutionDataFetchService.fetchCommitComparison(
-          appName,
-          selectedCommits[0],
-          selectedCommits[1]
-        ));
+        (
+          await useEvolutionDataFetchServiceStore.getState().fetchCommitComparison(
+            appName,
+            selectedCommits[0],
+            selectedCommits[1]
+          )
+        );
+      // (
+      //     await this.evolutionDataFetchService.fetchCommitComparison(
+      //     appName,
+      //     selectedCommits[0],
+      //     selectedCommits[1]
+      //   )
+      // );
       newCommitsToCommitComparisonMap.set(mapKey, commitComparison!);
     }
   }
@@ -376,9 +395,12 @@ export default class EvolutionDataRepository extends Service {
     appName: string
   ): Promise<CommitTree | undefined> {
     try {
-      return await this.evolutionDataFetchService.fetchCommitTreeForAppName(
+      return await useEvolutionDataFetchServiceStore.getState().fetchCommitTreeForAppName(
         appName
       );
+      // this.evolutionDataFetchService.fetchCommitTreeForAppName(
+      //   appName
+      // );
     } catch (reason) {
       console.error(
         `Failed to fetch Commit Tree for appName: ${appName}, reason: ${reason}`

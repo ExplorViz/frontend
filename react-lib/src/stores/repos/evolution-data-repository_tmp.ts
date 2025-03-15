@@ -302,7 +302,7 @@ export const useEvolutionDataRepositoryStore =
       try {
         return await useEvolutionDataFetchServiceStore
           .getState()
-          ._fetchCommitTreeForAppName(appName);
+          .fetchCommitTreeForAppName(appName);
       } catch (reason) {
         console.error(
           `Failed to fetch Commit Tree for appName: ${appName}, reason: ${reason}`
