@@ -1,6 +1,7 @@
 import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
-import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
+// import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
 // import ApplicationRepository from 'explorviz-frontend/services/repos/application-repository';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
@@ -20,8 +21,8 @@ interface Args {
 export default class ClazzPopup extends Component<Args> {
   helpTooltipComponent = HelpTooltip;
 
-  @service('repos/evolution-data-repository')
-  evolutionDataRepository!: EvolutionDataRepository;
+  // @service('repos/evolution-data-repository')
+  // evolutionDataRepository!: EvolutionDataRepository;
 
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
@@ -90,9 +91,12 @@ export default class ClazzPopup extends Component<Args> {
     }
 
     const selectedCommitToApplicationMetricsCodeMap =
-      this.evolutionDataRepository.appNameToCommitIdToApplicationMetricsCodeMap.get(
-        this.appName
-      );
+    useEvolutionDataRepositoryStore.getState()._appNameToCommitIdToApplicationMetricsCodeMap.get(
+      this.appName
+    );
+    // this.evolutionDataRepository.appNameToCommitIdToApplicationMetricsCodeMap.get(
+      //   this.appName
+      // );
 
     if (!selectedCommitToApplicationMetricsCodeMap) {
       return new Map();

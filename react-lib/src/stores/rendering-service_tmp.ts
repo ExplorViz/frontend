@@ -14,7 +14,7 @@ import { useTimestampStore } from './timestamp';
 import TimelineDataObjectHandler from 'react-lib/src/utils/timeline/timeline-data-object-handler';
 import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
 import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
-import { useEvolutionDataRepositoryStore } from './repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import {
   SelectedCommit,
   useCommitTreeStateStore,

@@ -10,7 +10,7 @@ interface SecondaryInteractionButtonArgs {
 export default function SecondaryInteractionButton({
   handleSecondaryCrosshairInteraction,
 }: SecondaryInteractionButtonArgs) {
-  const highlightingColorStyle = useHighlightingService(
+  const highlightingColorStyle = useHighlightingServiceStore(
     (state) => state.highlightingColorStyle
   );
 

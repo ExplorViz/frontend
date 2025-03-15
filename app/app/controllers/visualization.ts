@@ -54,7 +54,8 @@ import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/d
 import * as THREE from 'three';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import SidebarHandler from 'explorviz-frontend/utils/sidebar/sidebar-handler';
-import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
+// import EvolutionDataRepository from 'explorviz-frontend/services/repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import RenderingService, {
   AnalysisMode,
 } from 'explorviz-frontend/services/rendering-service';
@@ -173,8 +174,8 @@ export default class VisualizationController extends Controller {
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;
 
-  @service('repos/evolution-data-repository')
-  evolutionDataRepository!: EvolutionDataRepository;
+  // @service('repos/evolution-data-repository')
+  // evolutionDataRepository!: EvolutionDataRepository;
 
   // #endregion
 
@@ -319,7 +320,8 @@ export default class VisualizationController extends Controller {
     SemanticZoomManager.instance.reset();
 
     // fetch applications for evolution mode
-    await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
+    await useEvolutionDataRepositoryStore.getState().fetchAndStoreApplicationCommitTrees();
+    // await this.evolutionDataRepository.fetchAndStoreApplicationCommitTrees();
 
     let showEvolutionVisualization = false;
 
@@ -347,7 +349,8 @@ export default class VisualizationController extends Controller {
       showEvolutionVisualization = useCommitTreeStateStore
         .getState()
         .setDefaultState(
-          this.evolutionDataRepository.appNameCommitTreeMap,
+          useEvolutionDataRepositoryStore.getState()._appNameCommitTreeMap,
+          // this.evolutionDataRepository.appNameCommitTreeMap,
           this.commit1,
           this.commit2
         );
@@ -594,7 +597,8 @@ export default class VisualizationController extends Controller {
     this.isRuntimeTimelineSelected = true;
     this.isCommitTreeSelected = false;
 
-    this.evolutionDataRepository.resetAllEvolutionData();
+    useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
+    // this.evolutionDataRepository.resetAllEvolutionData();
 
     this.roomId = null;
     this.localUser.visualizationMode = 'browser';

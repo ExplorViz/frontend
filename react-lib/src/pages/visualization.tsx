@@ -16,7 +16,7 @@ import {
 } from '../stores/collaboration/local-user';
 import { useTimestampRepositoryStore } from '../stores/repos/timestamp-repository';
 import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
-import { useEvolutionDataRepositoryStore } from '../stores/repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import { useCommitTreeStateStore } from '../stores/commit-tree-state';
 import eventEmitter from '../utils/event-emitter';
 import {
@@ -346,7 +346,7 @@ export default function Visualization() {
     return (
       renderingServiceLandscapeData !== null &&
       renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
-      0 &&
+        0 &&
       (!renderingServiceLandscapeData.structureLandscapeData.k8sNodes ||
         renderingServiceLandscapeData.structureLandscapeData?.k8sNodes
           .length === 0)
@@ -809,13 +809,13 @@ export default function Visualization() {
               {!isBottomBarMaximized && (
                 <span className="pr-1">Bottom Bar</span>
               )}
-              <ChevronUpIcon 
-                size="small" 
+              <ChevronUpIcon
+                size="small"
                 className={
-                  isBottomBarMaximized ? 
-                  'align-middle hide-bottom-bar-icon-down' : 
-                  'align-middle'
-                } 
+                  isBottomBarMaximized
+                    ? 'align-middle hide-bottom-bar-icon-down'
+                    : 'align-middle'
+                }
               />
             </Button>
 

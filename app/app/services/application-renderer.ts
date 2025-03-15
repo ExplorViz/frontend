@@ -41,7 +41,8 @@ import {
 // import SceneRepository from './repos/scene-repository'; Not being used
 // import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import EvolutionDataRepository from './repos/evolution-data-repository';
+// import EvolutionDataRepository from './repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import { CommitComparison } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import {
   getAllClassesInApplication,
@@ -61,8 +62,8 @@ import layoutLandscape from 'react-lib/src/utils/elk-layouter';
 export default class ApplicationRenderer extends Service.extend() {
   // #region Services
 
-  @service('repos/evolution-data-repository')
-  private evolutionDataRepository!: EvolutionDataRepository;
+  // @service('repos/evolution-data-repository')
+  // private evolutionDataRepository!: EvolutionDataRepository;
 
   @service('collaboration/local-user')
   private localUser!: LocalUser;
@@ -329,9 +330,12 @@ export default class ApplicationRenderer extends Service.extend() {
       // this.heatmapConf.updateActiveApplication(applicationObject3D);
 
       const commitComparison =
-        this.evolutionDataRepository.getCommitComparisonByAppName(
-          applicationModel.name
-        );
+      useEvolutionDataRepositoryStore.getState().getCommitComparisonByAppName(
+        applicationModel.name
+      );
+      // this.evolutionDataRepository.getCommitComparisonByAppName(
+      //   applicationModel.name
+      // );
 
       if (commitComparison) {
         this.visualizeCommitComparisonPackagesAndClasses(

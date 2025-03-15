@@ -15,7 +15,8 @@ import TimestampService from './timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
 import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
 import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
-import EvolutionDataRepository from './repos/evolution-data-repository';
+// import EvolutionDataRepository from './repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
@@ -43,8 +44,8 @@ export default class RenderingService extends Service {
   @service('timestamp')
   private timestampService!: TimestampService;
 
-  @service('repos/evolution-data-repository')
-  private evolutionDataRepository!: EvolutionDataRepository;
+  // @service('repos/evolution-data-repository')
+  // private evolutionDataRepository!: EvolutionDataRepository;
 
   @service('repos/timestamp-repository')
   private timestampRepo!: TimestampRepository;
@@ -221,7 +222,8 @@ export default class RenderingService extends Service {
         });
 
         const structureToRender = combineStructureLandscapeData(
-          this.evolutionDataRepository.combinedStructureLandscapeData ||
+          useEvolutionDataRepositoryStore.getState()._combinedStructureLandscapeData ||
+          // this.evolutionDataRepository.combinedStructureLandscapeData ||
             createEmptyStructureLandscapeData,
           combinedRuntimeLandscapeData.structureLandscapeData
         );
@@ -378,12 +380,16 @@ export default class RenderingService extends Service {
       this.timestampRepo.resetState();
     }
 
-    await this.evolutionDataRepository.fetchAndStoreEvolutionDataForSelectedCommits(
+    await useEvolutionDataRepositoryStore.getState().fetchAndStoreEvolutionDataForSelectedCommits(
       appNameToSelectedCommits
     );
+    // await this.evolutionDataRepository.fetchAndStoreEvolutionDataForSelectedCommits(
+    //   appNameToSelectedCommits
+    // );
 
     const combinedEvolutionStructureLandscapeData =
-      this.evolutionDataRepository.combinedStructureLandscapeData;
+      useEvolutionDataRepositoryStore.getState()._combinedStructureLandscapeData;
+      // this.evolutionDataRepository.combinedStructureLandscapeData;
 
     const flattenedSelectedCommits: SelectedCommit[] = Array.from(
       appNameToSelectedCommits.values()
@@ -458,7 +464,8 @@ export default class RenderingService extends Service {
     }
 
     this.resetAllRenderingStates();
-    this.evolutionDataRepository.resetStructureLandscapeData();
+    useEvolutionDataRepositoryStore.getState().resetStructureLandscapeData();
+    // this.evolutionDataRepository.resetStructureLandscapeData();
     this.timestampRepo.resetState();
     this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
     // useRenderingServiceStore.getState().setRuntimeModeActive();

@@ -37,7 +37,7 @@ import {
   isEntityMesh,
 } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import { useEvolutionDataRepositoryStore } from './repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import { CommitComparison } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import {
   getAllClassesInApplication,
