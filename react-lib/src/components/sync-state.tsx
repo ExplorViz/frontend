@@ -8,7 +8,7 @@ import {
 import {
   HeatmapMode,
   useHeatmapConfigurationStore,
-} from '../stores/heatmap/heatmap-configuration';
+} from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useApplicationRendererStore } from '../stores/application-renderer';
 import { useWebSocketStore } from '../stores/collaboration/web-socket';
 import equal from 'fast-deep-equal';

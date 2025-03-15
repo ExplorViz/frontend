@@ -10,13 +10,11 @@ import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/u
 import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';
 import * as THREE from 'three';
 import ApplicationRenderer from './application-renderer';
-import Configuration from './configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import UserSettings from './user-settings';
 // import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
 
 export default class LinkRenderer extends Service.extend({}) {
-  @service('configuration')
-  private configuration!: Configuration;
 
   @service('user-settings')
   private userSettings!: UserSettings;
@@ -83,7 +81,7 @@ export default class LinkRenderer extends Service.extend({}) {
 
     const classCommunication = line.dataModel.communication;
 
-    line.visible = this.configuration.isCommRendered;
+    line.visible = useConfigurationStore.getState().isCommRendered;
     const landscapeGroup = sourceApp.parent!;
 
     let sourceClass, targetClass;
@@ -184,7 +182,7 @@ export default class LinkRenderer extends Service.extend({}) {
   private computeCurveHeight(commLayout: CommunicationLayout) {
     let baseCurveHeight = 20;
 
-    if (this.configuration.commCurveHeightDependsOnDistance) {
+    if (useConfigurationStore.getState().commCurveHeightDependsOnDistance) {
       const classDistance = Math.hypot(
         commLayout.endX - commLayout.startX,
         commLayout.endZ - commLayout.startZ

@@ -4,7 +4,7 @@ import debugLogger from 'ember-debug-logger';
 import Modifier from 'ember-modifier';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import IdeWebsocketFacade from 'explorviz-frontend/services/ide-websocket-facade';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
@@ -60,9 +60,6 @@ export default class LandscapeDataWatcherModifier extends Modifier<Args> {
 
   @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
-
-  @service('configuration')
-  configuration!: Configuration;
 
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;

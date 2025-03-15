@@ -11,7 +11,6 @@ import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-d
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 // import SceneRepository from 'react-lib/src/stores/repos/scene-repository';
 import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
@@ -41,6 +40,7 @@ import ArSettingsOpener from 'react-lib/src/components/extended-reality/visualiz
 import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
 import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
 import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info.tsx';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 
 interface Args {
   readonly landscapeData: LandscapeData;
@@ -133,9 +133,6 @@ export default class ArRendering extends Component<Args> {
   @service('user-settings')
   userSettings!: UserSettings;
 
-  @service('configuration')
-  configuration!: Configuration;
-
   get appSettings() {
     return this.userSettings.visualizationSettings;
   }
@@ -144,7 +141,7 @@ export default class ArRendering extends Component<Args> {
     const pauseItemtitle = this.args.visualizationPaused
       ? 'Resume Visualization'
       : 'Pause Visualization';
-    const commButtonTitle = this.configuration.isCommRendered
+    const commButtonTitle = useConfigurationStore.getState().isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
     return [

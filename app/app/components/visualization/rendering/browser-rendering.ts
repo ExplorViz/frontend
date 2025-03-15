@@ -11,7 +11,7 @@ import { Position2D } from 'explorviz-frontend/modifiers/interaction-modifier';
 import PopupHandler from 'explorviz-frontend/rendering/application/popup-handler';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import Configuration from 'explorviz-frontend/services/configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import HighlightingService from 'explorviz-frontend/services/highlighting-service';
 import LandscapeRestructure from 'explorviz-frontend/services/landscape-restructure';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
@@ -103,9 +103,6 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
   @service('application-renderer')
   applicationRenderer!: ApplicationRenderer;
-
-  @service('configuration')
-  configuration!: Configuration;
 
   @service('landscape-restructure')
   landscapeRestructure!: LandscapeRestructure;
@@ -226,8 +223,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     this.localUser.defaultCamera = new THREE.PerspectiveCamera();
 
-    this.configuration.semanticZoomEnabled =
-      SemanticZoomManager.instance.isEnabled;
+    useConfigurationStore.setState({semanticZoomEnabled: SemanticZoomManager.instance.isEnabled});
 
     // Landscape
     this.landscape3D = new Landscape3D();
@@ -309,7 +305,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
   }
 
   get rightClickMenuItems() {
-    const commButtonTitle = this.configuration.isCommRendered
+    const commButtonTitle = useConfigurationStore.getState().isCommRendered
       ? 'Hide Communication'
       : 'Add Communication';
 
@@ -353,8 +349,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
       'semanticZoomState',
       SemanticZoomManager.instance.isEnabled
     );
-    this.configuration.semanticZoomEnabled =
-      SemanticZoomManager.instance.isEnabled;
+    useConfigurationStore.setState({semanticZoomEnabled: SemanticZoomManager.instance.isEnabled});
   }
 
   @action
@@ -560,8 +555,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
               true
           ) {
             SemanticZoomManager.instance.activate();
-            this.configuration.semanticZoomEnabled =
-              SemanticZoomManager.instance.isEnabled;
+            useConfigurationStore.setState({semanticZoomEnabled: SemanticZoomManager.instance.isEnabled});
           }
         }, 200);
         this.initDone = true;
@@ -932,7 +926,7 @@ export default class BrowserRendering extends Component<BrowserRenderingArgs> {
 
     useHeatmapConfigurationStore.getState().cleanup();
     this.renderingLoop.stop();
-    this.configuration.isCommRendered = true;
+    useConfigurationStore.setState({isCommRendered: true});
     this.popupHandler.willDestroy();
     this.annotationHandler.willDestroy();
 

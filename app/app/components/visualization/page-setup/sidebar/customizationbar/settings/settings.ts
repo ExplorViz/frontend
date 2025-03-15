@@ -17,7 +17,7 @@ import MessageSender from 'explorviz-frontend/services/collaboration/message-sen
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import Configuration from 'explorviz-frontend/services/configuration';
+import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import MinimapService from 'explorviz-frontend/services/minimap-service';
 // import SceneRepository from 'explorviz-frontend/services/repos/scene-repository';
 import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
@@ -66,12 +66,6 @@ export default class Settings extends Component<Args> {
 
   @service('collaboration/room-serializer')
   private roomSerializer!: RoomSerializer;
-
-  // @service('repos/scene-repository')
-  // sceneRepo!: SceneRepository;
-
-  @service('configuration')
-  configuration!: Configuration;
 
   @service('user-settings')
   private userSettings!: UserSettings;
@@ -362,8 +356,7 @@ export default class Settings extends Component<Args> {
         } else if (SemanticZoomManager.instance.isEnabled && !value) {
           SemanticZoomManager.instance.deactivate();
         }
-        this.configuration.semanticZoomEnabled =
-          SemanticZoomManager.instance.isEnabled;
+        useConfigurationStore.setState({ semanticZoomEnabled: SemanticZoomManager.instance.isEnabled});
         break;
       case 'usePredefinedSet':
         // Set the value of the Slider distancePreSet to the same value again, to trigger the update routine!

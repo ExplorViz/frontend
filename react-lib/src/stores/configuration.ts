@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 
 interface ConfigurationState {
   annotationPosition: Position2D | undefined;
@@ -16,7 +16,7 @@ interface Position2D {
   y: number;
 }
 
-export const useConfigurationStore = createStore<ConfigurationState>((set) => ({
+export const useConfigurationStore = create<ConfigurationState>((set) => ({
   annotationPosition: undefined,
   commCurveHeightDependsOnDistance: true,
   commCurveHeightMultiplier: 1,

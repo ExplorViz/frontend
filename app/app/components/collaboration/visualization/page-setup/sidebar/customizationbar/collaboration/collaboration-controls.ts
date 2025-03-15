@@ -15,9 +15,6 @@ import LandscapeTokenService, {
 } from 'explorviz-frontend/services/landscape-token';
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-// import SpectateConfigurationService, {
-//   SpectateConfig,
-// } from 'explorviz-frontend/services/spectate-configuration';
 import {
   useSpectateConfigurationStore,
   SpectateConfig,
