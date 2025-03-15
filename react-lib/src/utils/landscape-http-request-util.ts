@@ -1,10 +1,9 @@
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import * as ENV from 'react-lib/src/env';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 
-const spanService = ENV.SPAN_SERV_URL;
+const spanService = 'http://localhost:8083'; //import.meta.env.VITE_SPAN_SERV_URL;
 
 export async function requestData(
   startTime: number,

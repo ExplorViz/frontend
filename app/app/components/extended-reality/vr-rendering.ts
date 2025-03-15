@@ -60,7 +60,6 @@ import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-reposi
 
 import gsap from 'gsap';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
@@ -95,6 +94,7 @@ import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatm
 import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 interface Args {
   readonly id: string;
@@ -132,9 +132,6 @@ export default class VrRendering extends Component<Args> {
 
   @service('collaboration/message-sender')
   private sender!: MessageSender;
-
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
 
   @service('extended-reality/detached-menu-renderer')
   private detachedMenuRenderer!: DetachedMenuRenderer;
@@ -564,25 +561,23 @@ export default class VrRendering extends Component<Args> {
 
   private async initWebSocket() {
     this.debug('Initializing websocket...');
-    this.webSocket.on(
+    // TODO: Make eventEmitter calls on React site
+    eventEmitter.on(
       USER_CONTROLLER_CONNECT_EVENT,
-      this,
       this.onUserControllerConnect
     );
-    this.webSocket.on(
+    eventEmitter.on(
       USER_CONTROLLER_DISCONNECT_EVENT,
-      this,
       this.onUserControllerDisconnect
     );
-    this.webSocket.on(PING_UPDATE_EVENT, this, this.onPingUpdate);
-    this.webSocket.on(OBJECT_MOVED_EVENT, this, this.onObjectMoved);
-    this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
-    this.webSocket.on(
+    eventEmitter.on(PING_UPDATE_EVENT, this.onPingUpdate);
+    eventEmitter.on(OBJECT_MOVED_EVENT, this.onObjectMoved);
+    eventEmitter.on(MENU_DETACHED_EVENT, this.onMenuDetached);
+    eventEmitter.on(
       DETACHED_MENU_CLOSED_EVENT,
-      this,
       this.onDetachedMenuClosed
     );
-    this.webSocket.on(JOIN_VR_EVENT, this, this.onJoinVr);
+    eventEmitter.on(JOIN_VR_EVENT, this.onJoinVr);
 
     // this.sender.sendJoinVr();
   }
@@ -596,25 +591,22 @@ export default class VrRendering extends Component<Args> {
 
     this.localUser.xr = undefined;
 
-    this.webSocket.off(
+    eventEmitter.off(
       USER_CONTROLLER_CONNECT_EVENT,
-      this,
       this.onUserControllerConnect
     );
-    this.webSocket.off(
+    eventEmitter.off(
       USER_CONTROLLER_DISCONNECT_EVENT,
-      this,
       this.onUserControllerDisconnect
     );
-    this.webSocket.off(PING_UPDATE_EVENT, this, this.onPingUpdate);
-    this.webSocket.off(OBJECT_MOVED_EVENT, this, this.onObjectMoved);
-    this.webSocket.off(MENU_DETACHED_EVENT, this, this.onMenuDetached);
-    this.webSocket.off(
+    eventEmitter.off(PING_UPDATE_EVENT, this.onPingUpdate);
+    eventEmitter.off(OBJECT_MOVED_EVENT, this.onObjectMoved);
+    eventEmitter.off(MENU_DETACHED_EVENT, this.onMenuDetached);
+    eventEmitter.off(
       DETACHED_MENU_CLOSED_EVENT,
-      this,
       this.onDetachedMenuClosed
     );
-    this.webSocket.off(JOIN_VR_EVENT, this, this.onJoinVr);
+    eventEmitter.off(JOIN_VR_EVENT, this.onJoinVr);
 
     this.renderingLoop.stop();
     // Reset rendering.

@@ -10,7 +10,7 @@ import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/appli
 import * as THREE from 'three';
 import { SerializedAnnotation } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   ANNOTATION_OPENED_EVENT,
@@ -53,6 +53,7 @@ import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-se
 import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export default class AnnotationHandlerService extends Service {
   @service('application-renderer')
@@ -60,9 +61,6 @@ export default class AnnotationHandlerService extends Service {
 
   @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
-
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
 
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
@@ -106,9 +104,9 @@ export default class AnnotationHandlerService extends Service {
 
   init() {
     super.init();
-    this.webSocket.on(ANNOTATION_OPENED_EVENT, this, this.onAnnotation);
-    this.webSocket.on(ANNOTATION_CLOSED_EVENT, this, this.onMenuClosed);
-    this.webSocket.on(ANNOTATION_UPDATED_EVENT, this, this.onUpdatedAnnotation);
+    eventEmitter.on(ANNOTATION_OPENED_EVENT, this.onAnnotation);
+    eventEmitter.on(ANNOTATION_CLOSED_EVENT, this.onMenuClosed);
+    eventEmitter.on(ANNOTATION_UPDATED_EVENT, this.onUpdatedAnnotation);
     this.detachedMenuRenderer.on(
       'restore_annotations',
       this,
@@ -236,7 +234,7 @@ export default class AnnotationHandlerService extends Service {
     }
 
     if (this.collaborationSession.isOnline) {
-      this.webSocket.sendRespondableMessage<
+      useWebSocketStore.getState().sendRespondableMessage<
         AnnotationEditMessage,
         AnnotationEditResponse
       >(
@@ -286,7 +284,7 @@ export default class AnnotationHandlerService extends Service {
       return;
     }
 
-    this.webSocket.sendRespondableMessage<
+    useWebSocketStore.getState().sendRespondableMessage<
       AnnotationUpdatedMessage,
       AnnotationUpdatedResponse
     >(
@@ -359,7 +357,7 @@ export default class AnnotationHandlerService extends Service {
       return true;
     }
 
-    return this.webSocket.sendRespondableMessage<
+    return useWebSocketStore.getState().sendRespondableMessage<
       AnnotationClosedMessage,
       ObjectClosedResponse
     >(
@@ -394,7 +392,7 @@ export default class AnnotationHandlerService extends Service {
       entityId = mesh.getModelId();
     }
 
-    this.webSocket.sendRespondableMessage<
+    useWebSocketStore.getState().sendRespondableMessage<
       AnnotationOpenedMessage,
       AnnotationResponse
     >(

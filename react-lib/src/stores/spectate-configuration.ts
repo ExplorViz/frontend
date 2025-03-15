@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import * as ENV from 'react-lib/src/env';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
-const collaborationServiceApi = ENV.COLLABORATION_SERV_URL;
+const collaborationServiceApi = 'http://localhost:4444'; //import.meta.env.VITE_COLLABORATION_SERV_URL;
 
 interface SpectateConfigurationState {
   spectateConfig: SpectateConfig | null; // tracked
@@ -25,7 +24,9 @@ export const useSpectateConfigurationStore = create<SpectateConfigurationState>(
 
     retrieveConfigs: () => {
       return new Promise<SpectateConfig[]>((resolve) => {
-        const userId = encodeURI(useAuthStore.getState().user?.sub || '');
+        const userId = encodeURI(
+          useAuthStore.getState().user?.sub.toString() || ''
+        );
         if (!userId) {
           resolve([]);
         }

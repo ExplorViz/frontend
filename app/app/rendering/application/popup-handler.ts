@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
@@ -36,6 +36,7 @@ import {
 import * as THREE from 'three';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export default class PopupHandler {
   @service('application-renderer')
@@ -46,9 +47,6 @@ export default class PopupHandler {
 
   @service('collaboration/local-user')
   private localUser!: LocalUser;
-
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
 
   @tracked
   popupData: PopupData[] = [];
@@ -64,8 +62,8 @@ export default class PopupHandler {
 
   constructor(owner: any) {
     setOwner(this, owner);
-    this.webSocket.on(MENU_DETACHED_EVENT, this, this.onMenuDetached);
-    this.webSocket.on(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    eventEmitter.on(MENU_DETACHED_EVENT, this.onMenuDetached);
+    eventEmitter.on(DETACHED_MENU_CLOSED_EVENT, this.onMenuClosed);
     this.detachedMenuRenderer.on('restore_popups', this, this.onRestorePopups);
   }
 
@@ -93,7 +91,7 @@ export default class PopupHandler {
     const worldPosition = this.applicationRenderer.getPositionInLandscape(mesh);
     worldPosition.y += 0.3;
 
-    this.webSocket.sendRespondableMessage<
+    useWebSocketStore.getState().sendRespondableMessage<
       MenuDetachedMessage,
       MenuDetachedResponse
     >(
@@ -151,7 +149,7 @@ export default class PopupHandler {
       return true;
     }
 
-    return this.webSocket.sendRespondableMessage<
+    return useWebSocketStore.getState().sendRespondableMessage<
       DetachedMenuClosedMessage,
       ObjectClosedResponse
     >(
@@ -380,8 +378,8 @@ export default class PopupHandler {
   }
 
   willDestroy() {
-    this.webSocket.off(MENU_DETACHED_EVENT, this, this.onMenuDetached);
-    this.webSocket.off(DETACHED_MENU_CLOSED_EVENT, this, this.onMenuClosed);
+    eventEmitter.off(MENU_DETACHED_EVENT,  this.onMenuDetached);
+    eventEmitter.off(DETACHED_MENU_CLOSED_EVENT,  this.onMenuClosed);
     this.detachedMenuRenderer.off('restore_popups', this, this.onRestorePopups);
   }
 }

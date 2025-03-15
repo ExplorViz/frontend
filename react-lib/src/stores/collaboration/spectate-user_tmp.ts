@@ -16,7 +16,7 @@ import CameraControls from 'react-lib/src/utils/application-rendering/camera-con
 import * as VrPoses from 'react-lib/src/utils/extended-reality/vr-helpers/vr-poses';
 import { VrPose } from 'react-lib/src/utils/extended-reality/vr-helpers/vr-poses';
 import { useMessageSenderStore } from './message-sender';
-import { useWebSocketStore, SELF_DISCONNECTED_EVENT } from './web-socket';
+import { SELF_DISCONNECTED_EVENT } from 'react-lib/src/stores/collaboration/web-socket';
 import equal from 'fast-deep-equal';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import eventEmitter from '../../utils/event-emitter';

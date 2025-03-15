@@ -13,7 +13,6 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import { useAuthStore } from 'react-lib/src/stores/auth';
-// import * as ENV from 'react-lib/src/env';
 
 interface EvolutionDataFetchState {
   fetchApplications: () => Promise<string[]>;

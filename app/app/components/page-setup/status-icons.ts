@@ -2,6 +2,7 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
+import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 import Configuration from 'explorviz-frontend/services/configuration';
 
 export default class StatusIcons extends Component {
@@ -21,7 +22,7 @@ export default class StatusIcons extends Component {
   // }
 
   get isSpectating() {
-    return this.spectate.spectatedUser !== null;
+    return useSpectateUserStore.getState().spectatedUser !== null;
   }
 
   get isCommunicationHidden() {

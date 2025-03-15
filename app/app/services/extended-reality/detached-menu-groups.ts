@@ -9,7 +9,7 @@ import { DetachableMenu } from 'explorviz-frontend/utils/extended-reality/vr-men
 import DetachedMenuGroup from 'explorviz-frontend/utils/extended-reality/vr-menus/detached-menu-group';
 import { useVrAssetRepoStore } from 'react-lib/src/stores/extended-reality/vr-asset-repo';
 import SpectateViewMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-menu/connection/spectate-view-menu';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
@@ -29,9 +29,6 @@ import {
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 export default class DetachedMenuGroupsService extends Service {
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
-
   @service('collaboration/collaboration-session')
   private collaborationSession!: CollaborationSession;
 
@@ -89,7 +86,7 @@ export default class DetachedMenuGroupsService extends Service {
 
     const quaternion = new THREE.Quaternion();
     menu.getWorldQuaternion(quaternion);
-    return this.webSocket.sendRespondableMessage<
+    return useWebSocketStore.getState().sendRespondableMessage<
       MenuDetachedMessage,
       MenuDetachedResponse
     >(
@@ -264,7 +261,7 @@ export default class DetachedMenuGroupsService extends Service {
       return Promise.resolve(true);
     }
 
-    return this.webSocket.sendRespondableMessage<
+    return useWebSocketStore.getState().sendRespondableMessage<
       DetachedMenuClosedMessage,
       ObjectClosedResponse
     >(

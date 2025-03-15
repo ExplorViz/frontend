@@ -11,9 +11,8 @@ import {
   LobbyJoinedResponse,
   isLobbyJoinedResponse,
 } from 'react-lib/src/utils/collaboration/room-payload/receivable/lobby-joined';
-import * as ENV from 'react-lib/src/env';
 
-const collaborationService = ENV.COLLABORATION_SERV_URL;
+const collaborationService = 'http://localhost:4444'; //import.meta.env.VITE_COLLABORATION_SERV_URL;
 
 interface RoomServiceState {
   listRooms: () => Promise<RoomListRecord[]>;

@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import * as ENV from 'react-lib/src/env';
 import { useAuthStore } from './auth';
 import { LandscapeToken } from './landscape-token';
 import { getCircularReplacer } from 'react-lib/src/utils/circularReplacer';
@@ -40,8 +39,8 @@ export type SnapshotInfo = {
   subscribedSnapshots: TinySnapshot[];
 };
 
-const userService = ENV.USER_SERV_URL;
-const shareSnapshot = ENV.SHARE_SNAPSHOT_URL;
+const userService = 'http://localhost:8084'; //import.meta.env.VITE_USER_SERV_URL;
+const shareSnapshot = 'http://localhost:4200/'; //import.meta.env.VITE_SHARE_SNAPSHOT_URL;
 
 interface SnapshotTokenState {
   snapshotToken: SnapshotToken | null;

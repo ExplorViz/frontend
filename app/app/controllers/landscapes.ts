@@ -3,12 +3,14 @@ import { action } from '@ember/object';
 import LandscapeTokenService, {
   LandscapeToken,
 } from 'explorviz-frontend/services/landscape-token';
+import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token_tmp';
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
 import SnapshotTokenService, {
   TinySnapshot,
 } from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 

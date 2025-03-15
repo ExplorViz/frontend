@@ -7,7 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
-import WebSocketService from 'explorviz-frontend/services/collaboration/web-socket';
+import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
@@ -66,6 +66,8 @@ import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils
 import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
 import PlayPauseButton from 'react-lib/src/components/visualization/rendering/play-pause-button.tsx';
 import CommitTreeApplicationSelection from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection.tsx';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 
 export const earthTexture = new THREE.TextureLoader().load(
   'images/earth-map.jpg'
@@ -146,9 +148,6 @@ export default class VisualizationController extends Controller {
 
   @service('collaboration/local-user')
   localUser!: LocalUser;
-
-  @service('collaboration/web-socket')
-  private webSocket!: WebSocketService;
 
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
@@ -270,7 +269,7 @@ export default class VisualizationController extends Controller {
       !this.showAR &&
       !this.showVR &&
       !this.isSingleLandscapeMode &&
-      this.spectateUser.spectateConfigurationId !== 'arena-2'
+      useSpectateUserStore.getState().spectateConfigurationId !== 'arena-2'
     );
   }
 
@@ -369,21 +368,19 @@ export default class VisualizationController extends Controller {
       this.timestampRepo.restartTimestampPollingAndVizUpdate([]);
     }
 
-    this.webSocket.on(INITIAL_LANDSCAPE_EVENT, this, this.onInitialLandscape);
-    this.webSocket.on(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-    this.webSocket.on(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
+    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, this.onInitialLandscape);
+    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, this.onTimestampUpdate);
+    eventEmitter.on(SYNC_ROOM_STATE_EVENT, this.onSyncRoomState);
 
     if (!this.isSingleLandscapeMode) {
-      this.webSocket.on(
+      eventEmitter.on(
         TIMESTAMP_UPDATE_TIMER_EVENT,
-        this,
         this.onTimestampUpdateTimer
       );
     }
 
-    this.timestampService.on(
+    eventEmitter.on(
       TIMESTAMP_UPDATE_EVENT,
-      this,
       this.onTimestampUpdate
     );
   }
@@ -527,7 +524,7 @@ export default class VisualizationController extends Controller {
     this.roomSerializer.serializeRoom();
     this.sidebarHandler.closeSettingsSidebar();
     this.localUser.visualizationMode = mode;
-    this.webSocket.send<VisualizationModeUpdateMessage>(
+    useWebSocketStore.getState().send<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
       { mode }
     );
@@ -600,25 +597,22 @@ export default class VisualizationController extends Controller {
     this.roomId = null;
     this.localUser.visualizationMode = 'browser';
 
-    if (this.webSocket.isWebSocketOpen()) {
-      this.webSocket.off(
+    if (useWebSocketStore.getState().isWebSocketOpen()) {
+      eventEmitter.off(
         INITIAL_LANDSCAPE_EVENT,
-        this,
         this.onInitialLandscape
       );
-      this.webSocket.off(TIMESTAMP_UPDATE_EVENT, this, this.onTimestampUpdate);
-      this.webSocket.off(
+      eventEmitter.off(TIMESTAMP_UPDATE_EVENT, this.onTimestampUpdate);
+      eventEmitter.off(
         TIMESTAMP_UPDATE_TIMER_EVENT,
-        this,
         this.onTimestampUpdateTimer
       );
-      this.webSocket.off(SYNC_ROOM_STATE_EVENT, this, this.onSyncRoomState);
+      eventEmitter.off(SYNC_ROOM_STATE_EVENT, this.onSyncRoomState);
     }
 
     if (this.timestampService.has(TIMESTAMP_UPDATE_EVENT)) {
-      this.timestampService.off(
+      eventEmitter.off(
         TIMESTAMP_UPDATE_EVENT,
-        this,
         this.onTimestampUpdate
       );
     }
@@ -626,10 +620,9 @@ export default class VisualizationController extends Controller {
 
   @action
   removeTimestampListener() {
-    if (this.webSocket.isWebSocketOpen()) {
-      this.webSocket.off(
+    if (useWebSocketStore.getState().isWebSocketOpen()) {
+      eventEmitter.off(
         TIMESTAMP_UPDATE_TIMER_EVENT,
-        this,
         this.onTimestampUpdateTimer
       );
     }

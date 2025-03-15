@@ -2,13 +2,12 @@ import { create } from 'zustand';
 import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { CROSS_COMMIT_IDENTIFIER } from 'react-lib/src/utils/evolution-schemes/evolution-data';
-import * as ENV from 'react-lib/src/env';
 import { useAuthStore } from './auth';
 import { useTimestampRepositoryStore } from './repos/timestamp-repository';
 import { useSnapshotTokenStore } from './snapshot-token';
 import { useLandscapeTokenStore } from './landscape-token';
 
-const spanService = ENV.SPAN_SERV_URL;
+const spanService = 'http://localhost:8083'; //import.meta.env.VITE_SPAN_SERV_URL;
 
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
