@@ -74,7 +74,7 @@ type OrderTuple = {
 };
 
 //TODO: Change to ENV to new env
-const { vsCodeService } = ENV.backendAddresses;
+const { vsCodeService } = import.meta.env.VITE_VSCODE_SERV_URL;
 
 let httpSocket = vsCodeService;
 let socket: Socket<DefaultEventsMap, DefaultEventsMap> | undefined = undefined;
@@ -82,8 +82,6 @@ let socket: Socket<DefaultEventsMap, DefaultEventsMap> | undefined = undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
-
-const log = debugLogger('ide-websocket');
 
 export default class IdeWebsocket {
   // @service('auth')
@@ -102,7 +100,6 @@ export default class IdeWebsocket {
   lookAtMesh: (meshID: string) => void;
 
   constructor(
-    owner: any,
     handleDoubleClickOnMesh: (meshID: string) => void,
     lookAtMesh: (meshID: string) => void
   ) {
@@ -111,13 +108,14 @@ export default class IdeWebsocket {
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
 
-    useIdeWebsocketFacadeStore
-      .getState()
-      .on('ide-refresh-data', this.refreshVizData.bind(this));
+    // TODO: ide-websocket-facade as a store doesn't extend Evented so there is no on() method anymore but should be there
+    // useIdeWebsocketFacadeStore
+    //   .getState()
+    //   .on('ide-refresh-data', this.refreshVizData.bind(this));
 
-    useIdeWebsocketFacadeStore
-      .getState()
-      .on('ide-restart-connection', this.reInitialize.bind(this));
+    // useIdeWebsocketFacadeStore
+    //   .getState()
+    //   .on('ide-restart-connection', this.reInitialize.bind(this));
   }
 
   private reInitialize() {
@@ -220,7 +218,6 @@ export default class IdeWebsocket {
             .showSuccessToastMessage(
               'An IDE has successfully connected to this room.'
             );
-          log('An IDE has successfully connected.');
           useIdeWebsocketFacadeStore.setState({
             numConnectedIDEs: useIdeWebsocketFacadeStore.getState()
               .numConnectedIDEs++,
@@ -228,7 +225,6 @@ export default class IdeWebsocket {
           break;
 
         case 'disconnectIDE':
-          log('An IDE has disconnected.');
           useToastHandlerStore
             .getState()
             .showSuccessToastMessage('An IDE has disconnected.');
@@ -325,7 +321,6 @@ export default class IdeWebsocket {
     );
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
 
-    log('Send new data to ide');
     emitToBackend(IDEApiDest.IDEDo, {
       action: IDEApiActions.Refresh,
       data: vizDataOrderTuple,
@@ -337,7 +332,6 @@ export default class IdeWebsocket {
   }
 
   dispose() {
-    log('Disconnecting socket');
     if (socket) {
       socket.disconnect();
       useIdeWebsocketFacadeStore.setState({
@@ -354,7 +348,6 @@ export default class IdeWebsocket {
         isConnected: false,
       });
     }
-    log('Restarting socket with: ', newHttpSocket);
     socket = io(newHttpSocket, {
       path: '/v2/ide/',
     });
