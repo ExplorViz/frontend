@@ -85,8 +85,8 @@ interface CollaborationSessionState {
   onSelfDisconnected: (event?: any) => void;
   isOnline: () => boolean;
   isConnecting: () => boolean;
-  hostRoom: (roomId) => Promise<boolean>;
-  joinRoom: (roomId: string, spectateDevice: string) => Promise<void>;
+  hostRoom: (roomId?: string) => Promise<boolean>;
+  joinRoom: (roomId?: string, spectateDevice?: string) => Promise<void>;
   disconnect: () => void;
   onUserPositions: ({
     userId,

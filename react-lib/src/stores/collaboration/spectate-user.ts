@@ -34,9 +34,9 @@ interface SpectateUserState {
   _removeSpectatingUser: (id: string) => void;
   isActive: () => boolean;
   tick: () => void;
-  activate: (remoteUser: RemoteUser, sendUpdate) => void;
+  activate: (remoteUser: RemoteUser, sendUpdate?: boolean) => void;
   activateConfig: (configId: string, remoteUsersIds: string[]) => void;
-  deactivate: (sendUpdate) => void;
+  deactivate: (sendUpdate?: boolean) => void;
   _onUserDisconnect: ({ id }: UserDisconnectedMessage) => void;
   _onSpectatingUpdate: ({
     originalMessage: {

@@ -4,7 +4,7 @@ import { createScene } from 'react-lib/src/utils/scene';
 
 interface SceneRepositoryState {
   scene?: THREE.Scene;
-  getScene: (mode: VisualizationMode, replaceScene: boolean) => THREE.Scene;
+  getScene: (mode?: VisualizationMode, replaceScene?: boolean) => THREE.Scene;
 }
 
 export const useSceneRepositoryStore = create<SceneRepositoryState>(
