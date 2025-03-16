@@ -4,6 +4,7 @@ import collaborationSession from 'explorviz-frontend/services/collaboration/coll
 import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import * as THREE from 'three';
+import { tracked } from '@glimmer/tracking';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   CHAT_MESSAGE_EVENT,
@@ -18,7 +19,7 @@ import {
   MessageDeleteEvent,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/delete-message';
 import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { useChatStore } from 'react-lib/src/stores/chat.ts';
+// import { useChatStore } from 'react-lib/src/stores/chat.ts';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
 
@@ -35,34 +36,43 @@ export interface ChatMessageInterface {
 }
 
 export default class ChatService extends Service {
-  set userIdMuteList(value) {
-    useChatStore.setState({ userIdMuteList: value });
-  }
+  @tracked
+  userIdMuteList?: string[] = [];
+
+  @tracked
+  chatMessages: ChatMessageInterface[] = [];
+
+  @tracked
+  filteredChatMessages: ChatMessageInterface[] = [];
+
+  // set userIdMuteList(value) {
+  //   useChatStore.setState({ userIdMuteList: value });
+  // }
 
   // @tracked
-  get userIdMuteList(): string[] | undefined {
-    return useChatStore.getState().userIdMuteList;
-  }
+  // get userIdMuteList(): string[] | undefined {
+  //   return useChatStore.getState().userIdMuteList;
+  // }
 
   // @tracked
-  get chatMessages(): ChatMessageInterface[] {
-    return useChatStore.getState().chatMessages;
-  }
+  // get chatMessages(): ChatMessageInterface[] {
+  //   return useChatStore.getState().chatMessages;
+  // }
 
-  set chatMessages(value) {
-    useChatStore.setState({ chatMessages: value });
-  }
+  // set chatMessages(value) {
+  //   useChatStore.setState({ chatMessages: value });
+  // }
 
-  set filteredChatMessages(value) {
-    useChatStore.setState({
-      filteredChatMessages: value,
-    });
-  }
+  // set filteredChatMessages(value) {
+  //   useChatStore.setState({
+  //     filteredChatMessages: value,
+  //   });
+  // }
 
-  // @tracked
-  get filteredChatMessages(): ChatMessageInterface[] {
-    return useChatStore.getState().filteredChatMessages;
-  }
+  // // @tracked
+  // get filteredChatMessages(): ChatMessageInterface[] {
+  //   return useChatStore.getState().filteredChatMessages;
+  // }
 
   @service('collaboration/collaboration-session')
   collaborationSession!: collaborationSession;
@@ -73,27 +83,35 @@ export default class ChatService extends Service {
   @service('collaboration/local-user')
   private localUser!: LocalUser;
 
-  // @tracked
-  get msgId(): number {
-    return useChatStore.getState().msgId;
-  }
-
-  set msgId(value) {
-    useChatStore.setState({ msgId: value });
-  }
+  @tracked
+  msgId: number = 1;
 
   // @tracked
-  get deletedMessage(): boolean {
-    return useChatStore.getState().deletedMessage;
-  } // Can be adjusted to 'needSynchronization' for exmaple, to synchronize chat whenever necessary..
+  // get msgId(): number {
+  //   return useChatStore.getState().msgId;
+  // }
 
-  set deletedMessage(value) {
-    useChatStore.setState({ deletedMessage: value });
-  }
+  // set msgId(value) {
+  //   useChatStore.setState({ msgId: value });
+  // }
 
-  get deletedMessageIds(): number[] {
-    return useChatStore.getState().deletedMessageIds;
-  }
+  @tracked
+  deletedMessage: boolean = false; // Can be adjusted to 'needSynchronization' for exmaple, to synchronize chat whenever necessary..
+
+  deletedMessageIds: number[] = [];
+
+  // // @tracked
+  // get deletedMessage(): boolean {
+  //   return useChatStore.getState().deletedMessage;
+  // } // Can be adjusted to 'needSynchronization' for exmaple, to synchronize chat whenever necessary..
+
+  // set deletedMessage(value) {
+  //   useChatStore.setState({ deletedMessage: value });
+  // }
+
+  // get deletedMessageIds(): number[] {
+  //   return useChatStore.getState().deletedMessageIds;
+  // }
 
   constructor() {
     super(...arguments);
@@ -261,9 +279,16 @@ export default class ChatService extends Service {
     }
   }
 
+  // findEventByUserId(userId: string, eventType: string) {
+  //   return useChatStore.getState().findEventByUserId(userId, eventType);
+  // }
   findEventByUserId(userId: string, eventType: string) {
-    return useChatStore.getState().findEventByUserId(userId, eventType);
+    const messages = this.chatMessages.filter(
+      (msg) => msg.userId === userId && msg.eventType === eventType
+    );
+    return messages.length > 0;
   }
+
 
   toggleMuteStatus(userId: string) {
     const remoteUser = this.collaborationSession.getUserById(userId);
@@ -292,28 +317,66 @@ export default class ChatService extends Service {
     this.sender.sendUserMuteUpdate(userId);
   }
 
+  // isUserMuted(userId: string) {
+  //   return useChatStore.getState().isUserMuted(userId);
+  // }
+
+  // filterChat(filterMode: string, filterValue: string) {
+  //   useChatStore.getState().filterChat(filterMode, filterValue);
+  // }
   isUserMuted(userId: string) {
-    return useChatStore.getState().isUserMuted(userId);
+    return this.userIdMuteList?.includes(userId);
   }
 
   filterChat(filterMode: string, filterValue: string) {
-    useChatStore.getState().filterChat(filterMode, filterValue);
+    this.applyCurrentFilter(filterMode, filterValue);
   }
+
 
   clearFilter() {
     this.filteredChatMessages = this.chatMessages;
   }
 
+  // private applyCurrentFilter(
+  //   filterMode: string = '',
+  //   filterValue: string = ''
+  // ) {
+  //   useChatStore.getState().applyCurrentFilter(filterMode, filterValue);
+  // }
   private applyCurrentFilter(
     filterMode: string = '',
     filterValue: string = ''
   ) {
-    useChatStore.getState().applyCurrentFilter(filterMode, filterValue);
+    if (!filterMode || !filterValue) {
+      this.filteredChatMessages = this.chatMessages;
+    } else {
+      switch (filterMode) {
+        case 'UserId':
+          this.filteredChatMessages = this.chatMessages.filter(
+            (msg) => msg.userName + '(' + msg.userId + ')' === filterValue
+          );
+          break;
+        case 'Events':
+          this.filteredChatMessages = this.chatMessages.filter(
+            (msg) => msg.isEvent
+          );
+          break;
+        default:
+          this.filteredChatMessages = this.chatMessages;
+      }
+    }
   }
 
+
+  // private getTime() {
+  //   return useChatStore.getState().getTime();
+  // }
   private getTime() {
-    return useChatStore.getState().getTime();
+    const h = new Date().getHours();
+    const m = new Date().getMinutes();
+    return `${h}:${m < 10 ? '0' + m : m}`;
   }
+
 
   synchronizeWithServer() {
     this.sender.sendChatSynchronize();
