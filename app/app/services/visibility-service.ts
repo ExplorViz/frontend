@@ -12,7 +12,6 @@ import {
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import LinkRenderer from './link-renderer';
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
-import { useVisibilityServiceStore } from 'react-lib/src/stores/visibility-service';
 
 export default class VisibilityService extends Service {
   //#region Services
@@ -30,28 +29,24 @@ export default class VisibilityService extends Service {
 
   //#region Fields
 
-  private set _evolutionModeRenderingConfiguration(
-    value: EvolutionModeRenderingConfiguration
-  ) {
-    useVisibilityServiceStore.setState({
-      _evolutionModeRenderingConfiguration: value,
-    });
-  }
+  private _evolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration =
+    {
+      renderDynamic: true,
+      renderStatic: true,
+      renderOnlyDifferences: false,
+    };
 
-  private get _evolutionModeRenderingConfiguration(): EvolutionModeRenderingConfiguration {
-    return useVisibilityServiceStore.getState()
-      ._evolutionModeRenderingConfiguration;
-  }
 
   //#endregion
 
   //#region Get / Set
 
   getCloneOfEvolutionModeRenderingConfiguration() {
-    return useVisibilityServiceStore
-      .getState()
-      .getCloneOfEvolutionModeRenderingConfiguration();
+    // return clone so that we don't unintentionally alter the object via
+    // the getter
+    return structuredClone(this._evolutionModeRenderingConfiguration);
   }
+
   //#endregion
 
   //#region Utility
