@@ -1,6 +1,17 @@
-import { createStore } from 'zustand/vanilla';
-
+import { create } from 'zustand';
+import MousePing from 'react-lib/src/utils/collaboration/mouse-ping-helper';
 import * as THREE from 'three';
+import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
+import { getPoses } from 'react-lib/src/utils/extended-reality/vr-helpers/vr-poses';
+import { useMessageSenderStore } from './message-sender';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
+import { useChatStore } from 'react-lib/src/stores/chat';
+import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -11,11 +22,11 @@ interface LocalUserState {
   defaultCamera: THREE.PerspectiveCamera;
   minimapCamera: THREE.OrthographicCamera;
   visualizationMode: VisualizationMode;
-  // mousePing: MousePing;
+  mousePing: MousePing;
   userGroup: THREE.Group;
   task: any;
-  // controller1: VRController | undefined;
-  // controller2: VRController | undefined;
+  controller1: VRController | undefined;
+  controller2: VRController | undefined;
   panoramaSphere: THREE.Object3D | undefined;
   animationMixer: THREE.AnimationMixer;
   xr?: THREE.WebXRManager;
@@ -32,8 +43,8 @@ interface LocalUserState {
     name: string;
     color: THREE.Color;
   }) => void;
-  // setController1: (controller1: VRController) => void;
-  // setController2: (controller2: VRController) => void;
+  setController1: (controller1: VRController) => void;
+  setController2: (controller2: VRController) => void;
   setPanoramaSphere: (panoramaSphere: THREE.Object3D) => void;
   updateControllers: (delta: number) => void;
   updateCameraAspectRatio: (width: number, height: number) => void;
@@ -42,11 +53,11 @@ interface LocalUserState {
     appId: string,
     options?: { durationInMs?: number; nonrestartable?: boolean }
   ) => void;
-  // pingNonRestartable: (
-  //   obj: EntityMesh | null,
-  //   pingPosition: THREE.Vector3,
-  //   durationInMs: number
-  // ) => void;
+  pingNonRestartable: (
+    obj: EntityMesh | null,
+    pingPosition: THREE.Vector3,
+    durationInMs: number
+  ) => void;
   ping: (
     obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
@@ -73,11 +84,13 @@ interface LocalUserState {
   ) => void;
   rotateCamera: (x: number, y: number) => void;
   resetPositionAndRotation: () => void;
-  // reset: () => void;
-  // resetController: (controller: VRController | undefined) => void;
+  reset: () => void;
+  _resetController: (controller: VRController | undefined) => void;
+  setDefaultCamera: (camera: THREE.PerspectiveCamera) => void;
+  setVisualizationMode: (mode: VisualizationMode) => void;
 }
 
-export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
+export const useLocalUserStore = create<LocalUserState>((set, get) => {
   const initUserGroup = new THREE.Group();
   // Initialize camera. The default aspect ratio is not known at this point
   // and must be updated when the canvas is inserted.
@@ -88,20 +101,43 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
 
   return {
     userId: 'unknown',
-    userName: 'You',
-    color: new THREE.Color('red'),
-    defaultCamera: initDefaultCamera,
-    minimapCamera: new THREE.OrthographicCamera(),
-    visualizationMode: 'browser',
-    // mousePing: new MousePing(new THREE.Color('red'), initAnimationMixer),
+    userName: 'You', // tracked
+    color: new THREE.Color('red'), // tracked
+    defaultCamera: initDefaultCamera, // tracked
+    minimapCamera: new THREE.OrthographicCamera(), // tracked
+    visualizationMode: 'browser', // tracked
+    mousePing: new MousePing(new THREE.Color('red'), initAnimationMixer),
     userGroup: initUserGroup,
-    task: undefined,
-    // controller1: undefined,
-    // controller2: undefined,
+    task: undefined, // TODO: Check if this is used anywhere
+    controller1: undefined,
+    controller2: undefined,
     panoramaSphere: undefined,
     animationMixer: initAnimationMixer,
     xr: undefined,
-    isHost: false,
+    isHost: false, // tracked
+
+    // TODO: Where to call this?
+    init: () => {
+      if (get().xr?.isPresenting) {
+        return get().xr?.getCamera();
+      } else {
+        const newUserGroup = get().userGroup;
+        newUserGroup.add(get().defaultCamera);
+        set({ userGroup: newUserGroup });
+      }
+      set({
+        mousePing: new MousePing(new THREE.Color('red'), get().animationMixer),
+      });
+      return undefined;
+    },
+
+    setDefaultCamera: (camera: THREE.PerspectiveCamera) => {
+      set({ defaultCamera: camera });
+    },
+
+    setVisualizationMode: (mode: VisualizationMode) => {
+      set({ visualizationMode: mode });
+    },
 
     getCamera: () => {
       const state = get();
@@ -112,12 +148,21 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
     },
 
     tick: (delta: number) => {
-      get().animationMixer.update(delta);
+      const newAnimationMixer = get().animationMixer;
+      newAnimationMixer.update(delta);
+      set({ animationMixer: newAnimationMixer });
       get().sendPositions();
     },
 
     sendPositions: () => {
-      // TODO implement me!
+      const { camera, controller1, controller2 } = getPoses(
+        get().getCamera(),
+        get().controller1,
+        get().controller2
+      );
+      useMessageSenderStore
+        .getState()
+        .sendPoseUpdate(camera, controller1, controller2);
     },
 
     connected: ({
@@ -129,16 +174,28 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
       name: string;
       color: THREE.Color;
     }) => {
-      // TODO implement me!
+      set({ userId: id });
+      set({ userName: name });
+
+      set({ color: color });
+      set({
+        mousePing: new MousePing(new THREE.Color(color), get().animationMixer),
+      });
     },
 
-    // setController1: (controller1: VRController) => {
-    //   // TODO implement me!
-    // }
+    setController1: (controller1: VRController) => {
+      set({ controller1: controller1 });
+      const newUserGroup = get().userGroup;
+      newUserGroup.add(controller1);
+      set({ userGroup: newUserGroup });
+    },
 
-    // setController2: (controller2: VRController) => {
-    //   // TODO implement me!
-    // }
+    setController2: (controller2: VRController) => {
+      set({ controller2: controller2 });
+      const newUserGroup = get().userGroup;
+      newUserGroup.add(controller2);
+      set({ userGroup: newUserGroup });
+    },
 
     setPanoramaSphere: (panoramaSphere: THREE.Object3D) => {
       // Remove panorama sphere from userGroup
@@ -148,15 +205,31 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
       }
 
       set({ panoramaSphere: panoramaSphere }); // TODO copy object attributes instead? panoramaSphere is not @tracked.
-      get().userGroup.add(panoramaSphere);
+      const newUserGroup = get().userGroup;
+      newUserGroup.add(panoramaSphere);
+      set({ userGroup: newUserGroup });
     },
 
     updateControllers: (delta: number) => {
-      // TODO implement me!
+      if (get().controller1) {
+        const newController1 = get().controller1;
+        newController1!.update(delta);
+        set({ controller1: newController1 });
+      }
+      if (get().controller2) {
+        const newController2 = get().controller2;
+        newController2!.update(delta);
+        set({ controller2: newController2 });
+      }
     },
 
     updateCameraAspectRatio: (width: number, height: number) => {
-      // TODO implement me!
+      // TODO: Whats this???
+      // this.renderer.setSize(width, height); // Should this be this.applicationRenderer?
+      const newDefaultCamera = get().defaultCamera;
+      newDefaultCamera.aspect = width / height;
+      set({ defaultCamera: newDefaultCamera });
+      get().defaultCamera.updateProjectionMatrix();
     },
 
     pingByModelId: (
@@ -164,21 +237,97 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
       appId: string,
       options?: { durationInMs?: number; nonrestartable?: boolean }
     ) => {
-      // TODO implement me!
+      if (!get().mousePing || !modelId) {
+        return;
+      }
+
+      const duration = options?.durationInMs ?? 5000;
+
+      const applicationObject3D = useApplicationRendererStore
+        .getState()
+        .getApplicationById(appId);
+
+      if (applicationObject3D) {
+        const mesh = applicationObject3D.getBoxMeshByModelId(modelId);
+        if (!mesh) return;
+
+        if (options?.nonrestartable) {
+          get().pingNonRestartable(
+            mesh,
+            mesh.getWorldPosition(mesh!.position),
+            duration
+          );
+        } else {
+          get().ping(mesh, mesh.getWorldPosition(mesh.position), duration);
+        }
+      }
     },
 
-    // pingNonRestartable: (
-    //   obj: EntityMesh | null,
-    //   pingPosition: THREE.Vector3,
-    //   durationInMs: number = 5000
-    // ) => {},
+    pingNonRestartable: (
+      obj: EntityMesh | null,
+      pingPosition: THREE.Vector3,
+      durationInMs: number = 5000
+    ) => {
+      // or touch, primary input ...
+      if (!get().mousePing || !obj) {
+        return;
+      }
+
+      const app3D = obj.parent; // TODO: Something wrong?
+      if (!(app3D instanceof ApplicationObject3D)) {
+        return;
+      }
+
+      app3D.worldToLocal(pingPosition);
+
+      useApplicationRendererStore
+        .getState()
+        .openParents(obj, app3D.getModelId());
+
+      get().mousePing.pingNonRestartable(
+        // TODO: Wrong?
+        app3D,
+        pingPosition,
+        durationInMs
+      );
+
+      useMessageSenderStore
+        .getState()
+        .sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
+    },
 
     ping: (
       obj: THREE.Object3D,
       pingPosition: THREE.Vector3,
       durationInMs: number = 5000
     ) => {
-      // TODO implement me!
+      const app3D = obj.parent;
+      if (!app3D || !(app3D instanceof ApplicationObject3D)) {
+        return;
+      }
+
+      app3D.worldToLocal(pingPosition);
+
+      if (isEntityMesh(obj)) {
+        useApplicationRendererStore
+          .getState()
+          .openParents(obj, app3D.getModelId());
+      }
+
+      const replay = false;
+
+      get().mousePing.ping(app3D, pingPosition, durationInMs, replay);
+
+      useMessageSenderStore
+        .getState()
+        .sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
+      useChatStore.getState().sendChatMessage(
+        get().userId,
+        `${get().userName}(${get().userId}) pinged ${obj.dataModel.name}`, // TODO: wrong?
+        true,
+        'ping',
+        [app3D.getModelId(), pingPosition.toArray(), durationInMs]
+      );
     },
 
     pingReplay: (
@@ -188,7 +337,27 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
       durationInMs: number,
       replay: boolean = true
     ) => {
-      // TODO implement me!
+      const remoteUser = useCollaborationSessionStore
+        .getState()
+        .lookupRemoteUserById(userId);
+
+      const applicationObj = useApplicationRendererStore
+        .getState()
+        .getApplicationById(modelId);
+
+      const point = new THREE.Vector3().fromArray(position);
+      if (applicationObj) {
+        if (remoteUser) {
+          remoteUser.mousePing.ping({
+            parentObj: applicationObj,
+            position: point,
+            durationInMs,
+            replay,
+          });
+        } else {
+          get().mousePing.ping(applicationObj, point, durationInMs, replay);
+        }
+      }
     },
 
     /*
@@ -217,7 +386,11 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
         .xr?.getReferenceSpace()
         ?.getOffsetReferenceSpace(transform);
 
-      if (teleportSpaceOffset) get().xr?.setReferenceSpace(teleportSpaceOffset);
+      if (teleportSpaceOffset) {
+        const newXr = get().xr;
+        newXr?.setReferenceSpace(teleportSpaceOffset);
+        set({ xr: newXr });
+      }
     },
 
     getCameraWorldPosition: () => {
@@ -230,7 +403,9 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
 
     setCameraHeight: (cameraHeight: number) => {
       // TODO non-mutating instead?
-      get().userGroup.position.y = cameraHeight;
+      const newUserGroup = get().userGroup;
+      newUserGroup.position.y = cameraHeight;
+      set({ userGroup: newUserGroup });
     },
 
     /**
@@ -260,7 +435,9 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
       const localDirection = worldDirection
         .normalize()
         .transformDirection(get().userGroup.matrix.clone().invert());
-      get().userGroup.translateOnAxis(localDirection, distance);
+      const newUserGroup = get().userGroup;
+      newUserGroup.translateOnAxis(localDirection, distance);
+      set({ userGroup: newUserGroup });
     },
 
     /**
@@ -269,8 +446,18 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
     rotateCamera: (x: number, y: number) => {
       const xAxis = new THREE.Vector3(1, 0, 0);
       const yAxis = new THREE.Vector3(0, 1, 0);
-      get().getCamera().rotateOnAxis(xAxis, x);
-      get().getCamera().rotateOnWorldAxis(yAxis, y);
+
+      if (get().xr?.isPresenting) {
+        const newXr = get().xr;
+        newXr?.getCamera().rotateOnAxis(xAxis, x);
+        newXr?.getCamera().rotateOnWorldAxis(yAxis, y);
+        set({ xr: newXr });
+      } else {
+        const newDefaultCamera = get().defaultCamera;
+        newDefaultCamera.rotateOnAxis(xAxis, x);
+        newDefaultCamera.rotateOnWorldAxis(yAxis, y);
+        set({ defaultCamera: newDefaultCamera });
+      }
     },
 
     /*
@@ -278,31 +465,35 @@ export const useLocalUserStore = createStore<LocalUserState>((set, get) => {
      */
     resetPositionAndRotation: () => {
       get().teleportToPosition(new THREE.Vector3(0, 0, 0));
-      get().defaultCamera.rotation.set(0, 0, 0);
+      const newDefaultCamera = get().defaultCamera;
+      newDefaultCamera.rotation.set(0, 0, 0);
+      set({ defaultCamera: newDefaultCamera });
     },
 
     // TODO: Check if this works with get() or if we need
     // two methods (one for each controller)
-    // reset: () => {
-    //   get().resetPositionAndRotation();
+    reset: () => {
+      get().resetPositionAndRotation();
 
-    //   get().resetController(get().controller1);
-    //   set({ controller1: undefined });
+      get()._resetController(get().controller1);
+      set({ controller1: undefined });
 
-    //   get().resetController(get().controller2);
-    //   set({ controller2: undefined });
-    // },
+      get()._resetController(get().controller2);
+      set({ controller2: undefined });
+    },
 
-    // TODO private
-    // resetController: (controller: VRController | undefined) => {
-    //   if (!controller) return;
+    // private
+    _resetController: (controller: VRController | undefined) => {
+      if (!controller) return;
 
-    //   get().userGroup.remove(controller);
-    //   controller.children.forEach((child) => controller.remove(child));
-    //   controller.gripSpace?.children.forEach((child) => {
-    //     controller.gripSpace?.remove(child);
-    //   });
-    //   controller.removeTeleportArea();
-    // },
+      const newUserGroup = get().userGroup;
+      newUserGroup.remove(controller);
+      set({ userGroup: newUserGroup });
+      controller.children.forEach((child) => controller.remove(child));
+      controller.gripSpace?.children.forEach((child) => {
+        controller.gripSpace?.remove(child);
+      });
+      controller.removeTeleportArea();
+    },
   };
 });
