@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import {
+  DynamicLandscapeData,
   Span,
   Trace,
 } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
@@ -24,6 +25,7 @@ import Button from 'react-bootstrap/Button';
 export type TimeUnit = 'ns' | 'ms' | 's';
 
 interface TraceSelectionProps {
+  readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
   readonly application: Application;
   readonly selectedTrace: Trace;
