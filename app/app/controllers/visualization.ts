@@ -44,9 +44,7 @@ import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-rep
 import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
-import UserApiTokenService, {
-  ApiToken,
-} from 'explorviz-frontend/services/user-api-token';
+import { useUserApiTokenStore, ApiToken } from 'react-lib/src/stores/user-api-token';
 import UserSettings from 'explorviz-frontend/services/user-settings';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import DetachedMenuRenderer from 'explorviz-frontend/services/extended-reality/detached-menu-renderer';
@@ -157,9 +155,6 @@ export default class VisualizationController extends Controller {
 
   @service('collaboration/spectate-user')
   spectateUser!: SpectateUser;
-
-  @service('user-api-token')
-  userApiTokenService!: UserApiTokenService;
 
   @service('annotation-handler')
   annotationHandler!: AnnotationHandlerService;

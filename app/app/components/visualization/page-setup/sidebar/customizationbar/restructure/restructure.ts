@@ -18,7 +18,7 @@ import RoomSerializer from 'explorviz-frontend/services/collaboration/room-seria
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import ENV from 'explorviz-frontend/config/environment';
-import { ApiToken } from 'explorviz-frontend/services/user-api-token';
+import { ApiToken } from 'react-lib/src/stores/user-api-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import WideCheckbox from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox.tsx';
 import { useAuthStore } from 'react-lib/src/stores/auth';

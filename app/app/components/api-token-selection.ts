@@ -1,18 +1,12 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
-import UserApiTokenService, {
-  ApiToken,
-} from 'explorviz-frontend/services/user-api-token';
+import { useUserApiTokenStore, ApiToken} from 'react-lib/src/stores/user-api-token';
 import { format } from 'date-fns';
 import convertDate from 'react-lib/src/utils/helpers/time-convter';
 
 export default class ApiTokenSelectionComponent extends Component<ApiToken> {
   today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
-
-  @service('user-api-token')
-  userApiTokenService!: UserApiTokenService;
 
   @tracked
   sortProperty: keyof ApiToken = 'createdAt';
@@ -54,7 +48,7 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
 
   @action
   async deleteApiToken(apiToken: ApiToken) {
-    await this.userApiTokenService.deleteApiToken(apiToken.token, apiToken.uid);
+    await useUserApiTokenStore.getState().deleteApiToken(apiToken.token, apiToken.uid);
     if (localStorage.getItem('gitAPIToken') !== null) {
       if (localStorage.getItem('gitAPIToken') === JSON.stringify(apiToken)) {
         localStorage.removeItem('gitAPIToken');
@@ -76,7 +70,7 @@ export default class ApiTokenSelectionComponent extends Component<ApiToken> {
 
   @action
   async createApiToken() {
-    this.userApiTokenService.createApiToken(
+    useUserApiTokenStore.getState().createApiToken(
       this.name,
       this.token,
       this.hostUrl,
