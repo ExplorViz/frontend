@@ -1,6 +1,7 @@
 import Service, { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
+// import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 
 export default class ArSettings extends Service.extend({
@@ -10,64 +11,64 @@ export default class ArSettings extends Service.extend({
   @service('application-renderer')
   private applicationRenderer!: ApplicationRenderer;
 
-  // @tracked
-  // landscapeOpacity: number;
-  get landscapeOpacity(): number {
-    return useARSettingsStore.getState().landscapeOpacity;
-  }
+  @tracked
+  landscapeOpacity: number;
+  // get landscapeOpacity(): number {
+  //   return useARSettingsStore.getState().landscapeOpacity;
+  // }
 
-  set landscapeOpacity(value: number) {
-    useARSettingsStore.setState({ landscapeOpacity: value });
-  }
+  // set landscapeOpacity(value: number) {
+  //   useARSettingsStore.setState({ landscapeOpacity: value });
+  // }
 
-  // @tracked
-  // applicationOpacity: number;
-  get applicationOpacity(): number {
-    return useARSettingsStore.getState().applicationOpacity;
-  }
+  @tracked
+  applicationOpacity: number;
+  // get applicationOpacity(): number {
+  //   return useARSettingsStore.getState().applicationOpacity;
+  // }
 
-  set applicationOpacity(value: number) {
-    useARSettingsStore.setState({ applicationOpacity: value });
-  }
+  // set applicationOpacity(value: number) {
+  //   useARSettingsStore.setState({ applicationOpacity: value });
+  // }
 
-  // sidebarWidthInPercent: number | undefined;
-  get sidebarWidthInPercent(): number | undefined {
-    return useARSettingsStore.getState().sidebarWidthInPercent;
-  }
+  sidebarWidthInPercent: number | undefined;
+  // get sidebarWidthInPercent(): number | undefined {
+  //   return useARSettingsStore.getState().sidebarWidthInPercent;
+  // }
 
-  set sidebarWidthInPercent(value: number | undefined) {
-    useARSettingsStore.setState({ sidebarWidthInPercent: value });
-  }
+  // set sidebarWidthInPercent(value: number | undefined) {
+  //   useARSettingsStore.setState({ sidebarWidthInPercent: value });
+  // }
 
-  // @tracked
-  // renderCommunication = true;
-  get renderCommunication(): boolean {
-    return useARSettingsStore.getState().renderCommunication;
-  }
+  @tracked
+  renderCommunication = true;
+  // get renderCommunication(): boolean {
+  //   return useARSettingsStore.getState().renderCommunication;
+  // }
 
-  set renderCommunication(value: boolean) {
-    useARSettingsStore.setState({ renderCommunication: value });
-  }
+  // set renderCommunication(value: boolean) {
+  //   useARSettingsStore.setState({ renderCommunication: value });
+  // }
 
-  // @tracked
-  // zoomLevel = 3;
-  get zoomLevel(): number {
-    return useARSettingsStore.getState().zoomLevel;
-  }
+  @tracked
+  zoomLevel = 3;
+  // get zoomLevel(): number {
+  //   return useARSettingsStore.getState().zoomLevel;
+  // }
 
-  set zoomLevel(value: number) {
-    useARSettingsStore.setState({ zoomLevel: value });
-  }
+  // set zoomLevel(value: number) {
+  //   useARSettingsStore.setState({ zoomLevel: value });
+  // }
 
-  // @tracked
-  // stackPopups = true;
-  get stackPopups(): boolean {
-    return useARSettingsStore.getState().stackPopups;
-  }
+  @tracked
+  stackPopups = true;
+  // get stackPopups(): boolean {
+  //   return useARSettingsStore.getState().stackPopups;
+  // }
 
-  set stackPopups(value: boolean) {
-    useARSettingsStore.setState({ stackPopups: value });
-  }
+  // set stackPopups(value: boolean) {
+  //   useARSettingsStore.setState({ stackPopups: value });
+  // }
 
   constructor() {
     super(...arguments);
