@@ -40,7 +40,6 @@ import {
   UserKickEvent,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/kick-user';
 import ChatService from 'explorviz-frontend/services/chat';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
 
@@ -93,10 +92,10 @@ export default class CollaborationSession extends Service.extend({
   //   useCollaborationSessionStore.setState({ idToRemoteUser: value });
   // }
 
-  // readonly remoteUserGroup: THREE.Group = new THREE.Group();
-  get remoteUserGroup(): THREE.Group {
-    return useCollaborationSessionStore.getState().remoteUserGroup;
-  }
+  readonly remoteUserGroup: THREE.Group = new THREE.Group();
+  // get remoteUserGroup(): THREE.Group {
+  //   return useCollaborationSessionStore.getState().remoteUserGroup;
+  // }
 
   get userCount() {
     return this.idToRemoteUser.size + 1;
@@ -107,35 +106,35 @@ export default class CollaborationSession extends Service.extend({
   //   return useCollaborationSessionStore.getState().getUserCount();
   // }
 
-  // @tracked
-  // connectionStatus: ConnectionStatus = 'offline';
-  get connectionStatus(): ConnectionStatus {
-    return useCollaborationSessionStore.getState().connectionStatus;
-  }
+  @tracked
+  connectionStatus: ConnectionStatus = 'offline';
+  // get connectionStatus(): ConnectionStatus {
+  //   return useCollaborationSessionStore.getState().connectionStatus;
+  // }
 
-  set connectionStatus(value: ConnectionStatus) {
-    useCollaborationSessionStore.setState({ connectionStatus: value });
-  }
+  // set connectionStatus(value: ConnectionStatus) {
+  //   useCollaborationSessionStore.setState({ connectionStatus: value });
+  // }
 
-  // @tracked
-  // currentRoomId: string | null = null;
-  get currentRoomId(): string | null {
-    return useCollaborationSessionStore.getState().currentRoomId;
-  }
+  @tracked
+  currentRoomId: string | null = null;
+  // get currentRoomId(): string | null {
+  //   return useCollaborationSessionStore.getState().currentRoomId;
+  // }
 
-  set currentRoomId(value: string | null) {
-    useCollaborationSessionStore.setState({ currentRoomId: value });
-  }
+  // set currentRoomId(value: string | null) {
+  //   useCollaborationSessionStore.setState({ currentRoomId: value });
+  // }
 
-  // @tracked
-  // previousRoomId: string | null = this.currentRoomId;
-  get previousRoomId(): string | null {
-    return useCollaborationSessionStore.getState().previousRoomId;
-  }
+  @tracked
+  previousRoomId: string | null = this.currentRoomId;
+  // get previousRoomId(): string | null {
+  //   return useCollaborationSessionStore.getState().previousRoomId;
+  // }
 
-  set previousRoomId(value: string | null) {
-    useCollaborationSessionStore.setState({ previousRoomId: value });
-  }
+  // set previousRoomId(value: string | null) {
+  //   useCollaborationSessionStore.setState({ previousRoomId: value });
+  // }
 
   init() {
     super.init();
