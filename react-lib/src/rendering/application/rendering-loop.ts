@@ -14,11 +14,17 @@ import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
 
 const clock = new Clock();
 
+type TickCallback = {
+  id: string;
+  callback: (delta: number, frame?: XRFrame) => void;
+};
+
 interface Args {
   camera: THREE.Camera;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
   updatables: any[];
+  tickCallbacks: TickCallback[];
   zoomHandler?: ArZoomHandler;
 }
 
@@ -47,6 +53,7 @@ export default class RenderingLoop {
   renderer: THREE.WebGLRenderer;
 
   updatables: any[];
+  tickCallbacks: TickCallback[];
 
   zoomHandler?: ArZoomHandler;
 
@@ -63,6 +70,7 @@ export default class RenderingLoop {
     this.scene = args.scene;
     this.renderer = args.renderer;
     this.updatables = args.updatables;
+    this.tickCallbacks = args.tickCallbacks;
     this.zoomHandler = args.zoomHandler;
     this.minimapCamera = useLocalUserStore.getState().minimapCamera;
   }
@@ -127,9 +135,11 @@ export default class RenderingLoop {
   tick(frame?: XRFrame) {
     const delta = clock.getDelta();
 
+    // TODO replace updatables with tickCallbacks. Keep both for now as to not crash anything
     for (let i = 0; i < this.updatables.length; i++) {
       this.updatables[i].tick(delta, frame);
     }
+    this.tickCallbacks.forEach((tickCallback) => tickCallback(delta, frame));
   }
 
   private handleLightHelper() {
