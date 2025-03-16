@@ -1,16 +1,10 @@
 import Component from '@glimmer/component';
-import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import SnapshotTokenService, {
-  TinySnapshot,
-} from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore, TinySnapshot } from 'react-lib/src/stores/snapshot-token';
 import { tracked } from '@glimmer/tracking';
 import convertDate from 'react-lib/src/utils/helpers/time-convter';
 
 export default class ShareSnapshotComponent extends Component<TinySnapshot> {
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
-
   @tracked
   setExpireDateMenu: boolean = false;
 
@@ -39,6 +33,6 @@ export default class ShareSnapshotComponent extends Component<TinySnapshot> {
   async shareSnapshot(snapshot: TinySnapshot) {
     const expDate = this.expDate !== null ? this.expDate : 0;
 
-    this.snapshotService.shareSnapshot(snapshot, expDate);
+    useSnapshotTokenStore.getState().shareSnapshot(snapshot, expDate);
   }
 }

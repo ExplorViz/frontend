@@ -13,9 +13,7 @@ import convertDate from 'react-lib/src/utils/helpers/time-convter';
 import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import { LandscapeToken, useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
-import SnapshotTokenService, {
-  SnapshotToken,
-} from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore, SnapshotToken } from 'react-lib/src/stores/snapshot-token';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
@@ -54,9 +52,6 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
 
   @service('changelog')
   changeLog!: Changelog;
-
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
 
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
@@ -550,10 +545,10 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
         ...sharedToken,
         isShared: false,
       };
-      this.snapshotService.saveSnapshot(personalToken);
+      useSnapshotTokenStore.getState().saveSnapshot(personalToken);
     }
 
-    this.snapshotService.saveSnapshot(sharedToken);
+    useSnapshotTokenStore.getState().saveSnapshot(sharedToken);
 
     const snapshotURL = `${shareSnapshot}visualization?landscapeToken=${sharedToken.landscapeToken.value}&owner=${sharedToken.owner}&createdAt=${sharedToken.createdAt}&sharedSnapshot=${true}`;
 

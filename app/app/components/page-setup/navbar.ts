@@ -3,14 +3,11 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
-import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 
 export default class Navbar extends Component {
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
-
   @service('router')
   router!: any;
 
@@ -28,9 +25,9 @@ export default class Navbar extends Component {
 
   @action
   goToLandscapeSelection() {
-    this.snapshotService.snapshotSelected = false;
+    useSnapshotTokenStore.getState().snapshotSelected = false;
     useLandscapeTokenStore.getState().setToken(null);
-    this.snapshotService.setToken(null);
+    useSnapshotTokenStore.getState().setToken(null);
     this.router.transitionTo('landscapes', {
       queryParams: { landscapeToken: undefined },
     });
@@ -38,15 +35,15 @@ export default class Navbar extends Component {
 
   @action
   goToVisualization() {
-    if (this.snapshotService.latestSnapshotToken !== null) {
-      this.snapshotService.setToken(this.snapshotService.latestSnapshotToken);
+    if (useSnapshotTokenStore.getState().latestSnapshotToken !== null) {
+      useSnapshotTokenStore.getState().setToken(useSnapshotTokenStore.getState().latestSnapshotToken);
       this.router.transitionTo('visualization', {
         queryParams: {
           landscapeToken:
-            this.snapshotService.latestSnapshotToken.landscapeToken.value,
-          sharedSnapshot: this.snapshotService.latestSnapshotToken.isShared,
-          owner: this.snapshotService.latestSnapshotToken.owner,
-          createdAt: this.snapshotService.latestSnapshotToken.createdAt,
+            useSnapshotTokenStore.getState().latestSnapshotToken!.landscapeToken.value,
+          sharedSnapshot: useSnapshotTokenStore.getState().latestSnapshotToken!.isShared,
+          owner: useSnapshotTokenStore.getState().latestSnapshotToken!.owner,
+          createdAt: useSnapshotTokenStore.getState().latestSnapshotToken!.createdAt,
         },
       });
     } else {
@@ -61,8 +58,8 @@ export default class Navbar extends Component {
   @action
   goToSettings() {
     useLandscapeTokenStore.getState().setToken(null);
-    this.snapshotService.snapshotSelected = false;
-    this.snapshotService.setToken(null);
+    useSnapshotTokenStore.getState().snapshotSelected = false;
+    useSnapshotTokenStore.getState().setToken(null);
     this.router.transitionTo('settings', {
       queryParams: {
         landscapeToken: undefined,

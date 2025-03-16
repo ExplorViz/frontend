@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useAuthStore } from '../stores/auth';
-import { TinySnapshot } from 'explorviz-frontend/services/snapshot-token';
+import { TinySnapshot } from '../stores/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import CopyButton from 'react-lib/src/components/copy-button.tsx';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';

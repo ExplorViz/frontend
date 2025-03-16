@@ -4,9 +4,7 @@ import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import SnapshotTokenService, {
-  SnapshotToken,
-} from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore, SnapshotToken } from 'react-lib/src/stores/snapshot-token';
 import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import AnnotationData from 'explorviz-frontend/components/visualization/rendering/annotations/annotation-data';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
@@ -25,9 +23,6 @@ interface Args {
 export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapshotComponent extends Component<Args> {
   @service('collaboration/room-serializer')
   roomSerializer!: RoomSerializer;
-
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
 
   @service('collaboration/local-user')
   localUser!: LocalUser;
@@ -94,7 +89,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       deleteAt: 0,
     };
 
-    this.snapshotService.saveSnapshot(content);
+    useSnapshotTokenStore.getState().saveSnapshot(content);
     this.reset();
   }
 
@@ -134,7 +129,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       subscribedUsers: { subscriberList: [] },
       deleteAt: 0,
     };
-    this.snapshotService.exportFile(content);
+    useSnapshotTokenStore.getState().exportFile(content);
     this.reset();
   }
 

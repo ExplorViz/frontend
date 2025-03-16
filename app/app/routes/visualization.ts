@@ -7,7 +7,7 @@ import { action } from '@ember/object';
 // import FontRepository from 'explorviz-frontend/services/repos/font-repository';
 import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
 import BaseRoute from './base-route';
-import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
 /**
@@ -17,9 +17,6 @@ import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
  * @extends Ember.Route
  */
 export default class VisualizationRoute extends BaseRoute {
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
-
   @service('router')
   router!: any;
 
@@ -31,8 +28,8 @@ export default class VisualizationRoute extends BaseRoute {
   async beforeModel() {
     if (
       useLandscapeTokenStore.getState().token === null &&
-      this.snapshotService.snapshotToken === null &&
-      !this.snapshotService.snapshotSelected
+      useSnapshotTokenStore.getState().snapshotToken === null &&
+      !useSnapshotTokenStore.getState().snapshotSelected
     ) {
       this.router.transitionTo('landscapes');
       return Promise.resolve();

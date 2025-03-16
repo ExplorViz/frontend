@@ -2,7 +2,7 @@ import Component from '@glimmer/component';
 import { inject as service } from '@ember/service';
 import { useLandscapeTokenStore, LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
-import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 interface AutoSelectLandscapeArgs {
   roomId: string;
@@ -14,9 +14,6 @@ const { userService } = ENV.backendAddresses;
 export default class AutoSelectLandscape extends Component<AutoSelectLandscapeArgs> {
   @service('router')
   private router!: any;
-
-  @service('snapshot-token')
-  private snapshotService!: SnapshotTokenService;
 
   autoSelectCallback: any;
 
@@ -43,13 +40,13 @@ export default class AutoSelectLandscape extends Component<AutoSelectLandscapeAr
       queryParams.createdAt &&
       queryParams.sharedSnapshot !== undefined
     ) {
-      const token = await this.snapshotService.retrieveToken(
+      const token = await useSnapshotTokenStore.getState().retrieveToken(
         queryParams.owner,
         queryParams.createdAt,
         queryParams.sharedSnapshot
       );
 
-      this.snapshotService.setToken(token);
+      useSnapshotTokenStore.getState().setToken(token);
       this.router.transitionTo('visualization');
     } else {
       if (

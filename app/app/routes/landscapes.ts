@@ -3,15 +3,12 @@ import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import { action } from '@ember/object';
 import BaseRoute from './base-route';
-import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import Ember from 'ember';
 
 const { tokenToShow } = ENV.mode;
 
 export default class Landscapes extends BaseRoute {
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
-
   @service('router')
   router!: any;
 
@@ -27,7 +24,7 @@ export default class Landscapes extends BaseRoute {
 
     return Ember.RSVP.hash({
       landscapeTokens: useLandscapeTokenStore.getState().retrieveTokens(),
-      snapshotInfo: this.snapshotService.retrieveTokens(),
+      snapshotInfo: useSnapshotTokenStore.getState().retrieveTokens(),
     });
   }
 

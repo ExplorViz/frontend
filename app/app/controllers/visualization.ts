@@ -41,7 +41,7 @@ import LandscapeRestructure from 'explorviz-frontend/services/landscape-restruct
 import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { useReloadHandlerStore } from 'react-lib/src/stores/reload-handler';
 import TimestampRepository from 'explorviz-frontend/services/repos/timestamp-repository';
-import SnapshotTokenService from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 import TimestampPollingService from 'explorviz-frontend/services/timestamp-polling';
 import UserApiTokenService, {
@@ -131,7 +131,8 @@ export default class VisualizationController extends Controller {
 
   landscapeToken = useLandscapeTokenStore.getState().token;
 
-  @service('snapshot-token') snapshotTokenService!: SnapshotTokenService;
+  snapshotSelected = useSnapshotTokenStore.getState().snapshotSelected;
+  snapshotToken = useSnapshotTokenStore.getState().snapshotToken;
 
   @service('extended-reality/detached-menu-renderer')
   detachedMenuRenderer!: DetachedMenuRenderer;
@@ -468,7 +469,7 @@ export default class VisualizationController extends Controller {
   }
 
   async loadSnapshot() {
-    if (this.snapshotTokenService.snapshotToken === null) {
+    if (useSnapshotTokenStore.getState().snapshotToken === null) {
       return;
     }
 
@@ -484,12 +485,12 @@ export default class VisualizationController extends Controller {
      * all highlights and popUps.
      */
     this.roomSerializer.serializedRoom =
-      this.snapshotTokenService.snapshotToken.serializedRoom;
+      useSnapshotTokenStore.getState().snapshotToken!.serializedRoom;
 
     this.localUser.defaultCamera.position.set(
-      this.snapshotTokenService.snapshotToken.camera!.x,
-      this.snapshotTokenService.snapshotToken.camera!.y,
-      this.snapshotTokenService.snapshotToken.camera!.z
+      useSnapshotTokenStore.getState().snapshotToken!.camera!.x,
+      useSnapshotTokenStore.getState().snapshotToken!.camera!.y,
+      useSnapshotTokenStore.getState().snapshotToken!.camera!.z
     );
   }
   // #endregion

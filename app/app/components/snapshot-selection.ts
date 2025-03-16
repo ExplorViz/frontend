@@ -1,10 +1,7 @@
 import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
-import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
-import SnapshotTokenService, {
-  SnapshotToken,
-} from 'explorviz-frontend/services/snapshot-token';
+import { useSnapshotTokenStore, SnapshotToken } from 'react-lib/src/stores/snapshot-token';
 import ENV from 'explorviz-frontend/config/environment';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
@@ -16,9 +13,6 @@ interface Args {
 const { shareSnapshot } = ENV.backendAddresses;
 
 export default class SnapshotSelection extends Component<Args> {
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
-
   @tracked
   sortPropertyPersonal: keyof SnapshotToken = 'createdAt';
 
@@ -134,7 +128,7 @@ export default class SnapshotSelection extends Component<Args> {
 
   @action
   async uploadSnapshot() {
-    this.snapshotService.saveSnapshot(this.snapshotData!, this.name);
+    useSnapshotTokenStore.getState().saveSnapshot(this.snapshotData!, this.name);
     this.reset();
   }
 

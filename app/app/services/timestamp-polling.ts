@@ -5,7 +5,6 @@ import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 import ENV from 'explorviz-frontend/config/environment';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import TimestampRepository from './repos/timestamp-repository';
-import SnapshotTokenService from './snapshot-token';
 import { CROSS_COMMIT_IDENTIFIER } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
 import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
@@ -13,9 +12,6 @@ import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling
 const { spanService } = ENV.backendAddresses;
 
 export default class TimestampPollingService extends Service {
-  @service('snapshot-token')
-  snapshotService!: SnapshotTokenService;
-
   @service('repos/timestamp-repository')
   timestampRepo!: TimestampRepository;
 
@@ -63,12 +59,6 @@ export default class TimestampPollingService extends Service {
     commits: SelectedCommit[],
     callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
   ) {
-    // if (this.snapshotService.snapshotToken) {
-    //   const timestamps =
-    //     this.snapshotService.snapshotToken.timestamps.timestamps;
-    //   callback(timestamps);
-    // }
-
     const polledCommitToTimestampMap: Map<string, Timestamp[]> = new Map();
 
     if (commits.length === 0) {

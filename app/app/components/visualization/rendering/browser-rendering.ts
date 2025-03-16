@@ -45,7 +45,7 @@ import LinkRenderer from 'explorviz-frontend/services/link-renderer';
 import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
 import RoomSerializer from 'explorviz-frontend/services/collaboration/room-serializer';
 import AnnotationHandlerService from 'explorviz-frontend/services/annotation-handler';
-import { SnapshotToken } from 'explorviz-frontend/services/snapshot-token';
+import { SnapshotToken } from 'react-lib/src/stores/snapshot-token';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import GamepadControls from 'react-lib/src/utils/controls/gamepad/gamepad-controls';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';

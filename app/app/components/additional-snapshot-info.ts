@@ -1,6 +1,6 @@
 import Component from '@glimmer/component';
 import { action } from '@ember/object';
-import { TinySnapshot } from 'explorviz-frontend/services/snapshot-token';
+import { TinySnapshot } from 'react-lib/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 

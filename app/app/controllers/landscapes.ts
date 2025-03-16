@@ -4,19 +4,13 @@ import { useLandscapeTokenStore, LandscapeToken } from 'react-lib/src/stores/lan
 import { inject as service } from '@ember/service';
 import ENV from 'explorviz-frontend/config/environment';
 import { tracked } from '@glimmer/tracking';
-import SnapshotTokenService, {
-  TinySnapshot,
-} from 'explorviz-frontend/services/snapshot-token';
-import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
+import { useSnapshotTokenStore, TinySnapshot } from 'react-lib/src/stores/snapshot-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 
 const { userService } = ENV.backendAddresses;
 
 export default class Landscapes extends Controller {
-  @service('snapshot-token')
-  snapShotTokenService!: SnapshotTokenService;
-
   @service('router')
   router!: any;
 
@@ -41,7 +35,7 @@ export default class Landscapes extends Controller {
   @action
   selectToken(token: LandscapeToken) {
     useLandscapeTokenStore.getState().setToken(token);
-    this.snapShotTokenService.latestSnapshotToken = null;
+    useSnapshotTokenStore.setState({ latestSnapshotToken: null });
     this.router.transitionTo('visualization', {
       queryParams: { landscapeToken: token.value },
     });
@@ -49,8 +43,8 @@ export default class Landscapes extends Controller {
 
   @action
   selectPersonalSnapshot(token: TinySnapshot) {
-    this.snapShotTokenService.setToken(null);
-    this.snapShotTokenService.snapshotSelected = true;
+    useSnapshotTokenStore.getState().setToken(null);
+    useSnapshotTokenStore.setState({ snapshotSelected: true });
     useLandscapeTokenStore.getState().setToken(null);
     this.router.transitionTo('visualization', {
       queryParams: {
@@ -64,8 +58,7 @@ export default class Landscapes extends Controller {
 
   @action
   selectSharedSnapshot(token: TinySnapshot) {
-    // this.snapShotTokenService.setToken(null);
-    this.snapShotTokenService.snapshotSelected = true;
+    useSnapshotTokenStore.setState({ snapshotSelected: true });
     useLandscapeTokenStore.getState().setToken(null);
     this.router.transitionTo('visualization', {
       queryParams: {
