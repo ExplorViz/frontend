@@ -21,6 +21,7 @@ import equal from 'fast-deep-equal';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { tracked } from '@glimmer/tracking';
 
 export default class SpectateUser extends Service {
   debug = debugLogger('spectateUserService');
@@ -34,45 +35,45 @@ export default class SpectateUser extends Service {
   @service('collaboration/collaboration-session')
   collaborationSession!: CollaborationSession;
 
-  // @tracked
-  // spectatedUser: RemoteUser | null = null;
+  @tracked
+  spectatedUser: RemoteUser | null = null;
 
   // TODO migrate RemoteUser first
-  get spectatedUser(): RemoteUser | null {
-    return useSpectateUserStore.getState().spectatedUser;
-  }
+  // get spectatedUser(): RemoteUser | null {
+  //   return useSpectateUserStore.getState().spectatedUser;
+  // }
 
-  set spectatedUser(value: RemoteUser | null) {
-    useSpectateUserStore.setState({ spectatedUser: value });
-  }
+  // set spectatedUser(value: RemoteUser | null) {
+  //   useSpectateUserStore.setState({ spectatedUser: value });
+  // }
 
-  // cameraControls: CameraControls | null = null;
-  get cameraControls(): CameraControls | null {
-    return useSpectateUserStore.getState().cameraControls;
-  }
+  cameraControls: CameraControls | null = null;
+  // get cameraControls(): CameraControls | null {
+  //   return useSpectateUserStore.getState().cameraControls;
+  // }
 
-  set cameraControls(value: CameraControls | null) {
-    useSpectateUserStore.setState({ cameraControls: value });
-  }
+  // set cameraControls(value: CameraControls | null) {
+  //   useSpectateUserStore.setState({ cameraControls: value });
+  // }
 
-  // @tracked
-  // spectateConfigurationId = 'default';
-  get spectateConfigurationId(): string {
-    return useSpectateUserStore.getState().spectateConfigurationId;
-  }
+  @tracked
+  spectateConfigurationId = 'default';
+  // get spectateConfigurationId(): string {
+  //   return useSpectateUserStore.getState().spectateConfigurationId;
+  // }
 
-  set spectateConfigurationId(value: string) {
-    useSpectateUserStore.setState({ spectateConfigurationId: value });
-  }
+  // set spectateConfigurationId(value: string) {
+  //   useSpectateUserStore.setState({ spectateConfigurationId: value });
+  // }
 
-  // private spectatingUsers: Set<string> = new Set<string>();
-  private get spectatingUsers(): Set<string> {
-    return useSpectateUserStore.getState().spectatingUsers;
-  }
+  private spectatingUsers: Set<string> = new Set<string>();
+  // private get spectatingUsers(): Set<string> {
+  //   return useSpectateUserStore.getState().spectatingUsers;
+  // }
 
-  private set spectatingUsers(value: Set<string>) {
-    useSpectateUserStore.setState({ spectatingUsers: value });
-  }
+  // private set spectatingUsers(value: Set<string>) {
+  //   useSpectateUserStore.setState({ spectatingUsers: value });
+  // }
 
   init() {
     super.init();
