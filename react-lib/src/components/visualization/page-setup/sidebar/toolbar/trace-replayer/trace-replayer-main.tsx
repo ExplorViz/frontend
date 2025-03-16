@@ -264,8 +264,8 @@ export default function TraceReplayerMain({
         afterimages.current.add(new Afterimage(origin.mesh));
         afterimages.current.add(new Afterimage(target.mesh));
 
-        const scale = landscape3D.scale;
-        const support = landscape3D.position;
+        const scale = landscape3D!.scale;
+        const support = landscape3D!.position;
         const start = getPositionInLandscape(origin.mesh)
           .multiply(scale)
           .add(support);
