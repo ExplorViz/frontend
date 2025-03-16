@@ -1,4 +1,5 @@
 import Service, { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import {
   classicColors,
@@ -12,6 +13,9 @@ import { defaultVizSettings } from 'react-lib/src/utils/settings/default-setting
 import {
   ColorSettingId,
   ColorSettings,
+  isColorSetting,
+  isFlagSetting,
+  isRangeSetting,
   VisualizationSettingId,
   VisualizationSettings,
 } from 'react-lib/src/utils/settings/settings-schemas';
@@ -26,8 +30,8 @@ import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import {
   getStoredSettings,
   saveSettings,
+  validateRangeSetting,
 } from 'react-lib/src/utils/settings/local-storage-settings';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 
 export default class UserSettings extends Service {
   @service('application-renderer')
@@ -45,15 +49,15 @@ export default class UserSettings extends Service {
   @service('highlighting-service')
   private highlightingService!: HighlightingService;
 
-  // @tracked
-  // visualizationSettings!: VisualizationSettings;
-  get visualizationSettings(): VisualizationSettings {
-    return useUserSettingsStore.getState().visualizationSettings;
-  }
+  @tracked
+  visualizationSettings!: VisualizationSettings;
+  // get visualizationSettings(): VisualizationSettings {
+  //   return useUserSettingsStore.getState().visualizationSettings;
+  // }
 
-  set visualizationSettings(value: VisualizationSettings) {
-    useUserSettingsStore.setState({ visualizationSettings: value });
-  }
+  // set visualizationSettings(value: VisualizationSettings) {
+  //   useUserSettingsStore.setState({ visualizationSettings: value });
+  // }
 
   /**
    * Colors for application visualization
@@ -61,15 +65,15 @@ export default class UserSettings extends Service {
    * @property colors
    * @type ExplorVizColors
    */
-  // @tracked
-  // colors!: ExplorVizColors;
-  get colors(): ExplorVizColors | undefined {
-    return useUserSettingsStore.getState().colors;
-  }
+  @tracked
+  colors!: ExplorVizColors;
+  // get colors(): ExplorVizColors | undefined {
+  //   return useUserSettingsStore.getState().colors;
+  // }
 
-  set colors(value: ExplorVizColors) {
-    useUserSettingsStore.setState({ colors: value });
-  }
+  // set colors(value: ExplorVizColors) {
+  //   useUserSettingsStore.setState({ colors: value });
+  // }
 
   constructor() {
     super(...arguments);
@@ -123,29 +127,28 @@ export default class UserSettings extends Service {
   }
 
   updateSetting(name: VisualizationSettingId, value?: unknown) {
-    useUserSettingsStore.getState().updateSetting(name, value);
+    const setting = this.visualizationSettings[name];
 
-    // const setting = this.applicationSettings[name];
+    const newValue = value ?? defaultVizSettings[name].value;
 
-    // const newValue = value ?? defaultVizSettings[name].value;
+    if (isRangeSetting(setting) && typeof newValue === 'number') {
+      validateRangeSetting(setting, newValue);
+      this.visualizationSettings = {
+        ...this.visualizationSettings,
+        [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
+      };
+    } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
+      this.visualizationSettings = {
+        ...this.visualizationSettings,
+        [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
+      };
+    } else if (isColorSetting(setting) && typeof newValue === 'string') {
+      setting.value = newValue;
+    }
 
-    // if (isRangeSetting(setting) && typeof newValue === 'number') {
-    //   validateRangeSetting(setting, newValue);
-    //   this.applicationSettings = {
-    //     ...this.applicationSettings,
-    //     [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
-    //   };
-    // } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
-    //   this.applicationSettings = {
-    //     ...this.applicationSettings,
-    //     [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
-    //   };
-    // } else if (isColorSetting(setting) && typeof newValue === 'string') {
-    //   setting.value = newValue;
-    // }
-
-    // saveSettings(this.applicationSettings);
+    saveSettings(this.visualizationSettings);
   }
+
 
   // TODO: Wait for corresponding service to be fully migrated
   //        updateColors uses not migrated service
@@ -201,42 +204,52 @@ export default class UserSettings extends Service {
   }
 
   setColorsFromSettings() {
-    useUserSettingsStore.getState().setColorsFromSettings();
+    const { visualizationSettings } = this;
 
-    // const applicationSettings = this.applicationSettings;
-
-    // this.applicationColors = {
-    //   foundationColor: new THREE.Color(
-    //     applicationSettings.foundationColor.value
-    //   ),
-    //   componentOddColor: new THREE.Color(
-    //     applicationSettings.componentOddColor.value
-    //   ),
-    //   componentEvenColor: new THREE.Color(
-    //     applicationSettings.componentEvenColor.value
-    //   ),
-    //   clazzColor: new THREE.Color(applicationSettings.clazzColor.value),
-    //   highlightedEntityColor: new THREE.Color(
-    //     applicationSettings.highlightedEntityColor.value
-    //   ),
-    //   componentTextColor: new THREE.Color(
-    //     applicationSettings.componentTextColor.value
-    //   ),
-    //   clazzTextColor: new THREE.Color(applicationSettings.clazzTextColor.value),
-    //   foundationTextColor: new THREE.Color(
-    //     applicationSettings.foundationTextColor.value
-    //   ),
-    //   communicationColor: new THREE.Color(
-    //     applicationSettings.communicationColor.value
-    //   ),
-    //   communicationArrowColor: new THREE.Color(
-    //     applicationSettings.communicationArrowColor.value
-    //   ),
-    //   backgroundColor: new THREE.Color(
-    //     applicationSettings.backgroundColor.value
-    //   ),
-    // };
+    this.colors = {
+      foundationColor: new THREE.Color(
+        visualizationSettings.foundationColor.value
+      ),
+      componentOddColor: new THREE.Color(
+        visualizationSettings.componentOddColor.value
+      ),
+      componentEvenColor: new THREE.Color(
+        visualizationSettings.componentEvenColor.value
+      ),
+      clazzColor: new THREE.Color(visualizationSettings.clazzColor.value),
+      highlightedEntityColor: new THREE.Color(
+        visualizationSettings.highlightedEntityColor.value
+      ),
+      componentTextColor: new THREE.Color(
+        visualizationSettings.componentTextColor.value
+      ),
+      clazzTextColor: new THREE.Color(
+        visualizationSettings.clazzTextColor.value
+      ),
+      foundationTextColor: new THREE.Color(
+        visualizationSettings.foundationTextColor.value
+      ),
+      communicationColor: new THREE.Color(
+        visualizationSettings.communicationColor.value
+      ),
+      communicationArrowColor: new THREE.Color(
+        visualizationSettings.communicationArrowColor.value
+      ),
+      backgroundColor: new THREE.Color(
+        visualizationSettings.backgroundColor.value
+      ),
+      k8sNodeColor: new THREE.Color(visualizationSettings.k8sNodeColor.value),
+      k8sNamespaceColor: new THREE.Color(
+        visualizationSettings.k8sNamespaceColor.value
+      ),
+      k8sDeploymentColor: new THREE.Color(
+        visualizationSettings.k8sDeploymentColor.value
+      ),
+      k8sPodColor: new THREE.Color(visualizationSettings.k8sPodColor.value),
+      k8sTextColor: new THREE.Color(visualizationSettings.k8sTextColor.value),
+    };
   }
+
 }
 
 export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
