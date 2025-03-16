@@ -23,39 +23,39 @@ export default class GrabbedObjectService extends Service {
    * This counter is incremented when an object is grabbed and decremented
    * when the object is released.
    */
-  // private grabCounters = new Map<GrabbableObject, number>();
-  get grabCounters(): Map<GrabbableObject, number> {
-    return useGrabbedObjectStore.getState().grabCounters;
-  }
+  private grabCounters = new Map<GrabbableObject, number>();
+  // get grabCounters(): Map<GrabbableObject, number> {
+  //   return useGrabbedObjectStore.getState().grabCounters;
+  // }
 
-  set grabCounters(value: Map<GrabbableObject, number>) {
-    useGrabbedObjectStore.setState({ grabCounters: value });
-  }
+  // set grabCounters(value: Map<GrabbableObject, number>) {
+  //   useGrabbedObjectStore.setState({ grabCounters: value });
+  // }
 
   /**
    * A promise for every object that has been requested to be grabbed that
    * resolves to the response of the backend.
    */
-  // private grabRequests = new Map<GrabbableObject, Promise<boolean>>();
-  get grabRequests(): Map<GrabbableObject, Promise<boolean>> {
-    return useGrabbedObjectStore.getState().grabRequests;
-  }
+  private grabRequests = new Map<GrabbableObject, Promise<boolean>>();
+  // get grabRequests(): Map<GrabbableObject, Promise<boolean>> {
+  //   return useGrabbedObjectStore.getState().grabRequests;
+  // }
 
-  set grabRequests(value: Map<GrabbableObject, Promise<boolean>>) {
-    useGrabbedObjectStore.setState({ grabRequests: value });
-  }
+  // set grabRequests(value: Map<GrabbableObject, Promise<boolean>>) {
+  //   useGrabbedObjectStore.setState({ grabRequests: value });
+  // }
 
   /**
    * A set that contains all objects that the backend allowed to be grabbed.
    */
-  // private grabbedObjects = new Set<GrabbableObject>();
-  get grabbedObjects(): Set<GrabbableObject> {
-    return useGrabbedObjectStore.getState().grabbedObjects;
-  }
+  private grabbedObjects = new Set<GrabbableObject>();
+  // get grabbedObjects(): Set<GrabbableObject> {
+  //   return useGrabbedObjectStore.getState().grabbedObjects;
+  // }
 
-  set grabbedObjects(value: Set<GrabbableObject>) {
-    useGrabbedObjectStore.setState({ grabbedObjects: value });
-  }
+  // set grabbedObjects(value: Set<GrabbableObject>) {
+  //   useGrabbedObjectStore.setState({ grabbedObjects: value });
+  // }
 
   /**
    * Asks the backend whether the given object can be grabbed
@@ -102,25 +102,42 @@ export default class GrabbedObjectService extends Service {
    * request to grab the object (i.e., `true` when the object can be grabbed
    * and `false` otherwise).
    */
+  // async grabObject(object: GrabbableObject): Promise<boolean> {
+  //   const count = this.getGrabCount(object);
+  //   // this.grabCounters.set(object, count + 1);
+  //   useGrabbedObjectStore.getState().addGrabCounter(object, count + 1);
+
+  //   // If the object has not been grabbed before, ask the server whether we
+  //   // are allowed to grab the object.
+  //   const request =
+  //     this.grabRequests.get(object) || this.sendGrabRequest(object);
+  //   // this.grabRequests.set(object, request);
+  //   useGrabbedObjectStore.getState().addGrabRequest(object, request);
+
+  //   // Remember that the object has been grabbed successfully.
+  //   const result = await request;
+  //   if (result && this.grabCounters.has(object))
+  //     // this.grabbedObjects.add(object);
+  //     useGrabbedObjectStore.getState().addGrabObject(object);
+  //   return result;
+  // }
   async grabObject(object: GrabbableObject): Promise<boolean> {
     const count = this.getGrabCount(object);
-    // this.grabCounters.set(object, count + 1);
-    useGrabbedObjectStore.getState().addGrabCounter(object, count + 1);
+    this.grabCounters.set(object, count + 1);
 
     // If the object has not been grabbed before, ask the server whether we
     // are allowed to grab the object.
     const request =
       this.grabRequests.get(object) || this.sendGrabRequest(object);
-    // this.grabRequests.set(object, request);
-    useGrabbedObjectStore.getState().addGrabRequest(object, request);
+    this.grabRequests.set(object, request);
 
     // Remember that the object has been grabbed successfully.
     const result = await request;
     if (result && this.grabCounters.has(object))
-      // this.grabbedObjects.add(object);
-      useGrabbedObjectStore.getState().addGrabObject(object);
+      this.grabbedObjects.add(object);
     return result;
   }
+
 
   /**
    * Gets the number of controllers that are currentlay grabbing the given
@@ -129,10 +146,15 @@ export default class GrabbedObjectService extends Service {
    * @param object The object to get the counter for.
    * @returns The number of controllers that are grabbing the object.
    */
+  // getGrabCount(object: GrabbableObject): number {
+  //   // return this.grabCounters.get(object) || 0;
+  //   return useGrabbedObjectStore.getState().getGrabCount(object);
+  // }
   getGrabCount(object: GrabbableObject): number {
-    // return this.grabCounters.get(object) || 0;
-    return useGrabbedObjectStore.getState().getGrabCount(object);
+    return this.grabCounters.get(object) || 0;
   }
+
+
 
   /**
    * Registers that the given object has been released.
@@ -142,26 +164,43 @@ export default class GrabbedObjectService extends Service {
    *
    * @param object The releasaed object.
    */
+  // releaseObject(object: GrabbableObject) {
+  //   const count = this.grabCounters.get(object);
+  //   if (count) {
+  //     // this.grabCounters.set(object, count - 1);
+  //     useGrabbedObjectStore.getState().addGrabCounter(object, count - 1);
+
+  //     // If the object is not grabbed anymore by any controller, notify the
+  //     // backend that the object has been released.
+  //     if (count === 1) {
+  //       const objectId = object.getGrabId();
+  //       if (objectId) this.sender.sendObjectReleased(objectId);
+  //       // this.grabCounters.delete(object);
+  //       useGrabbedObjectStore.getState().removeGrabCounter(object);
+  //       // this.grabRequests.delete(object);
+  //       useGrabbedObjectStore.getState().removeGrabRequest(object);
+  //       // this.grabbedObjects.delete(object);
+  //       useGrabbedObjectStore.getState().removeGrabObject(object);
+  //     }
+  //   }
+  // }
   releaseObject(object: GrabbableObject) {
     const count = this.grabCounters.get(object);
     if (count) {
-      // this.grabCounters.set(object, count - 1);
-      useGrabbedObjectStore.getState().addGrabCounter(object, count - 1);
+      this.grabCounters.set(object, count - 1);
 
       // If the object is not grabbed anymore by any controller, notify the
       // backend that the object has been released.
       if (count === 1) {
         const objectId = object.getGrabId();
         if (objectId) this.sender.sendObjectReleased(objectId);
-        // this.grabCounters.delete(object);
-        useGrabbedObjectStore.getState().removeGrabCounter(object);
-        // this.grabRequests.delete(object);
-        useGrabbedObjectStore.getState().removeGrabRequest(object);
-        // this.grabbedObjects.delete(object);
-        useGrabbedObjectStore.getState().removeGrabObject(object);
+        this.grabCounters.delete(object);
+        this.grabRequests.delete(object);
+        this.grabbedObjects.delete(object);
       }
     }
   }
+
 
   /**
    * Sends the positions of all grabbed objects to the backend.
