@@ -1,9 +1,9 @@
-import { createStore } from 'zustand/vanilla';
-
+import { create } from 'zustand';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import Raycaster from 'react-lib/src/utils/raycaster';
+import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import * as THREE from 'three';
 import Landscape3D from '../view-objects/3d/landscape/landscape-3d';
 
@@ -39,19 +39,25 @@ interface MinimapState {
     landscape3D: Landscape3D,
     cameraControls: CameraControls
   ) => void;
-  setupCamera: (cameraControls: CameraControls) => void;
-  setupLocalUserMarker: () => void;
-  // tick: () => void;
-  getCurrentPosition: () => void;
-  checkBoundingBox: (intersection: THREE.Vector3) => THREE.Vector3;
+  tick: () => void;
+  addZoomDelta: (zoomDelta: number) => void;
   initializeUserMinimapMarker: (
     userColor: THREE.Color,
     position: THREE.Vector3,
     name: string
   ) => void;
+  updateUserMinimapMarker: (
+    intersection: THREE.Vector3,
+    name: string,
+    remoteUser?: RemoteUser
+  ) => void;
+  setupCamera: (cameraControls: CameraControls) => void;
+  setupLocalUserMarker: () => void;
+  getCurrentPosition: () => void;
+  checkBoundingBox: (intersection: THREE.Vector3) => THREE.Vector3;
   deleteUserMinimapMarker: (name: string) => void;
   isMouseInsideMinimap: (event: MouseEvent) => boolean;
-  // handleHit: (userHit: RemoteUser) => void;
+  handleHit: (userHit: RemoteUser) => void;
   toggleFullsizeMinimap: (value: boolean) => void;
   raycastForObjects: (
     event: MouseEvent,
@@ -63,12 +69,12 @@ interface MinimapState {
   calculateDistanceFactor: () => number;
   updateSphereRadius: () => void;
   minimap: () => number[];
-  setMinimapEnabled: (value: boolean) => void;
 }
 
-export const useMinimapStore = createStore<MinimapState>((set, get) => ({
-  makeFullsizeMinimap: false,
-  minimapSize: 4,
+export const useMinimapStore = create<MinimapState>((set, get) => ({
+  makeFullsizeMinimap: false, // tracked
+  minimapSize: 4, // tracked
+  // tracked
   minimapEnabled:
     useUserSettingsStore.getState().visualizationSettings.minimap.value,
   cameraControls: undefined, // is set by browser-rendering / vr-rendering
@@ -93,6 +99,61 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     set({ landscape3D: landscape3D, scene: scene });
     get().setupCamera(cameraControls);
     get().setupLocalUserMarker();
+  },
+
+  tick: () => {
+    // Avoid unnecessary computations
+    if (!get().minimapEnabled) return;
+
+    get().getCurrentPosition();
+    get().updateMinimapCamera();
+    get().updateUserMinimapMarker(get().userPosition, 'localUser');
+  },
+
+  addZoomDelta: (zoomDelta: number) => {
+    const zoomSetting =
+      useUserSettingsStore.getState().visualizationSettings.zoom;
+    const newZoom = zoomSetting.value + zoomDelta;
+    if (newZoom < zoomSetting.range.min) {
+      useUserSettingsStore
+        .getState()
+        .updateSetting('zoom', zoomSetting.range.min);
+    } else if (newZoom > zoomSetting.range.max) {
+      useUserSettingsStore
+        .getState()
+        .updateSetting('zoom', zoomSetting.range.max);
+    } else {
+      useUserSettingsStore.getState().updateSetting('zoom', newZoom);
+    }
+  },
+
+  /**
+   * Function used for updating the minimap marker of a user
+   * @param intersection The intersection of the user
+   * @param name The name of the user
+   * @param remoteUser The remote user object
+   */
+  updateUserMinimapMarker: (
+    intersection: THREE.Vector3,
+    name: string,
+    remoteUser?: RemoteUser
+  ) => {
+    if (!intersection) {
+      return;
+    }
+    if (!get().minimapUserMarkers.has(name) && remoteUser) {
+      get().initializeUserMinimapMarker(
+        remoteUser.color,
+        intersection,
+        remoteUser.userId
+      );
+      return;
+    }
+    const position = get().checkBoundingBox(intersection);
+    const newMinimapUserMarkers = get().minimapUserMarkers;
+    const minimapMarker = newMinimapUserMarkers.get(name)!;
+    minimapMarker.position.set(position.x, MARKER_HEIGHT, position.z);
+    set({ minimapUserMarkers: newMinimapUserMarkers });
   },
 
   /**
@@ -131,22 +192,22 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
       'localUser'
     );
 
-    get()
-      .minimapUserMarkers.get('localUser')!
+    const newMinimapUserMarkers = get().minimapUserMarkers;
+    const newScene = get().scene;
+    newMinimapUserMarkers
+      .get('localUser')!
       .layers.enable(SceneLayers.LocalMinimapMarker);
-    get()
-      .minimapUserMarkers.get('localUser')!
+    newMinimapUserMarkers
+      .get('localUser')!
       .layers.disable(SceneLayers.MinimapMarkers);
 
-    get().scene!.add(get().minimapUserMarkers.get('localUser')!);
-  },
+    newScene!.add(get().minimapUserMarkers.get('localUser')!);
 
-  // TODO migrate updateUserMinimapMarker first
-  // tick() {
-  //   get().getCurrentPosition();
-  //   get().updateMinimapCamera();
-  //   get().updateUserMinimapMarker(get().userPosition, "localUser");
-  // },
+    set({
+      minimapUserMarkers: newMinimapUserMarkers,
+      scene: newScene,
+    });
+  },
 
   /**
    * Gets the current position of the user, either by camera position or camera target
@@ -171,9 +232,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
    */
   // TODO private
   checkBoundingBox: (intersection: THREE.Vector3) => {
-    const boundingBox = new THREE.Box3().setFromObject(
-      useMinimapStore.getState().landscape3D
-    );
+    const boundingBox = new THREE.Box3().setFromObject(get().landscape3D);
     if (boundingBox) {
       if (intersection.x > boundingBox.max.x) {
         intersection.x = boundingBox.max.x;
@@ -216,34 +275,6 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     get().scene!.add(minimapMarker);
   },
 
-  // TODO migrate RemoteUser first
-  // /**
-  //  * Function used for updating the minimap marker of a user
-  //  * @param intersection The intersection of the user
-  //  * @param name The name of the user
-  //  * @param remoteUser The remote user object
-  //  */
-  // updateUserMinimapMarker: (
-  //   intersection: THREE.Vector3,
-  //   name: string,
-  //   remoteUser?: RemoteUser
-  // ) => {
-  //   if (!intersection) {
-  //     return;
-  //   }
-  //   if (!get().minimapUserMarkers.has(name) && remoteUser) {
-  //     get().initializeUserMinimapMarker(
-  //       remoteUser.color,
-  //       intersection,
-  //       remoteUser.userId
-  //     );
-  //     return;
-  //   }
-  //   const position = get().checkBoundingBox(intersection);
-  //   const minimapMarker = get().minimapUserMarkers.get(name)!;
-  //   minimapMarker.position.set(position.x, MARKER_HEIGHT, position.z);
-  // },
-
   /**
    * Function used for deleting the minimap marker of a user
    * @param name The name of the user
@@ -251,8 +282,14 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
   deleteUserMinimapMarker: (name: string) => {
     const minimapMarker = get().minimapUserMarkers.get(name);
     if (minimapMarker) {
-      get().scene!.remove(minimapMarker);
-      get().minimapUserMarkers.delete(name);
+      const newScene = get().scene;
+      const newMinimapUserMarkers = get().minimapUserMarkers;
+      newScene!.remove(minimapMarker);
+      newMinimapUserMarkers.delete(name);
+      set({
+        scene: newScene,
+        minimapUserMarkers: newMinimapUserMarkers,
+      });
     }
   },
 
@@ -279,29 +316,29 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     return xInBounds && yInBounds;
   },
 
-  // /**
-  //  * Function used for handling a hit on the minimap
-  //  * @param userHit The user that was hit
-  //  * @returns true if the user was hit
-  //  */
-  // handleHit: (userHit: RemoteUser) => {
-  //   if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera)
-  //     return;
-  //   useLocalUserStore
-  //     .getState()
-  //     .getCamera()
-  //     .position.copy(userHit.camera!.model.position);
-  //   useLocalUserStore
-  //     .getState()
-  //     .getCamera()
-  //     .quaternion.copy(userHit.camera!.model.quaternion);
-  //   get().cameraControls!.perspectiveCameraControls.target.copy(
-  //     get().raycaster!.raycastToCameraTarget(
-  //       useLocalUserStore.getState().minimapCamera,
-  //       get().graph!.boundingBox
-  //     )
-  //   );
-  // },
+  /**
+   * Function used for handling a hit on the minimap
+   * @param userHit The user that was hit
+   * @returns true if the user was hit
+   */
+  handleHit: (userHit: RemoteUser) => {
+    if (!userHit || userHit.camera?.model instanceof THREE.OrthographicCamera)
+      return;
+    useLocalUserStore
+      .getState()
+      .getCamera()
+      .position.copy(userHit.camera!.model.position);
+    useLocalUserStore
+      .getState()
+      .getCamera()
+      .quaternion.copy(userHit.camera!.model.quaternion);
+    get().cameraControls!.perspectiveCameraControls.target.copy(
+      get().raycaster!.raycastToCameraTarget(
+        useLocalUserStore.getState().minimapCamera,
+        new THREE.Box3().setFromObject(get().landscape3D)
+      )
+    );
+  },
 
   /**
    * Function used to toggle the fullsize minimap
@@ -312,6 +349,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
     const cameraControls = get().cameraControls;
     cameraControls!.enabled = !value;
     cameraControls!.perspectiveCameraControls.enabled = !value;
+    set({ cameraControls: cameraControls });
   },
 
   /**
@@ -376,9 +414,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
    */
   updateMinimapCamera: () => {
     // Call the new function to check and adjust minimap size
-    const boundingBox = new THREE.Box3().setFromObject(
-      useMinimapStore.getState().landscape3D
-    );
+    const boundingBox = new THREE.Box3().setFromObject(get().landscape3D);
 
     // Calculate the size of the bounding box
     const size = boundingBox.getSize(new THREE.Vector3());
@@ -393,9 +429,6 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
           useUserSettingsStore.getState().visualizationSettings.zoom.value,
       });
     }
-
-    // TODO immutability? Use set for new camera instance?
-    // Maybe use set and just pass the old reference?
 
     const minimapCamera = useLocalUserStore.getState().minimapCamera;
     const distance = get().distance!;
@@ -424,6 +457,7 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
       minimapCamera.position.set(center.x, MINIMAP_HEIGHT, center.z);
     }
     minimapCamera.updateProjectionMatrix();
+    useLocalUserStore.setState({ minimapCamera: minimapCamera });
   },
 
   calculateDistanceFactor: () => {
@@ -434,11 +468,13 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
 
   updateSphereRadius: () => {
     const distanceFactor = get().calculateDistanceFactor();
-    get().minimapUserMarkers.forEach((minimapMarker) => {
+    let newMinimapUserMarkers = get().minimapUserMarkers;
+    newMinimapUserMarkers.forEach((minimapMarker) => {
       const geometry = new THREE.SphereGeometry(distanceFactor);
       minimapMarker.geometry.dispose();
       minimapMarker.geometry = geometry;
     });
+    set({ minimapUserMarkers: newMinimapUserMarkers });
   },
 
   /**
@@ -471,6 +507,4 @@ export const useMinimapStore = createStore<MinimapState>((set, get) => ({
 
     return [minimapHeight, minimapWidth, minimapX, minimapY, borderWidth];
   },
-
-  setMinimapEnabled: (value: boolean) => set({ minimapEnabled: value }),
 }));
