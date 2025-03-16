@@ -2,6 +2,7 @@ import React, { ChangeEvent, FormEvent, useRef, useState } from 'react';
 
 import * as THREE from 'three';
 import {
+  DynamicLandscapeData,
   Span,
   Trace,
 } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
@@ -108,6 +109,7 @@ class Record {
 
 interface TraceReplayerMainArgs {
   selectedTrace: Trace;
+  dynamicData: DynamicLandscapeData;
   structureData: StructureLandscapeData;
   renderingLoop: RenderingLoop;
   readonly landscapeData: LandscapeData;
@@ -116,6 +118,7 @@ interface TraceReplayerMainArgs {
 
 export default function TraceReplayerMain({
   selectedTrace,
+  dynamicData,
   structureData,
   renderingLoop,
   landscapeData,
