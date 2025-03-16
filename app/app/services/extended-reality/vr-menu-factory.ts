@@ -40,7 +40,6 @@ import OnlineMenu2 from 'explorviz-frontend/utils/extended-reality/vr-menus/ui-m
 import InteractiveMenu from 'explorviz-frontend/utils/extended-reality/vr-menus/interactive-menu';
 import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import RoomService from 'explorviz-frontend/services/collaboration/room-service';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export default class VrMenuFactoryService extends Service {
   @service('extended-reality/detached-menu-groups')
@@ -65,23 +64,23 @@ export default class VrMenuFactoryService extends Service {
   private roomService!: RoomService;
 
   // TODO the factory should no be a singleton, but instantiated on each rendering.
-  // scene!: THREE.Scene;
-  get scene(): THREE.Scene {
-    return useVrMenuFactoryStore.getState().scene;
-  }
+  scene!: THREE.Scene;
+  // get scene(): THREE.Scene {
+  //   return useVrMenuFactoryStore.getState().scene;
+  // }
 
-  set scene(value: THREE.Scene) {
-    useVrMenuFactoryStore.setState({ scene: value });
-  }
+  // set scene(value: THREE.Scene) {
+  //   useVrMenuFactoryStore.setState({ scene: value });
+  // }
 
-  // renderer!: THREE.WebGLRenderer;
-  get renderer(): THREE.WebGLRenderer {
-    return useVrMenuFactoryStore.getState().renderer;
-  }
+  renderer!: THREE.WebGLRenderer;
+  // get renderer(): THREE.WebGLRenderer {
+  //   return useVrMenuFactoryStore.getState().renderer;
+  // }
 
-  set renderer(value: THREE.WebGLRenderer) {
-    useVrMenuFactoryStore.setState({ renderer: value });
-  }
+  // set renderer(value: THREE.WebGLRenderer) {
+  //   useVrMenuFactoryStore.setState({ renderer: value });
+  // }
 
   // TODO: Clarify whether builds also has to be stored?
 
