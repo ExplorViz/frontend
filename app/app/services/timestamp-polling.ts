@@ -7,7 +7,6 @@ import { useAuthStore } from 'react-lib/src/stores/auth';
 import TimestampRepository from './repos/timestamp-repository';
 import { CROSS_COMMIT_IDENTIFIER } from 'react-lib/src/utils/evolution-schemes/evolution-data';
 import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
-import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
 
 const { spanService } = ENV.backendAddresses;
 
@@ -15,13 +14,13 @@ export default class TimestampPollingService extends Service {
   @service('repos/timestamp-repository')
   timestampRepo!: TimestampRepository;
 
-  //private timer: NodeJS.Timeout | null = null;
-  get timer(): NodeJS.Timeout | null {
-    return useTimestampPollingStore.getState().timer;
-  }
-  set timer(value: NodeJS.Timeout | null) {
-    useTimestampPollingStore.setState({ timer: value });
-  }
+  private timer: NodeJS.Timeout | null = null;
+  // get timer(): NodeJS.Timeout | null {
+  //   return useTimestampPollingStore.getState().timer;
+  // }
+  // set timer(value: NodeJS.Timeout | null) {
+  //   useTimestampPollingStore.setState({ timer: value });
+  // }
 
   private debug = debugLogger();
 

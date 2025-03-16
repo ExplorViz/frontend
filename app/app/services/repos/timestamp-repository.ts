@@ -1,7 +1,6 @@
 import Service, { inject as service } from '@ember/service';
 import Evented from '@ember/object/evented';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
-import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
 import { tracked } from '@glimmer/tracking';
 import TimestampPollingService from '../timestamp-polling';
 import RenderingService from '../rendering-service';
@@ -29,16 +28,16 @@ export default class TimestampRepository extends Service.extend(Evented) {
 
   // #region Properties
 
-  // @tracked
-  // commitToTimestampMap: Map<string, Map<number, Timestamp>> = new Map();
+  @tracked
+  commitToTimestampMap: Map<string, Map<number, Timestamp>> = new Map();
   // <commitId, <epochMilli, timestamp>>
-  get commitToTimestampMap(): Map<string, Map<number, Timestamp>> {
-    return useTimestampRepositoryStore.getState().commitToTimestampMap;
-  }
+  // get commitToTimestampMap(): Map<string, Map<number, Timestamp>> {
+  //   return useTimestampRepositoryStore.getState().commitToTimestampMap;
+  // }
 
-  set commitToTimestampMap(value: Map<string, Map<number, Timestamp>>) {
-    useTimestampRepositoryStore.setState({ commitToTimestampMap: value });
-  }
+  // set commitToTimestampMap(value: Map<string, Map<number, Timestamp>>) {
+  //   useTimestampRepositoryStore.setState({ commitToTimestampMap: value });
+  // }
 
   private _timelineDataObjectHandler: TimelineDataObjectHandler | null = null;
   // get _timelineDataObjectHandler(): TimelineDataObjectHandler | null {
@@ -204,9 +203,7 @@ export default class TimestampRepository extends Service.extend(Evented) {
       this.commitToTimestampMap.get(commitId) ?? new Map<number, Timestamp>();
 
     timestamps.set(timestamp.epochMilli, timestamp);
-    useTimestampRepositoryStore
-      .getState()
-      .addCommitToTimestamp(commitId, timestamps);
+    this.commitToTimestampMap.set(commitId, timestamps);
   }
 
   // #endregion

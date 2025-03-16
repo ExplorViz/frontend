@@ -1,11 +1,13 @@
-import { createStore } from "zustand/vanilla";
-import { SelectedCommit } from "react-lib/src/stores/commit-tree-state";
-import { Timestamp } from "react-lib/src/utils/landscape-schemes/timestamp";
-import { CROSS_COMMIT_IDENTIFIER } from "react-lib/src/utils/evolution-schemes/evolution-data";
-// import ENV from "explorviz-frontend/config/environment";
-// TODO: import Auth from "./auth";
+import { create } from 'zustand';
+import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
+import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
+import { CROSS_COMMIT_IDENTIFIER } from 'react-lib/src/utils/evolution-schemes/evolution-data';
+import { useAuthStore } from './auth';
+import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
+import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
+import { useLandscapeTokenStore } from './landscape-token';
 
-// const { spanService } = ENV.backendAddresses;
+const spanService = 'http://localhost:8083'; //import.meta.env.VITE_SPAN_SERV_URL;
 
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
@@ -14,36 +16,39 @@ interface TimestampPollingState {
     callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
   ) => void;
   resetPolling: () => void;
-  startTimestampPolling: (
+  _startTimestampPolling: (
     commits: SelectedCommit[],
     callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
   ) => void;
-  pollTimestamps: (
+  _pollTimestamps: (
     commits: SelectedCommit[],
     callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
   ) => void;
-  httpFetchTimestamps: (
+  _httpFetchTimestamps: (
     commit?: SelectedCommit,
     newestLocalTimestamp?: Timestamp
   ) => Promise<Timestamp[]>;
 }
 
-export const useTimestampPollingStore = createStore<TimestampPollingState>(
+export const useTimestampPollingStore = create<TimestampPollingState>(
   (set, get) => ({
     timer: null,
+
     initTimestampPollingWithCallback: async (
       commits: SelectedCommit[],
       callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
     ) => {
-      get().startTimestampPolling(commits, callback);
+      get()._startTimestampPolling(commits, callback);
     },
+
     resetPolling: () => {
       if (get().timer) {
-        // TODO: this.debug("Stopping timestamp polling.");
-        // TODO: clearTimeout(get().timer);
+        clearTimeout(get().timer!);
       }
     },
-    startTimestampPolling: (
+
+    // private
+    _startTimestampPolling: (
       commits: SelectedCommit[],
       callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
     ) => {
@@ -52,116 +57,115 @@ export const useTimestampPollingStore = createStore<TimestampPollingState>(
         return setInterval(func, interval);
       }
 
-      get().timer = setIntervalImmediately(async () => {
-        get().pollTimestamps(commits, callback);
-      }, 10 * 1000);
-
-      // TODO: get().debug('Timestamp timer started');
+      set({
+        timer: setIntervalImmediately(async () => {
+          get()._pollTimestamps(commits, callback);
+        }, 10 * 1000),
+      });
     },
-    pollTimestamps: async (
+
+    // private
+    _pollTimestamps: async (
       commits: SelectedCommit[],
       callback: (commitToTimestampMap: Map<string, Timestamp[]>) => void
     ) => {
-      // if (this.snapshotService.snapshotToken) {
-      //   const timestamps =
-      //     this.snapshotService.snapshotToken.timestamps.timestamps;
-      //   callback(timestamps);
-      // }
+      //       if (useSnapshotTokenStore.getState().snapshotToken) {
+      //         const timestamps =
+      //           useSnapshotTokenStore.getState().snapshotToken!.timestamps.timestamps;
+      //         callback(timestamps);
+      //   }
 
       const polledCommitToTimestampMap: Map<string, Timestamp[]> = new Map();
 
-      // if (commits.length === 0) {
-      // No commit selected -> get all runtime behavior regardless of commit
-      // const commitId = CROSS_COMMIT_IDENTIFIER;
-      // TODO: const newestLocalTimestamp =
-      //   useTimestampRepositoryStore.getLatestTimestamp(commitId);
-      // const newestLocalTimestamp =
-      //   get().timestampRepo.getLatestTimestamp(commitId);
-      // const allCommitsTimestampPromise = get().httpFetchTimestamps(
-      //   undefined,
-      //   newestLocalTimestamp
-      // );
+      if (commits.length === 0) {
+        //   No commit selected -> get all runtime behavior regardless of commit
+        const commitId = CROSS_COMMIT_IDENTIFIER;
+        const newestLocalTimestamp = useTimestampRepositoryStore
+          .getState()
+          .getLatestTimestamp(commitId);
+        const allCommitsTimestampPromise = get()._httpFetchTimestamps(
+          undefined,
+          newestLocalTimestamp
+        );
 
-      //   await allCommitsTimestampPromise
-      //     .then((timestamps: Timestamp[]) => {
-      //       polledCommitToTimestampMap.set(commitId, timestamps);
-      //     })
-      //     .catch((error: Error) => {
-      //       console.error(`Error on fetch of timestamps: ${error}`);
-      //       callback(new Map([[CROSS_COMMIT_IDENTIFIER, []]]));
-      //       return;
-      //     });
-      //   callback(polledCommitToTimestampMap);
-      //   return;
-      // } else {
-      //   for (const selectedCommit of commits) {
-      //     // TODO: const newestLocalTimestampForCommit =
-      //     //   useTimestampRepositoryStore.getLatestTimestamp(selectedCommit.commitId);
-      //     // const newestLocalTimestampForCommit =
-      //     //   get().timestampRepo.getLatestTimestamp(selectedCommit.commitId);
+        await allCommitsTimestampPromise
+          .then((timestamps: Timestamp[]) => {
+            polledCommitToTimestampMap.set(commitId, timestamps);
+          })
+          .catch((error: Error) => {
+            console.error(`Error on fetch of timestamps: ${error}`);
+            callback(new Map([[CROSS_COMMIT_IDENTIFIER, []]]));
+            return;
+          });
+        callback(polledCommitToTimestampMap);
+        return;
+      } else {
+        for (const selectedCommit of commits) {
+          const newestLocalTimestampForCommit = useTimestampRepositoryStore
+            .getState()
+            .getLatestTimestamp(selectedCommit.commitId);
 
-      //     const promise = get().httpFetchTimestamps(
-      //       selectedCommit,
-      //       newestLocalTimestampForCommit
-      //     );
+          const promise = get()._httpFetchTimestamps(
+            selectedCommit,
+            newestLocalTimestampForCommit
+          );
 
-      //     await promise
-      //       .then((timestamps: Timestamp[]) => {
-      //         polledCommitToTimestampMap.set(
-      //           selectedCommit.commitId,
-      //           timestamps
-      //         );
-      //       })
-      //       .catch((error: Error) => {
-      //         console.error(`Error on fetch of timestamps: ${error}`);
-      //         polledCommitToTimestampMap.set(selectedCommit.commitId, []);
-      //       });
-      //   }
-      // TODO: callback(polledCommitToTimestampMap);
-      // }
+          await promise
+            .then((timestamps: Timestamp[]) => {
+              polledCommitToTimestampMap.set(
+                selectedCommit.commitId,
+                timestamps
+              );
+            })
+            .catch((error: Error) => {
+              console.error(`Error on fetch of timestamps: ${error}`);
+              polledCommitToTimestampMap.set(selectedCommit.commitId, []);
+            });
+        }
+        callback(polledCommitToTimestampMap);
+      }
     },
-    httpFetchTimestamps: (
+
+    // private
+    _httpFetchTimestamps: (
       commit?: SelectedCommit,
       newestLocalTimestamp?: Timestamp
     ) => {
-      // TODO: this.debug(
-      //   'Polling timestamps for commitId: ' + (commit?.commitId ?? 'cross-commit')
-      // );
       return new Promise<Timestamp[]>((resolve, reject) => {
-        // TODO: if (useLandscapeTokenStore.token === null) {
-        //   reject(new Error('No landscape token selected'));
-        //   return;
-        // }
-        // if (get().tokenService.token === null) {
-        //   reject(new Error('No landscape token selected'));
-        //   return;
-        // }
-        // TODO: let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.token.value}/timestamps`;
-        // let url = `${spanService}/v2/landscapes/${get().tokenService.token.value}/timestamps`;
-        //     if (newestLocalTimestamp) {
-        //       url += `?newest=${newestLocalTimestamp.epochMilli}`;
-        //       if (commit) {
-        //         url += `&commit=${commit.commitId}`;
-        //       }
-        //     }
-        //     if (commit && !newestLocalTimestamp) {
-        //       url += `?commit=${commit.commitId}`;
-        //     }
-        //     fetch(url, {
-        //       headers: {
-        //         Authorization: `Bearer ${get().auth.accessToken}`,
-        //         "Access-Control-Allow-Origin": "*",
-        //       },
-        //     })
-        //       .then(async (response: Response) => {
-        //         if (response.ok) {
-        //           const timestamps = (await response.json()) as Timestamp[];
-        //           resolve(timestamps);
-        //         } else {
-        //           reject();
-        //         }
-        //       })
-        //       .catch((e) => reject(e));
+        if (useLandscapeTokenStore.getState().token === null) {
+          reject(new Error('No landscape token selected'));
+          return;
+        }
+        if (useLandscapeTokenStore.getState().token === null) {
+          reject(new Error('No landscape token selected'));
+          return;
+        }
+        let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+
+        if (newestLocalTimestamp) {
+          url += `?newest=${newestLocalTimestamp.epochMilli}`;
+          if (commit) {
+            url += `&commit=${commit.commitId}`;
+          }
+        }
+        if (commit && !newestLocalTimestamp) {
+          url += `?commit=${commit.commitId}`;
+        }
+        fetch(url, {
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+        })
+          .then(async (response: Response) => {
+            if (response.ok) {
+              const timestamps = (await response.json()) as Timestamp[];
+              resolve(timestamps);
+            } else {
+              reject();
+            }
+          })
+          .catch((e) => reject(e));
       });
     },
   })

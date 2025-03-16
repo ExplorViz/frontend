@@ -3,7 +3,7 @@ import { useApplicationRendererStore } from './application-renderer';
 import {
   useRenderingServiceStore,
   EvolutionModeRenderingConfiguration,
-} from './rendering-service';
+} from 'react-lib/src/stores/rendering-service';
 import {
   Class,
   Package,

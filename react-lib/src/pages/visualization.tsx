@@ -3,7 +3,7 @@ import SidebarHandler from '../utils/sidebar/sidebar-handler';
 import {
   AnalysisMode,
   useRenderingServiceStore,
-} from '../stores/rendering-service';
+} from 'react-lib/src/stores/rendering-service';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { ApiToken } from '../stores/user-api-token';
 import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
@@ -14,7 +14,7 @@ import {
   useLocalUserStore,
   VisualizationMode,
 } from '../stores/collaboration/local-user';
-import { useTimestampRepositoryStore } from '../stores/repos/timestamp-repository';
+import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
 import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
 import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
 import { useCommitTreeStateStore } from '../stores/commit-tree-state';
@@ -56,7 +56,7 @@ import {
   VisualizationModeUpdateMessage,
 } from '../utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useTimestampPollingStore } from '../stores/timestamp-polling';
+import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
 import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
 import AutoJoinLobby from 'react-lib/src/components/collaboration/auto-join-lobby';

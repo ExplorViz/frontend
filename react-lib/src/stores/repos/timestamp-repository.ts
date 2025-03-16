@@ -1,17 +1,19 @@
-import { createStore } from "zustand/vanilla";
-import { Timestamp } from "react-lib/src/utils/landscape-schemes/timestamp";
-// import TimelineDataObjectHandler from 'explorviz-frontend/utils/timeline/timeline-data-object-handler';
-import { SelectedCommit } from "react-lib/src/stores/commit-tree-state";
-import { areArraysEqual } from "react-lib/src/utils/helpers/array-helpers";
-import { useTimestampStore } from "react-lib/src/stores/timestamp";
+import { create } from 'zustand';
+import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
+import TimelineDataObjectHandler from 'react-lib/src/utils/timeline/timeline-data-object-handler';
+import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
+import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
+import { useTimestampStore } from 'react-lib/src/stores/timestamp';
+import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
+import { useRenderingServiceStore } from '../rendering-service';
 
 interface TimestampRespositoryState {
   commitToTimestampMap: Map<string, Map<number, Timestamp>>;
+  _timelineDataObjectHandler: TimelineDataObjectHandler | null;
   addCommitToTimestamp: (
     commitId: string,
     timestamps: Map<number, Timestamp>
   ) => void;
-  //   _timelineDataObjectHandler: TimelineDataObjectHandler | null;
   restartTimestampPollingAndVizUpdate: (commits: SelectedCommit[]) => void;
   stopTimestampPolling: () => void;
   timestampPollingCallback: (
@@ -28,47 +30,54 @@ interface TimestampRespositoryState {
   resetState: () => void;
 }
 
-export const useTimestampRepositoryStore =
-  createStore<TimestampRespositoryState>((set, get) => ({
-    commitToTimestampMap: new Map(),
+export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
+  (set, get) => ({
+    commitToTimestampMap: new Map(), // tracked
+    _timelineDataObjectHandler: null,
+
     addCommitToTimestamp,
-    //   _timelineDataObjectHandler: null,
+
     restartTimestampPollingAndVizUpdate: (commits: SelectedCommit[]) => {
-      // TODO: if (useRenderingStore.visualizationMode === "runtime") {
-      //   // reset states when going back to runtime mode
-      //   get().commitToTimestampMap = new Map();
-      //   get()._timelineDataObjectHandler?.resetState();
-      //   useRenderingStore.resumeVisualizationUpdating();
-      // }
-      //   useTimestampPollingStore.resetPolling();
-      //   useTimestampPollingStore.initTimestampPollingWithCallback(
-      //   commits,
-      //   get().timestampPollingCallback.bind(get())
-      // );
-      // if (get().renderingService.visualizationMode === "runtime") {
-      //   // reset states when going back to runtime mode
-      //   get().commitToTimestampMap = new Map();
-      //   get()._timelineDataObjectHandler?.resetState();
-      //   get().renderingService.resumeVisualizationUpdating();
-      // }
-      // get().timestampPollingService.resetPolling();
-      // get().timestampPollingService.initTimestampPollingWithCallback(
-      //   commits,
-      //   get().timestampPollingCallback.bind(get())
-      // );
+      if (useRenderingServiceStore.getState()._analysisMode === 'runtime') {
+        // reset states when going back to runtime mode
+        get().commitToTimestampMap = new Map();
+        get()._timelineDataObjectHandler?.resetState();
+        useRenderingServiceStore.getState().resumeVisualizationUpdating();
+      }
+      useTimestampPollingStore.getState().resetPolling();
+      useTimestampPollingStore
+        .getState()
+        .initTimestampPollingWithCallback(
+          commits,
+          get().timestampPollingCallback.bind(get())
+        );
+      if (useRenderingServiceStore.getState()._analysisMode === 'runtime') {
+        // reset states when going back to runtime mode
+        get().commitToTimestampMap = new Map();
+        get()._timelineDataObjectHandler?.resetState();
+        useRenderingServiceStore.getState().resumeVisualizationUpdating();
+      }
+      useTimestampPollingStore.getState().resetPolling();
+      useTimestampPollingStore
+        .getState()
+        .initTimestampPollingWithCallback(
+          commits,
+          get().timestampPollingCallback.bind(get())
+        );
     },
+
     stopTimestampPolling: () => {
-      // TODO: useTimestampPollingStore.resetPolling();
-      // this.timestampPollingService.resetPolling();
+      useTimestampPollingStore.getState().resetPolling();
     },
+
     timestampPollingCallback: (
       commitToNewTimestampsMap: Map<string, Timestamp[]>
     ) => {
       // Short Polling Event Loop for Runtime Data
 
-      // if (!get().timelineDataObjectHandler) {
-      //   throw new Error("Timestamp Repository needs TimelineDataObjectHandler");
-      // }
+      if (!get()._timelineDataObjectHandler) {
+        throw new Error('Timestamp Repository needs TimelineDataObjectHandler');
+      }
 
       const commitTimestampsToRenderMap = new Map();
       const allNewTimestampsToRender: Timestamp[] = [];
@@ -78,51 +87,45 @@ export const useTimestampRepositoryStore =
         newTimestampsForCommit,
       ] of commitToNewTimestampsMap) {
         get().addTimestamps(commitId, newTimestampsForCommit);
-        // get().timelineDataObjectHandler.updateTimestampsForCommit(
-        //   get().getTimestampsForCommitId(commitId),
-        //   commitId
-        // );
+        get()._timelineDataObjectHandler!.updateTimestampsForCommit(
+          get().getTimestampsForCommitId(commitId),
+          commitId
+        );
 
-        //TODO: const lastSelectTimestamp =
-        //   useTimestampStore.getLatestTimestampByCommitOrFallback(commitId);
-        // const lastSelectTimestamp =
-        //   get().timestampService.getLatestTimestampByCommitOrFallback(commitId);
+        const lastSelectTimestamp = useTimestampStore
+          .getState()
+          .getLatestTimestampByCommitOrFallback(commitId);
 
-        // const nextOrLatestTimestamp = get().getNextTimestampOrLatest(
-        //   commitId,
-        //   lastSelectTimestamp
-        // );
+        const nextOrLatestTimestamp = get().getNextTimestampOrLatest(
+          commitId,
+          lastSelectTimestamp
+        );
 
-        // const timestampToRender = nextOrLatestTimestamp
-        //   ? [nextOrLatestTimestamp]
-        //   : [];
+        const timestampToRender = nextOrLatestTimestamp
+          ? [nextOrLatestTimestamp]
+          : [];
 
-        // commitTimestampsToRenderMap.set(commitId, timestampToRender);
-        // allNewTimestampsToRender.pushObjects(timestampToRender);
+        commitTimestampsToRenderMap.set(commitId, timestampToRender);
+        allNewTimestampsToRender.push(...timestampToRender);
       }
 
-      // TODO: if (useRenderingStore.visualizationPaused) {
-      //   return;
-      // }
-      // if (get().renderingService.visualizationPaused) {
-      //   return;
-      // }
+      if (useRenderingServiceStore.getState()._visualizationPaused) {
+        return;
+      }
 
-      // const currentlySelectedTimestamps =
-      //   get().timelineDataObjectHandler.getAllSelectedTimestampsOfAllCommits();
+      const currentlySelectedTimestamps =
+        get()._timelineDataObjectHandler!.getAllSelectedTimestampsOfAllCommits();
 
-      // if (
-      //   commitTimestampsToRenderMap.size > 0 &&
-      //   !areArraysEqual(currentlySelectedTimestamps, allNewTimestampsToRender)
-      // ) {
-      //TODO: useRenderingStore.triggerRenderingForGivenTimestamps(
-      //   commitTimestampsToRenderMap
-      // );
-      // get().renderingService.triggerRenderingForGivenTimestamps(
-      //   commitTimestampsToRenderMap
-      // );
-      // }
+      if (
+        commitTimestampsToRenderMap.size > 0 &&
+        !areArraysEqual(currentlySelectedTimestamps, allNewTimestampsToRender)
+      ) {
+        useRenderingServiceStore
+          .getState()
+          .triggerRenderingForGivenTimestamps(commitTimestampsToRenderMap);
+      }
     },
+
     getNextTimestampOrLatest: (commitId: string, epochMilli?: number) => {
       const timestampsForCommit = get().commitToTimestampMap.get(commitId);
       if (!timestampsForCommit) return undefined;
@@ -142,12 +145,14 @@ export const useTimestampRepositoryStore =
         ? values[index + 1]
         : values[values.length - 1];
     },
+
     getLatestTimestamp: (commitId: string) => {
       const timestamps = get().getTimestampsForCommitId(commitId);
       return timestamps.length > 0
         ? timestamps[timestamps.length - 1]
         : undefined;
     },
+
     getTimestampsForCommitId: (commitId: string) => {
       const timestampsForCommitId = get().commitToTimestampMap.get(commitId);
       if (timestampsForCommitId) {
@@ -156,6 +161,7 @@ export const useTimestampRepositoryStore =
         return [];
       }
     },
+
     addTimestamps: (commitId: string, timestamps: Timestamp[]) => {
       if (!timestamps) {
         return;
@@ -164,11 +170,14 @@ export const useTimestampRepositoryStore =
         get().addTimestamp(commitId, timestamp);
       }
       if (timestamps.length) {
-        get().commitToTimestampMap = new Map(
-          [...get().commitToTimestampMap.entries()].sort()
-        );
+        set({
+          commitToTimestampMap: new Map(
+            [...get().commitToTimestampMap.entries()].sort()
+          ),
+        });
       }
     },
+
     addTimestamp: (commitId: string, timestamp: Timestamp) => {
       const timestamps =
         get().commitToTimestampMap.get(commitId) ??
@@ -177,14 +186,15 @@ export const useTimestampRepositoryStore =
       timestamps.set(timestamp.epochMilli, timestamp);
       get().addCommitToTimestamp(commitId, timestamps);
     },
+
     resetState: () => {
       get().commitToTimestampMap = new Map();
-      // TODO: useTimestampStore.resetState();
-      // get().timestampService.resetState();
-      // get().timelineDataObjectHandler?.resetState();
-      // get().timelineDataObjectHandler?.triggerTimelineUpdate();
+      useTimestampStore.getState().resetState();
+      get()._timelineDataObjectHandler?.resetState();
+      get()._timelineDataObjectHandler?.triggerTimelineUpdate();
     },
-  }));
+  })
+);
 
 function addCommitToTimestamp(
   commitId: string,
