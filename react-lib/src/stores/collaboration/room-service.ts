@@ -16,7 +16,7 @@ const collaborationService = 'http://localhost:4444'; //import.meta.env.VITE_COL
 
 interface RoomServiceState {
   listRooms: () => Promise<RoomListRecord[]>;
-  createRoom: (roomId = '') => Promise<RoomCreatedResponse>;
+  createRoom: (roomId?: string) => Promise<RoomCreatedResponse>;
   _buildInitialRoomPayload: (roomId: string) => InitialRoomPayload | undefined;
   joinLobby: (roomId: string) => Promise<LobbyJoinedResponse>;
 }
