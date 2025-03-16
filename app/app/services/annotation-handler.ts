@@ -50,7 +50,7 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
-import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
+// import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
@@ -82,25 +82,25 @@ export default class AnnotationHandlerService extends Service {
   //   useAnnotationHandlerStore.setState({ minimizedAnnotations: value });
   // }
 
-  // latestMousePosition: { timestamp: number; x: number; y: number } = {
-  //   timestamp: 0,
-  //   x: 0,
-  //   y: 0,
-  // };
-  get latestMousePosition(): { timestamp: number; x: number; y: number } {
-    return useAnnotationHandlerStore.getState().latestMousePosition;
-  }
-  set latestMousePosition(value: { timestamp: number; x: number; y: number }) {
-    useAnnotationHandlerStore.setState({ latestMousePosition: value });
-  }
+  latestMousePosition: { timestamp: number; x: number; y: number } = {
+    timestamp: 0,
+    x: 0,
+    y: 0,
+  };
+  // get latestMousePosition(): { timestamp: number; x: number; y: number } {
+  //   return useAnnotationHandlerStore.getState().latestMousePosition;
+  // }
+  // set latestMousePosition(value: { timestamp: number; x: number; y: number }) {
+  //   useAnnotationHandlerStore.setState({ latestMousePosition: value });
+  // }
 
-  // isShiftPressed = false;
-  get isShiftPressed(): boolean {
-    return useAnnotationHandlerStore.getState().isShiftPressed;
-  }
-  set isShiftPressed(value: boolean) {
-    useAnnotationHandlerStore.setState({ isShiftPressed: value });
-  }
+  isShiftPressed = false;
+  // get isShiftPressed(): boolean {
+  //   return useAnnotationHandlerStore.getState().isShiftPressed;
+  // }
+  // set isShiftPressed(value: boolean) {
+  //   useAnnotationHandlerStore.setState({ isShiftPressed: value });
+  // }
 
   init() {
     super.init();
@@ -114,9 +114,18 @@ export default class AnnotationHandlerService extends Service {
     );
   }
 
+  // handleMouseMove(event: MouseEvent) {
+  //   useAnnotationHandlerStore.getState().handleMouseMove(event);
+  // }
   handleMouseMove(event: MouseEvent) {
-    useAnnotationHandlerStore.getState().handleMouseMove(event);
+    this.latestMousePosition = {
+      timestamp: Date.now(),
+      x: event.pageX,
+      y: event.pageY,
+    };
+    this.isShiftPressed = event.shiftKey;
   }
+
 
   @action
   clearAnnotations() {
