@@ -88,7 +88,7 @@ interface CollaborationSessionState {
   isOnline: () => boolean;
   isConnecting: () => boolean;
   hostRoom: (roomId?: string) => Promise<boolean>;
-  joinRoom: (roomId?: string, spectateDevice?: string) => Promise<void>;
+  joinRoom: (roomId: string, spectateDevice?: string) => Promise<void>;
   disconnect: () => void;
   onUserPositions: ({
     userId,
@@ -453,7 +453,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
         try {
           const response = await useRoomServiceStore
             .getState()
-            .joinLobby(this.currentRoomId);
+            .joinLobby(get().currentRoomId!);
           useWebSocketStore
             .getState()
             .initSocket(
