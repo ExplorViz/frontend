@@ -44,6 +44,8 @@ import {
 import { useChatStore } from 'react-lib/src/stores/chat';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import eventEmitter from '../../utils/event-emitter';
+import { createSearchParams } from 'react-router-dom';
+import { useRouterStore } from '../store-router';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -422,14 +424,14 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
 
       if (token) {
         useLandscapeTokenStore.getState().setToken(token);
-        // TODO: REFACTOR AFTER IMPLEMENTATION OF ROUTER!!!!!!!!!!!!!!!!!!!!
-        // this.router.transitionTo('visualization', {
-        //   queryParams: {
-        // landscapeToken: token.value,
-        // roomId: roomId,
-        // deviceId: spectateDevice !== undefined ? spectateDevice : 'default',
-        //   },
-        // });
+        useRouterStore.getState().navigateTo!({
+          pathname: '/visualization',
+          search: `?${createSearchParams({
+            landscapeToken: token.value,
+            roomId: roomId,
+            deviceId: spectateDevice !== undefined ? spectateDevice : 'default',
+          })}`,
+        });
       } else {
         useToastHandlerStore
           .getState()
@@ -487,13 +489,16 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       set({ connectionStatus: 'offline', currentRoomId: null });
       useWebSocketStore.getState().closeSocket();
 
-      // TODO: REFACTOR AFTER IMPLEMENTATION OF ROUTER!!!!!!!!!!!!!!!!!!!!
       // Remove roomId from URL
-      //   if (this.router.currentRouteName === 'visualization') {
-      //     this.router.transitionTo('visualization', {
-      //       queryParams: { roomId: null },
-      //     });
-      //   }
+      if (
+        useRouterStore.getState().getLocation().pathname === '/visualization'
+      ) {
+        useRouterStore.getState().navigateTo!('/visualization');
+        // TODO: In case of errors: this is old code. No landscapeToken given.
+        // this.router.transitionTo('visualization', {
+        //   queryParams: { roomId: null },
+        // });
+      }
     },
 
     /**

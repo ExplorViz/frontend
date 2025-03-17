@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth';
 // import Navbar from 'react-lib/src/components/page-setup/navbar';
 // import AutoSelectLandscape from '../components/collaboration/auto-select-landscape';
 import ToastMessage from '../components/page-setup/toast-message';
+import { useInitNavigation } from 'react-lib/src/stores/store-router';
 
 // TODO: Uncomment AutoSelect and NavBar after they exist
 
@@ -11,6 +12,8 @@ export default function Application() {
   const [tokenId, setTokenId] = useState<string>('');
   let [searchParams] = useSearchParams();
   const user = useAuthStore((state) => state.user);
+
+  useInitNavigation();
 
   return (
     <>

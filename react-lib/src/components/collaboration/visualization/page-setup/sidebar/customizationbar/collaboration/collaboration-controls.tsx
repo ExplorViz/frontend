@@ -36,6 +36,7 @@ import {
   UnmuteIcon,
   XIcon,
 } from '@primer/octicons-react';
+import { createSearchParams, useNavigate } from 'react-router-dom';
 
 interface CollaborationControlsProps {}
 
@@ -145,6 +146,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
   const [spectateConfigDevices, setSpectateConfigDevices] = useState<
     { deviceId: string; projectionMatrix: number[] }[]
   >([]);
+  const navigate = useNavigate();
 
   const users = (() => {
     const users = [];
@@ -273,13 +275,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
       'landscapeToken'
     );
 
-    // TODO für Philipp
-    // this.router.transitionTo('visualization', {
-    //   queryParams: {
-    //     landscapeToken: selectedToken,
-    //     deviceId: 'default',
-    //   },
-    // });
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken: selectedToken!, deviceId: 'default' })}`,
+    });
 
     setSelectedConfig(config);
 
@@ -295,13 +294,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
       'landscapeToken'
     );
 
-    // TODO für Philipp
-    // this.router.transitionTo('visualization', {
-    //   queryParams: {
-    //     landscapeToken: selectedToken,
-    //     deviceId: this.selectedDevice,
-    //   },
-    // });
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken: selectedToken!, deviceId: selectedDevice! })}`,
+    });
   };
 
   const landscapeSelected = (event: any) => {
@@ -314,13 +310,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
       externLink.removeFromParent();
     });
 
-    // TODO für Philipp
-    // this.router.transitionTo('visualization', {
-    //   queryParams: {
-    //     landscapeToken: event.target.value,
-    //     deviceId: deviceId,
-    //   },
-    // });
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken: event.target.value, deviceId: deviceId! })}`,
+    });
     sendChangeLandscape(event.target.value);
     sendChatMessage(
       localUserId,
@@ -526,13 +519,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
       'landscapeToken'
     );
 
-    // TODO für Philipp
-    // this.router.transitionTo('visualization', {
-    //   queryParams: {
-    //     landscapeToken: selectedToken,
-    //     deviceId: 'default',
-    //   },
-    // });
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken: selectedToken!, deviceId: 'default' })}`,
+    });
   };
 
   useEffect(() => {

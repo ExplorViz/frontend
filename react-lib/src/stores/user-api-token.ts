@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useRouterStore } from './store-router';
 
 const userService = 'http://localhost:8080'; //import.meta.env.USER_SERV_URL;
 
@@ -76,8 +77,7 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
         );
     }
 
-    // TODO: Do this after router exists
-    // this.router.refresh('settings');
+    useRouterStore.getState().navigateTo!('/settings');
   },
 
   createApiToken: async (
@@ -110,7 +110,6 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
           'Something went wrong. API-Token could not be saved.'
         );
     }
-    // TODO: Do this after router exists
-    // this.router.refresh('settings');
+    useRouterStore.getState().navigateTo!('/settings');
   },
 }));
