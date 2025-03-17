@@ -74,6 +74,7 @@ interface ApplicationRendererState {
   landscape3D: Landscape3D | null;
   openApplicationsMap: Map<string, ApplicationObject3D>;
   appCommRendering: CommunicationRendering;
+  setLandscape3D: (value: Landscape3D) => void;
   appSettings: () => any;
   getApplicationById: (id: string) => ApplicationObject3D | undefined;
   getBoxMeshByModelId: (id: string) => EntityMesh | null;
@@ -152,6 +153,8 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     landscape3D: null,
     openApplicationsMap: new Map(),
     appCommRendering: new CommunicationRendering(),
+
+    setLandscape3D: (value: Landscape3D) => set({ landscape3D: value }),
 
     appSettings: () => {
       return useUserSettingsStore.getState().visualizationSettings;

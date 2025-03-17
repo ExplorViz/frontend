@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
+import { useShallow } from 'zustand/react/shallow';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
@@ -80,18 +81,76 @@ interface BrowserRenderingProps {
 
 // TODO: worker service???
 
-export default function BrowserRendering({}: BrowserRenderingProps) {
+export default function BrowserRendering({
+  id,
+  landscapeData,
+  visualizationPaused,
+  isDisplayed,
+  snapshot,
+  snapshotReload,
+  openSettingsSidebar,
+  toggleVisualizationUpdating,
+  switchToAR,
+}: BrowserRenderingProps) {
   // MARK: Stores
 
-  const getOpenApplications = useApplicationRendererStore(
-    (state) => state.getOpenApplications
+  const {
+    getApplicationById,
+    getOpenApplications,
+    openAllComponentsOfAllApplications,
+    toggleCommunicationRendering,
+  } = useApplicationRendererStore(
+    useShallow((state) => ({
+      getApplicationById: state.getApplicationById,
+      getOpenApplications: state.getOpenApplications,
+      openAllComponentsOfAllApplications:
+        state.openAllComponentsOfAllApplications,
+      toggleCommunicationRendering: state.toggleCommunicationRendering,
+    }))
+  );
+
+  const camera = useLocalUserStore((state) => state.defaultCamera);
+
+  const { appSettings, colors, updateSetting } = useUserSettingsStore(
+    useShallow((state) => ({
+      appSettings: state.visualizationSettings,
+      colors: state.colors,
+      updateSetting: state.updateSetting,
+    }))
+  );
+
+  const { isCommRendered, setSemanticZoomEnabled } = useConfigurationStore(
+    useShallow((state) => ({
+      isCommRendered: state.isCommRendered,
+      setSemanticZoomEnabled: state.setSemanticZoomEnabled,
+    }))
+  );
+
+  const getScene = useSceneRepositoryStore((state) => state.getScene);
+
+  const highlightingStoreActions = {
+    highlightTrace: useHighlightingStore((state) => state.highlightTrace),
+  };
+
+  const {
+    showInfoToastMessage,
+    showSuccessToastMessage,
+    showErrorToastMessage,
+  } = useToastHandlerStore(
+    useShallow((state) => ({
+      showInfoToastMessage: state.showInfoToastMessage,
+      showSuccessToastMessage: state.showSuccessToastMessage,
+      showErrorToastMessage: state.showErrorToastMessage,
+    }))
   );
 
   // MARK: State
 
-  const [landscape3D, setLandscape3D] = useState<Landscape3D | null>(null);
+  const [landscape3D, setLandscape3D] = useState<Landscape3D>(
+    new Landscape3D()
+  );
   const [updateLayout, setUpdateLayout] = useState<boolean>(false);
-  const [scene, setScene] = useState<THREE.Scene | null>(null);
+  const [scene, setScene] = useState<THREE.Scene>(getScene('browser', true));
   const [mousePosition, setMousePosition] = useState<Vector3>(
     new Vector3(0, 0, 0)
   );
@@ -112,9 +171,201 @@ export default function BrowserRendering({}: BrowserRenderingProps) {
   const initDone = useRef<boolean>(false);
   const toggleForceAppearenceLayer = useRef<boolean>(false);
   const semanticZoomToggle = useRef<boolean>(false);
+  const ideWebsocket = useRef<IdeWebsocket>(
+    new IdeWebsocket(handleDoubleClickOnMeshIDEAPI, lookAtMesh)
+  );
+  const ideCrossCommunication = useRef<IdeCrossCommunication>(
+    new IdeCrossCommunication(handleDoubleClickOnMeshIDEAPI, lookAtMesh)
+  );
+
+  // MARK: Variables
+
+  const rightClickMenuItems = [
+    { title: 'Reset View', action: resetView },
+    {
+      title: 'Open All Components',
+      action: () => {
+        if (
+          appSettings.autoOpenCloseFeature.value == true &&
+          appSettings.semanticZoomState.value == true
+        ) {
+          showErrorToastMessage(
+            'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
+          );
+          return;
+        }
+        openAllComponentsOfAllApplications();
+      },
+    },
+    {
+      title: isCommRendered ? 'Hide Communication' : 'Add Communication',
+      action: toggleCommunicationRendering,
+    },
+    { title: 'Enter AR', action: switchToAR },
+  ];
+
+  // MARK: Event handlers
+
+  const getSelectedApplicationObject3D = () => {
+    if (selectedApplicationId === '') {
+      // TODO
+      setSelectedApplicationId(getOpenApplications()[0].getModelId());
+    }
+    return getApplicationById(selectedApplicationId);
+  };
+
+  const getRaycastObjects = () => scene.children;
+
+  const tick = async (delta: number) => {
+    useCollaborationSessionStore
+      .getState()
+      .idToRemoteUser.forEach((remoteUser) => {
+        remoteUser.update(delta); // TODO non-immutable update
+      });
+    if (initDone && useLinkRendererStore.getState()._flag) {
+      useLinkRendererStore.getState().setFlag(false);
+    }
+  };
+
+  const toggleSemanticZoom = () => {
+    if (!SemanticZoomManager.instance.isEnabled) {
+      SemanticZoomManager.instance.activate();
+    } else {
+      SemanticZoomManager.instance.deactivate();
+    }
+    updateSetting('semanticZoomState', SemanticZoomManager.instance.isEnabled);
+    setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
+  };
+
+  const showSemanticZoomClusterCenters = () => {
+    // Remove previous center points from scene
+    const prevCenterPointList = scene.children.filter(
+      (preCenterPoint) => preCenterPoint.name == 'centerPoints'
+    );
+    prevCenterPointList.forEach((preCenterPoint) => {
+      scene.remove(preCenterPoint);
+    });
+
+    if (!SemanticZoomManager.instance.isEnabled) {
+      return;
+    }
+
+    // Poll Center Vectors
+    SemanticZoomManager.instance
+      .getClusterCentroids()
+      .forEach((centerPoint) => {
+        // Create red material
+        const xGroup = new THREE.Group();
+        xGroup.name = 'centerPoints';
+        const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+        // Create the first part of the "X" (a thin rectangle)
+        const geometry = new THREE.BoxGeometry(0.1, 0.01, 0.01); // A long thin box
+        const part1 = new THREE.Mesh(geometry, redMaterial);
+        part1.rotation.z = Math.PI / 4; // Rotate 45 degrees
+
+        // Create the second part of the "X"
+        const part2 = new THREE.Mesh(geometry, redMaterial);
+        part2.rotation.z = -Math.PI / 4; // Rotate -45 degrees
+
+        // Add both parts to the scene
+        xGroup.add(part1);
+        xGroup.add(part2);
+
+        // Set Position of X Group
+        xGroup.position.copy(centerPoint);
+        scene.add(xGroup);
+      });
+  };
+
+  const highlightTrace = (trace: Trace, traceStep: string) => {
+    const selectedObject3D = getSelectedApplicationObject3D();
+
+    if (!landscapeData || !selectedObject3D) {
+      return;
+    }
+
+    highlightingStoreActions.highlightTrace(
+      trace,
+      traceStep,
+      selectedObject3D,
+      landscapeData.structureLandscapeData
+    );
+  };
+
+  const resetView = async () => {
+    cameraControls.current!.resetCameraFocusOn(1.0, [landscape3D]);
+  };
+
+  // MARK: Effects
+
+  useEffect(() => {
+    scene.background = colors!.backgroundColor;
+
+    useLocalUserStore
+      .getState()
+      .setDefaultCamera(new THREE.PerspectiveCamera());
+
+    setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
+
+    scene.add(landscape3D);
+    tickCallbacks.current.push(
+      { id: 'browser-rendering', callback: tick },
+      { id: 'spectate-user', callback: useSpectateUserStore.getState().tick },
+      { id: 'minimap', callback: useMinimapStore.getState().tick }
+    );
+
+    // TODO reset popupHandler state?
+
+    ImmersiveView.instance.callbackOnEntering = () => {
+      usePopupHandlerStore.getState().setDeactivated(true);
+      usePopupHandlerStore.getState().clearPopups();
+    };
+
+    ImmersiveView.instance.callbackOnExit = () => {
+      usePopupHandlerStore.getState().setDeactivated(false);
+    };
+
+    // Semantic Zoom Manager shows/removes all communication arrows due to high rendering time.
+    // If the Semantic Zoom feature is enabled, all previously generated arrows are hidden.
+    // After that, the manager decides on which level to show.
+    // If it gets disabled, all previous arrows are restored.
+    // All this is done by shifting layers.
+    SemanticZoomManager.instance.registerActivationCallback((onOff) => {
+      useLinkRendererStore
+        .getState()
+        .getAllLinks()
+        .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.layers.disableAll();
+            } else {
+              arrow.layers.set(0);
+            }
+          });
+        });
+      getOpenApplications().forEach((ap) => {
+        ap.getCommMeshes().forEach((currentCommunicationMesh) => {
+          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+            if (onOff) {
+              arrow.layers.disableAll();
+            } else {
+              arrow.layers.set(0);
+            }
+          });
+        });
+      });
+    });
+    // Loads the AutoOpenClose activation state from the settings.
+    SemanticZoomManager.instance.toggleAutoOpenClose(
+      appSettings.autoOpenCloseFeature.value
+    );
+
+    useApplicationRendererStore.getState().setLandscape3D(landscape3D);
+  }, []);
 }
 
 type TickCallback = {
   id: string;
-  callback: (delta: number, frame?: XRFrame) => void;
+  callback: (delta?: number, frame?: XRFrame) => void;
 };
