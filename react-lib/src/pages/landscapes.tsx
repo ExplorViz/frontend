@@ -211,12 +211,6 @@ export default function Landscapes() {
     return <LandscapeLoader />;
   }
 
-  // return (
-  //   <div>
-  //     <p>Hello</p>
-  //   </div>
-  // );
-
   return (
     <>
       <div id="landscape-container">
@@ -224,6 +218,8 @@ export default function Landscapes() {
           activeKey={activeKey}
           onSelect={(k) => setActiveKey(k || 'landscapes')}
           id="tabnav"
+          className="mb-3"
+          justify
         >
           <Tab eventKey="landscapes" title="Landscapes" id="landscape-tab">
             <div
