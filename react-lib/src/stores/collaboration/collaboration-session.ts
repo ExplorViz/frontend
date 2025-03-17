@@ -235,7 +235,8 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
           self.id,
           `${self.name}(${self.id}) connected to room ${get().currentRoomId}`,
           true,
-          'connection_event'
+          'connection_event',
+          []
         );
       useToastHandlerStore
         .getState()
@@ -361,7 +362,8 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
           useLocalUserStore.getState().userId,
           `${useLocalUserStore.getState().userName}(${useLocalUserStore.getState().userId}) disconnected from room ${get().previousRoomId}`,
           true,
-          'disconnection_event'
+          'disconnection_event',
+          []
         );
     },
 
