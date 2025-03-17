@@ -7,7 +7,7 @@ import SemanticZoomManager from './utils/semantic-zoom-manager';
 import {
   ImmersiveView,
   ImmersiveViewMixin,
-} from 'explorviz-frontend/rendering/application/immersive-view';
+} from 'react-lib/src/rendering/application/immersive-view';
 import gsap from 'gsap';
 import ImmsersiveClassScene from 'react-lib/src/utils/class-immersive-scene';
 import { MethodGroup } from './method-group';
@@ -160,7 +160,7 @@ export class _ClazzMesh extends BoxMesh {
       if (event.key === 'Escape') {
         ImmersiveView.instance.exitObject(this);
         // TODO fix Remove of the Listener
-        document.removeEventListener('keydown', this);
+        // document.removeEventListener('keydown', this);
       }
     });
   };

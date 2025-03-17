@@ -17,6 +17,7 @@ import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/applic
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 import { Object3DEventMap } from 'three';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -103,19 +104,11 @@ export default class IdeWebsocket {
     handleDoubleClickOnMesh: (meshID: string) => void,
     lookAtMesh: (meshID: string) => void
   ) {
-    // setOwner(this, owner);
-
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
 
-    // TODO: ide-websocket-facade as a store doesn't extend Evented so there is no on() method anymore but should be there
-    // useIdeWebsocketFacadeStore
-    //   .getState()
-    //   .on('ide-refresh-data', this.refreshVizData.bind(this));
-
-    // useIdeWebsocketFacadeStore
-    //   .getState()
-    //   .on('ide-restart-connection', this.reInitialize.bind(this));
+    eventEmitter.on('ide-refresh-data', this.refreshVizData.bind(this));
+    eventEmitter.on('ide-restart-connection', this.reInitialize.bind(this));
   }
 
   private reInitialize() {
@@ -137,7 +130,6 @@ export default class IdeWebsocket {
 
     socket.on('reconnect', () => {
       useIdeWebsocketFacadeStore.setState({ isConnected: true });
-      // this.ideWebsocketFacade.isConnected = true;
     });
 
     socket!.on('connect', () => {
@@ -149,7 +141,6 @@ export default class IdeWebsocket {
           useIdeWebsocketFacadeStore.setState({ isConnected: true });
         }
       );
-      //socket.emit('update-user-info', { userId: 'explorviz-user' });
     });
 
     socket!.on('connect_error', () => {
@@ -178,7 +169,6 @@ export default class IdeWebsocket {
       const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
       vizDataOrderTupleGlobal = vizDataOrderTuple;
-      // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
 
       switch (data.action) {
         case 'singleClickOnMesh':
@@ -187,7 +177,6 @@ export default class IdeWebsocket {
         case 'doubleClickOnMesh':
           console.log('vizDataOrderTuple:', vizDataOrderTuple);
           console.log('data: ', data);
-          //this.openObjects(vizDataOrderTuple, data.fqn);
           OpenObject(
             this.handleDoubleClickOnMesh,
             data.fqn,
@@ -255,13 +244,7 @@ export default class IdeWebsocket {
         .getState()
         .getById(application.getModelId());
 
-      // const applicationData = this.applicationRepo.getById(
-      //   application.getModelId()
-      // );
-
       const classCommunications = applicationData?.classCommunications;
-
-      // console.log(classCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
       if (classCommunications && classCommunications.length != 0) {
@@ -281,15 +264,12 @@ export default class IdeWebsocket {
         });
       }
     });
-
-    // console.log("communicationLinks", communicationLinks)
     return {
       applicationObject3D: openApplications,
       communicationLinks: communicationLinks,
     };
   }
 
-  //jumpToLocation(object: THREE.Object3D<THREE.Event>) {
   jumpToLocation(object: THREE.Object3D<Object3DEventMap>) {
     if (!socket || (socket && socket.disconnected)) {
       return;
@@ -402,7 +382,6 @@ function parentPackage(
 
 function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
   const temp: ParentOrder[] = [];
-  // console.log(classes)
   if (classes.length === 0) {
     return temp;
   }
@@ -559,23 +538,13 @@ export function emitToBackend(dest: IDEApiDest, apiCall: IDEApiCall) {
 }
 
 export function sendMonitoringData(monitoringData: MonitoringData[]) {
-  // emitToBackend(IDEApiDest.VizDo, { action: IDEApiActions.DoubleClickOnMesh, fqn: "org.springframework.samples.petclinic.model.Person", data: vizDataGlobal, meshId: "fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6", occurrenceID: 0 })
   console.log('monitoringData: ', monitoringData);
   socket!.emit(IDEApiDest.IDEDo, {
     action: IDEApiActions.JumpToMonitoringClass,
     monitoringData: monitoringData,
   });
-  // emitToBackend(IDEApiDest.IDEDo, {
-  //   action: IDEApiActions.JumpToMonitoringClass,
-  //   data: vizDataGlobal,
-  //   meshId: 'fde04de43a0b4da545d3df022ce824591fe61705835ca96b80f5dfa39f7b1be6',
-  //   fqn: '',
-  //   occurrenceID: -1,
-  //   monitoringData: monitoringData
-  // });
 }
 
-//function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
 function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
   if (mesh instanceof FoundationMesh) {
     return mesh.dataModel.id;
@@ -588,12 +557,10 @@ function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
     console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
     console.log(mesh.dataModel);
     return mesh.dataModel.id;
-    // return 'Not implemented ClazzCommunicationMesh';
   } else if (mesh instanceof CommunicationArrowMesh) {
     console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
     return 'Not implemented CommunicationArrowMesh';
   } else {
-    //
     console.error(typeof mesh, ' --- Mesh Type not Supported!');
     return 'Not implemented';
   }

@@ -9,13 +9,10 @@ import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import debugLogger from 'ember-debug-logger';
-import { useIdeWebsocketFacadeStore } from 'react-lib/src/stores/ide-websocket-facade';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event'; // TODO: Add this to the react-lib
 import { Object3DEventMap } from 'three';
-import React from 'react';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export enum IDEApiDest {
@@ -76,8 +73,6 @@ type OrderTuple = {
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 
-const log = debugLogger('ide-websocket');
-
 export default class IdeCrossCommunication {
   handleDoubleClickOnMesh: (meshID: string) => void;
   lookAtMesh: (meshID: string) => void;
@@ -99,8 +94,6 @@ export default class IdeCrossCommunication {
     window.addEventListener(
       'message',
       (event: IdeCrossCommunicationEvent) => {
-        //if (event.origin !== "http://localhost:4200") return;
-
         const data = event.data;
 
         if (!data) {
@@ -111,7 +104,6 @@ export default class IdeCrossCommunication {
         const vizDataOrderTuple = VizDataToOrderTuple(vizDataRaw);
 
         vizDataOrderTupleGlobal = vizDataOrderTuple;
-        // foundationCommunicationLinksGlobal = data.foundationCommunicationLinks;
 
         switch (data.action) {
           case 'singleClickOnMesh':
@@ -120,7 +112,6 @@ export default class IdeCrossCommunication {
           case 'doubleClickOnMesh':
             console.log('vizDataOrderTuple:', vizDataOrderTuple);
             console.log('data: ', data);
-            //this.openObjects(vizDataOrderTuple, data.fqn);
             OpenObject(
               this.handleDoubleClickOnMesh,
               data.fqn,
@@ -167,13 +158,8 @@ export default class IdeCrossCommunication {
       const applicationData = useApplicationRepositoryStore
         .getState()
         .getById(application.getModelId());
-      // const applicationData = this.applicationRepo.getById(
-      //   application.getModelId()
-      // );
 
       const classCommunications = applicationData?.classCommunications;
-
-      // console.log(classCommunications)
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list
       if (classCommunications && classCommunications.length != 0) {
@@ -194,14 +180,12 @@ export default class IdeCrossCommunication {
       }
     });
 
-    // console.log("communicationLinks", communicationLinks)
     return {
       applicationObject3D: openApplications,
       communicationLinks: communicationLinks,
     };
   }
 
-  //jumpToLocation(object: THREE.Object3D<THREE.Event>) {
   jumpToLocation(object: THREE.Object3D<Object3DEventMap>) {
     const vizDataRaw: VizDataRaw = this.getVizData(
       foundationCommunicationLinksGlobal
@@ -225,7 +209,6 @@ export default class IdeCrossCommunication {
     );
     const vizDataOrderTuple: OrderTuple[] = VizDataToOrderTuple(vizDataRaw);
 
-    log('Send new data to ide');
     emitToBackend({
       action: IDEApiActions.Refresh,
       data: vizDataOrderTuple,
@@ -234,10 +217,6 @@ export default class IdeCrossCommunication {
       occurrenceID: -1,
       foundationCommunicationLinks: foundationCommunicationLinksGlobal,
     });
-  }
-
-  dispose() {
-    log('Dispose Cross Communication');
   }
 }
 
@@ -289,7 +268,6 @@ function parentPackage(
 
 function parentClass(fqn: string, classes: Class[]): ParentOrder[] {
   const temp: ParentOrder[] = [];
-  // console.log(classes)
   if (classes.length === 0) {
     return temp;
   }
@@ -445,26 +423,18 @@ export function emitToBackend(apiCall: IDEApiCall) {
   window.parent.postMessage(apiCall, '*');
 }
 
-//function getIdFromMesh(mesh: THREE.Object3D<THREE.Event>): string {
 function getIdFromMesh(mesh: THREE.Object3D<Object3DEventMap>): string {
   if (mesh instanceof FoundationMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ComponentMesh) {
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzMesh) {
-    // console.error('ClazzMesh --- Mesh Type not Supported!');
     return mesh.dataModel.id;
   } else if (mesh instanceof ClazzCommunicationMesh) {
-    // console.error('ClazzCommunicationMesh --- Mesh Type not Supported!');
-    // console.log(mesh.dataModel);
     return mesh.dataModel.id;
-    // return 'Not implemented ClazzCommunicationMesh';
   } else if (mesh instanceof CommunicationArrowMesh) {
-    // console.error('CommunicationArrowMesh --- Mesh Type not Supported!');
     return 'Not implemented CommunicationArrowMesh';
   } else {
-    //
-    // console.error(typeof mesh, ' --- Mesh Type not Supported!');
     return 'Not implemented';
   }
 }

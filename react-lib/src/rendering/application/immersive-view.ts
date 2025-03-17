@@ -179,8 +179,8 @@ export class ImmersiveView {
   }
 
   resetData() {
-    this.actionHistory.clear();
-    this.mouseOverHistory.clear();
+    this.actionHistory = [];
+    this.mouseOverHistory = [];
     this.mouseOverHistory.push(new ImmersiveViewCappableCrossing(null));
   }
 
