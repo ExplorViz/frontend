@@ -73,7 +73,7 @@ interface RenderingServiceState {
   _handleError: (e: any) => void;
   toggleVisualizationUpdating: () => void;
   resumeVisualizationUpdating: () => void;
-  pauseVisualizationUpdating: (forceTimelineUpdate: boolean) => void;
+  pauseVisualizationUpdating: (forceTimelineUpdate?: boolean) => void;
   resetAllRenderingStates: () => void;
   setLandscapeData: (data: LandscapeData | null) => void;
   setVisualizationPaused: (data: boolean) => void;

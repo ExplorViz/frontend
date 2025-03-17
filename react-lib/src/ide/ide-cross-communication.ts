@@ -15,6 +15,8 @@ import { useApplicationRendererStore } from 'react-lib/src/stores/application-re
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event'; // TODO: Add this to the react-lib
 import { Object3DEventMap } from 'three';
+import React from 'react';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -87,9 +89,8 @@ export default class IdeCrossCommunication {
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
 
-    useIdeWebsocketFacadeStore
-      .getState()
-      .on('ide-refresh-data', this.refreshVizData.bind(this));
+    eventEmitter.emit('ide-restart-connection');
+    eventEmitter.on('ide-refresh-data', this.refreshVizData.bind(this));
 
     this.setupCrossOriginListener();
   }

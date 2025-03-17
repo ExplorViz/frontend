@@ -133,7 +133,7 @@ export const useEvolutionDataFetchServiceStore =
     _constructUrl: (endpoint: string, ...params: string[]): string => {
       const landscapeToken = get()._getLandscapeToken();
       //TODO: look whether import.meta.env.VITE_COLLABORATION_SERV_URL is the right env variable
-      return `${import.meta.env.VITE_COLLABORATION_SERV_URL.CODE_SERV_URL}/v2/code/${endpoint}/${landscapeToken}/${params.join('/')}`;
+      return `${import.meta.env.VITE_CODE_SERV_URL}/v2/code/${endpoint}/${landscapeToken}/${params.join('/')}`;
     },
 
     _fetchFromService: async <T>(url: string): Promise<T> => {

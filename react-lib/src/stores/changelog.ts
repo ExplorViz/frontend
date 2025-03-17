@@ -51,7 +51,7 @@ interface ChangelogState {
     newName: string
   ) => void;
   renameClassEntry: (app: Application, clazz: Class, newName: string) => void;
-  deleteAppEntry: (app: Application, undoInsert: boolean) => void;
+  deleteAppEntry: (app: Application, undoInsert?: boolean) => void;
   storeDeletedEntries: (key: string) => void;
   addToDeletedEntriesMap: (key: string, entry: BaseChangeLogEntry) => void;
   deletePackageEntry: (
@@ -119,7 +119,7 @@ interface ChangelogState {
   ) => void;
   deleteCommunicationEntry: (communication: ClassCommunication) => void;
   getChangeLog: () => string[];
-  restoreDeletedEntries: (key: string, collabMode: boolean) => void;
+  restoreDeletedEntries: (key: string, collabMode?: boolean) => void;
   findBaseChangeLogEntry: (
     entityType: EntityType,
     entity: Application | Package | Class
@@ -133,7 +133,7 @@ interface ChangelogState {
     bundledEntries: BaseChangeLogEntry[]
   ) => BaseChangeLogEntry[] | undefined;
   removeLogEntriesUnderPackage: (app: Application, pckg: Package) => void;
-  removeEntry: (entry: BaseChangeLogEntry, collabMode: boolean) => void;
+  removeEntry: (entry: BaseChangeLogEntry, collabMode?: boolean) => void;
   __removeExternCommunicationsInsidePackage: (
     logEntry: CommunicationChangeLogEntry,
     commPckg: Package,

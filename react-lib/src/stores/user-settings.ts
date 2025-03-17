@@ -34,14 +34,14 @@ interface UserSettingsState {
   visualizationSettings: VisualizationSettings; // tracked
   colors: ExplorVizColors | undefined; // tracked
   _constructApplicationColors: () => void;
-  applyDefaultSettingsForGroup: (groupId: string) => void;
+  applyDefaultSettingsForGroup: (groupId?: string) => void;
   applyDefaultSettings: (saveToLocalStorage: boolean) => void;
   shareVisualizationSettings: () => void;
   updateSettings: (settings: VisualizationSettings) => void;
   updateSetting: (name: VisualizationSettingId, value?: unknown) => void;
   setColorScheme: (
     schemeId: ColorSchemeId,
-    saveToLocalStorage: boolean
+    saveToLocalStorage?: boolean
   ) => void;
   updateColors: (updatedColors?: ColorScheme) => void;
   setColorsFromSettings: () => void;

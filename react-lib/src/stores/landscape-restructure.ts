@@ -128,7 +128,7 @@ interface LandscapeRestructureState {
   toggleRestructureMode: () => void;
   toggleRestructureModeLocally: () => Promise<void>;
   setLandscapeData: (newData: LandscapeData | null) => void;
-  duplicateApp: (app: Application, collabMode: boolean) => void;
+  duplicateApp: (app: Application, collabMode?: boolean) => void;
   renameApplication: (
     name: string,
     id: string,
@@ -196,11 +196,11 @@ interface LandscapeRestructureState {
     action?: RestructureAction
   ) => MeshModelTextureMapping | undefined;
   addCollaborativeSubPackage: (pckgId: string) => void;
-  addSubPackage: (pckg: Package, collabMode: boolean) => void;
+  addSubPackage: (pckg: Package, collabMode?: boolean) => void;
   addCollaborativePackage: (appId: string) => void;
-  addPackage: (app: Application, collabMode: boolean) => void;
+  addPackage: (app: Application, collabMode?: boolean) => void;
   addCollaborativeClass: (pckgId: string) => void;
-  addClass: (pckg: Package, collabMode: boolean) => void;
+  addClass: (pckg: Package, collabMode?: boolean) => void;
   deleteCollaborativeApplication: (appId: string, undo: boolean) => void;
   deleteApp: (app: Application, collabMode: boolean, undo: boolean) => void;
   _processDeletedAppData: (app: Application) => void;
@@ -235,7 +235,7 @@ interface LandscapeRestructureState {
     destination: Application | Package,
     collabMode: boolean
   ) => void;
-  pasteClass: (destination: Package, collabMode: boolean) => void;
+  pasteClass: (destination: Package, collabMode?: boolean) => void;
   movePackageOrClass(
     destination: Application | Package,
     collabMode: boolean
