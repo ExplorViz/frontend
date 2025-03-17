@@ -409,6 +409,10 @@ export default abstract class BaseMesh<
   /**
    * Disposes the mesh's geometry and material
    * and does so recursively for the child BaseMeshes
+   *
+   * Param:
+   *  semanticZoomManager: SemanticZoomManager
+   *  Should be the type SemanticZoomManager
    */
   disposeRecursively(
     semanticZoomManager /*: SemanticZoomManager (import would lead to circular dependency)*/
