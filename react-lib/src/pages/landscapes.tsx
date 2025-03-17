@@ -1,6 +1,9 @@
 import React, { ReactNode, useState, useEffect } from 'react';
-import { useLandscapeTokenStore } from '../stores/landscape-token';
-import { useSnapshotTokenStore } from '../stores/snapshot-token';
+import {
+  LandscapeToken,
+  useLandscapeTokenStore,
+} from '../stores/landscape-token';
+import { TinySnapshot, useSnapshotTokenStore } from '../stores/snapshot-token';
 import { useNavigate, createSearchParams, useParams } from 'react-router-dom';
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { useAuthStore } from '../stores/auth';
@@ -9,58 +12,59 @@ import TokenSelection from 'react-lib/src/components/token-selection';
 import RoomList from 'react-lib/src/components/collaboration/room-list_tmp';
 import SnapshotSelection from 'react-lib/src/components/snapshot-selection';
 import TokenCreationModal from 'react-lib/src/components/token-creation-modal';
+import LandscapeLoader from './landscapes-loading';
 
 export default function Landscapes() {
-  // const [data, setData] = useState({
-  //   landscapeTokens: null,
-  //   snapshotInfo: null,
-  // });
-  // const [refreshKey, setRefreshKey] = useState<number>(0);
-  // const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
-  //   useState<boolean>(false);
-  // const [activeKey, setActiveKey] = useState<string>('landscapes');
+  const [data, setData] = useState({
+    landscapeTokens: null,
+    snapshotInfo: null,
+  });
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+  const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
+    useState<boolean>(false);
+  const [activeKey, setActiveKey] = useState<string>('landscapes');
 
-  // const landscapeToken = useLandscapeTokenStore((state) => state.token);
-  // const removeLandscapeToken = useLandscapeTokenStore(
-  //   (state) => state.removeToken
-  // );
-  // const retrieveTokenServiceTokens = useLandscapeTokenStore(
-  //   (state) => state.retrieveTokens
-  // );
-  // const retrieveSnapshotServiceTokens = useSnapshotTokenStore(
-  //   (state) => state.retrieveTokens
-  // );
-  // const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
-  // const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
-  // const user = useAuthStore((state) => state.user);
-  // const accessToken = useAuthStore((state) => state.accessToken);
-  // const navigate = useNavigate();
+  const landscapeToken = useLandscapeTokenStore((state) => state.token);
+  const removeLandscapeToken = useLandscapeTokenStore(
+    (state) => state.removeToken
+  );
+  const retrieveTokenServiceTokens = useLandscapeTokenStore(
+    (state) => state.retrieveTokens
+  );
+  const retrieveSnapshotServiceTokens = useSnapshotTokenStore(
+    (state) => state.retrieveTokens
+  );
+  const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
+  const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     if (
-  //       import.meta.env.VITE_ONLY_SHOW_TOKEN &&
-  //       import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token'
-  //     ) {
-  //       navigate('/visualization');
-  //     }
+  useEffect(() => {
+    const fetchData = async () => {
+      if (
+        import.meta.env.VITE_ONLY_SHOW_TOKEN &&
+        import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token'
+      ) {
+        navigate('/visualization');
+      }
 
-  //     const [landscapeTokens, snapshotInfo] = await Promise.all([
-  //       retrieveTokenServiceTokens(),
-  //       retrieveSnapshotServiceTokens(),
-  //     ]);
+      const [landscapeTokens, snapshotInfo] = await Promise.all([
+        retrieveTokenServiceTokens(),
+        retrieveSnapshotServiceTokens(),
+      ]);
 
-  //     setData({
-  //       landscapeTokens,
-  //       snapshotInfo,
-  //     });
-  //   };
+      setData({
+        landscapeTokens,
+        snapshotInfo,
+      });
+    };
 
-  //   fetchData();
-  // }, [refreshKey]);
+    fetchData();
+  }, [refreshKey]);
 
   // const refreshRoute = () => {
-  //   setRefreshKey((prev) => prev++);
+  //   setRefreshKey((prev) => prev + 1);
   // };
 
   // const loading = (/* transition, originRoute */) => {
@@ -69,12 +73,10 @@ export default function Landscapes() {
 
   // const openTokenCreationModal = () => {
   //   setTokenCreationModalIsOpen(true);
-  //   setTokenAlias('');
   // };
 
   // const closeTokenCreationModal = () => {
   //   setTokenCreationModalIsOpen(false);
-  //   setTokenAlias('');
   // };
 
   // const selectToken = (token: LandscapeToken) => {
@@ -96,7 +98,7 @@ export default function Landscapes() {
   //       landscapeToken: token.landscapeToken.value,
   //       sharedSnapshot: 'false',
   //       owner: token.owner,
-  //       createdAt: token.createdAt,
+  //       createdAt: token.createdAt.toString(),
   //     })}`,
   //   });
   // };
@@ -111,7 +113,7 @@ export default function Landscapes() {
   //       landscapeToken: token.landscapeToken.value,
   //       sharedSnapshot: 'true',
   //       owner: token.owner,
-  //       createdAt: token.createdAt,
+  //       createdAt: token.createdAt.toString(),
   //     })}`,
   //   });
   // };
@@ -149,13 +151,13 @@ export default function Landscapes() {
 
   // // TODO: How to solve fetch?
   // const sendTokenCreateRequest = (alias = '') => {
-  //   let uId = user?.sub;
+  //   let uId = user?.sub.toString();
 
   //   if (!uId) {
   //     return Promise.reject(new Error('User profile not set'));
   //   }
 
-  //   uId = encodeURI(uId);
+  //   uId = encodeURI(uId.toString());
 
   //   return new Promise<any>((resolve, reject) => {
   //     fetch(`${import.meta.env.VITE_USER_SERV_URL}/user/${uId}/token`, {
@@ -205,6 +207,10 @@ export default function Landscapes() {
   //   });
   // };
 
+  if (!data.landscapeTokens || !data.snapshotInfo) {
+    return <LandscapeLoader />;
+  }
+
   return (
     <div>
       <p>Hello</p>
@@ -225,7 +231,7 @@ export default function Landscapes() {
   //             style={{ maxHeight: '80vh', overflowY: 'auto' }}
   //           >
   //             <TokenSelection
-  //               openTokenCreationModal={openTokenCreationModal}
+  //               openTokenCreationModal={() => setTokenCreationModalIsOpen(true)}
   //               selectToken={selectToken}
   //               tokens={data.landscapeTokens}
   //               deleteToken={deleteToken}
@@ -247,9 +253,9 @@ export default function Landscapes() {
   //           />
   //         </Tab>
   //       </Tabs>
-  //     </div> */}
+  //     </div>
 
-  //     {/* <div>
+  //     <div>
   //       <TokenCreationModal
   //         show={tokenCreationModalIsOpen}
   //         handleClose={() => setTokenCreationModalIsOpen(false)}
