@@ -492,7 +492,7 @@ export default class ApplicationObject3D
     this.getCommMeshes().forEach((mesh) => {
       SemanticZoomManager.instance.remove(mesh);
       mesh.deleteFromParent();
-      mesh.disposeRecursively();
+      mesh.disposeRecursively(SemanticZoomManager);
     });
     this.commIdToMesh.clear();
   }
@@ -504,7 +504,7 @@ export default class ApplicationObject3D
     this.getAllMeshes().forEach((mesh) => {
       SemanticZoomManager.instance.remove(mesh);
       mesh.deleteFromParent();
-      mesh.disposeRecursively();
+      mesh.disposeRecursively(SemanticZoomManager);
     });
     this.resetMeshReferences();
     this.highlightedEntity = null;

@@ -12,6 +12,7 @@ import { useApplicationRendererStore } from './application-renderer';
 import { useConfigurationStore } from './configuration';
 import { useUserSettingsStore } from './user-settings';
 import { VisualizationSettings } from '../utils/settings/settings-schemas';
+import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
 
 interface LinkRendererState {
   linkIdToMesh: Map<string, ClazzCommunicationMesh>;
@@ -186,7 +187,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     pipe.children.forEach((child) => {
       if (child instanceof CommunicationArrowMesh) {
         pipe.remove(child);
-        child.disposeRecursively();
+        child.disposeRecursively(SemanticZoomManager);
       }
     });
 

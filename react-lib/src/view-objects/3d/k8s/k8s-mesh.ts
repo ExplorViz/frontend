@@ -24,7 +24,7 @@ export default class K8sMesh extends BoxMesh {
   public set labelMesh(value: ComponentLabelMesh | null) {
     if (this._labelMesh != null) {
       SemanticZoomManager.instance.remove(this._labelMesh);
-      this._labelMesh.disposeRecursively();
+      this._labelMesh.disposeRecursively(SemanticZoomManager);
       this._labelMesh.deleteFromParent();
     }
     this._labelMesh = value;

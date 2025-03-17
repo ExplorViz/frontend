@@ -2,11 +2,9 @@ import * as THREE from 'three';
 import calculateColorBrightness from 'react-lib/src/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
 // TODO: Commenting the import below gets rid of the circular dependency
-import SemanticZoomManager, {
-  SemanticZoomableObject,
-  Appearence,
-  Recipe,
-} from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { Appearence } from './application/utils/semantic-zoom-appearance';
+import { Recipe } from './application/utils/semantic-zoom-recipe';
+import { SemanticZoomableObject } from './application/utils/semantic-zoomable-object';
 
 export default abstract class BaseMesh<
     TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -412,12 +410,14 @@ export default abstract class BaseMesh<
    * Disposes the mesh's geometry and material
    * and does so recursively for the child BaseMeshes
    */
-  disposeRecursively() {
+  disposeRecursively(
+    semanticZoomManager /*: SemanticZoomManager (import would lead to circular dependency)*/
+  ) {
     this.traverse((child) => {
       if (child instanceof BaseMesh) {
         if (child.geometry) {
           child.geometry.dispose();
-          SemanticZoomManager.instance.remove(child);
+          semanticZoomManager.instance.remove(child);
         }
         if (child.material instanceof THREE.Material) {
           child.material.dispose();

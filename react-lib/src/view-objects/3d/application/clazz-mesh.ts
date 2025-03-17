@@ -27,7 +27,7 @@ export class _ClazzMesh extends BoxMesh {
   public set labelMesh(value: ClazzLabelMesh | null) {
     if (this._labelMesh != null) {
       SemanticZoomManager.instance.remove(this._labelMesh);
-      this._labelMesh.disposeRecursively();
+      this._labelMesh.disposeRecursively(SemanticZoomManager);
       this._labelMesh.deleteFromParent();
     }
     this._labelMesh = value;
