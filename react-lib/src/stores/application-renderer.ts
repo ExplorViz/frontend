@@ -4,8 +4,10 @@ import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user
 // import { task } from 'ember-concurrency'; // TODO: Find substitute for it if necessary!
 import ApplicationData from 'react-lib/src/utils/application-data';
 import CommunicationRendering from 'react-lib/src/utils/application-rendering/communication-rendering';
-import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+// import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
+// import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
+import * as EntityManipulation from 'react-lib/src/utils/application-rendering/entity-manipulation';
+import * as EntityRendering from 'react-lib/src/utils/application-rendering/entity-rendering';
 import {
   HightlightComponentArgs,
   removeAllHighlightingFor,

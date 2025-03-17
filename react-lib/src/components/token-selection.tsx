@@ -9,7 +9,7 @@ import {
   TrashIcon,
 } from '@primer/octicons-react';
 import AdditionalTokenInfo from './additional-token-info';
-import ShareLandscape from 'react-lib/src/components/share-landscape';
+// import ShareLandscape from 'react-lib/src/components/share-landscape';
 
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
@@ -186,7 +186,7 @@ export default function TokenSelection({
                     </OverlayTrigger>
                   </li>
                   <li>
-                    <ShareLandscape token={token} reload={reload} />
+                    {/* <ShareLandscape token={token} reload={reload} /> */}
                   </li>
                 </ul>
               </td>
