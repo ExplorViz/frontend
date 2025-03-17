@@ -47,6 +47,7 @@ interface PopupHandlerState {
   latestMousePosition: { timestamp: number; x: number; y: number };
   isShiftPressed: boolean;
   _constructor: () => void;
+  setDeactivated: (value: boolean) => void;
   clearPopups: () => void;
   removeUnpinnedPopups: () => void;
   removeUnmovedPopups: () => void;
@@ -430,6 +431,8 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     eventEmitter.off(DETACHED_MENU_CLOSED_EVENT, get().onMenuClosed);
     eventEmitter.off('restore_popups', get().onRestorePopups);
   },
+
+  setDeactivated: (value: boolean) => set({ deactivated: value }),
 }));
 
 async function canRemovePopup(popup: PopupData) {
