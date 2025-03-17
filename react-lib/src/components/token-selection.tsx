@@ -15,7 +15,7 @@ interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
   selectToken(token: LandscapeToken): void;
-  deleteToken(tokenId: string): Promise<undefined>;
+  deleteToken(tokenId: string, event: MouseEvent): Promise<void>;
   reload(): void;
 }
 

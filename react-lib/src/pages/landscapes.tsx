@@ -10,7 +10,7 @@ import { useAuthStore } from '../stores/auth';
 import { Tabs, Tab, Button } from 'react-bootstrap';
 import TokenSelection from 'react-lib/src/components/token-selection';
 import RoomList from 'react-lib/src/components/collaboration/room-list_tmp';
-// import SnapshotSelection from 'react-lib/src/components/snapshot-selection';
+import SnapshotSelection from 'react-lib/src/components/snapshot-selection';
 import TokenCreationModal from 'react-lib/src/components/token-creation-modal';
 import LandscapeLoader from './landscapes-loading';
 
@@ -246,12 +246,11 @@ export default function Landscapes() {
             />
           </Tab>
           <Tab eventKey="snapshots" title="Snapshots" id="snapshot-tab">
-            Test
-            {/* <SnapshotSelection
+            <SnapshotSelection
               snapshotInfo={data.snapshotInfo}
               selectPersonalToken={selectPersonalSnapshot}
               selectSharedToken={selectSharedSnapshot}
-            /> */}
+            />
           </Tab>
         </Tabs>
       </div>
