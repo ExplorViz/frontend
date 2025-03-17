@@ -151,13 +151,13 @@ export default function Landscapes() {
 
   // // TODO: How to solve fetch?
   // const sendTokenCreateRequest = (alias = '') => {
-  //   let uId = user?.sub.toString();
+  //   let uId = user?.sub;
 
   //   if (!uId) {
   //     return Promise.reject(new Error('User profile not set'));
   //   }
 
-  //   uId = encodeURI(uId.toString());
+  //   uId = encodeURI(uId);
 
   //   return new Promise<any>((resolve, reject) => {
   //     fetch(`${import.meta.env.VITE_USER_SERV_URL}/user/${uId}/token`, {

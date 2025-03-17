@@ -421,7 +421,7 @@ export default class AnnotationHandlerService extends Service {
       {
         responseType: isAnnotationResponse,
         onResponse: (response: AnnotationResponse) => {
-          annotation.sharedBy = useAuthStore.getState().user!.sub.toString(); // for production: user_id makes more sense
+          annotation.sharedBy = useAuthStore.getState().user!.sub; // for production: user_id makes more sense
           annotation.menuId = response.objectId;
           annotation.shared = true;
           return true;
@@ -531,7 +531,7 @@ export default class AnnotationHandlerService extends Service {
           annotationText: annotationText,
           annotationTitle: annotationTitle,
           hidden: false,
-          sharedBy: sharedBy || useAuthStore.getState().user!.sub.toString(), // for production: user_id makes more sense
+          sharedBy: sharedBy || useAuthStore.getState().user!.sub, // for production: user_id makes more sense
           owner: owner || useAuthStore.getState().user!.name,
           shared: shared,
           inEdit: inEdit === undefined ? true : inEdit,
@@ -554,7 +554,7 @@ export default class AnnotationHandlerService extends Service {
           annotationText: annotationText,
           annotationTitle: annotationTitle,
           hidden: false,
-          sharedBy: sharedBy || useAuthStore.getState().user!.sub.toString(), // for production: user_id makes more sense
+          sharedBy: sharedBy || useAuthStore.getState().user!.sub, // for production: user_id makes more sense
           owner: owner || useAuthStore.getState().user!.name,
           shared: shared,
           inEdit: inEdit === undefined ? true : inEdit,

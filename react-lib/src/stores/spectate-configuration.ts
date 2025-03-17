@@ -24,9 +24,7 @@ export const useSpectateConfigurationStore = create<SpectateConfigurationState>(
 
     retrieveConfigs: () => {
       return new Promise<SpectateConfig[]>((resolve) => {
-        const userId = encodeURI(
-          useAuthStore.getState().user?.sub.toString() || ''
-        );
+        const userId = encodeURI(useAuthStore.getState().user?.sub || '');
         if (!userId) {
           resolve([]);
         }

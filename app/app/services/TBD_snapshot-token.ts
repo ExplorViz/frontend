@@ -80,7 +80,7 @@ export default class SnapshotTokenService extends Service {
 
   retrieveTokens() {
     return new Promise<SnapshotInfo>((resolve) => {
-      const userId = encodeURI(useAuthStore.getState().user?.sub.toString() || '');
+      const userId = encodeURI(useAuthStore.getState().user?.sub || '');
       if (!userId) {
         resolve({
           personalSnapshots: [],
@@ -129,7 +129,7 @@ export default class SnapshotTokenService extends Service {
   retrieveToken(owner: string, createdAt: number, isShared: boolean) {
     return new Promise<SnapshotToken | null>((resolve) => {
       fetch(
-        `${userService}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${useAuthStore.getState().user!.sub.toString()}`,
+        `${userService}/snapshot/get?owner=${owner}&createdAt=${createdAt}&isShared=${isShared}&subscriber=${useAuthStore.getState().user!.sub}`,
         {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -283,7 +283,7 @@ export default class SnapshotTokenService extends Service {
     subscribed: boolean
   ) {
     if (subscribed) {
-      const url = `${userService}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${useAuthStore.getState().user!.sub.toString()}`;
+      const url = `${userService}/snapshot/unsubscribe?owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&subscriber=${useAuthStore.getState().user!.sub}`;
 
       await fetch(url, {
         method: 'PUT',

@@ -150,7 +150,7 @@ export default function TokenSelection({
                   <li>
                     <AdditionalTokenInfo token={token} />
                   </li>
-                  {user?.sub.toString() === token.ownerId && (
+                  {user?.sub === token.ownerId && (
                     <li>
                       <OverlayTrigger
                         placement="bottom"

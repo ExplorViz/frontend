@@ -104,7 +104,7 @@ export default class Landscapes extends Controller {
   }
 
   sendTokenCreateRequest(alias = '') {
-    let uId = useAuthStore.getState().user?.sub.toString();
+    let uId = useAuthStore.getState().user?.sub;
 
     if (!uId) {
       return Promise.reject(new Error('User profile not set'));

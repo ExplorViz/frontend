@@ -20,12 +20,12 @@ export default class UserApiTokenService extends Service {
 
   retrieveApiTokens() {
     return new Promise<ApiToken[]>((resolve) => {
-      const userId = encodeURI(useAuthStore.getState().user?.sub.toString() || '');
+      const userId = encodeURI(useAuthStore.getState().user?.sub || '');
       if (!userId) {
         resolve([]);
       }
 
-      fetch(`${userService}/userapi?uId=${useAuthStore.getState().user!.sub.toString()}`, {
+      fetch(`${userService}/userapi?uId=${useAuthStore.getState().user!.sub}`, {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
         },
@@ -80,8 +80,8 @@ export default class UserApiTokenService extends Service {
 
     const url =
       expDate !== null
-        ? `${userService}/userapi/create?uId=${useAuthStore.getState().user!.sub.toString()}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}&expires=${expDate}`
-        : `${userService}/userapi/create?uId=${useAuthStore.getState().user!.sub.toString()}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}`;
+        ? `${userService}/userapi/create?uId=${useAuthStore.getState().user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}&expires=${expDate}`
+        : `${userService}/userapi/create?uId=${useAuthStore.getState().user!.sub}&name=${name}&token=${token}&createdAt=${createdAt}&hostUrl=${hostUrl}`;
     const response = await fetch(url, {
       method: 'POST',
     });

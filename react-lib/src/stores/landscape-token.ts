@@ -57,9 +57,7 @@ export const useLandscapeTokenStore = create<LandscapeTokenState>(
 
     retrieveTokens: async () => {
       return new Promise<LandscapeToken[]>((resolve, reject) => {
-        const userId = encodeURI(
-          useAuthStore.getState().user?.sub.toString() || ''
-        );
+        const userId = encodeURI(useAuthStore.getState().user?.sub || '');
         if (!userId) {
           resolve([]);
         }

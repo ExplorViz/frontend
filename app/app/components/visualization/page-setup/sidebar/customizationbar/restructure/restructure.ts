@@ -520,7 +520,7 @@ export default class VisualizationPageSetupSidebarRestructure extends Component<
     );
 
     const sharedToken: SnapshotToken = {
-      owner: useAuthStore.getState().user!.sub.toString(),
+      owner: useAuthStore.getState().user!.sub,
       createdAt: createdAt,
       name: this.snapshotName!,
       landscapeToken: this.args.landscapeToken,

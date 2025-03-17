@@ -442,7 +442,7 @@ export default class CollaborationControls extends Component {
       return;
     }
 
-    if (this.selectedConfig.user !== useAuthStore.getState().user?.sub.toString()) {
+    if (this.selectedConfig.user !== useAuthStore.getState().user?.sub) {
       useToastHandlerStore
         .getState()
         .showErrorToastMessage('You are not the creator of the configuration.');
@@ -467,7 +467,7 @@ export default class CollaborationControls extends Component {
   async updateSpectateConfig() {
     const spectateConfig = {
       id: this.spectateConfigName!,
-      user: useAuthStore.getState().user!.sub.toString(),
+      user: useAuthStore.getState().user!.sub,
       devices: this.spectateConfigDevices,
     };
 
@@ -488,7 +488,7 @@ export default class CollaborationControls extends Component {
   async deleteSpectateConfig() {
     const spectateConfig = {
       id: this.spectateConfigName!,
-      user: useAuthStore.getState().user!.sub.toString(),
+      user: useAuthStore.getState().user!.sub,
       devices: this.spectateConfigDevices,
     };
 

@@ -78,9 +78,7 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
 
   retrieveTokens: () => {
     return new Promise<SnapshotInfo>((resolve) => {
-      const userId = encodeURI(
-        useAuthStore.getState().user?.sub.toString() || ''
-      ); // TODO: Does this work?
+      const userId = encodeURI(useAuthStore.getState().user?.sub || ''); // TODO: Does this work?
       if (!userId) {
         resolve({
           personalSnapshots: [],

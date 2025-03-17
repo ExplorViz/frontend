@@ -69,7 +69,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       this.timestampRepo.getTimestampsForCommitId('cross-commit');
 
     const content: SnapshotToken = {
-      owner: useAuthStore.getState().user!.sub.toString(),
+      owner: useAuthStore.getState().user!.sub,
       createdAt: createdAt,
       name: this.snapshotName,
       landscapeToken: this.args.landscapeToken,
@@ -110,7 +110,7 @@ export default class VisualizationPageSetupSidebarCustomizationbarSnapshotSnapsh
       this.timestampRepo.getTimestampsForCommitId('cross-commit');
 
     const content: SnapshotToken = {
-      owner: useAuthStore.getState().user!.sub.toString(),
+      owner: useAuthStore.getState().user!.sub,
       createdAt: createdAt,
       name: this.snapshotName,
       landscapeToken: this.args.landscapeToken,

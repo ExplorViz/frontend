@@ -28,9 +28,7 @@ interface UserApiTokenState {
 export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
   retrieveApiTokens: () => {
     return new Promise<ApiToken[]>((resolve) => {
-      const userId = encodeURI(
-        useAuthStore.getState().user?.sub.toString() || ''
-      );
+      const userId = encodeURI(useAuthStore.getState().user?.sub || '');
       if (!userId) {
         resolve([]);
       }

@@ -13,7 +13,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: {
     name: 'Jessy Doe',
     nickname: 'Jessy',
-    sub: 42,
+    sub: '42',
   },
   accessToken: 'SPECIAL_TOKEN',
 
@@ -41,5 +41,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 export type AuthenticatedUser = {
   name: string;
   nickname: string;
-  sub: number;
+  sub: string;
 };
