@@ -13,7 +13,7 @@ import { useSpectateConfigurationStore } from '../stores/spectate-configuration'
 import {
   useLocalUserStore,
   VisualizationMode,
-} from '../stores/collaboration/local-user';
+} from 'react-lib/src/stores/collaboration/local-user';
 import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
 import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
 import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
@@ -67,7 +67,7 @@ import { useUserSettingsStore } from '../stores/user-settings';
 import BrowserRendering from 'react-lib/src/components/visualization/rendering/browser-rendering';
 import { useLandscapeTokenStore } from '../stores/landscape-token';
 import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useFontRepositoryStore } from '../stores/repos/font-repository';
 import { Button } from 'react-bootstrap';
 import PlotlyTimeline from 'react-lib/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
@@ -235,13 +235,13 @@ export default function Visualization() {
     (state) => state.toggleVisualizationUpdating
   );
   const renderingServiceLandscapeData = useRenderingServiceStore(
-    (state) => state.landscapeData
+    (state) => state._landscapeData
   );
   const setLandscapeDataRenderingService = useRenderingServiceStore(
     (state) => state.setLandscapeData
   );
   const renderingServiceVisualizationPaused = useRenderingServiceStore(
-    (state) => state.visualizationPaused
+    (state) => state._visualizationPaused
   );
   const setVisualizationPausedRenderingService = useRenderingServiceStore(
     (state) => state.setVisualizationPaused
@@ -252,14 +252,14 @@ export default function Visualization() {
     );
   const renderingServiceTriggerRenderingForGivenTimestamp =
     useRenderingServiceStore(
-      (state) => state.triggerRenderingForGivenTimestamp
+      (state) => state.triggerRenderingForGivenTimestamps
     );
   const renderingServiceTriggerRenderingForGivenLandscapeData =
     useRenderingServiceStore(
       (state) => state.triggerRenderingForGivenLandscapeData
     );
   const spectateUserSpectateConfigurationId = useSpectateConfigurationStore(
-    (state) => state.spectateConfigurationId
+    (state) => state.spectateConfig?.id
   );
   const localUserVisualizationMode = useLocalUserStore(
     (state) => state.visualizationMode
@@ -271,7 +271,7 @@ export default function Visualization() {
     (state) => state.restartTimestampPollingAndVizUpdate
   );
   const appNameCommitTreeMapEvolutionDataRepository =
-    useEvolutionDataRepositoryStore((state) => state.appNameCommitTreeMap);
+    useEvolutionDataRepositoryStore((state) => state._appNameCommitTreeMap);
   const fetchAndStoreApplicationCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreApplicationCommitTrees
   );
@@ -336,7 +336,7 @@ export default function Visualization() {
   const font = useFontRepositoryStore((state) => state.font);
   const setFont = useFontRepositoryStore((state) => state.setFont);
   const currentSelectedApplicationName = useCommitTreeStateStore(
-    (state) => state.currentSelectedApplicationName
+    (state) => state._currentSelectedApplicationName
   );
 
   // # endregion
@@ -380,12 +380,14 @@ export default function Visualization() {
     );
   })();
 
+  const { mode } = useParams();
+
   const showAR = (() => {
-    return localUserVisualizationMode === 'ar';
+    return localUserVisualizationMode === 'ar' || mode === 'ar';
   })();
 
   const showVR = (() => {
-    return localUserVisualizationMode === 'vr';
+    return localUserVisualizationMode === 'vr' || mode === 'vr';
   })();
 
   // # endregion
@@ -672,7 +674,7 @@ export default function Visualization() {
     setIsRuntimeTimelineSelected(true);
     setIsCommitTreeSelected(false);
 
-    useEvolutionDataRepositoryStore.resetAllEvolutionData();
+    useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
 
     setRoomId(null);
     useLocalUserStore.setState({ visualizationMode: 'browser' });

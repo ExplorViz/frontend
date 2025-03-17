@@ -1,7 +1,7 @@
 import React, { ReactNode, useState, useEffect } from 'react';
 import { useLandscapeTokenStore } from '../stores/landscape-token';
 import { useSnapshotTokenStore } from '../stores/snapshot-token';
-import { useNavigate, createSearchParams } from 'react-router-dom';
+import { useNavigate, createSearchParams, useParams } from 'react-router-dom';
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { useAuthStore } from '../stores/auth';
 import { Tabs, Tab, Button } from 'react-bootstrap';

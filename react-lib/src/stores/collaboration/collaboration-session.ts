@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
 import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 import * as THREE from 'three';
-import { useLocalUserStore } from './local-user';
+import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useUserFactoryStore } from './user-factory';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
