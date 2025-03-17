@@ -7,7 +7,7 @@ export default eventEmitter;
 // Usage
 /*
 Emitting Events:
-    import React from 'react';
+    import React from 'react'; // muss nicht importiert werden
     import eventEmitter from './eventEmitter';
 
     const ComponentA = () => {
