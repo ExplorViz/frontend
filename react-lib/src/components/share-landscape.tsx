@@ -1,9 +1,21 @@
-import Component from '@glimmer/component';
+import React, { useState } from 'react';
 import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
-import { action } from '@ember/object';
-import { tracked } from '@glimmer/tracking';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { useAuthStore } from 'react-lib/src/stores/auth';
+import {
+  Button,
+  Modal,
+  OverlayTrigger,
+  Tooltip,
+  Popover,
+} from 'react-bootstrap';
+import {
+  ShareAndroidIcon,
+  DashIcon,
+  PlusIcon,
+  TrashIcon,
+  RepoForkedIcon,
+} from '@primer/octicons-react';
 
 interface ShareLandscapeArgs {
   token: LandscapeToken;
@@ -12,78 +24,86 @@ interface ShareLandscapeArgs {
 
 const { userService } = import.meta.env.VITE_BACKEND_ADDRESSES;
 
-export default class ShareLandscape extends Component<ShareLandscapeArgs> {
-  user = useAuthStore.getState().user;
-  focusedClicks = 0;
+export default function ShareLandscape(args: ShareLandscapeArgs) {
+  const user = useAuthStore((state) => state.user);
+  // TODO: normally no tracked variable but didn't know better
+  const [focusedClicks, setFocusedClicks] = useState<number>(0);
 
-  @tracked
-  username: string = '';
+  const [username, setUserName] = useState<string>('');
 
-  @action
-  async grantAccess() {
+  const grantAccess = async () => {
     try {
-      await this.sendModifyAccess(
-        this.args.token.value,
-        this.username,
-        'grant'
-      );
-      this.args.token.sharedUsersIds.addObject(this.username);
+      await sendModifyAccess(args.token.value, username, 'grant');
+      args.token.sharedUsersIds.addObject(username);
 
       useToastHandlerStore
         .getState()
         .showSuccessToastMessage(
-          `Access of ${this.username} granted for token ${this.args.token.value}`
+          `Access of ${username} granted for token ${args.token.value}`
         );
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
-  }
+  };
 
-  @action
-  async revokeAccess(userId: string) {
+  const revokeAccess = async (userId: string) => {
     try {
-      await this.sendModifyAccess(this.args.token.value, userId, 'revoke');
-      this.args.token.sharedUsersIds.removeObject(userId);
+      await sendModifyAccess(args.token.value, userId, 'revoke');
+      args.token.sharedUsersIds.removeObject(userId);
       useToastHandlerStore
         .getState()
         .showSuccessToastMessage(
-          `Access of ${userId} revoked for token ${this.args.token.value}`
+          `Access of ${userId} revoked for token ${args.token.value}`
         );
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
-  }
+  };
 
-  @action
-  async cloneToken(userId: string) {
+  const cloneToken = async () => {
     try {
-      await this.sendModifyAccess(this.args.token.value, userId, 'clone');
-      this.args.reload();
+      await sendModifyAccess(args.token.value, user!.sub, 'clone');
+      args.reload();
       useToastHandlerStore
         .getState()
-        .showSuccessToastMessage(`Cloned token ${this.args.token.value}`);
+        .showSuccessToastMessage(`Cloned token ${args.token.value}`);
     } catch (e) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
-  }
+  };
+  //TODO: original:
+  // const cloneToken=async(userId: string)=> {
+  //   try {
+  //     await sendModifyAccess(args.token.value, userId, 'clone');
+  //     args.reload();
+  //     useToastHandlerStore
+  //       .getState()
+  //       .showSuccessToastMessage(`Cloned token ${args.token.value}`);
+  //   } catch (e) {
+  //     useToastHandlerStore.getState().showErrorToastMessage(e.message);
+  //   }
+  // }
 
-  @action
-  hidePopover(event: Event) {
+  const hidePopover = (event: React.FormEvent) => {
     // Clicks enable us to differentiate between opened and closed popovers
-    if (this.focusedClicks % 2 === 1) {
+    if (focusedClicks % 2 === 1) {
+      //TODO:
       event.target?.dispatchEvent(new Event('click'));
     }
-    this.focusedClicks = 0;
-  }
+    setFocusedClicks(0);
+  };
 
-  @action
-  onClick(event: Event) {
-    this.focusedClicks += 1;
+  const onClick = (event: React.FormEvent) => {
+    setFocusedClicks(focusedClicks + 1);
     // Prevent click on table row which would trigger to open the visualization
     event.stopPropagation();
-  }
+  };
 
-  sendModifyAccess(tokenId: string, userId: string, method: string) {
+  const sendModifyAccess = (
+    tokenId: string,
+    userId: string,
+    method: string
+  ) => {
     return new Promise<undefined>((resolve, reject) => {
       const encodedUserId = encodeURI(userId);
 
@@ -107,100 +127,147 @@ export default class ShareLandscape extends Component<ShareLandscapeArgs> {
         })
         .catch((e) => reject(e));
     });
-  }
+  };
 
-return (
-
-  <div id='colorPresets' class='dropdown'>
-  <button
-  class='button-svg-with-hover'
-    type='button'
-    {{on 'focusout' this.hidePopover}}
-    {{on 'click' this.onClick}}
-  >
-  {{svg-jar 'share-android-16' class='octicon align-middle'}}
-  <BsTooltip @placement='bottom' @triggerEvents='hover'>
-      Manage access to token
-      </BsTooltip>
-      <BsPopover @title='Manage Access'>
-      <table class='table table-striped' style='width: 100%'>
-      <tbody>
-          {{#if (eq @token.ownerId this.user.sub)}}
-          {{#each @token.sharedUsersIds as |userWithAccess|}}
-              <tr class='d-flex'>
-              <td class='col-10'>{{userWithAccess}}</td>
-                <td class='col-2'>
-                  <button
-                  class='button-svg-with-hover'
-                    type='button'
-                    {{on 'click' (fn this.revokeAccess userWithAccess)}}
-                  >
-                  {{svg-jar 'dash-16' class='octicon align-middle'}}
-                    <BsTooltip @placement='bottom' @triggerEvents='hover'>
-                    Revoke access
-                    </BsTooltip>
-                  </button>
-                </td>
-                </tr>
-            {{/each}}
-            <tr class='d-flex'>
-              <td class='col-10'>
-                <label for='username'>Enter username</label>
-                <Input
-                  id='username'
-                  @value={{this.username}}
-                  placeholder='github|12345'
-                />
-              </td>
-              <td class='col-2'>
-              <button
-                  class='button-svg-with-hover'
-                  type='button'
-                  {{on 'click' this.grantAccess}}
-                  >
-                  {{svg-jar 'plus-16' class='octicon align-middle'}}
-                  <BsTooltip @placement='bottom' @triggerEvents='hover'>
-                    Grant access
-                  </BsTooltip>
-                  </button>
-              </td>
-            </tr>
-          {{else}}
-            <tr class='d-flex'>
-              <td class='col-10'>Revoke own access</td>
-              <td class='col-2'>
-              <button
-                  class='button-svg-with-hover'
-                  type='button'
-                  {{on 'click' (fn this.revokeAccess this.user.sub)}}
-                >
-                {{svg-jar 'trash-16' class='octicon align-middle'}}
-                  <BsTooltip @placement='bottom' @triggerEvents='hover'>
-                    Revoke own access
-                  </BsTooltip>
-                </button>
-              </td>
-            </tr>
-            <tr class='d-flex'>
-            <td class='col-10'>Clone token</td>
-              <td class='col-2'>
-                <button
-                  class='button-svg-with-hover'
-                  type='button'
-                  {{on 'click' (fn this.cloneToken this.user.sub)}}
-                >
-                  {{svg-jar 'repo-forked-16' class='octicon align-middle'}}
-                  <BsTooltip @placement='bottom' @triggerEvents='hover'>
-                    Clone token to gain write access
-                  </BsTooltip>
-                </button>
-              </td>
-            </tr>
-          {{/if}}
-        </tbody>
-      </table>
-      </BsPopover>
-      </button>
-      </div>
-  )
-};
+  return (
+    <div id="colorPresets" className="dropdown">
+      <OverlayTrigger
+        placement="bottom"
+        trigger={['hover', 'focus']}
+        overlay={<Tooltip id="tooltip-bottom">Manage access to token</Tooltip>}
+      >
+        <>
+          <button
+            className="button-svg-with-hover"
+            type="button"
+            // {{on 'focusout' this.hidePopover}}
+            onBlur={(event) => hidePopover(event)} // There could be problems with onBlur not working as expected
+            onClick={(event) => onClick(event)}
+          >
+            <ShareAndroidIcon size="small" className="octicon align-middle" />
+          </button>
+          <Popover title="Manage Access">
+            <table className="table table-striped" style={{ width: '100%' }}>
+              <tbody>
+                {args.token.ownerId === user!.sub ? (
+                  <>
+                    {args.token.sharedUsersIds.map((userWithAccess) => (
+                      <tr className="d-flex">
+                        <td className="col-10">{userWithAccess}</td>
+                        <td className="col-2">
+                          <OverlayTrigger
+                            placement={'bottom'}
+                            trigger={['hover', 'focus']}
+                            overlay={
+                              <Tooltip id="tooltip-bottom">
+                                Revoke access
+                              </Tooltip>
+                            }
+                          >
+                            <button
+                              className="button-svg-with-hover"
+                              type="button"
+                              onClick={() => revokeAccess(userWithAccess)}
+                            >
+                              <DashIcon
+                                size="small"
+                                className="octicon align-middle"
+                              />
+                            </button>
+                          </OverlayTrigger>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="d-flex">
+                      <td className="col-10">
+                        <label htmlFor="username">Enter username</label>
+                        <input
+                          id="username"
+                          value={username}
+                          placeholder="github|12345"
+                        />
+                      </td>
+                      <td className="col-2">
+                        <OverlayTrigger
+                          placement={'bottom'}
+                          trigger={['hover', 'focus']}
+                          overlay={
+                            <Tooltip id="tooltip-bottom">Grant access</Tooltip>
+                          }
+                        >
+                          <button
+                            className="button-svg-with-hover"
+                            type="button"
+                            onClick={grantAccess}
+                          >
+                            <PlusIcon
+                              size="small"
+                              className="octicon align-middle"
+                            />
+                          </button>
+                        </OverlayTrigger>
+                      </td>
+                    </tr>
+                  </>
+                ) : (
+                  <>
+                    <tr className="d-flex">
+                      <td className="col-10">Revoke own access</td>
+                      <td className="col-2">
+                        <OverlayTrigger
+                          placement={'bottom'}
+                          trigger={['hover', 'focus']}
+                          overlay={
+                            <Tooltip id="tooltip-bottom">
+                              Revoke own access
+                            </Tooltip>
+                          }
+                        >
+                          <button
+                            className="button-svg-with-hover"
+                            type="button"
+                            onClick={() => revokeAccess(user!.sub)}
+                          >
+                            <TrashIcon
+                              size="small"
+                              className="octicon align-middle"
+                            />
+                          </button>
+                        </OverlayTrigger>
+                      </td>
+                    </tr>
+                    <tr className="d-flex">
+                      <td className="col-10">Clone token</td>
+                      <td className="col-2">
+                        <OverlayTrigger
+                          placement={'bottom'}
+                          trigger={['hover', 'focus']}
+                          overlay={
+                            <Tooltip id="tooltip-bottom">
+                              Clone token to gain write access
+                            </Tooltip>
+                          }
+                        >
+                          <button
+                            className="button-svg-with-hover"
+                            type="button"
+                            onClick={cloneToken}
+                          >
+                            <RepoForkedIcon
+                              size="small"
+                              className="octicon align-middle"
+                            />
+                          </button>
+                        </OverlayTrigger>
+                      </td>
+                    </tr>
+                  </>
+                )}
+              </tbody>
+            </table>
+          </Popover>
+        </>
+      </OverlayTrigger>
+    </div>
+  );
+}

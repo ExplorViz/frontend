@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { useAuthStore } from '../stores/auth';
 import { TinySnapshot } from '../stores/snapshot-token';
@@ -33,20 +33,20 @@ export default function AdditionalSnapshotInfo(
   args: AdditionalSnapshotInfoProps
 ) {
   const user = useAuthStore((state) => state.user);
-
-  const hidePopover = (event: Event) => {
+  const [focusedClicks, setFocusedClicks] = useState<number>(0);
+  const hidePopover = (event: React.FormEvent) => {
     if (isMouseOnPopover()) {
       return;
     }
 
     // Clicks enable us to differentiate between opened and closed popovers
-    if (this.focusedClicks % 2 === 1) {
+    if (focusedClicks % 2 === 1) {
       event.target?.dispatchEvent(new Event('click'));
     }
-    this.focusedClicks = 0;
+    setFocusedClicks(0);
   };
-  
-  isMouseOnPopover() {
+
+  const isMouseOnPopover = () => {
     const hoveredElements = document.querySelectorAll(':hover');
 
     for (const element of hoveredElements) {
@@ -55,10 +55,10 @@ export default function AdditionalSnapshotInfo(
       }
     }
     return false;
-  }
+  };
 
-  const onClick = (event: Event) => {
-    this.focusedClicks += 1;
+  const onClick = (event: React.FormEvent) => {
+    setFocusedClicks(focusedClicks + 1);
     // Prevent click on table row which would trigger to open the visualization
     event.stopPropagation();
   };
@@ -116,11 +116,8 @@ export default function AdditionalSnapshotInfo(
         <a
           className="button-svg-with-hover"
           type="button"
-          tabindex="0"
-          href="#"
           // {{on 'focusout' this.hidePopover}}
           onBlur={(event) => hidePopover(event)} // There could be problems with onBlur not working as expected
-          // {{on 'click' this.onClick}}
           onClick={(event) => onClick(event)}
         >
           <InfoIcon verticalAlign="middle" size="small" />
