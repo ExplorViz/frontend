@@ -1,8 +1,8 @@
 import { createStore } from 'zustand/vanilla';
 import * as THREE from 'three';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'; // TODO: Whats wrong here? Why not found?
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { TGALoader } from 'three/examples/jsm/loaders/TGALoader';
+import { MTLLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/MTLLoader';
+import { OBJLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/OBJLoader';
+import { TGALoader } from 'three-stdlib'; //'three/examples/jsm/loaders/TGALoader';
 
 interface HMDState {
   headsetModel: Promise<THREE.Group>;

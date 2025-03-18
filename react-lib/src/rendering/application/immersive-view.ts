@@ -4,7 +4,7 @@ import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
 import { MapControls } from 'react-lib/src/utils/controls/MapControls';
 import { OrbitControls } from 'react-lib/src/utils/controls/OrbitControls';
 import { PointerLockControls } from 'react-lib/src/utils/controls/PointerLockControls';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 
 type UserActionType = 'zoomin' | 'zoomout' | 'rotate' | 'move';
 

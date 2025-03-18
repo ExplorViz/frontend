@@ -4,7 +4,7 @@ import {
   AnalysisMode,
   useRenderingServiceStore,
 } from 'react-lib/src/stores/rendering-service';
-import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import { ApiToken } from '../stores/user-api-token';
 import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
 import { Timestamp } from '../utils/landscape-schemes/timestamp';

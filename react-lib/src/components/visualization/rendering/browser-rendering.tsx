@@ -28,7 +28,7 @@ import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-m
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
+import { MapControls } from 'three-stdlib'; //import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
 import {
   EntityMesh,

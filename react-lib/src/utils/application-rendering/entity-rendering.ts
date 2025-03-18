@@ -14,7 +14,7 @@ import {
   useUserSettingsStore,
 } from 'react-lib/src/stores/user-settings';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import {
   closeComponentMesh,
   closeComponentsRecursively,

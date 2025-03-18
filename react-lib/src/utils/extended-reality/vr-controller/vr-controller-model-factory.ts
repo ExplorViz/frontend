@@ -10,7 +10,7 @@ import {
 } from '@webxr-input-profiles/motion-controllers';
 // import debugLogger from 'ember-debug-logger';
 import * as THREE from 'three';
-import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTF, GLTFLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/GLTFLoader';
 import VrControllerModel from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model';
 
 const DEFAULT_PROFILES_PATH =

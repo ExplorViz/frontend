@@ -39,6 +39,7 @@
     "react-bootstrap": "^2.10.7",
     "react-content-loader": "^7.0.2",
     "react-dom": "^19.0.0",
-    "react-select": "^5.9.0"
+    "react-select": "^5.9.0",
+    "three-stdlib": "^2.35.14"
   }
 }

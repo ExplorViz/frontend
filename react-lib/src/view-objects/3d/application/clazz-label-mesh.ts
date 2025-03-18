@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry.js';
+import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh.ts';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';

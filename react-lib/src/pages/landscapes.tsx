@@ -104,7 +104,6 @@ export default function Landscapes() {
   };
 
   const selectSharedSnapshot = (token: TinySnapshot) => {
-    // this.snapShotTokenService.setToken(null);
     useSnapshotTokenStore.setState({ snapshotSelected: true });
     setLandscapeToken(null);
     navigate({

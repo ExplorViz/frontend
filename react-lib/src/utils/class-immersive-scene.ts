@@ -1,4 +1,4 @@
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry';
 import {
   Class,
   Interface,

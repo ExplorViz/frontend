@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
+import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader.js';
 import * as THREE from 'three';
 import { ActionIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/action-icon';
 import { CloseIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/close-icon';

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
 
 export default class LabelMesh extends BaseMesh {

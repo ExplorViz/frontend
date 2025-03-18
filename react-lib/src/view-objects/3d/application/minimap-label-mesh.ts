@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh.ts';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry.js';
 
 export default class MinimapLabelMesh extends LabelMesh {
   constructor(

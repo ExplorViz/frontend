@@ -3,7 +3,7 @@ import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import { Font } from 'three/examples/jsm/loaders/FontLoader';
+import { Font } from 'three-stdlib'; // import { Font } from 'three/examples/jsm/loaders/FontLoader';
 import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
 import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
