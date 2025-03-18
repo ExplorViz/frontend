@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '../../stores/auth';
 import { useLandscapeTokenStore } from '../../stores/landscape-token';
 import { useRenderingServiceStore } from '../../stores/rendering-service';
@@ -18,6 +18,7 @@ const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef(null);
 
   const user = useAuthStore((state) => state.user);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
@@ -35,6 +36,20 @@ export default function Navbar() {
   const setTokenLandscape = useLandscapeTokenStore((state) => state.setToken);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside); // TODO: Check if this is a problem in visualization
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const analysisMode = () => {
     let currentAnalysisMode = _analysisMode;
@@ -63,6 +78,7 @@ export default function Navbar() {
     setSnapshotSelected(false);
     setTokenLandscape(null);
     setTokenSnapshot(null);
+    setIsDropdownOpen(false);
     navigate('/landscapes');
   };
 
@@ -91,6 +107,7 @@ export default function Navbar() {
     setSnapshotSelected(false);
     setTokenSnapshot(null);
     navigate('/settings');
+    setIsDropdownOpen(false);
   };
 
   return (
@@ -146,6 +163,7 @@ export default function Navbar() {
           </button>
           {isDropdownOpen && (
             <ul
+              ref={dropdownRef}
               className={`dropdown-menu dropdown-menu-right ${isDropdownOpen ? 'show' : ''}`}
             >
               <li>
