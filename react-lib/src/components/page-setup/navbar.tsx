@@ -12,7 +12,7 @@ import {
   SignOutIcon,
   UndoIcon,
 } from '@primer/octicons-react';
-// import StatusIcons from 'react-lib/src/components/page-setup';
+import StatusIcons from 'react-lib/src/components/page-setup/status-icons';
 
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
@@ -141,7 +141,7 @@ export default function Navbar() {
         </div>
       )}
       <div id="navbar-user-options" className="btn-group pointer-events-all">
-        {/* <StatusIcons /> */}
+        <StatusIcons />
         <div className="btn-group" style={{ marginLeft: '1rem' }}>
           <button
             type="button"

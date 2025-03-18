@@ -6,7 +6,7 @@ import Navbar from 'react-lib/src/components/page-setup/navbar';
 import ToastMessage from '../components/page-setup/toast-message';
 import { useInitNavigation } from 'react-lib/src/stores/store-router';
 
-// TODO: Uncomment AutoSelect and NavBar after they exist
+// TODO: Uncomment AutoSelect after it exists
 
 export default function Application() {
   const [tokenId, setTokenId] = useState<string>('');
