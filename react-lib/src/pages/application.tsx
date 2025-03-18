@@ -25,6 +25,7 @@ export default function Application() {
 
   useInitNavigation();
 
+  // equivalent to old auto-select-landscape
   useEffect(() => {
     const getLandscapeTokens = async () => {
       const uId = user?.sub;
