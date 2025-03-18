@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUserApiTokenStore, ApiToken } from '../stores/user-api-token';
-// import ApiTokenSelection from 'react-lib/src/components/api-token-selection';
+import ApiTokenSelection from 'react-lib/src/components/api-token-selection';
 
 export default function Settings() {
   const [refreshKey, setRefreshKey] = useState<number>(0);
@@ -21,7 +21,7 @@ export default function Settings() {
   }, [refreshKey]);
 
   const refreshRoute = () => {
-    setRefreshKey((prev) => prev++);
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
@@ -30,7 +30,7 @@ export default function Settings() {
     >
       <h4 className={'text-center mt-4 mb-3'}>Settings</h4>
       <div className={'d-flex flex-row justify-content-center overflow-scroll'}>
-        {/* <ApiTokenSelection apiTokens={apiTokens} /> */}
+        <ApiTokenSelection apiTokens={apiTokens} refreshRoute={refreshRoute} />
       </div>
     </div>
   );
