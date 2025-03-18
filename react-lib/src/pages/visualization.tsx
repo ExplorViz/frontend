@@ -59,7 +59,6 @@ import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
 import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
-import AutoJoinLobby from 'react-lib/src/components/collaboration/auto-join-lobby';
 import SyncState from '../components/sync-state';
 import ArRendering from 'react-lib/src/components/extended-reality/ar-rendering';
 import VrRendering from 'react-lib/src/components/extender-reality/vr-rendering';
@@ -67,7 +66,7 @@ import { useUserSettingsStore } from '../stores/user-settings';
 import BrowserRendering from 'react-lib/src/components/visualization/rendering/browser-rendering';
 import { useLandscapeTokenStore } from '../stores/landscape-token';
 import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useFontRepositoryStore } from '../stores/repos/font-repository';
 import { Button } from 'react-bootstrap';
 import PlotlyTimeline from 'react-lib/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
@@ -75,6 +74,7 @@ import CommitTreeApplicationSelection from '../components/visualization/page-set
 import EvolutionRenderingButtons from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import { ChevronUpIcon } from '@primer/octicons-react';
+import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
 
 const queryParams = [
   'roomId',
@@ -91,6 +91,8 @@ export default function Visualization() {
   const sidebarHandler = useRef<SidebarHandler>(new SidebarHandler());
   const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
   const navigate = useNavigate();
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // #region States
   const [commit1, setCommit1] = useState<string | undefined | null>(undefined);
@@ -228,9 +230,37 @@ export default function Visualization() {
     initRenderingAndSetupListeners();
   }, []);
 
+  // equivalent to old auto-join-lobby
+  useEffect(() => {
+    const autoJoinLobby = async (retries = 5) => {
+      if (connectionStatus === 'online') {
+        return;
+      }
+      const roomHosted = await hostRoom(searchParams.get('roomId')!);
+
+      if (!roomHosted && retries <= 0) {
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Failed to join room automatically.');
+      } else {
+        setTimeout(() => {
+          autoJoinLobby(retries - 1);
+        }, 5000);
+      }
+    };
+
+    if (searchParams.get('roomId')) {
+      autoJoinLobby();
+    }
+  }, []);
+
   // #endregion
 
   // #region Store state declaration
+  const connectionStatus = useCollaborationSessionStore(
+    (state) => state.connectionStatus
+  );
+  const hostRoom = useCollaborationSessionStore((state) => state.hostRoom);
   const renderingServiceToggleVisualizationUpdating = useRenderingServiceStore(
     (state) => state.toggleVisualizationUpdating
   );
@@ -701,8 +731,6 @@ export default function Visualization() {
 
   return (
     <>
-      <AutoJoinLobby roomId={roomId} />
-
       <div id="vizspace">
         <SyncState />
 
