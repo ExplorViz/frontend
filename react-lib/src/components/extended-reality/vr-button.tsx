@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState } from 'react';
 
 interface VrButtonArgs {
   renderer: THREE.WebGLRenderer;
