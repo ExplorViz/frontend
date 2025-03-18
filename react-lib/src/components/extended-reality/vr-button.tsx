@@ -7,7 +7,7 @@ interface VrButtonArgs {
   debugMode: boolean;
 }
 
-export default function vrButton(args: VrButtonArgs) {
+export default function VrButton(args: VrButtonArgs) {
   const [vrSupported, setVrSupported] = useState<boolean>(false);
   const [buttonText, setButtonText] = useState<string>('Checking ...');
 
