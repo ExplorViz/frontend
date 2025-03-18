@@ -72,6 +72,12 @@
   }
 }
 
+.dropdown-menu {
+  left: auto;
+  right: 0;
+  margin-top: 2rem !important;
+}
+
 @media (max-width: 767.98px) {
   #navbar-user-options > .dropdown > .dropdown-menu {
     // ml-3 and mr-3 are 1rem each

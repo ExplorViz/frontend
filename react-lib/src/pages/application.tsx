@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
-// import Navbar from 'react-lib/src/components/page-setup/navbar';
+import Navbar from 'react-lib/src/components/page-setup/navbar';
 // import AutoSelectLandscape from '../components/collaboration/auto-select-landscape';
 import ToastMessage from '../components/page-setup/toast-message';
 import { useInitNavigation } from 'react-lib/src/stores/store-router';
@@ -24,7 +24,7 @@ export default function Application() {
       <div id="main-container">
         {user && (
           <>
-            {/* <Navbar /> */}
+            <Navbar />
             <ToastMessage />
           </>
         )}

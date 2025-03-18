@@ -68,6 +68,7 @@ interface SnapshotTokenState {
     subscribed: boolean
   ) => Promise<void>;
   setToken: (token: SnapshotToken | null) => void;
+  setSnapshotSelected: (value: boolean) => void;
 }
 
 export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
@@ -75,6 +76,10 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
   snapshotSelected: false, // tracked
   // Used in landscape selection to go back to last selected snapshot
   latestSnapshotToken: null,
+
+  setSnapshotSelected: (value: boolean) => {
+    set({ snapshotSelected: value });
+  },
 
   retrieveTokens: () => {
     return new Promise<SnapshotInfo>((resolve) => {
