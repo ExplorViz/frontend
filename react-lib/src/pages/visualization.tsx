@@ -882,9 +882,9 @@ export default function Visualization() {
               {isRuntimeTimelineSelected && (
                 <PlotlyTimeline
                   timelineDataObject={
-                    timelineDataObjectHandler?.timelineDataObject
+                    timelineDataObjectHandler?.timelineDataObject!
                   }
-                  clicked={timelineDataObjectHandler?.timelineClicked}
+                  clicked={timelineDataObjectHandler?.timelineClicked!}
                 />
               )}
 
