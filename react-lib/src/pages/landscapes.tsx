@@ -219,6 +219,7 @@ export default function Landscapes() {
           id="tabnav"
           className="mb-3"
           justify
+          style={{ fontSize: 'larger', fontWeight: 'bold' }}
         >
           <Tab eventKey="landscapes" title="Landscapes" id="landscape-tab">
             <div
