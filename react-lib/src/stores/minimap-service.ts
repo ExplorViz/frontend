@@ -59,6 +59,7 @@ interface MinimapState {
   isMouseInsideMinimap: (event: MouseEvent) => boolean;
   handleHit: (userHit: RemoteUser) => void;
   toggleFullsizeMinimap: (value: boolean) => void;
+  setRaycaster: (raycaster: Raycaster) => void;
   raycastForObjects: (
     event: MouseEvent,
     camera: THREE.Camera,
@@ -351,6 +352,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     cameraControls!.perspectiveCameraControls.enabled = !value;
     set({ cameraControls: cameraControls });
   },
+
+  setRaycaster: (raycaster) => set({ raycaster: raycaster }),
 
   /**
    * Function used for raycasting on the minimap

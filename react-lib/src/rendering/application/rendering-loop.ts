@@ -1,4 +1,3 @@
-// import { setOwner } from '@ember/application';
 import { Clock } from 'three';
 import THREEPerformance from 'react-lib/src/utils/threejs-performance';
 // import UserSettings from 'explorviz-frontend/services/user-settings';
@@ -12,18 +11,14 @@ import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user
 // import MinimapService from 'explorviz-frontend/services/minimap-service';
 import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
 
-const clock = new Clock();
+import { TickCallback } from 'react-lib/src/components/visualization/rendering/browser-rendering';
 
-type TickCallback = {
-  id: string;
-  callback: (delta: number, frame?: XRFrame) => void;
-};
+const clock = new Clock();
 
 interface Args {
   camera: THREE.Camera;
   scene: THREE.Scene;
   renderer: THREE.WebGLRenderer;
-  updatables: any[];
   tickCallbacks: TickCallback[];
   zoomHandler?: ArZoomHandler;
 }
@@ -52,7 +47,6 @@ export default class RenderingLoop {
 
   renderer: THREE.WebGLRenderer;
 
-  updatables: any[];
   tickCallbacks: TickCallback[];
 
   zoomHandler?: ArZoomHandler;
@@ -64,12 +58,10 @@ export default class RenderingLoop {
     window.innerHeight
   );
 
-  constructor(owner: any, args: Args) {
-    setOwner(this, owner);
+  constructor(args: Args) {
     this.camera = args.camera;
     this.scene = args.scene;
     this.renderer = args.renderer;
-    this.updatables = args.updatables;
     this.tickCallbacks = args.tickCallbacks;
     this.zoomHandler = args.zoomHandler;
     this.minimapCamera = useLocalUserStore.getState().minimapCamera;
@@ -134,12 +126,9 @@ export default class RenderingLoop {
 
   tick(frame?: XRFrame) {
     const delta = clock.getDelta();
-
-    // TODO replace updatables with tickCallbacks. Keep both for now as to not crash anything
-    for (let i = 0; i < this.updatables.length; i++) {
-      this.updatables[i].tick(delta, frame);
-    }
-    this.tickCallbacks.forEach((tickCallback) => tickCallback(delta, frame));
+    this.tickCallbacks.forEach((tickCallback) =>
+      tickCallback.callback(delta, frame)
+    );
   }
 
   private handleLightHelper() {

@@ -55,6 +55,7 @@ interface SpectateUserState {
     id: string;
     devices: { deviceId: string; projectionMatrix: number[] }[] | null;
   }) => void;
+  setCameraControls: (cameraControls: CameraControls) => void;
 }
 
 export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
@@ -334,6 +335,9 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
       .getState()
       .camera.projectionMatrix.fromArray(deviceConfig.projectionMatrix);
   },
+
+  setCameraControls: (cameraControls: CameraControls) =>
+    set({ cameraControls: cameraControls }),
 }));
 
 useSpectateUserStore.getState()._init();
