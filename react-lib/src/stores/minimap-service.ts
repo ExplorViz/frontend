@@ -70,6 +70,7 @@ interface MinimapState {
   calculateDistanceFactor: () => number;
   updateSphereRadius: () => void;
   minimap: () => number[];
+  setMinimapEnabled: (minimapEnabled: boolean) => void;
 }
 
 export const useMinimapStore = create<MinimapState>((set, get) => ({
@@ -484,7 +485,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * Function used for getting the minimap size and position
    * @returns The minimap size, position and border width
    */
-  minimap() {
+  minimap: () => {
     const borderWidth = 2;
     if (get().makeFullsizeMinimap) {
       const minimapSize = 0.9;
@@ -510,4 +511,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
 
     return [minimapHeight, minimapWidth, minimapX, minimapY, borderWidth];
   },
+
+  setMinimapEnabled: (minimapEnabled) =>
+    set({ minimapEnabled: minimapEnabled }),
 }));

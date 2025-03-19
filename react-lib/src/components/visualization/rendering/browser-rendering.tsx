@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useShallow } from 'zustand/react/shallow';
+import { useResizeDetector } from 'react-resize-detector';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
@@ -66,30 +67,86 @@ import EntityFilteringOpener from 'react-lib/src/components/visualization/page-s
 import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info';
 import VscodeExtensionSettings from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import ApplicationSearch from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
+import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import MetricsWorker from 'react-lib/src/workers/metrics-worker.js?worker'; // Vite query suffix worker import
+
+import Button from 'react-bootstrap/Button';
+import { GearIcon, ToolsIcon } from '@primer/octicons-react';
+import ContextMenu from '../../context-menu';
+import PopupCoordinator from './popups/popup-coordinator';
+import AnnotationCoordinator from './annotations/annotation-coordinator';
+import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
+import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
+import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
+import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
+import SidebarComponent from '../page-setup/sidebar/sidebar-component';
+import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
+import ChatBox from '../page-setup/sidebar/customizationbar/chat/chat-box';
+import Restructure from '../page-setup/sidebar/customizationbar/restructure/restructure';
+import { ApiToken } from '../../../stores/user-api-token';
+import { LandscapeToken } from '../../../stores/landscape-token';
+import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
+import Settings from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 
 interface BrowserRenderingProps {
   readonly id: string;
   readonly landscapeData: LandscapeData | null;
+  readonly landscapeToken: LandscapeToken;
+  readonly userApiTokens: ApiToken[];
   readonly visualizationPaused: boolean;
   readonly isDisplayed: boolean;
+  readonly showToolsSidebar: boolean;
+  readonly showSettingsSidebar: boolean;
   readonly snapshot: boolean | undefined | null;
   readonly snapshotReload: SnapshotToken | undefined | null;
+  readonly openedToolComponent: string;
+  readonly openedSettingComponent: string;
+  triggerRenderingForGivenLandscapeData(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ): void;
+  openToolsSidebar(): void;
+  closeToolsSidebar(): void;
+  toggleToolsSidebarComponent(componentId: string): void;
   openSettingsSidebar(): void;
+  closeSettingsSidebar(): void;
+  toggleSettingsSidebarComponent(componentId: string): void;
+  pauseVisualizationUpdating(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
+  restructureLandscape(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ): void;
+  removeTimestampListener(): void;
 }
 
 export default function BrowserRendering({
   id,
   landscapeData,
+  landscapeToken,
+  userApiTokens,
   visualizationPaused,
   isDisplayed,
+  showToolsSidebar,
+  showSettingsSidebar,
   snapshot,
   snapshotReload,
+  openedToolComponent,
+  openedSettingComponent,
+  triggerRenderingForGivenLandscapeData,
+  openToolsSidebar,
+  closeToolsSidebar,
+  toggleToolsSidebarComponent,
   openSettingsSidebar,
+  closeSettingsSidebar,
+  toggleSettingsSidebarComponent,
+  pauseVisualizationUpdating,
   toggleVisualizationUpdating,
   switchToAR,
+  restructureLandscape,
+  removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
 
@@ -113,6 +170,10 @@ export default function BrowserRendering({
     closeAllComponents: useApplicationRendererStore(
       (state) => state.closeAllComponents
     ),
+    addCommunicationForAllApplications: useApplicationRendererStore(
+      (state) => state.addCommunicationForAllApplications
+    ),
+    openParents: useApplicationRendererStore((state) => state.openParents),
     cleanup: useApplicationRendererStore((state) => state.cleanup),
   };
 
@@ -130,11 +191,17 @@ export default function BrowserRendering({
 
   const authUser = useAuthStore((state) => state.user);
 
-  const { appSettings, colors, updateSetting } = useUserSettingsStore(
+  const { appSettings, colors } = useUserSettingsStore(
     useShallow((state) => ({
       appSettings: state.visualizationSettings,
       colors: state.colors,
       updateSetting: state.updateSetting,
+    }))
+  );
+  const userSettingsStoreActions = useUserSettingsStore(
+    useShallow((state) => ({
+      updateSetting: state.updateSetting,
+      applyDefaultSettings: state.applyDefaultSettings,
     }))
   );
 
@@ -171,6 +238,9 @@ export default function BrowserRendering({
       (state) => state.updateHighlightingOnHover
     ),
     toggleHighlight: useHighlightingStore((state) => state.toggleHighlight),
+    toggleHighlightById: useHighlightingStore(
+      (state) => state.toggleHighlightById
+    ),
   };
 
   const spectateUserStoreActions = {
@@ -182,14 +252,26 @@ export default function BrowserRendering({
     setRaycaster: useMinimapStore((state) => state.setRaycaster),
   };
 
+  const popupData = usePopupHandlerStore((state) => state.popupData);
   const popupHandlerStoreActions = {
     addPopup: usePopupHandlerStore((state) => state.addPopup),
     removePopup: usePopupHandlerStore((state) => state.removePopup),
+    pinPopup: usePopupHandlerStore((state) => state.pinPopup),
+    sharePopup: usePopupHandlerStore((state) => state.sharePopup),
     handleMouseMove: usePopupHandlerStore((state) => state.handleMouseMove),
     handleHoverOnMesh: usePopupHandlerStore((state) => state.handleHoverOnMesh),
+    updateMeshReference: usePopupHandlerStore(
+      (state) => state.updateMeshReference
+    ),
     cleanup: usePopupHandlerStore((state) => state.cleanup),
   };
 
+  const annotationData = useAnnotationHandlerStore(
+    (state) => state.annotationData
+  );
+  const minimizedAnnotations = useAnnotationHandlerStore(
+    (state) => state.minimizedAnnotations
+  );
   const annotationHandlerStoreActions = {
     addAnnotation: useAnnotationHandlerStore((state) => state.addAnnotation),
     hideAnnotation: useAnnotationHandlerStore((state) => state.hideAnnotation),
@@ -206,11 +288,17 @@ export default function BrowserRendering({
     clearAnnotations: useAnnotationHandlerStore(
       (state) => state.clearAnnotations
     ),
+    shareAnnotation: useAnnotationHandlerStore(
+      (state) => state.shareAnnotation
+    ),
     handleMouseMove: useAnnotationHandlerStore(
       (state) => state.handleMouseMove
     ),
     handleHoverOnMesh: useAnnotationHandlerStore(
       (state) => state.handleHoverOnMesh
+    ),
+    updateMeshReference: useAnnotationHandlerStore(
+      (state) => state.updateMeshReference
     ),
     cleanup: useAnnotationHandlerStore((state) => state.cleanup),
   };
@@ -283,7 +371,10 @@ export default function BrowserRendering({
     } else {
       SemanticZoomManager.instance.deactivate();
     }
-    updateSetting('semanticZoomState', SemanticZoomManager.instance.isEnabled);
+    userSettingsStoreActions.updateSetting(
+      'semanticZoomState',
+      SemanticZoomManager.instance.isEnabled
+    );
     setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
   };
 
@@ -669,11 +760,6 @@ export default function BrowserRendering({
     }
   };
 
-  const hideAnnotation = annotationHandlerStoreActions.hideAnnotation;
-  const minimizeAnnotation = annotationHandlerStoreActions.minimizeAnnotation;
-  const editAnnotation = annotationHandlerStoreActions.editAnnotation;
-  const updateAnnotation = annotationHandlerStoreActions.updateAnnotation;
-
   const removeAnnotation = (annotationId: number) => {
     if (!appSettings.enableCustomAnnotationPosition.value) {
       annotationHandlerStoreActions.clearAnnotations();
@@ -750,6 +836,37 @@ export default function BrowserRendering({
     canvas.current.requestFullscreen();
   };
 
+  const handleResize = () => {
+    if (!outerDiv.current) {
+      console.error('Outer div ref was not assigned');
+      return;
+    }
+
+    const width = outerDiv.current.clientWidth;
+    const height = outerDiv.current.clientHeight;
+
+    const newAspectRatio = width / height;
+
+    // Update renderer and cameras according to canvas size
+    renderer.current!.setSize(width, height);
+    camera.aspect = newAspectRatio;
+    camera.updateProjectionMatrix();
+
+    // Gamepad controls
+    gamepadControls.current = new GamepadControls(
+      camera,
+      scene,
+      cameraControls.current!.perspectiveCameraControls,
+      {
+        lookAt: handleMouseMove,
+        select: handleSingleClick,
+        interact: handleDoubleClick,
+        inspect: handleMouseStop,
+        ping: localUserStoreActions.ping,
+      }
+    );
+  };
+
   // MARK: Refs
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
@@ -798,7 +915,7 @@ export default function BrowserRendering({
     { title: 'Enter AR', action: switchToAR },
   ];
 
-  // MARK: Effects
+  // MARK: Effects and hooks
 
   useEffect(function initialize() {
     scene.background = colors!.backgroundColor;
@@ -907,37 +1024,263 @@ export default function BrowserRendering({
     initRenderer();
   }, []);
 
-  useEffect(function handleResize() {
-    if (!outerDiv.current) {
-      console.error('Outer div ref was not assigned');
-      return;
-    }
+  useResizeDetector({
+    refreshMode: 'debounce',
+    refreshRate: 100,
+    targetRef: outerDiv,
+    onResize: handleResize,
+  });
 
-    const width = outerDiv.current.clientWidth;
-    const height = outerDiv.current.clientHeight;
+  // MARK: JSX
 
-    const newAspectRatio = width / height;
+  return (
+    <div className={`row h-100 ${isDisplayed ? 'show' : 'hide'}`}>
+      <div className="d-flex flex-column h-100 col-12">
+        <div id="rendering" ref={outerDiv}>
+          {!showToolsSidebar && (
+            <div className="sidebar-tools-button foreground mt-6">
+              <Button
+                id="toolsOpener"
+                variant="outline-secondary"
+                title="Tools"
+                onClick={openToolsSidebar}
+              >
+                <ToolsIcon size="small" className="align-middle" />
+              </Button>
+            </div>
+          )}
 
-    // Update renderer and cameras according to canvas size
-    renderer.current!.setSize(width, height);
-    camera.aspect = newAspectRatio;
-    camera.updateProjectionMatrix();
+          {!showSettingsSidebar && (
+            <div className="sidebar-open-button foreground mt-6">
+              <Button
+                id="undoAction"
+                variant="outline-secondary"
+                title="Settings"
+                onClick={openSettingsSidebar}
+              >
+                <GearIcon size="small" className="align-middle" />
+              </Button>
+            </div>
+          )}
 
-    // Gamepad controls
-    gamepadControls.current = new GamepadControls(
-      camera,
-      scene,
-      cameraControls.current!.perspectiveCameraControls,
-      {
-        lookAt: handleMouseMove,
-        select: handleSingleClick,
-        interact: handleDoubleClick,
-        inspect: handleMouseStop,
-        ping: localUserStoreActions.ping,
-      }
-    );
-  }, []); // TODO dependency array?
+          {heatmapActive && <HeatmapInfo />}
+
+          <ContextMenu items={rightClickMenuItems}>
+            <canvas id="threejs-canvas" className={'webgl'} ref={canvas} />
+          </ContextMenu>
+          {/* {loadNewLandscape.isRunning && (
+            <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
+              <LoadingIndicator text="Loading new Landscape" />
+            </div>
+          )} */}
+
+          {popupData.map((data) => (
+            <PopupCoordinator
+              addAnnotationForPopup={addAnnotationForPopup}
+              openParents={applicationRendererStoreActions.openParents}
+              pinPopup={popupHandlerStoreActions.pinPopup}
+              popupData={data}
+              removePopup={removePopup}
+              sharePopup={popupHandlerStoreActions.sharePopup}
+              showApplication={showApplication}
+              structureData={landscapeData!.structureLandscapeData}
+              toggleHighlightById={highlightingStoreActions.toggleHighlightById}
+              updateMeshReference={popupHandlerStoreActions.updateMeshReference}
+            />
+          ))}
+
+          {annotationData.map((data) => (
+            <AnnotationCoordinator
+              isMovable={appSettings.enableCustomAnnotationPosition.value}
+              annotationData={data}
+              shareAnnotation={annotationHandlerStoreActions.shareAnnotation}
+              updateMeshReference={
+                annotationHandlerStoreActions.updateMeshReference
+              }
+              removeAnnotation={removeAnnotation}
+              hideAnnotation={annotationHandlerStoreActions.hideAnnotation}
+              minimizeAnnotation={
+                annotationHandlerStoreActions.minimizeAnnotation
+              }
+              editAnnotation={annotationHandlerStoreActions.editAnnotation}
+              updateAnnotation={annotationHandlerStoreActions.updateAnnotation}
+              toggleHighlightById={highlightingStoreActions.toggleHighlightById}
+              openParents={applicationRendererStoreActions.openParents}
+            />
+          ))}
+        </div>
+      </div>
+      {showToolsSidebar && (
+        <div className="sidebar left" id="toolselection">
+          <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
+            <ToolSelection closeToolSelection={closeToolsSidebar}>
+              <div className="explorviz-visualization-navbar">
+                <ul className="nav justify-content-center">
+                  <EntityFilteringOpener
+                    openedComponent={openedToolComponent}
+                    toggleToolsSidebarComponent={toggleToolsSidebarComponent}
+                  />
+                  <ApplicationSearchOpener
+                    openedComponent={openedToolComponent}
+                    toggleToolsSidebarComponent={toggleToolsSidebarComponent}
+                  />
+                  <TraceReplayerOpener
+                    openedComponent={openedToolComponent}
+                    toggleToolsSidebarComponent={toggleToolsSidebarComponent}
+                  />
+                </ul>
+              </div>
+              {openedToolComponent && (
+                <div className="card sidebar-card mt-3">
+                  <div className="card-body d-flex flex-column">
+                    {openedToolComponent === 'entity-filtering' && (
+                      <>
+                        <h5 className="text-center">Entity Filtering</h5>
+                        <EntityFiltering
+                          landscapeData={landscapeData!}
+                          triggerRenderingForGivenLandscapeData={
+                            triggerRenderingForGivenLandscapeData
+                          }
+                          pauseVisualizationUpdating={
+                            pauseVisualizationUpdating
+                          }
+                        />
+                      </>
+                    )}
+                    {openedToolComponent === 'application-search' && (
+                      <>
+                        <h5 className="text-center">Application Search</h5>
+                        <ApplicationSearch />
+                      </>
+                    )}
+                    {openedToolComponent === 'Trace-Replayer' && (
+                      <TraceSelectionAndReplayer
+                        highlightTrace={highlightTrace}
+                        removeHighlighting={removeAllHighlighting}
+                        dynamicData={landscapeData!.dynamicLandscapeData}
+                        renderingLoop={renderingLoop.current!}
+                        structureData={landscapeData!.structureLandscapeData}
+                        landscapeData={landscapeData!}
+                        triggerRenderingForGivenLandscapeData={
+                          triggerRenderingForGivenLandscapeData
+                        }
+                        moveCameraTo={moveCameraTo}
+                        application={
+                          getSelectedApplicationObject3D()!.dataModel
+                            .application // Unsure if this is the correct value to pass
+                        }
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </ToolSelection>
+          </div>
+        </div>
+      )}
+      {showSettingsSidebar && (
+        <div className="sidebar right col-4" id="settingsSidebar">
+          <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
+            <SettingsSidebar closeSettingsSidebar={closeSettingsSidebar}>
+              <div className="explorviz-visualization-navbar">
+                <ul className="nav justify-content-center">
+                  <CollaborationOpener
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
+                  />
+                  <VscodeExtensionOpener
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
+                  />
+                  <RestructureOpener
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
+                  />
+                  <SnapshotOpener
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
+                  />
+                  <SettingsOpener
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
+                  />
+                </ul>
+              </div>
+              {openedSettingComponent && (
+                <SidebarComponent componentId={openedSettingComponent}>
+                  {openedSettingComponent === 'Collaboration' && (
+                    <>
+                      <CollaborationControls />
+                      <ChatBox />
+                    </>
+                  )}
+                  {openedSettingComponent === 'VSCode-Extension-Settings' && (
+                    <VscodeExtensionSettings />
+                  )}
+                  {openedSettingComponent === 'Restructure-Landscape' && (
+                    <Restructure
+                      landscapeData={landscapeData!}
+                      restructureLandscape={restructureLandscape}
+                      visualizationPaused={visualizationPaused}
+                      toggleVisualizationUpdating={toggleVisualizationUpdating}
+                      removeTimestampListener={removeTimestampListener}
+                      userApiTokens={userApiTokens}
+                      popUpData={popupData}
+                      annotationData={annotationData}
+                      minimizedAnnotations={minimizedAnnotations}
+                      landscapeToken={landscapeToken}
+                    />
+                  )}
+                  {openedSettingComponent === 'Persist-Landscape' && (
+                    <Snapshot
+                      landscapeData={landscapeData!}
+                      popUpData={popupData}
+                      annotationData={annotationData}
+                      minimizedAnnotations={minimizedAnnotations}
+                      landscapeToken={landscapeToken}
+                    />
+                  )}
+                  {openedSettingComponent === 'Settings' && (
+                    <Settings
+                      enterFullscreen={enterFullscreen}
+                      popups={popupData}
+                      redrawCommunication={
+                        applicationRendererStoreActions.addCommunicationForAllApplications
+                      }
+                      resetSettings={
+                        userSettingsStoreActions.applyDefaultSettings
+                      }
+                      showSemanticZoomClusterCenters={
+                        showSemanticZoomClusterCenters
+                      }
+                      updateColors={updateSceneColors}
+                      updateHighlighting={
+                        highlightingStoreActions.updateHighlighting
+                      }
+                      setGamepadSupport={setGamepadSupport}
+                    />
+                  )}
+                </SidebarComponent>
+              )}
+            </SettingsSidebar>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
+
+// MARK: Types
 
 export type TickCallback = {
   id: string;

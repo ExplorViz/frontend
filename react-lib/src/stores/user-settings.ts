@@ -35,7 +35,7 @@ interface UserSettingsState {
   colors: ExplorVizColors | undefined; // tracked
   _constructApplicationColors: () => void;
   applyDefaultSettingsForGroup: (groupId?: string) => void;
-  applyDefaultSettings: (saveToLocalStorage: boolean) => void;
+  applyDefaultSettings: (saveToLocalStorage?: boolean) => void;
   shareVisualizationSettings: () => void;
   updateSettings: (settings: VisualizationSettings) => void;
   updateSetting: (name: VisualizationSettingId, value?: unknown) => void;

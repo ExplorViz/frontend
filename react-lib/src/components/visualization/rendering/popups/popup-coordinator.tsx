@@ -13,6 +13,11 @@ import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
 import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
 import {
+  Class,
+  Package,
+  StructureLandscapeData,
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
+import {
   isApplication,
   isClass,
   isMethod,
@@ -37,15 +42,20 @@ type Position2D = {
 };
 
 interface PopupCoordinatorProps {
+  popupData: PopupData;
+  structureData: StructureLandscapeData;
   addAnnotationForPopup(popup: PopupData): void;
   pinPopup(popup: PopupData): void;
-  popupData: PopupData;
   removePopup(entityId: string): void;
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
-  showApplication(): void;
-  toggleHighlightById(): void;
-  openParents(): void;
+  showApplication(appId: string): void;
+  toggleHighlightById: (
+    modelId: string,
+    sendMessage: boolean,
+    color?: THREE.Color
+  ) => void;
+  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default function PopupCoordinator({
