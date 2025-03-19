@@ -1,4 +1,3 @@
-// import { EntityMesh } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
 import {
   Application,
   Class,
@@ -8,20 +7,7 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { K8sDataModel } from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-
-// TODO originally from detailed-info-composer, import from there once migrated
-export type EntityMesh =
-  | ComponentMesh
-  | ClazzMesh
-  | ClazzCommunicationMesh
-  | FoundationMesh
-  | K8sMesh;
+import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 
 export interface PopupDataArgs {
   mouseX: number;
