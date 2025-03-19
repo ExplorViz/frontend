@@ -9,7 +9,7 @@ interface ConfigurationState {
   popupPosition: Position2D | undefined;
   semanticZoomEnabled: boolean;
   setSemanticZoomEnabled: (value: boolean) => void;
-  setIsCommRenderer: (value: boolean) => void;
+  setIsCommRendered: (value: boolean) => void;
 }
 
 interface Position2D {
@@ -26,5 +26,5 @@ export const useConfigurationStore = create<ConfigurationState>((set) => ({
   popupPosition: undefined,
   semanticZoomEnabled: false,
   setSemanticZoomEnabled: (value) => set({ semanticZoomEnabled: value }),
-  setIsCommRenderer: (value: boolean) => set({ isCommRendered: value }),
+  setIsCommRendered: (value: boolean) => set({ isCommRendered: value }),
 }));

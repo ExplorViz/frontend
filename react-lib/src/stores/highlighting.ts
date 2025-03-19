@@ -102,7 +102,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
   },
 
   highlightingColor: () => {
-    if (useCollaborationSessionStore.getState().isOnline) {
+    if (useCollaborationSessionStore.getState().isOnline()) {
       return useLocalUserStore.getState().color;
     } else {
       return useUserSettingsStore.getState().colors!.highlightedEntityColor;

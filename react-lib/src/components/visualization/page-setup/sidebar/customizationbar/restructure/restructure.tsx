@@ -269,7 +269,7 @@ export default function Restructure({
 
   const toggleRestructureMode = () => {
     if (restructureMode) {
-      if (isOnline) removeTimestampListener();
+      if (isOnline()) removeTimestampListener();
       setLandscapeData(landscapeData);
 
       if (!visualizationPaused) {

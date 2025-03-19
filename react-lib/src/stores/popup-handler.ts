@@ -54,7 +54,7 @@ interface PopupHandlerState {
   sharePopup: (popup: PopupData) => void;
   pinPopup: (popup: PopupData) => void;
   removePopup: (entityId: string) => Promise<void>;
-  handleMouseMove: (event: MouseEvent) => void;
+  handleMouseMove: (event: React.MouseEvent) => void;
   handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addPopup: ({
     mesh,
@@ -91,7 +91,7 @@ interface PopupHandlerState {
    * Updates mesh reference of popup with given ID in popup data.
    */
   updateMeshReference: (popup: PopupData) => void;
-  willDestroy: () => void;
+  cleanup: () => void;
 }
 
 export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
@@ -206,7 +206,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
   },
 
-  handleMouseMove: (event: MouseEvent) => {
+  handleMouseMove: (event: React.MouseEvent) => {
     set({
       latestMousePosition: {
         timestamp: Date.now(),
@@ -426,7 +426,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
   },
 
-  willDestroy: () => {
+  cleanup: () => {
     eventEmitter.off(MENU_DETACHED_EVENT, get().onMenuDetached);
     eventEmitter.off(DETACHED_MENU_CLOSED_EVENT, get().onMenuClosed);
     eventEmitter.off('restore_popups', get().onRestorePopups);

@@ -254,7 +254,7 @@ export default function PopupCoordinator({
               </Button>
             </OverlayTrigger>
           ) : (
-            isOnline &&
+            isOnline() &&
             popupData.isPinned && (
               <OverlayTrigger
                 placement="top"

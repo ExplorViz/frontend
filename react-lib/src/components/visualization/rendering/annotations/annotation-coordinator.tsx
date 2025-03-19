@@ -312,7 +312,7 @@ export default function AnnotationCoordinator({
                       </Button>
                     </OverlayTrigger>
 
-                    {!isOnline ? (
+                    {!isOnline() ? (
                       <OverlayTrigger
                         placement="top"
                         trigger={['hover', 'focus']}
@@ -540,7 +540,7 @@ export default function AnnotationCoordinator({
                   </label>
                 )}
 
-                {!isOnline ? (
+                {!isOnline() ? (
                   <OverlayTrigger
                     placement="top"
                     trigger={['hover', 'focus']}

@@ -58,8 +58,8 @@ interface AnnotationHandlerState {
   minimizedAnnotations: AnnotationData[];
   latestMousePosition: { timestamp: number; x: number; y: number };
   isShiftPressed: boolean;
-  handleMouseMove: (event: MouseEvent) => void;
-  clearAnnotation: () => void;
+  handleMouseMove: (event: React.MouseEvent) => void;
+  clearAnnotations: () => void;
   removeUnmovedAnnotations: () => void;
   hideAnnotation: (annotationId: number) => void;
   minimizeAnnotation: (annotationId: number) => void;
@@ -124,7 +124,7 @@ interface AnnotationHandlerState {
     originalMessage: { menuId },
   }: ForwardedMessage<AnnotationForwardMessage>) => void;
   updateMeshReference: (annotation: AnnotationData) => void;
-  willDestroy: () => void;
+  cleanup: () => void;
 }
 
 export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
@@ -134,7 +134,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     latestMousePosition: { timestamp: 0, x: 0, y: 0 },
     isShiftPressed: false,
 
-    handleMouseMove: (event: MouseEvent) => {
+    handleMouseMove: (event: React.MouseEvent) => {
       set({
         latestMousePosition: {
           timestamp: Date.now(),
@@ -145,7 +145,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       set({ isShiftPressed: event.shiftKey });
     },
 
-    clearAnnotation: () => {
+    clearAnnotations: () => {
       get().annotationData.forEach((an) => {
         if (an.entity) {
           useApplicationRendererStore.getState().updateLabel(an.entity.id, '');
@@ -264,13 +264,13 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
       if (
         !annotation.shared ||
-        !useCollaborationSessionStore.getState().isOnline
+        !useCollaborationSessionStore.getState().isOnline()
       ) {
         annotation.inEdit = true; // TODO: How to change tracked variable of annotationData
         return;
       }
 
-      if (useCollaborationSessionStore.getState().isOnline) {
+      if (useCollaborationSessionStore.getState().isOnline()) {
         useWebSocketStore
           .getState()
           .sendRespondableMessage<
@@ -813,7 +813,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       }
     },
 
-    willDestroy: () => {
+    cleanup: () => {
       set({ annotationData: [] });
       set({ minimizedAnnotations: [] });
       // TODO: This can create errors when leaving a landscape a second time
