@@ -185,11 +185,6 @@ svg.octicon {
   @include centerSpinners();
 }
 
-.spinner-center-3-relative {
-  @extend .spinner-center-3 !optional;
-  position: relative;
-}
-
 .buttonToLink {
   background: none;
   border: none;

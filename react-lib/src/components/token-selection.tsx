@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LandscapeToken } from '../stores/landscape-token';
 import { useAuthStore } from '../stores/auth';
+import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import {
   DesktopDownloadIcon,
@@ -10,7 +11,7 @@ import {
 } from '@primer/octicons-react';
 import AdditionalTokenInfo from './additional-token-info';
 import ShareLandscape from 'react-lib/src/components/share-landscape';
-
+import JSZip from 'jszip';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
@@ -51,26 +52,62 @@ export default function TokenSelection({
     return sortOrder === 'asc' ? (valA > valB ? 1 : -1) : valA < valB ? 1 : -1;
   });
 
-  const downloadDemoSupplierFiles = (
+  const downloadDemoSupplierFiles = async (
     token: LandscapeToken,
     event: React.MouseEvent
   ) => {
     event?.stopPropagation();
-    downloadJSONFile(
-      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/structure`,
-      'structure.json'
+    const structurePromise = getJsonBlob(
+      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/structure`
     );
-    downloadJSONFile(
-      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/dynamic`,
-      'dynamic.json'
+    const dynamicPromise = getJsonBlob(
+      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/dynamic`
     );
-    downloadJSONFile(
-      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/timestamps`,
-      'timestamps.json'
+    const timestampPromise = getJsonBlob(
+      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/timestamps`
     );
+
+    // Wait on all downloads
+    const [structureBlob, dynamicBlob, timestampBlob] = await Promise.all([
+      structurePromise,
+      dynamicPromise,
+      timestampPromise,
+    ]);
+
+    const zip = new JSZip();
+    if (structureBlob) {
+      zip.file('structure.json', structureBlob);
+    }
+    if (dynamicBlob) {
+      zip.file('dynamic.json', dynamicBlob);
+    }
+    if (timestampBlob) {
+      zip.file('timestamps.json', timestampBlob);
+    }
+
+    zip.generateAsync({ type: 'blob' }).then(function (content) {
+      // Create a temporary link element
+      const tempLink = document.createElement('a');
+      tempLink.href = URL.createObjectURL(content);
+      tempLink.download = 'landscape-data.zip';
+
+      // Append the link to the body and trigger the download
+      document.body.appendChild(tempLink);
+      tempLink.click();
+
+      // Clean up: Remove the link and release the object URL
+      document.body.removeChild(tempLink);
+      URL.revokeObjectURL(tempLink.href);
+
+      useToastHandlerStore
+        .getState()
+        .showSuccessToastMessage(
+          `Zip file with ${Object.keys(zip.files).length} JSON files ready for download.`
+        );
+    });
   };
 
-  const downloadJSONFile = async (url: string, filename = 'data.json') => {
+  const getJsonBlob = async (url: string) => {
     try {
       // Fetch the JSON data from the backend service
       const response = await fetch(url);
@@ -83,26 +120,11 @@ export default function TokenSelection({
       const data = await response.json();
 
       // Convert the JSON data to a Blob
-      const jsonBlob = new Blob([JSON.stringify(data, null, 2)], {
+      return new Blob([JSON.stringify(data, null, 2)], {
         type: 'application/json',
       });
-
-      // Create a temporary link element
-      const tempLink = document.createElement('a');
-      tempLink.href = URL.createObjectURL(jsonBlob);
-      tempLink.download = filename;
-
-      // Append the link to the body and trigger the download
-      document.body.appendChild(tempLink);
-      tempLink.click();
-
-      // Clean up: Remove the link and release the object URL
-      document.body.removeChild(tempLink);
-      URL.revokeObjectURL(tempLink.href);
-
-      console.log('JSON file downloaded successfully.');
     } catch (error) {
-      console.error('Error downloading JSON file:', error);
+      console.error('Error downloading JSON file for:', url, error);
     }
   };
 
