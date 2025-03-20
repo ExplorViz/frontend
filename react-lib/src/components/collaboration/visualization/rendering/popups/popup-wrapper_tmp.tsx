@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import {
   Application,
@@ -6,7 +6,7 @@ import {
   Package,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
-import { OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 
 
 interface PopupWrapperArgs {
@@ -24,26 +24,41 @@ interface PopupWrapperArgs {
 
 export default function PopupWrapper(args: PopupWrapperArgs) {
 
+  // Seems not to be used:
   const [isPinned, setIsPinned] = useState(false);
 
   // TODO: Check if this is usable
   let divElement!: HTMLElement;
   // divElement!: HTMLElement;
-  const dragElementRef = useRef<HTMLElement>(null);
   const [panDeltaX, setPanDeltaX] = useState(0);
   const [panDeltaY, setPanDeltaY] = useState(0);
 
-  const setupDragElement = (element: HTMLElement) => {
-    initializePanListener(element);
+  const dragElementRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const dragElement = dragElementRef.current;
+    initializePanListener(dragElement!);
 
-    setupInitialPosition(element);
+    setupInitialPosition(dragElement!);
 
-    divElement = element;
+    divElement = dragElement!;
 
     if (useARSettingsStore.getState().stackPopups) {
       args.keepPopupOpen(args.popupData.id);
     }
-  }
+  });
+
+  // For useEffect reference:
+  // const setupDragElement = (element: HTMLElement) => {
+  //   initializePanListener(element);
+
+  //   setupInitialPosition(element);
+
+  //   divElement = element;
+
+  //   if (useARSettingsStore.getState().stackPopups) {
+  //     args.keepPopupOpen(args.popupData.id);
+  //   }
+  // }
 
   const initializePanListener = (element: HTMLElement) => {
     const mc = new Hammer(element);
@@ -194,29 +209,28 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
   return(
     {popupData && (
       <div
-      {{did-insert this.setupDragElement}}
       ref={dragElementRef}
       id='popupWrapper'
       className='foreground'
       style='position: absolute; cursor: move'
       >
         <div className='d-flex'>
-          <BsButton
-          className='ar-popup-close'
-          @type='primary'
-          {{on 'click' this.closePopup}}
-          {{on 'touchstart' this.closePopup}}
+          <Button 
+            title='ar-popup-close'
+            variant="primary" 
+            onClick={closePopup}
+            onTouchStart={closePopup}
           >
-          X
-          </BsButton>
+            X
+          </Button>
         </div>
-          <ExtendedReality::Visualization::Rendering::Popups::ArPopupCoordinator
-          @popupData={{@popupData}}
-          @showApplication={{@showApplication}}
-          @toggleHighlightById={{@toggleHighlightById}}
-          @openParents={{@openParents}}
-          />
+        <ExtendedReality::Visualization::Rendering::Popups::ArPopupCoordinator
+          popupData={popupData}
+          showApplication={showApplication}
+          toggleHighlightById={toggleHighlightById}
+          openParents={openParents}
+        />
       </div>
     )}
-  );
+  )
 }
