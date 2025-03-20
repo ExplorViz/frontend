@@ -11,10 +11,8 @@ import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration
 import { useRoomServiceStore } from 'react-lib/src/stores/collaboration/room-service';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
+import { OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
 import { SyncIcon } from '@primer/octicons-react';
-import Button from 'react-bootstrap/Button';
 
 interface RoomListArgs {
   tokens: LandscapeToken[];

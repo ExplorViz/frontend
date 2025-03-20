@@ -68,7 +68,8 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   };
-  //TODO: original:
+
+  //TODO: if the upper one doesn't work heres the original:
   // const cloneToken=async(userId: string)=> {
   //   try {
   //     await sendModifyAccess(args.token.value, userId, 'clone');
@@ -84,7 +85,6 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
   const hidePopover = (event: React.FormEvent) => {
     // Clicks enable us to differentiate between opened and closed popovers
     if (focusedClicks % 2 === 1) {
-      //TODO:
       event.target?.dispatchEvent(new Event('click'));
     }
     setFocusedClicks(0);
@@ -268,7 +268,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
               className="button-svg-with-hover"
               type="button"
               // {{on 'focusout' this.hidePopover}}
-              onBlur={(event) => hidePopover(event)} // There could be problems with onBlur not working as expected
+              onBlur={(event) => hidePopover(event)} // TODO: There could be problems with onBlur not working as expected
               onClick={(event) => onClick(event)}
             >
               <ShareAndroidIcon size="small" className="octicon align-middle" />
