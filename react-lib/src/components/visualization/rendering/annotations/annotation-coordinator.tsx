@@ -39,11 +39,7 @@ interface AnnotationCoordinatorProps {
   hideAnnotation(annotationid: number): void;
   minimizeAnnotation(annotationId: number): void;
   shareAnnotation(annotation: AnnotationData): void;
-  toggleHighlightById(
-    modelId: string,
-    sendMessage?: boolean,
-    color?: THREE.Color
-  ): void;
+  toggleHighlightById(modelId: string): void;
   openParents(
     entity: Package | Class | EntityMesh,
     applicationId: string

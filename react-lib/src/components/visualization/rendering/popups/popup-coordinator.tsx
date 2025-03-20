@@ -50,11 +50,7 @@ interface PopupCoordinatorProps {
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
   showApplication(appId: string): void;
-  toggleHighlightById: (
-    modelId: string,
-    sendMessage: boolean,
-    color?: THREE.Color
-  ) => void;
+  toggleHighlightById: (modelId: string) => void;
   openParents(entity: Class | Package, applicationId: string): void;
 }
 

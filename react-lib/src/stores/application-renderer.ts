@@ -88,10 +88,11 @@ interface ApplicationRendererState {
   getMeshById: (meshId: string) => BaseMesh | undefined;
   getApplicationIdByMeshId: (meshId: string) => string | undefined;
   getOpenApplications: () => ApplicationObject3D[];
+  getOpenApplicationIds: () => string[];
   isApplicationOpen: (id: string) => boolean;
   addApplicationTask: (
     applicationData: ApplicationData,
-    addApplicationArgs: AddApplicationArgs
+    addApplicationArgs?: AddApplicationArgs
   ) => Promise<ApplicationObject3D>;
   updateLabel: (entityId: string, label: string) => void;
   addCommunication: (applicationObject3D: ApplicationObject3D) => void;
@@ -108,6 +109,10 @@ interface ApplicationRendererState {
   ) => void;
   openAllComponents: (applicationObject3D: ApplicationObject3D) => void;
   toggleComponent: (
+    componentMesh: ComponentMesh,
+    applicationObject3D: ApplicationObject3D
+  ) => void;
+  toggleComponentLocally: (
     componentMesh: ComponentMesh,
     applicationObject3D: ApplicationObject3D
   ) => void;
@@ -221,6 +226,10 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       return Array.from(get().openApplicationsMap.values());
     },
 
+    getOpenApplicationIds: () => {
+      return Array.from(get().openApplicationsMap.keys());
+    },
+
     isApplicationOpen: (id: string): boolean => {
       return get().openApplicationsMap.has(id);
     },
@@ -279,7 +288,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
           app3D,
           applicationState.openComponents,
           applicationState.transparentComponents,
-          useHighlightingStore.getState().opacity
+          useHighlightingStore.getState().opacity()
         );
 
         // Add labels to application
@@ -298,7 +307,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       // reset transparency of inner communication links
       app3D.getCommMeshes().forEach((commMesh) => {
         if (applicationState.transparentComponents?.has(commMesh.getModelId()))
-          commMesh.turnTransparent(useHighlightingStore.getState().opacity);
+          commMesh.turnTransparent(useHighlightingStore.getState().opacity());
       });
 
       // reset transparency of extern communication links
@@ -307,7 +316,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
         const externLinkMesh = useLinkRendererStore.getState().getLinkById(id);
         if (externLinkMesh) {
           externLinkMesh.turnTransparent(
-            useHighlightingStore.getState().opacity
+            useHighlightingStore.getState().opacity()
           );
         }
       });
@@ -501,7 +510,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       EntityManipulation.toggleComponentMeshState(
         componentMesh,
         applicationObject3D,
-        get().appSettings.keepHighlightingOnOpenOrClose.value
+        get().appSettings().keepHighlightingOnOpenOrClose.value
       );
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
     },
@@ -545,7 +554,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     closeAllComponentsLocally: (applicationObject3D: ApplicationObject3D) => {
       EntityManipulation.closeAllComponents(
         applicationObject3D,
-        get().appSettings.keepHighlightingOnOpenOrClose.value
+        get().appSettings().keepHighlightingOnOpenOrClose.value
       );
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
     },
@@ -661,7 +670,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
         .forEach((app3D) => {
           Labeler.addApplicationLabels(
             app3D,
-            useFontRepositoryStore.getState().font,
+            useFontRepositoryStore.getState().font!,
             useUserSettingsStore.getState().colors!,
             false,
             true

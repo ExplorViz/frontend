@@ -42,8 +42,8 @@ interface HighlightingState {
   ) => void;
   toggleHighlightById: (
     modelId: string,
-    sendMessage: boolean,
-    color?: THREE.Color
+    color?: THREE.Color,
+    sendMessage?: boolean
   ) => void;
   highlightTrace: (
     trace: Trace,
@@ -139,8 +139,8 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
 
   toggleHighlightById: (
     modelId: string,
-    sendMessage = false,
-    color?: THREE.Color
+    color?: THREE.Color,
+    sendMessage = false
   ) => {
     const mesh = useApplicationRendererStore.getState().getMeshById(modelId);
     if (isEntityMesh(mesh)) {
@@ -305,7 +305,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     communicationMeshes: ClazzCommunicationMesh[];
     applications: ApplicationObject3D[];
   } => {
-    const communicationMeshes = useLinkRendererStore.getState().getLinks();
+    const communicationMeshes = useLinkRendererStore.getState().getAllLinks();
 
     const applications = useApplicationRendererStore
       .getState()
@@ -445,7 +445,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     highlighted: boolean,
     color?: THREE.Color
   ) => {
-    mesh.highlightingColor = color || get().highlightingColor;
+    mesh.highlightingColor = color || get().highlightingColor();
 
     if (
       !useUserSettingsStore.getState().visualizationSettings

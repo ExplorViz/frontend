@@ -79,14 +79,14 @@ interface RoomSerializerState {
   ) => SerializedAnnotation[];
   _serializeDetachedMenus: () => SerializedDetachedMenu[];
   _serializehighlightedExternCommunicationLinks: () => SerializedHighlightedComponent[];
-  setSerializedRoom: (room: SerializedRoom) => void;
+  setSerializedRoom: (room: SerializedRoom | undefined) => void;
 }
 
 export const useRoomSerializerStore = create<RoomSerializerState>(
   (set, get) => ({
     serializedRoom: undefined,
 
-    setSerializedRoom: (room: SerializedRoom) => {
+    setSerializedRoom: (room: SerializedRoom | undefined) => {
       set({ serializedRoom: room });
     },
 
