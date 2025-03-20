@@ -1,0 +1,236 @@
+import { useEffect, useState, useRef } from 'react';
+
+import {
+  Application,
+  Class,
+  Package,
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
+import { Button } from 'react-bootstrap';
+
+
+interface PopupWrapperArgs {
+  popupData: {
+    id: number;
+    isPinned: boolean;
+    posX: number;
+    posY: number;
+    entity: Node | Application | Package | Class;
+  };
+  keepPopupOpen(id: number): void;
+  setPopupPosition(id: number, posX: number, posY: number): void;
+  closePopup(id: number): void;
+}
+
+export default function PopupWrapper(args: PopupWrapperArgs) {
+
+  // Seems not to be used:
+  const [isPinned, setIsPinned] = useState(false);
+
+  // TODO: Check if this is usable
+  let divElement!: HTMLElement;
+  // divElement!: HTMLElement;
+  const [panDeltaX, setPanDeltaX] = useState(0);
+  const [panDeltaY, setPanDeltaY] = useState(0);
+
+  const dragElementRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const dragElement = dragElementRef.current;
+    initializePanListener(dragElement!);
+
+    setupInitialPosition(dragElement!);
+
+    divElement = dragElement!;
+
+    if (useARSettingsStore.getState().stackPopups) {
+      args.keepPopupOpen(args.popupData.id);
+    }
+  });
+
+  // For useEffect reference:
+  // const setupDragElement = (element: HTMLElement) => {
+  //   initializePanListener(element);
+
+  //   setupInitialPosition(element);
+
+  //   divElement = element;
+
+  //   if (useARSettingsStore.getState().stackPopups) {
+  //     args.keepPopupOpen(args.popupData.id);
+  //   }
+  // }
+
+  const initializePanListener = (element: HTMLElement) => {
+    const mc = new Hammer(element);
+
+    mc.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+
+    // Keep track of pan distance since pan start
+    mc.on('panstart', () => {
+      keepPopupOpen();
+      setPanDeltaX(0);
+      setPanDeltaY(0);
+    });
+
+    mc.on('panleft panright panup pandown', (ev) => {
+      // Calculate positional difference since last pan event
+      const currentDeltaX = panDeltaX - ev.deltaX;
+      const currentDeltaY = panDeltaY - ev.deltaY;
+
+      handlePan(currentDeltaX, currentDeltaY);
+
+      setPanDeltaX(ev.deltaX);
+      setPanDeltaY(ev.deltaY);
+    });
+  }
+
+  const keepPopupOpen = () => {
+    if (!args.popupData.isPinned) {
+      args.keepPopupOpen(args.popupData.id);
+    }
+  }
+
+  const closePopup = () => {
+    args.closePopup(args.popupData.id);
+  }
+
+  const setupInitialPosition = (popoverDiv: HTMLElement) => {
+    const { popupData } = args;
+
+    // Set to previously stored position
+    if (popupData.isPinned) {
+      popoverDiv.style.left = `${popupData.posX}px`;
+      popoverDiv.style.top = `${popupData.posY}px`;
+      return;
+    }
+
+    // Sorrounding div for position calculations
+    const containerDiv = popoverDiv.parentElement as HTMLElement;
+
+    const popoverHeight = popoverDiv.clientHeight;
+    const popoverWidth = popoverDiv.clientWidth;
+
+    const containerWidth = containerDiv.clientWidth;
+
+    if (
+      popoverHeight === undefined ||
+      popoverWidth === undefined ||
+      containerWidth === undefined
+    ) {
+      return;
+    }
+
+    const popupTopOffset = popoverHeight + 40;
+    const popupLeftOffset = popoverWidth / 2;
+
+    let popupTopPosition = containerDiv.clientHeight / 2 - popupTopOffset;
+    let popupLeftPosition = containerDiv.clientWidth / 2 - popupLeftOffset;
+
+    // Prevent popup positioning on top of rendering canvas =>
+    // position under mouse cursor
+    if (popupTopPosition < 0) {
+      const approximateMouseHeight = 35;
+      popupTopPosition = popupData.posY + approximateMouseHeight;
+    }
+
+    // Prevent popup positioning right(outside) of rendering canvas =>
+    // position at right edge of canvas
+    if (popupLeftPosition + popoverWidth > containerWidth) {
+      const extraPopupMarginFromAtBottom = 5;
+      popupLeftPosition =
+        containerWidth - popoverWidth - extraPopupMarginFromAtBottom;
+    }
+
+    // Prevent popup positioning left(outside) of rendering canvas =>
+    // position at left edge of canvas
+    if (popupLeftPosition < 0) {
+      popupLeftPosition = 0;
+    }
+
+    // Set popup position
+    /* eslint-disable no-param-reassign */
+    popoverDiv.style.top = `${popupTopPosition}px`;
+    popoverDiv.style.left = `${popupLeftPosition}px`;
+
+    args.setPopupPosition(
+      args.popupData.id,
+      popupLeftPosition,
+      popupTopPosition
+    );
+  }
+
+  // TODO: If it doesn't work, look into git for the history
+  const handlePan = (deltaX: number, deltaY: number) => {
+
+    const localDivElement = divElement;
+    const localArgs = args;
+
+    function xPositionInsideWindow(minX: number, maxX: number) {
+      return minX >= 0 && maxX <= window.innerWidth;
+    }
+
+    function yPositionInsideWindow(minY: number, maxY: number) {
+      return minY >= 0 && maxY <= window.innerHeight;
+    }
+
+    function moveElement(xOffset: number, yOffset: number) {
+      // Calculation of old and new coordinates
+      const oldMinX = localDivElement.offsetLeft;
+      const oldMaxX = oldMinX + localDivElement.clientWidth;
+      const oldMinY = localDivElement.offsetTop;
+      const oldMaxY = oldMinY + localDivElement.clientHeight;
+
+      const newMinX = oldMinX - xOffset;
+      const newMaxX = newMinX + localDivElement.clientWidth;
+      const newMinY = oldMinY - yOffset;
+      const newMaxY = newMinY + localDivElement.clientHeight;
+
+      // Set the element's new position:
+      if (
+        !xPositionInsideWindow(oldMinX, oldMaxX) ||
+        xPositionInsideWindow(newMinX, newMaxX)
+      ) {
+        localDivElement.style.left = `${newMinX}px`;
+      }
+
+      if (
+        !yPositionInsideWindow(oldMinY, oldMaxY) ||
+        yPositionInsideWindow(newMinY, newMaxY)
+      ) {
+        localDivElement.style.top = `${newMinY}px`;
+      }
+
+      localArgs.setPopupPosition(localArgs.popupData.id, newMinX, newMinY);
+    }
+
+    moveElement(deltaX, deltaY);
+  }
+
+  return(
+    {popupData && (
+      <div
+      ref={dragElementRef}
+      id='popupWrapper'
+      className='foreground'
+      style='position: absolute; cursor: move'
+      >
+        <div className='d-flex'>
+          <Button 
+            title='ar-popup-close'
+            variant="primary" 
+            onClick={closePopup}
+            onTouchStart={closePopup}
+          >
+            X
+          </Button>
+        </div>
+        <ExtendedReality::Visualization::Rendering::Popups::ArPopupCoordinator
+          popupData={popupData}
+          showApplication={showApplication}
+          toggleHighlightById={toggleHighlightById}
+          openParents={openParents}
+        />
+      </div>
+    )}
+  )
+}

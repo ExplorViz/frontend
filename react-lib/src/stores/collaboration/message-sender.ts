@@ -148,7 +148,7 @@ interface MessageSenderState {
     componentId: string,
     isOpened: boolean,
     isFoundation: boolean,
-    forward: boolean
+    forward?: boolean
   ) => void;
   sendHighlightingUpdate: (
     appId: string,

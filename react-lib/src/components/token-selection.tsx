@@ -9,13 +9,13 @@ import {
   TrashIcon,
 } from '@primer/octicons-react';
 import AdditionalTokenInfo from './additional-token-info';
-// import ShareLandscape from 'react-lib/src/components/share-landscape';
+import ShareLandscape from 'react-lib/src/components/share-landscape';
 
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
   selectToken(token: LandscapeToken): void;
-  deleteToken(tokenId: string, event: MouseEvent): Promise<void>;
+  deleteToken(tokenId: string, event: React.MouseEvent): Promise<void>;
   reload(): void;
 }
 
@@ -159,7 +159,7 @@ export default function TokenSelection({
                         <button
                           className="button-svg-with-hover"
                           type="button"
-                          onClick={() => deleteToken(token.value)}
+                          onClick={(e) => deleteToken(token.value, e)}
                         >
                           <TrashIcon size="small" className="align-middle" />
                         </button>
@@ -186,7 +186,7 @@ export default function TokenSelection({
                     </OverlayTrigger>
                   </li>
                   <li>
-                    {/* <ShareLandscape token={token} reload={reload} /> */}
+                    <ShareLandscape token={token} reload={reload} />
                   </li>
                 </ul>
               </td>

@@ -4,6 +4,11 @@ import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
 import AnnotationData from 'react-lib/src/components/visualization/rendering/annotations/annotation-data';
+import {
+  Class,
+  Package,
+} from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 import * as THREE from 'three';
@@ -29,10 +34,16 @@ interface AnnotationCoordinatorProps {
   annotationData: AnnotationData;
   removeAnnotation(annotationId: number): void;
   updateMeshReference(annotation: AnnotationData): void;
-  editAnnotation(annotationId: number);
-  updateAnnotation(annotationId: number);
-  minimizeAnnotation(annotationId: number);
+  editAnnotation(annotationId: number): void;
+  updateAnnotation(annotationId: number): void;
+  hideAnnotation(annotationid: number): void;
+  minimizeAnnotation(annotationId: number): void;
   shareAnnotation(annotation: AnnotationData): void;
+  toggleHighlightById(modelId: string): void;
+  openParents(
+    entity: Package | Class | EntityMesh,
+    applicationId: string
+  ): void;
 }
 
 export default function AnnotationCoordinator({
@@ -42,8 +53,11 @@ export default function AnnotationCoordinator({
   updateMeshReference,
   editAnnotation,
   updateAnnotation,
+  hideAnnotation,
   minimizeAnnotation,
   shareAnnotation,
+  toggleHighlightById,
+  openParents,
 }: AnnotationCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);

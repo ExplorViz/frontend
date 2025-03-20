@@ -3,11 +3,15 @@ import React, { useEffect, useState } from 'react';
 import {
   DynamicLandscapeData,
   Trace,
+  Span,
 } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
+  Class,
   Application,
   StructureLandscapeData,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'react-lib/src/utils/trace-helpers';
 import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
@@ -24,7 +28,16 @@ interface TraceSelectionAndReplayerProps {
   readonly landscapeData: LandscapeData;
   highlightTrace(trace: Trace, traceStep: string): void;
   removeHighlighting(): void;
-  moveCameraTo(): void;
+  moveCameraTo(
+    model: Class | Span,
+    applicationObject3D: ApplicationObject3D,
+    dynamicData: DynamicLandscapeData,
+    cameraControls: CameraControls
+  ): void;
+  triggerRenderingForGivenLandscapeData(
+    structureData: StructureLandscapeData,
+    dynamicData: DynamicLandscapeData
+  ): void;
 }
 
 export default function TraceSelectionAndReplayer({
@@ -36,6 +49,7 @@ export default function TraceSelectionAndReplayer({
   highlightTrace,
   removeHighlighting,
   moveCameraTo,
+  triggerRenderingForGivenLandscapeData,
 }: TraceSelectionAndReplayerProps) {
   const pauseVisualizationUpdating = useRenderingServiceStore(
     (state) => state.pauseVisualizationUpdating

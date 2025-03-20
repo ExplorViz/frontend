@@ -73,13 +73,10 @@ export default function ShareSnapshot(args: ShareSnapshotArgs) {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="outline-danger" onClick={closeMenu}>
+          <Button variant="danger" onClick={closeMenu}>
             Cancel
           </Button>
-          <Button
-            variant="outline-secondary"
-            onClick={() => shareSnapshot(args.token)}
-          >
+          <Button variant="secondary" onClick={() => shareSnapshot(args.token)}>
             Upload
           </Button>
         </Modal.Footer>

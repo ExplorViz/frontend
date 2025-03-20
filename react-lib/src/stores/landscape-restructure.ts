@@ -252,6 +252,7 @@ interface LandscapeRestructureState {
   _sendCutInsertMessage(destination: Application | Package): void;
   removeCopiedClassCommunication: (key: string) => void;
   setCanvas: (canvas: HTMLCanvasElement) => void;
+  setAllClassCommunications: (allClassCommunications: ClassCommunication[]) => void;
 }
 
 export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
@@ -2916,6 +2917,8 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
     },
 
     setCanvas: (canvas) => set({ canvas: canvas }),
+
+    setAllClassCommunications: (allClassCommunications) => set({allClassCommunications: allClassCommunications})
   })
 );
 
