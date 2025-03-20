@@ -8,19 +8,19 @@ body {
 
 #main-container {
   height: 100%;
-  @extend .d-flex;
-  @extend .flex-column;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 #vizspace {
-  @extend .d-flex;
-  @extend .flex-column;
+  display: flex !important;
+  flex-direction: column !important;
   height: 100%;
 }
 
 #rendering {
-  @extend .d-flex;
-  @extend .flex-grow-1;
+  display: flex !important;
+   flex-grow: 1 !important;
   max-height: 100%;
   position: relative;
 }
@@ -166,7 +166,12 @@ svg.octicon {
 @mixin centerSpinners() {
   @for $i from 1 through 5 {
     .spinner-center-#{$i} {
-      @extend .spinner-border;
+      display: inline-block;
+      width: var(--bs-spinner-width);
+      height: var(--bs-spinner-height);
+      vertical-align: var(--bs-spinner-vertical-align);
+      border-radius: 50%;
+      animation: var(--bs-spinner-animation-speed) linear infinite var(--bs-spinner-animation-name);
       position: absolute;
       top: calc(50% - #{calc($i / 2)}rem);
       left: calc(50% - #{calc($i / 2)}rem);
@@ -181,7 +186,7 @@ svg.octicon {
 }
 
 .spinner-center-3-relative {
-  @extend .spinner-center-3;
+  @extend .spinner-center-3 !optional;
   position: relative;
 }
 

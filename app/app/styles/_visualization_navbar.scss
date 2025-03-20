@@ -1,11 +1,15 @@
 .nav-link-with-cursor {
-  @extend .nav-link;
+  flex-grow: 1;
+  flex-basis: 0;
+  text-align: center;
   cursor: pointer;
   user-select: none;
 }
 
 .nav-item-with-def-cursor {
-  @extend .nav-item;
+  flex-grow: 1;
+  flex-basis: 0;
+  text-align: center;
   cursor: default !important;
 }
 
@@ -14,9 +18,6 @@
 }
 
 .explorviz-visualization-navbar {
-  @extend .bg-light;
-  @extend .pl-3 !optional;
-  @extend .pr-3 !optional;
   position: relative;
   z-index: 750;
   align-self: center;
@@ -36,7 +37,8 @@
 }
 
 .explorviz-visualization-navbar > ul > li {
-  @extend .my-1;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
 }
 
 .explorviz-visualization-navbar > ul.nav > li.nav-item {
