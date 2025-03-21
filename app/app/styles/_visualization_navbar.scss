@@ -1,11 +1,20 @@
 .nav-link-with-cursor {
-  @extend .nav-link;
+  display: block;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  color: #000000;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
   cursor: pointer;
   user-select: none;
 }
 
 .nav-item-with-def-cursor {
-  @extend .nav-item;
+  flex-grow: 1;
+  flex-basis: 0;
+  text-align: center;
   cursor: default !important;
 }
 
@@ -14,13 +23,10 @@
 }
 
 .explorviz-visualization-navbar {
-  @extend .bg-light;
-  @extend .pl-3 !optional;
-  @extend .pr-3 !optional;
   position: relative;
   z-index: 750;
   align-self: center;
-  background-color: #dbdbdb;
+  background-color: #f9f9f9;
   width: 100%;
   border-radius: 0.25rem;
   pointer-events: all;
@@ -36,7 +42,8 @@
 }
 
 .explorviz-visualization-navbar > ul > li {
-  @extend .my-1;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
 }
 
 .explorviz-visualization-navbar > ul.nav > li.nav-item {

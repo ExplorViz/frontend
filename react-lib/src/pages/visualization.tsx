@@ -60,8 +60,8 @@ import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling
 import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
 import SyncState from '../components/sync-state';
-import ArRendering from 'react-lib/src/components/extended-reality/ar-rendering';
-import VrRendering from 'react-lib/src/components/extender-reality/vr-rendering';
+// import ArRendering from 'react-lib/src/components/extended-reality/ar-rendering';
+// import VrRendering from 'react-lib/src/components/extender-reality/vr-rendering';
 import { useUserSettingsStore } from '../stores/user-settings';
 import BrowserRendering from 'react-lib/src/components/visualization/rendering/browser-rendering';
 import { useLandscapeTokenStore } from '../stores/landscape-token';
@@ -71,7 +71,7 @@ import { useFontRepositoryStore } from '../stores/repos/font-repository';
 import { Button } from 'react-bootstrap';
 import PlotlyTimeline from 'react-lib/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
-import EvolutionRenderingButtons from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
+// import EvolutionRenderingButtons from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import { ChevronUpIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
@@ -424,17 +424,18 @@ export default function Visualization() {
 
   // #region Setup
   const initRenderingAndSetupListeners = async () => {
-    setTimelineDataObjectHandler(new TimelineDataObjectHandler());
+    const newTimelineDataObjectHandler = new TimelineDataObjectHandler();
+    setTimelineDataObjectHandler(newTimelineDataObjectHandler);
 
     setLandscapeDataRenderingService(null);
 
     // set timelineDataObjectHandler where necessary
     useRenderingServiceStore.setState({
-      _timelineDataObjectHandler: timelineDataObjectHandler,
+      _timelineDataObjectHandler: newTimelineDataObjectHandler,
     });
 
     useTimestampRepositoryStore.setState({
-      _timelineDataObjectHandler: timelineDataObjectHandler,
+      _timelineDataObjectHandler: newTimelineDataObjectHandler,
     });
 
     setVisualizationPausedRenderingService(false);
@@ -751,32 +752,34 @@ export default function Visualization() {
 
         {/* ! Rendering mode */}
         {showAR ? (
-          <ArRendering
-            id="ar-rendering"
-            landscapeData={renderingServiceLandscapeData}
-            switchToOnScreenMode={switchToOnScreenMode}
-            toggleVisualizationUpdating={
-              renderingServiceToggleVisualizationUpdating
-            }
-            visualizationPaused={renderingServiceVisualizationPaused}
-            openedSettingComponent={
-              sidebarHandler.current.openedSettingComponent
-            }
-            toggleSettingsSidebarComponent={
-              sidebarHandler.current.toggleSettingsSidebarComponent
-            }
-            showSettingsSidebar={sidebarHandler.current.showSettingsSidebar}
-            openSettingsSidebar={sidebarHandler.current.openSettingsSidebar}
-            closeSettingsSidebar={sidebarHandler.current.closeSettingsSidebar}
-          />
-        ) : showVR ? (
-          <VrRendering
-            id="vr-rendering"
-            landscapeData={renderingServiceLandscapeData}
-            switchToOnScreenMode={switchToOnScreenMode}
-            debugMode={visualizationSettings?.showVrOnClick.value ?? false}
-          />
+          <></>
+        ) : // <ArRendering
+        //   id="ar-rendering"
+        //   landscapeData={renderingServiceLandscapeData}
+        //   switchToOnScreenMode={switchToOnScreenMode}
+        //   toggleVisualizationUpdating={
+        //     renderingServiceToggleVisualizationUpdating
+        //   }
+        //   visualizationPaused={renderingServiceVisualizationPaused}
+        //   openedSettingComponent={
+        //     sidebarHandler.current.openedSettingComponent
+        //   }
+        //   toggleSettingsSidebarComponent={
+        //     sidebarHandler.current.toggleSettingsSidebarComponent
+        //   }
+        //   showSettingsSidebar={sidebarHandler.current.showSettingsSidebar}
+        //   openSettingsSidebar={sidebarHandler.current.openSettingsSidebar}
+        //   closeSettingsSidebar={sidebarHandler.current.closeSettingsSidebar}
+        // />
+        showVR ? (
+          <></>
         ) : (
+          // <VrRendering
+          //   id="vr-rendering"
+          //   landscapeData={renderingServiceLandscapeData}
+          //   switchToOnScreenMode={switchToOnScreenMode}
+          //   debugMode={visualizationSettings?.showVrOnClick.value ?? false}
+          // />
           <BrowserRendering
             // addComponent={addComponent}
             // applicationArgs={applicationArgs}
@@ -880,12 +883,13 @@ export default function Visualization() {
               </div>
 
               {isRuntimeTimelineSelected && (
-                <PlotlyTimeline
-                  timelineDataObject={
-                    timelineDataObjectHandler?.timelineDataObject!
-                  }
-                  clicked={timelineDataObjectHandler?.timelineClicked!}
-                />
+                <></>
+                // <PlotlyTimeline
+                //   timelineDataObject={
+                //     timelineDataObjectHandler?.timelineDataObject!
+                //   }
+                //   clicked={timelineDataObjectHandler?.timelineClicked!}
+                // />
               )}
 
               {isCommitTreeSelected && (
@@ -900,10 +904,10 @@ export default function Visualization() {
                         selectedAppName={currentSelectedApplicationName}
                       />
                     </div>
-                    <EvolutionRenderingButtons
+                    {/* <EvolutionRenderingButtons
                       selectedAppName={currentSelectedApplicationName}
                       selectedCommits={getSelectedCommits()}
-                    />
+                    /> */}
                   </div>
                   <PlotlyCommitTree
                     appNameCommitTreeMap={

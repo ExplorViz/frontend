@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { useAuthStore } from 'react-lib/src/stores/auth';
@@ -20,8 +20,7 @@ const userService = import.meta.env.VITE_USER_SERV_URL;
 
 export default function ShareLandscape(args: ShareLandscapeArgs) {
   const user = useAuthStore((state) => state.user);
-  // TODO: normally no tracked variable but didn't know better
-  const [focusedClicks, setFocusedClicks] = useState<number>(0);
+  const focusedClicks = useRef<number>(0);
 
   const [username, setUserName] = useState<string>('');
 
@@ -56,10 +55,10 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     }
   };
 
-  const cloneToken = async (event: React.FormEvent) => {
+  const cloneToken = async (userId: string, event: React.FormEvent) => {
     event.stopPropagation();
     try {
-      await sendModifyAccess(args.token.value, user!.sub, 'clone');
+      await sendModifyAccess(args.token.value, userId, 'clone');
       args.reload();
       useToastHandlerStore
         .getState()
@@ -69,29 +68,16 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     }
   };
 
-  //TODO: if the upper one doesn't work heres the original:
-  // const cloneToken=async(userId: string)=> {
-  //   try {
-  //     await sendModifyAccess(args.token.value, userId, 'clone');
-  //     args.reload();
-  //     useToastHandlerStore
-  //       .getState()
-  //       .showSuccessToastMessage(`Cloned token ${args.token.value}`);
-  //   } catch (e) {
-  //     useToastHandlerStore.getState().showErrorToastMessage(e.message);
-  //   }
-  // }
-
   const hidePopover = (event: React.FormEvent) => {
     // Clicks enable us to differentiate between opened and closed popovers
-    if (focusedClicks % 2 === 1) {
+    if (focusedClicks.current % 2 === 1) {
       event.target?.dispatchEvent(new Event('click'));
     }
-    setFocusedClicks(0);
+    focusedClicks.current = 0;
   };
 
   const onClick = (event: React.FormEvent) => {
-    setFocusedClicks(focusedClicks + 1);
+    focusedClicks.current = focusedClicks.current + 1;
     // Prevent click on table row which would trigger to open the visualization
     event.stopPropagation();
   };
@@ -232,7 +218,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                       <button
                         className="button-svg-with-hover"
                         type="button"
-                        onClick={(event) => cloneToken(event)}
+                        onClick={(event) => cloneToken(user!.sub, event)}
                       >
                         <RepoForkedIcon
                           size="small"
@@ -267,8 +253,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
             <button
               className="button-svg-with-hover"
               type="button"
-              // {{on 'focusout' this.hidePopover}}
-              onBlur={(event) => hidePopover(event)} // TODO: There could be problems with onBlur not working as expected
+              onBlur={(event) => hidePopover(event)}
               onClick={(event) => onClick(event)}
             >
               <ShareAndroidIcon size="small" className="octicon align-middle" />

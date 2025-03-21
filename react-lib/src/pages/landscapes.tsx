@@ -3,7 +3,11 @@ import {
   LandscapeToken,
   useLandscapeTokenStore,
 } from '../stores/landscape-token';
-import { TinySnapshot, useSnapshotTokenStore } from '../stores/snapshot-token';
+import {
+  SnapshotInfo,
+  TinySnapshot,
+  useSnapshotTokenStore,
+} from '../stores/snapshot-token';
 import { useNavigate, createSearchParams, useParams } from 'react-router-dom';
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { useAuthStore } from '../stores/auth';
@@ -15,10 +19,10 @@ import TokenCreationModal from 'react-lib/src/components/token-creation-modal';
 import LandscapeLoader from './landscapes-loading';
 
 export default function Landscapes() {
-  const [data, setData] = useState({
-    landscapeTokens: null,
-    snapshotInfo: null,
-  });
+  const [data, setData] = useState<{
+    landscapeTokens: LandscapeToken[];
+    snapshotInfo: SnapshotInfo;
+  } | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
     useState<boolean>(false);
@@ -206,7 +210,7 @@ export default function Landscapes() {
     });
   };
 
-  if (!data.landscapeTokens || !data.snapshotInfo) {
+  if (!data || !data.landscapeTokens || !data.snapshotInfo) {
     return <LandscapeLoader />;
   }
 

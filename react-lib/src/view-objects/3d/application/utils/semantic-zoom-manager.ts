@@ -321,8 +321,8 @@ export default class SemanticZoomManager {
     if (this.preClustered != undefined) {
       this.preClustered.clear();
     }
-    this.zoomableObjects.clear();
-    this.zoomLevelMap.clear();
+    this.zoomableObjects = [];
+    this.zoomLevelMap = [];
     this.alreadyCreatedZoomLevelMap = false;
     this._biggestMap.clear();
     this._smallestMap.clear();

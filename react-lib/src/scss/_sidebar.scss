@@ -80,7 +80,7 @@
 
 .sidebar {
   display: flex;
-  @extend .flex-row;
+  flex-direction: row !important;
   flex: 0 0 33.333333%;
   max-width: 33.333333%;
   position: absolute !important;

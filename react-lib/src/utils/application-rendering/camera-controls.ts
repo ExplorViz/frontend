@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { MapControls } from 'react-lib/src/utils/controls/MapControls';
 import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import { ImmersiveView } from 'explorviz-frontend/rendering/application/immersive-view';
+import { ImmersiveView } from 'react-lib/src/rendering/application/immersive-view';
 
 export default class CameraControls {
   private perspectiveCamera: PerspectiveCamera;
