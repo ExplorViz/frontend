@@ -8,20 +8,22 @@ import {
 import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 import { Button } from 'react-bootstrap';
 import ArPopupCoordinator from 'react-lib/src/components/extended-reality/visualization/rendering/popups/ar-popup-coordinator';
+import PopupData from '../../../../visualization/rendering/popups/popup-data';
 
 interface PopupWrapperArgs {
-  popupData: {
-    id: number;
-    isPinned: boolean;
-    posX: number;
-    posY: number;
-    entity: Node | Application | Package | Class;
-  };
+  // popupData: {
+  //   id: number;
+  //   isPinned: boolean;
+  //   posX: number;
+  //   posY: number;
+  //   entity: Node | Application | Package | Class;
+  // }; // TODO: PopupWrapper never used, but this arg doesn't make sense. Incomplete popupdata
+  popupData: PopupData;
   keepPopupOpen(id: number): void;
   setPopupPosition(id: number, posX: number, posY: number): void;
   closePopup(id: number): void;
-  showApplication(application: Application): void;
-  toggleHighlightById(id: number): void;
+  showApplication(applicationId: string): void;
+  toggleHighlightById(id: string): void;
   openParents(entity: Node | Application | Package | Class): void;
 }
 
@@ -40,7 +42,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     setupInitialPosition(dragElement!);
 
     if (useARSettingsStore.getState().stackPopups) {
-      args.keepPopupOpen(args.popupData.id);
+      args.keepPopupOpen(+args.popupData.entity.id); // original param: args.popupData.id
     }
   });
 
@@ -70,12 +72,12 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
 
   const keepPopupOpen = () => {
     if (!args.popupData.isPinned) {
-      args.keepPopupOpen(args.popupData.id);
+      args.keepPopupOpen(+args.popupData.entity.id); // original param: args.popupData.id
     }
   };
 
   const closePopup = () => {
-    args.closePopup(args.popupData.id);
+    args.closePopup(+args.popupData.entity.id); // original param: args.popupData.id
   };
 
   const setupInitialPosition = (popoverDiv: HTMLElement) => {
@@ -83,8 +85,8 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
 
     // Set to previously stored position
     if (popupData.isPinned) {
-      popoverDiv.style.left = `${popupData.posX}px`;
-      popoverDiv.style.top = `${popupData.posY}px`;
+      popoverDiv.style.left = `${popupData.mouseX}px`; // original param: popupData.posX
+      popoverDiv.style.top = `${popupData.mouseY}px`; // original param: popupData.posY
       return;
     }
 
@@ -114,7 +116,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     // position under mouse cursor
     if (popupTopPosition < 0) {
       const approximateMouseHeight = 35;
-      popupTopPosition = popupData.posY + approximateMouseHeight;
+      popupTopPosition = popupData.mouseY /*posY*/ + approximateMouseHeight;
     }
 
     // Prevent popup positioning right(outside) of rendering canvas =>
@@ -137,7 +139,7 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     popoverDiv.style.left = `${popupLeftPosition}px`;
 
     args.setPopupPosition(
-      args.popupData.id,
+      +args.popupData.entity.id, // original param: args.popupData.id
       popupLeftPosition,
       popupTopPosition
     );
@@ -183,7 +185,11 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
         localDivElement.style.top = `${newMinY}px`;
       }
 
-      localArgs.setPopupPosition(localArgs.popupData.id, newMinX, newMinY);
+      localArgs.setPopupPosition(
+        +localArgs.popupData.entity.id,
+        newMinX,
+        newMinY
+      ); // original param: popupData.id
     }
 
     moveElement(deltaX, deltaY);
@@ -209,9 +215,9 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
         </div>
         <ArPopupCoordinator
           popupData={args.popupData}
-          showApplication={args.showApplication} // ????
-          toggleHighlightById={args.toggleHighlightById} // ????
-          openParents={args.openParents} // ????
+          showApplication={args.showApplication}
+          toggleHighlightById={args.toggleHighlightById}
+          openParents={args.openParents}
         />
       </div>
     )
