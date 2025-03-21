@@ -20,6 +20,9 @@ interface PopupWrapperArgs {
   keepPopupOpen(id: number): void;
   setPopupPosition(id: number, posX: number, posY: number): void;
   closePopup(id: number): void;
+  showApplication(application: Application): void;
+  toggleHighlightById(id: number): void;
+  openParents(entity: Node | Application | Package | Class): void;
 }
 
 export default function PopupWrapper(args: PopupWrapperArgs) {
@@ -206,9 +209,9 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
         </div>
         <ArPopupCoordinator
           popupData={args.popupData}
-          showApplication={showApplication} // ????
-          toggleHighlightById={toggleHighlightById} // ????
-          openParents={openParents} // ????
+          showApplication={args.showApplication} // ????
+          toggleHighlightById={args.toggleHighlightById} // ????
+          openParents={args.openParents} // ????
         />
       </div>
     )
