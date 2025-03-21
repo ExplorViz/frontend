@@ -145,7 +145,7 @@ export default function TokenSelection({
         {sortedTokens.length > 0 ? (
           sortedTokens.map((token) => (
             <tr
-              key={token.value}
+              key={token.alias}
               className="token-selection-row"
               onClick={() => selectToken(token)}
             >

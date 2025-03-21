@@ -7,7 +7,7 @@ import {
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 import { Button } from 'react-bootstrap';
-
+import ArPopupCoordinator from 'react-lib/src/components/extended-reality/visualization/rendering/popups/ar-popup-coordinator';
 
 interface PopupWrapperArgs {
   popupData: {
@@ -23,42 +23,23 @@ interface PopupWrapperArgs {
 }
 
 export default function PopupWrapper(args: PopupWrapperArgs) {
-
   // Seems not to be used:
   const [isPinned, setIsPinned] = useState(false);
 
-  // TODO: Check if this is usable
-  let divElement!: HTMLElement;
-  // divElement!: HTMLElement;
   const [panDeltaX, setPanDeltaX] = useState(0);
   const [panDeltaY, setPanDeltaY] = useState(0);
 
-  const dragElementRef = useRef<HTMLElement>(null);
+  const dragElementRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const dragElement = dragElementRef.current;
     initializePanListener(dragElement!);
 
     setupInitialPosition(dragElement!);
 
-    divElement = dragElement!;
-
     if (useARSettingsStore.getState().stackPopups) {
       args.keepPopupOpen(args.popupData.id);
     }
   });
-
-  // For useEffect reference:
-  // const setupDragElement = (element: HTMLElement) => {
-  //   initializePanListener(element);
-
-  //   setupInitialPosition(element);
-
-  //   divElement = element;
-
-  //   if (useARSettingsStore.getState().stackPopups) {
-  //     args.keepPopupOpen(args.popupData.id);
-  //   }
-  // }
 
   const initializePanListener = (element: HTMLElement) => {
     const mc = new Hammer(element);
@@ -82,17 +63,17 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
       setPanDeltaX(ev.deltaX);
       setPanDeltaY(ev.deltaY);
     });
-  }
+  };
 
   const keepPopupOpen = () => {
     if (!args.popupData.isPinned) {
       args.keepPopupOpen(args.popupData.id);
     }
-  }
+  };
 
   const closePopup = () => {
     args.closePopup(args.popupData.id);
-  }
+  };
 
   const setupInitialPosition = (popoverDiv: HTMLElement) => {
     const { popupData } = args;
@@ -157,12 +138,11 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
       popupLeftPosition,
       popupTopPosition
     );
-  }
+  };
 
   // TODO: If it doesn't work, look into git for the history
   const handlePan = (deltaX: number, deltaY: number) => {
-
-    const localDivElement = divElement;
+    const localDivElement = dragElementRef.current!;
     const localArgs = args;
 
     function xPositionInsideWindow(minX: number, maxX: number) {
@@ -204,33 +184,33 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     }
 
     moveElement(deltaX, deltaY);
-  }
+  };
 
-  return(
-    {popupData && (
+  return (
+    args.popupData && (
       <div
-      ref={dragElementRef}
-      id='popupWrapper'
-      className='foreground'
-      style='position: absolute; cursor: move'
+        ref={dragElementRef}
+        id="popupWrapper"
+        className="foreground"
+        style={{ position: 'absolute', cursor: 'move' }}
       >
-        <div className='d-flex'>
-          <Button 
-            title='ar-popup-close'
-            variant="primary" 
+        <div className="d-flex">
+          <Button
+            title="ar-popup-close"
+            variant="primary"
             onClick={closePopup}
             onTouchStart={closePopup}
           >
             X
           </Button>
         </div>
-        <ExtendedReality::Visualization::Rendering::Popups::ArPopupCoordinator
-          popupData={popupData}
-          showApplication={showApplication}
-          toggleHighlightById={toggleHighlightById}
-          openParents={openParents}
+        <ArPopupCoordinator
+          popupData={args.popupData}
+          showApplication={showApplication} // ????
+          toggleHighlightById={toggleHighlightById} // ????
+          openParents={openParents} // ????
         />
       </div>
-    )}
-  )
+    )
+  );
 }
