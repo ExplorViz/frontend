@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface VrButtonArgs {
   renderer: THREE.WebGLRenderer;
@@ -11,9 +11,8 @@ export default function VrButton(args: VrButtonArgs) {
   const [vrSupported, setVrSupported] = useState<boolean>(false);
   const [buttonText, setButtonText] = useState<string>('Checking ...');
 
-  //normaly both not tracked but didn't find a good alternative
-  const [firstCall, setFirstCall] = useState<boolean>(true);
-  const [currentSession, setCurrentSession] = useState<XRSession | null>(null);
+  const firstCall = useRef<boolean>(true);
+  const currentSession = useRef<XRSession | null>(null);
 
   const updateVrStatus = async () => {
     if ('xr' in navigator) {
@@ -89,7 +88,7 @@ export default function VrButton(args: VrButtonArgs) {
       }
     } else {
       try {
-        await currentSession.end();
+        await currentSession.current!.end();
       } catch (error) {
         console.error('ERROR: VR Session already ended');
       }
