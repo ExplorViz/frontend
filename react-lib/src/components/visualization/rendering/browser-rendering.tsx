@@ -5,7 +5,9 @@ import { useResizeDetector } from 'react-resize-detector';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
-import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
+import useInteractionModifier, {
+  Position2D,
+} from 'react-lib/src/hooks/interaction-modifier';
 import { usePopupHandlerStore } from 'react-lib/src/stores/popup-handler';
 import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
@@ -188,6 +190,7 @@ export default function BrowserRendering({
     ping: useLocalUserStore((state) => state.ping),
     tick: useLocalUserStore((state) => state.tick),
     setDefaultCamera: useLocalUserStore((state) => state.setDefaultCamera),
+    getCamera: useLocalUserStore((state) => state.getCamera),
   };
 
   const authUser = useAuthStore((state) => state.user);
@@ -553,7 +556,7 @@ export default function BrowserRendering({
     });
   };
 
-  const handleSingleClick = (intersection: THREE.Intersection) => {
+  const handleSingleClick = (intersection: THREE.Intersection | null) => {
     if (intersection) {
       // setMousePosition(intersection.point.clone());
       handleSingleClickOnMesh(intersection.object);
@@ -684,8 +687,8 @@ export default function BrowserRendering({
   };
 
   const handleMouseMove = (
-    intersection: THREE.Intersection,
-    event: React.MouseEvent<HTMLCanvasElement>
+    intersection: THREE.Intersection | null,
+    event: MouseEvent
   ) => {
     popupHandlerStoreActions.handleMouseMove(event);
     annotationHandlerStoreActions.handleMouseMove(event);
@@ -775,7 +778,7 @@ export default function BrowserRendering({
   };
 
   const handleMouseStop = (
-    intersection: THREE.Intersection,
+    intersection: THREE.Intersection | null,
     mouseOnCanvas: Position2D
   ) => {
     if (intersection) {
@@ -1033,6 +1036,23 @@ export default function BrowserRendering({
   });
 
   useLandscapeDataWatcher(landscapeData, landscape3D);
+  useInteractionModifier(
+    canvas,
+    getRaycastObjects(),
+    localUserStoreActions.getCamera(),
+    {
+      onSingleClick: handleSingleClick,
+      onDoubleClick: handleDoubleClick,
+      onMouseMove: handleMouseMove,
+      onMouseOut: handleMouseOut,
+      onMouseStop: handleMouseStop,
+      onCtrlDown: handleCtrlDown,
+      onCtrlUp: handleCtrlUp,
+      onAltDown: handleAltDown,
+      onAltUp: handleAltUp,
+      onSpaceDown: handleSpaceBar,
+    }
+  );
 
   // MARK: JSX
 

@@ -61,7 +61,7 @@ interface LocalUserState {
   ping: (
     obj: THREE.Object3D,
     pingPosition: THREE.Vector3,
-    durationInMs: number
+    durationInMs?: number
   ) => void;
   pingReplay: (
     userId: string,
@@ -348,12 +348,12 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       const point = new THREE.Vector3().fromArray(position);
       if (applicationObj) {
         if (remoteUser) {
-          remoteUser.mousePing.ping({
-            parentObj: applicationObj,
-            position: point,
+          remoteUser.mousePing.ping(
+            applicationObj,
+            point,
             durationInMs,
-            replay,
-          });
+            replay
+          );
         } else {
           get().mousePing.ping(applicationObj, point, durationInMs, replay);
         }

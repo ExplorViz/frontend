@@ -54,7 +54,7 @@ interface PopupHandlerState {
   sharePopup: (popup: PopupData) => void;
   pinPopup: (popup: PopupData) => void;
   removePopup: (entityId: string) => Promise<void>;
-  handleMouseMove: (event: React.MouseEvent) => void;
+  handleMouseMove: (event: MouseEvent) => void;
   handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addPopup: ({
     mesh,
@@ -206,7 +206,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
   },
 
-  handleMouseMove: (event: React.MouseEvent) => {
+  handleMouseMove: (event: MouseEvent) => {
     set({
       latestMousePosition: {
         timestamp: Date.now(),

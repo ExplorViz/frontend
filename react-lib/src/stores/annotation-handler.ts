@@ -28,7 +28,7 @@ import {
   isObjectClosedResponse,
 } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import Auth, { useAuthStore } from './auth';
+import { useAuthStore } from './auth';
 import {
   ANNOTATION_UPDATED_EVENT,
   AnnotationUpdatedMessage,
@@ -58,7 +58,7 @@ interface AnnotationHandlerState {
   minimizedAnnotations: AnnotationData[];
   latestMousePosition: { timestamp: number; x: number; y: number };
   isShiftPressed: boolean;
-  handleMouseMove: (event: React.MouseEvent) => void;
+  handleMouseMove: (event: MouseEvent) => void;
   clearAnnotations: () => void;
   removeUnmovedAnnotations: () => void;
   hideAnnotation: (annotationId: number) => void;
@@ -134,7 +134,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     latestMousePosition: { timestamp: 0, x: 0, y: 0 },
     isShiftPressed: false,
 
-    handleMouseMove: (event: React.MouseEvent) => {
+    handleMouseMove: (event: MouseEvent) => {
       set({
         latestMousePosition: {
           timestamp: Date.now(),
@@ -652,7 +652,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
               an.entity.id === newAnnotation.entity?.id
           );
           if (maybeAnnotation) {
-            get().updateExistingAnnotation(maybeAnnotation, newAnnotation);
+            get()._updateExistingAnnotation(maybeAnnotation, newAnnotation);
             return;
           }
         }

@@ -370,4 +370,11 @@ export default function useLandscapeDataWatcher(
   useEffect(() => {
     handleUpdatedLandscapeData();
   });
+
+  useEffect(() => {
+    return function cleanup() {
+      metricsWorker.terminate();
+      flatDataWorker.terminate();
+    };
+  }, []);
 }

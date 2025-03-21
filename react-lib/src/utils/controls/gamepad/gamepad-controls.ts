@@ -55,10 +55,7 @@ const ZOOM_SPEED: number = 40;
 const POPUP_POSITION: Position2D = { x: 100, y: 100 };
 
 export type GamepadInteractionCallbacks = {
-  lookAt?(
-    intersection: THREE.Intersection | null,
-    event: React.MouseEvent
-  ): void;
+  lookAt?(intersection: THREE.Intersection | null, event: MouseEvent): void;
   select?(intersection: THREE.Intersection): void;
   interact?(intersection: THREE.Intersection): void;
   inspect?(intersection: THREE.Intersection, canvasPos: Position2D): void;
