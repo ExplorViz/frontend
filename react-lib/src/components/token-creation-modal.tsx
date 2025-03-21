@@ -40,7 +40,7 @@ export default function TokenCreationModal({
             <Button variant="outline-secondary" onClick={handleClose}>
               Cancle
             </Button>
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="outline-primary">
               Create
             </Button>
           </Modal.Footer>

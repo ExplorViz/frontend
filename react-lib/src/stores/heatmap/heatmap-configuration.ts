@@ -48,6 +48,12 @@ interface HeatmapConfigurationState {
   getSimpleHeatGradient: () => any;
   resetSimpleHeatGradient: () => void;
   cleanup: () => void;
+  setSelectedMode: (mode: HeatmapMode) => void;
+  setHeatmapRadius: (radius: number) => void;
+  setBlurRadius: (radius: number) => void;
+  setShowLegendValues: (show: boolean) => void;
+  setUseHelperLines: (value: boolean) => void;
+  setSimpleHeatGradient: (value: any) => void;
 }
 
 export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
@@ -67,6 +73,30 @@ export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
     blurRadius: 0,
     showLegendValues: true,
     simpleHeatGradient: getSimpleDefaultGradient(),
+
+    setSelectedMode: (mode: HeatmapMode) => {
+      set({ selectedMode: mode });
+    },
+
+    setHeatmapRadius: (radius: number) => {
+      set({ heatmapRadius: radius });
+    },
+
+    setBlurRadius: (radius: number) => {
+      set({ blurRadius: radius });
+    },
+
+    setShowLegendValues: (show: boolean) => {
+      set({ showLegendValues: show });
+    },
+
+    setUseHelperLines: (value: boolean) => {
+      set({ useHelperLines: value });
+    },
+
+    setSimpleHeatGradient: (value: any) => {
+      set({ simpleHeatGradient: value });
+    },
 
     toggleShared: () => {
       set({ heatmapShared: !get().heatmapShared });
