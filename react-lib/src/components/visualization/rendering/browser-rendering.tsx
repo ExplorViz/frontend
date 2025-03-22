@@ -92,6 +92,7 @@ import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
 import Settings from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 import useLandscapeDataWatcher from '../../../hooks/landscape-data-watcher';
 import useSyncState from '../../../hooks/sync-state';
+import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -1036,6 +1037,7 @@ export default function BrowserRendering({
     onResize: handleResize,
   });
 
+  useSyncState();
   useLandscapeDataWatcher(landscapeData, landscape3D);
   useInteractionModifier(
     canvas,
@@ -1054,7 +1056,7 @@ export default function BrowserRendering({
       onSpaceDown: handleSpaceBar,
     }
   );
-  useSyncState();
+  useHeatmapRenderer(camera, scene);
 
   // MARK: JSX
 
