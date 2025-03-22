@@ -627,8 +627,10 @@ export default function useCollaborativeModifier() {
     return function cleanupEventListeners() {
       eventEmitter.off(MOUSE_PING_UPDATE_EVENT, onMousePingUpdate);
       eventEmitter.off(COMPONENT_UPDATE_EVENT, onComponentUpdate);
+      eventEmitter.off(ALL_HIGHLIGHTS_RESET_EVENT, onAllHighlightsReset);
       eventEmitter.off(HIGHLIGHTING_UPDATE_EVENT, onHighlightingUpdate);
       eventEmitter.off(CHANGE_LANDSCAPE_EVENT, onChangeLandscape);
+      eventEmitter.off(SHARE_SETTINGS_EVENT, onShareSettings);
       eventEmitter.off(RESTRUCTURE_MODE_UPDATE_EVENT, onRestructureModeUpdate);
       eventEmitter.off(RESTRUCTURE_UPDATE_EVENT, onRestructureUpdate);
       eventEmitter.off(

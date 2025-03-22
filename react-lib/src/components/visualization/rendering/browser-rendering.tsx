@@ -332,19 +332,6 @@ export default function BrowserRendering({
     }))
   );
 
-  // MARK: State
-
-  const [landscape3D, setLandscape3D] = useState<Landscape3D>(
-    new Landscape3D()
-  );
-  const [updateLayout, setUpdateLayout] = useState<boolean>(false);
-  const [scene, setScene] = useState<THREE.Scene>(getScene('browser', true));
-  const [mousePosition, setMousePosition] = useState<Vector3>(
-    new Vector3(0, 0, 0)
-  );
-  const [selectedApplicationId, setSelectedApplicationId] =
-    useState<string>('');
-
   // MARK: Event handlers
 
   const getSelectedApplicationObject3D = () => {
@@ -563,8 +550,8 @@ export default function BrowserRendering({
     if (intersection) {
       // setMousePosition(intersection.point.clone());
       handleSingleClickOnMesh(intersection.object);
-      ideWebsocket.current.jumpToLocation(intersection.object);
-      ideCrossCommunication.current.jumpToLocation(intersection.object);
+      ideWebsocket.jumpToLocation(intersection.object);
+      ideCrossCommunication.jumpToLocation(intersection.object);
     } else {
       removeAllHighlighting();
     }
@@ -631,13 +618,13 @@ export default function BrowserRendering({
         dynamic: landscapeData?.dynamicLandscapeData,
       };
 
-      worker.current.onmessage = (e) => {
+      worker.onmessage = (e) => {
         calculateHeatmap(
           applicationObject3D.dataModel.applicationMetrics,
           e.data
         );
       };
-      worker.current.postMessage(workerPayload);
+      worker.postMessage(workerPayload);
     }
 
     if (getSelectedApplicationObject3D() !== applicationObject3D) {
@@ -874,6 +861,25 @@ export default function BrowserRendering({
     );
   };
 
+  // MARK: State
+
+  const [landscape3D] = useState<Landscape3D>(() => new Landscape3D());
+  const [updateLayout, setUpdateLayout] = useState<boolean>(false);
+  const [scene] = useState<THREE.Scene>(() => getScene('browser', true));
+  const [mousePosition, setMousePosition] = useState<Vector3>(
+    new Vector3(0, 0, 0)
+  );
+  const [selectedApplicationId, setSelectedApplicationId] =
+    useState<string>('');
+
+  const [ideWebsocket] = useState<IdeWebsocket>(
+    () => new IdeWebsocket(handleDoubleClickOnMeshIDEAPI, lookAtMesh)
+  );
+  const [ideCrossCommunication] = useState<IdeCrossCommunication>(
+    () => new IdeCrossCommunication(handleDoubleClickOnMeshIDEAPI, lookAtMesh)
+  );
+  const [worker] = useState<Worker>(() => new MetricsWorker());
+
   // MARK: Refs
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
@@ -888,13 +894,6 @@ export default function BrowserRendering({
   const initDone = useRef<boolean>(false);
   const toggleForceAppearenceLayer = useRef<boolean>(false);
   const semanticZoomToggle = useRef<boolean>(false);
-  const ideWebsocket = useRef<IdeWebsocket>(
-    new IdeWebsocket(handleDoubleClickOnMeshIDEAPI, lookAtMesh)
-  );
-  const ideCrossCommunication = useRef<IdeCrossCommunication>(
-    new IdeCrossCommunication(handleDoubleClickOnMeshIDEAPI, lookAtMesh)
-  );
-  const worker = useRef<Worker>(new MetricsWorker());
 
   // MARK: Variables
 
@@ -990,14 +989,14 @@ export default function BrowserRendering({
 
     // Cleanup on component unmount
     return function cleanup() {
-      worker.current.terminate();
+      worker.terminate();
       renderingLoop.current?.stop();
       applicationRendererStoreActions.cleanup();
       applicationRepositoryStoreActions.cleanup();
       renderer.current?.dispose();
       renderer.current?.forceContextLoss();
 
-      ideWebsocket.current.dispose();
+      ideWebsocket.dispose();
 
       heatmapConfigurationStoreActions.cleanup();
       renderingLoop.current?.stop();
