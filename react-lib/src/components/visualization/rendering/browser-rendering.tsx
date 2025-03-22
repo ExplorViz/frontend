@@ -156,175 +156,163 @@ export default function BrowserRendering({
 }: BrowserRenderingProps) {
   // MARK: Stores
 
-  const applicationRendererStoreActions = {
-    getMeshById: useApplicationRendererStore((state) => state.getMeshById),
-    getApplicationById: useApplicationRendererStore(
-      (state) => state.getApplicationById
-    ),
-    getOpenApplications: useApplicationRendererStore(
-      (state) => state.getOpenApplications
-    ),
-    openAllComponentsOfAllApplications: useApplicationRendererStore(
-      (state) => state.openAllComponentsOfAllApplications
-    ),
-    toggleCommunicationRendering: useApplicationRendererStore(
-      (state) => state.toggleCommunicationRendering
-    ),
-    toggleComponent: useApplicationRendererStore(
-      (state) => state.toggleComponent
-    ),
-    closeAllComponents: useApplicationRendererStore(
-      (state) => state.closeAllComponents
-    ),
-    addCommunicationForAllApplications: useApplicationRendererStore(
-      (state) => state.addCommunicationForAllApplications
-    ),
-    openParents: useApplicationRendererStore((state) => state.openParents),
-    cleanup: useApplicationRendererStore((state) => state.cleanup),
-  };
+  const applicationRendererActions = useApplicationRendererStore(
+    useShallow((state) => ({
+      getMeshById: state.getMeshById,
+      getApplicationById: state.getApplicationById,
+      getOpenApplications: state.getOpenApplications,
+      openAllComponentsOfAllApplications:
+        state.openAllComponentsOfAllApplications,
+      toggleCommunicationRendering: state.toggleCommunicationRendering,
+      toggleComponent: state.toggleComponent,
+      closeAllComponents: state.closeAllComponents,
+      addCommunicationForAllApplications:
+        state.addCommunicationForAllApplications,
+      openParents: state.openParents,
+      cleanup: state.cleanup,
+    }))
+  );
 
-  const applicationRepositoryStoreActions = {
-    cleanup: useApplicationRepositoryStore((state) => state.cleanup),
-  };
+  const applicationRepositoryActions = useApplicationRepositoryStore(
+    useShallow((state) => ({
+      cleanup: state.cleanup,
+    }))
+  );
 
-  const camera = useLocalUserStore((state) => state.defaultCamera);
-  const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
-  const localUserStoreActions = {
+  const localUserState = useLocalUserStore(
+    useShallow((state) => ({
+      camera: state.defaultCamera,
+      minimapCamera: state.minimapCamera,
+    }))
+  );
+  const localUserActions = {
     ping: useLocalUserStore((state) => state.ping),
     tick: useLocalUserStore((state) => state.tick),
     setDefaultCamera: useLocalUserStore((state) => state.setDefaultCamera),
     getCamera: useLocalUserStore((state) => state.getCamera),
   };
 
-  const authUser = useAuthStore((state) => state.user);
-
-  const { appSettings, colors } = useUserSettingsStore(
+  const authState = useAuthStore(
     useShallow((state) => ({
-      appSettings: state.visualizationSettings,
-      colors: state.colors,
-      updateSetting: state.updateSetting,
+      user: state.user,
     }))
   );
-  const userSettingsStoreActions = useUserSettingsStore(
+
+  const userSettingsState = useUserSettingsStore(
+    useShallow((state) => ({
+      visualizationSettings: state.visualizationSettings,
+      colors: state.colors,
+    }))
+  );
+  const userSettingsActions = useUserSettingsStore(
     useShallow((state) => ({
       updateSetting: state.updateSetting,
       applyDefaultSettings: state.applyDefaultSettings,
     }))
   );
 
-  const { isCommRendered, setSemanticZoomEnabled } = useConfigurationStore(
+  const configurationState = useConfigurationStore(
     useShallow((state) => ({
       isCommRendered: state.isCommRendered,
+    }))
+  );
+  const configurationActions = useConfigurationStore(
+    useShallow((state) => ({
+      setIsCommRendered: state.setIsCommRendered,
       setSemanticZoomEnabled: state.setSemanticZoomEnabled,
     }))
   );
-  const configurationStoreActions = {
-    setSemanticZoomEnabled: useConfigurationStore(
-      (state) => state.semanticZoomEnabled
-    ),
-    setIsCommRendered: useConfigurationStore(
-      (state) => state.setIsCommRendered
-    ),
-  };
 
-  const getScene = useSceneRepositoryStore((state) => state.getScene);
-
-  const landscapeRestructureStoreActions = {
-    setCanvas: useLandscapeRestructureStore((state) => state.setCanvas),
-  };
-
-  const highlightingStoreActions = {
-    highlightTrace: useHighlightingStore((state) => state.highlightTrace),
-    removeHighlightingForAllApplications: useHighlightingStore(
-      (state) => state.removeHighlightingForAllApplications
-    ),
-    updateHighlighting: useHighlightingStore(
-      (state) => state.updateHighlighting
-    ),
-    updateHighlightingOnHover: useHighlightingStore(
-      (state) => state.updateHighlightingOnHover
-    ),
-    toggleHighlight: useHighlightingStore((state) => state.toggleHighlight),
-    toggleHighlightById: useHighlightingStore(
-      (state) => state.toggleHighlightById
-    ),
-  };
-
-  const spectateUserStoreActions = {
-    setCameraControls: useSpectateUserStore((state) => state.setCameraControls),
-  };
-
-  const minimapStoreActions = {
-    initializeMinimap: useMinimapStore((state) => state.initializeMinimap),
-    setRaycaster: useMinimapStore((state) => state.setRaycaster),
-  };
-
-  const popupData = usePopupHandlerStore((state) => state.popupData);
-  const popupHandlerStoreActions = {
-    addPopup: usePopupHandlerStore((state) => state.addPopup),
-    removePopup: usePopupHandlerStore((state) => state.removePopup),
-    pinPopup: usePopupHandlerStore((state) => state.pinPopup),
-    sharePopup: usePopupHandlerStore((state) => state.sharePopup),
-    handleMouseMove: usePopupHandlerStore((state) => state.handleMouseMove),
-    handleHoverOnMesh: usePopupHandlerStore((state) => state.handleHoverOnMesh),
-    updateMeshReference: usePopupHandlerStore(
-      (state) => state.updateMeshReference
-    ),
-    cleanup: usePopupHandlerStore((state) => state.cleanup),
-  };
-
-  const annotationData = useAnnotationHandlerStore(
-    (state) => state.annotationData
+  const sceneRepositoryActions = useSceneRepositoryStore(
+    useShallow((state) => ({
+      getScene: state.getScene,
+    }))
   );
-  const minimizedAnnotations = useAnnotationHandlerStore(
-    (state) => state.minimizedAnnotations
-  );
-  const annotationHandlerStoreActions = {
-    addAnnotation: useAnnotationHandlerStore((state) => state.addAnnotation),
-    hideAnnotation: useAnnotationHandlerStore((state) => state.hideAnnotation),
-    minimizeAnnotation: useAnnotationHandlerStore(
-      (state) => state.minimizeAnnotation
-    ),
-    editAnnotation: useAnnotationHandlerStore((state) => state.editAnnotation),
-    updateAnnotation: useAnnotationHandlerStore(
-      (state) => state.updateAnnotation
-    ),
-    removeAnnotation: useAnnotationHandlerStore(
-      (state) => state.removeAnnotation
-    ),
-    clearAnnotations: useAnnotationHandlerStore(
-      (state) => state.clearAnnotations
-    ),
-    shareAnnotation: useAnnotationHandlerStore(
-      (state) => state.shareAnnotation
-    ),
-    handleMouseMove: useAnnotationHandlerStore(
-      (state) => state.handleMouseMove
-    ),
-    handleHoverOnMesh: useAnnotationHandlerStore(
-      (state) => state.handleHoverOnMesh
-    ),
-    updateMeshReference: useAnnotationHandlerStore(
-      (state) => state.updateMeshReference
-    ),
-    cleanup: useAnnotationHandlerStore((state) => state.cleanup),
-  };
 
-  const heatmapActive = useHeatmapConfigurationStore(
-    (state) => state.heatmapActive
+  const landscapeRestructureActions = useLandscapeRestructureStore(
+    useShallow((state) => ({
+      setCanvas: state.setCanvas,
+    }))
   );
-  const heatmapConfigurationStoreActions = {
-    setActiveApplication: useHeatmapConfigurationStore(
-      (state) => state.setActiveApplication
-    ),
-    cleanup: useHeatmapConfigurationStore((state) => state.cleanup),
-  };
 
-  const {
-    showInfoToastMessage,
-    showSuccessToastMessage,
-    showErrorToastMessage,
-  } = useToastHandlerStore(
+  const highlightingActions = useHighlightingStore(
+    useShallow((state) => ({
+      highlightTrace: state.highlightTrace,
+      removeHighlightingForAllApplications:
+        state.removeHighlightingForAllApplications,
+      updateHighlighting: state.updateHighlighting,
+      updateHighlightingOnHover: state.updateHighlightingOnHover,
+      toggleHighlight: state.toggleHighlight,
+      toggleHighlightById: state.toggleHighlightById,
+    }))
+  );
+  const spectateUserActions = useSpectateUserStore(
+    useShallow((state) => ({
+      setCameraControls: state.setCameraControls,
+    }))
+  );
+
+  const minimapActions = useMinimapStore(
+    useShallow((state) => ({
+      initializeMinimap: state.initializeMinimap,
+      setRaycaster: state.setRaycaster,
+    }))
+  );
+
+  const popupHandlerState = usePopupHandlerStore(
+    useShallow((state) => ({
+      popupData: state.popupData,
+    }))
+  );
+  const popupHandlerActions = usePopupHandlerStore(
+    useShallow((state) => ({
+      addPopup: state.addPopup,
+      removePopup: state.removePopup,
+      pinPopup: state.pinPopup,
+      sharePopup: state.sharePopup,
+      handleMouseMove: state.handleMouseMove,
+      handleHoverOnMesh: state.handleHoverOnMesh,
+      updateMeshReference: state.updateMeshReference,
+      cleanup: state.cleanup,
+    }))
+  );
+
+  const annotationHandlerState = useAnnotationHandlerStore(
+    useShallow((state) => ({
+      annotationData: state.annotationData,
+      minimizedAnnotations: state.minimizedAnnotations,
+    }))
+  );
+  const annotationHandlerActions = useAnnotationHandlerStore(
+    useShallow((state) => ({
+      addAnnotation: state.addAnnotation,
+      hideAnnotation: state.hideAnnotation,
+      minimizeAnnotation: state.minimizeAnnotation,
+      editAnnotation: state.editAnnotation,
+      updateAnnotation: state.updateAnnotation,
+      removeAnnotation: state.removeAnnotation,
+      clearAnnotations: state.clearAnnotations,
+      shareAnnotation: state.shareAnnotation,
+      handleMouseMove: state.handleMouseMove,
+      handleHoverOnMesh: state.handleHoverOnMesh,
+      updateMeshReference: state.updateMeshReference,
+      cleanup: state.cleanup,
+    }))
+  );
+
+  const heatmapConfigurationState = useHeatmapConfigurationStore(
+    useShallow((state) => ({
+      heatmapActive: state.heatmapActive,
+    }))
+  );
+  const heatmapConfigurationActions = useHeatmapConfigurationStore(
+    useShallow((state) => ({
+      setActiveApplication: state.setActiveApplication,
+      cleanup: state.cleanup,
+    }))
+  );
+
+  const toastHandlerActions = useToastHandlerStore(
     useShallow((state) => ({
       showInfoToastMessage: state.showInfoToastMessage,
       showSuccessToastMessage: state.showSuccessToastMessage,
@@ -338,12 +326,10 @@ export default function BrowserRendering({
     if (selectedApplicationId === '') {
       // TODO
       setSelectedApplicationId(
-        applicationRendererStoreActions.getOpenApplications()[0].getModelId()
+        applicationRendererActions.getOpenApplications()[0].getModelId()
       );
     }
-    return applicationRendererStoreActions.getApplicationById(
-      selectedApplicationId
-    );
+    return applicationRendererActions.getApplicationById(selectedApplicationId);
   };
 
   const getRaycastObjects = () => scene.children;
@@ -365,11 +351,13 @@ export default function BrowserRendering({
     } else {
       SemanticZoomManager.instance.deactivate();
     }
-    userSettingsStoreActions.updateSetting(
+    userSettingsActions.updateSetting(
       'semanticZoomState',
       SemanticZoomManager.instance.isEnabled
     );
-    setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
+    configurationActions.setSemanticZoomEnabled(
+      SemanticZoomManager.instance.isEnabled
+    );
   };
 
   const showSemanticZoomClusterCenters = () => {
@@ -420,7 +408,7 @@ export default function BrowserRendering({
       return;
     }
 
-    highlightingStoreActions.highlightTrace(
+    highlightingActions.highlightTrace(
       trace,
       traceStep,
       selectedObject3D,
@@ -443,15 +431,15 @@ export default function BrowserRendering({
     // Camera
 
     const newCam = new THREE.PerspectiveCamera(
-      appSettings.cameraFov.value,
+      userSettingsState.visualizationSettings.cameraFov.value,
       aspectRatio,
-      appSettings.cameraNear.value,
-      appSettings.cameraFar.value
+      userSettingsState.visualizationSettings.cameraNear.value,
+      userSettingsState.visualizationSettings.cameraFar.value
     );
 
     newCam.position.set(1, 2, 3);
     scene.add(newCam);
-    localUserStoreActions.setDefaultCamera(newCam);
+    localUserActions.setDefaultCamera(newCam);
 
     // Add Camera to ImmersiveView manager
 
@@ -461,12 +449,15 @@ export default function BrowserRendering({
 
     // Controls
 
-    cameraControls.current = new CameraControls(camera, canvas.current);
-    spectateUserStoreActions.setCameraControls(cameraControls.current);
+    cameraControls.current = new CameraControls(
+      localUserState.camera,
+      canvas.current
+    );
+    spectateUserActions.setCameraControls(cameraControls.current);
 
     tickCallbacks.current.push({
       id: 'local-user',
-      callback: localUserStoreActions.tick,
+      callback: localUserActions.tick,
     });
     tickCallbacks.current.push({
       id: 'camera-controls',
@@ -475,12 +466,12 @@ export default function BrowserRendering({
 
     // Initialize minimap
 
-    minimapStoreActions.initializeMinimap(
+    minimapActions.initializeMinimap(
       scene,
       landscape3D,
       cameraControls.current
     );
-    minimapStoreActions.setRaycaster(new Raycaster(minimapCamera));
+    minimapActions.setRaycaster(new Raycaster(localUserState.minimapCamera));
   };
 
   /**
@@ -505,7 +496,7 @@ export default function BrowserRendering({
     renderer.current.setSize(width, height);
 
     renderingLoop.current = new RenderingLoop({
-      camera: camera,
+      camera: localUserState.camera,
       scene: scene,
       renderer: renderer.current,
       tickCallbacks: tickCallbacks.current,
@@ -519,10 +510,13 @@ export default function BrowserRendering({
           cameraControls.current!.resetCameraFocusOn(1.2, [landscape3D]);
           if (
             SemanticZoomManager.instance.isEnabled ||
-            appSettings.semanticZoomState.value == true
+            userSettingsState.visualizationSettings.semanticZoomState.value ==
+              true
           ) {
             SemanticZoomManager.instance.activate();
-            setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
+            configurationActions.setSemanticZoomEnabled(
+              SemanticZoomManager.instance.isEnabled
+            );
           }
         }, 200);
         initDone.current = true;
@@ -531,7 +525,7 @@ export default function BrowserRendering({
       if (snapshot || snapshotReload) {
         if (!initDone.current && landscape3D.children.length > 0) {
           setTimeout(() => {
-            applicationRendererStoreActions.getOpenApplications();
+            applicationRendererActions.getOpenApplications();
           }, 200);
           initDone.current = true;
         }
@@ -558,12 +552,12 @@ export default function BrowserRendering({
   };
 
   const removeAllHighlighting = () => {
-    highlightingStoreActions.removeHighlightingForAllApplications(true);
-    highlightingStoreActions.updateHighlighting();
+    highlightingActions.removeHighlightingForAllApplications(true);
+    highlightingActions.updateHighlighting();
   };
 
   const lookAtMesh = (meshId: string) => {
-    const mesh = applicationRendererStoreActions.getMeshById(meshId);
+    const mesh = applicationRendererActions.getMeshById(meshId);
     if (mesh?.isObject3D) {
       cameraControls.current!.focusCameraOn(1, mesh);
     }
@@ -577,8 +571,8 @@ export default function BrowserRendering({
       selectActiveApplication(mesh.parent);
     }
 
-    if (isEntityMesh(mesh) && !heatmapActive) {
-      highlightingStoreActions.toggleHighlight(mesh, { sendMessage: true });
+    if (isEntityMesh(mesh) && !heatmapConfigurationState.heatmapActive) {
+      highlightingActions.toggleHighlight(mesh, { sendMessage: true });
     }
   };
 
@@ -598,11 +592,11 @@ export default function BrowserRendering({
   };
 
   const handleAltDown = () => {
-    highlightingStoreActions.updateHighlightingOnHover(true);
+    highlightingActions.updateHighlightingOnHover(true);
   };
 
   const handleAltUp = () => {
-    highlightingStoreActions.updateHighlightingOnHover(false);
+    highlightingActions.updateHighlightingOnHover(false);
   };
 
   const handleSpaceBar = () => {
@@ -629,9 +623,7 @@ export default function BrowserRendering({
 
     if (getSelectedApplicationObject3D() !== applicationObject3D) {
       setSelectedApplicationId(applicationObject3D.getModelId());
-      heatmapConfigurationStoreActions.setActiveApplication(
-        applicationObject3D
-      );
+      heatmapConfigurationActions.setActiveApplication(applicationObject3D);
     }
 
     applicationObject3D.updateMatrixWorld();
@@ -639,7 +631,7 @@ export default function BrowserRendering({
   };
 
   const handleDoubleClickOnMeshIDEAPI = (meshID: string) => {
-    const mesh = applicationRendererStoreActions.getMeshById(meshID);
+    const mesh = applicationRendererActions.getMeshById(meshID);
     if (mesh?.isObject3D) {
       handleDoubleClickOnMesh(mesh);
     }
@@ -647,7 +639,10 @@ export default function BrowserRendering({
 
   const handleDoubleClickOnMesh = (mesh: THREE.Object3D) => {
     if (mesh instanceof ComponentMesh || mesh instanceof FoundationMesh) {
-      if (!appSettings.keepHighlightingOnOpenOrClose.value) {
+      if (
+        !userSettingsState.visualizationSettings.keepHighlightingOnOpenOrClose
+          .value
+      ) {
         const applicationObject3D = mesh.parent;
         if (applicationObject3D instanceof ApplicationObject3D) {
           removeAllHighlightingFor(applicationObject3D);
@@ -659,16 +654,13 @@ export default function BrowserRendering({
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
         // Toggle open state of clicked component
-        applicationRendererStoreActions.toggleComponent(
-          mesh,
-          applicationObject3D
-        );
+        applicationRendererActions.toggleComponent(mesh, applicationObject3D);
       }
       // Close all components since foundation shall never be closed itself
     } else if (mesh instanceof FoundationMesh) {
       const applicationObject3D = mesh.parent;
       if (applicationObject3D instanceof ApplicationObject3D) {
-        applicationRendererStoreActions.closeAllComponents(applicationObject3D);
+        applicationRendererActions.closeAllComponents(applicationObject3D);
       }
     }
     if (ImmersiveView.instance.isImmersiveViewCapable(mesh)) {
@@ -680,8 +672,8 @@ export default function BrowserRendering({
     intersection: THREE.Intersection | null,
     event: MouseEvent
   ) => {
-    popupHandlerStoreActions.handleMouseMove(event);
-    annotationHandlerStoreActions.handleMouseMove(event);
+    popupHandlerActions.handleMouseMove(event);
+    annotationHandlerActions.handleMouseMove(event);
 
     if (intersection) {
       setMousePosition(intersection.point.clone());
@@ -694,11 +686,11 @@ export default function BrowserRendering({
       ImmersiveView.instance.takeHistory(null);
     }
 
-    popupHandlerStoreActions.handleHoverOnMesh(intersection?.object);
-    annotationHandlerStoreActions.handleHoverOnMesh(intersection?.object);
+    popupHandlerActions.handleHoverOnMesh(intersection?.object);
+    annotationHandlerActions.handleHoverOnMesh(intersection?.object);
 
     if (!event.altKey) {
-      highlightingStoreActions.updateHighlightingOnHover(
+      highlightingActions.updateHighlightingOnHover(
         isEntityMesh(intersection?.object) && intersection.object.highlighted
       );
     }
@@ -707,17 +699,22 @@ export default function BrowserRendering({
   const showApplication = (appId: string) => {
     removePopup(appId);
     const applicationObject3D =
-      applicationRendererStoreActions.getApplicationById(appId);
+      applicationRendererActions.getApplicationById(appId);
     if (applicationObject3D) {
       cameraControls.current!.focusCameraOn(0.8, applicationObject3D);
     }
   };
 
   const handleMouseMoveOnMesh = (mesh: THREE.Object3D | undefined) => {
-    const { value: enableAppHoverEffects } = appSettings.enableHoverEffects;
+    const { value: enableAppHoverEffects } =
+      userSettingsState.visualizationSettings.enableHoverEffects;
 
     // Update hover effect
-    if (isEntityMesh(mesh) && enableAppHoverEffects && !heatmapActive) {
+    if (
+      isEntityMesh(mesh) &&
+      enableAppHoverEffects &&
+      !heatmapConfigurationState.heatmapActive
+    ) {
       hoveredObject.current?.resetHoverEffect();
       hoveredObject.current = mesh;
       mesh.applyHoverEffect();
@@ -725,10 +722,10 @@ export default function BrowserRendering({
   };
 
   const addAnnotationForPopup = (popup: PopupData) => {
-    const mesh = applicationRendererStoreActions.getMeshById(popup.entity.id);
+    const mesh = applicationRendererActions.getMeshById(popup.entity.id);
     if (!mesh) return;
 
-    annotationHandlerStoreActions.addAnnotation({
+    annotationHandlerActions.addAnnotation({
       annotationId: undefined,
       mesh: mesh,
       position: { x: popup.mouseX + 400, y: popup.mouseY },
@@ -736,7 +733,7 @@ export default function BrowserRendering({
       annotationTitle: '',
       annotationText: '',
       sharedBy: '',
-      owner: authUser!.name.toString(),
+      owner: authState.user!.name.toString(),
       shared: false,
       inEdit: true,
       lastEditor: undefined,
@@ -745,26 +742,29 @@ export default function BrowserRendering({
   };
 
   const removePopup = (entityId: string) => {
-    popupHandlerStoreActions.removePopup(entityId);
+    popupHandlerActions.removePopup(entityId);
 
     // remove potential toggle effect
-    const mesh = applicationRendererStoreActions.getMeshById(entityId);
+    const mesh = applicationRendererActions.getMeshById(entityId);
     if (mesh?.isHovered) {
       mesh.resetHoverEffect();
     }
   };
 
   const removeAnnotation = (annotationId: number) => {
-    if (!appSettings.enableCustomAnnotationPosition.value) {
-      annotationHandlerStoreActions.clearAnnotations();
+    if (
+      !userSettingsState.visualizationSettings.enableCustomAnnotationPosition
+        .value
+    ) {
+      annotationHandlerActions.clearAnnotations();
     } else {
-      annotationHandlerStoreActions.removeAnnotation(annotationId);
+      annotationHandlerActions.removeAnnotation(annotationId);
     }
   };
 
   const handleMouseOut = (/*event: React.PointerEvent*/) => {
-    popupHandlerStoreActions.handleHoverOnMesh();
-    annotationHandlerStoreActions.handleHoverOnMesh();
+    popupHandlerActions.handleHoverOnMesh();
+    annotationHandlerActions.handleHoverOnMesh();
   };
 
   const handleMouseStop = (
@@ -772,13 +772,13 @@ export default function BrowserRendering({
     mouseOnCanvas: Position2D
   ) => {
     if (intersection) {
-      popupHandlerStoreActions.addPopup({
+      popupHandlerActions.addPopup({
         mesh: intersection.object,
         position: mouseOnCanvas,
         hovered: true,
       });
 
-      annotationHandlerStoreActions.addAnnotation({
+      annotationHandlerActions.addAnnotation({
         annotationId: undefined,
         mesh: intersection.object,
         position: { x: mouseOnCanvas.x + 250, y: mouseOnCanvas.y },
@@ -786,7 +786,7 @@ export default function BrowserRendering({
         annotationTitle: '',
         annotationText: '',
         sharedBy: '',
-        owner: authUser!.name,
+        owner: authState.user!.name,
         shared: false,
         inEdit: true,
         lastEditor: undefined,
@@ -813,7 +813,7 @@ export default function BrowserRendering({
   };
 
   const updateSceneColors = () => {
-    updateColors(scene, colors!);
+    updateColors(scene, userSettingsState.colors!);
   };
 
   const setGamepadSupport = (enabled: boolean) => {
@@ -843,12 +843,12 @@ export default function BrowserRendering({
 
     // Update renderer and cameras according to canvas size
     renderer.current!.setSize(width, height);
-    camera.aspect = newAspectRatio;
-    camera.updateProjectionMatrix();
+    localUserState.camera.aspect = newAspectRatio;
+    localUserState.camera.updateProjectionMatrix();
 
     // Gamepad controls
     gamepadControls.current = new GamepadControls(
-      camera,
+      localUserState.camera,
       scene,
       cameraControls.current!.perspectiveCameraControls,
       {
@@ -856,7 +856,7 @@ export default function BrowserRendering({
         select: handleSingleClick,
         interact: handleDoubleClick,
         inspect: handleMouseStop,
-        ping: localUserStoreActions.ping,
+        ping: localUserActions.ping,
       }
     );
   };
@@ -865,7 +865,9 @@ export default function BrowserRendering({
 
   const [landscape3D] = useState<Landscape3D>(() => new Landscape3D());
   const [updateLayout, setUpdateLayout] = useState<boolean>(false);
-  const [scene] = useState<THREE.Scene>(() => getScene('browser', true));
+  const [scene] = useState<THREE.Scene>(() =>
+    sceneRepositoryActions.getScene('browser', true)
+  );
   const [mousePosition, setMousePosition] = useState<Vector3>(
     new Vector3(0, 0, 0)
   );
@@ -903,20 +905,24 @@ export default function BrowserRendering({
       title: 'Open All Components',
       action: () => {
         if (
-          appSettings.autoOpenCloseFeature.value == true &&
-          appSettings.semanticZoomState.value == true
+          userSettingsState.visualizationSettings.autoOpenCloseFeature.value ==
+            true &&
+          userSettingsState.visualizationSettings.semanticZoomState.value ==
+            true
         ) {
-          showErrorToastMessage(
+          toastHandlerActions.showErrorToastMessage(
             'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
           );
           return;
         }
-        applicationRendererStoreActions.openAllComponentsOfAllApplications();
+        applicationRendererActions.openAllComponentsOfAllApplications();
       },
     },
     {
-      title: isCommRendered ? 'Hide Communication' : 'Add Communication',
-      action: applicationRendererStoreActions.toggleCommunicationRendering,
+      title: configurationState.isCommRendered
+        ? 'Hide Communication'
+        : 'Add Communication',
+      action: applicationRendererActions.toggleCommunicationRendering,
     },
     { title: 'Enter AR', action: switchToAR },
   ];
@@ -924,13 +930,15 @@ export default function BrowserRendering({
   // MARK: Effects and hooks
 
   useEffect(function initialize() {
-    scene.background = colors!.backgroundColor;
+    scene.background = userSettingsState.colors!.backgroundColor;
 
     useLocalUserStore
       .getState()
       .setDefaultCamera(new THREE.PerspectiveCamera());
 
-    setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
+    configurationActions.setSemanticZoomEnabled(
+      SemanticZoomManager.instance.isEnabled
+    );
 
     scene.add(landscape3D);
     tickCallbacks.current.push(
@@ -968,7 +976,7 @@ export default function BrowserRendering({
             }
           });
         });
-      applicationRendererStoreActions.getOpenApplications().forEach((ap) => {
+      applicationRendererActions.getOpenApplications().forEach((ap) => {
         ap.getCommMeshes().forEach((currentCommunicationMesh) => {
           currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
             if (onOff) {
@@ -982,7 +990,7 @@ export default function BrowserRendering({
     });
     // Loads the AutoOpenClose activation state from the settings.
     SemanticZoomManager.instance.toggleAutoOpenClose(
-      appSettings.autoOpenCloseFeature.value
+      userSettingsState.visualizationSettings.autoOpenCloseFeature.value
     );
 
     useApplicationRendererStore.getState().setLandscape3D(landscape3D);
@@ -991,18 +999,18 @@ export default function BrowserRendering({
     return function cleanup() {
       worker.terminate();
       renderingLoop.current?.stop();
-      applicationRendererStoreActions.cleanup();
-      applicationRepositoryStoreActions.cleanup();
+      applicationRendererActions.cleanup();
+      applicationRepositoryActions.cleanup();
       renderer.current?.dispose();
       renderer.current?.forceContextLoss();
 
       ideWebsocket.dispose();
 
-      heatmapConfigurationStoreActions.cleanup();
+      heatmapConfigurationActions.cleanup();
       renderingLoop.current?.stop();
-      configurationStoreActions.setIsCommRendered(false);
-      popupHandlerStoreActions.cleanup();
-      annotationHandlerStoreActions.cleanup();
+      configurationActions.setIsCommRendered(false);
+      popupHandlerActions.cleanup();
+      annotationHandlerActions.cleanup();
 
       // Clean up WebGL rendering context by forcing context loss
       const gl = canvas.current?.getContext('webgl');
@@ -1021,7 +1029,7 @@ export default function BrowserRendering({
       return;
     }
 
-    landscapeRestructureStoreActions.setCanvas(canvas.current);
+    landscapeRestructureActions.setCanvas(canvas.current);
     canvas.current.oncontextmenu = (e) => {
       e.preventDefault();
     };
@@ -1041,7 +1049,7 @@ export default function BrowserRendering({
   useInteractionModifier(
     canvas,
     getRaycastObjects(),
-    localUserStoreActions.getCamera(),
+    localUserActions.getCamera(),
     {
       onSingleClick: handleSingleClick,
       onDoubleClick: handleDoubleClick,
@@ -1055,7 +1063,7 @@ export default function BrowserRendering({
       onSpaceDown: handleSpaceBar,
     }
   );
-  useHeatmapRenderer(camera, scene);
+  useHeatmapRenderer(localUserState.camera, scene);
   useLandscapeDataWatcher(landscapeData, landscape3D);
   useCollaborativeModifier();
 
@@ -1091,7 +1099,7 @@ export default function BrowserRendering({
             </div>
           )}
 
-          {heatmapActive && <HeatmapInfo />}
+          {heatmapConfigurationState.heatmapActive && <HeatmapInfo />}
 
           {/* <ContextMenu items={rightClickMenuItems}> */}
           <canvas id="threejs-canvas" className={'webgl'} ref={canvas} />
@@ -1102,38 +1110,39 @@ export default function BrowserRendering({
             </div>
           )} */}
 
-          {popupData.map((data) => (
+          {popupHandlerState.popupData.map((data) => (
             <PopupCoordinator
+              key={data.applicationId}
               addAnnotationForPopup={addAnnotationForPopup}
-              openParents={applicationRendererStoreActions.openParents}
-              pinPopup={popupHandlerStoreActions.pinPopup}
+              openParents={applicationRendererActions.openParents}
+              pinPopup={popupHandlerActions.pinPopup}
               popupData={data}
               removePopup={removePopup}
-              sharePopup={popupHandlerStoreActions.sharePopup}
+              sharePopup={popupHandlerActions.sharePopup}
               showApplication={showApplication}
               structureData={landscapeData!.structureLandscapeData}
-              toggleHighlightById={highlightingStoreActions.toggleHighlightById}
-              updateMeshReference={popupHandlerStoreActions.updateMeshReference}
+              toggleHighlightById={highlightingActions.toggleHighlightById}
+              updateMeshReference={popupHandlerActions.updateMeshReference}
             />
           ))}
 
-          {annotationData.map((data) => (
+          {annotationHandlerState.annotationData.map((data) => (
             <AnnotationCoordinator
-              isMovable={appSettings.enableCustomAnnotationPosition.value}
+              key={data.annotationId}
+              isMovable={
+                userSettingsState.visualizationSettings
+                  .enableCustomAnnotationPosition.value
+              }
               annotationData={data}
-              shareAnnotation={annotationHandlerStoreActions.shareAnnotation}
-              updateMeshReference={
-                annotationHandlerStoreActions.updateMeshReference
-              }
+              shareAnnotation={annotationHandlerActions.shareAnnotation}
+              updateMeshReference={annotationHandlerActions.updateMeshReference}
               removeAnnotation={removeAnnotation}
-              hideAnnotation={annotationHandlerStoreActions.hideAnnotation}
-              minimizeAnnotation={
-                annotationHandlerStoreActions.minimizeAnnotation
-              }
-              editAnnotation={annotationHandlerStoreActions.editAnnotation}
-              updateAnnotation={annotationHandlerStoreActions.updateAnnotation}
-              toggleHighlightById={highlightingStoreActions.toggleHighlightById}
-              openParents={applicationRendererStoreActions.openParents}
+              hideAnnotation={annotationHandlerActions.hideAnnotation}
+              minimizeAnnotation={annotationHandlerActions.minimizeAnnotation}
+              editAnnotation={annotationHandlerActions.editAnnotation}
+              updateAnnotation={annotationHandlerActions.updateAnnotation}
+              toggleHighlightById={highlightingActions.toggleHighlightById}
+              openParents={applicationRendererActions.openParents}
             />
           ))}
         </div>
@@ -1263,37 +1272,39 @@ export default function BrowserRendering({
                       toggleVisualizationUpdating={toggleVisualizationUpdating}
                       removeTimestampListener={removeTimestampListener}
                       userApiTokens={userApiTokens}
-                      popUpData={popupData}
-                      annotationData={annotationData}
-                      minimizedAnnotations={minimizedAnnotations}
+                      popUpData={popupHandlerState.popupData}
+                      annotationData={annotationHandlerState.annotationData}
+                      minimizedAnnotations={
+                        annotationHandlerState.minimizedAnnotations
+                      }
                       landscapeToken={landscapeToken}
                     />
                   )}
                   {openedSettingComponent === 'Persist-Landscape' && (
                     <Snapshot
                       landscapeData={landscapeData!}
-                      popUpData={popupData}
-                      annotationData={annotationData}
-                      minimizedAnnotations={minimizedAnnotations}
+                      popUpData={popupHandlerState.popupData}
+                      annotationData={annotationHandlerState.annotationData}
+                      minimizedAnnotations={
+                        annotationHandlerState.minimizedAnnotations
+                      }
                       landscapeToken={landscapeToken}
                     />
                   )}
                   {openedSettingComponent === 'Settings' && (
                     <Settings
                       enterFullscreen={enterFullscreen}
-                      popups={popupData}
+                      popups={popupHandlerState.popupData}
                       redrawCommunication={
-                        applicationRendererStoreActions.addCommunicationForAllApplications
+                        applicationRendererActions.addCommunicationForAllApplications
                       }
-                      resetSettings={
-                        userSettingsStoreActions.applyDefaultSettings
-                      }
+                      resetSettings={userSettingsActions.applyDefaultSettings}
                       showSemanticZoomClusterCenters={
                         showSemanticZoomClusterCenters
                       }
                       updateColors={updateSceneColors}
                       updateHighlighting={
-                        highlightingStoreActions.updateHighlighting
+                        highlightingActions.updateHighlighting
                       }
                       setGamepadSupport={setGamepadSupport}
                     />
