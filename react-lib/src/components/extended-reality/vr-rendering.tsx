@@ -251,10 +251,10 @@ export default function VrRendering({
   const initDone = useRef<boolean>(false);
   const session = useRef<XRSession | undefined>(undefined);
 
-  const [scene, setScene] = useState<THREE.Scene>(
+  const [scene, setScene] = useState<THREE.Scene>(() =>
     sceneRepoState.getScene('vr', true)
   );
-  const [landscape3D, _] = useState<Landscape3D>(new Landscape3D()); // readonly
+  const [landscape3D] = useState<Landscape3D>(() => new Landscape3D()); // readonly
   // #endregion states & refs
 
   // #region useEffect

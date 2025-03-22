@@ -84,10 +84,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const localPing = useRef<{ obj: THREE.Object3D; time: number } | undefined | null>(null);
 
-  const [scene, setScene] = useState<THREE.Scene>(new THREE.Scene);
+  const [scene, setScene] = useState<THREE.Scene>(() => new THREE.Scene());
 
   // Private variable
-  const [landscape3D, setLandscape3D] = useState<Landscape3D>(new Landscape3D()); 
+  const [landscape3D, setLandscape3D] = useState<Landscape3D>(() => new Landscape3D()); 
 
   // Private variable
   const renderer! = useRef<THREE.WebGLRenderer | null>(null);

@@ -89,7 +89,6 @@ const queryParams = [
 ];
 
 export default function Visualization() {
-  const sidebarHandler = useRef<SidebarHandler>(new SidebarHandler());
   const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
   const navigate = useNavigate();
 
@@ -133,6 +132,7 @@ export default function Visualization() {
     useState<boolean>(true);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
     useState<boolean>(false);
+  const [sidebarHandler] = useState<SidebarHandler>(() => new SidebarHandler());
 
   // # endregion
 
@@ -191,10 +191,10 @@ export default function Visualization() {
       );
     };
     const handleOpenSettingsSidebar = () => {
-      sidebarHandler.current.openSettingsSidebar();
+      sidebarHandler.openSettingsSidebar();
     };
     const handleToggleSettingsSidebarComponent = (param: string) => {
-      sidebarHandler.current.toggleSettingsSidebarComponent(param);
+      sidebarHandler.toggleSettingsSidebarComponent(param);
     };
     const handleToggleVisualizationUpdating = () => {
       renderingServiceToggleVisualizationUpdating();
@@ -642,7 +642,7 @@ export default function Visualization() {
 
   const switchToMode = (mode: VisualizationMode) => {
     serializeRoom();
-    sidebarHandler.current.closeSettingsSidebar();
+    sidebarHandler.closeSettingsSidebar();
     setVisualizationMode(mode);
     webSocketSend<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
@@ -699,9 +699,9 @@ export default function Visualization() {
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
     useRenderingServiceStore.getState().resetAllRenderingStates();
 
-    if (sidebarHandler.current) {
-      sidebarHandler.current.closeSettingsSidebar();
-      sidebarHandler.current.closeToolsSidebar();
+    if (sidebarHandler) {
+      sidebarHandler.closeSettingsSidebar();
+      sidebarHandler.closeToolsSidebar();
     }
 
     // Always show runtime first
@@ -763,14 +763,14 @@ export default function Visualization() {
         //   }
         //   visualizationPaused={renderingServiceVisualizationPaused}
         //   openedSettingComponent={
-        //     sidebarHandler.current.openedSettingComponent
+        //     sidebarHandler.openedSettingComponent
         //   }
         //   toggleSettingsSidebarComponent={
-        //     sidebarHandler.current.toggleSettingsSidebarComponent
+        //     sidebarHandler.toggleSettingsSidebarComponent
         //   }
-        //   showSettingsSidebar={sidebarHandler.current.showSettingsSidebar}
-        //   openSettingsSidebar={sidebarHandler.current.openSettingsSidebar}
-        //   closeSettingsSidebar={sidebarHandler.current.closeSettingsSidebar}
+        //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
+        //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
+        //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
         // />
         showVR ? (
           <></>
@@ -785,26 +785,24 @@ export default function Visualization() {
             // addComponent={addComponent}
             // applicationArgs={applicationArgs}
             // closeDataSelection={closeDataSelection}
-            closeToolsSidebar={sidebarHandler.current.closeToolsSidebar}
-            closeSettingsSidebar={sidebarHandler.current.closeSettingsSidebar}
+            closeToolsSidebar={sidebarHandler.closeToolsSidebar}
+            closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
             components={components}
             componentsToolsSidebar={componentsToolsSidebar}
             id="browser-rendering"
             isDisplayed={allLandscapeDataExistsAndNotEmpty}
             landscapeData={renderingServiceLandscapeData}
             landscapeToken={landscapeTokenServiceToken}
-            openedSettingComponent={
-              sidebarHandler.current.openedSettingComponent
-            }
-            openedToolComponent={sidebarHandler.current.openedToolComponent}
-            openSettingsSidebar={sidebarHandler.current.openSettingsSidebar}
-            openToolsSidebar={sidebarHandler.current.openToolsSidebar}
+            openedSettingComponent={sidebarHandler.openedSettingComponent}
+            openedToolComponent={sidebarHandler.openedToolComponent}
+            openSettingsSidebar={sidebarHandler.openSettingsSidebar}
+            openToolsSidebar={sidebarHandler.openToolsSidebar}
             // pauseVisualizationUpdating={pauseVisualizationUpdating}
             removeTimestampListener={removeTimestampListener}
-            // removeToolsSidebarComponent={sidebarHandler.current.removeToolsSidebarComponent}
+            // removeToolsSidebarComponent={sidebarHandler.removeToolsSidebarComponent}
             // restructureLandscape={restructureLandscape}
-            showSettingsSidebar={sidebarHandler.current.showSettingsSidebar}
-            showToolsSidebar={sidebarHandler.current.showToolsSidebar}
+            showSettingsSidebar={sidebarHandler.showSettingsSidebar}
+            showToolsSidebar={sidebarHandler.showToolsSidebar}
             snapshot={snapshotSelected}
             snapshotReload={snapshotToken}
             switchToAR={switchToAR}
@@ -812,10 +810,10 @@ export default function Visualization() {
               renderingServiceTriggerRenderingForGivenLandscapeData
             }
             toggleSettingsSidebarComponent={
-              sidebarHandler.current.toggleSettingsSidebarComponent
+              sidebarHandler.toggleSettingsSidebarComponent
             }
             toggleToolsSidebarComponent={
-              sidebarHandler.current.toggleToolsSidebarComponent
+              sidebarHandler.toggleToolsSidebarComponent
             }
             toggleVisualizationUpdating={
               renderingServiceToggleVisualizationUpdating

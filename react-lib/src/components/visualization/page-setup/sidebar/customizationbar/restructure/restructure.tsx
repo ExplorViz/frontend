@@ -118,7 +118,7 @@ export default function Restructure({
   const getTimestampsForCommitId = useTimestampRepositoryStore(
     (state) => state.getTimestampsForCommitId
   );
-  const getLocalUserCamera = useLocalUserStore((state) => state.getCamera());
+  const getLocalUserCamera = useLocalUserStore((state) => state.getCamera);
   const saveSnapshot = useSnapshotTokenStore((state) => state.saveSnapshot);
   const showInfoToastMessage = useToastHandlerStore(
     (state) => state.showInfoToastMessage
@@ -139,16 +139,16 @@ export default function Restructure({
 
   // MARK: State
 
-  const [token, setToken] = useState<ApiToken | null>(
+  const [token, setToken] = useState<ApiToken | null>(() =>
     localStorage.getItem('gitAPIToken') !== null
       ? JSON.parse(localStorage.getItem('gitAPIToken')!)
       : null
   );
   const [issueURL, setIssueURL] = useState<string>(
-    localStorage.getItem('gitIssue') || ''
+    () => localStorage.getItem('gitIssue') || ''
   );
   const [uploadURL, setUploadURL] = useState<string>(
-    localStorage.getItem('gitUpload') || ''
+    () => localStorage.getItem('gitUpload') || ''
   );
   const [appName, setAppName] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
@@ -172,7 +172,7 @@ export default function Restructure({
     token === null ? true : false
   );
   const [gitLabProjects, setGitLabProjects] = useState<GitlabProject[]>([]);
-  const [project, setProject] = useState<GitlabProject | undefined>(
+  const [project, setProject] = useState<GitlabProject | undefined>(() =>
     localStorage.getItem('gitProject') !== null
       ? JSON.parse(localStorage.getItem('gitProject')!)
       : undefined

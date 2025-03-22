@@ -152,7 +152,7 @@ export default function TraceReplayerMain({
 
   // MARK: State
 
-  const [trace, setTrace] = useState<Span[]>(
+  const [trace, setTrace] = useState<Span[]>(() =>
     getSortedTraceSpans(selectedTrace)
   );
   const [currentTraceStep, setCurrentTraceStep] = useState<Span | null>(
@@ -163,19 +163,13 @@ export default function TraceReplayerMain({
   const [paused, setPaused] = useState<boolean>(true);
   const [stopped, setStopped] = useState<boolean>(true);
   const [index, setIndex] = useState<number>(-1);
-
-  // MARK: Refs
-
-  const classMap = useRef<Map<string, Class>>(
+  const [classMap] = useState<Map<string, Class>>(() =>
     getHashCodeToClassMap(structureData)
   );
-  const minSpeed = useRef<number>(1);
-  const maxSpeed = useRef<number>(20);
-  const totalDelta = useRef<number>(0);
-  const records = useRef<Record[]>(
+  const [records] = useState<Record[]>(() =>
     trace
       .map((span) => {
-        const clazz = classMap.current.get(span.methodHash);
+        const clazz = classMap.get(span.methodHash);
         if (clazz) {
           const mesh = getMeshById(clazz.id);
           return mesh
@@ -186,6 +180,12 @@ export default function TraceReplayerMain({
       })
       .filter((span) => span !== undefined)
   );
+
+  // MARK: Refs
+
+  const minSpeed = useRef<number>(1);
+  const maxSpeed = useRef<number>(20);
+  const totalDelta = useRef<number>(0);
   const blob = useRef<Blob | undefined>(undefined);
   const curve = useRef<THREE.QuadraticBezierCurve3 | undefined>(undefined);
   const duration = useRef<number>(0);
@@ -208,7 +208,7 @@ export default function TraceReplayerMain({
 
   const next = () => {
     if (paused) {
-      setIndex((prev) => Math.min(prev + 1, records.current.length));
+      setIndex((prev) => Math.min(prev + 1, records.length));
     }
   };
 
@@ -235,9 +235,9 @@ export default function TraceReplayerMain({
     if (!stopped && !paused && totalDelta.current > duration.current) {
       totalDelta.current = 0;
 
-      if (index >= 0 && index < records.current.length - 1) {
-        const origin = records.current[index];
-        const target = records.current[index + 1];
+      if (index >= 0 && index < records.length - 1) {
+        const origin = records[index];
+        const target = records[index + 1];
         setIndex((prev) => prev + 1);
 
         duration.current = (1 + origin.duration / 1000.0) / selectedSpeed;
@@ -335,7 +335,7 @@ export default function TraceReplayerMain({
       openAllComponentsOfAllApplications();
       removeCommunicationForAllApplications();
 
-      classMap.current.forEach((clazz) => {
+      classMap.forEach((clazz) => {
         const mesh = getMeshById(clazz.id);
         mesh?.turnTransparent();
         turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
@@ -369,7 +369,7 @@ export default function TraceReplayerMain({
       addCommunicationForAllApplications();
     }
 
-    classMap.current.forEach((clazz) => {
+    classMap.forEach((clazz) => {
       const mesh = getMeshById(clazz.id);
       mesh?.turnOpaque();
       turnComponentAndAncestorsTransparent(clazz.parent, 1);

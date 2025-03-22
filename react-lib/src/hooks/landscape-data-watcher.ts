@@ -122,8 +122,8 @@ export default function useLandscapeDataWatcher(
 
   // MARK: State
 
-  const [flatDataWorker] = useState<Worker>(new FlatDataWorker());
-  const [metricsWorker] = useState<Worker>(new MetricsWorker());
+  const [flatDataWorker] = useState<Worker>(() => new FlatDataWorker());
+  const [metricsWorker] = useState<Worker>(() => new MetricsWorker());
 
   // MARK: Variables
 
