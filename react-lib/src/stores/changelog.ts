@@ -134,6 +134,7 @@ interface ChangelogState {
   ) => BaseChangeLogEntry[] | undefined;
   removeLogEntriesUnderPackage: (app: Application, pckg: Package) => void;
   removeEntry: (entry: BaseChangeLogEntry, collabMode?: boolean) => void;
+  removeEntries: (entries: BaseChangeLogEntry[], collabMode?: boolean) => void;
   __removeExternCommunicationsInsidePackage: (
     logEntry: CommunicationChangeLogEntry,
     commPckg: Package,

@@ -27,7 +27,6 @@ export const useApplicationRepositoryStore = create<ApplicationRepositoryState>(
           applicationData
         ),
       }));
-      // TODO: this.notifyPropertyChange('applications'); // Seems not to be necessary, since Zustand does it automatically
     },
 
     remove: (applicationID: string) => {
@@ -38,14 +37,12 @@ export const useApplicationRepositoryStore = create<ApplicationRepositoryState>(
           applications: updatedMap,
         };
       });
-      // TODO: this.notifyPropertyChange('applications'); // Seems not to be necessary, since Zustand does it automatically
     },
 
     cleanup: () => {
       set(() => ({
         applications: new Map(),
       }));
-      // TODO: this.notifyPropertyChange('applications'); // Seems not to be necessary, since Zustand does it automatically
     },
   })
 );

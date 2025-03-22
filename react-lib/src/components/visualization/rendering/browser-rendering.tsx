@@ -93,6 +93,7 @@ import Settings from 'react-lib/src/components/visualization/page-setup/sidebar/
 import useLandscapeDataWatcher from '../../../hooks/landscape-data-watcher';
 import useSyncState from '../../../hooks/sync-state';
 import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
+import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -1038,7 +1039,6 @@ export default function BrowserRendering({
   });
 
   useSyncState();
-  useLandscapeDataWatcher(landscapeData, landscape3D);
   useInteractionModifier(
     canvas,
     getRaycastObjects(),
@@ -1057,6 +1057,8 @@ export default function BrowserRendering({
     }
   );
   useHeatmapRenderer(camera, scene);
+  useLandscapeDataWatcher(landscapeData, landscape3D);
+  useCollaborativeModifier();
 
   // MARK: JSX
 
