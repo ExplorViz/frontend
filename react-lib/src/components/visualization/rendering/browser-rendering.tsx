@@ -91,6 +91,7 @@ import { LandscapeToken } from '../../../stores/landscape-token';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
 import Settings from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 import useLandscapeDataWatcher from '../../../hooks/landscape-data-watcher';
+import useSyncState from '../../../hooks/sync-state';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -1053,6 +1054,7 @@ export default function BrowserRendering({
       onSpaceDown: handleSpaceBar,
     }
   );
+  useSyncState();
 
   // MARK: JSX
 

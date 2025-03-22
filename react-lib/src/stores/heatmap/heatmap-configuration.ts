@@ -35,12 +35,16 @@ interface HeatmapConfigurationState {
   deactivate: () => void;
   activate: () => void;
   getLatestClazzMetricScores: () => Metric[];
+  setCurrentApplication: (
+    applicationObject3D: ApplicationObject3D | null | undefined
+  ) => void;
   setActiveApplication: (applicationObject3D: ApplicationObject3D) => void;
   updateActiveApplication: (applicationObject3D: ApplicationObject3D) => void;
   getApplicationMetricsForEncompassingApplication: () =>
     | ApplicationMetrics
     | undefined;
   getSelectedMetric: () => Metric | undefined;
+  setSelectedMetricName: (metricName: string) => void;
   updateMetric: (metric: Metric) => void;
   switchMode: () => void;
   switchMetric: () => void;
@@ -121,6 +125,9 @@ export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
           ?.latestClazzMetricScores || []
       );
     },
+
+    setCurrentApplication: (currentApplication) =>
+      set({ currentApplication: currentApplication }),
 
     setActiveApplication: (applicationObject3D: ApplicationObject3D) => {
       set({ currentApplication: applicationObject3D });
@@ -204,8 +211,11 @@ export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
         default:
           break;
       }
-      return latestClazzMetricScores.firstObject; //TODO: does this work?
+      return latestClazzMetricScores.at(0);
     },
+
+    setSelectedMetricName: (metricName) =>
+      set({ selectedMetricName: metricName }),
 
     updateMetric: (metric: Metric) => {
       const metricName = metric.name;

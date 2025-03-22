@@ -75,6 +75,7 @@ import CommitTreeApplicationSelection from '../components/visualization/page-set
 import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import { ChevronUpIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
+import useSyncState from '../hooks/sync-state';
 
 const queryParams = [
   'roomId',
@@ -253,6 +254,8 @@ export default function Visualization() {
       autoJoinLobby();
     }
   }, []);
+
+  useSyncState();
 
   // #endregion
 
@@ -733,8 +736,6 @@ export default function Visualization() {
   return (
     <>
       <div id="vizspace">
-        <SyncState />
-
         {/* Loading screen  */}
         {!allLandscapeDataExistsAndNotEmpty && (
           <div className="container-fluid mt-6">
