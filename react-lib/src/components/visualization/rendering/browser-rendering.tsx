@@ -1090,9 +1090,9 @@ export default function BrowserRendering({
 
           {heatmapActive && <HeatmapInfo />}
 
-          <ContextMenu items={rightClickMenuItems}>
-            <canvas id="threejs-canvas" className={'webgl'} ref={canvas} />
-          </ContextMenu>
+          {/* <ContextMenu items={rightClickMenuItems}> */}
+          <canvas id="threejs-canvas" className={'webgl'} ref={canvas} />
+          {/* </ContextMenu> */}
           {/* {loadNewLandscape.isRunning && (
             <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
               <LoadingIndicator text="Loading new Landscape" />
