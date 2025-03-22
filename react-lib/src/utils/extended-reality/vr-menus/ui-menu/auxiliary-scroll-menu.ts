@@ -10,19 +10,23 @@ import VrRendering from 'react-lib/src/components/extended-reality/vr-rendering'
 export type AuxiliaryScrollMenuArgs = {
   object: DetailInfoScrollarea;
   controller: VRController;
-  renderer: VrRendering;
+  grabIntersectedObject: (controller: VRController) => void;
 };
 
 // This Menu is built just to define the controller thumbpad bindings when hovering the ScrollArea
 export class AuxiliaryScrollMenu extends BaseMenu {
   object: DetailInfoScrollarea;
   controller: VRController;
-  renderer: VrRendering;
+  grabIntersectedObject: (controller: VRController) => void;
 
-  constructor({ object, controller, renderer }: AuxiliaryScrollMenuArgs) {
+  constructor({
+    object,
+    controller,
+    grabIntersectedObject,
+  }: AuxiliaryScrollMenuArgs) {
     super();
     this.controller = controller;
-    this.renderer = renderer;
+    this.grabIntersectedObject = grabIntersectedObject;
     this.object = object;
   }
 
@@ -75,7 +79,7 @@ export class AuxiliaryScrollMenu extends BaseMenu {
 
         this.closeMenu();
         if (this.controller) {
-          this.renderer['grabIntersectedObject'](this.controller); // intentional escape hatch. Dirty, but gets the job done.
+          this.grabIntersectedObject(this.controller);
         }
       },
     });

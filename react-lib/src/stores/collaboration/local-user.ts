@@ -88,6 +88,7 @@ interface LocalUserState {
   _resetController: (controller: VRController | undefined) => void;
   setDefaultCamera: (camera: THREE.PerspectiveCamera) => void;
   setVisualizationMode: (mode: VisualizationMode) => void;
+  setXr: (value: THREE.WebXRManager) => void;
 }
 
 export const useLocalUserStore = create<LocalUserState>((set, get) => {
@@ -137,6 +138,10 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
 
     setVisualizationMode: (mode: VisualizationMode) => {
       set({ visualizationMode: mode });
+    },
+
+    setXr: (value: THREE.WebXRManager) => {
+      set({ xr: value });
     },
 
     getCamera: () => {

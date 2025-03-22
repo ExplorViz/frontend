@@ -34,7 +34,7 @@ interface UserSettingsState {
   visualizationSettings: VisualizationSettings; // tracked
   colors: ExplorVizColors | undefined; // tracked
   _constructApplicationColors: () => void;
-  applyDefaultSettingsForGroup: (groupId?: string) => void;
+  applyDefaultSettingsForGroup: (groupId: string) => void;
   applyDefaultSettings: (saveToLocalStorage?: boolean) => void;
   shareVisualizationSettings: () => void;
   updateSettings: (settings: VisualizationSettings) => void;
@@ -45,6 +45,7 @@ interface UserSettingsState {
   ) => void;
   updateColors: (updatedColors?: ColorScheme) => void;
   setColorsFromSettings: () => void;
+  setVisualizationSettings: (value: VisualizationSettings) => void;
 }
 
 export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
@@ -58,6 +59,10 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
   _constructApplicationColors: () => {
     get().setColorsFromSettings();
     get().updateColors();
+  },
+
+  setVisualizationSettings: (value: VisualizationSettings) => {
+    set({ visualizationSettings: value });
   },
 
   applyDefaultSettingsForGroup: (groupId: string) => {

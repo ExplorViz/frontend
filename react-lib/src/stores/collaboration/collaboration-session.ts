@@ -94,6 +94,7 @@ interface CollaborationSessionState {
     userId,
     originalMessage: { camera, controller1, controller2 },
   }: ForwardedMessage<UserPositionsMessage>) => void;
+  setIdToRemoteUser: (value: Map<string, RemoteUser>) => void;
 }
 
 export const useCollaborationSessionStore = create<CollaborationSessionState>(
@@ -103,6 +104,10 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     connectionStatus: 'offline', // tracked
     currentRoomId: null, // tracked
     previousRoomId: null, // tracked
+
+    setIdToRemoteUser: (value: Map<string, RemoteUser>) => {
+      set({ idToRemoteUser: value });
+    },
 
     getUserCount: () => {
       return get().idToRemoteUser.size + 1;

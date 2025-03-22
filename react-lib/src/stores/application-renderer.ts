@@ -153,6 +153,7 @@ interface ApplicationRendererState {
     applicationData: ApplicationData
   ) => void;
   cleanup: () => void;
+  setOpenApplicationsMap: (value: Map<string, ApplicationObject3D>) => void;
 }
 
 export const useApplicationRendererStore = create<ApplicationRendererState>(
@@ -162,6 +163,10 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     appCommRendering: new CommunicationRendering(),
 
     setLandscape3D: (value: Landscape3D) => set({ landscape3D: value }),
+
+    setOpenApplicationsMap: (value: Map<string, ApplicationObject3D>) => {
+      set({ openApplicationsMap: value });
+    },
 
     appSettings: () => {
       return useUserSettingsStore.getState().visualizationSettings;

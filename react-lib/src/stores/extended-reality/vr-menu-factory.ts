@@ -63,7 +63,7 @@ interface VrMenuFactoryState {
   buildAuxiliaryMenu: (
     object: DetailInfoScrollarea,
     controller: VRController,
-    renderer: VrRendering
+    grabIntersectedObject: (controller: VRController) => void
   ) => AuxiliaryScrollMenu;
   buildGrabMenu: (grabbedObject: GrabbableObject) => GrabMenu;
   buildScaleMenus: (grabbedObject: GrabbableObject) => {
@@ -81,11 +81,21 @@ interface VrMenuFactoryState {
   }) => MessageBoxMenu;
   buildResetMenu: () => ResetMenu;
   buildDisableInputMenu: () => DisableInputMenu;
+  setScene: (value: THREE.Scene) => void;
+  setRenderer: (value: THREE.WebGLRenderer) => void;
 }
 
 export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   scene: new THREE.Scene(),
   renderer: new THREE.WebGLRenderer(),
+
+  setScene: (value: THREE.Scene) => {
+    set({ scene: value });
+  },
+
+  setRenderer: (value: THREE.WebGLRenderer) => {
+    set({ renderer: value });
+  },
 
   buildMainMenu: (): MainMenu => {
     //TODO: look into why any args are needed. Previously:
@@ -227,12 +237,12 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   buildAuxiliaryMenu: (
     object: DetailInfoScrollarea,
     controller: VRController,
-    renderer: VrRendering
+    grabIntersectedObject: (controller: VRController) => void
   ): AuxiliaryScrollMenu => {
     return new AuxiliaryScrollMenu({
       object: object,
       controller: controller,
-      renderer: renderer,
+      grabIntersectedObject: grabIntersectedObject,
     });
   },
 

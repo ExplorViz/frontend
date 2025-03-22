@@ -64,7 +64,7 @@ export default class DetailInfoScrollarea
   applyHover(
     controller: VRController | null,
     intersection: THREE.Intersection,
-    renderer: VrRendering
+    grabIntersectedObject: (controller: VRController) => void
   ) {
     // @ts-ignore no types atm
     this.set({ backgroundOpacity: 0.4 });
@@ -81,7 +81,7 @@ export default class DetailInfoScrollarea
         if (!this.controllerIdToAuxiliaryMenuOpenFlag.get(controllerId)) {
           const auxiliaryMenu = useVrMenuFactoryStore
             .getState()
-            .buildAuxiliaryMenu(this, controller, renderer);
+            .buildAuxiliaryMenu(this, controller, grabIntersectedObject);
           controller.menuGroup.openMenu(auxiliaryMenu);
           this.controllerIdToAuxiliaryMenuOpenFlag.set(controllerId, true);
         }
