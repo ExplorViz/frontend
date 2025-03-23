@@ -1,11 +1,5 @@
-// import { tracked } from '@glimmer/tracking';
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
-// import { inject as service } from '@ember/service';
-// import { setOwner } from '@ember/application';
-// import RenderingService from 'explorviz-frontend/services/rendering-service';
 import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
-// import { action } from '@ember/object';
-// import debugLogger from 'ember-debug-logger';
 
 export type TimelineDataForCommit = {
   timestamps: Timestamp[];
@@ -23,26 +17,12 @@ const SELECTED_COLOR = 'red';
 const UNSELECTED_COLOR = 'blue';
 
 export default class TimelineDataObjectHandler {
-  // private readonly debug = debugLogger('TimelineDataObjectHandler');
-
-  // #region Services
-
-  // @service('rendering-service')
-  // renderingService!: RenderingService;
-
-  // #endregion
-
   // #region Properties
 
   // @tracked
   timelineDataObject: TimelineDataObject = new Map();
 
   // #endregion
-
-  // constructor(owner: any) {
-  //   // https://stackoverflow.com/questions/65010591/emberjs-injecting-owner-to-native-class-from-component
-  //   setOwner(this, owner);
-  // }
 
   // #region Timeline Click Handler
 
@@ -67,8 +47,8 @@ export default class TimelineDataObjectHandler {
 
     useRenderingServiceStore.getState().pauseVisualizationUpdating(true);
 
-    if (useRenderingServiceStore.getState().analysisMode === 'evolution') {
-      useRenderingServiceStore.getState().userInitiatedStaticDynamicCombination =
+    if (useRenderingServiceStore.getState()._analysisMode === 'evolution') {
+      useRenderingServiceStore.getState()._userInitiatedStaticDynamicCombination =
         true;
     }
 

@@ -223,7 +223,7 @@ interface MessageSenderState {
     isSpectating: boolean,
     spectatedUserId: string,
     spectatingUserIds: string[],
-    configurationId
+    configurationId: string
   ) => void;
   sendSyncRoomState: (room: SerializedRoom | null) => void;
   sendControllerConnect: (

@@ -204,8 +204,8 @@ function createLookupMaps(
     .map((node) => node.applications)
     .flat();
 
-  const allK8sApplications = structureData.k8sNodes
-    .flatMap((n) => n.k8sNamespaces)
+  const allK8sApplications = structureData
+    .k8sNodes!.flatMap((n) => n.k8sNamespaces)
     .flatMap((ns) => ns.k8sDeployments)
     .flatMap((d) => d.k8sPods)
     .flatMap((p) => p.applications);

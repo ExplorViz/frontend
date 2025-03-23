@@ -1,5 +1,4 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-// import { setOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
 import * as THREE from 'three';
 import UserList from 'react-lib/src/utils/extended-reality/view-objects/vr/user-list';
@@ -48,10 +47,9 @@ export default class OnlineMenu2 extends InteractiveMenu {
   userListContainer!: ThreeMeshUI.Block;
   userList!: UserList;
 
-  constructor({ owner, renderer, scene, ...args }: UserMenuArgs) {
+  constructor({ owner, renderer, scene }: UserMenuArgs) {
     super();
     this.owner = owner;
-    setOwner(this, owner);
     this.renderer = renderer;
     this.scene = scene;
     this.renderer.localClippingEnabled = true;

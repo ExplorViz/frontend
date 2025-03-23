@@ -8,7 +8,6 @@ import {
   MotionController,
   VisualResponse,
 } from '@webxr-input-profiles/motion-controllers';
-// import debugLogger from 'ember-debug-logger';
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/GLTFLoader';
 import VrControllerModel from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model';
@@ -40,8 +39,6 @@ export default class VrControllerModelFactory {
   static findNodes(controllerModel: VrControllerModel, scene: THREE.Group) {
     if (!controllerModel.motionController) return;
 
-    const debug = debugLogger('VrControllerModelFactory.findNodes()');
-
     // Loop through the components and find the nodes needed for each components' visual responses.
     Object.values(controllerModel.motionController.components).forEach(
       (component) => {
@@ -56,10 +53,6 @@ export default class VrControllerModelFactory {
             const sphere = new THREE.Mesh(sphereGeometry, material);
             touchPointNode.add(sphere);
             controllerModel.addTouchPointNode({ component, touchPointNode });
-          } else {
-            debug(
-              `Could not find touch dot, ${component.touchPointNodeName}, in touchpad component ${component.id}`
-            );
           }
         }
 
@@ -76,7 +69,6 @@ export default class VrControllerModelFactory {
             // If the target node cannot be found, skip this animation
             const valueNode = scene.getObjectByName(valueNodeName);
             if (!valueNode) {
-              debug(`Could not find ${valueNodeName} in the model`);
               return;
             }
 
@@ -92,12 +84,10 @@ export default class VrControllerModelFactory {
 
               // If the extents cannot be found, skip this animation
               if (!minNode) {
-                debug(`Could not find ${minNodeName} in the model`);
                 return;
               }
 
               if (!maxNode) {
-                debug(`Could not find ${maxNodeName} in the model`);
                 return;
               }
 
@@ -181,7 +171,7 @@ export default class VrControllerModelFactory {
         );
         lastAssetScene = assetScene;
       } catch (err) {
-        this.debug(err);
+        console.error(err);
       }
     });
 

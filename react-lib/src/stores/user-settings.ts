@@ -90,6 +90,7 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
     }
   },
 
+  // TODO: there is not applicationSettings in user-settings.ts
   shareVisualizationSettings: () => {
     useMessageSenderStore
       .getState()

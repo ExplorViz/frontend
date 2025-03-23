@@ -37,10 +37,10 @@ export const useTimestampStore = create<TimestampState>((set, get) => ({
     ) {
       // this is the case when only dynamic is being visualized
 
-      returnValue = get().timestamp.values().next().value[0];
+      returnValue = get().timestamp.values().next().value![0];
     }
 
-    return returnValue;
+    return returnValue!;
   },
 
   updateSelectedTimestamp: (timestamp: Map<string, number[]>) => {

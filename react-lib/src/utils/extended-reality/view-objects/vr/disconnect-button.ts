@@ -1,8 +1,6 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
-// import { setOwner } from '@ember/application';
-// import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 
 export type DisconnectButtonArgs = ThreeMeshUI.BlockOptions & {
@@ -17,13 +15,9 @@ export default class DisconnectButton
   text: ThreeMeshUI.Text;
   owner: any;
 
-  // @service('collaboration/collaboration-session')
-  // collaborationSession!: CollaborationSession;
-
   constructor({ owner, ...options }: DisconnectButtonArgs) {
     super(options);
     this.owner = owner;
-    setOwner(this, this.owner);
     this.text = new ThreeMeshUI.Text({ content: 'Disconnect' });
     this.add(this.text);
   }
@@ -34,7 +28,6 @@ export default class DisconnectButton
   }
 
   triggerPress() {
-    // this.collaborationSession.disconnect();
     useCollaborationSessionStore.getState().disconnect();
   }
 

@@ -111,18 +111,22 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
       if (useLocalUserStore.getState().xr?.isPresenting) {
         useLocalUserStore
           .getState()
-          .teleportToPosition(get().spectatedUser.camera.model.position);
+          .teleportToPosition(get().spectatedUser!.camera!.model.position);
       } else {
         useLocalUserStore
           .getState()
-          .camera.position.copy(get().spectatedUser.camera.model.position);
+          .defaultCamera.position.copy(
+            get().spectatedUser!.camera!.model.position
+          );
         useLocalUserStore
           .getState()
-          .camera.quaternion.copy(get().spectatedUser.camera.model.quaternion);
+          .defaultCamera.quaternion.copy(
+            get().spectatedUser!.camera!.model.quaternion
+          );
       }
     } else if (get().spectatingUsers.size > 0) {
       const poses = VrPoses.getPoses(
-        useLocalUserStore.getState().camera,
+        useLocalUserStore.getState().defaultCamera,
         useLocalUserStore.getState().controller1,
         useLocalUserStore.getState().controller2
       );
@@ -143,10 +147,10 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
     set({ spectatedUser: remoteUser });
 
     if (useLocalUserStore.getState().controller1) {
-      useLocalUserStore.getState().controller1.setToSpectatingAppearance();
+      useLocalUserStore.getState().controller1!.setToSpectatingAppearance();
     }
     if (useLocalUserStore.getState().controller2) {
-      useLocalUserStore.getState().controller2.setToSpectatingAppearance();
+      useLocalUserStore.getState().controller2!.setToSpectatingAppearance();
     }
     if (get().cameraControls) {
       let newCC = get().cameraControls;
@@ -158,9 +162,12 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
     if (sendUpdate) {
       useMessageSenderStore
         .getState()
-        .sendSpectatingUpdate(this.isActive, remoteUser.userId, [
-          useLocalUserStore.getState().userId,
-        ]);
+        .sendSpectatingUpdate(
+          get().isActive(),
+          remoteUser.userId,
+          [useLocalUserStore.getState().userId],
+          'default'
+        );
     }
   },
 
@@ -190,18 +197,21 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
     if (!get().spectatedUser) return;
 
     if (useLocalUserStore.getState().controller1) {
-      useLocalUserStore.getState().controller1.setToDefaultAppearance();
+      useLocalUserStore.getState().controller1!.setToDefaultAppearance();
     }
     if (useLocalUserStore.getState().controller2) {
-      useLocalUserStore.getState().controller2.setToDefaultAppearance();
+      useLocalUserStore.getState().controller2!.setToDefaultAppearance();
     }
 
     if (sendUpdate) {
       useMessageSenderStore
         .getState()
-        .sendSpectatingUpdate(false, get().spectatedUser.userId, [
-          useLocalUserStore.getState().userId,
-        ]);
+        .sendSpectatingUpdate(
+          false,
+          get().spectatedUser!.userId,
+          [useLocalUserStore.getState().userId],
+          'default'
+        );
     }
     let newSU = get().spectatedUser;
     newSU!.setHmdVisible(true);
@@ -333,7 +343,7 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
     // Apply projection matrix
     useLocalUserStore
       .getState()
-      .camera.projectionMatrix.fromArray(deviceConfig.projectionMatrix);
+      .defaultCamera.projectionMatrix.fromArray(deviceConfig.projectionMatrix);
   },
 
   setCameraControls: (cameraControls: CameraControls) =>

@@ -264,14 +264,14 @@ export default class ImmsersiveClassScene {
     sphere.geometry.computeBoundingSphere();
     const posOnSphere = new THREE.Vector3();
     posOnSphere.setFromSphericalCoords(
-      sphere.geometry.boundingSphere.radius,
+      sphere.geometry.boundingSphere!.radius,
       THREE.MathUtils.degToRad(angle),
       0
     );
     // Calculate the radius of the circle at distance y from the centerpoint
     const sliceRadius = Math.sqrt(
-      sphere.geometry.boundingSphere.radius *
-        sphere.geometry.boundingSphere.radius -
+      sphere.geometry.boundingSphere!.radius *
+        sphere.geometry.boundingSphere!.radius -
         posOnSphere.y * posOnSphere.y
     );
     // const rad = angle,
@@ -289,8 +289,8 @@ export default class ImmsersiveClassScene {
         new THREE.Vector3(
           0,
           angle <= 90
-            ? sphere.geometry.boundingSphere.radius - sliceRadius
-            : -sphere.geometry.boundingSphere.radius + sliceRadius,
+            ? sphere.geometry.boundingSphere!.radius - sliceRadius
+            : -sphere.geometry.boundingSphere!.radius + sliceRadius,
           0
         )
       );

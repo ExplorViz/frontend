@@ -1,5 +1,4 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-// import { setOwner } from '@ember/application';
 import ThreeMeshUI from 'three-mesh-ui';
 import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 import * as THREE from 'three';
@@ -55,7 +54,6 @@ export default class SearchMenu extends InteractiveMenu {
   constructor({ owner, renderer }: SearchMenuArgs) {
     super();
     this.owner = owner;
-    setOwner(this, owner);
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
     this.makeUI();

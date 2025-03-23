@@ -43,7 +43,7 @@ export default class CameraMenu extends UiMenu {
     this.items.push(title);
 
     this.heightTextItem = new TextItem({
-      text: useLocalUserStore.getState().cameraHeight.toFixed(2),
+      text: useLocalUserStore.getState().getCameraHeight().toFixed(2),
       color: '#ffffff',
       fontSize: 28,
       alignment: 'center',
@@ -87,15 +87,17 @@ export default class CameraMenu extends UiMenu {
 
   private translateCamera(deltaHeight: number) {
     // this.localUser.cameraHeight += deltaHeight;
-    useLocalUserStore.setState({
-      cameraHeight: useLocalUserStore.getState().cameraHeight + deltaHeight,
-    });
+    useLocalUserStore
+      .getState()
+      .setCameraHeight(
+        useLocalUserStore.getState().getCameraHeight() + deltaHeight
+      );
     this.redrawMenu();
   }
 
   private resetCamera() {
     // this.localUser.cameraHeight = 0;
-    useLocalUserStore.setState({ cameraHeight: 0 });
+    useLocalUserStore.getState().setCameraHeight(0);
     this.redrawMenu();
   }
 
@@ -133,7 +135,7 @@ export default class CameraMenu extends UiMenu {
   }
 
   onUpdateMenu(delta: number) {
-    const text = useLocalUserStore.getState().cameraHeight.toFixed(2);
+    const text = useLocalUserStore.getState().getCameraHeight().toFixed(2);
     if (text !== this.heightTextItem.text) {
       this.heightTextItem.text = text;
       this.redrawMenu();

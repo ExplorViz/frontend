@@ -427,6 +427,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     let originalPckgName = '';
 
     if (foundEntry) {
+      // TODO: fix
       set({
         changeLogEntries: get().changeLogEntries.filter(
           (entry: SubPackageChangeLogEntry) => entry.pckg?.id !== pckg.id

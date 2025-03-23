@@ -163,7 +163,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildOnlineMenu: (): OnlineMenu2 => {
     return new OnlineMenu2({
-      owner: getOwner(this),
       renderer: get().renderer,
       scene: get().scene,
     });
@@ -227,7 +226,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildInfoMenu: (object: EntityMesh): DetailInfoMenu => {
     return new DetailInfoMenu({
-      owner: getOwner(this), // TODO: How to to owner-things here?
       object: object,
       renderer: get().renderer,
     });
@@ -269,7 +267,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildSearchMenu: (): SearchMenu => {
     return new SearchMenu({
-      owner: getOwner(this), // TODO: How to do owner-things here?
       renderer: get().renderer,
     });
   },
@@ -277,7 +274,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildSpectateViewMenu: (userId: string): SpectateViewMenu => {
     return new SpectateViewMenu({
-      owner: getOwner(this), // TODO: How to do owner-things here?
       renderer: get().renderer,
       scene: get().scene,
       userId: userId,
@@ -307,7 +303,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildResetMenu: (): ResetMenu => {
     return new ResetMenu({
-      owner: getOwner(this), // TODO: How to do owner-things here?
       online:
         useCollaborationSessionStore.getState().connectionStatus !== 'online',
     });

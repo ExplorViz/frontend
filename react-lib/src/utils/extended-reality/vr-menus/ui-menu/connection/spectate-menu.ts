@@ -75,7 +75,7 @@ export default class SpectateMenu extends UiMenu {
     // Activate spectating.
     // Before:
     // useSpectateUserStore.getState().activate(this.remoteUser);
-    useSpectateUserStore.getState().activate();
+    useSpectateUserStore.getState().activate(this.remoteUser);
 
     // Show spectating user.
     const textItem = new TextItem({
