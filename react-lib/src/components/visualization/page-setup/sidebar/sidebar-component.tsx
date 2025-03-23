@@ -2,9 +2,11 @@ import React, { useCallback } from 'react';
 
 // TODO: How to get child components in here via helper?
 export default function SidebarComponent({ componentId, children }) {
-  const onWheel = useCallback((event) => {
-    $('.tse-scroll-content').trigger('wheel', event);
-  }, []);
+  const onWheel: React.WheelEventHandler = (event) => {
+    document
+      .querySelector('.tse-scroll-content')
+      ?.dispatchEvent(event.nativeEvent);
+  };
 
   const replaceDashesWithSpaces = (name: string) => {
     return name.replace(/-/g, ' ');

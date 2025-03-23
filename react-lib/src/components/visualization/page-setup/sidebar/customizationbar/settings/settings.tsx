@@ -490,10 +490,10 @@ export default function Settings({
   return Object.entries(filteredSettingsByGroup).map(
     ([groupId, settingIdArray]) => {
       if (settingIdArray.length === 0) {
-        return <></>;
+        return <React.Fragment key={groupId}></React.Fragment>;
       }
       return (
-        <>
+        <React.Fragment key={groupId}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <h6 className="mt-3">
               <strong>{groupId}</strong>
@@ -514,6 +514,7 @@ export default function Settings({
               if (setting.isFlagSetting) {
                 return (
                   <FlagSetting
+                    key={settingId}
                     setting={setting}
                     settingId={settingId}
                     onChange={updateFlagSetting}
@@ -521,6 +522,7 @@ export default function Settings({
                 );
               } else if (setting.isRangeSetting) {
                 <RangeSetting
+                  key={settingId}
                   setting={setting}
                   settingId={settingId}
                   onChange={updateRangeSetting}
@@ -528,6 +530,7 @@ export default function Settings({
               } else if (setting.isColorSetting) {
                 return (
                   <ColorPicker
+                    key={settingId}
                     id={settingId as ColorSettingId}
                     setting={setting}
                     updateColors={updateColors}
@@ -536,16 +539,17 @@ export default function Settings({
               } else if (setting.isButtonSetting) {
                 return (
                   <ButtonSetting
+                    key={settingId}
                     setting={setting}
                     settingId={settingId}
                     onClick={updateButtonSetting}
                   />
                 );
               }
-              return <></>;
+              return <React.Fragment key={settingId}></React.Fragment>;
             })}
           </div>
-        </>
+        </React.Fragment>
       );
     }
   );

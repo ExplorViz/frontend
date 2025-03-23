@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import SidebarHandler from '../utils/sidebar/sidebar-handler';
+
 import {
   AnalysisMode,
   useRenderingServiceStore,
@@ -59,7 +59,6 @@ import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
 import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
-import SyncState from '../components/sync-state';
 // import ArRendering from 'react-lib/src/components/extended-reality/ar-rendering';
 // import VrRendering from 'react-lib/src/components/extender-reality/vr-rendering';
 import { useUserSettingsStore } from '../stores/user-settings';
@@ -132,7 +131,6 @@ export default function Visualization() {
     useState<boolean>(true);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
     useState<boolean>(false);
-  const [sidebarHandler] = useState<SidebarHandler>(() => new SidebarHandler());
 
   // # endregion
 
@@ -190,22 +188,11 @@ export default function Visualization() {
         dynamicData
       );
     };
-    const handleOpenSettingsSidebar = () => {
-      sidebarHandler.openSettingsSidebar();
-    };
-    const handleToggleSettingsSidebarComponent = (param: string) => {
-      sidebarHandler.toggleSettingsSidebarComponent(param);
-    };
     const handleToggleVisualizationUpdating = () => {
       renderingServiceToggleVisualizationUpdating();
     };
 
     eventEmitter.on('restructureLandscapeData', handleRestructureLandscapeData);
-    eventEmitter.on('openSettingsSidebar', handleOpenSettingsSidebar);
-    eventEmitter.on(
-      'restructureComponent',
-      handleToggleSettingsSidebarComponent
-    );
     eventEmitter.on('toggelVisualization', handleToggleVisualizationUpdating);
 
     return () => {
@@ -214,11 +201,6 @@ export default function Visualization() {
       eventEmitter.off(
         'restructureLandscapeData',
         handleRestructureLandscapeData
-      );
-      eventEmitter.off('openSettingsSidebar', handleOpenSettingsSidebar);
-      eventEmitter.off(
-        'restructureComponent',
-        handleToggleSettingsSidebarComponent
       );
       eventEmitter.off(
         'toggelVisualization',
@@ -642,7 +624,6 @@ export default function Visualization() {
 
   const switchToMode = (mode: VisualizationMode) => {
     serializeRoom();
-    sidebarHandler.closeSettingsSidebar();
     setVisualizationMode(mode);
     webSocketSend<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
@@ -698,11 +679,6 @@ export default function Visualization() {
     useApplicationRendererStore.getState().cleanup();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
     useRenderingServiceStore.getState().resetAllRenderingStates();
-
-    if (sidebarHandler) {
-      sidebarHandler.closeSettingsSidebar();
-      sidebarHandler.closeToolsSidebar();
-    }
 
     // Always show runtime first
     setIsRuntimeTimelineSelected(true);
@@ -785,35 +761,20 @@ export default function Visualization() {
             // addComponent={addComponent}
             // applicationArgs={applicationArgs}
             // closeDataSelection={closeDataSelection}
-            closeToolsSidebar={sidebarHandler.closeToolsSidebar}
-            closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
             components={components}
             componentsToolsSidebar={componentsToolsSidebar}
             id="browser-rendering"
             isDisplayed={allLandscapeDataExistsAndNotEmpty}
             landscapeData={renderingServiceLandscapeData}
             landscapeToken={landscapeTokenServiceToken}
-            openedSettingComponent={sidebarHandler.openedSettingComponent}
-            openedToolComponent={sidebarHandler.openedToolComponent}
-            openSettingsSidebar={sidebarHandler.openSettingsSidebar}
-            openToolsSidebar={sidebarHandler.openToolsSidebar}
             // pauseVisualizationUpdating={pauseVisualizationUpdating}
             removeTimestampListener={removeTimestampListener}
-            // removeToolsSidebarComponent={sidebarHandler.removeToolsSidebarComponent}
             // restructureLandscape={restructureLandscape}
-            showSettingsSidebar={sidebarHandler.showSettingsSidebar}
-            showToolsSidebar={sidebarHandler.showToolsSidebar}
             snapshot={snapshotSelected}
             snapshotReload={snapshotToken}
             switchToAR={switchToAR}
             triggerRenderingForGivenLandscapeData={
               renderingServiceTriggerRenderingForGivenLandscapeData
-            }
-            toggleSettingsSidebarComponent={
-              sidebarHandler.toggleSettingsSidebarComponent
-            }
-            toggleToolsSidebarComponent={
-              sidebarHandler.toggleToolsSidebarComponent
             }
             toggleVisualizationUpdating={
               renderingServiceToggleVisualizationUpdating

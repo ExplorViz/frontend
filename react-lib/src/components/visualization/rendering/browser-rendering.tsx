@@ -94,6 +94,7 @@ import useLandscapeDataWatcher from '../../../hooks/landscape-data-watcher';
 import useSyncState from '../../../hooks/sync-state';
 import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
 import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
+import eventEmitter from '../../../utils/event-emitter';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -102,22 +103,12 @@ interface BrowserRenderingProps {
   readonly userApiTokens: ApiToken[];
   readonly visualizationPaused: boolean;
   readonly isDisplayed: boolean;
-  readonly showToolsSidebar: boolean;
-  readonly showSettingsSidebar: boolean;
   readonly snapshot: boolean | undefined | null;
   readonly snapshotReload: SnapshotToken | undefined | null;
-  readonly openedToolComponent: string;
-  readonly openedSettingComponent: string;
   triggerRenderingForGivenLandscapeData(
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ): void;
-  openToolsSidebar(): void;
-  closeToolsSidebar(): void;
-  toggleToolsSidebarComponent(componentId: string): void;
-  openSettingsSidebar(): void;
-  closeSettingsSidebar(): void;
-  toggleSettingsSidebarComponent(componentId: string): void;
   pauseVisualizationUpdating(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
@@ -135,19 +126,9 @@ export default function BrowserRendering({
   userApiTokens,
   visualizationPaused,
   isDisplayed,
-  showToolsSidebar,
-  showSettingsSidebar,
   snapshot,
   snapshotReload,
-  openedToolComponent,
-  openedSettingComponent,
   triggerRenderingForGivenLandscapeData,
-  openToolsSidebar,
-  closeToolsSidebar,
-  toggleToolsSidebarComponent,
-  openSettingsSidebar,
-  closeSettingsSidebar,
-  toggleSettingsSidebarComponent,
   pauseVisualizationUpdating,
   toggleVisualizationUpdating,
   switchToAR,
@@ -861,8 +842,31 @@ export default function BrowserRendering({
     );
   };
 
+  const toggleToolsSidebarComponent = (component: string): boolean => {
+    const newOpenedToolComponent =
+      openedToolComponent === component ? null : component;
+    setOpenedToolComponent(newOpenedToolComponent);
+    return newOpenedToolComponent === component;
+  };
+
+  const toggleSettingsSidebarComponent = (component: string): boolean => {
+    const newOpenedSettingComponent =
+      openedSettingComponent === component ? null : component;
+    setOpenedSettingComponent(newOpenedSettingComponent);
+    return newOpenedSettingComponent === component;
+  };
+
   // MARK: State
 
+  const [showToolsSidebar, setShowToolsSiderbar] = useState<boolean>(false);
+  const [showSettingsSidebar, setShowSettingsSidebar] =
+    useState<boolean>(false);
+  const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
+    null
+  );
+  const [openedSettingComponent, setOpenedSettingComponent] = useState<
+    string | null
+  >(null);
   const [landscape3D] = useState<Landscape3D>(() => new Landscape3D());
   const [updateLayout, setUpdateLayout] = useState<boolean>(false);
   const [scene] = useState<THREE.Scene>(() =>
@@ -995,6 +999,25 @@ export default function BrowserRendering({
 
     useApplicationRendererStore.getState().setLandscape3D(landscape3D);
 
+    // Open sidebars automatically on certain restructure actions
+
+    const handleOpenSettingsSidebarEvent = () => {
+      setShowSettingsSidebar(true);
+    };
+
+    const handleToggleSettingsSidebarComponentEvent = (component: string) => {
+      const newOpenedSettingComponent =
+        openedSettingComponent === component ? null : component;
+      setOpenedSettingComponent(newOpenedSettingComponent);
+      return newOpenedSettingComponent === component;
+    };
+
+    eventEmitter.on('openSettingsSidebar', handleOpenSettingsSidebarEvent);
+    eventEmitter.on(
+      'restructureComponent',
+      handleToggleSettingsSidebarComponentEvent
+    );
+
     // Cleanup on component unmount
     return function cleanup() {
       worker.terminate();
@@ -1011,6 +1034,12 @@ export default function BrowserRendering({
       configurationActions.setIsCommRendered(false);
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();
+
+      eventEmitter.off('openSettingsSidebar', handleOpenSettingsSidebarEvent);
+      eventEmitter.off(
+        'restructureComponent',
+        handleToggleSettingsSidebarComponentEvent
+      );
 
       // Clean up WebGL rendering context by forcing context loss
       const gl = canvas.current?.getContext('webgl');
@@ -1079,7 +1108,7 @@ export default function BrowserRendering({
                 id="toolsOpener"
                 variant="outline-secondary"
                 title="Tools"
-                onClick={openToolsSidebar}
+                onClick={() => setShowToolsSiderbar(true)}
               >
                 <ToolsIcon size="small" className="align-middle" />
               </Button>
@@ -1092,7 +1121,7 @@ export default function BrowserRendering({
                 id="undoAction"
                 variant="outline-secondary"
                 title="Settings"
-                onClick={openSettingsSidebar}
+                onClick={() => setShowSettingsSidebar(true)}
               >
                 <GearIcon size="small" className="align-middle" />
               </Button>
@@ -1150,7 +1179,9 @@ export default function BrowserRendering({
       {showToolsSidebar && (
         <div className="sidebar left" id="toolselection">
           <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
-            <ToolSelection closeToolSelection={closeToolsSidebar}>
+            <ToolSelection
+              closeToolSelection={() => setShowToolsSiderbar(false)}
+            >
               <div className="explorviz-visualization-navbar">
                 <ul className="nav justify-content-center">
                   <EntityFilteringOpener
@@ -1218,11 +1249,13 @@ export default function BrowserRendering({
       {showSettingsSidebar && (
         <div className="sidebar right col-4" id="settingsSidebar">
           <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
-            <SettingsSidebar closeSettingsSidebar={closeSettingsSidebar}>
+            <SettingsSidebar
+              closeSettingsSidebar={() => setShowSettingsSidebar(false)}
+            >
               <div className="explorviz-visualization-navbar">
                 <ul className="nav justify-content-center">
                   <CollaborationOpener
-                    openedComponent={openedSettingComponent}
+                    openedComponent={openedSettingComponent!}
                     toggleSettingsSidebarComponent={
                       toggleSettingsSidebarComponent
                     }

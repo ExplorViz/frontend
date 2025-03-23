@@ -82,7 +82,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
   const listRooms = useRoomServiceStore((state) => state.listRooms);
   const currentToken = useLandscapeTokenStore((state) => state.token);
   const retrieveLandscapeTokens = useLandscapeTokenStore(
-    (state) => retrieveTokens
+    (state) => state.retrieveTokens
   );
   const setTokenByValue = useLandscapeTokenStore(
     (state) => state.setTokenByValue
@@ -305,7 +305,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
 
     // Cleanup old landscape
     useApplicationRendererStore.getState().cleanup();
-    useApplicationRepositoryStore.getState().clearApplication();
+    useApplicationRepositoryStore.getState().cleanup();
     getAllLinks().forEach((externLink) => {
       externLink.removeFromParent();
     });
