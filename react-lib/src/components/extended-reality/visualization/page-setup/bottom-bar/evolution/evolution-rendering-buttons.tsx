@@ -5,6 +5,7 @@ import {
 } from 'react-lib/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 import { useVisibilityServiceStore } from 'react-lib/src/stores/visibility-service';
+import { useShallow } from 'zustand/react/shallow';
 
 interface IArgs {
   selectedAppName: string;
@@ -15,43 +16,55 @@ export default function EvolutionRenderingButtons(args: IArgs) {
   const showSelectionButton = useRenderingServiceStore(
     (state) => state._userInitiatedStaticDynamicCombination
   );
-  const checkboxValues = useVisibilityServiceStore((state) =>
-    state.getCloneOfEvolutionModeRenderingConfiguration()
+
+  const commitTreeState = useCommitTreeStateStore(
+    useShallow((state) => ({
+      resetSelectedCommits: state.resetSelectedCommits,
+    }))
+  );
+
+  const renderingService = useRenderingServiceStore(
+    useShallow((state) => ({
+      triggerRenderingForSelectedCommits:
+        state.triggerRenderingForSelectedCommits,
+    }))
+  );
+
+  const visService = useVisibilityServiceStore(
+    useShallow((state) => ({
+      applyEvolutionModeRenderingConfiguration:
+        state.applyEvolutionModeRenderingConfiguration,
+      getCloneOfEvolutionModeRenderingConfiguration:
+        state.getCloneOfEvolutionModeRenderingConfiguration,
+    }))
+  );
+
+  const checkboxValues = useRef(
+    visService.getCloneOfEvolutionModeRenderingConfiguration()
   );
 
   const unselectAllSelectedCommits = () => {
-    useCommitTreeStateStore.getState().resetSelectedCommits();
-    useRenderingServiceStore.getState().triggerRenderingForSelectedCommits();
+    commitTreeState.resetSelectedCommits();
+    renderingService.triggerRenderingForSelectedCommits();
   };
 
   const changeAnalysisMode = (x: any) => {
-    const newEvolutionModeRenderingConfiguration = useVisibilityServiceStore
-      .getState()
-      .getCloneOfEvolutionModeRenderingConfiguration();
+    const newEvolutionModeRenderingConfiguration =
+      visService.getCloneOfEvolutionModeRenderingConfiguration();
+
     if (x === 'dynamic') {
-      if (newEvolutionModeRenderingConfiguration.renderDynamic) {
-        newEvolutionModeRenderingConfiguration.renderDynamic = false;
-      } else {
-        newEvolutionModeRenderingConfiguration.renderDynamic = true;
-      }
+      newEvolutionModeRenderingConfiguration.renderDynamic =
+        !newEvolutionModeRenderingConfiguration.renderDynamic;
     } else if (x === 'static') {
-      if (newEvolutionModeRenderingConfiguration.renderStatic) {
-        newEvolutionModeRenderingConfiguration.renderStatic = false;
-      } else {
-        newEvolutionModeRenderingConfiguration.renderStatic = true;
-      }
+      newEvolutionModeRenderingConfiguration.renderStatic =
+        !newEvolutionModeRenderingConfiguration.renderStatic;
     } else if (x === 'difference') {
-      if (newEvolutionModeRenderingConfiguration.renderOnlyDifferences) {
-        newEvolutionModeRenderingConfiguration.renderOnlyDifferences = false;
-      } else {
-        newEvolutionModeRenderingConfiguration.renderOnlyDifferences = true;
-      }
+      newEvolutionModeRenderingConfiguration.renderOnlyDifferences =
+        !newEvolutionModeRenderingConfiguration.renderOnlyDifferences;
     }
-    useVisibilityServiceStore
-      .getState()
-      .applyEvolutionModeRenderingConfiguration(
-        newEvolutionModeRenderingConfiguration
-      );
+    visService.applyEvolutionModeRenderingConfiguration(
+      newEvolutionModeRenderingConfiguration
+    );
   };
 
   return (
@@ -65,7 +78,7 @@ export default function EvolutionRenderingButtons(args: IArgs) {
                 <button
                   type="button"
                   className="btn btn-outline-dark"
-                  onClick={unselectAllSelectedCommits}
+                  onChange={unselectAllSelectedCommits}
                 >
                   Unselect all commits
                 </button>
@@ -80,8 +93,8 @@ export default function EvolutionRenderingButtons(args: IArgs) {
                   <label className="wide-checkbox-container">
                     <input
                       type="checkbox"
-                      checked={checkboxValues.renderDynamic}
-                      onClick={() => changeAnalysisMode('dynamic')}
+                      checked={checkboxValues.current.renderDynamic}
+                      onChange={() => changeAnalysisMode('dynamic')}
                     />
                     <span className="wide-checkbox"></span>
                   </label>
@@ -97,8 +110,8 @@ export default function EvolutionRenderingButtons(args: IArgs) {
                   <label className="wide-checkbox-container">
                     <input
                       type="checkbox"
-                      checked={checkboxValues.renderStatic}
-                      onClick={() => changeAnalysisMode('static')}
+                      checked={checkboxValues.current.renderStatic}
+                      onChange={() => changeAnalysisMode('static')}
                     />
                     <span className="wide-checkbox"></span>
                   </label>
@@ -114,8 +127,8 @@ export default function EvolutionRenderingButtons(args: IArgs) {
                   <label className="wide-checkbox-container">
                     <input
                       type="checkbox"
-                      checked={checkboxValues.renderOnlyDifferences}
-                      onClick={() => changeAnalysisMode('difference')}
+                      checked={checkboxValues.current.renderOnlyDifferences}
+                      onChange={() => changeAnalysisMode('difference')}
                     />
                     <span className="wide-checkbox"></span>
                   </label>

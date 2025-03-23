@@ -71,7 +71,7 @@ import { useFontRepositoryStore } from '../stores/repos/font-repository';
 import { Button } from 'react-bootstrap';
 import PlotlyTimeline from 'react-lib/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
-// import EvolutionRenderingButtons from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
+import EvolutionRenderingButtons from '../components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import { ChevronUpIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
@@ -680,8 +680,8 @@ export default function Visualization() {
     // Disable keyboard events for button to prevent space bar
     document.getElementById('bottom-bar-toggle-chart-button')?.blur();
 
-    setIsCommitTreeSelected(!isCommitTreeSelected);
-    setIsRuntimeTimelineSelected(!isRuntimeTimelineSelected);
+    setIsCommitTreeSelected((prev) => !prev);
+    setIsRuntimeTimelineSelected((prev) => !prev);
   };
 
   const toggleVisibilityBottomBar = () => {
@@ -904,10 +904,10 @@ export default function Visualization() {
                         selectedAppName={currentSelectedApplicationName}
                       />
                     </div>
-                    {/* <EvolutionRenderingButtons
+                    <EvolutionRenderingButtons
                       selectedAppName={currentSelectedApplicationName}
                       selectedCommits={getSelectedCommits()}
-                    /> */}
+                    />
                   </div>
                   <PlotlyCommitTree
                     appNameCommitTreeMap={
