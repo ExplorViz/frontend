@@ -881,7 +881,7 @@ export default function Visualization() {
                 </Button>
               </div>
 
-              {/* {isRuntimeTimelineSelected && (
+              {isRuntimeTimelineSelected && (
                 <>
                   <PlotlyTimeline
                     timelineDataObject={
@@ -890,7 +890,7 @@ export default function Visualization() {
                     clicked={timelineDataObjectHandler?.timelineClicked!}
                   />
                 </>
-              )} */}
+              )}
 
               {isCommitTreeSelected && (
                 <>
