@@ -28,8 +28,8 @@ export default function ComponentOpener({
 }
 
 type ComponentOpenerProps = {
-  openedComponent: string;
+  openedComponent: string | null;
   componentTitle: string;
   componentId: string;
-  toggleComponent: (componentId: string) => void;
+  toggleComponent: (componentId: string) => boolean;
 };

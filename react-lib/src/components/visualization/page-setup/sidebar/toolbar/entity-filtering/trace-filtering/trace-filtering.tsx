@@ -135,29 +135,31 @@ export default function TraceFiltering({
   }, []);
 
   return (
-    <>
-      <h6 className="mb-3 mt-3">
-        <strong>
-          Traces (# shown:
-          {traceCount}/{initialLandscapeData!.dynamicLandscapeData.length})
-        </strong>
-      </h6>
+    initialLandscapeData && (
+      <>
+        <h6 className="mb-3 mt-3">
+          <strong>
+            Traces (# shown:
+            {traceCount}/{initialLandscapeData!.dynamicLandscapeData.length})
+          </strong>
+        </h6>
 
-      <TraceStart
-        traces={landscapeData.dynamicLandscapeData}
-        updateStartTimestamp={updateStartTimestamp}
-        pauseVisualizationUpdating={pauseVisualizationUpdating}
-        remainingTraceCount={numRemainingTracesAfterFilteredByStarttime}
-        initialTraceCount={initialLandscapeData!.dynamicLandscapeData.length}
-      />
+        <TraceStart
+          traces={landscapeData.dynamicLandscapeData}
+          updateStartTimestamp={updateStartTimestamp}
+          pauseVisualizationUpdating={pauseVisualizationUpdating}
+          remainingTraceCount={numRemainingTracesAfterFilteredByStarttime}
+          initialTraceCount={initialLandscapeData!.dynamicLandscapeData.length}
+        />
 
-      <TraceDuration
-        traces={landscapeData.dynamicLandscapeData}
-        updateDuration={updateDuration}
-        pauseVisualizationUpdating={pauseVisualizationUpdating}
-        remainingTraceCount={numRemainingTracesAfterFilteredByDuration}
-        initialTraceCount={initialLandscapeData!.dynamicLandscapeData.length}
-      />
-    </>
+        <TraceDuration
+          traces={landscapeData.dynamicLandscapeData}
+          updateDuration={updateDuration}
+          pauseVisualizationUpdating={pauseVisualizationUpdating}
+          remainingTraceCount={numRemainingTracesAfterFilteredByDuration}
+          initialTraceCount={initialLandscapeData!.dynamicLandscapeData.length}
+        />
+      </>
+    )
   );
 }
