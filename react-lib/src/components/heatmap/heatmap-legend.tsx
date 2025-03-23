@@ -165,7 +165,7 @@ export default function HeatmapLegend(args: Args) {
             id="collapsible"
             className="heatmap-legend-toggle"
             type="checkbox"
-            checked
+            defaultChecked
           />
           <label
             htmlFor="collapsible"

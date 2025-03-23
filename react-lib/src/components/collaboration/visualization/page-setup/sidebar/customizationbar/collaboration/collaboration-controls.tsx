@@ -569,6 +569,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
                 style={{ marginBottom: '5px' }}
                 checked={spectateConfigEnabled}
                 name="spectateConfigEnabled"
+                onChange={() => setSpectateConfigEnabled((prev) => !prev)}
               />
             </div>
           </div>
