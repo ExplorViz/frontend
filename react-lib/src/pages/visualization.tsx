@@ -681,7 +681,7 @@ export default function Visualization() {
     document.getElementById('bottom-bar-toggle-chart-button')?.blur();
 
     setIsCommitTreeSelected(!isCommitTreeSelected);
-    setIsRuntimeTimelineSelected(!isCommitTreeSelected);
+    setIsRuntimeTimelineSelected(!isRuntimeTimelineSelected);
   };
 
   const toggleVisibilityBottomBar = () => {
@@ -882,13 +882,14 @@ export default function Visualization() {
               </div>
 
               {isRuntimeTimelineSelected && (
-                <></>
-                // <PlotlyTimeline
-                //   timelineDataObject={
-                //     timelineDataObjectHandler?.timelineDataObject!
-                //   }
-                //   clicked={timelineDataObjectHandler?.timelineClicked!}
-                // />
+                <>
+                  <PlotlyTimeline
+                    timelineDataObject={
+                      timelineDataObjectHandler?.timelineDataObject!
+                    }
+                    clicked={timelineDataObjectHandler?.timelineClicked!}
+                  />
+                </>
               )}
 
               {isCommitTreeSelected && (

@@ -90,6 +90,9 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     useARSettingsStore.getState().setApplicationOpacity(event.target.value);
   };
 
+  const stackPopups = useARSettingsStore((state) => state.stackPopups);
+  const setStackPopups = useARSettingsStore((state) => state.setStackPopups);
+
   const updateButtonSize = (event: any) => {
     const size = event.target.value;
     setButtonSize(size);
@@ -364,7 +367,8 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
               <input
                 id="stackPopupsCheckBox"
                 type="checkbox"
-                checked={useARSettingsStore.getState().stackPopups}
+                checked={stackPopups}
+                onChange={() => setStackPopups(!stackPopups)}
               />
             </div>
           </div>

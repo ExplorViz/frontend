@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { create } from 'zustand';
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 
@@ -11,15 +11,20 @@ interface ARSettingsState {
   stackPopups: boolean; // tracked
   setApplicationOpacity: (opacity: number) => void;
   updateApplicationOpacity: () => void;
+  setStackPopups: (value: boolean) => void;
 }
 
-export const useARSettingsStore = createStore<ARSettingsState>((set, get) => ({
+export const useARSettingsStore = create<ARSettingsState>((set, get) => ({
   landscapeOpacity: 0.9,
   applicationOpacity: 0.9,
   sidebarWidthInPercent: undefined,
   renderCommunication: true,
   zoomLevel: 3,
   stackPopups: true,
+
+  setStackPopups: (value: boolean) => {
+    set({ stackPopups: value });
+  },
 
   setApplicationOpacity: (opacity: number) => {
     set({ applicationOpacity: opacity });
