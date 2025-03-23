@@ -139,7 +139,7 @@ export function addComponentAndChildrenToScene(
     //Open itsself
     openComponentMesh(componentMesh, applicationObject3D);
     //Open its childs
-    openComponentsRecursively(component, applicationObject3D, undefined);
+    openComponentsRecursively(component, applicationObject3D);
 
     // Rewritten update method
     //updateApplicationObject3DAfterUpdate(applicationObject3D);
@@ -160,7 +160,7 @@ export function addComponentAndChildrenToScene(
     if (!SemanticZoomManager.instance.autoOpenCloseFeature) return;
     if (!componentMesh.opened) return;
 
-    closeComponentsRecursively(component, applicationObject3D, undefined);
+    closeComponentsRecursively(component, applicationObject3D);
     closeComponentMesh(componentMesh, applicationObject3D, false);
     updateApplicationObject3DAfterUpdate(
       applicationObject3D,

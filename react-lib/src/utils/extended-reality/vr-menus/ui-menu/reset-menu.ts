@@ -9,7 +9,6 @@ import { useDetachedMenuGroupsStore } from 'react-lib/src/stores/extended-realit
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 
 export type ResetMenuArgs = UiMenuArgs & {
-  owner: any;
   online: boolean;
   // detachedMenuGroups: DetachedMenuGroupsService;
 };
@@ -17,7 +16,7 @@ export type ResetMenuArgs = UiMenuArgs & {
 export default class ResetMenu extends UiMenu {
   // private detachedMenuGroups: DetachedMenuGroupsService;
 
-  constructor({ owner, online, ...args }: ResetMenuArgs) {
+  constructor({ online, ...args }: ResetMenuArgs) {
     super(args);
 
     const textItem = new TitleItem({

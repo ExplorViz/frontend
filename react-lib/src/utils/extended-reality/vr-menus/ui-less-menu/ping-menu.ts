@@ -15,8 +15,8 @@ export default class PingMenu extends AnimatedMenu {
 
   private scene: THREE.Scene;
 
-  constructor({ scene, ...args }: PingMenuArgs) {
-    super(args);
+  constructor({ scene }: PingMenuArgs) {
+    super();
 
     this.scene = scene;
   }

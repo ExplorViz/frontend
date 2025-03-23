@@ -30,7 +30,7 @@ export default class JoinMenu extends ConnectionBaseMenu {
   }
 
   private drawLoadingScreen() {
-    this.items.clear();
+    this.items = [];
 
     // Draw loading screen.
     const title = new TitleItem({
@@ -43,7 +43,7 @@ export default class JoinMenu extends ConnectionBaseMenu {
   }
 
   private async drawRoomList(rooms: RoomListRecord[]) {
-    this.items.clear();
+    this.items = [];
 
     const title = new TitleItem({
       text: `Join Room (${rooms.length})`,
@@ -72,7 +72,7 @@ export default class JoinMenu extends ConnectionBaseMenu {
   }
 
   private drawErrorMessage(msg: string) {
-    this.items.clear();
+    this.items = [];
 
     // Draw loading screen.
     const title = new TitleItem({

@@ -172,7 +172,6 @@ export const useDetachedMenuGroupsStore = create<DetachedMenuGroupsState>(
         // TODO: Change call because of store reference?
         menu,
         menuId,
-        detachedMenuGroups: this,
       });
       const newDetachedMenuGroups = get().detachedMenuGroups;
       const newDetachedMenuGroupsById = get().detachedMenuGroupsById;

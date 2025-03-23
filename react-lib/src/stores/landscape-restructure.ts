@@ -467,7 +467,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           );
           const commMapping = get().commModelColorMappings.pop();
           set({ commModelColorMappings: newCommModelColorMappings });
-          const commMesh = get()._getCommMesh(commMapping);
+          const commMesh = get()._getCommMesh(commMapping!);
           const commColor = new THREE.Color(
             useUserSettingsStore.getState().visualizationSettings.communicationColor.value
           );
@@ -1358,7 +1358,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh.changeTexture(elem.texturePath); // TODO: wrong?
                 }
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath, 1); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                 }
               });
             } else if (elem.meshType === EntityType.Clazz) {
@@ -1367,7 +1367,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id; // TODO: Doesn't exist on type ClazzMesh?
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath, 1); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                 }
               });
             }
@@ -1414,7 +1414,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   const isCorrectClass =
                     mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id; // TODO: Doesn't exist on type ClazzMesh?
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath, 1); // TODO: Doesn't exist on type ClazzMesh?
+                    mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                   }
                 });
               });
@@ -1424,7 +1424,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id; // TODO: Doesn't exist on type ClazzMesh?
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath, 1); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                 }
               });
             }
@@ -1459,7 +1459,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath, 1);
+                clazzMesh?.changeTexture(elem.texturePath);
               }
             }
             // Apply X texture for copied Meshes
@@ -1467,7 +1467,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath, 1); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                 } else {
                   mesh.changeTexture(elem.texturePath);
                 }
@@ -1501,7 +1501,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   const isCorrectClass =
                     mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id; // TODO: Doesn't exist on type ClazzMesh?
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath, 2); // TODO: Doesn't exist on type ClazzMesh?
+                    mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                   }
                 });
               });
@@ -1509,7 +1509,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               const clazzMesh = currentAppModel?.modelIdToMesh.get(
                 elem.clazz?.id as string
               );
-              clazzMesh?.changeTexture(elem.texturePath, 2);
+              clazzMesh?.changeTexture(elem.texturePath);
             }
             // Apply Slash texture for inserted Meshes
           } else if (elem.action === RestructureAction.CutInsert) {
@@ -1545,7 +1545,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                       mesh instanceof ClazzMesh &&
                       mesh.dataModel.id === clazz.id; // TODO: Doesn't exist on type ClazzMesh?
                     if (isCorrectClass) {
-                      mesh.changeTexture(elem.texturePath, 2); // TODO: Doesn't exist on type ClazzMesh?
+                      mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                     }
                   });
                 });
@@ -1558,7 +1558,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath, 2);
+                clazzMesh?.changeTexture(elem.texturePath);
               }
             }
           }
@@ -2150,7 +2150,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           // Create Changelog Entry
           useChangelogStore
             .getState()
-            .deleteClassEntry(application as Application, clazz);
+            .deleteClassEntry(application as Application, clazz, false);
 
           set({ deletedDataModels: [...get().deletedDataModels, clazz] });
         } else {

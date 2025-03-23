@@ -66,6 +66,6 @@ export default class SharedScaleMenuState {
    * in the next tick.
    */
   clear() {
-    this.currentPositions.clear();
+    this.currentPositions = [];
   }
 }
