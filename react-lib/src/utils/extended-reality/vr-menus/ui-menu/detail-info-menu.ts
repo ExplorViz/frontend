@@ -1,5 +1,4 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-// import { setOwner } from '@ember/application';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import composeContent, {
   EntityMesh,
@@ -74,7 +73,6 @@ export default class DetailInfoMenu
   constructor({ owner, object, renderer, ...args }: DetailInfoMenuArgs) {
     super();
     this.owner = owner;
-    setOwner(this, owner);
     this.object = object;
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;

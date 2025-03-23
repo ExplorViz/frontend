@@ -1,7 +1,6 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
-// import { setOwner } from '@ember/application';
 import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
@@ -34,7 +33,6 @@ export default class OpenEntityButton
     this.label = label;
     this.applicationId = applicationId;
     this.classId = classId;
-    setOwner(this, owner);
     const labelBox = new ThreeMeshUI.Text({ content: label });
     this.add(labelBox);
   }

@@ -3,7 +3,6 @@ import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-i
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
-// import { setOwner } from '@ember/application';
 import { removeAllHighlightingFor } from 'react-lib/src/utils/application-rendering/highlighting';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useDetachedMenuGroupsStore } from 'react-lib/src/stores/extended-reality/detached-menu-groups';
@@ -20,7 +19,6 @@ export default class ResetMenu extends UiMenu {
 
   constructor({ owner, online, ...args }: ResetMenuArgs) {
     super(args);
-    setOwner(this, owner);
 
     const textItem = new TitleItem({
       text: 'Reset',

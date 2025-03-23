@@ -2,7 +2,6 @@ import ThreeMeshUI from 'three-mesh-ui';
 import UserListItem, {
   BLOCK_OPTIONS_LIST_ITEM,
 } from 'react-lib/src/utils/extended-reality/view-objects/vr/user-list-item';
-// import { setOwner } from '@ember/application';
 import OnlineMenu2 from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/online-menu2';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
@@ -22,7 +21,6 @@ export default class UserList extends ThreeMeshUI.Block {
     super(options);
     this.menu = menu;
     this.owner = owner;
-    setOwner(this, owner);
     this.users = users;
 
     const listItemOptions = {

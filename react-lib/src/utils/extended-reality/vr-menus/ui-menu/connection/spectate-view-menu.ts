@@ -4,7 +4,6 @@ import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/inter
 import * as THREE from 'three';
 import { SIZE_RESOLUTION_FACTOR } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-// import { setOwner } from '@ember/application';
 import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,
@@ -40,7 +39,6 @@ export default class SpectateViewMenu
 
   constructor({ owner, renderer, scene, userId }: SpectateViewMenuArgs) {
     super();
-    setOwner(this, owner);
     this.renderer = renderer;
     this.scene = scene;
     this.userId = userId;
@@ -74,7 +72,7 @@ export default class SpectateViewMenu
       .lookupRemoteUserById(this.userId)?.camera?.model;
     if (useLocalUserStore.getState().userId === this.userId) {
       this.headsetCamera = (
-        useLocalUserStore.getState().camera as THREE.WebXRArrayCamera
+        useLocalUserStore.getState().defaultCamera as THREE.WebXRArrayCamera
       ).cameras[0];
     } else {
       if (!cameraModel) return;

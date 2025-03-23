@@ -1,7 +1,6 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import * as THREE from 'three';
-// import { setOwner } from '@ember/application';
 import OnlineMenu2 from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/online-menu2';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
@@ -28,7 +27,6 @@ export default class UserListItem
   constructor({ menu, owner, userName, userId, ...options }: UserListItemArgs) {
     super({ ...options, hiddenOverflow: true, contentDirection: 'row' });
     this.menu = menu;
-    setOwner(this, owner);
     this.userName = userName;
     this.userId = userId;
     const textBox = new ThreeMeshUI.Block({
