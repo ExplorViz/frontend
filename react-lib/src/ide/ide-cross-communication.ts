@@ -84,7 +84,6 @@ export default class IdeCrossCommunication {
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
 
-    eventEmitter.emit('ide-restart-connection');
     eventEmitter.on('ide-refresh-data', this.refreshVizData.bind(this));
 
     this.setupCrossOriginListener();
