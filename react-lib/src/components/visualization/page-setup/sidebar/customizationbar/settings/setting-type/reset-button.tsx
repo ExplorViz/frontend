@@ -13,8 +13,8 @@ export default function ResetButton({
       type="button"
       className="btn btn-small btn-outline-dark"
       style={{ padding: '0', height: '1.5rem', width: '1.5rem' }}
-      title="Resize Sidebar"
-      aria-label="Resize"
+      title="Reset to default"
+      aria-label="Reset to default"
       onClick={() => onClick(args)}
     >
       <SyncIcon verticalAlign="middle" size="small" fill="#777" />
