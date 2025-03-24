@@ -71,7 +71,6 @@ import VscodeExtensionSettings from 'react-lib/src/components/collaboration/visu
 import ApplicationSearch from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import MetricsWorker from 'react-lib/src/workers/metrics-worker.js?worker'; // Vite query suffix worker import
 
 import Button from 'react-bootstrap/Button';
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
@@ -884,7 +883,10 @@ export default function BrowserRendering({
   const [ideCrossCommunication] = useState<IdeCrossCommunication>(
     () => new IdeCrossCommunication(handleDoubleClickOnMeshIDEAPI, lookAtMesh)
   );
-  const [worker] = useState<Worker>(() => new MetricsWorker());
+  const [worker] = useState<Worker>(
+    () =>
+      new Worker(new URL('../../../workers/metrics-worker.js', import.meta.url))
+  );
 
   // MARK: Refs
 
