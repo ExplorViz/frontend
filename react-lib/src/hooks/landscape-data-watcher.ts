@@ -35,8 +35,6 @@ import LandscapeModel from 'react-lib/src/view-objects/3d/landscape/landscape-mo
 import layoutLandscape from 'react-lib/src/utils/elk-layouter';
 import { useShallow } from 'zustand/react/shallow';
 import { updateHighlighting } from '../utils/application-rendering/highlighting';
-import MetricsWorker from 'react-lib/src/workers/metrics-worker.js?worker'; // Vite query suffix worker import
-import FlatDataWorker from 'react-lib/src/workers/flat-data-worker.js?worker'; // Vite query suffix worker import
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
@@ -122,8 +120,12 @@ export default function useLandscapeDataWatcher(
 
   // MARK: State
 
-  const [flatDataWorker] = useState<Worker>(() => new FlatDataWorker());
-  const [metricsWorker] = useState<Worker>(() => new MetricsWorker());
+  const [flatDataWorker] = useState<Worker>(
+    () => new Worker(new URL('../workers/flat-data-worker.js', import.meta.url))
+  );
+  const [metricsWorker] = useState<Worker>(
+    () => new Worker(new URL('../workers/metrics-worker.js', import.meta.url))
+  );
 
   // MARK: Variables
 
@@ -320,8 +322,6 @@ export default function useLandscapeDataWatcher(
     classCommunication: ClassCommunication[],
     boxLayoutMap: any
   ) => {
-    console.log('updating application data');
-    console.log('landscapedata: ' + landscapeData?.dynamicLandscapeData.length);
     const workerPayload = {
       structure: application,
       dynamic: dynamicLandscapeData,
