@@ -38,7 +38,7 @@ export default function TokenCreationModal({
           </Form.Group>
           <Modal.Footer>
             <Button variant="outline-secondary" onClick={handleClose}>
-              Cancle
+              Cancel
             </Button>
             <Button type="submit" variant="outline-primary">
               Create
