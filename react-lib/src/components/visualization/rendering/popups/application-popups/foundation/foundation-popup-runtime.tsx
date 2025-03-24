@@ -17,12 +17,12 @@ export default function FoundationPopupRuntime({
   application,
 }: FoundationPopupRuntimeProps) {
   const clazzCount = getAllClassesInApplicationForGivenOrigin(
-    this.args.application,
+    application,
     TypeOfAnalysis.Dynamic
   ).length;
 
   const packageCount = getAllPackagesInApplicationForGivenOrigin(
-    this.args.application,
+    application,
     TypeOfAnalysis.Dynamic
   ).length;
 
