@@ -320,6 +320,8 @@ export default function useLandscapeDataWatcher(
     classCommunication: ClassCommunication[],
     boxLayoutMap: any
   ) => {
+    console.log('updating application data');
+    console.log('landscapedata: ' + landscapeData?.dynamicLandscapeData.length);
     const workerPayload = {
       structure: application,
       dynamic: dynamicLandscapeData,
@@ -369,7 +371,7 @@ export default function useLandscapeDataWatcher(
 
   useEffect(() => {
     handleUpdatedLandscapeData();
-  });
+  }, [landscapeData, landscape3D]);
 
   useEffect(() => {
     return function cleanup() {
