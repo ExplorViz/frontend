@@ -33,6 +33,7 @@ import {
   TrashIcon,
   XIcon,
 } from '@primer/octicons-react';
+import { useShallow } from 'zustand/react/shallow';
 
 const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
 const gitlabApi = import.meta.env.VITE_GITLAB_API;
@@ -70,48 +71,39 @@ export default function Restructure({
 }: RestructureProps) {
   // MARK: Stores
 
-  const restructureMode = useLandscapeRestructureStore(
-    (state) => state.restructureMode
+  const landscapeRestructureState = useLandscapeRestructureStore(
+    useShallow((state) => ({
+      restructureMode: state.restructureMode,
+      clipboard: state.clipboard,
+      sourceClass: state.sourceClass,
+      targetClass: state.targetClass,
+      canvas: state.canvas,
+    }))
   );
-  const clipboard = useLandscapeRestructureStore((state) => state.clipboard);
-  const sourceClass = useLandscapeRestructureStore(
-    (state) => state.sourceClass
+
+  const landscapeRestructureActions = useLandscapeRestructureStore(
+    useShallow((state) => ({
+      setCommunicationSourceClass: state.setCommunicationSourceClass,
+      setCommunicationTargetClass: state.setCommunicationTargetClass,
+      setLandscapeData: state.setLandscapeData,
+      resetLandscapeRestructure: state.resetLandscapeRestructure,
+      addCommunication: state.addCommunication,
+      resetClipboard: state.resetClipboard,
+      addApplication: state.addApplication,
+      undoBundledEntries: state.undoBundledEntries,
+      undoEntry: state.undoEntry,
+      toggleRestructureMode: state.toggleRestructureMode,
+    }))
   );
-  const targetClass = useLandscapeRestructureStore(
-    (state) => state.targetClass
+
+  const changelogActions = useChangelogStore(
+    useShallow((state) => ({
+      getChangeLog: state.getChangeLog,
+      isCreateBundle: state.isCreateBundle,
+    }))
   );
-  const canvas = useLandscapeRestructureStore((state) => state.canvas);
-  const setCommunicationSourceClass = useLandscapeRestructureStore(
-    (state) => state.setCommunicationSourceClass
-  );
-  const setCommunicationTargetClass = useLandscapeRestructureStore(
-    (state) => state.setCommunicationTargetClass
-  );
-  const setLandscapeData = useLandscapeRestructureStore(
-    (state) => state.setLandscapeData
-  );
-  const resetLandscapeRestructure = useLandscapeRestructureStore(
-    (state) => state.resetLandscapeRestructure
-  );
-  const addCommunication = useLandscapeRestructureStore(
-    (state) => state.addCommunication
-  );
-  const resetClipboard = useLandscapeRestructureStore(
-    (state) => state.resetClipboard
-  );
-  const addApplication = useLandscapeRestructureStore(
-    (state) => state.addApplication
-  );
-  const undoBundledEntries = useLandscapeRestructureStore(
-    (state) => state.undoBundledEntries
-  );
-  const undoEntry = useLandscapeRestructureStore((state) => state.undoEntry);
-  const toggleRestructureModeInStore = useLandscapeRestructureStore(
-    (state) => state.toggleRestructureMode
-  );
+
   const changeLogEntries = useChangelogStore((state) => state.changeLogEntries);
-  const getChangeLog = useChangelogStore((state) => state.getChangeLog);
-  const isCreateBundle = useChangelogStore((state) => state.isCreateBundle);
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const authUser = useAuthStore((state) => state.user);
   const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
@@ -120,15 +112,12 @@ export default function Restructure({
   );
   const getLocalUserCamera = useLocalUserStore((state) => state.getCamera);
   const saveSnapshot = useSnapshotTokenStore((state) => state.saveSnapshot);
-  const showInfoToastMessage = useToastHandlerStore(
-    (state) => state.showInfoToastMessage
-  );
-  const showSuccessToastMessage = useToastHandlerStore(
-    (state) => state.showSuccessToastMessage
-  );
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
+
+  const {
+    showInfoToastMessage,
+    showSuccessToastMessage,
+    showErrorToastMessage,
+  } = useToastHandlerStore();
 
   // MARK: Constants
 
@@ -168,9 +157,6 @@ export default function Restructure({
   const [expDate, setExpDate] = useState<number | null>(null);
   const [createPersonalSnapshot, setCreatePersonalSnapshot] =
     useState<boolean>(false);
-  const [disabledSelectProject, setDisabledSelectProject] = useState<boolean>(
-    token === null ? true : false
-  );
   const [gitLabProjects, setGitLabProjects] = useState<GitlabProject[]>([]);
   const [project, setProject] = useState<GitlabProject | undefined>(() =>
     localStorage.getItem('gitProject') !== null
@@ -268,9 +254,9 @@ export default function Restructure({
   };
 
   const toggleRestructureMode = () => {
-    if (restructureMode) {
+    if (useLandscapeRestructureStore.getState().restructureMode) {
       if (isOnline()) removeTimestampListener();
-      setLandscapeData(landscapeData);
+      landscapeRestructureActions.setLandscapeData(landscapeData);
 
       if (!visualizationPaused) {
         toggleVisualizationUpdating();
@@ -281,7 +267,7 @@ export default function Restructure({
       if (visualizationPaused) {
         toggleVisualizationUpdating();
       }
-      resetLandscapeRestructure();
+      landscapeRestructureActions.resetLandscapeRestructure();
       showInfoToastMessage('Restructure Mode disabled');
     }
   };
@@ -328,7 +314,6 @@ export default function Restructure({
       setProject(undefined);
     }
     setToken(updatedToken);
-    setDisabledSelectProject(false);
     canSaveCredentials();
   };
 
@@ -383,23 +368,23 @@ export default function Restructure({
   };
 
   const resetSourceClass = () => {
-    setCommunicationSourceClass(null);
+    landscapeRestructureActions.setCommunicationSourceClass(null);
   };
 
   const resetTargetClass = () => {
-    setCommunicationTargetClass(null);
+    landscapeRestructureActions.setCommunicationTargetClass(null);
   };
 
   const createCommunication = () => {
-    addCommunication(methodName);
+    landscapeRestructureActions.addCommunication(methodName);
   };
 
   const addFoundation = () => {
-    addApplication(appName, language);
+    landscapeRestructureActions.addApplication(appName, language);
   };
 
   const showChangelog = () => {
-    setLogTexts(getChangeLog());
+    setLogTexts(changelogActions.getChangeLog());
   };
 
   const createIssue = () => {
@@ -468,7 +453,8 @@ export default function Restructure({
   };
 
   const screenshotCanvas = (indexToUpdate: number) => {
-    const screenshotDataURL = canvas!.toDataURL('image/png');
+    const screenshotDataURL =
+      landscapeRestructureState.canvas!.toDataURL('image/png');
     setIssues((prev) =>
       prev.map((issue, index) =>
         index === indexToUpdate
@@ -562,12 +548,14 @@ export default function Restructure({
 
   const deleteEntry = (index: number) => {
     const entry = changeLogEntries[index];
-    const bundledCreateEntries = isCreateBundle(entry, [])?.reverse();
+    const bundledCreateEntries = changelogActions
+      .isCreateBundle(entry, [])
+      ?.reverse();
 
     if (bundledCreateEntries?.length) {
-      undoBundledEntries(bundledCreateEntries);
+      landscapeRestructureActions.undoBundledEntries(bundledCreateEntries);
     } else {
-      undoEntry(entry);
+      landscapeRestructureActions.undoEntry(entry);
     }
   };
 
@@ -655,7 +643,7 @@ export default function Restructure({
       eventEmitter.off('restructureMode', toggleRestructureMode);
       eventEmitter.off('showChangeLog', showChangelog);
     };
-  }, []);
+  });
 
   // MARK: JSX
 
@@ -669,13 +657,13 @@ export default function Restructure({
           <div className="d-flex justify-content-between">
             <label>Enable Restructure Mode: </label>
             <WideCheckbox
-              value={restructureMode}
-              onToggle={toggleRestructureMode}
+              value={landscapeRestructureState.restructureMode}
+              onToggle={landscapeRestructureActions.toggleRestructureMode}
             />
           </div>
         </div>
 
-        {restructureMode && (
+        {landscapeRestructureState.restructureMode && (
           <>
             <h6 className="mb-3 mt-3">
               <strong>Gitlab Credentials</strong>
@@ -705,9 +693,8 @@ export default function Restructure({
                   onChange={(newValue) => {
                     if (newValue) onSelect(newValue);
                   }}
-                  isDisabled={disabledSelectProject}
+                  isDisabled={token === null}
                   getOptionLabel={(project) => project.name}
-                  defaultOptions
                   cacheOptions
                 />
               </div>
@@ -790,7 +777,7 @@ export default function Restructure({
                 <input
                   id="srcClass"
                   className="form-control mr-2"
-                  value={sourceClass?.name}
+                  value={landscapeRestructureState.sourceClass?.name}
                   disabled
                 />
                 <button
@@ -810,7 +797,7 @@ export default function Restructure({
                 <input
                   id="targetClass"
                   className="form-control mr-2"
-                  value={targetClass?.name}
+                  value={landscapeRestructureState.targetClass?.name}
                   disabled
                 />
                 <button
@@ -845,14 +832,14 @@ export default function Restructure({
                 <input
                   id="clipboard"
                   className="form-control mr-2"
-                  value={clipboard}
+                  value={landscapeRestructureState.clipboard}
                   disabled
                 />
                 <button
                   type="button"
                   className="btn btn-danger"
                   title="Reset Clipboard"
-                  onClick={resetClipboard}
+                  onClick={landscapeRestructureActions.resetClipboard}
                 >
                   <TrashIcon size="small" className="align-right" />
                 </button>
