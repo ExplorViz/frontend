@@ -840,7 +840,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       }
     },
 
-    // TODO: Update of the mesh could not work, TEST!
     _removeCommitComparisonVisualization: (
       applicationData: ApplicationData
     ) => {
@@ -855,10 +854,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
             mesh.material instanceof MeshLineMaterial)
         ) {
           mesh.material.map = null;
-          let newOpenApplicationsMap = new Map(get().openApplicationsMap);
-          let newApplicationObject = newOpenApplicationsMap.get(pckg.id);
-          newApplicationObject!.modelIdToMesh.set(pckg.id, mesh);
-          set({ openApplicationsMap: newOpenApplicationsMap });
         }
       });
       classes.forEach((clazz) => {
@@ -870,10 +865,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
             mesh.material instanceof MeshLineMaterial)
         ) {
           mesh.material.map = null;
-          let newOpenApplicationsMap = new Map(get().openApplicationsMap);
-          let newApplicationObject = newOpenApplicationsMap.get(clazz.id);
-          newApplicationObject!.modelIdToMesh.set(clazz.id, mesh);
-          set({ openApplicationsMap: newOpenApplicationsMap });
         }
       });
     },
