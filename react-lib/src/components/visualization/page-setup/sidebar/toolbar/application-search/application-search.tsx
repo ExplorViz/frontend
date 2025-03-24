@@ -1,29 +1,38 @@
 import React, { useState } from 'react';
 
-import Select, { MultiValueGenericProps } from 'react-select';
+import getPossibleEntityNames from 'react-lib/src/utils/application-search-logic';
+import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
 import Button from 'react-bootstrap/Button';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 
+interface ApplicationSearchEntity {
+  fqn: string;
+  applicationName: string;
+  modelId: string;
+  applicationModelId: string;
+}
+
 interface ApplicationSearchProps {}
 
 export default function ApplicationSearch({}: ApplicationSearchProps) {
-  // useApplicationRepositoryStore((state) => state.applications); // For reactivity on application change
-  // const pingByModelId = useLocalUserStore((state) => state.pingByModelId); // TODO finish tmp first
-  // const highlightById = useHighlightingStore((state) => state.highlightById);
+  useApplicationRepositoryStore((state) => state.applications);
+  const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
+  const highlightById = useHighlightingStore((state) => state.highlightById);
 
   const [searchString, setSearchString] = useState<string>('');
   const [selected, setSelected] = useState<any[]>([]);
+  const [entityNames, setEntityNames] = useState<any[]>([]);
 
-  const entityNames = getAllPossibleEntityNames();
+  const formatEntry = (selectOption: ApplicationSearchEntity) => {
+    const fqnStr = selectOption.fqn;
 
-  const formatEntry = (entity: any) => {
-    const fqnStr = entity?.fqn as string;
+    if (!searchString) {
+      return fqnStr;
+    }
 
-    if (!searchString) return fqnStr;
-
-    // Highlight all occurences of the search string in the select options
+    // Highlight all occurences of the search string in the suggested options
     const parts = fqnStr.split(new RegExp(`(${searchString})`, 'gi'));
 
     return parts.map((part, index) =>
@@ -31,52 +40,48 @@ export default function ApplicationSearch({}: ApplicationSearchProps) {
     );
   };
 
-  const onSelect = (newSelectedOptions: any[]) => {
-    // Handle case that entry was removed (user selected already selected class again)
-    if (
-      selected.length > newSelectedOptions.length ||
-      newSelectedOptions.length < 1
-    ) {
-      return;
-    }
+  const onChange = (
+    newSelectedOptions: MultiValue<ApplicationSearchEntity>
+  ) => {
+    // Highlight all newly selected items
 
     const newlySelectedItems = newSelectedOptions.filter(
       (newItem) =>
-        !selected.some((existingItem) => existingItem.fqn === newItem.fqn)
+        !selected.some(
+          (existingItem) =>
+            existingItem.applicationName === newItem.applicationName &&
+            existingItem.fqn === newItem.fqn
+        )
     );
 
-    setSelected([...newSelectedOptions]);
-
     newlySelectedItems.forEach((item) => {
-      // TODO replace with hook use
-      useLocalUserStore
-        .getState()
-        .pingByModelId(item.modelId, item.applicationModelId, {
-          durationInMs: 3500,
-          nonrestartable: true,
-        });
+      pingByModelId(item.modelId, item.applicationModelId, {
+        durationInMs: 3500,
+        nonrestartable: true,
+      });
     });
+
+    setSelected(Array.from(newSelectedOptions));
   };
 
   const highlightAllSelectedEntities = () => {
     selected.forEach((selectedEntity) => {
-      useHighlightingStore // TODO replace with hook use
-        .getState()
-        .highlightById(selectedEntity.modelId, undefined, true);
+      highlightById(selectedEntity.modelId, true);
     });
   };
 
   const pingAllSelectedEntities = () => {
     selected.forEach((selectedEntity) => {
-      // TODO replace with hook use
-      useLocalUserStore
-        .getState()
-        .pingByModelId(
-          selectedEntity.modelId,
-          selectedEntity.applicationModelId,
-          { durationInMs: 3500, nonrestartable: true }
-        );
+      pingByModelId(selectedEntity.modelId, selectedEntity.applicationModelId, {
+        durationInMs: 3500,
+        nonrestartable: true,
+      });
     });
+  };
+
+  const onInputChange = (newValue: string) => {
+    setSearchString(newValue);
+    setEntityNames(isBlank(newValue) ? [] : getPossibleEntityNames(newValue));
   };
 
   return (
@@ -85,11 +90,13 @@ export default function ApplicationSearch({}: ApplicationSearchProps) {
         isMulti
         isSearchable
         options={entityNames}
+        getOptionLabel={(entity) => entity.fqn}
+        getOptionValue={(entity) => entity.applicationName + '-' + entity.fqn}
         formatOptionLabel={formatEntry}
+        onChange={onChange}
+        onInputChange={onInputChange}
         components={{ MultiValueLabel: CustomMultiValueLabel }}
-        onChange={(newValue) => onSelect(Array.from(newValue))}
-        onInputChange={(newValue) => setSearchString(newValue)}
-        getOptionValue={(option) => option.fqn}
+        hideSelectedOptions={false}
       />
       <div className="mt-3 col text-center">
         <Button
@@ -106,51 +113,18 @@ export default function ApplicationSearch({}: ApplicationSearchProps) {
   );
 }
 
-function getAllPossibleEntityNames() {
-  let allEntities: Map<string, any> = new Map();
-
-  const applications = useApplicationRepositoryStore.getState().getAll();
-
-  for (const application of applications) {
-    allEntities = new Map([
-      ...allEntities,
-      ...application.flatData.packageNameModelMap,
-      ...application.flatData.hashCodeClassMap,
-    ]);
-  }
-
-  const returnValue: any[] = [];
-  const returnValueIncludedModelIds: any[] = [];
-
-  const entriesArray = Array.from(allEntities.entries());
-
-  for (let i = 0; i < entriesArray.length; i++) {
-    const [, value] = entriesArray[i];
-
-    if (returnValue.length === 10) {
-      break;
-    }
-
-    if (!returnValueIncludedModelIds.includes(value.modelId)) {
-      returnValueIncludedModelIds.push(value.modelId);
-      returnValue.push(value);
-    }
-  }
-
-  return returnValue;
-}
-
 // Show selected options as clickable links
-function CustomMultiValueLabel(props: MultiValueGenericProps) {
+function CustomMultiValueLabel(
+  props: MultiValueGenericProps<ApplicationSearchEntity>
+) {
+  const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
+
   const { data, innerProps } = props;
   const onClick = () => {
-    // TODO replace with hook use
-    useLocalUserStore
-      .getState()
-      .pingByModelId(data.modelId, data.applicationModelId, {
-        durationInMs: 3500,
-        nonrestartable: true,
-      });
+    pingByModelId(data.modelId, data.applicationModelId, {
+      durationInMs: 3500,
+      nonrestartable: true,
+    });
   };
 
   return (
@@ -164,4 +138,8 @@ function CustomMultiValueLabel(props: MultiValueGenericProps) {
       </a>
     </div>
   );
+}
+
+function isBlank(testString: string) {
+  return /^\s*$/.test(testString);
 }

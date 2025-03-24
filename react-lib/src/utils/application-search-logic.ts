@@ -6,7 +6,6 @@ export default function getPossibleEntityNames(name: string) {
   let allEntities: Map<string, any> = new Map();
 
   const applications = useApplicationRepositoryStore.getState().getAll();
-  // const applications = this.applicationRepo.getAll();
 
   for (const application of applications) {
     allEntities = new Map([
