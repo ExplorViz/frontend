@@ -62,7 +62,7 @@ interface HeatmapConfigurationState {
 
 export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
   (set, get) => ({
-    heatmapActive: true,
+    heatmapActive: false,
     heatmapShared: false,
     currentApplication: undefined,
     legendActive: true,

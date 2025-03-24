@@ -2,12 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 import HeatmapLegend from 'react-lib/src/components/heatmap/heatmap-legend.tsx';
 import MetricSelector from 'react-lib/src/components/heatmap/metric-selector.tsx';
-
-// TODO: Original from modifiers/interaction-modifier. Import again after modifer is migrated
-type Position2D = {
-  x: number;
-  y: number;
-};
+import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
 
 export default function HeatmapInfo() {
   const heatmapRef = useRef(null);
