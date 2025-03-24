@@ -139,13 +139,14 @@ export default function Visualization() {
   // beforeModel equivalent
   useEffect(() => {
     const loadFont = async () => {
-      return new Promise((resolve, reject) => {
+      return await new Promise<Font>((resolve, reject) => {
         new FontLoader().load(
           // resource URL
           '/three.js/fonts/roboto_mono_bold_typeface.json',
 
           // onLoad callback
           (font) => {
+            setFont(font);
             resolve(font);
           },
           undefined,
@@ -168,9 +169,7 @@ export default function Visualization() {
     }
 
     if (!font) {
-      const font = loadFont();
-
-      setFont(font);
+      loadFont();
     }
 
     return () => {
