@@ -1,6 +1,7 @@
 import React from 'react';
+
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useHighlightingServiceStore } from 'react-lib/src/stores/highlighting-service';
+import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 import Button from 'react-bootstrap/Button';
 import { NorthStarIcon } from '@primer/octicons-react';
 
@@ -16,7 +17,7 @@ export default function PingButton({
   const getAllRemoteUsers = useCollaborationSessionStore(
     (state) => state.getAllRemoteUsers
   );
-  const highlightingColorStyle = useHighlightingServiceStore(
+  const highlightingColorStyle = useHighlightingStore(
     (state) => state.highlightingColorStyle
   );
 
