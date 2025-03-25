@@ -408,13 +408,14 @@ export default function BrowserRendering({
     const aspectRatio = canvas.current.width / canvas.current.height;
 
     // Camera
-
     const newCam = new THREE.PerspectiveCamera(
       userSettingsState.visualizationSettings.cameraFov.value,
       aspectRatio,
       userSettingsState.visualizationSettings.cameraNear.value,
       userSettingsState.visualizationSettings.cameraFar.value
     );
+
+    localUserState.camera = newCam;
 
     newCam.position.set(1, 2, 3);
     scene.add(newCam);

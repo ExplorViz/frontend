@@ -1,0 +1,25 @@
+services:
+  collaboration-service-js:
+    image: explorviz/collaboration-service
+    ports:
+      - ${COLLABORATION_PORT}:4444
+    environment:
+      - REDIS_HOST=redis-collab
+      - REDIS_PORT=6379
+
+  redis-collab:
+    image: redis:7.2.2
+    ports:
+      - '6379:6379'
+
+  demo-supplier:
+    container_name: explorviz-demo-supplier
+    image: explorviz/demo-supplier
+    ports:
+      - ${SPAN_PORT}:8083
+      - ${USER_PORT}:8084
+      - ${CODE_PORT}:8085
+
+networks:
+  default:
+    name: explorviz
