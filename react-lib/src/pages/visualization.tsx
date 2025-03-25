@@ -124,7 +124,7 @@ export default function Visualization() {
   const [vrSupported, setVrSupported] = useState<boolean>(false);
   const [vrButtonText, setVrButtonText] = useState<string>('');
   const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
-    useState<TimelineDataObjectHandler | null>(null);
+    useState<TimelineDataObjectHandler>(new TimelineDataObjectHandler()); //(null);
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
     useState<boolean>(true);
   const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
@@ -408,18 +408,15 @@ export default function Visualization() {
 
   // #region Setup
   const initRenderingAndSetupListeners = async () => {
-    const newTimelineDataObjectHandler = new TimelineDataObjectHandler();
-    setTimelineDataObjectHandler(newTimelineDataObjectHandler);
-
     setLandscapeDataRenderingService(null);
 
     // set timelineDataObjectHandler where necessary
     useRenderingServiceStore.setState({
-      _timelineDataObjectHandler: newTimelineDataObjectHandler,
+      _timelineDataObjectHandler: timelineDataObjectHandler,
     });
 
     useTimestampRepositoryStore.setState({
-      _timelineDataObjectHandler: newTimelineDataObjectHandler,
+      _timelineDataObjectHandler: timelineDataObjectHandler,
     });
 
     setVisualizationPausedRenderingService(false);
@@ -845,9 +842,9 @@ export default function Visualization() {
                 <>
                   <PlotlyTimeline
                     timelineDataObject={
-                      timelineDataObjectHandler?.timelineDataObject!
+                      timelineDataObjectHandler.timelineDataObject!
                     }
-                    clicked={timelineDataObjectHandler?.timelineClicked!}
+                    clicked={timelineDataObjectHandler.timelineClicked}
                   />
                 </>
               )}
