@@ -13,12 +13,6 @@ import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-men
  */
 const REFRESH_TIMEOUT = 3.0;
 
-// TODO: Remove because variables of stores aren't used anymore
-// export type JoinMenuArgs = UiMenuArgs & {
-//   // roomService: RoomService;
-//   roomService: typeof useRoomServiceStore; // TODO: does this work?
-// };
-
 export default class JoinMenu extends ConnectionBaseMenu {
   private refreshTimeout: number;
 

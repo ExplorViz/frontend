@@ -105,10 +105,10 @@ export const useDetachedMenuRendererStore = create<DetachedMenuRendererState>(
       if (!isEntityMesh(mesh)) {
         return;
       }
-      //TODO: check for other function
+
       const worldPosition = useApplicationRendererStore
         .getState()
-        .getGraphPosition(mesh);
+        .getPositionInLandscape(mesh);
       worldPosition.y += 0.3;
 
       get().restoreDetachedMenu({

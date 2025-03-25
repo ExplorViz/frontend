@@ -10,11 +10,6 @@ import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-men
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
-// TODO: Remove because variables of stores aren't used anymore
-// type OnlineMenuArgs = UiMenuArgs & {
-//   spectateUserService: SpectateUser;
-// };
-
 export default class OnlineMenu extends ConnectionBaseMenu {
   // THIS MENU WON'T BE USED AT THE MOMENT AND GOT REPLACED BY OnlineMenu2
   private remoteUserButtons: Map<string, TextbuttonItem>;

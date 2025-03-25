@@ -12,14 +12,6 @@ import {
 } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
-// TODO: Remove
-// export type ConnectionBaseMenuArgs = UiMenuArgs & {
-//   // collaborationSession: CollaborationSession;
-//   collaborationSession: typeof useCollaborationSessionStore; // TODO: does this work?
-//   // localUser: LocalUser;
-//   localUser: typeof useLocalUserStore; // TODO: does this work?
-// };
-
 export default abstract class ConnectionBaseMenu extends UiMenu {
   private initialConnectionStatus: ConnectionStatus;
   constructor({ ...args }: UiMenuArgs) {

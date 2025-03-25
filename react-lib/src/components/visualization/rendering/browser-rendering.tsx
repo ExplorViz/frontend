@@ -304,7 +304,6 @@ export default function BrowserRendering({
 
   const getSelectedApplicationObject3D = () => {
     if (selectedApplicationId === '') {
-      // TODO
       setSelectedApplicationId(
         applicationRendererActions.getOpenApplications()[0].getModelId()
       );
@@ -318,7 +317,7 @@ export default function BrowserRendering({
     useCollaborationSessionStore
       .getState()
       .idToRemoteUser.forEach((remoteUser) => {
-        remoteUser.update(delta); // TODO non-immutable update
+        remoteUser.update(delta);
       });
     if (initDone && useLinkRendererStore.getState()._flag) {
       useLinkRendererStore.getState().setFlag(false);

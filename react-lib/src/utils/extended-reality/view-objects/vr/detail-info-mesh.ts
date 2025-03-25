@@ -8,7 +8,6 @@ import DetailInfoScrollarea from 'react-lib/src/utils/extended-reality/view-obje
 import * as THREE from 'three';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {
-  owner: any;
   sourceClass: string;
   targetClass: string;
 
@@ -19,7 +18,6 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
   content: string;
   text: ThreeMeshUI.Text;
   constructor(
-    owner: any,
     sourceClass: string,
     targetClass: string,
     sourceClassId: string,
@@ -30,7 +28,6 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     options: ThreeMeshUI.BlockOptions
   ) {
     super({ ...options, justifyContent: 'start' }); // make sure we have justifyContent: 'start'
-    this.owner = owner;
     this.content = content;
     this.sourceClass = sourceClass;
     this.targetClass = targetClass;
@@ -122,7 +119,6 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     });
 
     const sourceButton = new OpenEntityButton({
-      owner: this.owner,
       label: this.sourceClass,
       classId: this.sourceClassId,
       applicationId: this.sourceAppId!,
@@ -142,7 +138,6 @@ export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements Inter
     });
 
     const targetButton = new OpenEntityButton({
-      owner: this.owner,
       label: this.targetClass,
       classId: this.targetClassId,
       applicationId: this.targetAppId!,

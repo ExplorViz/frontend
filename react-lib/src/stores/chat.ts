@@ -98,8 +98,6 @@ export const destroyChatStore = () => {
 };
 
 export const useChatStore = create<ChatState>((set, get) => {
-  // TODO constructor here?
-
   return {
     userIdMuteList: [], // tracked
     chatMessages: [], // tracked

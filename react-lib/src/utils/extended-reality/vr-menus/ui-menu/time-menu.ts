@@ -15,11 +15,6 @@ import { useTimestampStore } from 'react-lib/src/stores/timestamp';
 const MS_PER_SECOND = 1000;
 const TIMESTAMP_INTERVAL = 10 * MS_PER_SECOND;
 
-// TODO: Remove because store variables aren't used
-// export type TimeMenuArgs = UiMenuArgs & {
-//   timestampService: TimestampService;
-// };
-
 export default class TimeMenu extends UiMenu {
   private date: Date;
 

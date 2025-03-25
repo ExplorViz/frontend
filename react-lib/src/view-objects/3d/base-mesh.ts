@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import calculateColorBrightness from 'react-lib/src/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
-// TODO: Commenting the import below gets rid of the circular dependency
 import { Appearence } from './application/utils/semantic-zoom-appearance';
 import { Recipe } from './application/utils/semantic-zoom-recipe';
 import { SemanticZoomableObject } from './application/utils/semantic-zoomable-object';

@@ -13,7 +13,6 @@ import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 
 export type SpectateViewMenuArgs = {
-  owner: any;
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   userId: string;
@@ -37,7 +36,7 @@ export default class SpectateViewMenu
 
   private firstTime: boolean = true;
 
-  constructor({ owner, renderer, scene, userId }: SpectateViewMenuArgs) {
+  constructor({ renderer, scene, userId }: SpectateViewMenuArgs) {
     super();
     this.renderer = renderer;
     this.scene = scene;

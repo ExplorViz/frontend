@@ -34,12 +34,7 @@ import ClazzPopup from 'react-lib/src/components/visualization/rendering/popups/
 import MethodPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/method/method-popup.tsx';
 import CommunicationPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/communication/communication-popup.tsx';
 import K8sPopup from 'react-lib/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
-
-// TODO import from interaction-modifier instead
-type Position2D = {
-  x: number;
-  y: number;
-};
+import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
 
 interface PopupCoordinatorProps {
   popupData: PopupData;

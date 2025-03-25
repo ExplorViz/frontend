@@ -34,11 +34,6 @@ export enum MenuState {
   DETACHED,
 }
 
-// TODO: Remove because store variables aren't used
-// export type BaseMenuArgs = {
-//   menuFactory: VrMenuFactoryService;
-// };
-
 /**
  * Base class for all menus that defines life cycle methods and callbacks for
  * the menu.

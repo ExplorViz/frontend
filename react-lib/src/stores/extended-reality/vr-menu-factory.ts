@@ -98,8 +98,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
   },
 
   buildMainMenu: (): MainMenu => {
-    //TODO: look into why any args are needed. Previously:
-    // return new MainMenu({ menuFactory: this });
     return new MainMenu({});
   },
 
@@ -119,11 +117,6 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildCameraMenu: (): CameraMenu => {
-    //TODO: look into why any args are needed. Previously:
-    // return new CameraMenu({
-    //   localUser: useLocalUserStore,
-    //   menuFactory: this,
-    // });
     return new CameraMenu({});
   },
 
@@ -140,23 +133,11 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildOfflineMenu: (): OfflineMenu => {
-    //TODO: look into why any args are needed. Previously:
-    // return new OfflineMenu({
-    //   collaborationSession: useCollaborationSessionStore,
-    //   localUser: useLocalUserStore,
-    //   menuFactory: this,
-    // });
     return new OfflineMenu({});
   },
 
   // TODO: Could be changed, because SettingsMenu should lose the service reference parameter
   buildConnectingMenu: (): ConnectingMenu => {
-    //TODO: look into why any args are needed. Previously:
-    // return new ConnectingMenu({
-    //   collaborationSession: useCollaborationSessionStore,
-    //   localUser: useLocalUserStore,
-    //   menuFactory: this,
-    // });
     return new ConnectingMenu({});
   },
 
@@ -202,7 +183,7 @@ export const useVrMenuFactoryStore = create<VrMenuFactoryState>((set, get) => ({
     return new ZoomMenu({
       renderer: get().renderer,
       scene: get().scene,
-      headsetCamera: useLocalUserStore.getState().camera,
+      headsetCamera: useLocalUserStore.getState().defaultCamera,
     });
   },
 

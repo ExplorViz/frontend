@@ -49,8 +49,6 @@ import { useRouterStore } from '../store-router';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
-// TODO migrate RemoteUser first
-
 interface CollaborationSessionState {
   idToRemoteUser: Map<string, RemoteUser>;
   readonly remoteUserGroup: THREE.Group;

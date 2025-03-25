@@ -517,7 +517,7 @@ export default function Visualization() {
       openApps: openApps as SerializedApp[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
       highlightedExternCommunicationLinks,
-      popups: [], // ToDo
+      popups: [],
       annotations: annotations as SerializedAnnotation[],
     });
 
