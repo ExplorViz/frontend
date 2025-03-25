@@ -521,12 +521,14 @@ export default function Settings({
                   />
                 );
               } else if (setting.isRangeSetting) {
-                <RangeSetting
-                  key={settingId}
-                  setting={setting}
-                  settingId={settingId}
-                  onChange={updateRangeSetting}
-                />;
+                return (
+                  <RangeSetting
+                    key={settingId}
+                    setting={setting}
+                    settingId={settingId}
+                    onChange={updateRangeSetting}
+                  />
+                );
               } else if (setting.isColorSetting) {
                 return (
                   <ColorPicker

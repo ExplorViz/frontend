@@ -26,7 +26,6 @@ export default function TraceStepDetails({
   spanEndTime,
 }: TraceStepDetailsProps) {
   const [timeUnit, setTimeUnit] = useState<TimeUnit>('ns');
-
   const spanDuration = spanEndTime - spanStartTime;
 
   const toggleSpanDurationTimeUnit = () => {

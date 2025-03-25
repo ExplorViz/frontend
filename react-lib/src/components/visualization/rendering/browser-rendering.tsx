@@ -307,6 +307,7 @@ export default function BrowserRendering({
       setSelectedApplicationId(
         applicationRendererActions.getOpenApplications()[0].getModelId()
       );
+      return applicationRendererActions.getOpenApplications()[0];
     }
     return applicationRendererActions.getApplicationById(selectedApplicationId);
   };
