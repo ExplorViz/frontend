@@ -225,7 +225,9 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     },
 
     getOpenApplications: (): ApplicationObject3D[] => {
-      return Array.from(get().openApplicationsMap.values());
+      return get().openApplicationsMap.values()
+        ? Array.from(get().openApplicationsMap.values())
+        : [];
     },
 
     getOpenApplicationIds: () => {
