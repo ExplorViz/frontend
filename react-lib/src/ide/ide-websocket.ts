@@ -74,7 +74,6 @@ type OrderTuple = {
   meshes: { meshNames: string[]; meshIds: string[] };
 };
 
-//TODO: Change to ENV to new env
 const { vsCodeService } = import.meta.env.VITE_VSCODE_SERV_URL;
 
 let httpSocket = vsCodeService;

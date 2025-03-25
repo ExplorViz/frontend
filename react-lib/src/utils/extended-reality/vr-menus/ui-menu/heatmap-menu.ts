@@ -6,14 +6,7 @@ import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-i
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
 import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
-// TODO: Remove because store variables aren't used
-// export type HeatmapMenuArgs = UiMenuArgs & {
-//   heatmapConfiguration: HeatmapConfiguration;
-// };
-
 export default class HeatmapMenu extends UiMenu implements DetachableMenu {
-  // private heatmapConfiguration: HeatmapConfiguration;
-
   private entryItems: Map<string, TextItem>;
 
   constructor({

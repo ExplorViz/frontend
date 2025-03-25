@@ -12,21 +12,14 @@ import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectat
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
-// TODO: Remove because variables of stores aren't used anymore
 export type SpectateMenuArgs = UiMenuArgs & {
-  // localUser: LocalUser;
   remoteUser: RemoteUser;
-  // spectateUserService: SpectateUser;
 };
 
 const HEIGHT = 60;
 
 export default class SpectateMenu extends UiMenu {
-  // private localUser: LocalUser;
-
   private remoteUser: RemoteUser;
-
-  // private spectateUserService: SpectateUser;
 
   private disableInputMenu: DisableInputMenu;
 
@@ -39,8 +32,6 @@ export default class SpectateMenu extends UiMenu {
   }: SpectateMenuArgs) {
     super({ resolution });
 
-    // this.localUser = localUser;
-    // this.spectateUserService = spectateUserService;
     this.remoteUser = args.remoteUser;
 
     this.disableInputMenu = useVrMenuFactoryStore

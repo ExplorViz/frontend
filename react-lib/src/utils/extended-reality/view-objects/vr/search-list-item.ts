@@ -11,7 +11,6 @@ export const BLOCK_OPTIONS_LIST_ITEM = {
 };
 
 export type SearchListItemArgs = ThreeMeshUI.BlockOptions & {
-  owner: any;
   text: string;
   meshId: string;
   applicationId: string;
@@ -26,13 +25,7 @@ export default class SearchListItem
   meshId: string;
   applicationId: string;
 
-  constructor({
-    owner,
-    text,
-    meshId,
-    applicationId,
-    ...options
-  }: SearchListItemArgs) {
+  constructor({ text, meshId, applicationId, ...options }: SearchListItemArgs) {
     super({ ...options, hiddenOverflow: true });
     this.text = text;
     this.meshId = meshId;

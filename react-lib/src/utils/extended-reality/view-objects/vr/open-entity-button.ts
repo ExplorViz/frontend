@@ -7,7 +7,6 @@ import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 
 export type OpenEntityButtonArgs = ThreeMeshUI.BlockOptions & {
-  owner: any;
   label: string;
   classId: string;
   applicationId: string;
@@ -23,7 +22,6 @@ export default class OpenEntityButton
   applicationId: string;
 
   constructor({
-    owner,
     label,
     classId,
     applicationId,

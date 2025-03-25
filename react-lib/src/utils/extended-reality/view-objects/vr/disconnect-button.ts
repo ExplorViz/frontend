@@ -3,9 +3,7 @@ import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-o
 import ThreeMeshUI from 'three-mesh-ui';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
 
-export type DisconnectButtonArgs = ThreeMeshUI.BlockOptions & {
-  owner: any;
-};
+export type DisconnectButtonArgs = ThreeMeshUI.BlockOptions;
 
 export default class DisconnectButton
   extends ThreeMeshUI.Block
@@ -13,11 +11,9 @@ export default class DisconnectButton
 {
   isHovered = false;
   text: ThreeMeshUI.Text;
-  owner: any;
 
-  constructor({ owner, ...options }: DisconnectButtonArgs) {
+  constructor({ ...options }: DisconnectButtonArgs) {
     super(options);
-    this.owner = owner;
     this.text = new ThreeMeshUI.Text({ content: 'Disconnect' });
     this.add(this.text);
   }

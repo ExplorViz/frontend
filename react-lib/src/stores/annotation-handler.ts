@@ -210,9 +210,9 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         }
 
         if (annotation.hidden) {
-          annotation.hidden = false; // TODO: How to change tracked variable of annotationData
+          annotation.hidden = false;
         } else {
-          annotation.hidden = true; // TODO: How to change tracked variable of annotationData
+          annotation.hidden = true;
         }
       }
     },
@@ -240,7 +240,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           }
         }
 
-        annotation.wasMoved = false; // TODO: How to change tracked variable of annotationData
+        annotation.wasMoved = false;
 
         set({
           minimizedAnnotations: [...get().minimizedAnnotations, annotation],
@@ -266,7 +266,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         !annotation.shared ||
         !useCollaborationSessionStore.getState().isOnline()
       ) {
-        annotation.inEdit = true; // TODO: How to change tracked variable of annotationData
+        annotation.inEdit = true;
         return;
       }
 
@@ -295,7 +295,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
                   return false;
                 }
 
-                annotation.inEdit = true; // TODO: How to change tracked variable of annotationData
+                annotation.inEdit = true;
                 return true;
               },
               onOffline: () => {
@@ -315,13 +315,13 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         return;
       }
 
-      annotation.lastEditor = useAuthStore.getState().user!.name; // TODO: How to change tracked variable of annotationData
+      annotation.lastEditor = useAuthStore.getState().user!.name;
 
       if (
         !useCollaborationSessionStore.getState().isOnline ||
         !annotation.shared
       ) {
-        annotation.inEdit = false; // TODO: How to change tracked variable of annotationData
+        annotation.inEdit = false;
         return;
       }
 
@@ -345,7 +345,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
             responseType: isAnnotationUpdatedResponse,
             onResponse: (response: AnnotationUpdatedResponse) => {
               if (response.updated) {
-                annotation.inEdit = false; // TODO: How to change tracked variable of annotationData
+                annotation.inEdit = false;
                 return true;
               } else {
                 useToastHandlerStore
@@ -499,9 +499,9 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           {
             responseType: isAnnotationResponse,
             onResponse: (response: AnnotationResponse) => {
-              annotation.sharedBy = useAuthStore.getState().user!.sub; // for production: user_id makes more sense // TODO: How to change tracked variable of annotationData
-              annotation.menuId = response.objectId; // TODO: How to change tracked variable of annotationData
-              annotation.shared = true; // TODO: How to change tracked variable of annotationData
+              annotation.sharedBy = useAuthStore.getState().user!.sub;
+              annotation.menuId = response.objectId;
+              annotation.shared = true;
               return true;
             },
             onOffline: () => {
@@ -515,12 +515,12 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       if (isEntityMesh(mesh)) {
         get().annotationData.forEach((an) => {
           if (an.entity !== undefined) {
-            an.hovered = an.entity.id === mesh.getModelId(); // TODO: How to change tracked variable of annotationData
+            an.hovered = an.entity.id === mesh.getModelId();
           }
         });
       } else {
         get().annotationData.forEach((an) => {
-          an.hovered = false; // TODO: How to change tracked variable of annotationData
+          an.hovered = false;
         });
       }
     },
@@ -715,9 +715,9 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         }
       }
 
-      annotation.annotationTitle = annotationTitle; // TODO: How to change tracked variable of annotationData
-      annotation.annotationText = annotationText; // TODO: How to change tracked variable of annotationData
-      annotation.lastEditor = lastEditor; // TODO: How to change tracked variable of annotationData
+      annotation.annotationTitle = annotationTitle;
+      annotation.annotationText = annotationText;
+      annotation.lastEditor = lastEditor;
     },
 
     onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
@@ -755,8 +755,8 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotation: AnnotationData,
       newAnnotation: AnnotationData
     ) => {
-      annotation.annotationText = newAnnotation.annotationText; // TODO: How to change tracked variable of annotationData
-      annotation.annotationTitle = newAnnotation.annotationTitle; // TODO: How to change tracked variable of annotationData
+      annotation.annotationText = newAnnotation.annotationText;
+      annotation.annotationTitle = newAnnotation.annotationTitle;
       get().updateMeshReference(annotation);
       useAnnotationHandlerStore.getState().updateMeshReference(annotation);
     },
@@ -808,7 +808,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           .getState()
           .getMeshById(annotation.entity.id);
         if (isEntityMesh(mesh)) {
-          annotation.mesh = mesh; // TODO: How to change tracked variable of annotationData
+          annotation.mesh = mesh;
         }
       }
     },

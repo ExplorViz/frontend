@@ -22,12 +22,7 @@ import {
   LocationIcon,
   TrashIcon,
 } from '@primer/octicons-react';
-
-// TODO import from interaction-modifier instead (if it still exists later on)
-export type Position2D = {
-  x: number;
-  y: number;
-};
+import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
 
 interface AnnotationCoordinatorProps {
   isMovable: boolean;

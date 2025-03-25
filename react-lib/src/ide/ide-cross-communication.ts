@@ -11,7 +11,7 @@ import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-m
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event'; // TODO: Add this to the react-lib
+import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event';
 import { Object3DEventMap } from 'three';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
 

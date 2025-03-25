@@ -12,7 +12,6 @@ import VRControllerThumbpadBinding, {
 import getPossibleEntityNames from 'react-lib/src/utils/application-search-logic';
 
 export type SearchMenuArgs = UiMenuArgs & {
-  owner: any;
   renderer: THREE.WebGLRenderer;
 };
 
@@ -42,7 +41,6 @@ export default class SearchMenu extends InteractiveMenu {
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
   keyboard!: ThreeMeshUI.Keyboard;
-  owner: any;
   renderer: THREE.WebGLRenderer;
   list!: any[];
   searchListContainer!: ThreeMeshUI.Block;
@@ -51,9 +49,8 @@ export default class SearchMenu extends InteractiveMenu {
   _isNewInput: boolean = false;
   oldContent?: string;
 
-  constructor({ owner, renderer }: SearchMenuArgs) {
+  constructor({ renderer }: SearchMenuArgs) {
     super();
-    this.owner = owner;
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
     this.makeUI();
@@ -121,7 +118,6 @@ export default class SearchMenu extends InteractiveMenu {
       backgroundOpacity: 0.6,
     });
     this.searchList = new SearchList({
-      owner: this.owner,
       items: this.list,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
       height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height,
@@ -170,7 +166,6 @@ export default class SearchMenu extends InteractiveMenu {
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
     this.searchListContainer.remove(this.searchList);
     this.searchList = new SearchList({
-      owner: this.owner,
       items: this.list,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
       height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height,

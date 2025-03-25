@@ -1,11 +1,8 @@
 // #region Imports
 import { create } from 'zustand';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-// import { task } from 'ember-concurrency'; // TODO: Find substitute for it if necessary!
 import ApplicationData from 'react-lib/src/utils/application-data';
 import CommunicationRendering from 'react-lib/src/utils/application-rendering/communication-rendering';
-// import * as EntityManipulation from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-// import * as EntityRendering from 'explorviz-frontend/utils/application-rendering/entity-rendering';
 import * as EntityManipulation from 'react-lib/src/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'react-lib/src/utils/application-rendering/entity-rendering';
 import {
@@ -483,11 +480,10 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
 
       // do not re-calculate if mesh is already visible
       if (isEntityMesh(entityModel)) {
-        // TODO: Doesn't exist?
         if (entityModel.visible) {
           return;
         } else {
-          entityModel = (entity as EntityMesh).dataModel as Package | Class; // TODO: Doesn't exist
+          entityModel = (entity as EntityMesh).dataModel as Package | Class;
         }
       }
 
@@ -606,7 +602,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       application.removeAllCommunication();
     },
 
-    // TODO: Test if this works
     forEachOpenApplication: (
       forEachFunction: (app: ApplicationObject3D) => void
     ) => {
@@ -717,7 +712,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       for (const [fqn, modelObj] of fqnToModelMap.entries()) {
         if (fqFileNameDotDelimiter.includes(fqn)) {
           if (!longestKeyMatch || fqn.length > longestKeyMatch.length) {
-            // TODO: Doesn't exist?
             longestKeyMatch = fqn;
             flatDataModelBasicInfo = modelObj;
           }

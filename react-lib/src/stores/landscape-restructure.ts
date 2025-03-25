@@ -73,8 +73,6 @@ import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/messag
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import { useUserSettingsStore } from './user-settings';
 
-// TODO: How to handle removeObject & pushObject on list attributes? (Doesn't exist)
-
 type MeshModelTextureMapping = {
   action: RestructureAction;
   meshType: EntityType;
@@ -1338,7 +1336,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath, 1); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
                 } else {
                   mesh.changeTexture(elem.texturePath);
                 }

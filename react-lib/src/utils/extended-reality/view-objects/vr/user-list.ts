@@ -8,19 +8,16 @@ import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user
 
 export type UserListArgs = ThreeMeshUI.BlockOptions & {
   menu: OnlineMenu2;
-  owner: any;
   users: Set<string>;
 };
 
 export default class UserList extends ThreeMeshUI.Block {
   menu: OnlineMenu2;
-  owner: any;
   users: Set<string>;
 
-  constructor({ menu, owner, users, ...options }: UserListArgs) {
+  constructor({ menu, users, ...options }: UserListArgs) {
     super(options);
     this.menu = menu;
-    this.owner = owner;
     this.users = users;
 
     const listItemOptions = {
@@ -35,7 +32,6 @@ export default class UserList extends ThreeMeshUI.Block {
 
     const firstItem = new UserListItem({
       menu: this.menu,
-      owner: this.owner,
       userName: userName + ' (YOU)',
       userId: userId,
       ...listItemOptions,
@@ -48,7 +44,6 @@ export default class UserList extends ThreeMeshUI.Block {
         .lookupRemoteUserById(userId)?.userName;
       const item = new UserListItem({
         menu: this.menu,
-        owner: this.owner,
         userName: userName || 'unknown',
         userId: userId,
         ...listItemOptions,

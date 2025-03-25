@@ -28,7 +28,6 @@ import {
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type DetailInfoMenuArgs = {
-  owner: any;
   object: EntityMesh;
   renderer: THREE.WebGLRenderer;
 };
@@ -60,7 +59,6 @@ export default class DetailInfoMenu
   // applicationRepo!: ApplicationRepository;
 
   private renderer: THREE.WebGLRenderer;
-  private owner: any;
 
   private container?: ThreeMeshUI.Block;
   private informationBlock?: DetailInfoMesh;
@@ -70,9 +68,8 @@ export default class DetailInfoMenu
 
   private entries: { key: string; value: string }[] | undefined;
 
-  constructor({ owner, object, renderer, ...args }: DetailInfoMenuArgs) {
+  constructor({ object, renderer }: DetailInfoMenuArgs) {
     super();
-    this.owner = owner;
     this.object = object;
     this.renderer = renderer;
     this.renderer.localClippingEnabled = true;
@@ -156,7 +153,6 @@ export default class DetailInfoMenu
     });
 
     this.informationBlock = new DetailInfoMesh(
-      this.owner,
       sourceClass,
       targetClass,
       sourceClassId,

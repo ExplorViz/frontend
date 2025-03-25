@@ -9,7 +9,6 @@ export const BLOCK_OPTIONS_LIST_ITEM = {
 
 export type UserListItemArgs = ThreeMeshUI.BlockOptions & {
   menu: OnlineMenu2;
-  owner: any;
   userName: string;
   userId: string;
 };
@@ -24,7 +23,7 @@ export default class UserListItem
   userName: string;
   userId: string;
 
-  constructor({ menu, owner, userName, userId, ...options }: UserListItemArgs) {
+  constructor({ menu, userName, userId, ...options }: UserListItemArgs) {
     super({ ...options, hiddenOverflow: true, contentDirection: 'row' });
     this.menu = menu;
     this.userName = userName;

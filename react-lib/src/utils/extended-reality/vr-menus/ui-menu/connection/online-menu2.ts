@@ -15,7 +15,6 @@ import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export type UserMenuArgs = UiMenuArgs & {
-  owner: any;
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
 };
@@ -40,16 +39,14 @@ const BLOCK_OPTIONS_SEARCHLIST_CONTAINER = {
 export default class OnlineMenu2 extends InteractiveMenu {
   container!: ThreeMeshUI.Block;
   userText!: ThreeMeshUI.Text;
-  owner: any;
   renderer!: THREE.WebGLRenderer;
   scene!: THREE.Scene;
   remoteUsers!: Set<string>;
   userListContainer!: ThreeMeshUI.Block;
   userList!: UserList;
 
-  constructor({ owner, renderer, scene }: UserMenuArgs) {
+  constructor({ renderer, scene }: UserMenuArgs) {
     super();
-    this.owner = owner;
     this.renderer = renderer;
     this.scene = scene;
     this.renderer.localClippingEnabled = true;
@@ -105,7 +102,6 @@ export default class OnlineMenu2 extends InteractiveMenu {
     this.container.add(this.userListContainer);
     this.userListContainer.add(titleBlock);
     const disconnect = new DisconnectButton({
-      owner: this.owner,
       ...BLOCK_OPTIONS_DISCONNECT,
       offset: 0.02,
       backgroundOpacity: 0.6,
@@ -119,7 +115,6 @@ export default class OnlineMenu2 extends InteractiveMenu {
   updateUI() {
     this.userList = new UserList({
       menu: this,
-      owner: this.owner,
       users: this.remoteUsers,
       width: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.width,
       height: BLOCK_OPTIONS_SEARCHLIST_CONTAINER.height,
