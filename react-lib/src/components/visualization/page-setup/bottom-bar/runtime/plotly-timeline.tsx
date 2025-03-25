@@ -14,7 +14,10 @@ export interface IMarkerStates {
 
 interface PlotlyTimelineArgs {
   timelineDataObject: TimelineDataObject;
-  clicked(selectedTimestamps: Map<string, Timestamp[]>): void;
+  clicked(
+    timelineDataObject: TimelineDataObject,
+    selectedTimestamps: Map<string, Timestamp[]>
+  ): void;
 }
 
 export default function PlotlyTimeline({
@@ -288,11 +291,12 @@ export default function PlotlyTimeline({
             selectedCommitTimestampsMap.current.size === selectionCount.current
           ) {
             // closure action
-            if (clicked) clicked(selectedCommitTimestampsMap.current);
+            if (clicked)
+              clicked(timelineDataObject, selectedCommitTimestampsMap.current);
           }
         } else if (clicked) {
           // closure action
-          clicked(selectedCommitTimestampsMap.current);
+          clicked(timelineDataObject, selectedCommitTimestampsMap.current);
         }
       });
 

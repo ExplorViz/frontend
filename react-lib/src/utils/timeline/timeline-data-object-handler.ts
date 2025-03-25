@@ -28,13 +28,14 @@ export default class TimelineDataObjectHandler {
 
   // @action
   async timelineClicked(
+    timelineDataObject: TimelineDataObject,
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) {
     for (const [
       commitId,
       selectedTimestamps,
     ] of commitToSelectedTimestampMap.entries()) {
-      const timelineData = this.getTimelineDataForCommit(commitId);
+      const timelineData = timelineDataObject.get(commitId);
 
       if (
         timelineData &&
