@@ -231,10 +231,10 @@ export default function VrRendering({
   // #endregion state values
 
   // #region states & refs
-  const renderingRef = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const raycaster = useRef(new THREE.Raycaster());
-  const mouse = useRef(new THREE.Vector2());
+  const renderingRef = useRef<HTMLDivElement | null>(null);
+  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const raycaster = useRef<THREE.Raycaster>(new THREE.Raycaster());
+  const mouse = useRef<THREE.Vector2>(new THREE.Vector2());
 
   const renderingLoop = useRef<RenderingLoop | null>(null);
   const debugMenuGroup = useRef<MenuGroup | null>(null);

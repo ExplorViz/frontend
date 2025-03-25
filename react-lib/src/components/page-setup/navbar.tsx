@@ -18,7 +18,7 @@ const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLUListElement | null>(null);
 
   const user = useAuthStore((state) => state.user);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
