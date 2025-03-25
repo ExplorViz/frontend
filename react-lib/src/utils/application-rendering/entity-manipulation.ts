@@ -385,7 +385,7 @@ export function applyDefaultApplicationLayout(
       return;
     }
 
-    const component = components.objectAt(0);
+    const component = components.at(0);
 
     if (component !== undefined) {
       const mesh = appObject3D.getBoxMeshByModelId(component.id);

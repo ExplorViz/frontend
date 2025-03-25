@@ -1240,10 +1240,10 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           language,
           get().newMeshCounter
         );
-        const app = foundation.applications.firstObject; // TODO: Doesn't exist?
-        const pckg = app?.packages.firstObject;
-        const clazz = pckg?.classes.firstObject;
-        get().landscapeData!.structureLandscapeData.nodes.push(foundation); // TODO: Does this work?
+        const app = foundation.applications.at(0);
+        const pckg = app?.packages.at(0);
+        const clazz = pckg?.classes.at(0);
+        get().landscapeData!.structureLandscapeData.nodes.push(foundation);
 
         // Create Changelog Entry
         useChangelogStore
@@ -2634,7 +2634,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           });
         }
 
-        // const key = this.changeLog.changeLogEntries.lastObject?.id;
+        // const key = this.changeLog.changeLogEntries.at(-1)?.id;
         const key = 'CUTINSERT|' + get().clippedMesh?.id;
 
         let newUpdatedClassCommunications = new Map(
@@ -2674,7 +2674,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
     },
 
     undoBundledEntries: (bundledCreateEntries: BaseChangeLogEntry[]) => {
-      const entry = bundledCreateEntries.firstObject; // TODO: Doesn't exist?
+      const entry = bundledCreateEntries.at(0);
       if (entry instanceof AppChangeLogEntry) {
         const { app } = entry;
 
