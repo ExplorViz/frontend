@@ -72,7 +72,7 @@ export default function ClazzPopupRuntime({
 
   const metrics = (() => {
     const applicationMetricsForCurrentApplication =
-      this.applicationMetricsForEncompassingApplication;
+      applicationMetricsForEncompassingApplication;
     const classMetrics: { name: string; value: number | undefined }[] = [];
 
     if (applicationMetricsForCurrentApplication) {
@@ -81,7 +81,7 @@ export default function ClazzPopupRuntime({
       metrics.forEach((metric) => {
         classMetrics.push({
           name: metric.name,
-          value: metric.values.get(this.args.clazz.id),
+          value: metric.values.get(clazz.id),
         });
       });
     }
@@ -115,7 +115,7 @@ export default function ClazzPopupRuntime({
       const metrics =
         applicationMetricsForCurrentApplication.differenceMetricScores;
       metrics.forEach((metric) => {
-        const newWindowedScores = metric.lastObject;
+        const newWindowedScores = metric.at(-1);
         if (newWindowedScores) {
           classMetrics.push({
             name: newWindowedScores.name,

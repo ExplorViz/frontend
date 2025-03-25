@@ -37,11 +37,12 @@ import K8sPopup from 'react-lib/src/components/visualization/rendering/popups/k8
 import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
 
 interface PopupCoordinatorProps {
-  popupData: PopupData;
+  readonly popupData: PopupData;
   structureData: StructureLandscapeData;
   addAnnotationForPopup(popup: PopupData): void;
   pinPopup(popup: PopupData): void;
   removePopup(entityId: string): void;
+  updatePopup(newData: PopupData): void;
   sharePopup(popup: PopupData): void;
   updateMeshReference(popup: PopupData): void;
   showApplication(appId: string): void;
@@ -53,6 +54,7 @@ export default function PopupCoordinator({
   popupData,
   pinPopup,
   removePopup,
+  updatePopup,
   sharePopup,
   updateMeshReference,
   addAnnotationForPopup,
@@ -77,12 +79,12 @@ export default function PopupCoordinator({
 
   const onPointerOver = () => {
     popupData.mesh.applyHoverEffect();
-    popupData.hovered = true;
+    updatePopup({ ...popupData, hovered: true });
   };
 
   const onPointerOut = () => {
     popupData.mesh.resetHoverEffect();
-    popupData.hovered = false;
+    updatePopup({ ...popupData, hovered: false });
   };
 
   const highlight = () => {
@@ -132,8 +134,11 @@ export default function PopupCoordinator({
     }
 
     // Update stored popup position relative to new position
-    popupData.mouseX -= element.current!.offsetLeft - newPositionX;
-    popupData.mouseY -= element.current!.offsetTop - newPositionY;
+    updatePopup({
+      ...popupData,
+      mouseX: popupData.mouseX - element.current!.offsetLeft - newPositionX,
+      mouseY: popupData.mouseY - element.current!.offsetTop - newPositionY,
+    });
 
     element.current!.style.top = `${newPositionY}px`;
     element.current!.style.left = `${newPositionX}px`;
@@ -146,7 +151,10 @@ export default function PopupCoordinator({
   };
 
   const dragMouseDown = (event: React.MouseEvent) => {
-    popupData.wasMoved = true;
+    updatePopup({
+      ...popupData,
+      wasMoved: true,
+    });
 
     //this line makes it impossible to interact with input fields
     //event.preventDefault();
@@ -216,11 +224,14 @@ export default function PopupCoordinator({
   return (
     <div
       className={`popover${popupData.wasMoved ? '' : ' no-user-select'}`}
+      style={{
+        position: 'absolute',
+      }}
       onPointerDown={dragMouseDown}
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
       ref={element}
-      hover={popupData.hovered}
+      // hover={popupData.hovered}
     >
       {popupData.wasMoved ? (
         <>

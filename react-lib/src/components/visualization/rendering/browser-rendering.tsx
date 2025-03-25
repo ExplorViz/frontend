@@ -1144,11 +1144,12 @@ export default function BrowserRendering({
 
           {popupHandlerState.popupData.map((data) => (
             <PopupCoordinator
-              key={data.applicationId}
+              key={data.entity.id}
               addAnnotationForPopup={addAnnotationForPopup}
               openParents={applicationRendererActions.openParents}
               pinPopup={popupHandlerActions.pinPopup}
               popupData={data}
+              updatePopup={popupHandlerActions.addPopup}
               removePopup={removePopup}
               sharePopup={popupHandlerActions.sharePopup}
               showApplication={showApplication}

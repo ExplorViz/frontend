@@ -238,7 +238,6 @@ export default function AnnotationCoordinator({
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
       ref={element}
-      hover={annotationData.hovered}
     >
       {isMovable && (
         <>
