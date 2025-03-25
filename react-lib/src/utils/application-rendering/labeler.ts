@@ -16,6 +16,7 @@ import {
 } from 'react-lib/src/stores/user-settings';
 import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
 import ClazzLabelMesh from 'react-lib/src/view-objects/3d/application/clazz-label-mesh';
+import SemanticZoomManager from '../../view-objects/3d/application/utils/semantic-zoom-manager';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -153,7 +154,7 @@ export function addClazzTextLabel(
   if (clazzMesh.labelMesh && !replace) return;
   if (clazzMesh.labelMesh && replace) {
     clazzMesh.remove(clazzMesh.labelMesh);
-    clazzMesh.labelMesh.disposeRecursively();
+    clazzMesh.labelMesh.disposeRecursively(SemanticZoomManager);
   }
 
   const size =

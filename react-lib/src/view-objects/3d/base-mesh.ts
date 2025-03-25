@@ -414,7 +414,7 @@ export default abstract class BaseMesh<
    *  Should be the type SemanticZoomManager
    */
   disposeRecursively(
-    semanticZoomManager /*: SemanticZoomManager (import would lead to circular dependency)*/
+    semanticZoomManager: any /*: SemanticZoomManager (import would lead to circular dependency)*/
   ) {
     this.traverse((child) => {
       if (child instanceof BaseMesh) {
