@@ -32,8 +32,8 @@ import {
   SquareFillIcon,
   XCircleIcon,
 } from '@primer/octicons-react';
-import TraceNavigation from './trace-navigation';
-import TraceStepDetails from './trace-step-details';
+import TraceNavigation from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-navigation';
+import TraceStepDetails from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-step-details';
 
 const TICK_CALLBACK_ID = 'trace-replayer-main';
 
@@ -525,14 +525,14 @@ export default function TraceReplayerMain({
 
       <hr />
 
-      <TraceStepDetails // Non-existent properties used?
+      <TraceStepDetails // TODO: Implement this component, we don't know where the parameter are coming from
         operationName={operationName}
         sourceClass={sourceClass}
-        targetClass={targetClass}
+        targetClass={targetClass!}
         sourceApplicationName={sourceApplication.name}
         targetApplicationName={targetApplication.name}
-        spanStartTime={currentTraceStep!.startTime}
-        spanEndTime={currentTraceStep!.endTime}
+        spanStartTime={currentTraceStep?.startTime ?? 0}
+        spanEndTime={currentTraceStep?.endTime ?? 0}
       />
     </>
   );
