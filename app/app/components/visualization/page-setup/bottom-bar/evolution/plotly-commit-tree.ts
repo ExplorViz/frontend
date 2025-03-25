@@ -28,7 +28,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
   private COMMIT_UNSELECTED_SIZE = 8;
   private COMMIT_SELECTED_SIZE = 15;
 
-  // TODO: Use this property, only set and never read as of now
   private userSlidingWindow = null;
 
   private commitTreeDiv: any;
@@ -397,7 +396,6 @@ export default class PlotlyCommitTree extends Component<IArgs> {
         this.getPlotlyOptionsObject()
       );
     } else {
-      // TODO: error text no commits
     }
   }
 

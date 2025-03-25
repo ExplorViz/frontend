@@ -20,7 +20,7 @@ export default class Navbar extends Component {
 
   @action
   logout() {
-    // useAuthStore.getState().logout(); // TODO: Gibt es nicht mehr
+    // useAuthStore.getState().logout();
   }
 
   @action

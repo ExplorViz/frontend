@@ -12,7 +12,7 @@ export default class StatusIcons extends Component {
   @service('collaboration/spectate-user')
   spectate!: SpectateUser;
 
-  // TODO undo this temporary fix while collaboration-session is not fully migrated
+
   isOnline = false;
   // get isOnline() {
   //   return this.collaboration.isOnline;

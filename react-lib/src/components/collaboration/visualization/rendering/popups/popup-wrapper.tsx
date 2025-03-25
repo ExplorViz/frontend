@@ -11,13 +11,6 @@ import ArPopupCoordinator from 'react-lib/src/components/extended-reality/visual
 import PopupData from '../../../../visualization/rendering/popups/popup-data';
 
 interface PopupWrapperArgs {
-  // popupData: {
-  //   id: number;
-  //   isPinned: boolean;
-  //   posX: number;
-  //   posY: number;
-  //   entity: Node | Application | Package | Class;
-  // }; // TODO: PopupWrapper never used, but this arg doesn't make sense. Incomplete popupdata
   popupData: PopupData;
   keepPopupOpen(id: number): void;
   setPopupPosition(id: number, posX: number, posY: number): void;
@@ -145,7 +138,6 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     );
   };
 
-  // TODO: If it doesn't work, look into git for the history
   const handlePan = (deltaX: number, deltaY: number) => {
     const localDivElement = dragElementRef.current!;
     const localArgs = args;

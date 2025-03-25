@@ -282,8 +282,6 @@ export default class PlotlyTimeline extends Component<IArgs> {
 
         const timestampId = data.points[0].data.timestampId[pn];
 
-        // TODO: Get real commit ID based on plot data, insert commit somewhere else
-
         self.markerStateMap.get(commitId)![timestampId].color =
           highlightedMarkerColor;
         self.markerStateMap.get(commitId)![timestampId].size =

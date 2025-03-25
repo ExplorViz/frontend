@@ -30,21 +30,6 @@ export default function VscodeExtensionSettings() {
     restartConnection();
   };
 
-  // TODO migrate ide-websocket first
-  // or delete this since it isn't being used anyways
-
-  // const monitoring = () => {
-  //   console.log('monitoring');
-
-  //   const payload = {
-  //     fqn: 'org.springframework.samples.petclinic.model.Person',
-  //     description: 'Test by akr',
-  //   };
-
-  //   sendMonitoringData([payload]);
-  //   showSuccessToastMessage('Show Monitoring mockup');
-  // };
-
   return (
     <>
       {isConnected && (
