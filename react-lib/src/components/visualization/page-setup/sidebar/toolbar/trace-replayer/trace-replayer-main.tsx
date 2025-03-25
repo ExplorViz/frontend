@@ -525,7 +525,7 @@ export default function TraceReplayerMain({
 
       <hr />
 
-      <TraceStepDetails // TODO: Implement this component, we don't know where the parameter are coming from
+      {/* <TraceStepDetails
         operationName={operationName}
         sourceClass={sourceClass}
         targetClass={targetClass!}
@@ -533,7 +533,7 @@ export default function TraceReplayerMain({
         targetApplicationName={targetApplication.name}
         spanStartTime={currentTraceStep?.startTime ?? 0}
         spanEndTime={currentTraceStep?.endTime ?? 0}
-      />
+      /> */}
     </>
   );
 }
