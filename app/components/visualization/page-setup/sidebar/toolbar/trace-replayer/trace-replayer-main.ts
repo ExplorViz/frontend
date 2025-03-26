@@ -27,6 +27,7 @@ import {
   TraceNodeVisitor,
   TraceTree,
   TraceTreeBuilder,
+  TraceTreeVisitor,
   TraceTreeWalker,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import Details, {
@@ -90,24 +91,13 @@ export default class TraceReplayerMain extends Component<Args> {
       this.applicationRenderer
     ).build();
 
-    {
-      const node =
-        this.tree.root[0].children[0].children[0].children[0].children[0]
-          .children[0].children[0].children[0].children[0];
-      this.tree.root[0].children[0].children.push(node);
-      this.tree.root[0].children[0].children[0].children.push(node);
-      this.tree.root[0].children[0].children[0].children[0].children[0].children.push(
-        node
-      );
-    }
-
     this.timeline = [];
 
-    const start = this.tree.root.reduce((acc: number, node: TraceNode) => {
+    const start = this.tree.children.reduce((acc: number, node: TraceNode) => {
       return Math.min(acc, node.start);
     }, Infinity);
 
-    const visitor = new TraceTreeWalker((node: TraceNode): void => {
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
       this.timeline.push([node.start - start, 1]);
     });
     this.tree.accept(visitor);
@@ -234,6 +224,7 @@ export default class TraceReplayerMain extends Component<Args> {
         entity.delta += delta;
         const progress = entity.delta / (entity.duration / this.selectedSpeed);
         if (0.0 <= progress && progress <= 1.0) {
+          // move cursor
           entity.mesh.move(entity.path.getPoint(progress));
 
           const shape = new THREE.Shape().ellipse(
@@ -271,6 +262,7 @@ export default class TraceReplayerMain extends Component<Args> {
             entity.prune(3).forEach((mesh) => this.scene.remove(mesh));
           }
         } else if (!this.stopped && !this.paused) {
+          // expand entity
           entity.delta = 0;
 
           if (!entity.target.isLeaf) {
@@ -292,6 +284,8 @@ export default class TraceReplayerMain extends Component<Args> {
               );
 
               for (const child of entity.origin.children) {
+                console.log(child);
+
                 const path = this.path(entity.origin, child);
 
                 const color = colors.pop();
@@ -434,9 +428,11 @@ export default class TraceReplayerMain extends Component<Args> {
 
       let colors = HueSpace.default;
 
-      if (this.tree.root.length > 0) {
+      console.log(this.tree.children);
+
+      if (this.tree.children.length > 0) {
         {
-          const origin = this.tree.root[0];
+          const origin = this.tree.children[0];
 
           const target = !origin.isLeaf ? origin.children[0] : origin;
 
