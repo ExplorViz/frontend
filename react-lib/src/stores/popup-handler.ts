@@ -152,9 +152,9 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
             };
 
             const newPopupData = [
-              ...get().popupData.filter((element) => {
-                element !== popup;
-              }),
+              ...get().popupData.filter(
+                (pd) => pd.entity.id !== popup.entity.id
+              ),
               newPopup,
             ];
 
@@ -171,21 +171,16 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       );
   },
 
-  pinPopup: (popup: PopupData) => {
-    const newPopup = {
-      ...popup,
-      isPinned: true,
-    };
-
+  pinPopup: (popup: PopupData) =>
     set({
       popupData: [
-        ...get().popupData.filter((element) => {
-          element !== popup;
-        }),
-        newPopup,
+        ...get().popupData.filter((pd) => pd.entity.id !== popup.entity.id),
+        {
+          ...popup,
+          isPinned: true,
+        },
       ],
-    });
-  },
+    }),
 
   removePopup: async (entityId: string) => {
     const popup = get().popupData.find((pd) => pd.entity.id === entityId);
@@ -419,9 +414,9 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       .getMeshById(popup.entity.id);
     if (isEntityMesh(mesh)) {
       set({
-        popupData: get().popupData.map((pd) => {
-          return pd.entity.id === popup.entity.id ? { ...pd, mesh: mesh } : pd;
-        }),
+        popupData: get().popupData.map((pd) =>
+          pd.entity.id === popup.entity.id ? { ...pd, mesh: mesh } : pd
+        ),
       });
     }
   },
