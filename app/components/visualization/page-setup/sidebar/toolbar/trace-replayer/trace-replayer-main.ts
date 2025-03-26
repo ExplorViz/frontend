@@ -36,6 +36,8 @@ import Details, {
   Sphere,
   Tab,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
+import Ember from 'ember';
+import observer = Ember.observer;
 
 interface Args {
   selectedTrace: Trace;
@@ -238,61 +240,78 @@ export default class TraceReplayerMain extends Component<Args> {
   @tracked
   public cursor: number;
 
+  public callback = [
+    (cursor: number) => {
+      this.cursor = cursor;
+    },
+  ];
+
+  public observer: ((cursor: number) => void)[] = [];
+
   tick(delta: number) {
-    this.cursor += delta * this.sliderSpeed;
+    if (!this.stopped && !this.paused) {
+      this.cursor += delta * this.sliderSpeed;
 
-    if (this.entities.size > 0) {
-      this.entities.forEach((entity: AnimationEntity, id: string) => {
-        // move entity
-        {
-          const start =
-            entity.origin.start + this.sliderDelay * entity.origin.startDelay;
-          const end =
-            entity.origin.end + this.sliderDelay * entity.origin.endDelay;
-          const progress = (this.cursor - start) / (end - start);
+      this.observer.forEach((notify) => {
+        notify(this.cursor);
+      });
 
-          if (0.0 <= progress && progress <= 1.0) {
-            entity.mesh.move(entity.path.getPoint(progress));
+      if (this.entities.size > 0) {
+        this.entities.forEach((entity: AnimationEntity, id: string) => {
+          // move entity
+          {
+            const start =
+              entity.origin.start + this.sliderDelay * entity.origin.startDelay;
+            const end = start + this.sliderDelay;
 
-            const shape = new THREE.Shape().ellipse(
-              0.0,
-              0.0,
-              0.02,
-              0.02,
-              0.0,
-              2.0 * Math.PI
+            console.log(
+              `${start} + ${entity.origin.startDelay} ${end} + ${entity.target.startDelay}`
             );
 
-            if (progress > 0.2) {
-              const spline = new THREE.QuadraticBezierCurve3(
-                entity.path.getPoint(progress - 0.2),
-                entity.path.getPoint(progress - 0.1),
-                entity.path.getPoint(progress)
-              );
-              const geometry = new THREE.ExtrudeGeometry(shape, {
-                steps: 12,
-                extrudePath: spline,
-              });
-              entity.trail.geometry.copy(geometry);
-            } else {
-              const spline = new THREE.QuadraticBezierCurve3(
-                entity.path.getPoint(0),
-                entity.path.getPoint(progress / 2),
-                entity.path.getPoint(progress)
-              );
-              const geometry = new THREE.ExtrudeGeometry(shape, {
-                steps: 12,
-                extrudePath: spline,
-              });
-              entity.trail.geometry.copy(geometry);
+            const progress = (this.cursor - start) / (end - start);
 
-              entity.prune(3).forEach((mesh) => this.scene.remove(mesh));
+            if (0.0 <= progress && progress <= 1.0) {
+              entity.mesh.move(entity.path.getPoint(progress));
+
+              const shape = new THREE.Shape().ellipse(
+                0.0,
+                0.0,
+                0.02,
+                0.02,
+                0.0,
+                2.0 * Math.PI
+              );
+
+              if (progress > 0.2) {
+                const spline = new THREE.QuadraticBezierCurve3(
+                  entity.path.getPoint(progress - 0.2),
+                  entity.path.getPoint(progress - 0.1),
+                  entity.path.getPoint(progress)
+                );
+                const geometry = new THREE.ExtrudeGeometry(shape, {
+                  steps: 12,
+                  extrudePath: spline,
+                });
+                entity.trail.geometry.copy(geometry);
+              } else {
+                const spline = new THREE.QuadraticBezierCurve3(
+                  entity.path.getPoint(0),
+                  entity.path.getPoint(progress / 2),
+                  entity.path.getPoint(progress)
+                );
+                const geometry = new THREE.ExtrudeGeometry(shape, {
+                  steps: 12,
+                  extrudePath: spline,
+                });
+                entity.trail.geometry.copy(geometry);
+
+                entity.prune(3).forEach((mesh) => this.scene.remove(mesh));
+              }
             }
           }
-        }
 
-        // spawn children
-        if (!this.stopped && !this.paused) {
+          // spawn children
+
           const colors = entity.color.partition(entity.target.children.length);
           const heights = entity.height.partition(
             entity.target.children.length
@@ -308,33 +327,33 @@ export default class TraceReplayerMain extends Component<Args> {
               console.log(this.entities);
             }
           });
-        }
 
-        entity.origin.mesh.highlight();
-        entity.origin.mesh.turnOpaque();
-        this.turnComponentAndAncestorsTransparent(
-          entity.origin.clazz.parent,
-          1
-        );
+          entity.origin.mesh.highlight();
+          entity.origin.mesh.turnOpaque();
+          this.turnComponentAndAncestorsTransparent(
+            entity.origin.clazz.parent,
+            1
+          );
 
-        entity.target.mesh.highlight();
-        entity.target.mesh.turnOpaque();
-        this.turnComponentAndAncestorsTransparent(
-          entity.target.clazz.parent,
-          1
-        );
+          entity.target.mesh.highlight();
+          entity.target.mesh.turnOpaque();
+          this.turnComponentAndAncestorsTransparent(
+            entity.target.clazz.parent,
+            1
+          );
 
-        // delete entity if lifetime exceeded
-        if (
-          entity.origin.end + this.sliderDelay * entity.origin.endDelay <
-            this.cursor &&
-          this.entities.has(entity.target.id)
-        ) {
-          this.entities.delete(id);
-        }
-      });
-    } else {
-      this.stop();
+          // delete entity if lifetime exceeded
+          if (
+            entity.origin.end + this.sliderDelay * entity.origin.endDelay <
+              this.cursor &&
+            this.entities.has(entity.target.id)
+          ) {
+            this.entities.delete(id);
+          }
+        });
+      } else {
+        this.stop();
+      }
     }
   }
 
