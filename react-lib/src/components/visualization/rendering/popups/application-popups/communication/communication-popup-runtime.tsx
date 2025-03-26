@@ -66,7 +66,7 @@ export default function CommunicationPopupRuntime({
         {communication.communication.methodCalls.map(
           (classCommunication, index) => {
             return (
-              <>
+              <React.Fragment key={classCommunication.id}>
                 {/* Relationship */}
                 <tr>
                   <td className="text-nowrap align-top">
@@ -157,11 +157,12 @@ export default function CommunicationPopupRuntime({
                     %
                   </td>
                 </tr>
-                {index <
-                  (communication.communication as ComponentCommunication)
-                    .classCommunications.length -
-                    1 && <hr />}
-              </>
+                {communication.communication instanceof
+                  ComponentCommunication &&
+                  index <
+                    communication.communication.classCommunications.length -
+                      1 && <hr />}
+              </React.Fragment>
             );
           }
         )}
