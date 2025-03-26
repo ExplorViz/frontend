@@ -34,7 +34,6 @@
   },
   "dependencies": {
     "@primer/octicons-react": "^19.14.0",
-    "@radix-ui/react-context-menu": "^2.2.6",
     "jquery": "^3.7.1",
     "jszip": "^3.10.1",
     "plotly.js-dist": "^2.29.0",
