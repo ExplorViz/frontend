@@ -80,10 +80,7 @@ export class TraceTree {
     let frontier: TraceNode[] = [];
     let visited = new Set<string>();
 
-    let iter = (
-      head: TraceTree | TraceNode,
-      frontier: TraceNode[]
-    ): TraceNode | undefined => {
+    let iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
       frontier.push(...head.children);
       const next = frontier.shift();
       if (next !== undefined) {
@@ -96,11 +93,7 @@ export class TraceTree {
       return next;
     };
 
-    for (
-      let head = iter(this, frontier);
-      head !== undefined;
-      head = iter(head, frontier)
-    ) {
+    for (let head = iter(this); head !== undefined; head = iter(head)) {
       head.accept(visitor);
     }
   }
@@ -203,14 +196,17 @@ export class TraceTreeBuilder {
       let frontier: TraceNode[] = [];
       let visited = new Set<string>();
 
-      let iter = (
-        head: TraceTree | TraceNode,
-        frontier: TraceNode[]
-      ): TraceNode | undefined => {
+      let iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
         frontier.push(...head.children);
         // sort events according to timeline -- delays are propagated to later events, either start or end
         frontier.sort((a: TraceNode, b: TraceNode): number => {
-          return a.start === b.start ? a.end - b.end : a.start - b.start;
+          return a.start === b.start
+            ? a.end === b.end
+              ? a.id < b.id
+                ? -1
+                : 1
+              : a.end - b.end
+            : a.start - b.start;
         });
         const next = frontier.shift();
         if (next !== undefined) {
@@ -223,11 +219,7 @@ export class TraceTreeBuilder {
         return next;
       };
 
-      for (
-        let head = iter(tree, frontier);
-        head !== undefined;
-        head = iter(head, frontier)
-      ) {
+      for (let head = iter(tree); head !== undefined; head = iter(head)) {
         if (head.isLeaf) {
           leaves.push(head);
         } else {
@@ -239,40 +231,52 @@ export class TraceTreeBuilder {
 
         // event has no length
         if (head.start + head.startDelay === head.end + head.endDelay) {
-          ++head.endDelay;
           head.children.forEach((node: TraceNode): void => {
             ++node.startDelay;
             ++node.endDelay;
           });
           frontier.forEach((node: TraceNode): void => {
-            ++node.startDelay;
+            if (node.start + node.startDelay > head!.start + head!.startDelay) {
+              ++node.startDelay;
+            }
             ++node.endDelay;
           });
+          ++head.endDelay;
         }
 
         // child starts at the same time
-        head.children.forEach((node: TraceNode): void => {
-          if (node.start + node.startDelay === head!.start + head!.startDelay) {
-            ++head!.endDelay;
+        head.children.forEach((child: TraceNode): void => {
+          if (
+            child.start + child.startDelay ===
+            head!.start + head!.startDelay
+          ) {
             head!.children.forEach((node: TraceNode): void => {
               ++node.startDelay;
               ++node.endDelay;
             });
             frontier.forEach((node: TraceNode): void => {
-              ++node.startDelay;
+              if (
+                node.start + node.startDelay >
+                head!.start + head!.startDelay
+              ) {
+                ++node.startDelay;
+              }
               ++node.endDelay;
             });
+            ++head!.endDelay;
           }
         });
 
         // child ends at the same time
-        head.children.forEach((node: TraceNode): void => {
-          if (node.end + node.endDelay === head!.end + head!.endDelay) {
-            ++head!.endDelay;
+        head.children.forEach((child: TraceNode): void => {
+          if (child.end + child.endDelay === head!.end + head!.endDelay) {
             frontier.forEach((node: TraceNode): void => {
-              ++node.startDelay;
+              if (node.start + node.startDelay > head!.end + head!.endDelay) {
+                ++node.startDelay;
+              }
               ++node.endDelay;
             });
+            ++head!.endDelay;
           }
         });
       }
@@ -282,19 +286,12 @@ export class TraceTreeBuilder {
     {
       let frontier = leaves;
 
-      let iter = (
-        head: TraceTree | TraceNode,
-        frontier: TraceNode[]
-      ): TraceNode | undefined => {
+      let iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
         frontier.push(...head.parents);
         return frontier.shift();
       };
 
-      for (
-        let head = iter(tree, frontier);
-        head !== undefined;
-        head = iter(head, frontier)
-      ) {
+      for (let head = iter(tree); head !== undefined; head = iter(head)) {
         head.parents.forEach((node: TraceNode): void => {
           node.endDelay = Math.max(head!.endDelay + 1, node.endDelay);
         });
