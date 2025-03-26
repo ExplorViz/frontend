@@ -6,8 +6,8 @@ import {
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  Class,
   Application,
+  Class,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';

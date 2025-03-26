@@ -6,10 +6,8 @@ import { Vector3 } from 'three/src/math/Vector3';
 import { tracked } from '@glimmer/tracking';
 import { htmlSafe } from '@ember/template';
 import Ember from 'ember';
-import SafeString = Ember.Handlebars.SafeString;
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
-import Component from '@glimmer/component';
-import { action } from '@ember/object';
+import SafeString = Ember.Handlebars.SafeString;
 
 const DEFAULT_OPACITY = 1;
 
@@ -160,26 +158,18 @@ export class Tab {
   }
 }
 
-export class HueSpace {
-  private readonly min: number;
-  private readonly max: number;
-  public readonly color: THREE.Color;
+export class Partition {
+  public readonly min: number;
+  public readonly max: number;
+  public readonly value: number;
 
-  private constructor(min: number, max: number) {
+  public constructor(min: number, max: number) {
     this.min = min;
     this.max = max;
-    this.color = new THREE.Color().setHSL(
-      this.min + (this.max - this.min) / 2.0,
-      1.0,
-      0.5
-    );
+    this.value = this.min + (this.max - this.min) / 2.0;
   }
 
-  static get default(): HueSpace {
-    return new HueSpace(0.0, 1.0);
-  }
-
-  partition(n: number): HueSpace[] {
+  public partition(n: number): Partition[] {
     if (n < 1) {
       return [this];
     }
@@ -189,11 +179,40 @@ export class HueSpace {
 
     for (let i = 0; i < n; ++i) {
       partitions.push(
-        new HueSpace(this.min + i * offset, this.min + (i + 1) * offset)
+        new Partition(this.min + i * offset, this.min + (i + 1) * offset)
       );
     }
 
     return partitions;
+  }
+}
+
+export interface ColorSpace extends Partition {
+  get color(): THREE.Color;
+
+  get default(): ColorSpace;
+
+  partition(n: number): ColorSpace[];
+}
+
+export class HueSpace extends Partition implements ColorSpace {
+  public readonly color: THREE.Color;
+
+  private constructor(min: number = 0.0, max: number = 1.0) {
+    super(min, max);
+    this.color = new THREE.Color().setHSL(this.value, 1.0, 0.5);
+  }
+
+  public static get default(): ColorSpace {
+    return new HueSpace();
+  }
+
+  public get default(): ColorSpace {
+    return HueSpace.default;
+  }
+
+  public partition(n: number): ColorSpace[] {
+    return super.partition(n).map((part) => new HueSpace(part.min, part.max));
   }
 }
 
@@ -242,13 +261,13 @@ export class Arc extends THREE.Curve<Vector3> {
   middle: Vector3;
   end: Vector3;
 
-  constructor(start: Vector3, end: Vector3) {
+  constructor(start: Vector3, end: Vector3, height: number) {
     super();
     this.start = start;
     this.end = end;
     this.middle = new THREE.Vector3(
       start.x + (end.x - start.x) / 2.0,
-      1 + start.y + (end.y - start.y) / 2.0,
+      height + start.y + (end.y - start.y) / 2.0,
       start.z + (end.z - start.z) / 2.0
     );
   }
@@ -267,12 +286,11 @@ export class AnimationEntity {
   target: TraceNode;
   path: Curve<Vector3>;
   mesh: Sphere;
-  delta: number;
   line: THREE.Mesh[];
   trail: THREE.Mesh;
-  duration: number;
   tab: Tab;
-  color: HueSpace;
+  height: Partition;
+  color: ColorSpace;
   alive: boolean;
 
   constructor(
@@ -283,19 +301,18 @@ export class AnimationEntity {
     line: THREE.Mesh[],
     trail: THREE.Mesh,
     tab: [Tab],
-    color: HueSpace = HueSpace.default,
-    delta: number = 0
+    height: Partition,
+    color: ColorSpace = HueSpace.default
   ) {
     this.origin = origin;
     this.target = target;
     this.path = path;
     this.mesh = mesh;
-    this.delta = delta;
     this.line = line;
     this.trail = trail;
     this.tab = tab[0];
+    this.height = height;
     this.color = color;
-    this.duration = 1 + origin.duration / 1000.0;
     this.alive = true;
   }
 

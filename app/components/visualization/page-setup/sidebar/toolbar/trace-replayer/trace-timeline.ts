@@ -1,7 +1,5 @@
 import { action } from '@ember/object';
 import Component from '@glimmer/component';
-import debugLogger from 'ember-debug-logger';
-import { Timestamp } from 'explorviz-frontend/utils/landscape-schemes/timestamp';
 import Plotly from 'plotly.js-dist';
 
 interface IArgs {

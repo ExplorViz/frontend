@@ -1,13 +1,7 @@
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
-import {
-  Span,
-  Trace,
-} from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
-import { calculateDuration } from 'explorviz-frontend/utils/trace-helpers';
+import { Span } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
-import { duration } from 'moment';
-import { string } from 'three/examples/jsm/nodes/shadernode/ShaderNode';
 
 export class TraceNode {
   public readonly id: string;
@@ -38,10 +32,6 @@ export class TraceNode {
 
     this.parents = [];
     this.children = [];
-  }
-
-  public get duration() {
-    return this.end - this.start;
   }
 
   public accept(visitor: TraceTreeVisitor) {
@@ -175,11 +165,11 @@ export class TraceTreeBuilder {
 
     this.fixTrace(tree);
 
-    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
-      node.start = node.start + node.startDelay;
-      node.end = node.end + node.endDelay;
-    });
-    tree.accept(visitor);
+    // const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+    //   node.start = node.start + node.startDelay;
+    //   node.end = node.end + node.endDelay;
+    // });
+    // tree.accept(visitor);
 
     return tree;
   }

@@ -47,7 +47,7 @@
       <label for='trace-speed-selector'>Playback speed</label>
       <input
         id='trace-speed-slider'
-        value={{this.selectedSpeed}}
+        value={{this.sliderSpeed}}
         min={{this.minSpeed}}
         max={{this.maxSpeed}}
         type='range'
@@ -58,8 +58,32 @@
       />
       <div class='range-slider--values'>
         <span>{{this.minSpeed}}</span>
-        <span style='font-weight: bold;'>{{this.selectedSpeed}}</span>
+        <span style='font-weight: bold;'>{{this.sliderSpeed}}</span>
         <span>{{this.maxSpeed}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class='mb-3'>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <label for='trace-delay-selector'>Delay</label>
+      <input
+        id='trace-delay-slider'
+        value={{this.sliderDelay}}
+        min=0
+        max=1
+        type='range'
+        step=0.1
+        class='form-control mr-2'
+        onchange={{this.changeDelay}}
+        oninput={{fn this.inputDelay this}}
+      />
+      <div class='range-slider--values'>
+        <span>0</span>
+        <span style='font-weight: bold;'>{{this.sliderDelay}}</span>
+        <span>1</span>
       </div>
     </div>
   </div>
