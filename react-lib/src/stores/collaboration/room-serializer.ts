@@ -74,7 +74,7 @@ interface RoomSerializerState {
     snapshot: boolean
   ) => SerializedPopup[];
   _serializeOpenAnnotations: (
-    // annotationData: AnnotationData[],
+    annotationData: AnnotationData[],
     snapshot: boolean
   ) => SerializedAnnotation[];
   _serializeDetachedMenus: () => SerializedDetachedMenu[];
@@ -101,7 +101,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
         highlightedExternCommunicationLinks:
           get()._serializehighlightedExternCommunicationLinks(),
         popups: get()._serializeOpenPopups(popupData, snapshot),
-        annotations: get()._serializeOpenAnnotations(snapshot), // TODO: previously annotationData, snapshot),
+        annotations: get()._serializeOpenAnnotations(annotationData, snapshot), // TODO: previously annotationData, snapshot),
         detachedMenus: get()._serializeDetachedMenus(),
       };
       return serializedRoom;

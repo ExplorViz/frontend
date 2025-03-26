@@ -97,6 +97,7 @@ import useHeatmapRenderer from '../../hooks/heatmap-renderer';
 import useCollaborativeModifier from '../../hooks/collaborative-modifier';
 import { useResizeDetector } from 'react-resize-detector';
 import { useShallow } from 'zustand/react/shallow';
+import gsap from 'gsap';
 
 interface VrRenderingArgs {
   readonly id: string;
@@ -312,6 +313,7 @@ export default function VrRendering({
 
     return () => {
       renderingLoop.current!.stop();
+      willDestroy();
     };
   }, []);
 
@@ -1304,7 +1306,7 @@ export default function VrRendering({
         </>
       </VrDropArea>
       {userSettings.visualizationSettings.showVrOnClick.value && (
-        <div className="position-absolute mt-6 ml-3">
+        <div className="position-absolute mt-6 ml-3" style={{zIndex: 12000}}>
           <Button
             id="backToLandscapeButton"
             onClick={switchToOnScreenMode}

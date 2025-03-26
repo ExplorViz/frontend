@@ -162,7 +162,7 @@ export default class SearchMenu extends InteractiveMenu {
     this.oldContent = this.userText.content;
 
     // @ts-ignore no types atm
-    this.list = this.searchLogic.getPossibleEntityNames(this.userText.content);
+    this.list = getPossibleEntityNames(this.userText.content);
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error
     this.searchListContainer.remove(this.searchList);
     this.searchList = new SearchList({

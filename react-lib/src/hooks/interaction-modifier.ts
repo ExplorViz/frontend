@@ -619,6 +619,7 @@ export default function useInteractionModifier(
       onPointerStop as EventListener
     );
 
+
     return function cleanup() {
       if (canvas.current) {
         canvas.current.removeEventListener('pointerdown', onPointerDown);
@@ -638,6 +639,7 @@ export default function useInteractionModifier(
     };
   }, [camera, objectsToRaycast, minimapCamera, makeFullsizeMinimap]);
 }
+
 
 // MARK: Types
 

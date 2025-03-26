@@ -167,6 +167,7 @@ export default class SearchMenu extends InteractiveMenu {
     // @ts-ignore no types atm
     this.oldContent = this.userText.content;
 
+    console.log(this.userText);
     // @ts-ignore no types atm
     this.list = getPossibleEntityNames(this.userText.content);
     this.searchList.clear(); // needed before removing, otherwise ThreeMeshUI throws an error

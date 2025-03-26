@@ -60,7 +60,7 @@ import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling
 import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
 // import ArRendering from 'react-lib/src/components/extended-reality/ar-rendering';
-// import VrRendering from 'react-lib/src/components/extender-reality/vr-rendering';
+import VrRendering from 'react-lib/src/components/extended-reality/vr-rendering';
 import { useUserSettingsStore } from '../stores/user-settings';
 import BrowserRendering from 'react-lib/src/components/visualization/rendering/browser-rendering';
 import { useLandscapeTokenStore } from '../stores/landscape-token';
@@ -75,6 +75,7 @@ import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/
 import { ChevronUpIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
 import useSyncState from '../hooks/sync-state';
+import { useShallow } from 'zustand/react/shallow';
 
 const queryParams = [
   'roomId',
@@ -236,6 +237,13 @@ export default function Visualization() {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchVrStatus = async () => {
+      await updateVrStatus();
+    };
+    fetchVrStatus();
+  }, []);
+
   useSyncState();
 
   // #endregion
@@ -309,9 +317,6 @@ export default function Visualization() {
   );
   const linkRendererFlag = useLinkRendererStore((state) => state._flag);
   const setFlag = useLinkRendererStore((state) => state.setFlag);
-  const setSerializedRoom = useRoomSerializerStore(
-    (state) => state.setSerializedRoom
-  );
   const updateHighlighting = useHighlightingStore(
     (state) => state.updateHighlighting
   );
@@ -333,7 +338,6 @@ export default function Visualization() {
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
   const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
   const setDefaultCamera = useLocalUserStore((state) => state.setDefaultCamera);
-  const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
   const webSocketSend = useWebSocketStore((state) => state.send);
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
@@ -353,6 +357,13 @@ export default function Visualization() {
     (state) => state._currentSelectedApplicationName
   );
 
+  const roomSerializer = useRoomSerializerStore(
+    useShallow((state) => ({
+      serializeRoom: state.serializeRoom,
+      setSerializedRoom: state.setSerializedRoom
+    }))
+  );
+
   // # endregion
 
   // #region Getter
@@ -360,7 +371,7 @@ export default function Visualization() {
     return (
       renderingServiceLandscapeData !== null &&
       renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
-        0 &&
+      0 &&
       (!renderingServiceLandscapeData.structureLandscapeData.k8sNodes ||
         renderingServiceLandscapeData.structureLandscapeData?.k8sNodes
           .length === 0)
@@ -509,7 +520,7 @@ export default function Visualization() {
     // Now we can be sure our linkRenderer has all extern links
 
     // Serialized room is used in landscape-data-watcher
-    setSerializedRoom({
+    roomSerializer.setSerializedRoom({
       landscape: landscape,
       openApps: openApps as SerializedApp[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
@@ -591,7 +602,7 @@ export default function Visualization() {
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.
      */
-    setSerializedRoom(snapshotToken.serializedRoom);
+    roomSerializer.setSerializedRoom(snapshotToken.serializedRoom);
 
     let dc = defaultCamera;
     dc.position.set(
@@ -619,7 +630,7 @@ export default function Visualization() {
   };
 
   const switchToMode = (mode: VisualizationMode) => {
-    serializeRoom();
+    roomSerializer.serializeRoom();
     setVisualizationMode(mode);
     webSocketSend<VisualizationModeUpdateMessage>(
       VISUALIZATION_MODE_UPDATE_EVENT,
@@ -634,11 +645,12 @@ export default function Visualization() {
    */
   const updateVrStatus = async () => {
     if ('xr' in navigator) {
+      const isSessionSupported = await navigator.xr?.isSessionSupported('immersive-vr') || false;
       setVrSupported(
-        (await navigator.xr?.isSessionSupported('immersive-vr')) || false
+        isSessionSupported!
       );
 
-      if (vrSupported) {
+      if (isSessionSupported) {
         setVrButtonText('Enter VR');
       } else if (!window.isSecureContext) {
         setVrButtonText('WEBXR NEEDS HTTPS');
@@ -727,59 +739,58 @@ export default function Visualization() {
         {showAR ? (
           <></>
         ) : // <ArRendering
-        //   id="ar-rendering"
-        //   landscapeData={renderingServiceLandscapeData}
-        //   switchToOnScreenMode={switchToOnScreenMode}
-        //   toggleVisualizationUpdating={
-        //     renderingServiceToggleVisualizationUpdating
-        //   }
-        //   visualizationPaused={renderingServiceVisualizationPaused}
-        //   openedSettingComponent={
-        //     sidebarHandler.openedSettingComponent
-        //   }
-        //   toggleSettingsSidebarComponent={
-        //     sidebarHandler.toggleSettingsSidebarComponent
-        //   }
-        //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
-        //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
-        //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
-        // />
-        showVR ? (
-          <></>
-        ) : (
-          // <VrRendering
-          //   id="vr-rendering"
+          //   id="ar-rendering"
           //   landscapeData={renderingServiceLandscapeData}
           //   switchToOnScreenMode={switchToOnScreenMode}
-          //   debugMode={visualizationSettings?.showVrOnClick.value ?? false}
+          //   toggleVisualizationUpdating={
+          //     renderingServiceToggleVisualizationUpdating
+          //   }
+          //   visualizationPaused={renderingServiceVisualizationPaused}
+          //   openedSettingComponent={
+          //     sidebarHandler.openedSettingComponent
+          //   }
+          //   toggleSettingsSidebarComponent={
+          //     sidebarHandler.toggleSettingsSidebarComponent
+          //   }
+          //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
+          //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
+          //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
           // />
-          <BrowserRendering
-            // addComponent={addComponent}
-            // applicationArgs={applicationArgs}
-            // closeDataSelection={closeDataSelection}
-            components={components}
-            componentsToolsSidebar={componentsToolsSidebar}
-            id="browser-rendering"
-            isDisplayed={allLandscapeDataExistsAndNotEmpty}
-            landscapeData={renderingServiceLandscapeData}
-            landscapeToken={landscapeTokenServiceToken}
-            // pauseVisualizationUpdating={pauseVisualizationUpdating}
-            removeTimestampListener={removeTimestampListener}
-            // restructureLandscape={restructureLandscape}
-            snapshot={snapshotSelected}
-            snapshotReload={snapshotToken}
-            switchToAR={switchToAR}
-            triggerRenderingForGivenLandscapeData={
-              renderingServiceTriggerRenderingForGivenLandscapeData
-            }
-            toggleVisualizationUpdating={
-              renderingServiceToggleVisualizationUpdating
-            }
-            // updateLandscape={updateLandscape}
-            userApiTokens={userApiTokens}
-            visualizationPaused={visualizationPaused}
-          />
-        )}
+          showVR ? (
+            <VrRendering
+              id="vr-rendering"
+              landscapeData={renderingServiceLandscapeData!}
+              switchToOnScreenMode={switchToOnScreenMode}
+              debugMode={visualizationSettings?.showVrOnClick.value ?? false}
+            />
+          ) : (
+            <BrowserRendering
+              // addComponent={addComponent}
+              // applicationArgs={applicationArgs}
+              // closeDataSelection={closeDataSelection}
+              components={components}
+              componentsToolsSidebar={componentsToolsSidebar}
+              id="browser-rendering"
+              isDisplayed={allLandscapeDataExistsAndNotEmpty}
+              landscapeData={renderingServiceLandscapeData}
+              landscapeToken={landscapeTokenServiceToken}
+              // pauseVisualizationUpdating={pauseVisualizationUpdating}
+              removeTimestampListener={removeTimestampListener}
+              // restructureLandscape={restructureLandscape}
+              snapshot={snapshotSelected}
+              snapshotReload={snapshotToken}
+              switchToAR={switchToAR}
+              triggerRenderingForGivenLandscapeData={
+                renderingServiceTriggerRenderingForGivenLandscapeData
+              }
+              toggleVisualizationUpdating={
+                renderingServiceToggleVisualizationUpdating
+              }
+              // updateLandscape={updateLandscape}
+              userApiTokens={userApiTokens}
+              visualizationPaused={visualizationPaused}
+            />
+          )}
       </div>
 
       {/* ! Bottom Bar */}
@@ -813,7 +824,6 @@ export default function Visualization() {
               <button
                 className="bottom-bar-vr-button"
                 type="button"
-                // {{did-insert this.updateVrStatus}}
                 onClick={switchToVR}
               >
                 {vrButtonText}

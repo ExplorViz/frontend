@@ -16,11 +16,12 @@ export default function VrButton(args: VrButtonArgs) {
 
   const updateVrStatus = async () => {
     if ('xr' in navigator) {
+      const isVrSupported = await navigator.xr?.isSessionSupported('immersive-vr') || false
       setVrSupported(
-        (await navigator.xr?.isSessionSupported('immersive-vr')) || false
+        isVrSupported
       );
 
-      if (vrSupported) {
+      if (isVrSupported) {
         setButtonText('Enter VR');
       } else if (!window.isSecureContext) {
         setButtonText('WEBXR NEEDS HTTPS');
@@ -32,7 +33,7 @@ export default function VrButton(args: VrButtonArgs) {
     }
 
     if (!args.debugMode && firstCall) {
-      setFirstCall(false);
+      firstCall.current = false;
       onClick();
     }
   };
@@ -47,7 +48,7 @@ export default function VrButton(args: VrButtonArgs) {
   const onSessionStarted = (session: any) => {
     args.renderer.xr.setSession(session);
     setButtonText('EXIT VR');
-    setCurrentSession(session);
+    currentSession.current = session;
 
     if (args.onSessionStartedCallback) {
       args.onSessionStartedCallback(session);
@@ -62,20 +63,20 @@ export default function VrButton(args: VrButtonArgs) {
   const onSessionEnded = () => {
     if (!currentSession) return;
 
-    setCurrentSession(null);
+    currentSession.current = null;
     setButtonText('Enter VR');
 
     if (args.onSessionEndedCallback) {
       args.onSessionEndedCallback();
     }
-    setFirstCall(true);
+    firstCall.current = true;
   };
 
   const onClick = async () => {
     updateVrStatus();
     if (!vrSupported) return;
 
-    if (!currentSession) {
+    if (!currentSession.current) {
       const sessionInit = { optionalFeatures: ['local-floor'] };
       try {
         const session = await navigator.xr?.requestSession(
