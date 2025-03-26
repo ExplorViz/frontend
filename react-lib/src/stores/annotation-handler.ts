@@ -266,7 +266,13 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         !annotation.shared ||
         !useCollaborationSessionStore.getState().isOnline()
       ) {
-        annotation.inEdit = true;
+        set({
+          annotationData: get().annotationData.map((ad) =>
+            ad.annotationId === annotationId
+              ? { ...annotation, inEdit: true }
+              : ad
+          ),
+        });
         return;
       }
 
@@ -295,7 +301,14 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
                   return false;
                 }
 
-                annotation.inEdit = true;
+                set({
+                  annotationData: get().annotationData.map((ad) =>
+                    ad.annotationId === annotationId
+                      ? { ...annotation, inEdit: true }
+                      : ad
+                  ),
+                });
+
                 return true;
               },
               onOffline: () => {
