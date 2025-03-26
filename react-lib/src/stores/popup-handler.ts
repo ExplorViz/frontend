@@ -70,11 +70,11 @@ interface PopupHandlerState {
     wasMoved?: boolean;
     pinned?: boolean;
     menuId?: string | null;
-    sharedBy?: string;
+    sharedBy?: string | null;
     hovered?: boolean;
   }) => void;
   _removePopupAfterTimeout: (popup: PopupData) => void;
-  updateExistingPopup: (popup: PopupData, newPopup: PopupData) => void;
+  _updateExistingPopup: (popup: PopupData, newPopup: PopupData) => void;
   /**
    * React on detached menu (popup in VR) update and show a regular HTML popup.
    */
@@ -276,7 +276,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       (pd) => pd.entity.id === newPopup.entity.id
     );
     if (maybePopup) {
-      get().updateExistingPopup(maybePopup, newPopup);
+      get()._updateExistingPopup(maybePopup, newPopup);
       return;
     }
 
@@ -339,7 +339,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }, getStoredSettings().hidePopupDelay.value * 1000);
   },
 
-  updateExistingPopup: (popup: PopupData, newPopup: PopupData) => {
+  _updateExistingPopup: (popup: PopupData, newPopup: PopupData) => {
     if (get().deactivated) return;
     set({
       popupData: get().popupData.map((pd) => {
