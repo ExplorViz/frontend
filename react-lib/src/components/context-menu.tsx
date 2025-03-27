@@ -42,6 +42,10 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
     mouseMoved.current = true;
   };
 
+  const onContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+  };
+
   useEffect(() => {
     document.addEventListener('click', hide);
     document.addEventListener('mousemove', onMouseMove);
@@ -52,7 +56,11 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
   });
 
   return (
-    <div onMouseUp={reveal} onMouseDown={onMouseDown}>
+    <div
+      onMouseUp={reveal}
+      onMouseDown={onMouseDown}
+      onContextMenu={onContextMenu}
+    >
       {visible && position && (
         <ul
           className="bg-white shadow border rounded-md w-40"
