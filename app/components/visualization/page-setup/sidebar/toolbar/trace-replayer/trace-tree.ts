@@ -6,6 +6,7 @@ import ApplicationRenderer from 'explorviz-frontend/services/application-rendere
 export class TraceNode {
   readonly id: string;
   readonly clazz: Class;
+  readonly name: string;
   readonly mesh: BaseMesh;
   start: number;
   end: number;
@@ -18,12 +19,14 @@ export class TraceNode {
   constructor(
     id: string,
     clazz: Class,
+    name: string,
     mesh: BaseMesh,
     start: number,
     end: number
   ) {
     this.id = id;
     this.clazz = clazz;
+    this.name = name;
     this.mesh = mesh;
     this.start = start;
     this.end = end;
@@ -50,7 +53,7 @@ export class TraceNode {
     const start = this.start;
     const end = this.end;
     return {
-      name: this.id,
+      name: this.name,
       cat: 'PERF',
       ph: 'X',
       pid: pid,
@@ -122,10 +125,14 @@ export class TraceTreeBuilder {
     const clazz = this.classMap.get(span.methodHash);
     if (clazz) {
       const mesh = this.applicationRenderer.getMeshById(clazz.id);
+      const name = clazz.methods.find(
+        (method) => method.methodHash === span.methodHash
+      )!.name;
       if (mesh) {
         return new TraceNode(
           span.spanId,
           clazz,
+          name,
           mesh,
           span.startTime,
           span.endTime

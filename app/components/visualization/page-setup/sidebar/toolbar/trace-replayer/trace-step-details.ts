@@ -3,7 +3,7 @@ import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 
-type TimeUnit = 'ns' | 'ms' | 's';
+type TimeUnit = 'ns' | 'us' | 'ms' | 's';
 
 interface Args {
   readonly operationName: string;
@@ -13,25 +13,25 @@ interface Args {
   readonly targetApplicationName: string;
   readonly spanStartTime: number;
   readonly spanEndTime: number;
+  readonly start: number;
+  readonly end: number;
+  readonly duration: number;
 }
 
 export default class TraceStepDetails extends Component<Args> {
   @tracked
-  timeUnit: TimeUnit = 'ns';
-
-  get spanDuration() {
-    const { spanStartTime, spanEndTime } = this.args;
-    return spanEndTime - spanStartTime;
-  }
+  unit: TimeUnit = 'ns';
 
   @action
-  toggleSpanDurationTimeUnit() {
-    if (this.timeUnit === 'ns') {
-      this.timeUnit = 'ms';
-    } else if (this.timeUnit === 'ms') {
-      this.timeUnit = 's';
-    } else if (this.timeUnit === 's') {
-      this.timeUnit = 'ns';
+  toggleUnit() {
+    if (this.unit === 'ns') {
+      this.unit = 'us';
+    } else if (this.unit === 'us') {
+      this.unit = 'ms';
+    } else if (this.unit === 'ms') {
+      this.unit = 's';
+    } else if (this.unit === 's') {
+      this.unit = 'ns';
     }
   }
 }

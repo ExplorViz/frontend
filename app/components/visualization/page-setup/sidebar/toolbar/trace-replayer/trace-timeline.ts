@@ -5,7 +5,11 @@ import { TraceNode } from 'explorviz-frontend/components/visualization/page-setu
 
 interface Args {
   timeline: TraceNode[];
+  select: boolean;
+  cursor: boolean;
   observer: ((cursor: number) => void)[];
+
+  selection(start: number, end: number): void;
 
   callback(cursor: number): void;
 }
@@ -33,12 +37,10 @@ export default class PlotlyTimeline extends Component<Args> {
     const end: number[] = [];
     const text: string[] = [];
 
-    console.log(this.args.timeline);
-
     this.args.timeline.forEach((node: TraceNode) => {
-      start.push(node.start + node.startDelay);
-      end.push(node.end + node.endDelay);
-      text.push(node.id);
+      start.push(node.start);
+      end.push(node.end);
+      text.push(node.name);
     });
 
     this.data = [
@@ -75,7 +77,8 @@ export default class PlotlyTimeline extends Component<Args> {
     const max = Math.max(...end);
 
     this.layout = {
-      dragmode: 'pan',
+      dragmode: this.args.select ? 'select' : 'pan',
+      selectdirection: 'h',
       showlegend: false,
       hovermode: 'closest',
       margin: {
@@ -86,7 +89,7 @@ export default class PlotlyTimeline extends Component<Args> {
         l: 20,
       },
       xaxis: {
-        title: 'ms',
+        title: 'ns',
         range: [-1, max + 1],
         fixedrange: true,
         showline: false,
@@ -124,35 +127,49 @@ export default class PlotlyTimeline extends Component<Args> {
             width: 1,
           },
         },
-        {
-          type: 'line',
-          x0: 0,
-          y0: -1,
-          x1: 0,
-          y1: 1,
-          line: {
-            color: '#d62728',
-            width: 3,
-          },
-        },
       ],
     };
+
+    if (this.args.cursor) {
+      this.layout['shapes'].push({
+        type: 'line',
+        x0: 0,
+        y0: -1,
+        x1: 0,
+        y1: 1,
+        line: {
+          color: '#d62728',
+          width: 3,
+        },
+      });
+    }
 
     Plotly.newPlot(this.div, this.data, this.layout, this.options);
 
     this.div.on('plotly_click', (data: any) => {
-      const cursor = data.points[0].pointNumber;
-      this.args.observer.forEach((observer) => {
-        observer(cursor);
-      });
-      this.args.callback(cursor);
+      if (data !== undefined && this.args.cursor) {
+        const cursor = data.points[0].x;
+        this.args.observer.forEach((observer) => {
+          observer(cursor);
+        });
+        this.args.callback(cursor);
+      }
+    });
+
+    this.div.on('plotly_selected', (data: any) => {
+      if (data !== undefined && this.args.select) {
+        const points = data.points.map((point: any) => point.x);
+        this.args.selection(Math.min(...points), Math.max(...points));
+      }
     });
 
     this.args.observer.push((cursor: number) => {
-      this.layout['shapes'][2]['x0'] = Math.max(Math.min(cursor, max), 0);
-      this.layout['shapes'][2]['x1'] = Math.max(Math.min(cursor, max), 0);
+      if (this.args.cursor) {
+        this.layout['shapes'][2]['x0'] = Math.max(Math.min(cursor, max), 0);
+        this.layout['shapes'][2]['x1'] = Math.max(Math.min(cursor, max), 0);
 
-      Plotly.redraw(this.div);
+        Plotly.redraw(this.div);
+      }
     });
   }
 }

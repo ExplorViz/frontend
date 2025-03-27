@@ -7,9 +7,9 @@ interface Args {
 }
 
 export default class TraceSpeed extends Component<Args> {
-  readonly min = 1;
+  readonly min = 0.1;
   readonly max = 20;
-  readonly step = 1;
+  readonly step = 0.1;
 
   @action
   input(_: any, htmlInputElement: any) {
@@ -25,7 +25,7 @@ export default class TraceSpeed extends Component<Args> {
   }
 
   @tracked
-  speed: number = 1;
+  speed: number = 5;
 
   get value() {
     return this.speed;

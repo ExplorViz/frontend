@@ -20,7 +20,7 @@ import {
   sortTracesByRequestCount,
 } from 'explorviz-frontend/utils/trace-helpers';
 
-export type TimeUnit = 'ns' | 'ms' | 's';
+export type TimeUnit = 'ns' | 'us' | 'ms' | 's';
 
 interface Args {
   moveCameraTo(emberModel: Class | Span): void;
@@ -212,6 +212,8 @@ export default class TraceSelection extends Component<Args> {
     const timeUnit = this.traceTimeUnit;
 
     if (timeUnit === 'ns') {
+      this.traceTimeUnit = 'us';
+    } else if (timeUnit === 'us') {
       this.traceTimeUnit = 'ms';
     } else if (timeUnit === 'ms') {
       this.traceTimeUnit = 's';

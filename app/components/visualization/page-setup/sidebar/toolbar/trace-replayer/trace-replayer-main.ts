@@ -13,7 +13,10 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
-import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
+import {
+  getApplicationFromClass,
+  getHashCodeToClassMap,
+} from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
@@ -26,13 +29,11 @@ import {
   TraceTreeBuilder,
   TraceTreeVisitor,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
-import Details, {
+import {
   AnimationEntity,
-  ColorSpace,
-  Geometry,
+  GeometryFactory,
   HueSpace,
   Partition,
-  Sphere,
   Tab,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
 
@@ -61,10 +62,11 @@ export default class TraceReplayerMain extends Component<Args> {
 
   private classMap: Map<string, Class>;
 
-  private tree: TraceTree;
+  private readonly tree: TraceTree;
 
-  private scene;
+  private scene: THREE.Scene;
 
+  @tracked
   timeline: TraceNode[];
 
   trace: Span[];
@@ -75,17 +77,36 @@ export default class TraceReplayerMain extends Component<Args> {
   ready: boolean = false;
 
   callbackReady = () => {
+    const timeline: TraceNode[] = [];
+
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+      timeline.push(node);
+      if (node.end - node.start < 1) {
+        this.ready = false;
+      }
+    });
+    this.tree.accept(visitor);
+
+    if (timeline.length > 100) {
+      this.ready = false;
+    }
+
+    this.cursor = 0;
+
+    this.timeline = timeline;
     this.ready = true;
   };
 
-  geometry: Geometry;
+  geometry: GeometryFactory;
 
   constructor(owner: any, args: Args) {
     super(owner, args);
+    this.isCommRendered = this.configuration.isCommRendered;
+
     const selectedTrace = this.args.selectedTrace;
     this.trace = getSortedTraceSpans(selectedTrace);
 
-    this.geometry = new Geometry(this.renderer);
+    this.geometry = new GeometryFactory(this.renderer);
 
     if (this.trace.length > 0) {
       const [firstStep] = this.trace;
@@ -113,7 +134,15 @@ export default class TraceReplayerMain extends Component<Args> {
 
     this.cursor = 0;
 
-    console.log(this.timeline);
+    // if (
+    //   this.args.selectedTrace &&
+    //   this.args.selectedTrace.spanList.length > 0
+    // ) {
+    //   this.args.highlightTrace(
+    //     this.args.selectedTrace,
+    //     this.args.selectedTrace.spanList[0].spanId
+    //   );
+    // }
   }
 
   @tracked
@@ -130,60 +159,35 @@ export default class TraceReplayerMain extends Component<Args> {
   tabs: Tab[] = [];
 
   @tracked
-  tab: Tab;
-
-  @tracked
   paused: boolean = true;
 
   @tracked
   stopped: boolean = true;
 
-  // @action
-  // next() {
-  //   if (this.paused) {
-  //     this.entities.forEach((animation: AnimationEntity) => {
-  //       if (!animation.callee.isLeaf) {
-  //         animation.caller = animation.callee;
-  //         animation.callee = animation.caller.children[0];
-  //
-  //         animation.path = this.path(
-  //           animation.caller,
-  //           animation.callee,
-  //           animation.height.value
-  //         );
-  //         animation.mesh.move(animation.path.getPoint(0));
-  //         animation.mesh.show();
-  //       }
-  //     });
-  //   }
-  // }
-  //
-  // @action
-  // previous() {
-  //   if (this.paused) {
-  //     this.entities.forEach((animation: AnimationEntity) => {
-  //       if (!animation.caller.isRoot) {
-  //         animation.callee = animation.caller;
-  //         animation.caller = animation.callee.parents[0];
-  //
-  //         animation.path = this.path(
-  //           animation.caller,
-  //           animation.callee,
-  //           animation.height.value
-  //         );
-  //         animation.mesh.move(animation.path.getPoint(0));
-  //         animation.mesh.show();
-  //       }
-  //     });
-  //   }
-  // }
+  opacity: number = 0.3;
 
-  turnComponentAndAncestorsTransparent(component: Package, opacity: number) {
-    if (component) {
+  private turnTransparent(opacity: number = this.opacity) {
+    this.classMap.forEach((clazz) => {
+      const mesh = this.renderer.getMeshById(clazz.id);
+      if (mesh instanceof BaseMesh) {
+        mesh.turnTransparent(opacity);
+        mesh.unhighlight();
+        this.turnAncestorsTransparent(clazz.parent, opacity);
+      }
+    });
+  }
+
+  private turnAncestorsTransparent(
+    component: Package,
+    opacity: number,
+    step: number = 0
+  ) {
+    if (component && opacity >= this.opacity) {
       const mesh = this.renderer.getMeshById(component.id);
       if (mesh instanceof BaseMesh) {
         mesh.turnTransparent(opacity);
-        this.turnComponentAndAncestorsTransparent(component.parent, opacity);
+        mesh.unhighlight();
+        this.turnAncestorsTransparent(component.parent, opacity - step, step);
       }
     }
   }
@@ -191,14 +195,32 @@ export default class TraceReplayerMain extends Component<Args> {
   @tracked
   cursor: number;
 
+  callbackSelection = () => {};
+
   callbackCursor = (cursor: number) => {
+    const paused = this.paused;
+    this.stop();
     this.cursor = cursor;
+    this.start();
+    this.tick(0);
+    if (paused) {
+      this.pause();
+    }
   };
 
   observer: ((cursor: number) => void)[] = [];
 
+  @tracked
+  remove = true;
+
+  toggleAfterimage = (): void => {
+    this.remove = !this.remove;
+  };
+
   tick(delta: number) {
     if (!this.stopped && !this.paused) {
+      this.turnTransparent();
+
       this.cursor += delta * this.speed;
 
       this.observer.forEach((notify) => {
@@ -209,56 +231,25 @@ export default class TraceReplayerMain extends Component<Args> {
         this.entities.forEach((entity: AnimationEntity, id: string) => {
           // move entity
           {
-            const start = entity.caller.start;
-            const end = start;
-
-            console.log(`${start} -> ${end}`);
-
+            const start = entity.callee.start;
+            const end = entity.callee.children.reduce(
+              (end, node) => Math.min(node.start, end),
+              entity.callee.end
+            );
             const progress = (this.cursor - start) / (end - start);
 
             if (0.0 <= progress && progress <= 1.0) {
-              entity.mesh.move(entity.path.getPoint(progress));
-
-              const shape = new THREE.Shape().ellipse(
-                0.0,
-                0.0,
-                0.02,
-                0.02,
-                0.0,
-                2.0 * Math.PI
-              );
-
-              if (progress > 0.2) {
-                const spline = new THREE.QuadraticBezierCurve3(
-                  entity.path.getPoint(progress - 0.2),
-                  entity.path.getPoint(progress - 0.1),
-                  entity.path.getPoint(progress)
-                );
-                const geometry = new THREE.ExtrudeGeometry(shape, {
-                  steps: 12,
-                  extrudePath: spline,
-                });
-                entity.trail.geometry.copy(geometry);
-              } else {
-                const spline = new THREE.QuadraticBezierCurve3(
-                  entity.path.getPoint(0),
-                  entity.path.getPoint(progress / 2),
-                  entity.path.getPoint(progress)
-                );
-                const geometry = new THREE.ExtrudeGeometry(shape, {
-                  steps: 12,
-                  extrudePath: spline,
-                });
-                entity.trail.geometry.copy(geometry);
-
-                entity.prune(3).forEach((mesh) => this.scene.remove(mesh));
-              }
+              entity.move(progress);
+            } else {
+              entity.afterimage();
             }
           }
 
           // spawn children
-          const colors = entity.color.partition(entity.callee.children.length);
-          const heights = entity.height.partition(
+          const colors = entity.colorSpace.partition(
+            entity.callee.children.length
+          );
+          const heights = entity.heightSpace.partition(
             entity.callee.children.length
           );
           entity.callee.children.forEach((node, idx: number) => {
@@ -267,33 +258,63 @@ export default class TraceReplayerMain extends Component<Args> {
               node.end >= this.cursor &&
               !this.entities.has(node.id)
             ) {
-              this.spawnEntity(entity.callee, node, heights[idx], colors[idx]);
-              console.log(this.cursor);
-              console.log(this.entities);
+              const spawn = new AnimationEntity(
+                this.scene,
+                this.geometry,
+                entity.callee,
+                node,
+                heights[idx],
+                colors[idx]
+              );
+              const origin = getApplicationFromClass(
+                this.args.structureData,
+                entity.callee.clazz
+              );
+              const target = getApplicationFromClass(
+                this.args.structureData,
+                node.clazz
+              );
+
+              this.entities.set(node.id, spawn);
+
+              this.tabs.forEach((tab) => {
+                tab.active = false;
+              });
+              const tab = new Tab(
+                entity.callee,
+                node,
+                origin,
+                target,
+                spawn.colorSpace.color,
+                () => {
+                  this.tabs.forEach((tab) => {
+                    tab.active = false;
+                  });
+                }
+              );
+              tab.active = true;
+              this.tabs = [...this.tabs, tab];
             }
           });
 
+          // destroy entity
+          if (this.remove && entity.callee.end <= this.cursor) {
+            entity.destroy();
+            this.entities.delete(id);
+
+            this.tabs = this.tabs.filter((tab) => entity.callee.id !== tab.id);
+            if (this.tabs.length > 0) {
+              this.tabs.at(-1)!.active = true;
+            }
+          }
+
           entity.caller.mesh.highlight();
           entity.caller.mesh.turnOpaque();
-          this.turnComponentAndAncestorsTransparent(
-            entity.caller.clazz.parent,
-            1
-          );
+          this.turnAncestorsTransparent(entity.caller.clazz.parent, 1, 0.1);
 
           entity.callee.mesh.highlight();
           entity.callee.mesh.turnOpaque();
-          this.turnComponentAndAncestorsTransparent(
-            entity.callee.clazz.parent,
-            1
-          );
-
-          // delete entity if lifetime exceeded
-          if (
-            entity.caller.end < this.cursor &&
-            this.entities.has(entity.callee.id)
-          ) {
-            this.entities.delete(id);
-          }
+          this.turnAncestorsTransparent(entity.callee.clazz.parent, 1, 0.1);
         });
       } else {
         this.stop();
@@ -302,62 +323,6 @@ export default class TraceReplayerMain extends Component<Args> {
   }
 
   private isCommRendered = false;
-
-  private spawnEntity(
-    origin: TraceNode,
-    target: TraceNode,
-    height: Partition,
-    color: ColorSpace
-  ) {
-    const path = this.geometry.path(origin, target, height.value);
-
-    const material = new THREE.LineBasicMaterial({
-      color: color.color,
-    });
-    const trail = new THREE.Mesh(
-      this.geometry.trail(path.start, path.end, 0.015, height.value),
-      material
-    );
-    this.scene.add(trail);
-
-    const line = new THREE.Mesh(
-      this.geometry.trail(path.start, path.end, 0.005, height.value),
-      material
-    );
-    this.scene.add(line);
-
-    const blob = new Sphere(0.02, color.color);
-    blob.hide();
-    this.scene.add(blob);
-
-    const tab = new Tab(
-      '0',
-      () => {
-        this.tabs.forEach((tab) => {
-          tab.active = false;
-        });
-        console.log('1');
-      },
-      color.color,
-      new Details('foo', origin.clazz, target.clazz, undefined, undefined, 0, 1)
-    );
-    this.entities.set(
-      target.id,
-      new AnimationEntity(
-        origin,
-        target,
-        path,
-        blob,
-        [line],
-        trail,
-        [tab],
-        height,
-        color
-      )
-    );
-    this.tabs = [...this.tabs, tab];
-    this.tabs[0].active = true;
-  }
 
   @action
   start() {
@@ -370,27 +335,57 @@ export default class TraceReplayerMain extends Component<Args> {
       this.renderer.openAllComponentsOfAllApplications();
       this.renderer.removeCommunicationForAllApplications();
 
-      this.classMap.forEach((clazz) => {
-        const mesh = this.renderer.getMeshById(clazz.id);
-        mesh?.turnTransparent();
-        this.turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
-      });
-
       // find alive entities
       const nodes: TraceNode[] = this.timeline.filter((node) => {
         return node.start <= this.cursor && node.end >= this.cursor;
       });
-
-      console.log(nodes);
+      nodes.sort((a: TraceNode, b: TraceNode): number => {
+        return a.start === b.start
+          ? a.end === b.end
+            ? a.id < b.id
+              ? -1
+              : 1
+            : a.end - b.end
+          : a.start - b.start;
+      });
 
       // spawn initial set of entities
       const colors = HueSpace.default.partition(nodes.length);
       const heights = new Partition(0.5, 1.5).partition(nodes.length);
-      nodes.forEach((origin: TraceNode, idx: number): void => {
-        this.spawnEntity(origin, origin, heights[idx], colors[idx]);
-      });
+      nodes.forEach((caller: TraceNode, idx: number): void => {
+        const spawn = new AnimationEntity(
+          this.scene,
+          this.geometry,
+          caller,
+          caller,
+          heights[idx],
+          colors[idx]
+        );
+        const origin = getApplicationFromClass(
+          this.args.structureData,
+          caller.clazz
+        );
 
-      console.log(this.entities);
+        this.entities.set(caller.id, spawn);
+
+        this.tabs.forEach((tab) => {
+          tab.active = false;
+        });
+        const tab = new Tab(
+          caller,
+          caller,
+          origin,
+          origin,
+          spawn.colorSpace.color,
+          () => {
+            this.tabs.forEach((tab) => {
+              tab.active = false;
+            });
+          }
+        );
+        tab.active = true;
+        this.tabs = [...this.tabs, tab];
+      });
     }
     this.paused = false;
   }
@@ -411,34 +406,27 @@ export default class TraceReplayerMain extends Component<Args> {
       this.renderer.addCommunicationForAllApplications();
     }
 
-    this.classMap.forEach((clazz) => {
-      const mesh = this.renderer.getMeshById(clazz.id);
-      mesh?.turnOpaque();
-      this.turnComponentAndAncestorsTransparent(clazz.parent, 1);
-    });
+    this.turnTransparent(1);
 
-    this.entities.forEach((animation) => {
-      animation.caller.mesh.unhighlight();
-      animation.callee.mesh.unhighlight();
-
-      this.scene.remove(animation.mesh);
-      this.scene.remove(animation.trail);
-      animation.line.forEach((line) => {
-        this.scene.remove(line);
-      });
+    this.entities.forEach((entity) => {
+      entity.destroy();
     });
     this.entities.clear();
     this.tabs.clear();
+    this.cursor = 0;
+    this.observer.forEach((observer) => {
+      observer(this.cursor);
+    });
 
-    // if (
-    //   this.args.selectedTrace &&
-    //   this.args.selectedTrace.spanList.length > 0
-    // ) {
-    //   this.args.highlightTrace(
-    //     this.args.selectedTrace,
-    //     this.args.selectedTrace.spanList[0].spanId
-    //   );
-    // }
+    if (
+      this.args.selectedTrace &&
+      this.args.selectedTrace.spanList.length > 0
+    ) {
+      this.args.highlightTrace(
+        this.args.selectedTrace,
+        this.args.selectedTrace.spanList[0].spanId
+      );
+    }
   }
 
   willDestroy() {

@@ -4,17 +4,8 @@
 
 {{#if this.ready}}
   <div align='center' class='mb-3'>
-    <BsButton
-      class='th-btn'
-      title='Previous'
-      @onClick={{this.previous}}
-      @type='button'
-    >
-      {{svg-jar 'chevron-left-16' class='octicon align-middle'}}
-    </BsButton>
-
     <BsButton class='th-btn' title='Next' @onClick={{this.stop}} @type='button'>
-      {{svg-jar 'square-fill-16' class='octicon align-middle'}}
+      {{svg-jar 'square-fill-24' class='octicon align-middle'}}
     </BsButton>
 
     {{#if this.paused}}
@@ -24,7 +15,7 @@
         @onClick={{this.start}}
         @type='button'
       >
-        {{svg-jar 'play-16' class='octicon align-middle'}}
+        {{svg-jar 'play-24' class='octicon align-middle'}}
       </BsButton>
     {{else}}
       <BsButton
@@ -33,13 +24,18 @@
         @onClick={{this.pause}}
         @type='button'
       >
-        {{svg-jar 'x-circle-16' class='octicon align-middle'}}
+        {{svg-jar 'x-circle-24' class='octicon align-middle'}}
       </BsButton>
     {{/if}}
+  </div>
 
-    <BsButton class='th-btn' title='Next' @onClick={{this.next}} @type='button'>
-      {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
-    </BsButton>
+  <div class='mb-3'>
+    <input
+      type='checkbox'
+      checked={{this.remove}}
+      onclick={{this.toggleAfterimage}}
+    />
+    Remove Traces
   </div>
 
   <div class='mb-3'>
@@ -51,6 +47,9 @@
   <div class='mb-3'>
     <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
       @timeline={{this.timeline}}
+      @select={{false}}
+      @cursor={{true}}
+      @selection={{this.callbackSelection}}
       @observer={{this.observer}}
       @callback={{this.callbackCursor}}
     />
@@ -64,7 +63,7 @@
             class='nav-link active'
             title={{tab.label}}
             style={{tab.style}}
-            @onClick={{tab.callback}}
+            @onClick={{tab.enable}}
             @type='button'>
             {{tab.label}}
           </BsButton>
@@ -73,7 +72,7 @@
             class='nav-link'
             title={{tab.label}}
             style={{tab.style}}
-            @onClick={{tab.callback}}
+            @onClick={{tab.enable}}
             @type='button'>
             {{tab.label}}
           </BsButton>
@@ -82,30 +81,27 @@
     </ul>
   </div>
 
-  <!--<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation-->
-  <!--  @selectPreviousTraceStep={{this.previous}}-->
-  <!--  @selectNextTraceStep={{this.next}}-->
-  <!--  @currentTraceStepIndex={{this.index}}-->
-  <!--  @traceLength={{this.trace.length}}-->
-  <!--/>-->
+  {{#each this.tabs as |tab|}}
+    {{#if tab.active}}
+      <ul class="nav nav-tabs">
+        <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
+          @name={{tab.name}}
+          @caller={{tab.caller}}
+          @callee={{tab.callee}}
+          @origin={{tab.origin}}
+          @target={{tab.target}}
+          @start={{tab.start}}
+          @end={{tab.end}}
+          @duration={{tab.duration}}
+        />
+      </ul>
+    {{/if}}
+  {{/each}}
 
-  <!--<hr />-->
-  <div class='mb-3'>
-    <ul class="nav nav-tabs">
-      <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
-        @operationName={{this.tab.details.name}}
-        @sourceClass={{this.tab.details.origin}}
-        @targetClass={{this.tab.details.target}}
-        @sourceApplicationName=
-          @targetApplicationName=
-        @spanStartTime=
-          @spanEndTime=
-      />
-    </ul>
-  </div>
 {{else}}
   <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TracePreprocess
     @tree={{this.tree}}
+    @timeline={{this.timeline}}
     @callback={{this.callbackReady}}
   />
 {{/if}}

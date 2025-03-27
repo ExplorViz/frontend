@@ -9,8 +9,9 @@ import { action } from '@ember/object';
 
 interface Args {
   readonly tree: TraceTree;
+  readonly timeline: TraceNode[];
 
-  callback(ready: boolean): void;
+  callback(tree: TraceTree): void;
 }
 
 export default class Preprocess extends Component<Args> {
@@ -54,6 +55,8 @@ export default class Preprocess extends Component<Args> {
     if (this.delay > 0) {
       this.working = true;
 
+      this.pruneTree();
+
       const events: {}[] = [];
       let pid = 0;
       const visitor = new TraceTreeVisitor((node: TraceNode): void => {
@@ -62,39 +65,61 @@ export default class Preprocess extends Component<Args> {
 
       this.args.tree.accept(visitor);
 
-      this.calculateDelay(this.args.tree);
-      this.applyDelay(this.args.tree);
+      this.calculateDelay();
+      this.applyDelay();
 
       ++pid;
       this.args.tree.accept(visitor);
 
-      const traceEvents = {
+      console.log({
         traceEvents: events,
         displayTimeUnit: 'us',
         systemTraceEvents: 'SystemTraceData',
-      };
-
-      console.log(traceEvents);
+      });
 
       this.working = false;
     }
-    this.args.callback(true);
+
+    this.args.callback(this.args.tree);
   }
 
   @action
   ignore() {
-    this.args.callback(true);
+    this.args.callback(this.args.tree);
   }
 
-  private applyDelay(tree: TraceTree): void {
+  private applyDelay(): void {
     const visitor = new TraceTreeVisitor((node: TraceNode): void => {
       node.start += node.startDelay * this.delay;
       node.end += node.endDelay * this.delay;
     });
-    tree.accept(visitor);
+    this.args.tree.accept(visitor);
   }
 
-  private calculateDelay(tree: TraceTree): void {
+  start: number = -Infinity;
+  end: number = Infinity;
+
+  observer: ((cursor: number) => void)[] = [];
+
+  callbackSelection = (start: number, end: number) => {
+    if (!this.working) {
+      this.start = start;
+      this.end = end;
+    }
+  };
+
+  callbackCursor = (_: number) => {};
+
+  private pruneTree(): void {
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+      node.children = node.children.filter(
+        (node) => node.start >= this.start && node.end <= this.end
+      );
+    });
+    this.args.tree.accept(visitor);
+  }
+
+  private calculateDelay(): void {
     /**
      * Fix zero-length events.
      */
@@ -129,7 +154,11 @@ export default class Preprocess extends Component<Args> {
         return next;
       };
 
-      for (let head = iter(tree); head !== undefined; head = iter(head)) {
+      for (
+        let head = iter(this.args.tree);
+        head !== undefined;
+        head = iter(head)
+      ) {
         if (head.isLeaf) {
           leaves.push(head);
         } else {
@@ -195,14 +224,15 @@ export default class Preprocess extends Component<Args> {
         return frontier.shift();
       };
 
-      for (let head = iter(tree); head !== undefined; head = iter(head)) {
+      for (
+        let head = iter(this.args.tree);
+        head !== undefined;
+        head = iter(head)
+      ) {
         head.parents.forEach((parent: TraceNode): void => {
           parent.endDelay = Math.max(head!.endDelay + 1, parent.endDelay);
         });
       }
     }
-
-    tree.clean = true;
-    console.log(tree);
   }
 }

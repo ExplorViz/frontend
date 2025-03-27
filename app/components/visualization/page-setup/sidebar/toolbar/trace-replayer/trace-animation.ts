@@ -1,16 +1,17 @@
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import * as THREE from 'three';
+import { BufferGeometry } from 'three';
 import { TraceNode } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import { Curve } from 'three/src/extras/core/Curve';
 import { Vector3 } from 'three/src/math/Vector3';
 import { tracked } from '@glimmer/tracking';
 import { htmlSafe } from '@ember/template';
 import Ember from 'ember';
-import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { Application } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import SafeString = Ember.Handlebars.SafeString;
 
-const DEFAULT_OPACITY = 1;
+const STEPS: number = 128;
 
 export class Sphere extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
   constructor(
@@ -28,135 +29,51 @@ export class Sphere extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
   }
 }
 
-export class Bullet extends BaseMesh<THREE.BufferGeometry, THREE.Material> {
-  constructor(
-    radius: number,
-    path: Curve<Vector3>,
-    color: THREE.Color = new THREE.Color('red'),
-    opacity: number = 1
-  ) {
-    super(color, color, opacity);
-    this.highlight();
-    const shape = new THREE.Shape().ellipse(
-      0.0,
-      0.0,
-      radius,
-      radius,
-      0.0,
-      2.0 * Math.PI
-    );
-    this.geometry = new THREE.ExtrudeGeometry(shape, {
-      steps: 12,
-      extrudePath: path,
-    });
-  }
-}
-
-export class Spline extends BaseMesh<THREE.ExtrudeGeometry, THREE.Material> {
-  constructor(
-    radius: number,
-    path: Curve<Vector3>,
-    color: THREE.Color = new THREE.Color('red'),
-    opacity: number = 1
-  ) {
-    super(color, color, opacity);
-    this.highlight();
-    const shape = new THREE.Shape().ellipse(
-      0.0,
-      0.0,
-      radius,
-      radius,
-      0.0,
-      2.0 * Math.PI
-    );
-    this.geometry = new THREE.ExtrudeGeometry(shape, {
-      steps: 12,
-      extrudePath: path,
-    });
-  }
-}
-
-export default class Details {
-  @tracked
-  name: string;
-  @tracked
-  caller: Class | undefined;
-  @tracked
-  callee: Class | undefined;
-  @tracked
-  callerApp: string | undefined;
-  @tracked
-  calleeApp: string | undefined;
-  @tracked
-  start: number;
-  @tracked
-  end: number;
-
-  constructor(
-    name: string,
-    caller: Class | undefined,
-    callee: Class | undefined,
-    callerApp: string | undefined,
-    calleeApp: string | undefined,
-    start: number,
-    end: number
-  ) {
-    this.name = name;
-    this.caller = caller;
-    this.callee = callee;
-    this.callerApp = callerApp;
-    this.calleeApp = calleeApp;
-    this.start = start;
-    this.end = end;
-  }
-}
-
 export class Tab {
-  readonly label: string;
-  readonly callback: () => void;
   readonly style: SafeString;
 
   @tracked
-  __active: boolean;
+  active: boolean = false;
 
-  @tracked
-  __alive: boolean[];
+  id: string;
+  label: string;
+  name: string;
+  caller: string;
+  callee: string;
+  origin: string;
+  target: string;
+  start: number;
+  end: number;
+  duration: number;
 
-  @tracked
-  details: Details;
-
-  get active() {
-    return this.__active;
-  }
-
-  set active(value) {
-    this.__active = value;
-  }
-
-  get alive() {
-    return this.__alive[0];
-  }
-
-  set alive(value) {
-    this.__alive = [value];
-  }
+  callback: () => void;
 
   constructor(
-    label: string,
-    callback: () => void,
+    caller: TraceNode,
+    callee: TraceNode,
+    origin: Application | undefined,
+    target: Application | undefined,
     color: THREE.Color,
-    details: Details
+    callback: () => void
   ) {
-    this.label = label;
-    this.callback = () => {
-      callback();
-      this.active = true;
-    };
-    this.details = Details;
+    this.id = callee.id;
+    this.label = this.id.substring(0, 4);
+    this.name = callee.name;
+    this.caller = caller.clazz.name;
+    this.callee = callee.clazz.name;
+    this.origin = origin !== undefined ? origin.name : '';
+    this.target = target !== undefined ? target.name : '';
+    this.start = callee.start;
+    this.end = callee.end;
+    this.duration = this.end - this.start;
     this.style = htmlSafe(`color: ${color.offsetHSL(0, 0, -0.25).getStyle()}`);
-    this.__active = false;
-    this.__alive = [true];
+    this.callback = callback;
   }
+
+  enable = () => {
+    this.callback();
+    this.active = true;
+  };
 }
 
 export class Partition {
@@ -217,46 +134,6 @@ export class HueSpace extends Partition implements ColorSpace {
   }
 }
 
-export class Afterimage {
-  private mesh: BaseMesh;
-
-  private opacity: number = DEFAULT_OPACITY;
-
-  constructor(mesh: BaseMesh) {
-    this.mesh = mesh;
-    this.mesh.highlight();
-    this.mesh.turnTransparent(this.opacity);
-  }
-
-  delete() {
-    this.mesh.turnOpaque();
-    this.mesh.unhighlight();
-    this.opacity = -1;
-  }
-
-  tick(): void {
-    if (this.opacity >= 0.3) {
-      this.mesh.show();
-      this.mesh.highlight();
-      this.mesh.turnTransparent(this.opacity);
-    } else {
-      this.mesh.hide();
-      this.mesh.unhighlight();
-    }
-    this.opacity -= 0.01;
-  }
-
-  alive(): boolean {
-    return this.opacity > 0;
-  }
-
-  reset() {
-    this.opacity = DEFAULT_OPACITY;
-    this.mesh.highlight();
-    this.mesh.turnTransparent(this.opacity);
-  }
-}
-
 export class Arc extends THREE.Curve<Vector3> {
   start: Vector3;
   middle: Vector3;
@@ -286,52 +163,80 @@ export class AnimationEntity {
   caller: TraceNode;
   callee: TraceNode;
   path: Curve<Vector3>;
-  mesh: Sphere;
-  line: THREE.Mesh[];
+  cursor: Sphere;
+  line: THREE.Mesh;
   trail: THREE.Mesh;
-  tab: Tab;
-  height: Partition;
-  color: ColorSpace;
+  heightSpace: Partition;
+  colorSpace: ColorSpace;
   alive: boolean;
+  scene: THREE.Scene;
+  private geometry: GeometryFactory;
 
   constructor(
-    caller: TraceNode,
-    callee: TraceNode,
-    path: Curve<Vector3>,
-    mesh: Sphere,
-    line: THREE.Mesh[],
-    trail: THREE.Mesh,
-    tab: [Tab],
+    scene: THREE.Scene,
+    geometry: GeometryFactory,
+    origin: TraceNode,
+    target: TraceNode,
     height: Partition,
     color: ColorSpace = HueSpace.default
   ) {
-    this.caller = caller;
-    this.callee = callee;
+    this.scene = scene;
+    this.geometry = geometry;
+
+    const path = geometry.path(origin, target, height.value);
+
+    const material = new THREE.LineBasicMaterial({
+      color: color.color,
+    });
+
+    const line = new THREE.Mesh(
+      geometry.line(path.start, path.end, 0.005, height.value),
+      material
+    );
+    scene.add(line);
+
+    const trail = new THREE.Mesh(
+      geometry.line(path.start, path.start, 0.01, 0),
+      material
+    );
+    scene.add(trail);
+
+    const cursor = new Sphere(0.05, color.color);
+    scene.add(cursor);
+
+    this.caller = origin;
+    this.callee = target;
     this.path = path;
-    this.mesh = mesh;
+    this.cursor = cursor;
     this.line = line;
     this.trail = trail;
-    this.tab = tab[0];
-    this.height = height;
-    this.color = color;
+    this.heightSpace = height;
+    this.colorSpace = color;
     this.alive = true;
   }
 
-  prune(n: number): THREE.Mesh[] {
-    if (this.line.length > n) {
-      const slice = this.line.slice(0, n);
-      this.line = this.line.slice(n);
-      return slice;
-    }
-    return [];
+  move(progress: number) {
+    this.cursor.move(this.path.getPoint(progress));
+    this.trail.geometry.copy(this.geometry.trail(this.path, progress));
+  }
+
+  afterimage() {
+    this.scene.remove(this.cursor);
+    this.scene.remove(this.trail);
+  }
+
+  destroy() {
+    this.scene.remove(this.cursor);
+    this.scene.remove(this.trail);
+    this.scene.remove(this.line);
   }
 }
 
-export class Geometry {
+export class GeometryFactory {
   renderer: ApplicationRenderer;
 
-  constructor(applicationRenderer: ApplicationRenderer) {
-    this.renderer = applicationRenderer;
+  constructor(renderer: ApplicationRenderer) {
+    this.renderer = renderer;
   }
 
   path(origin: TraceNode, target: TraceNode, height: number) {
@@ -349,7 +254,36 @@ export class Geometry {
     return new Arc(start, end, height);
   }
 
-  trail(start: Vector3, end: Vector3, radius: number, height: number) {
+  trail(path: Curve<Vector3>, progress: number) {
+    const shape = new THREE.Shape().ellipse(
+      0.0,
+      0.0,
+      0.02,
+      0.02,
+      0.0,
+      2.0 * Math.PI
+    );
+
+    const spline = new THREE.CurvePath<Vector3>();
+
+    for (let i = 0; i <= progress - 1.0 / STEPS; i += 1.0 / STEPS) {
+      const segment = new THREE.LineCurve3(
+        path.getPoint(i),
+        path.getPoint(i + 1.0 / STEPS)
+      );
+      spline.add(segment);
+    }
+
+    if (spline.getLength() > 0) {
+      return new THREE.ExtrudeGeometry(shape, {
+        steps: STEPS,
+        extrudePath: spline,
+      });
+    }
+    return new BufferGeometry();
+  }
+
+  line(start: Vector3, end: Vector3, radius: number, height: number) {
     const shape = new THREE.Shape().ellipse(
       0.0,
       0.0,
@@ -362,7 +296,7 @@ export class Geometry {
     const spline = new Arc(start, end, height);
 
     return new THREE.ExtrudeGeometry(shape, {
-      steps: 16,
+      steps: STEPS,
       extrudePath: spline,
     });
   }
