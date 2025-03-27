@@ -7,13 +7,13 @@ import Ember from 'ember';
 import observer = Ember.observer;
 import { layouts } from 'chart.js';
 
-interface IArgs {
+interface Args {
   timeline: TraceNode[];
   observer: ((cursor: number) => void)[];
   callback: ((cursor: number) => void)[];
 }
 
-export default class PlotlyTimeline extends Component<IArgs> {
+export default class PlotlyTimeline extends Component<Args> {
   private div: any;
 
   get options() {

@@ -36,8 +36,6 @@ import Details, {
   Sphere,
   Tab,
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
-import Ember from 'ember';
-import observer = Ember.observer;
 
 interface Args {
   selectedTrace: Trace;
@@ -70,13 +68,24 @@ export default class TraceReplayerMain extends Component<Args> {
 
   public timeline: TraceNode[];
 
+  public trace: Span[];
+
+  public builder: (() => TraceTree)[] = [];
+
+  @tracked
+  public ready: boolean = false;
+
+  public setReady = () => {
+    this.ready = true;
+  };
+
   constructor(owner: any, args: Args) {
     super(owner, args);
     const selectedTrace = this.args.selectedTrace;
-    const trace = getSortedTraceSpans(selectedTrace);
+    this.trace = getSortedTraceSpans(selectedTrace);
 
-    if (trace.length > 0) {
-      const [firstStep] = trace;
+    if (this.trace.length > 0) {
+      const [firstStep] = this.trace;
       this.currentTraceStep = firstStep;
     }
 
@@ -84,7 +93,7 @@ export default class TraceReplayerMain extends Component<Args> {
     this.scene = this.args.renderingLoop.scene;
 
     this.tree = new TraceTreeBuilder(
-      trace,
+      this.trace,
       this.classMap,
       this.applicationRenderer
     ).build();
@@ -124,22 +133,6 @@ export default class TraceReplayerMain extends Component<Args> {
   }
 
   @tracked
-  public sliderDelay: number = 1;
-
-  @action
-  inputDelay(_: any, htmlInputElement: any) {
-    const newValue = htmlInputElement.target.value;
-    if (newValue) {
-      this.sliderDelay = Number(newValue);
-    }
-  }
-
-  @action
-  changeDelay(event: any) {
-    this.sliderDelay = Number(event.target.value);
-  }
-
-  @tracked
   public entities: Map<string, AnimationEntity> = new Map();
 
   @tracked
@@ -158,13 +151,13 @@ export default class TraceReplayerMain extends Component<Args> {
   next() {
     if (this.paused) {
       this.entities.forEach((animation: AnimationEntity) => {
-        if (!animation.target.isLeaf) {
-          animation.origin = animation.target;
-          animation.target = animation.origin.children[0];
+        if (!animation.callee.isLeaf) {
+          animation.caller = animation.callee;
+          animation.callee = animation.caller.children[0];
 
           animation.path = this.path(
-            animation.origin,
-            animation.target,
+            animation.caller,
+            animation.callee,
             animation.height.value
           );
           animation.mesh.move(animation.path.getPoint(0));
@@ -178,13 +171,13 @@ export default class TraceReplayerMain extends Component<Args> {
   previous() {
     if (this.paused) {
       this.entities.forEach((animation: AnimationEntity) => {
-        if (!animation.origin.isRoot) {
-          animation.target = animation.origin;
-          animation.origin = animation.target.parents[0];
+        if (!animation.caller.isRoot) {
+          animation.callee = animation.caller;
+          animation.caller = animation.callee.parents[0];
 
           animation.path = this.path(
-            animation.origin,
-            animation.target,
+            animation.caller,
+            animation.callee,
             animation.height.value
           );
           animation.mesh.move(animation.path.getPoint(0));
@@ -260,13 +253,10 @@ export default class TraceReplayerMain extends Component<Args> {
         this.entities.forEach((entity: AnimationEntity, id: string) => {
           // move entity
           {
-            const start =
-              entity.origin.start + this.sliderDelay * entity.origin.startDelay;
-            const end = start + this.sliderDelay;
+            const start = entity.caller.start;
+            const end = start;
 
-            console.log(
-              `${start} + ${entity.origin.startDelay} ${end} + ${entity.target.startDelay}`
-            );
+            console.log(`${start} -> ${end}`);
 
             const progress = (this.cursor - start) / (end - start);
 
@@ -312,41 +302,40 @@ export default class TraceReplayerMain extends Component<Args> {
 
           // spawn children
 
-          const colors = entity.color.partition(entity.target.children.length);
+          const colors = entity.color.partition(entity.callee.children.length);
           const heights = entity.height.partition(
-            entity.target.children.length
+            entity.callee.children.length
           );
-          entity.target.children.forEach((node, idx: number) => {
+          entity.callee.children.forEach((node, idx: number) => {
             if (
-              node.start + this.sliderDelay * node.startDelay <= this.cursor &&
-              node.end + this.sliderDelay * node.endDelay >= this.cursor &&
+              node.start <= this.cursor &&
+              node.end >= this.cursor &&
               !this.entities.has(node.id)
             ) {
-              this.spawnEntity(entity.target, node, heights[idx], colors[idx]);
+              this.spawnEntity(entity.callee, node, heights[idx], colors[idx]);
               console.log(this.cursor);
               console.log(this.entities);
             }
           });
 
-          entity.origin.mesh.highlight();
-          entity.origin.mesh.turnOpaque();
+          entity.caller.mesh.highlight();
+          entity.caller.mesh.turnOpaque();
           this.turnComponentAndAncestorsTransparent(
-            entity.origin.clazz.parent,
+            entity.caller.clazz.parent,
             1
           );
 
-          entity.target.mesh.highlight();
-          entity.target.mesh.turnOpaque();
+          entity.callee.mesh.highlight();
+          entity.callee.mesh.turnOpaque();
           this.turnComponentAndAncestorsTransparent(
-            entity.target.clazz.parent,
+            entity.callee.clazz.parent,
             1
           );
 
           // delete entity if lifetime exceeded
           if (
-            entity.origin.end + this.sliderDelay * entity.origin.endDelay <
-              this.cursor &&
-            this.entities.has(entity.target.id)
+            entity.caller.end < this.cursor &&
+            this.entities.has(entity.callee.id)
           ) {
             this.entities.delete(id);
           }
@@ -434,10 +423,7 @@ export default class TraceReplayerMain extends Component<Args> {
 
       // find alive entities
       const nodes: TraceNode[] = this.timeline.filter((node) => {
-        return (
-          node.start + this.sliderDelay * node.startDelay <= this.cursor &&
-          node.end + this.sliderDelay * node.endDelay >= this.cursor
-        );
+        return node.start <= this.cursor && node.end >= this.cursor;
       });
 
       console.log(nodes);
@@ -477,8 +463,8 @@ export default class TraceReplayerMain extends Component<Args> {
     });
 
     this.entities.forEach((animation) => {
-      animation.origin.mesh.unhighlight();
-      animation.target.mesh.unhighlight();
+      animation.caller.mesh.unhighlight();
+      animation.callee.mesh.unhighlight();
 
       this.scene.remove(animation.mesh);
       this.scene.remove(animation.trail);

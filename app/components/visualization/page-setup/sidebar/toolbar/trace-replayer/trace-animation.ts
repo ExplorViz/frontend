@@ -79,13 +79,13 @@ export default class Details {
   @tracked
   public name: string;
   @tracked
-  public origin: Class | undefined;
+  public caller: Class | undefined;
   @tracked
-  public target: Class | undefined;
+  public callee: Class | undefined;
   @tracked
-  public originApp: string | undefined;
+  public callerApp: string | undefined;
   @tracked
-  public targetApp: string | undefined;
+  public calleeApp: string | undefined;
   @tracked
   public start: number;
   @tracked
@@ -93,18 +93,18 @@ export default class Details {
 
   constructor(
     name: string,
-    origin: Class | undefined,
-    target: Class | undefined,
-    originApp: string | undefined,
-    targetApp: string | undefined,
+    caller: Class | undefined,
+    callee: Class | undefined,
+    callerApp: string | undefined,
+    calleeApp: string | undefined,
     start: number,
     end: number
   ) {
     this.name = name;
-    this.origin = origin;
-    this.target = target;
-    this.originApp = originApp;
-    this.targetApp = targetApp;
+    this.caller = caller;
+    this.callee = callee;
+    this.callerApp = callerApp;
+    this.calleeApp = calleeApp;
     this.start = start;
     this.end = end;
   }
@@ -282,8 +282,8 @@ export class Arc extends THREE.Curve<Vector3> {
 }
 
 export class AnimationEntity {
-  origin: TraceNode;
-  target: TraceNode;
+  caller: TraceNode;
+  callee: TraceNode;
   path: Curve<Vector3>;
   mesh: Sphere;
   line: THREE.Mesh[];
@@ -294,8 +294,8 @@ export class AnimationEntity {
   alive: boolean;
 
   constructor(
-    origin: TraceNode,
-    target: TraceNode,
+    caller: TraceNode,
+    callee: TraceNode,
     path: Curve<Vector3>,
     mesh: Sphere,
     line: THREE.Mesh[],
@@ -304,8 +304,8 @@ export class AnimationEntity {
     height: Partition,
     color: ColorSpace = HueSpace.default
   ) {
-    this.origin = origin;
-    this.target = target;
+    this.caller = caller;
+    this.callee = callee;
     this.path = path;
     this.mesh = mesh;
     this.line = line;

@@ -2,145 +2,128 @@
   Trace Player
 </h5>
 
-<div align='center' class='mb-3'>
-  <BsButton
-    class='th-btn'
-    title='Previous'
-    @onClick={{this.previous}}
-    @type='button'
-  >
-    {{svg-jar 'chevron-left-16' class='octicon align-middle'}}
-  </BsButton>
-
-  <BsButton class='th-btn' title='Next' @onClick={{this.stop}} @type='button'>
-    {{svg-jar 'square-fill-16' class='octicon align-middle'}}
-  </BsButton>
-
-  {{#if this.paused}}
+{{#if this.ready}}
+  <div align='center' class='mb-3'>
     <BsButton
       class='th-btn'
-      title='Play'
-      @onClick={{this.start}}
+      title='Previous'
+      @onClick={{this.previous}}
       @type='button'
     >
-      {{svg-jar 'play-16' class='octicon align-middle'}}
+      {{svg-jar 'chevron-left-16' class='octicon align-middle'}}
     </BsButton>
-  {{else}}
-    <BsButton
-      class='th-btn navbar-highlight playing'
-      title='Stop'
-      @onClick={{this.pause}}
-      @type='button'
-    >
-      {{svg-jar 'x-circle-16' class='octicon align-middle'}}
+
+    <BsButton class='th-btn' title='Next' @onClick={{this.stop}} @type='button'>
+      {{svg-jar 'square-fill-16' class='octicon align-middle'}}
     </BsButton>
-  {{/if}}
 
-  <BsButton class='th-btn' title='Next' @onClick={{this.next}} @type='button'>
-    {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
-  </BsButton>
-</div>
+    {{#if this.paused}}
+      <BsButton
+        class='th-btn'
+        title='Play'
+        @onClick={{this.start}}
+        @type='button'
+      >
+        {{svg-jar 'play-16' class='octicon align-middle'}}
+      </BsButton>
+    {{else}}
+      <BsButton
+        class='th-btn navbar-highlight playing'
+        title='Stop'
+        @onClick={{this.pause}}
+        @type='button'
+      >
+        {{svg-jar 'x-circle-16' class='octicon align-middle'}}
+      </BsButton>
+    {{/if}}
 
-<div class='mb-3'>
-  <div class='range-slider--container'>
-    <div style='width: 100%;'>
-      <label for='trace-speed-selector'>Playback speed</label>
-      <input
-        id='trace-speed-slider'
-        value={{this.sliderSpeed}}
-        min={{this.minSpeed}}
-        max={{this.maxSpeed}}
-        type='range'
-        step='1'
-        class='form-control mr-2'
-        onchange={{this.changeSpeed}}
-        oninput={{fn this.inputSpeed this}}
-      />
-      <div class='range-slider--values'>
-        <span>{{this.minSpeed}}</span>
-        <span style='font-weight: bold;'>{{this.sliderSpeed}}</span>
-        <span>{{this.maxSpeed}}</span>
+    <BsButton class='th-btn' title='Next' @onClick={{this.next}} @type='button'>
+      {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
+    </BsButton>
+  </div>
+
+  <div class='mb-3'>
+    <div class='range-slider--container'>
+      <div style='width: 100%;'>
+        <label for='trace-speed-selector'>Playback speed</label>
+        <input
+          id='trace-speed-slider'
+          value={{this.sliderSpeed}}
+          min={{this.minSpeed}}
+          max={{this.maxSpeed}}
+          type='range'
+          step='1'
+          class='form-control mr-2'
+          onchange={{this.changeSpeed}}
+          oninput={{fn this.inputSpeed this}}
+        />
+        <div class='range-slider--values'>
+          <span>{{this.minSpeed}}</span>
+          <span style='font-weight: bold;'>{{this.sliderSpeed}}</span>
+          <span>{{this.maxSpeed}}</span>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class='mb-3'>
-  <div class='range-slider--container'>
-    <div style='width: 100%;'>
-      <label for='trace-delay-selector'>Delay</label>
-      <input
-        id='trace-delay-slider'
-        value={{this.sliderDelay}}
-        min=0
-        max=10
-        type='range'
-        step=0.1
-        class='form-control mr-2'
-        onchange={{this.changeDelay}}
-        oninput={{fn this.inputDelay this}}
-      />
-      <div class='range-slider--values'>
-        <span>0</span>
-        <span style='font-weight: bold;'>{{this.sliderDelay}}</span>
-        <span>1</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class='mb-3'>
-  <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
-    @timeline={{this.timeline}}
-    @observer={{this.observer}}
-    @callback={{this.callback}}
-  />
-</div>
-
-<div class='mb-3'>
-  <ul class="nav nav-tabs">
-    {{#each this.tabs as |tab|}}
-      {{#if tab.active}}
-        <BsButton
-          class='nav-link active'
-          title={{tab.label}}
-          style={{tab.style}}
-          @onClick={{tab.callback}}
-          @type='button'>
-          {{tab.label}}
-        </BsButton>
-      {{else}}
-        <BsButton
-          class='nav-link'
-          title={{tab.label}}
-          style={{tab.style}}
-          @onClick={{tab.callback}}
-          @type='button'>
-          {{tab.label}}
-        </BsButton>
-      {{/if}}
-    {{/each}}
-  </ul>
-</div>
-
-<!--<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation-->
-<!--  @selectPreviousTraceStep={{this.previous}}-->
-<!--  @selectNextTraceStep={{this.next}}-->
-<!--  @currentTraceStepIndex={{this.index}}-->
-<!--  @traceLength={{this.trace.length}}-->
-<!--/>-->
-
-<!--<hr />-->
-<div class='mb-3'>
-  <ul class="nav nav-tabs">
-    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
-      @operationName={{this.tab.details.name}}
-      @sourceClass={{this.tab.details.origin}}
-      @targetClass={{this.tab.details.target}}
-      @sourceApplicationName=
-        @targetApplicationName=
-      @spanStartTime=
-        @spanEndTime=
+  <div class='mb-3'>
+    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
+      @timeline={{this.timeline}}
+      @observer={{this.observer}}
+      @callback={{this.callback}}
     />
-  </ul>
-</div>
+  </div>
+
+  <div class='mb-3'>
+    <ul class="nav nav-tabs">
+      {{#each this.tabs as |tab|}}
+        {{#if tab.active}}
+          <BsButton
+            class='nav-link active'
+            title={{tab.label}}
+            style={{tab.style}}
+            @onClick={{tab.callback}}
+            @type='button'>
+            {{tab.label}}
+          </BsButton>
+        {{else}}
+          <BsButton
+            class='nav-link'
+            title={{tab.label}}
+            style={{tab.style}}
+            @onClick={{tab.callback}}
+            @type='button'>
+            {{tab.label}}
+          </BsButton>
+        {{/if}}
+      {{/each}}
+    </ul>
+  </div>
+
+  <!--<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation-->
+  <!--  @selectPreviousTraceStep={{this.previous}}-->
+  <!--  @selectNextTraceStep={{this.next}}-->
+  <!--  @currentTraceStepIndex={{this.index}}-->
+  <!--  @traceLength={{this.trace.length}}-->
+  <!--/>-->
+
+  <!--<hr />-->
+  <div class='mb-3'>
+    <ul class="nav nav-tabs">
+      <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
+        @operationName={{this.tab.details.name}}
+        @sourceClass={{this.tab.details.origin}}
+        @targetClass={{this.tab.details.target}}
+        @sourceApplicationName=
+          @targetApplicationName=
+        @spanStartTime=
+          @spanEndTime=
+      />
+    </ul>
+  </div>
+{{else}}
+  <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TracePreprocess
+    @tree={{this.tree}}
+    @callback={{this.setReady}}
+  />
+{{/if}}

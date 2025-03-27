@@ -2,6 +2,8 @@ import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import { Span } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
+import Component from '@glimmer/component';
+import { Args } from '@glimmer/component/-private/component';
 
 export class TraceNode {
   public readonly id: string;
@@ -45,6 +47,20 @@ export class TraceNode {
   public get isLeaf() {
     return this.children.length == 0;
   }
+
+  traceEvent(pid: number = 0, tid: number = 0): {} {
+    const start = this.start;
+    const end = this.end;
+    return {
+      name: this.id,
+      cat: 'PERF',
+      ph: 'X',
+      pid: pid,
+      tid: tid,
+      ts: start,
+      dur: end - start,
+    };
+  }
 }
 
 export class TraceTreeVisitor {
@@ -60,10 +76,12 @@ export class TraceTreeVisitor {
 export class TraceTree {
   public children: TraceNode[];
   public readonly parents: TraceNode[];
+  public clean: boolean;
 
   constructor(root: TraceNode[] = []) {
     this.children = root;
     this.parents = [];
+    this.clean = true;
   }
 
   public accept(visitor: TraceTreeVisitor) {
@@ -90,9 +108,9 @@ export class TraceTree {
 }
 
 export class TraceTreeBuilder {
-  trace: Span[];
-  classMap: Map<string, Class>;
-  applicationRenderer: ApplicationRenderer;
+  private readonly trace: Span[];
+  private readonly classMap: Map<string, Class>;
+  private readonly applicationRenderer: ApplicationRenderer;
 
   constructor(
     trace: Span[],
@@ -121,7 +139,7 @@ export class TraceTreeBuilder {
     return undefined;
   }
 
-  private buildTree(): TraceTree {
+  public build(): TraceTree {
     const tree = new TraceTree();
     const map = new Map<string, TraceNode>();
     let global: number = Infinity;
@@ -154,27 +172,25 @@ export class TraceTreeBuilder {
 
         node.start -= global;
         node.end -= global;
+
+        if (node.end - node.start < 1) {
+          tree.clean = false;
+        }
       }
     });
 
     return tree;
   }
 
-  public build(): TraceTree {
-    const tree = this.buildTree();
-
-    this.fixTrace(tree);
-
-    // const visitor = new TraceTreeVisitor((node: TraceNode): void => {
-    //   node.start = node.start + node.startDelay;
-    //   node.end = node.end + node.endDelay;
-    // });
-    // tree.accept(visitor);
-
-    return tree;
+  public static applyDelay(tree: TraceTree, delay: number): void {
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+      node.start += node.startDelay * delay;
+      node.end += node.endDelay * delay;
+    });
+    tree.accept(visitor);
   }
 
-  private fixTrace(tree: TraceTree): void {
+  public static calculateDelay(tree: TraceTree): void {
     /**
      * Fix zero-length events.
      */
@@ -226,9 +242,7 @@ export class TraceTreeBuilder {
             ++node.endDelay;
           });
           frontier.forEach((node: TraceNode): void => {
-            if (node.start + node.startDelay > head!.start + head!.startDelay) {
-              ++node.startDelay;
-            }
+            ++node.startDelay;
             ++node.endDelay;
           });
           ++head.endDelay;
@@ -245,12 +259,7 @@ export class TraceTreeBuilder {
               ++node.endDelay;
             });
             frontier.forEach((node: TraceNode): void => {
-              if (
-                node.start + node.startDelay >
-                head!.start + head!.startDelay
-              ) {
-                ++node.startDelay;
-              }
+              ++node.startDelay;
               ++node.endDelay;
             });
             ++head!.endDelay;
@@ -261,9 +270,7 @@ export class TraceTreeBuilder {
         head.children.forEach((child: TraceNode): void => {
           if (child.end + child.endDelay === head!.end + head!.endDelay) {
             frontier.forEach((node: TraceNode): void => {
-              if (node.start + node.startDelay > head!.end + head!.endDelay) {
-                ++node.startDelay;
-              }
+              ++node.startDelay;
               ++node.endDelay;
             });
             ++head!.endDelay;
@@ -288,6 +295,7 @@ export class TraceTreeBuilder {
       }
     }
 
+    tree.clean = true;
     console.log(tree);
   }
 }
