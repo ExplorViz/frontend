@@ -6,7 +6,7 @@ import { helper } from '@ember/component/helper';
  * @param unit time unit
  */
 export function formatNumber([inputNumber, unit]: [number, string]) {
-  if (unit === 'us') {
+  if (unit === 'μs') {
     return (inputNumber / 1000.0).toFixed(4).toString();
   }
   if (unit === 'ms') {

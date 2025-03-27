@@ -1,5 +1,5 @@
 <div class="alert alert-danger" role="alert">
-  Detected zero-length or too many events!
+  Detected issues with trace!
 </div>
 <div class='mb-3'>
   <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
@@ -15,7 +15,7 @@
 <div class='mb-3'>
   <div class='range-slider--container'>
     <div style='width: 100%;'>
-      <label for='trace-delay-selector'>Delay</label>
+      <label for='trace-delay-selector'>Event Delay</label>
       <input
         id='trace-delay-slider'
         value={{this.value}}

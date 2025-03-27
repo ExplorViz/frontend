@@ -12,6 +12,8 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import { service } from '@ember/service';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
 
+export type TimeUnit = 'ns' | 'μs' | 'ms' | 's';
+
 interface Args {
   highlightTrace(trace: Trace, traceStep: string): void;
 
@@ -36,6 +38,28 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
         (span) => hashCodeToClassMap.get(span.methodHash) !== undefined
       )
     );
+  }
+
+  // default time units
+  @tracked
+  unit: TimeUnit = 'ns';
+
+  @action
+  toggleUnit() {
+    switch (this.unit) {
+      case 'ns':
+        this.unit = 'μs';
+        break;
+      case 'μs':
+        this.unit = 'ms';
+        break;
+      case 'ms':
+        this.unit = 's';
+        break;
+      case 's':
+        this.unit = 'ns';
+        break;
+    }
   }
 
   @service('rendering-service')

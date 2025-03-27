@@ -156,8 +156,6 @@
                     @dynamicData={{@landscapeData.dynamicLandscapeData}}
                     @renderingLoop={{this.renderingLoop}}
                     @structureData={{@landscapeData.structureLandscapeData}}
-                    @landscapeData={{@landscapeData}}
-                    @triggerRenderingForGivenLandscapeData={{@triggerRenderingForGivenLandscapeData}}
                   />
                 {{/if}}
               </div>
@@ -244,7 +242,7 @@
               {{#if (eq @openedSettingComponent 'trace-selection')}}
                 <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
                   @highlightTrace={{this.highlightTrace}}
-                  @removeHighlighting={{this.removeHighlighting}}
+                  @removeHighlighting={{this.removeAllHighlighting}}
                   @dynamicData={{@landscapeData.dynamicLandscapeData}}
                   @renderingLoop={{this.renderingLoop}}
                   @structureData={{@landscapeData.structureLandscapeData}}

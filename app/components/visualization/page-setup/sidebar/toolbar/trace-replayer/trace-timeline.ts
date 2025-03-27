@@ -56,7 +56,7 @@ export default class PlotlyTimeline extends Component<Args> {
           symbol: 'triangle-left',
         },
         x: end,
-        y: end.map((_: any) => -0.25),
+        y: end.map(() => -0.25),
       },
       {
         mode: 'markers',
@@ -70,7 +70,7 @@ export default class PlotlyTimeline extends Component<Args> {
           symbol: 'triangle-right',
         },
         x: start,
-        y: start.map((_: any) => 0.25),
+        y: start.map(() => 0.25),
       },
     ];
 

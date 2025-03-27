@@ -57,7 +57,7 @@ export default class Preprocess extends Component<Args> {
 
       this.pruneTree();
 
-      const events: {}[] = [];
+      const events: any[] = [];
       let pid = 0;
       const visitor = new TraceTreeVisitor((node: TraceNode): void => {
         events.push(node.traceEvent(pid));
@@ -108,7 +108,7 @@ export default class Preprocess extends Component<Args> {
     }
   };
 
-  callbackCursor = (_: number) => {};
+  callbackCursor = () => {};
 
   private pruneTree(): void {
     const visitor = new TraceTreeVisitor((node: TraceNode): void => {
@@ -124,14 +124,14 @@ export default class Preprocess extends Component<Args> {
      * Fix zero-length events.
      */
 
-    let leaves: TraceNode[] = [];
+    const leaves: TraceNode[] = [];
 
     // fix delay top-down
     {
-      let frontier: TraceNode[] = [];
-      let visited = new Set<string>();
+      const frontier: TraceNode[] = [];
+      const visited = new Set<string>();
 
-      let iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
+      const iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
         frontier.push(...head.children);
         // sort events according to timeline -- delays are propagated to later events, either start or end
         frontier.sort((a: TraceNode, b: TraceNode): number => {
@@ -217,9 +217,9 @@ export default class Preprocess extends Component<Args> {
 
     // fix delay bottom-up
     {
-      let frontier = leaves;
+      const frontier = leaves;
 
-      let iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
+      const iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
         frontier.push(...head.parents);
         return frontier.shift();
       };

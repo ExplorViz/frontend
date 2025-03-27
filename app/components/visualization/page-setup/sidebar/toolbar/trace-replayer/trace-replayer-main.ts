@@ -64,7 +64,7 @@ export default class TraceReplayerMain extends Component<Args> {
 
   private readonly tree: TraceTree;
 
-  private scene: THREE.Scene;
+  private readonly scene: THREE.Scene;
 
   @tracked
   timeline: TraceNode[];
@@ -211,10 +211,17 @@ export default class TraceReplayerMain extends Component<Args> {
   observer: ((cursor: number) => void)[] = [];
 
   @tracked
-  remove = true;
+  afterimage = true;
 
   toggleAfterimage = (): void => {
-    this.remove = !this.remove;
+    this.afterimage = !this.afterimage;
+  };
+
+  @tracked
+  eager = true;
+
+  toggleEager = (): void => {
+    this.eager = !this.eager;
   };
 
   tick(delta: number) {
@@ -232,10 +239,13 @@ export default class TraceReplayerMain extends Component<Args> {
           // move entity
           {
             const start = entity.callee.start;
-            const end = entity.callee.children.reduce(
-              (end, node) => Math.min(node.start, end),
-              entity.callee.end
-            );
+            const end = this.eager
+              ? entity.callee.children.reduce(
+                  (end, node) => Math.min(node.start, end),
+                  entity.callee.end
+                )
+              : entity.callee.end;
+
             const progress = (this.cursor - start) / (end - start);
 
             if (0.0 <= progress && progress <= 1.0) {
@@ -298,7 +308,7 @@ export default class TraceReplayerMain extends Component<Args> {
           });
 
           // destroy entity
-          if (this.remove && entity.callee.end <= this.cursor) {
+          if (this.afterimage && entity.callee.end <= this.cursor) {
             entity.destroy();
             this.entities.delete(id);
 

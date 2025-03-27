@@ -18,18 +18,9 @@
       </td>
     </tr>
     <tr class='d-flex'>
-      <th class='col-3'>
-        Duration
-        <BsButton
-          @onClick={{this.toggleUnit}}
-          class='th-btn'
-          outline={{true}}
-        >
-          {{this.unit}}
-        </BsButton>
-      </th>
+      <th class='col-3'>Time</th>
       <td class='col-9 container-word-wrap'>
-        {{format-number @start this.unit}} {{svg-jar "arrow-right-16"}} {{format-number @end this.unit}} ({{format-number @duration this.unit}})
+        {{format-number @start @unit}} {{svg-jar "arrow-right-16"}} {{format-number @end @unit}} ({{format-number @duration @unit}})
       </td>
     </tr>
     </tbody>

@@ -84,10 +84,10 @@ export class TraceTree {
   }
 
   accept(visitor: TraceTreeVisitor) {
-    let frontier: TraceNode[] = [];
-    let visited = new Set<string>();
+    const frontier: TraceNode[] = [];
+    const visited = new Set<string>();
 
-    let iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
+    const iter = (head: TraceTree | TraceNode): TraceNode | undefined => {
       frontier.push(...head.children);
       const next = frontier.shift();
       if (next !== undefined) {

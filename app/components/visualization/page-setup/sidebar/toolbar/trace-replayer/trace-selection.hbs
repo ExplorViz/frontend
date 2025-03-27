@@ -20,13 +20,12 @@
           scope='col'
         >Requests</th>
         <th {{on 'click' (fn this.sortByProperty 'traceDuration')}} scope='col'>
-          Duration in
           <BsButton
-            @onClick={{this.toggleTraceTimeUnit}}
+            @onClick={{@toggleUnit}}
             class='th-btn'
             @outline={{true}}
           >
-            {{this.traceTimeUnit}}
+            {{@unit}}
           </BsButton>
         </th>
       </tr>
@@ -43,7 +42,7 @@
             <td>{{requestCounts}}</td>
           {{/let}}
           {{#let (get this.traceDurations index) as |duration|}}
-            <td>{{format-number duration this.traceTimeUnit}}</td>
+            <td>{{format-number duration @unit}}</td>
           {{/let}}
         </tr>
       {{/each}}

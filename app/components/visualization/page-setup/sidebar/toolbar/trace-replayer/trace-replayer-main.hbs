@@ -32,7 +32,16 @@
   <div class='mb-3'>
     <input
       type='checkbox'
-      checked={{this.remove}}
+      checked={{this.eager}}
+      onclick={{this.toggleEager}}
+    />
+    Eager Expansion
+  </div>
+
+  <div class='mb-3'>
+    <input
+      type='checkbox'
+      checked={{this.afterimage}}
       onclick={{this.toggleAfterimage}}
     />
     Remove Traces
@@ -93,6 +102,7 @@
           @start={{tab.start}}
           @end={{tab.end}}
           @duration={{tab.duration}}
+          @unit={{@unit}}
         />
       </ul>
     {{/if}}
