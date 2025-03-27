@@ -2,15 +2,12 @@ import { action } from '@ember/object';
 import Component from '@glimmer/component';
 import Plotly from 'plotly.js-dist';
 import { TraceNode } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
-import { tracked } from '@glimmer/tracking';
-import Ember from 'ember';
-import observer = Ember.observer;
-import { layouts } from 'chart.js';
 
 interface Args {
   timeline: TraceNode[];
   observer: ((cursor: number) => void)[];
-  callback: ((cursor: number) => void)[];
+
+  callback(cursor: number): void;
 }
 
 export default class PlotlyTimeline extends Component<Args> {
@@ -148,9 +145,7 @@ export default class PlotlyTimeline extends Component<Args> {
       this.args.observer.forEach((observer) => {
         observer(cursor);
       });
-      this.args.callback.forEach((callback) => {
-        callback(cursor);
-      });
+      this.args.callback(cursor);
     });
 
     this.args.observer.push((cursor: number) => {

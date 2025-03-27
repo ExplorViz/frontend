@@ -3,7 +3,6 @@ import { action } from '@ember/object';
 import { tracked } from '@glimmer/tracking';
 import { inject as service } from '@ember/service';
 import * as THREE from 'three';
-import { Vector3 } from 'three';
 import {
   Span,
   Trace,
@@ -29,8 +28,8 @@ import {
 } from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import Details, {
   AnimationEntity,
-  Arc,
   ColorSpace,
+  Geometry,
   HueSpace,
   Partition,
   Sphere,
@@ -52,7 +51,7 @@ export default class TraceReplayerMain extends Component<Args> {
   currentTraceStep: Span | null = null;
 
   @service('application-renderer')
-  applicationRenderer!: ApplicationRenderer;
+  renderer!: ApplicationRenderer;
 
   @service('collaboration/local-user')
   localUser!: LocalUser;
@@ -66,23 +65,27 @@ export default class TraceReplayerMain extends Component<Args> {
 
   private scene;
 
-  public timeline: TraceNode[];
+  timeline: TraceNode[];
 
-  public trace: Span[];
+  trace: Span[];
 
-  public builder: (() => TraceTree)[] = [];
+  builder: (() => TraceTree)[] = [];
 
   @tracked
-  public ready: boolean = false;
+  ready: boolean = false;
 
-  public setReady = () => {
+  callbackReady = () => {
     this.ready = true;
   };
+
+  geometry: Geometry;
 
   constructor(owner: any, args: Args) {
     super(owner, args);
     const selectedTrace = this.args.selectedTrace;
     this.trace = getSortedTraceSpans(selectedTrace);
+
+    this.geometry = new Geometry(this.renderer);
 
     if (this.trace.length > 0) {
       const [firstStep] = this.trace;
@@ -95,51 +98,39 @@ export default class TraceReplayerMain extends Component<Args> {
     this.tree = new TraceTreeBuilder(
       this.trace,
       this.classMap,
-      this.applicationRenderer
+      this.renderer
     ).build();
 
     this.timeline = [];
 
     const visitor = new TraceTreeVisitor((node: TraceNode): void => {
       this.timeline.push(node);
+      if (node.end - node.start < 1) {
+        this.ready = false;
+      }
     });
     this.tree.accept(visitor);
 
-    const start = this.timeline.reduce((acc: number, node: TraceNode) => {
-      return Math.min(acc, node.start);
-    }, Infinity);
-
-    this.cursor = start;
+    this.cursor = 0;
 
     console.log(this.timeline);
   }
 
-  public minSpeed = 1;
-  public maxSpeed = 20;
   @tracked
-  public sliderSpeed = 5;
+  speed = 5;
 
-  @action
-  inputSpeed(_: any, htmlInputElement: any) {
-    const newValue = htmlInputElement.target.value;
-    if (newValue) {
-      this.sliderSpeed = Number(newValue);
-    }
-  }
-
-  @action
-  changeSpeed(event: any) {
-    this.sliderSpeed = Number(event.target.value);
-  }
+  callbackSpeed = (speed: number) => {
+    this.speed = speed;
+  };
 
   @tracked
-  public entities: Map<string, AnimationEntity> = new Map();
+  entities: Map<string, AnimationEntity> = new Map();
 
   @tracked
-  public tabs: Tab[] = [];
+  tabs: Tab[] = [];
 
   @tracked
-  public tab: Tab;
+  tab: Tab;
 
   @tracked
   paused: boolean = true;
@@ -147,82 +138,49 @@ export default class TraceReplayerMain extends Component<Args> {
   @tracked
   stopped: boolean = true;
 
-  @action
-  next() {
-    if (this.paused) {
-      this.entities.forEach((animation: AnimationEntity) => {
-        if (!animation.callee.isLeaf) {
-          animation.caller = animation.callee;
-          animation.callee = animation.caller.children[0];
-
-          animation.path = this.path(
-            animation.caller,
-            animation.callee,
-            animation.height.value
-          );
-          animation.mesh.move(animation.path.getPoint(0));
-          animation.mesh.show();
-        }
-      });
-    }
-  }
-
-  @action
-  previous() {
-    if (this.paused) {
-      this.entities.forEach((animation: AnimationEntity) => {
-        if (!animation.caller.isRoot) {
-          animation.callee = animation.caller;
-          animation.caller = animation.callee.parents[0];
-
-          animation.path = this.path(
-            animation.caller,
-            animation.callee,
-            animation.height.value
-          );
-          animation.mesh.move(animation.path.getPoint(0));
-          animation.mesh.show();
-        }
-      });
-    }
-  }
-
-  path(origin: TraceNode, target: TraceNode, height: number) {
-    const scale = this.applicationRenderer.landscape3D.scale;
-    const support = this.applicationRenderer.landscape3D.position;
-    const start = this.applicationRenderer
-      .getPositionInLandscape(origin.mesh)
-      .multiply(scale)
-      .add(support);
-    const end = this.applicationRenderer
-      .getPositionInLandscape(target.mesh)
-      .multiply(scale)
-      .add(support);
-
-    return new Arc(start, end, height);
-  }
-
-  trail(start: Vector3, end: Vector3, radius: number, height: number) {
-    const shape = new THREE.Shape().ellipse(
-      0.0,
-      0.0,
-      radius,
-      radius,
-      0.0,
-      2.0 * Math.PI
-    );
-
-    const spline = new Arc(start, end, height);
-
-    return new THREE.ExtrudeGeometry(shape, {
-      steps: 16,
-      extrudePath: spline,
-    });
-  }
+  // @action
+  // next() {
+  //   if (this.paused) {
+  //     this.entities.forEach((animation: AnimationEntity) => {
+  //       if (!animation.callee.isLeaf) {
+  //         animation.caller = animation.callee;
+  //         animation.callee = animation.caller.children[0];
+  //
+  //         animation.path = this.path(
+  //           animation.caller,
+  //           animation.callee,
+  //           animation.height.value
+  //         );
+  //         animation.mesh.move(animation.path.getPoint(0));
+  //         animation.mesh.show();
+  //       }
+  //     });
+  //   }
+  // }
+  //
+  // @action
+  // previous() {
+  //   if (this.paused) {
+  //     this.entities.forEach((animation: AnimationEntity) => {
+  //       if (!animation.caller.isRoot) {
+  //         animation.callee = animation.caller;
+  //         animation.caller = animation.callee.parents[0];
+  //
+  //         animation.path = this.path(
+  //           animation.caller,
+  //           animation.callee,
+  //           animation.height.value
+  //         );
+  //         animation.mesh.move(animation.path.getPoint(0));
+  //         animation.mesh.show();
+  //       }
+  //     });
+  //   }
+  // }
 
   turnComponentAndAncestorsTransparent(component: Package, opacity: number) {
     if (component) {
-      const mesh = this.applicationRenderer.getMeshById(component.id);
+      const mesh = this.renderer.getMeshById(component.id);
       if (mesh instanceof BaseMesh) {
         mesh.turnTransparent(opacity);
         this.turnComponentAndAncestorsTransparent(component.parent, opacity);
@@ -231,19 +189,17 @@ export default class TraceReplayerMain extends Component<Args> {
   }
 
   @tracked
-  public cursor: number;
+  cursor: number;
 
-  public callback = [
-    (cursor: number) => {
-      this.cursor = cursor;
-    },
-  ];
+  callbackCursor = (cursor: number) => {
+    this.cursor = cursor;
+  };
 
-  public observer: ((cursor: number) => void)[] = [];
+  observer: ((cursor: number) => void)[] = [];
 
   tick(delta: number) {
     if (!this.stopped && !this.paused) {
-      this.cursor += delta * this.sliderSpeed;
+      this.cursor += delta * this.speed;
 
       this.observer.forEach((notify) => {
         notify(this.cursor);
@@ -301,7 +257,6 @@ export default class TraceReplayerMain extends Component<Args> {
           }
 
           // spawn children
-
           const colors = entity.color.partition(entity.callee.children.length);
           const heights = entity.height.partition(
             entity.callee.children.length
@@ -354,19 +309,19 @@ export default class TraceReplayerMain extends Component<Args> {
     height: Partition,
     color: ColorSpace
   ) {
-    const path = this.path(origin, target, height.value);
+    const path = this.geometry.path(origin, target, height.value);
 
     const material = new THREE.LineBasicMaterial({
       color: color.color,
     });
     const trail = new THREE.Mesh(
-      this.trail(path.start, path.end, 0.015, height.value),
+      this.geometry.trail(path.start, path.end, 0.015, height.value),
       material
     );
     this.scene.add(trail);
 
     const line = new THREE.Mesh(
-      this.trail(path.start, path.end, 0.005, height.value),
+      this.geometry.trail(path.start, path.end, 0.005, height.value),
       material
     );
     this.scene.add(line);
@@ -412,11 +367,11 @@ export default class TraceReplayerMain extends Component<Args> {
 
       this.isCommRendered = this.configuration.isCommRendered;
       this.configuration.isCommRendered = false;
-      this.applicationRenderer.openAllComponentsOfAllApplications();
-      this.applicationRenderer.removeCommunicationForAllApplications();
+      this.renderer.openAllComponentsOfAllApplications();
+      this.renderer.removeCommunicationForAllApplications();
 
       this.classMap.forEach((clazz) => {
-        const mesh = this.applicationRenderer.getMeshById(clazz.id);
+        const mesh = this.renderer.getMeshById(clazz.id);
         mesh?.turnTransparent();
         this.turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
       });
@@ -453,11 +408,11 @@ export default class TraceReplayerMain extends Component<Args> {
 
     this.configuration.isCommRendered = this.isCommRendered;
     if (this.configuration.isCommRendered) {
-      this.applicationRenderer.addCommunicationForAllApplications();
+      this.renderer.addCommunicationForAllApplications();
     }
 
     this.classMap.forEach((clazz) => {
-      const mesh = this.applicationRenderer.getMeshById(clazz.id);
+      const mesh = this.renderer.getMeshById(clazz.id);
       mesh?.turnOpaque();
       this.turnComponentAndAncestorsTransparent(clazz.parent, 1);
     });

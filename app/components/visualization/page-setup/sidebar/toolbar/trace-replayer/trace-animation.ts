@@ -7,6 +7,7 @@ import { tracked } from '@glimmer/tracking';
 import { htmlSafe } from '@ember/template';
 import Ember from 'ember';
 import { Class } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import SafeString = Ember.Handlebars.SafeString;
 
 const DEFAULT_OPACITY = 1;
@@ -77,19 +78,19 @@ export class Spline extends BaseMesh<THREE.ExtrudeGeometry, THREE.Material> {
 
 export default class Details {
   @tracked
-  public name: string;
+  name: string;
   @tracked
-  public caller: Class | undefined;
+  caller: Class | undefined;
   @tracked
-  public callee: Class | undefined;
+  callee: Class | undefined;
   @tracked
-  public callerApp: string | undefined;
+  callerApp: string | undefined;
   @tracked
-  public calleeApp: string | undefined;
+  calleeApp: string | undefined;
   @tracked
-  public start: number;
+  start: number;
   @tracked
-  public end: number;
+  end: number;
 
   constructor(
     name: string,
@@ -111,18 +112,18 @@ export default class Details {
 }
 
 export class Tab {
-  public readonly label: string;
-  public readonly callback: () => void;
-  public readonly style: SafeString;
+  readonly label: string;
+  readonly callback: () => void;
+  readonly style: SafeString;
 
   @tracked
-  public __active: boolean;
+  __active: boolean;
 
   @tracked
-  public __alive: boolean[];
+  __alive: boolean[];
 
   @tracked
-  public details: Details;
+  details: Details;
 
   get active() {
     return this.__active;
@@ -159,17 +160,17 @@ export class Tab {
 }
 
 export class Partition {
-  public readonly min: number;
-  public readonly max: number;
-  public readonly value: number;
+  readonly min: number;
+  readonly max: number;
+  readonly value: number;
 
-  public constructor(min: number, max: number) {
+  constructor(min: number, max: number) {
     this.min = min;
     this.max = max;
     this.value = this.min + (this.max - this.min) / 2.0;
   }
 
-  public partition(n: number): Partition[] {
+  partition(n: number): Partition[] {
     if (n < 1) {
       return [this];
     }
@@ -196,22 +197,22 @@ export interface ColorSpace extends Partition {
 }
 
 export class HueSpace extends Partition implements ColorSpace {
-  public readonly color: THREE.Color;
+  readonly color: THREE.Color;
 
   private constructor(min: number = 0.0, max: number = 1.0) {
     super(min, max);
     this.color = new THREE.Color().setHSL(this.value, 1.0, 0.5);
   }
 
-  public static get default(): ColorSpace {
+  static get default(): ColorSpace {
     return new HueSpace();
   }
 
-  public get default(): ColorSpace {
+  get default(): ColorSpace {
     return HueSpace.default;
   }
 
-  public partition(n: number): ColorSpace[] {
+  partition(n: number): ColorSpace[] {
     return super.partition(n).map((part) => new HueSpace(part.min, part.max));
   }
 }
@@ -323,5 +324,46 @@ export class AnimationEntity {
       return slice;
     }
     return [];
+  }
+}
+
+export class Geometry {
+  renderer: ApplicationRenderer;
+
+  constructor(applicationRenderer: ApplicationRenderer) {
+    this.renderer = applicationRenderer;
+  }
+
+  path(origin: TraceNode, target: TraceNode, height: number) {
+    const scale = this.renderer.landscape3D.scale;
+    const support = this.renderer.landscape3D.position;
+    const start = this.renderer
+      .getPositionInLandscape(origin.mesh)
+      .multiply(scale)
+      .add(support);
+    const end = this.renderer
+      .getPositionInLandscape(target.mesh)
+      .multiply(scale)
+      .add(support);
+
+    return new Arc(start, end, height);
+  }
+
+  trail(start: Vector3, end: Vector3, radius: number, height: number) {
+    const shape = new THREE.Shape().ellipse(
+      0.0,
+      0.0,
+      radius,
+      radius,
+      0.0,
+      2.0 * Math.PI
+    );
+
+    const spline = new Arc(start, end, height);
+
+    return new THREE.ExtrudeGeometry(shape, {
+      steps: 16,
+      extrudePath: spline,
+    });
   }
 }

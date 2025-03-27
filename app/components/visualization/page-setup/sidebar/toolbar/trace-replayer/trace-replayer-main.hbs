@@ -43,34 +43,16 @@
   </div>
 
   <div class='mb-3'>
-    <div class='range-slider--container'>
-      <div style='width: 100%;'>
-        <label for='trace-speed-selector'>Playback speed</label>
-        <input
-          id='trace-speed-slider'
-          value={{this.sliderSpeed}}
-          min={{this.minSpeed}}
-          max={{this.maxSpeed}}
-          type='range'
-          step='1'
-          class='form-control mr-2'
-          onchange={{this.changeSpeed}}
-          oninput={{fn this.inputSpeed this}}
-        />
-        <div class='range-slider--values'>
-          <span>{{this.minSpeed}}</span>
-          <span style='font-weight: bold;'>{{this.sliderSpeed}}</span>
-          <span>{{this.maxSpeed}}</span>
-        </div>
-      </div>
-    </div>
+    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSpeed
+      @callback={{this.callbackSpeed}}
+    />
   </div>
 
   <div class='mb-3'>
     <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
       @timeline={{this.timeline}}
       @observer={{this.observer}}
-      @callback={{this.callback}}
+      @callback={{this.callbackCursor}}
     />
   </div>
 
@@ -124,6 +106,6 @@
 {{else}}
   <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TracePreprocess
     @tree={{this.tree}}
-    @callback={{this.setReady}}
+    @callback={{this.callbackReady}}
   />
 {{/if}}

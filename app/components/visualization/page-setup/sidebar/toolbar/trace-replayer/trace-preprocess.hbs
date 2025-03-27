@@ -7,19 +7,19 @@
       <label for='trace-delay-selector'>Minimal Timestamp Difference</label>
       <input
         id='trace-delay-slider'
-        value={{this.sliderDelay}}
-        min=0
-        max=10
+        value={{this.value}}
+        min={{this.min}}
+        max={{this.max}}
         type='range'
-        step=0.5
+        step={{this.step}}
         class='form-control mr-2'
-        onchange={{this.changeDelay}}
-        oninput={{fn this.inputDelay this}}
+        onchange={{this.change}}
+        oninput={{fn this.input this}}
       />
       <div class='range-slider--values'>
-        <span>0</span>
-        <span style='font-weight: bold;'>{{this.sliderDelay}}</span>
-        <span>10</span>
+        <span>{{this.min}}</span>
+        <span style='font-weight: bold;'>{{this.value}}</span>
+        <span>{{this.max}}</span>
       </div>
     </div>
   </div>
