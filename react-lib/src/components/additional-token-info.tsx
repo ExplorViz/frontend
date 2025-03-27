@@ -26,7 +26,7 @@ export default function AdditionalTokenInfo({
               <b>Owner</b>
             </td>
             <td style={{ wordBreak: 'break-all' }}>
-              {Number(token.ownerId) === user?.sub ? 'You' : token.ownerId}
+              {token.ownerId === user?.sub ? 'You' : token.ownerId}
             </td>
             <td>
               <CopyButton text={token.ownerId} />
