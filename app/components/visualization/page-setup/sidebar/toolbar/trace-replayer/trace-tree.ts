@@ -49,7 +49,7 @@ export class TraceNode {
     return this.children.length == 0;
   }
 
-  traceEvent(pid: number = 0, tid: number = 0): {} {
+  traceEvent(pid: number = 0, tid: number = 0): any {
     const start = this.start;
     const end = this.end;
     return {
