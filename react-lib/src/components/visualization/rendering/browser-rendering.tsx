@@ -266,13 +266,8 @@ export default function BrowserRendering({
   const annotationHandlerActions = useAnnotationHandlerStore(
     useShallow((state) => ({
       addAnnotation: state.addAnnotation,
-      hideAnnotation: state.hideAnnotation,
-      minimizeAnnotation: state.minimizeAnnotation,
-      editAnnotation: state.editAnnotation,
-      updateAnnotation: state.updateAnnotation,
       removeAnnotation: state.removeAnnotation,
       clearAnnotations: state.clearAnnotations,
-      shareAnnotation: state.shareAnnotation,
       handleMouseMove: state.handleMouseMove,
       handleHoverOnMesh: state.handleHoverOnMesh,
       updateMeshReference: state.updateMeshReference,
@@ -1167,13 +1162,7 @@ export default function BrowserRendering({
                   .enableCustomAnnotationPosition.value
               }
               annotationData={data}
-              shareAnnotation={annotationHandlerActions.shareAnnotation}
-              updateMeshReference={annotationHandlerActions.updateMeshReference}
               removeAnnotation={removeAnnotation}
-              hideAnnotation={annotationHandlerActions.hideAnnotation}
-              minimizeAnnotation={annotationHandlerActions.minimizeAnnotation}
-              editAnnotation={annotationHandlerActions.editAnnotation}
-              updateAnnotation={annotationHandlerActions.updateAnnotation}
               toggleHighlightById={highlightingActions.toggleHighlightById}
               openParents={applicationRendererActions.openParents}
             />

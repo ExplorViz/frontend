@@ -26,12 +26,12 @@
   padding: 0;
 }
 
-.popover[hover] {
+.popover.hovered {
   background-color: #bbbbbb !important;
   border-color: #eeeeee !important;
 }
 
-.popover[hover] > .popover-header {
+.popover.hovered > .popover-header {
   background-color: #999999 !important;
   border-color: #aaaaaa !important;
 }

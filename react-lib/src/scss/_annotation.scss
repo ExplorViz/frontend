@@ -34,12 +34,12 @@
   padding: 0;
 }
 
-.annotation[hover] {
+.annotation.hovered {
   background-color: #bbbbbb !important;
   border-color: #eeeeee !important;
 }
 
-.annotation[hover] > .annotation-header {
+.annotation.hovered > .annotation-header {
   background-color: #999999 !important;
   border-color: #aaaaaa !important;
 }
