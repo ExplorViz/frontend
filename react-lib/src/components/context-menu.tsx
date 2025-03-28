@@ -18,18 +18,16 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
 
   const mouseMoved = useRef<boolean>(false);
 
-  const reveal = (event: React.MouseEvent) => {
+  const reveal = () => setVisible(true);
+
+  const hide = () => setVisible(false);
+
+  const onMouseUp = (event: React.MouseEvent) => {
     if (event.button === 2 && !mouseMoved.current) {
       event.preventDefault();
-      setVisible(true);
       setPosition({ x: event.pageX, y: event.pageY });
+      reveal();
     }
-    mouseMoved.current = false;
-  };
-
-  const hide = () => {
-    mouseMoved.current = false;
-    setVisible(false);
   };
 
   const onMouseDown = (event: React.MouseEvent) => {
@@ -53,11 +51,11 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
       document.removeEventListener('click', hide);
       document.removeEventListener('mousemove', onMouseMove);
     };
-  });
+  }, []);
 
   return (
     <div
-      onMouseUp={reveal}
+      onMouseUp={onMouseUp}
       onMouseDown={onMouseDown}
       onContextMenu={onContextMenu}
     >
@@ -70,10 +68,15 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
             left: position.x,
             listStyle: 'none',
             padding: 0,
+            zIndex: 500,
           }}
         >
           {items.map((item) => (
-            <ContextMenuItem title={item.title} onSelect={item.action} />
+            <ContextMenuItem
+              key={item.title}
+              title={item.title}
+              onSelect={item.action}
+            />
           ))}
         </ul>
       )}
