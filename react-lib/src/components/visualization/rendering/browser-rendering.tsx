@@ -248,6 +248,7 @@ export default function BrowserRendering({
     useShallow((state) => ({
       addPopup: state.addPopup,
       removePopup: state.removePopup,
+      updatePopup: state.updatePopup,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
       handleMouseMove: state.handleMouseMove,
@@ -1144,7 +1145,7 @@ export default function BrowserRendering({
               openParents={applicationRendererActions.openParents}
               pinPopup={popupHandlerActions.pinPopup}
               popupData={data}
-              updatePopup={popupHandlerActions.addPopup}
+              updatePopup={popupHandlerActions.updatePopup}
               removePopup={removePopup}
               sharePopup={popupHandlerActions.sharePopup}
               showApplication={showApplication}
