@@ -48,9 +48,6 @@ interface Args {
 }
 
 export default class TraceReplayerMain extends Component<Args> {
-  @tracked
-  currentTraceStep: Span | null = null;
-
   @service('application-renderer')
   renderer!: ApplicationRenderer;
 
@@ -72,6 +69,52 @@ export default class TraceReplayerMain extends Component<Args> {
   trace: Span[];
 
   builder: (() => TraceTree)[] = [];
+  geometry: GeometryFactory;
+
+  constructor(owner: any, args: Args) {
+    super(owner, args);
+    this.isCommRendered = this.configuration.isCommRendered;
+
+    const selectedTrace = this.args.selectedTrace;
+    this.trace = getSortedTraceSpans(selectedTrace);
+
+    this.geometry = new GeometryFactory(this.renderer);
+
+    this.classMap = getHashCodeToClassMap(this.args.structureData);
+    this.scene = this.args.renderingLoop.scene;
+
+    console.log(this.trace)
+
+    this.tree = new TraceTreeBuilder(
+      this.trace,
+      this.classMap,
+      this.renderer
+    ).build();
+
+    this.timeline = [];
+
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+      this.timeline.push(node);
+      if (node.end - node.start < 1) {
+        this.ready = false;
+      }
+    });
+    this.tree.accept(visitor);
+
+    console.log(this.tree)
+
+    this.cursor = 0;
+
+    // if (
+    //   this.args.selectedTrace &&
+    //   this.args.selectedTrace.spanList.length > 0
+    // ) {
+    //   this.args.highlightTrace(
+    //     this.args.selectedTrace,
+    //     this.args.selectedTrace.spanList[0].spanId
+    //   );
+    // }
+  }
 
   @tracked
   ready: boolean = false;
@@ -97,53 +140,6 @@ export default class TraceReplayerMain extends Component<Args> {
     this.ready = true;
   };
 
-  geometry: GeometryFactory;
-
-  constructor(owner: any, args: Args) {
-    super(owner, args);
-    this.isCommRendered = this.configuration.isCommRendered;
-
-    const selectedTrace = this.args.selectedTrace;
-    this.trace = getSortedTraceSpans(selectedTrace);
-
-    this.geometry = new GeometryFactory(this.renderer);
-
-    if (this.trace.length > 0) {
-      const [firstStep] = this.trace;
-      this.currentTraceStep = firstStep;
-    }
-
-    this.classMap = getHashCodeToClassMap(this.args.structureData);
-    this.scene = this.args.renderingLoop.scene;
-
-    this.tree = new TraceTreeBuilder(
-      this.trace,
-      this.classMap,
-      this.renderer
-    ).build();
-
-    this.timeline = [];
-
-    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
-      this.timeline.push(node);
-      if (node.end - node.start < 1) {
-        this.ready = false;
-      }
-    });
-    this.tree.accept(visitor);
-
-    this.cursor = 0;
-
-    // if (
-    //   this.args.selectedTrace &&
-    //   this.args.selectedTrace.spanList.length > 0
-    // ) {
-    //   this.args.highlightTrace(
-    //     this.args.selectedTrace,
-    //     this.args.selectedTrace.spanList[0].spanId
-    //   );
-    // }
-  }
 
   @tracked
   speed = 5;

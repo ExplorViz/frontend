@@ -55,6 +55,7 @@ export default class Preprocess extends Component<Args> {
     if (this.delay > 0) {
       this.working = true;
 
+      // this.scaleTree()
       this.pruneTree();
 
       const events: any[] = [];
@@ -109,6 +110,14 @@ export default class Preprocess extends Component<Args> {
   };
 
   callbackCursor = () => {};
+
+  // private scaleTree(): void {
+  //   const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+  //     node.start = node.start / 1_000_000;
+  //     node.end = node.end / 1_000_000;
+  //   });
+  //   this.args.tree.accept(visitor);
+  // }
 
   private pruneTree(): void {
     const visitor = new TraceTreeVisitor((node: TraceNode): void => {
