@@ -83,8 +83,6 @@ export default class TraceReplayerMain extends Component<Args> {
     this.classMap = getHashCodeToClassMap(this.args.structureData);
     this.scene = this.args.renderingLoop.scene;
 
-    console.log(this.trace)
-
     this.tree = new TraceTreeBuilder(
       this.trace,
       this.classMap,
@@ -100,8 +98,6 @@ export default class TraceReplayerMain extends Component<Args> {
       }
     });
     this.tree.accept(visitor);
-
-    console.log(this.tree)
 
     this.cursor = 0;
 
@@ -139,7 +135,6 @@ export default class TraceReplayerMain extends Component<Args> {
     this.timeline = timeline;
     this.ready = true;
   };
-
 
   @tracked
   speed = 5;
