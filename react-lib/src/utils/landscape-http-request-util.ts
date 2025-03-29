@@ -3,7 +3,7 @@ import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dyna
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
 
-const spanService = 'http://localhost:8083'; //import.meta.env.VITE_SPAN_SERV_URL;
+const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 
 export async function requestData(
   startTime: number,

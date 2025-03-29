@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import { useRouterStore } from './store-router';
 
-const userService = 'http://localhost:8080'; //import.meta.env.USER_SERV_URL;
+const userService = import.meta.env.USER_SERV_URL;
 
 export type ApiToken = {
   uid: string;

@@ -45,7 +45,7 @@ import eventEmitter from '../../utils/event-emitter';
 
 type ResponseHandler<T> = (msg: T) => void;
 
-const collaborationService = 'http://localhost:4444'; //import.meta.env.VITE_COLLABORATION_SERV_URL; // TODO: Use when fully migrated to React
+const collaborationService = import.meta.env.VITE_COLLABORATION_SERV_URL;
 
 // TODO Evented
 

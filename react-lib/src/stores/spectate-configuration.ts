@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useAuthStore } from 'react-lib/src/stores/auth';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 
-const collaborationServiceApi = 'http://localhost:4444'; //import.meta.env.VITE_COLLABORATION_SERV_URL;
+const collaborationServiceApi = import.meta.env.VITE_COLLABORATION_SERV_URL;
 
 interface SpectateConfigurationState {
   spectateConfig: SpectateConfig | null; // tracked
