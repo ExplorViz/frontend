@@ -13,7 +13,7 @@ import { useToastHandlerStore } from '../stores/toast-handler';
 import { useAuthStore } from '../stores/auth';
 import { Tabs, Tab, Button } from 'react-bootstrap';
 import TokenSelection from 'react-lib/src/components/token-selection';
-import RoomList from 'react-lib/src/components/collaboration/room-list_tmp';
+import RoomList from 'react-lib/src/components/collaboration/room-list';
 import SnapshotSelection from 'react-lib/src/components/snapshot-selection';
 import TokenCreationModal from 'react-lib/src/components/token-creation-modal';
 import LandscapeLoader from './landscapes-loading';
