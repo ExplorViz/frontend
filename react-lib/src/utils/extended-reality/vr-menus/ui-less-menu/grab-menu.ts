@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-// import GrabbedObjectService from 'explorviz-frontend/services/extended-reality/grabbed-object';
 import { useGrabbedObjectStore } from 'react-lib/src/stores/extended-reality/grabbed-object';
 import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';

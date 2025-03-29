@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-// import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
 import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';

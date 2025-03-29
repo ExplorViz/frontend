@@ -44,7 +44,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     event.stopPropagation();
     try {
       await sendModifyAccess(args.token.value, userId, 'revoke');
-      args.token.sharedUsersIds.removeObject(userId);
+      args.token.sharedUsersIds.filter(value => value !== userId);
       useToastHandlerStore
         .getState()
         .showSuccessToastMessage(

@@ -1,9 +1,7 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-// import VrMenuFactoryService from 'explorviz-frontend/services/extended-reality/vr-menu-factory';
 import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-// import VrRendering from 'explorviz-frontend/components/extended-reality/vr-rendering'; TODO: Component needs to be migrated
 import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
 
 export default class DetailInfoScrollarea

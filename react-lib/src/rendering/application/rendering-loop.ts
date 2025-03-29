@@ -1,14 +1,9 @@
 import { Clock } from 'three';
 import THREEPerformance from 'react-lib/src/utils/threejs-performance';
-// import UserSettings from 'explorviz-frontend/services/user-settings';
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-// import ArZoomHandler from 'explorviz-frontend/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import ArZoomHandler from 'react-lib/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import * as THREE from 'three';
-// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-
-// import MinimapService from 'explorviz-frontend/services/minimap-service';
 import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
 
 import { TickCallback } from 'react-lib/src/components/visualization/rendering/browser-rendering';

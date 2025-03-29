@@ -1,10 +1,8 @@
-// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import * as THREE from 'three';
 import NameTagSprite from 'react-lib/src/utils/extended-reality/view-objects/vr/name-tag-sprite';
 import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import RayMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ray-mesh';
-// import { DEFAULT_RAY_LENGTH } from 'explorviz-frontend/utils/extended-reality/vr-controller';
 import { DEFAULT_RAY_LENGTH } from 'react-lib/src/utils/extended-reality/vr-controller';
 import VrControllerModelFactory from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
 import MousePing from 'react-lib/src/utils/collaboration/mouse-ping-helper';
@@ -17,7 +15,6 @@ import {
   CONTROLLER_2_ID,
   ControllerId,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
-// import MinimapService from 'explorviz-frontend/services/minimap-service';
 import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
 
 type Camera = {

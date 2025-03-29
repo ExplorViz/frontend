@@ -1,4 +1,3 @@
-// import RoomService from 'explorviz-frontend/services/collaboration/room-service';
 import { useRoomServiceStore } from 'react-lib/src/stores/collaboration/room-service';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';

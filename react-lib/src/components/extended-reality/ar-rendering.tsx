@@ -19,7 +19,6 @@ import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-// import ArSettings from 'explorviz-frontend/services/extended-reality/ar-settings';
 import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 import ArZoomHandler from 'react-lib/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import {

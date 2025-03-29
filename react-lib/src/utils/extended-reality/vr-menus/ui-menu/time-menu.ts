@@ -1,4 +1,3 @@
-// import TimestampService from 'explorviz-frontend/services/timestamp';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
@@ -31,8 +30,6 @@ export default class TimeMenu extends UiMenu {
   constructor({ ...args }: UiMenuArgs) {
     super(args);
 
-    // this.timestampService = timestampService;
-    // this.date = new Date(timestampService.timestamp);
     this.date = new Date(useTimestampStore.getState().timestamp);
 
     const title = new TitleItem({
