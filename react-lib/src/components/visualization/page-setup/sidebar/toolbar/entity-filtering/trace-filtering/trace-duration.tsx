@@ -4,13 +4,13 @@ import HelpTooltip from 'react-lib/src/components/help-tooltip';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 interface TraceDurationProps {
   readonly traces: DynamicLandscapeData;
   remainingTraceCount: number;
   initialTraceCount: number;
   updateDuration(newMinDuration: number): void;
-  pauseVisualizationUpdating(): void;
 }
 
 export default function TraceDuration({
@@ -18,8 +18,11 @@ export default function TraceDuration({
   remainingTraceCount,
   initialTraceCount,
   updateDuration,
-  pauseVisualizationUpdating,
 }: TraceDurationProps) {
+  const pauseVisualizationUpdating = useRenderingServiceStore(
+    (state) => state.pauseVisualizationUpdating
+  );
+
   const [selected, setSelected] = useState<number | null>(null);
 
   const min = useRef<number>(Number.MAX_VALUE);
@@ -57,8 +60,8 @@ export default function TraceDuration({
     }
   };
 
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected = Number(event.target.value);
+  const onPointerUp = (event: React.PointerEvent<HTMLInputElement>) => {
+    const newSelected = Number(event.currentTarget.value);
     setSelected(newSelected);
     updateDuration(newSelected);
   };
@@ -84,18 +87,17 @@ export default function TraceDuration({
         <div style={{ width: '100%' }}>
           <input
             id="filtering-trace-duration"
-            value={durations.selected!}
+            value={durations.selected}
             min={durations.min}
             max={durations.max}
             type="range"
-            step="1000"
             className="form-control mr-2"
-            onChange={onChange}
+            onPointerUp={onPointerUp}
             onInput={onInput}
           />
           <div className="range-slider--values">
             <span>{durations.min}</span>
-            <span style={{ fontWeight: 'bold' }}>{durations.selected!}</span>
+            <span style={{ fontWeight: 'bold' }}>{durations.selected}</span>
             <span>{durations.max}</span>
           </div>
         </div>

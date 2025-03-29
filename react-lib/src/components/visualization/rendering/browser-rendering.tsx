@@ -94,6 +94,7 @@ import useSyncState from '../../../hooks/sync-state';
 import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
 import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
 import eventEmitter from '../../../utils/event-emitter';
+import { useRenderingServiceStore } from '../../../stores/rendering-service';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -104,11 +105,6 @@ interface BrowserRenderingProps {
   readonly isDisplayed: boolean;
   readonly snapshot: boolean | undefined | null;
   readonly snapshotReload: SnapshotToken | undefined | null;
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
-  pauseVisualizationUpdating(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
   restructureLandscape(
@@ -127,8 +123,6 @@ export default function BrowserRendering({
   isDisplayed,
   snapshot,
   snapshotReload,
-  triggerRenderingForGivenLandscapeData,
-  pauseVisualizationUpdating,
   toggleVisualizationUpdating,
   switchToAR,
   restructureLandscape,
@@ -156,6 +150,13 @@ export default function BrowserRendering({
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
       cleanup: state.cleanup,
+    }))
+  );
+
+  const renderingServiceActions = useRenderingServiceStore(
+    useShallow((state) => ({
+      triggerRenderingForGivenLandscapeData:
+        state.triggerRenderingForGivenLandscapeData,
     }))
   );
 
@@ -1198,15 +1199,7 @@ export default function BrowserRendering({
                     {openedToolComponent === 'entity-filtering' && (
                       <>
                         <h5 className="text-center">Entity Filtering</h5>
-                        <EntityFiltering
-                          landscapeData={landscapeData!}
-                          triggerRenderingForGivenLandscapeData={
-                            triggerRenderingForGivenLandscapeData
-                          }
-                          pauseVisualizationUpdating={
-                            pauseVisualizationUpdating
-                          }
-                        />
+                        <EntityFiltering landscapeData={landscapeData!} />
                       </>
                     )}
                     {openedToolComponent === 'application-search' && (
@@ -1223,9 +1216,6 @@ export default function BrowserRendering({
                         renderingLoop={renderingLoop.current!}
                         structureData={landscapeData!.structureLandscapeData}
                         landscapeData={landscapeData!}
-                        triggerRenderingForGivenLandscapeData={
-                          triggerRenderingForGivenLandscapeData
-                        }
                         moveCameraTo={moveCameraTo}
                         application={
                           getSelectedApplicationObject3D()!.dataModel

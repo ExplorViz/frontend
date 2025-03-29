@@ -4,13 +4,13 @@ import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
 import HelpTooltip from 'react-lib/src/components/help-tooltip';
+import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 interface TraceStartProps {
   readonly traces: DynamicLandscapeData;
   remainingTraceCount: number;
   initialTraceCount: number;
   updateStartTimestamp(newMinStartTimestamp: number): void;
-  pauseVisualizationUpdating(): void;
 }
 
 export default function TraceStart({
@@ -18,8 +18,11 @@ export default function TraceStart({
   remainingTraceCount,
   initialTraceCount,
   updateStartTimestamp,
-  pauseVisualizationUpdating,
 }: TraceStartProps) {
+  const pauseVisualizationUpdating = useRenderingServiceStore(
+    (state) => state.pauseVisualizationUpdating
+  );
+
   const [selected, setSelected] = useState<number | null>(null);
 
   const min = useRef<number>(Number.MAX_VALUE);
@@ -57,8 +60,8 @@ export default function TraceStart({
     }
   };
 
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected = Number(event.target.value);
+  const onPointerUp = (event: React.PointerEvent<HTMLInputElement>) => {
+    const newSelected = Number(event.currentTarget.value);
     setSelected(newSelected);
     updateStartTimestamp(newSelected);
   };
@@ -90,7 +93,7 @@ export default function TraceStart({
             type="range"
             step="1000"
             className="form-control mr-2"
-            onChange={onChange}
+            onPointerUp={onPointerUp}
             onInput={onInput}
           />
           <div className="range-slider--values">

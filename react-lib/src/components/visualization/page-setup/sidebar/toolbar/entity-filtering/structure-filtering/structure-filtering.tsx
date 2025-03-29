@@ -11,42 +11,35 @@ import { getAllClassesInApplication } from 'react-lib/src/utils/application-help
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 interface StructureFilteringProps {
   readonly landscapeData: LandscapeData;
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
-  pauseVisualizationUpdating(): void;
 }
 
 export default function StructureFiltering({
   landscapeData,
-  triggerRenderingForGivenLandscapeData,
-  pauseVisualizationUpdating,
 }: StructureFilteringProps) {
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [initialClasses, setInitialClasses] = useState<Class[]>([]);
+  const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
+    (state) => state.triggerRenderingForGivenLandscapeData
+  );
+
+  const classes: Class[] = landscapeData.structureLandscapeData.nodes.flatMap(
+    (node) =>
+      node.applications.flatMap((app) => getAllClassesInApplication(app))
+  );
+
+  const classCount = classes.length;
+
+  const [initialClasses, setInitialClasses] = useState<Class[]>(classes);
   const [
     numRemainingClassesAfterFilteredByMethodCount,
     setNumRemainingClassesAfterFilteredByMethodCount,
-  ] = useState<number>(0);
-  const initialLandscapeData = useRef<LandscapeData | undefined>(undefined);
+  ] = useState<number>(initialClasses.length);
+
+  const initialLandscapeData = useRef<LandscapeData>(landscapeData);
   const selectedMinMethodCount = useRef<number>(0);
   const initialClassCount = initialClasses.length;
-
-  const classCount = (() => {
-    let classes: Class[] = [];
-
-    for (const node of landscapeData.structureLandscapeData.nodes) {
-      for (const app of node.applications) {
-        classes = [...classes, ...getAllClassesInApplication(app)];
-      }
-    }
-    setClasses(classes);
-    return classes.length;
-  })();
 
   const updateMinMethodCount = (newMinMethodCount: number) => {
     selectedMinMethodCount.current = newMinMethodCount;
@@ -102,7 +95,7 @@ export default function StructureFiltering({
     numFilter = 0;
 
     const deepCopyStructure = structuredClone(
-      initialLandscapeData.current!.structureLandscapeData
+      initialLandscapeData.current.structureLandscapeData
     );
 
     let classes: Class[] = [];
@@ -138,12 +131,11 @@ export default function StructureFiltering({
   };
 
   useEffect(() => {
-    resetState();
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     return () => {
       triggerRenderingForGivenLandscapeData(
-        initialLandscapeData.current!.structureLandscapeData,
-        initialLandscapeData.current!.dynamicLandscapeData
+        initialLandscapeData.current.structureLandscapeData,
+        initialLandscapeData.current.dynamicLandscapeData
       );
       eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     };
@@ -161,7 +153,6 @@ export default function StructureFiltering({
       <ClassMethodFiltering
         classes={classes}
         updateMinMethodCount={updateMinMethodCount}
-        pauseVisualizationUpdating={pauseVisualizationUpdating}
         remainingEntityCountAfterFiltering={
           numRemainingClassesAfterFilteredByMethodCount
         }

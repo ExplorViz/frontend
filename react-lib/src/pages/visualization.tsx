@@ -363,7 +363,7 @@ export default function Visualization() {
   const roomSerializer = useRoomSerializerStore(
     useShallow((state) => ({
       serializeRoom: state.serializeRoom,
-      setSerializedRoom: state.setSerializedRoom
+      setSerializedRoom: state.setSerializedRoom,
     }))
   );
 
@@ -374,7 +374,7 @@ export default function Visualization() {
     return (
       renderingServiceLandscapeData !== null &&
       renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
-      0 &&
+        0 &&
       (!renderingServiceLandscapeData.structureLandscapeData.k8sNodes ||
         renderingServiceLandscapeData.structureLandscapeData?.k8sNodes
           .length === 0)
@@ -648,10 +648,9 @@ export default function Visualization() {
    */
   const updateVrStatus = async () => {
     if ('xr' in navigator) {
-      const isSessionSupported = await navigator.xr?.isSessionSupported('immersive-vr') || false;
-      setVrSupported(
-        isSessionSupported!
-      );
+      const isSessionSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+      setVrSupported(isSessionSupported!);
 
       if (isSessionSupported) {
         setVrButtonText('Enter VR');
@@ -742,58 +741,54 @@ export default function Visualization() {
         {showAR ? (
           <></>
         ) : // <ArRendering
-          //   id="ar-rendering"
-          //   landscapeData={renderingServiceLandscapeData}
-          //   switchToOnScreenMode={switchToOnScreenMode}
-          //   toggleVisualizationUpdating={
-          //     renderingServiceToggleVisualizationUpdating
-          //   }
-          //   visualizationPaused={renderingServiceVisualizationPaused}
-          //   openedSettingComponent={
-          //     sidebarHandler.openedSettingComponent
-          //   }
-          //   toggleSettingsSidebarComponent={
-          //     sidebarHandler.toggleSettingsSidebarComponent
-          //   }
-          //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
-          //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
-          //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
-          // />
-          showVR ? (
-            <VrRendering
-              id="vr-rendering"
-              landscapeData={renderingServiceLandscapeData!}
-              switchToOnScreenMode={switchToOnScreenMode}
-              debugMode={visualizationSettings?.showVrOnClick.value ?? false}
-            />
-          ) : (
-            <BrowserRendering
-              // addComponent={addComponent}
-              // applicationArgs={applicationArgs}
-              // closeDataSelection={closeDataSelection}
-              components={components}
-              componentsToolsSidebar={componentsToolsSidebar}
-              id="browser-rendering"
-              isDisplayed={allLandscapeDataExistsAndNotEmpty}
-              landscapeData={renderingServiceLandscapeData}
-              landscapeToken={landscapeTokenServiceToken}
-              // pauseVisualizationUpdating={pauseVisualizationUpdating}
-              removeTimestampListener={removeTimestampListener}
-              // restructureLandscape={restructureLandscape}
-              snapshot={snapshotSelected}
-              snapshotReload={snapshotToken}
-              switchToAR={switchToAR}
-              triggerRenderingForGivenLandscapeData={
-                renderingServiceTriggerRenderingForGivenLandscapeData
-              }
-              toggleVisualizationUpdating={
-                renderingServiceToggleVisualizationUpdating
-              }
-              // updateLandscape={updateLandscape}
-              userApiTokens={userApiTokens}
-              visualizationPaused={visualizationPaused}
-            />
-          )}
+        //   id="ar-rendering"
+        //   landscapeData={renderingServiceLandscapeData}
+        //   switchToOnScreenMode={switchToOnScreenMode}
+        //   toggleVisualizationUpdating={
+        //     renderingServiceToggleVisualizationUpdating
+        //   }
+        //   visualizationPaused={renderingServiceVisualizationPaused}
+        //   openedSettingComponent={
+        //     sidebarHandler.openedSettingComponent
+        //   }
+        //   toggleSettingsSidebarComponent={
+        //     sidebarHandler.toggleSettingsSidebarComponent
+        //   }
+        //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
+        //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
+        //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
+        // />
+        showVR ? (
+          <VrRendering
+            id="vr-rendering"
+            landscapeData={renderingServiceLandscapeData!}
+            switchToOnScreenMode={switchToOnScreenMode}
+            debugMode={visualizationSettings?.showVrOnClick.value ?? false}
+          />
+        ) : (
+          <BrowserRendering
+            // addComponent={addComponent}
+            // applicationArgs={applicationArgs}
+            // closeDataSelection={closeDataSelection}
+            components={components}
+            componentsToolsSidebar={componentsToolsSidebar}
+            id="browser-rendering"
+            isDisplayed={allLandscapeDataExistsAndNotEmpty}
+            landscapeData={renderingServiceLandscapeData}
+            landscapeToken={landscapeTokenServiceToken}
+            removeTimestampListener={removeTimestampListener}
+            // restructureLandscape={restructureLandscape}
+            snapshot={snapshotSelected}
+            snapshotReload={snapshotToken}
+            switchToAR={switchToAR}
+            toggleVisualizationUpdating={
+              renderingServiceToggleVisualizationUpdating
+            }
+            // updateLandscape={updateLandscape}
+            userApiTokens={userApiTokens}
+            visualizationPaused={visualizationPaused}
+          />
+        )}
       </div>
 
       {/* ! Bottom Bar */}
