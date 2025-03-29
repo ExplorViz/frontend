@@ -7,6 +7,7 @@ import CopyButton from 'react-lib/src/components/copy-button.tsx';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { InfoIcon } from '@primer/octicons-react';
 import { Tooltip, Popover } from 'react-bootstrap';
+import { LandscapeToken } from '../stores/landscape-token';
 
 // Added could help migration
 // type TinySnapshot = {
@@ -20,13 +21,11 @@ import { Tooltip, Popover } from 'react-bootstrap';
 // This file seems like a direct copy of AdditionalTokenInfo.ts/.hbs/.tsx
 interface AdditionalSnapshotInfoProps {
   token: {
-    alias: string;
     owner: string;
-    value: string;
-    ownerId: string;
-    landscapeToken: { value: string };
+    createdAt: number;
+    name: string;
+    landscapeToken: LandscapeToken;
   };
-  authUserId: string;
 }
 
 export default function AdditionalSnapshotInfo(
@@ -64,7 +63,7 @@ export default function AdditionalSnapshotInfo(
   };
 
   const popover = (
-    <Popover id={args.token.value} title={args.token.alias}>
+    <Popover id={args.token.landscapeToken.value} title={args.token.landscapeToken.alias}>
       <table className="table-striped" style={{ width: '100%' }}>
         <tbody>
           <tr>
@@ -72,32 +71,32 @@ export default function AdditionalSnapshotInfo(
               <b>Owner</b>
             </td>
             <td style={{ wordBreak: 'break-all' }}>
-              {Number(args.token.ownerId) === user?.sub
+              {args.token.landscapeToken.ownerId === user?.sub
                 ? 'You'
-                : args.token.ownerId}
+                : args.token.landscapeToken.ownerId}
             </td>
             <td>
-              <CopyButton text={args.token.ownerId} />
+              <CopyButton text={args.token.landscapeToken.ownerId} />
             </td>
           </tr>
           <tr>
             <td>
               <b>ID</b>
             </td>
-            <td>{args.token.value}</td>
+            <td>{args.token.landscapeToken.value}</td>
             <td>
-              <CopyButton text={args.token.value} />
+              <CopyButton text={args.token.landscapeToken.value} />
             </td>
           </tr>
-          {args.token.secret && (
+          {args.token.landscapeToken.secret && (
             <tr>
               <td>
                 {' '}
                 <b>Secret</b>
               </td>
-              <td style={{ wordBreak: 'break-all' }}>{args.token.secret}</td>
+              <td style={{ wordBreak: 'break-all' }}>{args.token.landscapeToken.secret}</td>
               <td>
-                <CopyButton text={args.token.secret} />
+                <CopyButton text={args.token.landscapeToken.secret} />
               </td>
             </tr>
           )}
@@ -120,7 +119,6 @@ export default function AdditionalSnapshotInfo(
           onBlur={(event) => hidePopover(event)} // There could be problems with onBlur not working as expected
           onClick={(event) => onClick(event)}
         >
-          <InfoIcon verticalAlign="middle" size="small" />
           <OverlayTrigger
             placement={'bottom'}
             trigger="click"

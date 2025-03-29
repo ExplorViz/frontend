@@ -8,11 +8,15 @@ import {
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FileAddedIcon, ShareAndroidIcon } from '@primer/octicons-react';
+import AdditionalSnapshotInfo from './additional-snapshot-info_tmp';
+import ShareSnapshot from './share-snapshot';
+import DeleteSnapshot from './delete-snapshot';
 
 interface SnapshotSelectionArgs {
   snapshotInfo: SnapshotInfo;
   selectPersonalToken(token: TinySnapshot): void;
   selectSharedToken(token: TinySnapshot): void;
+  reload(): void;
 }
 
 const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
@@ -21,6 +25,7 @@ export default function SnapshotSelection({
   snapshotInfo,
   selectPersonalToken,
   selectSharedToken,
+  reload,
 }: SnapshotSelectionArgs) {
   const [sortPropertyPersonal, setSortPropertyPersonal] =
     useState<keyof TinySnapshot>('createdAt');
@@ -140,8 +145,9 @@ export default function SnapshotSelection({
   };
 
   const uploadSnapshot = async () => {
-    useSnapshotTokenStore.getState().saveSnapshot(snapshotData!, name);
+    await useSnapshotTokenStore.getState().saveSnapshot(snapshotData!, name);
     reset();
+    reload();
   };
 
   const createLink = async (snapshot: TinySnapshot) => {
@@ -206,20 +212,18 @@ export default function SnapshotSelection({
                     <th scope="row">
                       <ul className="token-selection-icons">
                         <li>
-                          Test
-                          {/* <AdditionalSnapshotInfo token={personalToken} /> */}
+                          <AdditionalSnapshotInfo token={personalToken} />
                         </li>
                         <li>
-                          Test
-                          {/* <ShareSnapshot token={personalToken} /> */}
+                          <ShareSnapshot token={personalToken} />
                         </li>
                         <li>
-                          Test
-                          {/* <DeleteSnapshot
+                          <DeleteSnapshot
                             token={personalToken}
                             isShared={false}
                             subscribed={false}
-                          /> */}
+                            reload={reload}
+                          />
                         </li>
                       </ul>
                     </th>
@@ -333,8 +337,7 @@ export default function SnapshotSelection({
                     <th scope="row">
                       <ul className="token-selection-icons">
                         <li>
-                          Test
-                          {/* <AdditionalSnapshotInfo token={sharedToken} /> */}
+                          <AdditionalSnapshotInfo token={sharedToken} />
                         </li>
                         <li>
                           <div id="colorPresets" className="dropdown">
@@ -356,12 +359,12 @@ export default function SnapshotSelection({
                           </div>
                         </li>
                         <li>
-                          Test
-                          {/* <DeleteSnapshot
+                          <DeleteSnapshot
                             token={sharedToken}
                             isShared={true}
                             subscribed={false}
-                          /> */}
+                            reload={reload}
+                          />
                         </li>
                       </ul>
                     </th>
@@ -426,16 +429,15 @@ export default function SnapshotSelection({
                     <th scope="row">
                       <ul className="token-selection-icons">
                         <li>
-                          Test
-                          {/* <AdditionalSnapshotInfo token={subscribedToken} /> */}
+                          <AdditionalSnapshotInfo token={subscribedToken} />
                         </li>
                         <li>
-                          Test
-                          {/* <DeleteSnapshot
+                          <DeleteSnapshot
                             token={subscribedToken}
                             isShared={false}
                             subscribed={true}
-                          /> */}
+                            reload={reload}
+                          />
                         </li>
                       </ul>
                     </th>

@@ -77,6 +77,7 @@ import { useCollaborationSessionStore } from '../stores/collaboration/collaborat
 import useSyncState from '../hooks/sync-state';
 import { useShallow } from 'zustand/react/shallow';
 import { ImmersiveView } from '../rendering/application/immersive-view';
+import { useTimestampStore } from '../stores/timestamp';
 
 const queryParams = [
   'roomId',
@@ -435,6 +436,21 @@ export default function Visualization() {
 
     setVisualizationPausedRenderingService(false);
 
+    if (snapshotSelected) {
+      const snapshotToken = await useSnapshotTokenStore.getState().retrieveToken(searchParams.get('owner')!, Number(searchParams.get('createdAt')!), searchParams.get('isShared')! === "true" ? true : false);
+      if (snapshotToken === null) {
+        useToastHandlerStore.getState().showErrorToastMessage('Snapshot could not be loaded');
+        navigate("/landscapes");
+      } else {
+        useSnapshotTokenStore.setState({ snapshotToken: snapshotToken });
+      }
+
+      if (useSnapshotTokenStore.getState().snapshotToken !== null) {
+        useLandscapeTokenStore.setState({ token: useSnapshotTokenStore.getState().snapshotToken?.landscapeToken});
+        loadSnapshot();
+      }
+    }
+
     // start main loop
     restartTimestampPollingAndVizUpdate([]);
 
@@ -498,6 +514,7 @@ export default function Visualization() {
 
     eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
   };
+
 
   // # endregion
 

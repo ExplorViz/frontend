@@ -41,8 +41,8 @@ export type SnapshotInfo = {
   subscribedSnapshots: TinySnapshot[];
 };
 
-const userService = 'http://localhost:8084'; //import.meta.env.VITE_USER_SERV_URL;
-const shareSnapshot = 'http://localhost:4200/'; //import.meta.env.VITE_SHARE_SNAPSHOT_URL;
+const userService = import.meta.env.VITE_USER_SERV_URL;
+const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
 
 interface SnapshotTokenState {
   snapshotToken: SnapshotToken | null;
@@ -209,10 +209,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
           .getState()
           .showErrorToastMessage('Snapshot server could not be reached.');
       });
-
-    if (name !== undefined) {
-      useRouterStore.getState().navigateTo!('/landscapes');
-    }
   },
 
   subsribe: async (owner: string, createdAt: number, subscriber: string) => {
@@ -335,8 +331,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
             .showErrorToastMessage('Snapshot server could not be reached.');
         });
     }
-
-    useRouterStore.getState().navigateTo!('/landscapes');
   },
 
   setToken: (token: SnapshotToken | null) => {
