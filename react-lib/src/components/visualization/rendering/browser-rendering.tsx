@@ -94,6 +94,7 @@ import useSyncState from '../../../hooks/sync-state';
 import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
 import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
 import eventEmitter from '../../../utils/event-emitter';
+import { useRenderingServiceStore } from '../../../stores/rendering-service';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -104,11 +105,6 @@ interface BrowserRenderingProps {
   readonly isDisplayed: boolean;
   readonly snapshot: boolean | undefined | null;
   readonly snapshotReload: SnapshotToken | undefined | null;
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
-  pauseVisualizationUpdating(): void;
   toggleVisualizationUpdating(): void;
   switchToAR(): void;
   restructureLandscape(
@@ -127,8 +123,6 @@ export default function BrowserRendering({
   isDisplayed,
   snapshot,
   snapshotReload,
-  triggerRenderingForGivenLandscapeData,
-  pauseVisualizationUpdating,
   toggleVisualizationUpdating,
   switchToAR,
   restructureLandscape,
@@ -156,6 +150,13 @@ export default function BrowserRendering({
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
       cleanup: state.cleanup,
+    }))
+  );
+
+  const renderingServiceActions = useRenderingServiceStore(
+    useShallow((state) => ({
+      triggerRenderingForGivenLandscapeData:
+        state.triggerRenderingForGivenLandscapeData,
     }))
   );
 
@@ -248,6 +249,7 @@ export default function BrowserRendering({
     useShallow((state) => ({
       addPopup: state.addPopup,
       removePopup: state.removePopup,
+      updatePopup: state.updatePopup,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
       handleMouseMove: state.handleMouseMove,
@@ -266,13 +268,8 @@ export default function BrowserRendering({
   const annotationHandlerActions = useAnnotationHandlerStore(
     useShallow((state) => ({
       addAnnotation: state.addAnnotation,
-      hideAnnotation: state.hideAnnotation,
-      minimizeAnnotation: state.minimizeAnnotation,
-      editAnnotation: state.editAnnotation,
-      updateAnnotation: state.updateAnnotation,
       removeAnnotation: state.removeAnnotation,
       clearAnnotations: state.clearAnnotations,
-      shareAnnotation: state.shareAnnotation,
       handleMouseMove: state.handleMouseMove,
       handleHoverOnMesh: state.handleHoverOnMesh,
       updateMeshReference: state.updateMeshReference,
@@ -1149,7 +1146,7 @@ export default function BrowserRendering({
               openParents={applicationRendererActions.openParents}
               pinPopup={popupHandlerActions.pinPopup}
               popupData={data}
-              updatePopup={popupHandlerActions.addPopup}
+              updatePopup={popupHandlerActions.updatePopup}
               removePopup={removePopup}
               sharePopup={popupHandlerActions.sharePopup}
               showApplication={showApplication}
@@ -1167,13 +1164,7 @@ export default function BrowserRendering({
                   .enableCustomAnnotationPosition.value
               }
               annotationData={data}
-              shareAnnotation={annotationHandlerActions.shareAnnotation}
-              updateMeshReference={annotationHandlerActions.updateMeshReference}
               removeAnnotation={removeAnnotation}
-              hideAnnotation={annotationHandlerActions.hideAnnotation}
-              minimizeAnnotation={annotationHandlerActions.minimizeAnnotation}
-              editAnnotation={annotationHandlerActions.editAnnotation}
-              updateAnnotation={annotationHandlerActions.updateAnnotation}
               toggleHighlightById={highlightingActions.toggleHighlightById}
               openParents={applicationRendererActions.openParents}
             />
@@ -1208,15 +1199,7 @@ export default function BrowserRendering({
                     {openedToolComponent === 'entity-filtering' && (
                       <>
                         <h5 className="text-center">Entity Filtering</h5>
-                        <EntityFiltering
-                          landscapeData={landscapeData!}
-                          triggerRenderingForGivenLandscapeData={
-                            triggerRenderingForGivenLandscapeData
-                          }
-                          pauseVisualizationUpdating={
-                            pauseVisualizationUpdating
-                          }
-                        />
+                        <EntityFiltering landscapeData={landscapeData!} />
                       </>
                     )}
                     {openedToolComponent === 'application-search' && (
@@ -1233,9 +1216,6 @@ export default function BrowserRendering({
                         renderingLoop={renderingLoop.current!}
                         structureData={landscapeData!.structureLandscapeData}
                         landscapeData={landscapeData!}
-                        triggerRenderingForGivenLandscapeData={
-                          triggerRenderingForGivenLandscapeData
-                        }
                         moveCameraTo={moveCameraTo}
                         application={
                           getSelectedApplicationObject3D()!.dataModel

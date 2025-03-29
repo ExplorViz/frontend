@@ -111,6 +111,10 @@ body {
   border-radius: 5px;
 }
 
+::-webkit-scrollbar-button {
+  display: none;
+}
+
 // Needed for firefox, since the scrollbar might else overlap the options
 li.ember-power-select-option {
   padding-left: 8px;
@@ -197,4 +201,11 @@ svg.octicon {
 .buttonToLink:hover {
   background: none;
   text-decoration: underline;
+}
+
+@-moz-document url-prefix() {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #989898;
+  }
 }

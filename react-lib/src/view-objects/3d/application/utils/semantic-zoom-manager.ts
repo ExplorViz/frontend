@@ -303,7 +303,7 @@ export default class SemanticZoomManager {
   constructor() {
     this.appCommRendering =
       useApplicationRendererStore.getState().appCommRendering;
-    this.font = useFontRepositoryStore.getState().font;
+    // this.font = useFontRepositoryStore.getState().font; // Now happens in useEffect of visualization.tsx
   }
 
   public static get instance(): SemanticZoomManager {

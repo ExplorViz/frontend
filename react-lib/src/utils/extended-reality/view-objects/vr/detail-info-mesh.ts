@@ -4,7 +4,6 @@ import ScrollDownButton from 'react-lib/src/utils/extended-reality/view-objects/
 import OpenEntityButton from 'react-lib/src/utils/extended-reality/view-objects/vr/open-entity-button';
 import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from 'react-lib/src/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
-// import VrMenuFactoryService from 'explorviz-frontend/services/extended-reality/vr-menu-factory';
 import * as THREE from 'three';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {

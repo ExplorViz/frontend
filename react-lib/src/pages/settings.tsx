@@ -29,7 +29,7 @@ export default function Settings() {
       className={'container overflow-auto mt-5 mb-5 d-flex flex-column flex-1'}
     >
       <h4 className={'text-center mt-4 mb-3'}>Settings</h4>
-      <div className={'d-flex flex-row justify-content-center overflow-scroll'}>
+      <div className={'d-flex flex-row justify-content-center overflow-auto'}>
         <ApiTokenSelection apiTokens={apiTokens} refreshRoute={refreshRoute} />
       </div>
     </div>

@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
-// import { LandscapeToken } from 'explorviz-frontend/services/landscape-token';
 import {
   useLandscapeTokenStore,
   LandscapeToken,
 } from 'react-lib/src/stores/landscape-token';
-// import CollaborationSession from 'explorviz-frontend/services/collaboration/collaboration-session';
 import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-// import RoomService from 'explorviz-frontend/services/collaboration/room-service';
 import { useRoomServiceStore } from 'react-lib/src/stores/collaboration/room-service';
 import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
@@ -62,7 +59,7 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
   };
 
   return (
-    <div className="d-flex flex-row justify-content-center overflow-scroll">
+    <div className="d-flex flex-row justify-content-center selection-table" style={{ maxHeight: '80vh', minWidth: '60vh'}}>
       <table id="room-selection-table" className="table table-striped">
         <thead>
           <tr>

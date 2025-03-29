@@ -1,6 +1,5 @@
 import React from 'react';
 
-// import { sendMonitoringData } from 'explorviz-frontend/ide/ide-websocket';
 import { useIdeWebsocketFacadeStore } from 'react-lib/src/stores/ide-websocket-facade';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
 import CopyButton from 'react-lib/src/components/copy-button.tsx';

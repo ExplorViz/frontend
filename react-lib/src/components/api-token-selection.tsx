@@ -61,6 +61,7 @@ export default function ApiTokenSelection({
         localStorage.removeItem('gitProject');
       }
     }
+    refreshRoute();
   };
 
   const openMenu = () => {
@@ -73,10 +74,11 @@ export default function ApiTokenSelection({
   };
 
   const createApiToken = async () => {
-    useUserApiTokenStore
+    await useUserApiTokenStore
       .getState()
       .createApiToken(name, token, hostUrl, expDate);
     reset();
+    refreshRoute();
   };
 
   const reset = () => {
@@ -131,7 +133,7 @@ export default function ApiTokenSelection({
     <>
       <div className="pb-5 px-5 w-100">
         <h5 className="text-left mb-3">API-Tokens</h5>
-        <div className="flex-row justify-content-center overflow-scroll">
+        <div className="flex-row justify-content-center selection-table" style={{maxHeight: '700px'}}>
           <table className="table table-striped">
             <thead>
               <tr>
@@ -190,20 +192,22 @@ export default function ApiTokenSelection({
                   <td colSpan={5}>There are no saved API-Tokens.</td>
                 </tr>
               )}
-              <tr>
-                <td colSpan={5} className="p-1">
-                  <div className="d-flex flex-row justify-content-center">
-                    <Button
-                      variant="primary"
-                      className="align-self-center pt-2 px-3"
-                      onClick={() => setCreateToken(true)}
-                    >
-                      <PlusIcon size="small" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
             </tbody>
+            <tfoot>
+              <tr>
+                  <td colSpan={5} className="p-1">
+                    <div className="d-flex flex-row justify-content-center">
+                      <Button
+                        variant="primary"
+                        className="align-self-center pt-2 px-3"
+                        onClick={() => setCreateToken(true)}
+                      >
+                        <PlusIcon size="small" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -262,10 +266,7 @@ export default function ApiTokenSelection({
             </Button>
             <Button
               variant="outline-secondary"
-              onClick={() => {
-                createApiToken();
-                refreshRoute();
-              }}
+              onClick={() => createApiToken()}
               disabled={saveBtnDisabled}
             >
               Save

@@ -14,7 +14,6 @@ import {
 import { spanIdToClass } from 'react-lib/src/utils/landscape-structure-helpers';
 import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
 import { removeHighlighting } from 'react-lib/src/utils/application-rendering/highlighting';
-// import MessageSender from 'explorviz-frontend/services/collaboration/message-sender';
 import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
 import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';

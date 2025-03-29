@@ -1,4 +1,3 @@
-// import DetachedMenuGroupsService from 'explorviz-frontend/services/extended-reality/detached-menu-groups';
 import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
@@ -10,12 +9,9 @@ import { useApplicationRendererStore } from 'react-lib/src/stores/application-re
 
 export type ResetMenuArgs = UiMenuArgs & {
   online: boolean;
-  // detachedMenuGroups: DetachedMenuGroupsService;
 };
 
 export default class ResetMenu extends UiMenu {
-  // private detachedMenuGroups: DetachedMenuGroupsService;
-
   constructor({ online, ...args }: ResetMenuArgs) {
     super(args);
 

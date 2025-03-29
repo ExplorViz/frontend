@@ -5,7 +5,7 @@ import {
   useRenderingServiceStore,
 } from 'react-lib/src/stores/rendering-service';
 import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import { ApiToken } from '../stores/user-api-token';
+import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
 import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
 import { Timestamp } from '../utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from '../utils/timeline/timeline-data-object-handler';
@@ -76,6 +76,8 @@ import { ChevronUpIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
 import useSyncState from '../hooks/sync-state';
 import { useShallow } from 'zustand/react/shallow';
+import { ImmersiveView } from '../rendering/application/immersive-view';
+import { useTimestampStore } from '../stores/timestamp';
 
 const queryParams = [
   'roomId',
@@ -137,6 +139,15 @@ export default function Visualization() {
 
   // #region useEffects
 
+  useEffect(() => {
+    const loadUserAPITokens = async () => {
+      const token = await useUserApiTokenStore.getState().retrieveApiTokens();
+      setUserApiTokens(token);
+    };
+
+    loadUserAPITokens();
+  }, []);
+
   // beforeModel equivalent
   useEffect(() => {
     const loadFont = async () => {
@@ -148,6 +159,8 @@ export default function Visualization() {
           // onLoad callback
           (font) => {
             setFont(font);
+            SemanticZoomManager.instance.font = font;
+            ImmersiveView.instance.font = font;
             resolve(font);
           },
           undefined,
@@ -360,7 +373,7 @@ export default function Visualization() {
   const roomSerializer = useRoomSerializerStore(
     useShallow((state) => ({
       serializeRoom: state.serializeRoom,
-      setSerializedRoom: state.setSerializedRoom
+      setSerializedRoom: state.setSerializedRoom,
     }))
   );
 
@@ -371,7 +384,7 @@ export default function Visualization() {
     return (
       renderingServiceLandscapeData !== null &&
       renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
-      0 &&
+        0 &&
       (!renderingServiceLandscapeData.structureLandscapeData.k8sNodes ||
         renderingServiceLandscapeData.structureLandscapeData?.k8sNodes
           .length === 0)
@@ -431,6 +444,21 @@ export default function Visualization() {
     });
 
     setVisualizationPausedRenderingService(false);
+
+    if (snapshotSelected) {
+      const snapshotToken = await useSnapshotTokenStore.getState().retrieveToken(searchParams.get('owner')!, Number(searchParams.get('createdAt')!), searchParams.get('isShared')! === "true" ? true : false);
+      if (snapshotToken === null) {
+        useToastHandlerStore.getState().showErrorToastMessage('Snapshot could not be loaded');
+        navigate("/landscapes");
+      } else {
+        useSnapshotTokenStore.setState({ snapshotToken: snapshotToken });
+      }
+
+      if (useSnapshotTokenStore.getState().snapshotToken !== null) {
+        useLandscapeTokenStore.setState({ token: useSnapshotTokenStore.getState().snapshotToken?.landscapeToken});
+        loadSnapshot();
+      }
+    }
 
     // start main loop
     restartTimestampPollingAndVizUpdate([]);
@@ -495,6 +523,7 @@ export default function Visualization() {
 
     eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
   };
+
 
   // # endregion
 
@@ -645,10 +674,9 @@ export default function Visualization() {
    */
   const updateVrStatus = async () => {
     if ('xr' in navigator) {
-      const isSessionSupported = await navigator.xr?.isSessionSupported('immersive-vr') || false;
-      setVrSupported(
-        isSessionSupported!
-      );
+      const isSessionSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+      setVrSupported(isSessionSupported!);
 
       if (isSessionSupported) {
         setVrButtonText('Enter VR');
@@ -739,58 +767,54 @@ export default function Visualization() {
         {showAR ? (
           <></>
         ) : // <ArRendering
-          //   id="ar-rendering"
-          //   landscapeData={renderingServiceLandscapeData}
-          //   switchToOnScreenMode={switchToOnScreenMode}
-          //   toggleVisualizationUpdating={
-          //     renderingServiceToggleVisualizationUpdating
-          //   }
-          //   visualizationPaused={renderingServiceVisualizationPaused}
-          //   openedSettingComponent={
-          //     sidebarHandler.openedSettingComponent
-          //   }
-          //   toggleSettingsSidebarComponent={
-          //     sidebarHandler.toggleSettingsSidebarComponent
-          //   }
-          //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
-          //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
-          //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
-          // />
-          showVR ? (
-            <VrRendering
-              id="vr-rendering"
-              landscapeData={renderingServiceLandscapeData!}
-              switchToOnScreenMode={switchToOnScreenMode}
-              debugMode={visualizationSettings?.showVrOnClick.value ?? false}
-            />
-          ) : (
-            <BrowserRendering
-              // addComponent={addComponent}
-              // applicationArgs={applicationArgs}
-              // closeDataSelection={closeDataSelection}
-              components={components}
-              componentsToolsSidebar={componentsToolsSidebar}
-              id="browser-rendering"
-              isDisplayed={allLandscapeDataExistsAndNotEmpty}
-              landscapeData={renderingServiceLandscapeData}
-              landscapeToken={landscapeTokenServiceToken}
-              // pauseVisualizationUpdating={pauseVisualizationUpdating}
-              removeTimestampListener={removeTimestampListener}
-              // restructureLandscape={restructureLandscape}
-              snapshot={snapshotSelected}
-              snapshotReload={snapshotToken}
-              switchToAR={switchToAR}
-              triggerRenderingForGivenLandscapeData={
-                renderingServiceTriggerRenderingForGivenLandscapeData
-              }
-              toggleVisualizationUpdating={
-                renderingServiceToggleVisualizationUpdating
-              }
-              // updateLandscape={updateLandscape}
-              userApiTokens={userApiTokens}
-              visualizationPaused={visualizationPaused}
-            />
-          )}
+        //   id="ar-rendering"
+        //   landscapeData={renderingServiceLandscapeData}
+        //   switchToOnScreenMode={switchToOnScreenMode}
+        //   toggleVisualizationUpdating={
+        //     renderingServiceToggleVisualizationUpdating
+        //   }
+        //   visualizationPaused={renderingServiceVisualizationPaused}
+        //   openedSettingComponent={
+        //     sidebarHandler.openedSettingComponent
+        //   }
+        //   toggleSettingsSidebarComponent={
+        //     sidebarHandler.toggleSettingsSidebarComponent
+        //   }
+        //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
+        //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
+        //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
+        // />
+        showVR ? (
+          <VrRendering
+            id="vr-rendering"
+            landscapeData={renderingServiceLandscapeData!}
+            switchToOnScreenMode={switchToOnScreenMode}
+            debugMode={visualizationSettings?.showVrOnClick.value ?? false}
+          />
+        ) : (
+          <BrowserRendering
+            // addComponent={addComponent}
+            // applicationArgs={applicationArgs}
+            // closeDataSelection={closeDataSelection}
+            components={components}
+            componentsToolsSidebar={componentsToolsSidebar}
+            id="browser-rendering"
+            isDisplayed={allLandscapeDataExistsAndNotEmpty}
+            landscapeData={renderingServiceLandscapeData}
+            landscapeToken={landscapeTokenServiceToken}
+            removeTimestampListener={removeTimestampListener}
+            // restructureLandscape={restructureLandscape}
+            snapshot={snapshotSelected}
+            snapshotReload={snapshotToken}
+            switchToAR={switchToAR}
+            toggleVisualizationUpdating={
+              renderingServiceToggleVisualizationUpdating
+            }
+            // updateLandscape={updateLandscape}
+            userApiTokens={userApiTokens}
+            visualizationPaused={visualizationPaused}
+          />
+        )}
       </div>
 
       {/* ! Bottom Bar */}

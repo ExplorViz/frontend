@@ -1,7 +1,7 @@
 #token-selection-table {
   min-width: 400px;
   font-weight: 500;
-  font-size: larger;
+  font-weight: 600;
 }
 
 #personal-token-selection-table > tbody > tr:hover {
@@ -58,6 +58,27 @@
   > li:last-child {
     margin-right: 0;
   }
+}
+
+.selection-table {
+  max-height: 300px;
+  overflow: auto;
+  position: relative;
+}
+
+.selection-table thead,
+.selection-table tfoot {
+  position: sticky;
+  background: white;
+  z-index: 10;
+}
+
+.selection-table thead {
+  top: 0;
+}
+
+.selection-table tfoot {
+  bottom: 0;
 }
 
 @media only screen and (max-width: 600px) {

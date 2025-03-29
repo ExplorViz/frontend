@@ -1,6 +1,4 @@
-// import SpectateUser from 'explorviz-frontend/services/collaboration/spectate-user';
 import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
-
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
@@ -13,8 +11,6 @@ import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-
 export default class OnlineMenu extends ConnectionBaseMenu {
   // THIS MENU WON'T BE USED AT THE MOMENT AND GOT REPLACED BY OnlineMenu2
   private remoteUserButtons: Map<string, TextbuttonItem>;
-
-  // private spectateUserService: SpectateUser;
 
   private disconnectButton?: TextbuttonItem;
 
@@ -104,8 +100,8 @@ export default class OnlineMenu extends ConnectionBaseMenu {
         Array.from(this.remoteUserButtons.keys())
       )
     ) {
-      this.items.clear();
-      this.thumbpadTargets.clear();
+      this.items = [];
+      this.thumbpadTargets = [];
       this.initMenu();
     }
   }

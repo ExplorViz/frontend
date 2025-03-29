@@ -7,7 +7,7 @@ import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestam
 import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
 import { useLandscapeTokenStore } from './landscape-token';
 
-const spanService = 'http://localhost:8083'; //import.meta.env.VITE_SPAN_SERV_URL;
+const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;

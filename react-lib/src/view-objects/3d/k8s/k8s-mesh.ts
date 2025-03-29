@@ -1,5 +1,5 @@
 import { SceneLayers } from 'react-lib/src/stores/minimap-service';
-import { K8sEntity } from 'explorviz-frontend/utils/k8s-landscape-visualization-assembler';
+import { K8sEntity } from 'react-lib/src/utils/k8s-landscape-visualization-assembler';
 import * as THREE from 'three';
 import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh';
 import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';

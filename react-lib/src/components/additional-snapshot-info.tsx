@@ -7,26 +7,15 @@ import CopyButton from 'react-lib/src/components/copy-button.tsx';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { InfoIcon } from '@primer/octicons-react';
 import { Tooltip, Popover } from 'react-bootstrap';
+import { LandscapeToken } from '../stores/landscape-token';
 
-// Added could help migration
-// type TinySnapshot = {
-//   owner: string;
-//   createdAt: number;
-//   name: string;
-//   landscapeToken: LandscapeToken;
-// };
-
-// Temporary because the .ts and handlebars file don't contain a token eventhough its use in the handlebars file, maybe just use LandscapeToken?
-// This file seems like a direct copy of AdditionalTokenInfo.ts/.hbs/.tsx
 interface AdditionalSnapshotInfoProps {
   token: {
-    alias: string;
     owner: string;
-    value: string;
-    ownerId: string;
-    landscapeToken: { value: string };
+    createdAt: number;
+    name: string;
+    landscapeToken: LandscapeToken;
   };
-  authUserId: string;
 }
 
 export default function AdditionalSnapshotInfo(
@@ -34,6 +23,7 @@ export default function AdditionalSnapshotInfo(
 ) {
   const user = useAuthStore((state) => state.user);
   const [focusedClicks, setFocusedClicks] = useState<number>(0);
+
   const hidePopover = (event: React.FormEvent) => {
     if (isMouseOnPopover()) {
       return;
@@ -64,45 +54,46 @@ export default function AdditionalSnapshotInfo(
   };
 
   const popover = (
-    <Popover id={args.token.value} title={args.token.alias}>
-      <table className="table-striped" style={{ width: '100%' }}>
+    <Popover id={args.token.landscapeToken.value} title={args.token.landscapeToken.alias}>
+      <Popover.Header>{args.token.landscapeToken.alias}</Popover.Header>
+      <Popover.Body>
+      <table className="table table-striped" style={{ width: '100%' }}>
         <tbody>
           <tr>
             <td>
               <b>Owner</b>
             </td>
             <td style={{ wordBreak: 'break-all' }}>
-              {Number(args.token.ownerId) === user?.sub
+              {args.token.landscapeToken.ownerId === user?.sub
                 ? 'You'
-                : args.token.ownerId}
+                : args.token.landscapeToken.ownerId}
             </td>
-            <td>
-              <CopyButton text={args.token.ownerId} />
-            </td>
+            <td></td>
           </tr>
           <tr>
             <td>
               <b>ID</b>
             </td>
-            <td>{args.token.value}</td>
+            <td>{args.token.landscapeToken.value}</td>
             <td>
-              <CopyButton text={args.token.value} />
+              <CopyButton text={args.token.landscapeToken.value} />
             </td>
           </tr>
-          {args.token.secret && (
+          {args.token.landscapeToken.secret && (
             <tr>
               <td>
                 {' '}
                 <b>Secret</b>
               </td>
-              <td style={{ wordBreak: 'break-all' }}>{args.token.secret}</td>
+              <td style={{ wordBreak: 'break-all' }}>{args.token.landscapeToken.secret}</td>
               <td>
-                <CopyButton text={args.token.secret} />
+                <CopyButton text={args.token.landscapeToken.secret} />
               </td>
             </tr>
           )}
         </tbody>
       </table>
+      </Popover.Body>
     </Popover>
   );
 
@@ -116,15 +107,14 @@ export default function AdditionalSnapshotInfo(
         <a
           className="button-svg-with-hover"
           type="button"
-          // {{on 'focusout' this.hidePopover}}
           onBlur={(event) => hidePopover(event)} // There could be problems with onBlur not working as expected
           onClick={(event) => onClick(event)}
         >
-          <InfoIcon verticalAlign="middle" size="small" />
           <OverlayTrigger
             placement={'bottom'}
             trigger="click"
             overlay={popover}
+            rootClose
           >
             <InfoIcon verticalAlign="middle" size="small" fill="#777" />
           </OverlayTrigger>

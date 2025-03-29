@@ -11,13 +11,16 @@ interface DeleteSnapshotProps {
   token: TinySnapshot;
   isShared: boolean;
   subscribed: boolean;
+  reload(): void;
 }
 
 export default function DeleteSnapshot({
   token,
   isShared,
   subscribed,
+  reload,
 }: DeleteSnapshotProps) {
+
   const deleteSnapshotInStore = useSnapshotTokenStore(
     (state) => state.deleteSnapshot
   );
@@ -28,6 +31,7 @@ export default function DeleteSnapshot({
     subscribed: boolean
   ) => {
     deleteSnapshotInStore(snapShot, isShared, subscribed);
+    reload();
   };
 
   return (
@@ -40,9 +44,9 @@ export default function DeleteSnapshot({
         <a
           className="button-svg-with-hover"
           type="button"
-          tabindex="0"
+          tabIndex={0}
           href="#"
-          onClick={deleteSnapshot(token, isShared, subscribed)}
+          onClick={() => deleteSnapshot(token, isShared, subscribed)}
         >
           <TrashIcon size="small" verticalAlign="middle" />
         </a>

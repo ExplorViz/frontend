@@ -4,13 +4,13 @@ import HelpTooltip from 'react-lib/src/components/help-tooltip';
 import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 interface ClassMethodFilteringProps {
   readonly classes: Class[];
   remainingEntityCountAfterFiltering: number;
   initialEntityCount: number;
   updateMinMethodCount(newValue: number): void;
-  pauseVisualizationUpdating(): void;
 }
 
 export default function ClassMethodFiltering({
@@ -18,8 +18,11 @@ export default function ClassMethodFiltering({
   remainingEntityCountAfterFiltering,
   initialEntityCount,
   updateMinMethodCount,
-  pauseVisualizationUpdating,
 }: ClassMethodFilteringProps) {
+  const pauseVisualizationUpdating = useRenderingServiceStore(
+    (state) => state.pauseVisualizationUpdating
+  );
+
   const [selected, setSelected] = useState<number | null>(null);
   const min = useRef<number>(Number.MAX_VALUE);
   const max = useRef<number>(-1);
@@ -49,8 +52,8 @@ export default function ClassMethodFiltering({
     }
   };
 
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected = Number(event.target.value);
+  const onPointerUp = (event: React.PointerEvent<HTMLInputElement>) => {
+    const newSelected = Number(event.currentTarget.value);
     setSelected(newSelected);
     updateMinMethodCount(newSelected);
   };
@@ -89,7 +92,7 @@ export default function ClassMethodFiltering({
             type="range"
             step="1"
             className="form-control mr-2"
-            onChange={onChange}
+            onPointerUp={onPointerUp}
             onInput={onInput}
           />
           <div className="range-slider--values">

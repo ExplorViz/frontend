@@ -1,4 +1,3 @@
-// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
 import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
@@ -16,14 +15,7 @@ import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user
  */
 const MAX_TRANSLATE_SPEED = 0.02;
 
-// TODO: Remove because store variables aren't used
-// export type CameraMenuArgs = UiMenuArgs & {
-//   localUser: LocalUser;
-// };
-
 export default class CameraMenu extends UiMenu {
-  // private localUser: LocalUser;
-
   private resetButton: TextbuttonItem;
 
   private heightTextItem: TextItem;
@@ -34,7 +26,6 @@ export default class CameraMenu extends UiMenu {
 
   constructor({ ...args }: UiMenuArgs) {
     super(args);
-    // this.localUser = localUser;
 
     const title = new TitleItem({
       text: 'Camera',
@@ -86,7 +77,6 @@ export default class CameraMenu extends UiMenu {
   }
 
   private translateCamera(deltaHeight: number) {
-    // this.localUser.cameraHeight += deltaHeight;
     useLocalUserStore
       .getState()
       .setCameraHeight(
@@ -96,7 +86,6 @@ export default class CameraMenu extends UiMenu {
   }
 
   private resetCamera() {
-    // this.localUser.cameraHeight = 0;
     useLocalUserStore.getState().setCameraHeight(0);
     this.redrawMenu();
   }

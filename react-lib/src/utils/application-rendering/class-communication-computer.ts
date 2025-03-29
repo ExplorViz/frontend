@@ -242,7 +242,7 @@ export function computeRestructuredClassCommunication(
 
   if (copiedClassCommunications.size) {
     copiedClassCommunications.forEach((value) => {
-      classCommunications.pushObjects(value);
+      classCommunications.concat(value);
     });
   }
 
@@ -255,11 +255,11 @@ export function computeRestructuredClassCommunication(
             comm.id === deletedComm.id ||
             comm.operationName === deletedComm.operationName
         );
-        if (foundComm.length) allDeletedComms.pushObjects(foundComm);
+        if (foundComm.length) allDeletedComms.concat(foundComm);
       });
     });
 
-    classCommunications.removeObjects(allDeletedComms);
+    classCommunication = classCommunication.filter(comm => !allDeletedComms.includes(comm));
   }
 
   if (updatedClassCommunications.size) {
@@ -269,15 +269,15 @@ export function computeRestructuredClassCommunication(
       allUpdatedComms.push(...value);
     });
 
-    classCommunications.pushObjects(allUpdatedComms);
+    classCommunications.concat(allUpdatedComms);
     const removeUnwantedComms = classCommunications.filter(
       (comm) =>
         !comm.operationName.includes('removed') &&
         !comm.sourceClass.id.includes('removed') &&
         !comm.targetClass.id.includes('removed')
     );
-    classCommunications.clear();
-    classCommunications.pushObjects(removeUnwantedComms);
+    classCommunications = [];
+    classCommunications.concat(removeUnwantedComms);
   }
 
   return classCommunications;

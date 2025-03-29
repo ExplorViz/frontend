@@ -12,7 +12,7 @@ import {
   isLobbyJoinedResponse,
 } from 'react-lib/src/utils/collaboration/room-payload/receivable/lobby-joined';
 
-const collaborationService = 'http://localhost:4444'; //import.meta.env.VITE_COLLABORATION_SERV_URL;
+const collaborationService = import.meta.env.VITE_COLLABORATION_SERV_URL;
 
 interface RoomServiceState {
   listRooms: () => Promise<RoomListRecord[]>;

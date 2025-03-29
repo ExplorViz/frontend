@@ -11,27 +11,25 @@ import {
   useTimestampStore,
 } from 'react-lib/src/stores/timestamp';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 interface EntityFilteringProps {
   readonly landscapeData: LandscapeData;
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
-  pauseVisualizationUpdating(): void;
 }
 
 export default function EntityFiltering({
   landscapeData,
-  triggerRenderingForGivenLandscapeData,
-  pauseVisualizationUpdating,
 }: EntityFilteringProps) {
   const timestamp = useTimestampStore((state) => state.timestamp);
   const updateSelectedTimestamp = useTimestampStore(
     (state) => state.updateSelectedTimestamp
   );
 
-  const initialLandscapeData = useRef<LandscapeData | undefined>(undefined);
+  const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
+    (state) => state.triggerRenderingForGivenLandscapeData
+  );
+
+  const initialLandscapeData = useRef<LandscapeData>(landscapeData);
 
   const resetToInit = () => {
     triggerRenderingForGivenLandscapeData(
@@ -47,7 +45,6 @@ export default function EntityFiltering({
   };
 
   useEffect(() => {
-    resetState();
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     return () => {
       triggerRenderingForGivenLandscapeData(
@@ -71,24 +68,12 @@ export default function EntityFiltering({
       <h6 className="text-center">
         <u>Trace Filtering</u>
       </h6>
-      <TraceFiltering
-        landscapeData={landscapeData}
-        triggerRenderingForGivenLandscapeData={
-          triggerRenderingForGivenLandscapeData
-        }
-        pauseVisualizationUpdating={pauseVisualizationUpdating}
-      />
+      <TraceFiltering landscapeData={landscapeData} />
 
       <h6 className="text-center">
         <u>Structure Filtering</u>
       </h6>
-      <StructureFiltering
-        landscapeData={landscapeData}
-        triggerRenderingForGivenLandscapeData={
-          triggerRenderingForGivenLandscapeData
-        }
-        pauseVisualizationUpdating={pauseVisualizationUpdating}
-      />
+      <StructureFiltering landscapeData={landscapeData} />
     </>
   );
 }

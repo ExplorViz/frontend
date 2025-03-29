@@ -104,14 +104,25 @@ export default function PopupCoordinator({
     lastMousePosition.current.x = event.clientX;
     lastMousePosition.current.y = event.clientY;
 
+    if (!element.current) {
+      console.error('Cannot update popup position: Div ref is not assigned');
+      return;
+    }
+
+    if (!element.current.parentElement) {
+      console.error(
+        'Cannot update popup position: Parent element is not accessible'
+      );
+    }
+
     // Set the element's new position:
-    const containerDiv = element.current!.parentElement as HTMLElement;
+    const containerDiv = element.current.parentElement as HTMLElement;
 
-    const popoverHeight = element.current!.clientHeight;
-    const popoverWidth = element.current!.clientWidth;
+    const popoverHeight = element.current.clientHeight;
+    const popoverWidth = element.current.clientWidth;
 
-    let newPositionX = element.current!.offsetLeft - diffX;
-    let newPositionY = element.current!.offsetTop - diffY;
+    let newPositionX = element.current.offsetLeft - diffX;
+    let newPositionY = element.current.offsetTop - diffY;
 
     // Prevent popup position outside of rendering canvas in x-direction
     if (newPositionX < 0) {
@@ -136,12 +147,12 @@ export default function PopupCoordinator({
     // Update stored popup position relative to new position
     updatePopup({
       ...popupData,
-      mouseX: popupData.mouseX - element.current!.offsetLeft - newPositionX,
-      mouseY: popupData.mouseY - element.current!.offsetTop - newPositionY,
+      mouseX: newPositionX,
+      mouseY: newPositionY,
     });
 
-    element.current!.style.top = `${newPositionY}px`;
-    element.current!.style.left = `${newPositionX}px`;
+    element.current.style.top = `${newPositionY}px`;
+    element.current.style.left = `${newPositionX}px`;
   };
 
   const closeDragElement = () => {
@@ -223,7 +234,7 @@ export default function PopupCoordinator({
 
   return (
     <div
-      className={`popover${popupData.wasMoved ? '' : ' no-user-select'}`}
+      className={`popover${popupData.wasMoved ? '' : ' no-user-select'}${popupData.hovered ? ' hovered' : ''}`}
       style={{
         position: 'absolute',
       }}
@@ -231,7 +242,6 @@ export default function PopupCoordinator({
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
       ref={element}
-      // hover={popupData.hovered}
     >
       {popupData.wasMoved ? (
         <>

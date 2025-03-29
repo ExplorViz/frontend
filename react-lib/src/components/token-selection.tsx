@@ -221,6 +221,8 @@ export default function TokenSelection({
             </td>
           </tr>
         )}
+      </tbody>
+      <tfoot>
         <tr>
           <td colSpan={3} className="p-1">
             <div className="d-flex flex-row justify-content-center">
@@ -234,7 +236,7 @@ export default function TokenSelection({
             </div>
           </td>
         </tr>
-      </tbody>
+      </tfoot>
     </table>
   );
 }

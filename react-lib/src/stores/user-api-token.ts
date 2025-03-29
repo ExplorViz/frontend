@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import { useRouterStore } from './store-router';
 
-const userService = 'http://localhost:8080'; //import.meta.env.USER_SERV_URL;
+const userService = import.meta.env.USER_SERV_URL;
 
 export type ApiToken = {
   uid: string;
@@ -74,8 +73,6 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
           'Something went wrong. API-Token could not be deleted.'
         );
     }
-
-    useRouterStore.getState().navigateTo!('/settings');
   },
 
   createApiToken: async (
@@ -108,6 +105,5 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
           'Something went wrong. API-Token could not be saved.'
         );
     }
-    useRouterStore.getState().navigateTo!('/settings');
   },
 }));

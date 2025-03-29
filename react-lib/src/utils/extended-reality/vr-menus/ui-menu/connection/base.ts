@@ -1,7 +1,3 @@
-// import CollaborationSession, {
-//   ConnectionStatus,
-// } from 'explorviz-frontend/services/collaboration/collaboration-session';
-// import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import UiMenu, {
   UiMenuArgs,

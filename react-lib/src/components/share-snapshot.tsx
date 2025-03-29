@@ -12,6 +12,7 @@ const today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
 
 interface ShareSnapshotArgs {
   token: TinySnapshot;
+  reload: () => void;
 }
 
 export default function ShareSnapshot(args: ShareSnapshotArgs) {
@@ -37,7 +38,9 @@ export default function ShareSnapshot(args: ShareSnapshotArgs) {
   const shareSnapshot = async (snapshot: TinySnapshot) => {
     const localExpDate = expDate !== null ? expDate : 0;
 
-    useSnapshotTokenStore.getState().shareSnapshot(snapshot, localExpDate);
+    await useSnapshotTokenStore.getState().shareSnapshot(snapshot, localExpDate);
+    closeMenu();
+    args.reload();
   };
 
   return (

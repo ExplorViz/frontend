@@ -92,10 +92,10 @@ export default function Landscapes() {
     });
   };
 
-  const selectPersonalSnapshot = (token: TinySnapshot) => {
-    setLandscapeToken(null);
-    useSnapshotTokenStore.setState({ snapshotSelected: true });
+  const selectPersonalSnapshot = async (token: TinySnapshot) => {
     setSnapshotToken(null);
+    useSnapshotTokenStore.setState({ snapshotSelected: true });
+    setLandscapeToken(null);
     navigate({
       pathname: '/visualization',
       search: `?${createSearchParams({
@@ -227,7 +227,7 @@ export default function Landscapes() {
         >
           <Tab eventKey="landscapes" title="Landscapes" id="landscape-tab">
             <div
-              className={'d-flex flex-row justify-content-center overflow-auto'}
+              className={'d-flex flex-row justify-content-center selection-table'}
               style={{ maxHeight: '80vh', overflowY: 'auto' }}
             >
               <TokenSelection
@@ -250,6 +250,7 @@ export default function Landscapes() {
               snapshotInfo={data.snapshotInfo}
               selectPersonalToken={selectPersonalSnapshot}
               selectSharedToken={selectSharedSnapshot}
+              reload={reload}
             />
           </Tab>
         </Tabs>

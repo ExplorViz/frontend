@@ -74,7 +74,7 @@ interface PopupHandlerState {
     hovered?: boolean;
   }) => void;
   _removePopupAfterTimeout: (popup: PopupData) => void;
-  _updateExistingPopup: (popup: PopupData, newPopup: PopupData) => void;
+  updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;
   /**
    * React on detached menu (popup in VR) update and show a regular HTML popup.
    */
@@ -271,7 +271,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       (pd) => pd.entity.id === newPopup.entity.id
     );
     if (maybePopup) {
-      get()._updateExistingPopup(maybePopup, newPopup);
+      get().updatePopup(newPopup, false);
       return;
     }
 
@@ -282,9 +282,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       set({ popupData: [...get().popupData, newPopup] });
     } else {
       const unpinnedPopup = get().popupData[unpinnedPopupIndex];
-      // Replace unpinned popup
-      const newPopupData = [...get().popupData];
-      newPopupData[unpinnedPopupIndex] = newPopup;
 
       // Place new popup at same position of previously moved popup
       if (unpinnedPopup.wasMoved) {
@@ -292,7 +289,13 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
         newPopup.mouseY = unpinnedPopup.mouseY;
         newPopup.wasMoved = true;
       }
-      set({ popupData: newPopupData });
+
+      // Replace unpinned popup
+      set((state) => ({
+        popupData: state.popupData.map((pd) =>
+          pd.entity.id === unpinnedPopup.entity.id ? newPopup : pd
+        ),
+      }));
     }
 
     get()._removePopupAfterTimeout(newPopup);
@@ -334,23 +337,28 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }, getStoredSettings().hidePopupDelay.value * 1000);
   },
 
-  _updateExistingPopup: (popup: PopupData, newPopup: PopupData) => {
-    if (get().deactivated) return;
-    set({
-      popupData: get().popupData.map((pd) => {
-        return pd.entity.id === popup.entity.id
+  updatePopup: (updatedPopup: PopupData, updatePosition = true) => {
+    if (get().deactivated) {
+      return;
+    }
+
+    set((state) => ({
+      popupData: state.popupData.map((pd) =>
+        pd.entity.id === updatedPopup.entity.id
           ? {
-              ...popup,
-              wasMoved: popup.wasMoved || newPopup.wasMoved,
-              mouseX: newPopup.mouseX,
-              mouseY: newPopup.mouseY,
-              isPinned: popup.isPinned || newPopup.isPinned,
-              sharedBy: newPopup.sharedBy,
+              ...pd,
+              wasMoved: pd.wasMoved || updatedPopup.wasMoved,
+              mouseX: updatePosition ? updatedPopup.mouseX : pd.mouseX,
+              mouseY: updatePosition ? updatedPopup.mouseY : pd.mouseY,
+              isPinned: pd.isPinned || updatedPopup.isPinned,
+              sharedBy: updatedPopup.sharedBy,
+              hovered: updatedPopup.hovered,
             }
-          : pd;
-      }),
-    });
-    get().updateMeshReference(popup);
+          : pd
+      ),
+    }));
+
+    get().updateMeshReference(updatedPopup);
   },
 
   /**

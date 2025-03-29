@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
@@ -23,17 +23,14 @@ import {
   TrashIcon,
 } from '@primer/octicons-react';
 import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
+import { useShallow } from 'zustand/react/shallow';
+import { useToastHandlerStore } from '../../../../stores/toast-handler';
+import { useApplicationRendererStore } from '../../../../stores/application-renderer';
 
 interface AnnotationCoordinatorProps {
   isMovable: boolean;
   annotationData: AnnotationData;
   removeAnnotation(annotationId: number): void;
-  updateMeshReference(annotation: AnnotationData): void;
-  editAnnotation(annotationId: number): void;
-  updateAnnotation(annotationId: number): void;
-  hideAnnotation(annotationid: number): void;
-  minimizeAnnotation(annotationId: number): void;
-  shareAnnotation(annotation: AnnotationData): void;
   toggleHighlightById(modelId: string): void;
   openParents(
     entity: Package | Class | EntityMesh,
@@ -45,12 +42,6 @@ export default function AnnotationCoordinator({
   isMovable,
   annotationData,
   removeAnnotation,
-  updateMeshReference,
-  editAnnotation,
-  updateAnnotation,
-  hideAnnotation,
-  minimizeAnnotation,
-  shareAnnotation,
   toggleHighlightById,
   openParents,
 }: AnnotationCoordinatorProps) {
@@ -60,9 +51,24 @@ export default function AnnotationCoordinator({
     (state) => state.toggleHighlight
   );
   const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
-  const removeUnmovedAnnotations = useAnnotationHandlerStore(
-    (state) => state.removeUnmovedAnnotations
-  );
+  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
+
+  const annotationHandler = useAnnotationHandlerStore(
+    useShallow((state) => ({
+      removeUnmovedAnnotations: state.removeUnmovedAnnotations,
+      updateAnnotation: state.updateAnnotation,
+      editAnnotation: state.editAnnotation,
+      shareAnnotation: state.shareAnnotation,
+      updateMeshReference: state.updateMeshReference,
+      annotationData: state.annotationData,
+      setAnnotationData: state.setAnnotationData,
+      minimizedAnnotations: state.minimizedAnnotations,
+      setMinimizedAnnotationData: state.setMinimizedAnnotationData,
+    }))
+  )
+
+  const [annotationTitle, setAnnotationTitle] = useState<string>(annotationData.annotationTitle);
+  const [annotationText, setAnnotationText] = useState<string>(annotationData.annotationText);
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
@@ -75,19 +81,27 @@ export default function AnnotationCoordinator({
     if (isEntityMesh(annotationData.mesh)) {
       annotationData.mesh.applyHoverEffect();
     }
-    annotationData.hovered = true;
+
+    annotationHandler.setAnnotationData([
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
+      {...annotationData, hovered: true}
+    ]);
   };
 
   const onPointerOut = () => {
     if (isEntityMesh(annotationData.mesh)) {
       annotationData.mesh.resetHoverEffect();
     }
-    annotationData.hovered = false;
+
+    annotationHandler.setAnnotationData([
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
+      {...annotationData, hovered: false}
+    ]);
   };
 
   const highlight = () => {
     if (isEntityMesh(annotationData.mesh)) {
-      updateMeshReference(annotationData);
+      annotationHandler.updateMeshReference(annotationData);
       toggleHighlight(annotationData.mesh, {
         sendMessage: true,
         remoteColor: new THREE.Color(0xffb739),
@@ -117,7 +131,7 @@ export default function AnnotationCoordinator({
 
     // prevent that annotation gets minimized before user moves curser out of the annotation window
     // if this doesnt happen, it would end up in making this annotation not accessible
-    removeUnmovedAnnotations();
+    annotationHandler.removeUnmovedAnnotations();
 
     event.preventDefault();
 
@@ -231,9 +245,52 @@ export default function AnnotationCoordinator({
     annotationDiv.style.left = `${annotationLeftPosition}px`;
   }, []);
 
+  const hideAnnotation = () => {
+    if (annotationData.inEdit && !annotationData.hidden) {
+      showErrorToastMessage('Please exit edit mode before hiding.');
+      return;
+    }
+
+    // const newAnnotation = {...annotation, hidden: !annotation.hidden}
+    // setAnnotation(newAnnotation);
+
+    annotationHandler.setAnnotationData([
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
+      {...annotationData, hidden: !annotationData.hidden}
+    ]);
+  };
+
+  const minimizeAnnotation = () => {
+    if (annotationData.inEdit) {
+      useToastHandlerStore
+        .getState()
+        .showErrorToastMessage('Please exit edit mode before minimizing.');
+      return;
+    }
+
+    // remove potential toggle effects
+    if (annotationData.entity) {
+      const mesh = useApplicationRendererStore
+        .getState()
+        .getMeshById(annotationData.entity.id);
+      if (mesh?.isHovered) {
+        mesh.resetHoverEffect();
+      }
+    }
+    
+    // const newAnnotation = {...annotation, wasMoved: false}
+    annotationHandler.setMinimizedAnnotationData([
+      ...annotationHandler.minimizedAnnotations,
+      {...annotationData, wasMoved: false}
+    ]);
+    annotationHandler.setAnnotationData([
+      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId)
+    ]);
+  };
+
   return (
     <div
-      className="annotation"
+      className={`annotation ${annotationData.hovered ? "hovered" : ""}`}
       onPointerDown={dragMouseDown}
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
@@ -284,11 +341,12 @@ export default function AnnotationCoordinator({
                     {annotationData.inEdit ? (
                       <input
                         id="annotationTitle"
-                        style={{ fontWeight: 'bold' }}
+                        style={{ fontWeight: 'bold', width: '279px', height: '38px' }}
                         className="form-control mr-2"
                         placeholder="Annotation Title"
                         type="text"
-                        value={annotationData.annotationTitle}
+                        value={annotationTitle}
+                        onChange={(e) => setAnnotationTitle(e.target.value)}
                       />
                     ) : (
                       <label
@@ -297,16 +355,14 @@ export default function AnnotationCoordinator({
                           fontSize: 'x-large',
                           marginLeft: '3px',
                           marginBottom: 0,
-                          minWidth: '276px',
-                          maxWidth: '276px',
-                          minHeight: '38px',
-                          maxHeight: '38px',
+                          width: '276px',
+                          height: '38px',
                           overflow: 'scroll',
                           whiteSpace: 'nowrap',
                         }}
                         className="mr-2"
                       >
-                        {annotationData.annotationTitle}
+                        {annotationTitle}
                       </label>
                     )}
 
@@ -367,7 +423,7 @@ export default function AnnotationCoordinator({
                         <Button
                           className="annotation-share-button"
                           variant="primary"
-                          onClick={() => shareAnnotation(annotationData)}
+                          onClick={() => annotationHandler.shareAnnotation(annotationData)}
                         >
                           <ShareAndroidIcon
                             size="small"
@@ -386,7 +442,7 @@ export default function AnnotationCoordinator({
                         className="annotation-minimize-button"
                         variant="outline-secondary"
                         onClick={() =>
-                          minimizeAnnotation(annotationData.annotationId)
+                          minimizeAnnotation()
                         }
                       >
                         _
@@ -419,10 +475,11 @@ export default function AnnotationCoordinator({
                           >
                             <textarea
                               id="annotationtext"
-                              value={annotationData.annotationText}
+                              value={annotationText}
                               rows={4}
                               cols={50}
                               style={{ resize: 'none' }}
+                              onChange={(e) => setAnnotationText(e.target.value)}
                             />
                           </div>
                           <Button
@@ -436,9 +493,7 @@ export default function AnnotationCoordinator({
                               border: 'none',
                             }}
                             variant="outline-secondary"
-                            onClick={() =>
-                              updateAnnotation(annotationData.annotationId)
-                            }
+                            onClick={() => annotationHandler.updateAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
                           >
                             Update Annotation
                           </Button>
@@ -451,7 +506,7 @@ export default function AnnotationCoordinator({
                           >
                             <textarea
                               id="annotationtext"
-                              value={annotationData.annotationText}
+                              value={annotationText}
                               rows={4}
                               cols={50}
                               style={{ resize: 'none' }}
@@ -469,8 +524,7 @@ export default function AnnotationCoordinator({
                               border: 'none',
                             }}
                             variant="outline-secondary"
-                            onClick={() =>
-                              editAnnotation(annotationData.annotationId)
+                            onClick={() => {annotationHandler.editAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
                             }
                           >
                             Edit Annotation
@@ -491,7 +545,7 @@ export default function AnnotationCoordinator({
                     style={{ backgroundColor: 'lightgray', fontWeight: 'bold' }}
                     className="form-control mr-2"
                   >
-                    {annotationData.annotationTitle}
+                    {annotationTitle}
                   </label>
                   <label style={{ marginLeft: '3px' }}>
                     Associated to '{annotationData.entity!.name}'
@@ -526,7 +580,8 @@ export default function AnnotationCoordinator({
                     className="form-control mr-2"
                     placeholder="Annotation Title"
                     type="text"
-                    value={annotationData.annotationTitle}
+                    value={annotationTitle}
+                    onChange={(e) => setAnnotationTitle(e.target.value)}
                   />
                 ) : (
                   <label
@@ -544,7 +599,7 @@ export default function AnnotationCoordinator({
                     }}
                     className="mr-2"
                   >
-                    {annotationData.annotationTitle}
+                    {annotationTitle}
                   </label>
                 )}
 
@@ -587,7 +642,7 @@ export default function AnnotationCoordinator({
                     <Button
                       className="annotation-share-button"
                       variant="primary"
-                      onClick={() => shareAnnotation(annotationData)}
+                      onClick={() => annotationHandler.shareAnnotation(annotationData)}
                     >
                       <ShareAndroidIcon size="small" className="align-right" />
                     </Button>
@@ -597,13 +652,13 @@ export default function AnnotationCoordinator({
                 <OverlayTrigger
                   placement="top"
                   trigger={['hover', 'focus']}
-                  overlay={<Tooltip>Minimize annotation.</Tooltip>}
+                  overlay={<Tooltip>Hide annotation.</Tooltip>}
                 >
                   <Button
                     className="annotation-minimize-button"
                     variant="outline-secondary"
                     onClick={() =>
-                      minimizeAnnotation(annotationData.annotationId)
+                      hideAnnotation()
                     }
                   >
                     _
@@ -636,7 +691,7 @@ export default function AnnotationCoordinator({
                       >
                         <textarea
                           id="annotationtext"
-                          value={annotationData.annotationText}
+                          value={annotationText}
                           rows={4}
                           cols={45}
                           style={{ resize: 'none' }}
@@ -653,9 +708,7 @@ export default function AnnotationCoordinator({
                           border: 'none',
                         }}
                         variant="outline-secondary"
-                        onClick={() =>
-                          updateAnnotation(annotationData.annotationId)
-                        }
+                        onClick={() => annotationHandler.updateAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
                       >
                         Update Annotation
                       </Button>
@@ -668,7 +721,7 @@ export default function AnnotationCoordinator({
                       >
                         <textarea
                           id="annotationtext"
-                          value={annotationData.annotationText}
+                          value={annotationText}
                           rows={4}
                           cols={45}
                           style={{ resize: 'none' }}
@@ -686,8 +739,7 @@ export default function AnnotationCoordinator({
                           border: 'none',
                         }}
                         variant="outline-secondary"
-                        onClick={() =>
-                          editAnnotation(annotationData.annotationId)
+                        onClick={() => {annotationHandler.editAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
                         }
                       >
                         Edit Annotation

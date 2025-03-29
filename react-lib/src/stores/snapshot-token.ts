@@ -8,8 +8,6 @@ import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-mes
 import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import { useRouterStore } from 'react-lib/src/stores/store-router';
-import { createSearchParams } from 'react-router-dom';
 
 export type SnapshotToken = {
   owner: string;
@@ -41,8 +39,8 @@ export type SnapshotInfo = {
   subscribedSnapshots: TinySnapshot[];
 };
 
-const userService = 'http://localhost:8084'; //import.meta.env.VITE_USER_SERV_URL;
-const shareSnapshot = 'http://localhost:4200/'; //import.meta.env.VITE_SHARE_SNAPSHOT_URL;
+const userService = import.meta.env.VITE_USER_SERV_URL;
+const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
 
 interface SnapshotTokenState {
   snapshotToken: SnapshotToken | null;
@@ -146,12 +144,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
           } else {
             set({ snapshotSelected: false });
             set({ snapshotToken: null });
-            useRouterStore.getState().navigateTo!('/landscapes');
-            // TODO: In case of problem: In old implementation, landscapeToken was set to undefined
-            // useRouterStore.getState().navigateTo({
-            //   pathname: '/landscapes',
-            //   search: `?${createSearchParams({ landscapeToken: undefined })}`,
-            // });
             reject();
             useToastHandlerStore
               .getState()
@@ -161,12 +153,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
         .catch(async () => {
           set({ snapshotSelected: false });
           set({ snapshotToken: null });
-          useRouterStore.getState().navigateTo!('/landscapes');
-          // TODO: In case of problem: In old implementation, landscapeToken was set to undefined
-          // useRouterStore.getState().navigateTo({
-          //   pathname: '/landscapes',
-          //   search: `?${createSearchParams({ landscapeToken: undefined })}`,
-          // });
           reject();
           useToastHandlerStore
             .getState()
@@ -209,10 +195,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
           .getState()
           .showErrorToastMessage('Snapshot server could not be reached.');
       });
-
-    if (name !== undefined) {
-      useRouterStore.getState().navigateTo!('/landscapes');
-    }
   },
 
   subsribe: async (owner: string, createdAt: number, subscriber: string) => {
@@ -257,9 +239,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
       .then(async (response: Response) => {
         console.log(response.status);
         if (response.status === 200) {
-          await navigator.clipboard.writeText(
-            `${shareSnapshot}visualization?landscapeToken=${snapshot.landscapeToken.value}&owner=${snapshot.owner}&createdAt=${snapshot.createdAt}&sharedSnapshot=${true}`
-          );
           useToastHandlerStore
             .getState()
             .showSuccessToastMessage(
@@ -282,8 +261,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
           .getState()
           .showErrorToastMessage('Snapshot server could not be reached.');
       });
-
-    useRouterStore.getState().navigateTo!('/landscapes');
   },
 
   deleteSnapshot: async (
@@ -335,8 +312,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
             .showErrorToastMessage('Snapshot server could not be reached.');
         });
     }
-
-    useRouterStore.getState().navigateTo!('/landscapes');
   },
 
   setToken: (token: SnapshotToken | null) => {

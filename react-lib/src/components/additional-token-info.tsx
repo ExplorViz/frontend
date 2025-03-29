@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Tooltip, Popover } from 'react-bootstrap';
 import CopyButton from 'react-lib/src/components/copy-button.tsx';
 import { useAuthStore } from 'react-lib/src/stores/auth';
@@ -11,15 +11,27 @@ export default function AdditionalTokenInfo({
 }: {
   token: LandscapeToken;
 }) {
+  const focusedClicks = useRef<number>(0);
+
   const user = useAuthStore.getInitialState().user;
+
+  const hidePopover = (event: React.FormEvent) => {
+    // Clicks enable us to differentiate between opened and closed popovers
+    if (focusedClicks.current % 2 === 1) {
+      event.target?.dispatchEvent(new Event('click'));
+    }
+    focusedClicks.current = 0;
+  };
 
   const handleClick = (event: any) => {
     event.stopPropagation();
   };
 
   const popover = (
-    <Popover id={token.value} title={token.alias}>
-      <table className="table-striped" style={{ width: '100%' }}>
+    <Popover title={token.alias}>
+      <Popover.Header>{token.alias}</Popover.Header>
+      <Popover.Body>
+      <table className="table table-striped" style={{ width: '100%' }}>
         <tbody>
           <tr>
             <td>
@@ -28,9 +40,7 @@ export default function AdditionalTokenInfo({
             <td style={{ wordBreak: 'break-all' }}>
               {token.ownerId === user?.sub ? 'You' : token.ownerId}
             </td>
-            <td>
-              <CopyButton text={token.ownerId} />
-            </td>
+            <td></td>
           </tr>
           <tr>
             <td>
@@ -55,6 +65,7 @@ export default function AdditionalTokenInfo({
           )}
         </tbody>
       </table>
+      </Popover.Body>
     </Popover>
   );
 
@@ -65,9 +76,11 @@ export default function AdditionalTokenInfo({
         trigger={['hover', 'focus']}
         overlay={<Tooltip>Show Token Details</Tooltip>}
       >
-        <OverlayTrigger placement={'bottom'} trigger="click" overlay={popover}>
-          <InfoIcon verticalAlign="middle" size="small" fill="#777" />
-        </OverlayTrigger>
+        <div>
+          <OverlayTrigger placement={'bottom'} trigger="click" overlay={popover} rootClose>
+            <InfoIcon verticalAlign="middle" size="small" fill="#777" />
+          </OverlayTrigger>
+        </div>
       </OverlayTrigger>
     </div>
   );
