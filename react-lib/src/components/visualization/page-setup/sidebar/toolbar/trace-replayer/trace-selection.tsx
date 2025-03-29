@@ -240,6 +240,7 @@ export default function TraceSelection({
           <tbody>
             {traces.map((trace, index) => (
               <tr
+                key={index}
                 style={{
                   cursor: 'pointer',
                   backgroundColor: selectedTrace ? '#cc8a8a' : undefined,
@@ -247,7 +248,7 @@ export default function TraceSelection({
                 onClick={() => selectTrace(trace)}
               >
                 <th title={trace.traceId}>
-                  {trace.traceId.substring(27) + '...'}
+                  {trace.traceId.substring(0, 27) + '...'}
                 </th>
                 <td>{requestCounts[index]}</td>
                 <td>{formatNumber(traceDurations[index], traceTimeUnit)}</td>
