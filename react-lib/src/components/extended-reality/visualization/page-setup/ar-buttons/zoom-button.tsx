@@ -1,4 +1,5 @@
 import React from 'react';
+
 import Button from 'react-bootstrap/Button';
 import { SearchIcon } from '@primer/octicons-react';
 import ArZoomHandler from 'react-lib/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
@@ -21,10 +22,7 @@ export default function ZoomButton({
         className="half-transparent"
         onClick={handleZoomToggle}
       >
-        <SearchIcon
-          size="small"
-          className="octicon align-middle ar-button-svg"
-        />
+        <SearchIcon size="small" className="align-middle ar-button-svg" />
       </Button>
     </div>
   );

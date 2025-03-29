@@ -39,7 +39,7 @@ import { useResizeDetector } from 'react-resize-detector';
 import PopupCoordinator from 'react-lib/src/components/visualization/rendering/popups/popup-coordinator.tsx';
 import PopupButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/popup-button.tsx';
 import HeatmapButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button_tmp';
-import ZoomButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button_tmp';
+import ZoomButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button';
 import PrimaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button_tmp';
 import SecondaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button_tmp';
 import PingButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
