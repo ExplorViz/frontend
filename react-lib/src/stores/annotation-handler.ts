@@ -47,6 +47,7 @@ import {
   isAnnotationEditResponse,
 } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import { useDetachedMenuRendererStore } from 'react-lib/src/stores/extended-reality/detached-menu-renderer';
+import eventEmitter from '../utils/event-emitter';
 
 type Position2D = {
   x: number;
@@ -126,6 +127,7 @@ interface AnnotationHandlerState {
   cleanup: () => void;
   setAnnotationData: (annotations: AnnotationData[]) => void;
   setMinimizedAnnotationData: (minimizedAnnotations: AnnotationData[]) => void;
+  init: () => void;
 }
 
 export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
@@ -134,6 +136,16 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     minimizedAnnotations: [],
     latestMousePosition: { timestamp: 0, x: 0, y: 0 },
     isShiftPressed: false,
+
+    init: () => {
+      eventEmitter.on(ANNOTATION_OPENED_EVENT, get().onAnnotation);
+      eventEmitter.on(ANNOTATION_CLOSED_EVENT, get().onMenuClosed);
+      eventEmitter.on(ANNOTATION_UPDATED_EVENT, get().onUpdatedAnnotation);
+      eventEmitter.on(
+        'restore_annotations',
+        get().onRestoreAnnotations
+      );
+    },
 
     setAnnotationData: (annotations: AnnotationData[]) => {
       set({ annotationData: annotations });
@@ -361,7 +373,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         useToastHandlerStore
           .getState()
           .showErrorToastMessage(
-            'Could not remove popup since it is currently in use by another user.'
+            'Could not remove annotation since it is currently in use by another user.'
           );
       }
     },
@@ -828,3 +840,5 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
   })
 );
+
+useAnnotationHandlerStore.getState().init();

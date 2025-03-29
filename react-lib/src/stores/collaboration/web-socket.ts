@@ -155,35 +155,41 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   initSocket: async (ticketId: string, mode: VisualizationMode) => {
     set({ _currentSocketUrl: get()._getSocketUrl() });
     const urlParams = new URLSearchParams(window.location.search);
-    set({
-      _currentSocket: io(get()._currentSocketUrl!, {
-        transports: ['websocket'],
-        query: {
-          ticketId: ticketId,
-          userName: useAuthStore.getState().user?.name,
-          deviceId: urlParams.get('deviceId'),
-          mode: mode,
-        },
-      }),
+
+    const newSocket = io(get()._currentSocketUrl!, {
+      transports: ['websocket'],
+      query: {
+        ticketId: ticketId,
+        userName: useAuthStore.getState().user?.name,
+        deviceId: urlParams.get('deviceId'),
+        mode: mode,
+      },
     });
-    get()._currentSocket!.on('disconnect', get()._closeHandler.bind(this)); // TODO: Does this work?
+
+    newSocket.on('disconnect', get()._closeHandler);
 
     RECEIVABLE_EVENTS.forEach((event) => {
-      get()._currentSocket?.on(event, (message) => {
+      newSocket.on(event, (message) => {
         eventEmitter.emit(event, message);
       });
     });
 
     RESPONSE_EVENTS.forEach((event) => {
-      get()._currentSocket?.on(event, (message) => {
+      newSocket.on(event, (message) => {
         const handler = get().responseHandlers.get(message.nonce);
         if (handler) handler(message.response);
       });
     });
+
+    set({ _currentSocket: newSocket });
   },
 
   closeSocket: () => {
-    if (get().isWebSocketOpen()) get()._currentSocket?.disconnect();
+    if (get().isWebSocketOpen()) {
+      const clonedSocket = Object.assign(Object.create(Object.getPrototypeOf(get()._currentSocket)), get()._currentSocket);
+      clonedSocket.disconnect();
+      set({ _currentSocket: clonedSocket });
+    };
   },
 
   // private
@@ -258,7 +264,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     if (onOnline) onOnline();
 
     // Listen for responses.
-    const newResponseHandlers = get().responseHandlers;
+    const newResponseHandlers = new Map(get().responseHandlers);
     const handler = (response: any) => {
       if (isValidResponse(response)) {
         newResponseHandlers.delete(nonce);

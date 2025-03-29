@@ -74,7 +74,7 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
             rooms.map((room) => (
               <tr
                 key={room.roomId}
-                onClick={() => joinRoom(room)}
+                onClick={() => joinRoom(room.roomId)}
                 title="Join Room"
                 className="room-entry"
               >

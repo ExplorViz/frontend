@@ -544,12 +544,13 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
             <select
               className="form-select"
               aria-label="Default select example"
-              style={{ maxWidth: 'calc(100% - 100px);' }}
+              style={{ maxWidth: 'calc(100% - 100px)' }}
               onChange={landscapeSelected}
+              value={currentToken.value}
             >
               {landscapeTokens.map((token) => (
                 <option
-                  selected={token.value === currentToken.value}
+                  key={token.alias}
                   value={token.value}
                 >
                   {token.alias}
