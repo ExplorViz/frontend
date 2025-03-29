@@ -59,7 +59,7 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
   };
 
   return (
-    <div className="d-flex flex-row justify-content-center overflow-scroll">
+    <div className="d-flex flex-row justify-content-center selection-table" style={{ maxHeight: '80vh', minWidth: '60vh'}}>
       <table id="room-selection-table" className="table table-striped">
         <thead>
           <tr>

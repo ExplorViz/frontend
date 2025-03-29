@@ -74,8 +74,6 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
           'Something went wrong. API-Token could not be deleted.'
         );
     }
-
-    useRouterStore.getState().navigateTo!('/settings');
   },
 
   createApiToken: async (
@@ -108,6 +106,5 @@ export const useUserApiTokenStore = create<UserApiTokenState>(() => ({
           'Something went wrong. API-Token could not be saved.'
         );
     }
-    useRouterStore.getState().navigateTo!('/settings');
   },
 }));

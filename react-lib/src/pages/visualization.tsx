@@ -5,7 +5,7 @@ import {
   useRenderingServiceStore,
 } from 'react-lib/src/stores/rendering-service';
 import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import { ApiToken } from '../stores/user-api-token';
+import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
 import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
 import { Timestamp } from '../utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from '../utils/timeline/timeline-data-object-handler';
@@ -138,6 +138,15 @@ export default function Visualization() {
   // # endregion
 
   // #region useEffects
+
+  useEffect(() => {
+    const loadUserAPITokens = async () => {
+      const token = await useUserApiTokenStore.getState().retrieveApiTokens();
+      setUserApiTokens(token);
+    };
+
+    loadUserAPITokens();
+  });
 
   // beforeModel equivalent
   useEffect(() => {

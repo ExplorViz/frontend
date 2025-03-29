@@ -63,8 +63,12 @@ export default function Application() {
           searchParams.get('sharedSnapshot') == 'true'
         );
 
-        setSnapshotToken(token);
-        navigate('/visualization');
+        if (token !== null) {
+          setSnapshotToken(token);
+          navigate('/visualization');
+        } else {
+          navigate('/landscapes');
+        }
       } else {
         if (
           !searchParams.get('landscapeToken') ||
