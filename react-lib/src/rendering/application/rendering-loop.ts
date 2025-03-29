@@ -5,7 +5,7 @@ import ArZoomHandler from 'react-lib/src/utils/extended-reality/ar-helpers/ar-zo
 import * as THREE from 'three';
 import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
 import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
-
+import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 import { TickCallback } from 'react-lib/src/components/visualization/rendering/browser-rendering';
 
 const clock = new Clock();
@@ -96,7 +96,7 @@ export default class RenderingLoop {
       // Render a frame
       this.renderer.render(this.scene, this.camera);
 
-      if (this.zoomHandler && this.zoomHandler.zoomEnabled) {
+      if (this.zoomHandler && useARSettingsStore.getState().zoomEnabled) {
         // must be run after normal render
         this.zoomHandler.renderZoomCamera(this.renderer, this.scene);
       }

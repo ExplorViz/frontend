@@ -2,25 +2,22 @@ import React from 'react';
 
 import Button from 'react-bootstrap/Button';
 import { SearchIcon } from '@primer/octicons-react';
-import ArZoomHandler from 'react-lib/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
+import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 
-interface ZoomButtonArgs {
-  arZoomHandler: ArZoomHandler;
-  handleZoomToggle(): void;
-}
+interface ZoomButtonArgs {}
 
-export default function ZoomButton({
-  arZoomHandler,
-  handleZoomToggle,
-}: ZoomButtonArgs) {
-  const buttonVariant = arZoomHandler.zoomEnabled ? 'success' : 'primary';
+export default function ZoomButton({}: ZoomButtonArgs) {
+  const zoomEnabled = useARSettingsStore((state) => state.zoomEnabled);
+  const toggleZoomEnabled = useARSettingsStore(
+    (state) => state.toggleZoomEnabled
+  );
 
   return (
     <div id="ar-zoom-container">
       <Button
-        variant={buttonVariant}
+        variant={zoomEnabled ? 'success' : 'primary'}
         className="half-transparent"
-        onClick={handleZoomToggle}
+        onClick={toggleZoomEnabled}
       >
         <SearchIcon size="small" className="align-middle ar-button-svg" />
       </Button>

@@ -197,7 +197,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     setArZoomHandler(new ArZoomHandler(
       useLocalUserStore.getState().defaultCamera,
-      // arSettings
     ));
 
     renderingLoop.current = new RenderingLoop({
@@ -433,14 +432,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       handleSecondaryInputOn(intersection);
     } else {
       useHighlightingStore.getState().removeHighlightingForAllApplications(true);
-    }
-  }
-
-  const handleZoomToggle = () => {
-    if (arZoomHandler?.zoomEnabled) {
-      arZoomHandler?.disableZoom();
-    } else {
-      arZoomHandler?.enableZoom();
     }
   }
 
@@ -815,10 +806,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
               toggleHeatmap={handleHeatmapToggle}
             />
 
-            <ZoomButton
-              arZoomHandler={arZoomHandler}
-              handleZoomToggle={handleZoomToggle}
-            />
+            <ZoomButton />
 
             <div id='ar-minus-interaction-container'>
               <Button
