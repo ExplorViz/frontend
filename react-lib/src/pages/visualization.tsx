@@ -76,6 +76,7 @@ import { ChevronUpIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
 import useSyncState from '../hooks/sync-state';
 import { useShallow } from 'zustand/react/shallow';
+import { ImmersiveView } from '../rendering/application/immersive-view';
 
 const queryParams = [
   'roomId',
@@ -148,6 +149,8 @@ export default function Visualization() {
           // onLoad callback
           (font) => {
             setFont(font);
+            SemanticZoomManager.instance.font = font;
+            ImmersiveView.instance.font = font;
             resolve(font);
           },
           undefined,
