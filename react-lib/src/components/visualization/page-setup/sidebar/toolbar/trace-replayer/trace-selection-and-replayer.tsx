@@ -34,10 +34,6 @@ interface TraceSelectionAndReplayerProps {
     dynamicData: DynamicLandscapeData,
     cameraControls: CameraControls
   ): void;
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
 }
 
 export default function TraceSelectionAndReplayer({
@@ -49,7 +45,6 @@ export default function TraceSelectionAndReplayer({
   highlightTrace,
   removeHighlighting,
   moveCameraTo,
-  triggerRenderingForGivenLandscapeData,
 }: TraceSelectionAndReplayerProps) {
   const pauseVisualizationUpdating = useRenderingServiceStore(
     (state) => state.pauseVisualizationUpdating

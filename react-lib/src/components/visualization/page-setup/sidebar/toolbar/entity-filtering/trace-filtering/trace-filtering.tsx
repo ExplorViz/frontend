@@ -11,32 +11,28 @@ import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-h
 import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
 
 interface TraceFilteringProps {
   readonly landscapeData: LandscapeData;
-  triggerRenderingForGivenLandscapeData(
-    structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
-  ): void;
-  pauseVisualizationUpdating(): void;
 }
 
-export default function TraceFiltering({
-  landscapeData,
-  triggerRenderingForGivenLandscapeData,
-  pauseVisualizationUpdating,
-}: TraceFilteringProps) {
+export default function TraceFiltering({ landscapeData }: TraceFilteringProps) {
+  const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
+    (state) => state.triggerRenderingForGivenLandscapeData
+  );
+
   const [
     numRemainingTracesAfterFilteredByDuration,
     setNumRemainingTracesAfterFilteredByDuration,
-  ] = useState<number>(0);
+  ] = useState<number>(landscapeData.dynamicLandscapeData.length);
   const [
     numRemainingTracesAfterFilteredByStarttime,
     setNumRemainingTracesAfterFilteredByStarttime,
-  ] = useState<number>(0);
+  ] = useState<number>(landscapeData.dynamicLandscapeData.length);
 
   const [initialLandscapeData, setInitialLandscapeData] =
-    useState<LandscapeData | null>(null);
+    useState<LandscapeData>(landscapeData);
 
   const selectedMinDuration = useRef<number>(0);
   const selectedMinStartTimestamp = useRef<number>(0);
@@ -128,8 +124,8 @@ export default function TraceFiltering({
     return () => {
       eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
       triggerRenderingForGivenLandscapeData(
-        initialLandscapeData!.structureLandscapeData,
-        initialLandscapeData!.dynamicLandscapeData
+        initialLandscapeData.structureLandscapeData,
+        initialLandscapeData.dynamicLandscapeData
       );
     };
   }, []);
@@ -147,7 +143,6 @@ export default function TraceFiltering({
         <TraceStart
           traces={landscapeData.dynamicLandscapeData}
           updateStartTimestamp={updateStartTimestamp}
-          pauseVisualizationUpdating={pauseVisualizationUpdating}
           remainingTraceCount={numRemainingTracesAfterFilteredByStarttime}
           initialTraceCount={initialLandscapeData!.dynamicLandscapeData.length}
         />
@@ -155,7 +150,6 @@ export default function TraceFiltering({
         <TraceDuration
           traces={landscapeData.dynamicLandscapeData}
           updateDuration={updateDuration}
-          pauseVisualizationUpdating={pauseVisualizationUpdating}
           remainingTraceCount={numRemainingTracesAfterFilteredByDuration}
           initialTraceCount={initialLandscapeData!.dynamicLandscapeData.length}
         />
