@@ -35,6 +35,25 @@ import CollaborationOpener from 'react-lib/src/components/collaboration/visualiz
 import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
 import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info.tsx';
 import { useConfigurationStore } from 'react-lib/src/stores/configuration';
+import { useResizeDetector } from 'react-resize-detector';
+import PopupCoordinator from 'react-lib/src/components/visualization/rendering/popups/popup-coordinator.tsx';
+import PopupButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/popup-button.tsx';
+import HeatmapButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button_tmp';
+import ZoomButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button_tmp';
+import PrimaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button_tmp';
+import SecondaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button_tmp';
+import PingButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
+import { PlusIcon, ArrowLeftIcon, ArrowRightIcon, DashIcon, GearIcon, ThreeBarsIcon } from '@primer/octicons-react';
+import { Button } from 'react-bootstrap';
+import { useShallow } from 'zustand/react/shallow';
+import SettingsSidebar from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar.tsx';
+import SidebarComponent from 'react-lib/src/components/visualization/page-setup/sidebar/sidebar-component.tsx';
+import CollaborationControls from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx';
+import ArSettingsSelector from 'react-lib/src/components/extended-reality/visualization/page-setup/sidebar/ar-settings-selector.tsx';
+import TraceSelectionAndReplayer from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer.tsx';
+import Settings from '../../pages/settings';
+import eventEmitter from 'react-lib/src/utils/event-emitter';
+
 
 interface ArRenderingArgs {
   readonly landscapeData: LandscapeData;
@@ -42,7 +61,7 @@ interface ArRenderingArgs {
   readonly showSettingsSidebar: boolean;
   readonly visualizationPaused: boolean;
   switchToOnScreenMode(): void;
-  toggleSettingsSidebarComponent(componentPath: string): void; // is passed down to the viz navbar
+  toggleSettingsSidebarComponent(componentPath: string): boolean; // is passed down to the viz navbar
   openSettingsSidebar(): void;
   closeSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
@@ -97,6 +116,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const reticle = useRef<THREE.Mesh>(new THREE.Mesh());
 
+  const mouse = useRef<THREE.Vector2>(new THREE.Vector2());
   // Not used?
   // get appSettings() {
   //   return this.userSettings.visualizationSettings;
@@ -130,7 +150,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     arRenderingArgs.switchToOnScreenMode();
   }
 
-  const outerDivRef = useRef<HTMLElement>(null);
+  const outerDivRef = useRef<HTMLElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // #endregion CLASS FIELDS AND GETTERS
   useEffect(() => {
@@ -148,6 +169,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     outerDiv.current = outerDivRef.current;
     initRendering();
+
+    canvasRef.current!.oncontextmenu = (e) => {
+      e.preventDefault();
+    };
   });
 
   const camera = () => {
@@ -653,57 +678,110 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     updateColors();
   }
 
+  useResizeDetector({
+      refreshMode: 'debounce',
+      refreshRate: 100,
+      targetRef: canvas,
+      onResize: resize,
+    });
+
+  const localUser = useLocalUserStore(
+    useShallow((state) => ({
+      color: state.color,
+      userGroup: state.userGroup,
+      defaultCamera: state.defaultCamera,
+      controller1: state.controller1,
+      controller2: state.controller2,
+      setDefaultCamera: state.setDefaultCamera,
+      setXr: state.setXr,
+      teleportToPosition: state.teleportToPosition,
+      setController1: state.setController1,
+      setController2: state.setController2,
+      reset: state.reset,
+      setVisualizationMode: state.setVisualizationMode,
+      setPanoramaSphere: state.setPanoramaSphere,
+      updateControllers: state.updateControllers,
+      moveInCameraDirection: state.moveInCameraDirection,
+      rotateCamera: state.rotateCamera,
+      getCameraHeight: state.getCameraHeight,
+      setCameraHeight: state.setCameraHeight,
+      ping: state.ping,
+      getCamera: state.getCamera,
+    }))
+  );
+
+  const getIntersections = (event: React.MouseEvent) => {
+    if (!canvas.current || localUser.defaultCamera || !scene) return null;
+
+    const rect = canvas.current.getBoundingClientRect();
+    mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.current.setFromCamera(mouse.current, localUser.defaultCamera);
+    const intersections = raycaster.current.intersectObjects(
+      scene.children,
+      true
+    );
+
+    return intersections.length > 0 ? intersections[0] : null;
+  };
+
+  const handleMouseClick = (
+    event: React.MouseEvent,
+    callback: (intersection: THREE.Intersection | null | undefined) => void
+  ) => {
+    const intersection = getIntersections(event);
+    if (intersection) callback(intersection);
+  };
+
+
   return(
-    <div className='row' style={height:'100%'}>
-      <div className='d-flex col-12' style={flex-direction: 'column'; height: '100%'}>
+    <div className='row' style={{height: 100}}>
+      <div className='d-flex col-12' style={{flex-direction:'column', height: 100}}>
         <div
           id='rendering'
           ref={outerDivRef}
-          {{did-resize this.resize debounce=100}}
         >
-          {useHeatmapConfigurationStore.getState().heatmapActive &&(
-            <div {React heatmapInfo} />
-          )}
+          {/* TODO: Don't know where heatmapConf is coming from 
+          {heatmapConf.heatmapActive && (
+            <HeatmapInfo/>
+          )} 
+          {loadNewLandscape.isRunning ? (
+            <LoadingIndicator text='Loading New Landscape'/>
+          ):(
+            <LoadingIndicator text='Loading New Application'/>
+          )} */}
 
-          {{#if this.loadNewLandscape.isRunning}}
-            <div {{react this.loadingIndicator text='Loading New Landscape'}} />
-          {{else if this.addApplication.isRunning}}
-            <div {{react this.loadingIndicator text='Loading New Application'}} />
-          {{/if}}
-
-          {{#unless @showSettingsSidebar}}
+          {!arRenderingArgs.showSettingsSidebar && (
             <div className='ar-right-relative foreground mt-6'>
-              <BsButton
+              <Button
                 id='arSettingsOpener'
-                @onClick={{this.toggleSettingsPane}}
-                @type='secondary'
-                @outline={{true}}
+                onClick={toggleSettingsPane}
+                variant='outline-secondary'
                 title='Settings'
               >
-                {{svg-jar 'gear-16' className='octicon align-middle'}}
-              </BsButton>
+                <GearIcon size="small" className='octicon align-middle' />
+              </Button>
             </div>
-          {{/unless}}
-
-          {{! popup(s) }}
-
-          {{#each this.popupHandler.popupData as |d|}}
-            <Visualization::Rendering::Popups::PopupCoordinator
-              @popupData={{d}}
-              @pinPopup={{this.popupHandler.pinPopup}}
-              @sharePopup={{this.popupHandler.sharePopup}}
-              @removePopup={{this.popupHandler.removePopup}}
-              @structureData={{@landscapeData.structureLandscapeData}}
-              @toggleHighlightById={{this.highlightingService.toggleHighlightById}}
-              @openParents={{this.applicationRenderer.openParents}}
+          )}
+          {usePopupHandlerStore.getState().popupData.length > 0 && (
+            usePopupHandlerStore.getState().popupData.map((d) => (
+            <PopupCoordinator
+              popupData={d}
+              pinPopup={usePopupHandlerStore.getState().pinPopup}
+              sharePopup={usePopupHandlerStore.getState().sharePopup}
+              removePopup={usePopupHandlerStore.getState().removePopup}
+              structureData={arRenderingArgs.landscapeData.structureLandscapeData}
+              toggleHighlightById={useHighlightingStore.getState().toggleHighlightById}
+              openParents={useApplicationRendererStore.getState().openParents}
             />
-          {{/each}}
-
-          <canvas
+            )))}
+          {/* FIXME: bring into react */}
+          {/* <canvas
             id='threejs-canvas'
             className='webgl position-absolute
               {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
-            {{did-insert this.canvasInserted}}
+            ref = {canvasRef}
             {{interaction-modifier
               raycastObjects=this.intersectableObjects
               rendererResolutionMultiplier=this.rendererResolutionMultiplier
@@ -722,47 +800,44 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
               raycastObject3D=this.intersectableObjects
               camera=this.localUser.defaultCamera
             }}
-          >
+          > 
             <ContextMenu @items={{this.rightClickMenuItems}} />
-          </canvas>
+          </canvas>*/}
 
           <div className='ar-left-button-container'>
 
-            <ExtendedReality::Visualization::PageSetup::ArButtons::PopupButton
-              @handleInfoInteraction={{this.handleInfoInteraction}}
-              @removeAllPopups={{this.removeAllPopups}}
+            <PopupButton
+              handleInfoInteraction={handleInfoInteraction}
+              removeAllPopups={removeAllPopups}
             />
 
-            <ExtendedReality::Visualization::PageSetup::ArButtons::HeatmapButton
-              @toggleHeatmap={{this.handleHeatmapToggle}}
+            <HeatmapButton
+              toggleHeatmap={handleHeatmapToggle}
             />
 
-            <ExtendedReality::Visualization::PageSetup::ArButtons::ZoomButton
-              @arZoomHandler={{this.arZoomHandler}}
-              @handleZoomToggle={{this.handleZoomToggle}}
+            <ZoomButton
+              arZoomHandler={arZoomHandler}
+              handleZoomToggle={handleZoomToggle}
             />
 
             <div id='ar-minus-interaction-container'>
-              <BsButton
-                @type='primary'
+              <Button
+                variant='primary'
                 className='half-transparent'
-                {{on 'click' this.decreaseSize}}
+                onClick={decreaseSize}
               >
-                {{svg-jar 'dash-16' className='octicon align-middle ar-button-svg'}}
-              </BsButton>
+                <DashIcon size="small" className='octicon align-middle ar-button-svg' />
+              </Button>
             </div>
 
             <div id='ar-left-interaction-container'>
-              <BsButton
-                @type='primary'
+              <Button
+                variant='primary'
                 className='half-transparent'
-                {{on 'click' this.rotateLeft}}
+                onClick={rotateLeft}
               >
-                {{svg-jar
-                  'arrow-left-16'
-                  className='octicon align-middle ar-button-svg'
-                }}
-              </BsButton>
+                <ArrowLeftIcon size="small" className='octicon align-middle ar-button-svg' />
+              </Button>
             </div>
 
           </div>
@@ -770,135 +845,124 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
           <div className='ar-right-button-container'>
 
             <div id='ar-three-bars-interaction-container'>
-              <BsButton
-                @type='primary'
+              <Button
+                variant='primary'
                 className='half-transparent'
-                {{on 'click' this.openMenu}}
+                onClick={openMenu}
               >
-                {{svg-jar
-                  'three-bars-16'
-                  className='octicon align-middle ar-button-svg'
-                }}
-              </BsButton>
+                <ThreeBarsIcon size="small" className='octicon align-middle ar-button-svg' />
+              </Button>
             </div>
 
-            <ExtendedReality::Visualization::PageSetup::ArButtons::PrimaryInteractionButton
-              @handlePrimaryCrosshairInteraction={{this.handlePrimaryCrosshairInteraction}}
-              @openAllComponents={{this.handleOpenAllComponents}}
+            <PrimaryInteractionButton
+              handlePrimaryCrosshairInteraction={handlePrimaryCrosshairInteraction}
+              openAllComponents={handleOpenAllComponents}
             />
 
-            <ExtendedReality::Visualization::PageSetup::ArButtons::SecondaryInteractionButton
-              @handleSecondaryCrosshairInteraction={{this.handleSecondaryCrosshairInteraction}}
+            <SecondaryInteractionButton
+              handleSecondaryCrosshairInteraction={handleSecondaryCrosshairInteraction}
             />
 
-            <ExtendedReality::Visualization::PageSetup::ArButtons::PingButton
-              @handlePing={{this.handlePing}}
+            <PingButton
+              handlePing={handlePing}
+              // TODO: isUserAlone doesn't have a default value and no value can be infered, look whether this workers
+              userIsAlone={true}
             />
 
             <div id='ar-plus-interaction-container'>
-              <BsButton
-                @type='primary'
+              <Button
+                variant='primary'
                 className='half-transparent'
-                {{on 'click' this.increaseSize}}
+                onClick={increaseSize}
               >
-                {{svg-jar 'plus-16' className='octicon align-middle ar-button-svg'}}
-              </BsButton>
+                <PlusIcon size="small" className='octicon align-middle ar-button-svg' />
+              </Button>
             </div>
 
             <div id='ar-right-interaction-container'>
-              <BsButton
-                @type='primary'
+              <Button
+                variant='primary'
                 className='half-transparent'
-                {{on 'click' this.rotateRight}}
+                onClick={rotateRight}
               >
-                {{svg-jar
-                  'arrow-right-16'
-                  className='octicon align-middle ar-button-svg'
-                }}
-              </BsButton>
+                <ArrowRightIcon size="small" className='octicon align-middle ar-button-svg' />
+              </Button>
             </div>
 
           </div>
 
         </div>
       </div>
-      {{#if @showSettingsSidebar}}
+      {showSettingsSidebar && (
         <div className='sidebar right col-8' id='settingsSidebar'>
           <div className='mt-6 d-flex flex-row w-100'>
-            <Visualization::PageSetup::Sidebar::Customizationbar::SettingsSidebar
-              @closeSettingsSidebar={{@closeSettingsSidebar}}
+            <SettingsSidebar
+              closeSettingsSidebar={arRenderingArgs.closeSettingsSidebar}
             >
               <div className='explorviz-visualization-navbar'>
                 <ul className='nav justify-content-center'>
-                  <div
-                    {{react
-                      this.arSettingsOpener
-                      openedComponent=@openedSettingComponent
-                      toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
-                    }}
+                  <ArSettingsOpener 
+                    openedComponent={arRenderingArgs.openedSettingComponent} 
+                    toggleSettingsSidebarComponent={arRenderingArgs.toggleSettingsSidebarComponent} 
                   />
-                  <div
-                    {{react
-                      this.collaborationOpener
-                      openedComponent=@openedSettingComponent
-                      toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
-                    }}
+
+                  <CollaborationOpener
+                    openedComponent={arRenderingArgs.openedSettingComponent}
+                    toggleSettingsSidebarComponent={arRenderingArgs.toggleSettingsSidebarComponent}
                   />
-                  <div
-                    {{react
-                      this.settingsOpener
-                      openedComponent=@openedSettingComponent
-                      toggleSettingsSidebarComponent=@toggleSettingsSidebarComponent
-                    }}
+                  <SettingsOpener
+                      openedComponent={arRenderingArgs.openedSettingComponent}
+                      toggleSettingsSidebarComponent={arRenderingArgs.toggleSettingsSidebarComponent}
                   />
                 </ul>
               </div>
-              {{#if @openedSettingComponent}}
-                <Visualization::PageSetup::Sidebar::SidebarComponent
-                  @componentId={{@openedSettingComponent}}
+              {arRenderingArgs.openedSettingComponent && (
+                <SidebarComponent
+                  componentId={arRenderingArgs.openedSettingComponent}
                 >
-                  {{#if (eq @openedSettingComponent 'Collaboration')}}
-                    <Collaboration::Visualization::PageSetup::Sidebar::Customizationbar::Collaboration::CollaborationControls
+                  { arRenderingArgs.openedSettingComponent === 'Collaboration' && (
+                    <CollaborationControls
                     />
-                  {{/if}}
-                  {{#if (eq @openedSettingComponent 'AR-Settings')}}
-                    <ExtendedReality::Visualization::PageSetup::Sidebar::ArSettingsSelector
-                      @updateView={{this.updateColors}}
-                      @updateCameraResolution={{this.initArJs}}
-                      @updateRendererResolution={{this.updateRendererResolution}}
+                  )}
+                  { arRenderingArgs.openedSettingComponent === 'AR-Settings' && (
+                    <ArSettingsSelector
+                      updateView={updateColors}
+                      updateCameraResolution={initArJs}
+                      updateRendererResolution={updateRendererResolution}
                     />
-                  {{/if}}
-                  {{#if (eq @openedSettingComponent 'trace-selection')}}
-                    <Visualization::PageSetup::Sidebar::TraceSelectionAndReplayer
-                      @highlightTrace={{this.highlightTrace}}
-                      @removeHighlighting={{this.removeHighlighting}}
-                      @dynamicData={{@landscapeData.dynamicLandscapeData}}
-                      @structureData={{@landscapeData.structureLandscapeData}}
+                  )}
+                  {arRenderingArgs.openedSettingComponent === 'trace-selection' && (
+                    <TraceSelectionAndReplayer
+                      highlightTrace={highlightTrace}
+                      removeHighlighting={removeHighlighting}
+                      dynamicData={landscapeData.dynamicLandscapeData}
+                      structureData={landscapeData.structureLandscapeData}
                     />
-                  {{/if}}
-                  {{#if (eq @openedSettingComponent 'Settings')}}
-                    <Visualization::PageSetup::Sidebar::Customizationbar::Settings::Settings
-                      @enterFullscreen={{this.enterFullscreen}}
-                      @popups={{this.popupHandler.popupData}}
-                      @redrawCommunication={{this.applicationRenderer.addCommunicationForAllApplications}}
-                      @resetSettings={{this.userSettings.applyDefaultSettings}}
-                      @setGamepadSupport={{this.setGamepadSupport}}
-                      @updateColors={{this.updateColors}}
-                      @updateHighlighting={{this.highlightingService.updateHighlighting}}
+                  )}
+                  {arRenderingArgs.openedSettingComponent === 'Settings' && (
+                    <Settings
+                      enterFullscreen={enterFullscreen}
+                      popups={popupHandler.popupData}
+                      redrawCommunication={applicationRenderer.addCommunicationForAllApplications}
+                      resetSettings={userSettings.applyDefaultSettings}
+                      setGamepadSupport={setGamepadSupport}
+                      updateColors={updateColors}
+                      updateHighlighting={highlightingService.updateHighlighting}
                     />
-                  {{/if}}
-                </Visualization::PageSetup::Sidebar::SidebarComponent>
-              {{/if}}
-            </Visualization::PageSetup::Sidebar::Customizationbar::SettingsSidebar>
+                  )}
+                </SidebarComponent>
+              )}
+            </SettingsSidebar>
           </div>
         </div>
-      {{/if}}
+      )}
     </div>
 
-    {{add-listener
-      this.heatmapConfiguration
-      'updatedClazzMetrics'
-      this.applyHeatmap
-    }}
+    // TODO: not sure where this is coming from
+    // {{add-listener
+    //   this.heatmapConfiguration
+    //   'updatedClazzMetrics'
+    //   this.applyHeatmap
+    // }}
   )
 }
