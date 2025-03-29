@@ -24,7 +24,7 @@ export default function CopyButton({
   };
 
   return (
-    <button className="btn button-svg-with-hover" onClick={onCopy}>
+    <button className="copy-btn button-svg-with-hover" onClick={onCopy}>
       <OverlayTrigger
         placement={'right'}
         trigger={['hover', 'focus']}

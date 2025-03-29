@@ -9,16 +9,6 @@ import { InfoIcon } from '@primer/octicons-react';
 import { Tooltip, Popover } from 'react-bootstrap';
 import { LandscapeToken } from '../stores/landscape-token';
 
-// Added could help migration
-// type TinySnapshot = {
-//   owner: string;
-//   createdAt: number;
-//   name: string;
-//   landscapeToken: LandscapeToken;
-// };
-
-// Temporary because the .ts and handlebars file don't contain a token eventhough its use in the handlebars file, maybe just use LandscapeToken?
-// This file seems like a direct copy of AdditionalTokenInfo.ts/.hbs/.tsx
 interface AdditionalSnapshotInfoProps {
   token: {
     owner: string;
@@ -33,6 +23,7 @@ export default function AdditionalSnapshotInfo(
 ) {
   const user = useAuthStore((state) => state.user);
   const [focusedClicks, setFocusedClicks] = useState<number>(0);
+
   const hidePopover = (event: React.FormEvent) => {
     if (isMouseOnPopover()) {
       return;
@@ -64,7 +55,9 @@ export default function AdditionalSnapshotInfo(
 
   const popover = (
     <Popover id={args.token.landscapeToken.value} title={args.token.landscapeToken.alias}>
-      <table className="table-striped" style={{ width: '100%' }}>
+      <Popover.Header>{args.token.landscapeToken.alias}</Popover.Header>
+      <Popover.Body>
+      <table className="table table-striped" style={{ width: '100%' }}>
         <tbody>
           <tr>
             <td>
@@ -75,9 +68,7 @@ export default function AdditionalSnapshotInfo(
                 ? 'You'
                 : args.token.landscapeToken.ownerId}
             </td>
-            <td>
-              <CopyButton text={args.token.landscapeToken.ownerId} />
-            </td>
+            <td></td>
           </tr>
           <tr>
             <td>
@@ -102,6 +93,7 @@ export default function AdditionalSnapshotInfo(
           )}
         </tbody>
       </table>
+      </Popover.Body>
     </Popover>
   );
 
@@ -115,7 +107,6 @@ export default function AdditionalSnapshotInfo(
         <a
           className="button-svg-with-hover"
           type="button"
-          // {{on 'focusout' this.hidePopover}}
           onBlur={(event) => hidePopover(event)} // There could be problems with onBlur not working as expected
           onClick={(event) => onClick(event)}
         >
@@ -123,6 +114,7 @@ export default function AdditionalSnapshotInfo(
             placement={'bottom'}
             trigger="click"
             overlay={popover}
+            rootClose
           >
             <InfoIcon verticalAlign="middle" size="small" fill="#777" />
           </OverlayTrigger>

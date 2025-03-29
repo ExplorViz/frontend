@@ -8,7 +8,7 @@ import {
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FileAddedIcon, ShareAndroidIcon } from '@primer/octicons-react';
-import AdditionalSnapshotInfo from './additional-snapshot-info_tmp';
+import AdditionalSnapshotInfo from './additional-snapshot-info';
 import ShareSnapshot from './share-snapshot';
 import DeleteSnapshot from './delete-snapshot';
 

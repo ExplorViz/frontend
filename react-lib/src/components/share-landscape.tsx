@@ -28,7 +28,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
     event.stopPropagation();
     try {
       await sendModifyAccess(args.token.value, username, 'grant');
-      args.token.sharedUsersIds.addObject(username);
+      args.token.sharedUsersIds.push(username);
 
       useToastHandlerStore
         .getState()
