@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
 import Button from 'react-bootstrap/Button';
 import { FlameIcon } from '@primer/octicons-react';
