@@ -285,22 +285,23 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
     });
 
     setSelectedConfig(config);
-
-    selectedConfig!.devices.forEach((device) => {
-      setConfigDevices((prev) => [...prev, device.deviceId]);
+    
+    let newDevices: string[] = [];
+    config.devices.forEach((device) => {
+      newDevices = [...newDevices, device.deviceId];
     });
+    setConfigDevices(newDevices);
+
   };
 
   const updateSelectedDevice = (device: string) => {
     setSelectedDevice(device);
 
-    const selectedToken = new URLSearchParams(window.location.search).get(
-      'landscapeToken'
-    );
+    const selectedToken = searchParams.get('landscapeToken')!;
 
     navigate({
       pathname: '/visualization',
-      search: `?${createSearchParams({ landscapeToken: selectedToken!, deviceId: selectedDevice! })}`,
+      search: `?${createSearchParams({ landscapeToken: selectedToken!, deviceId: device! })}`,
     });
   };
 
@@ -410,6 +411,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
       ...newSpectateConfigDevices[index],
       projectionMatrix: newProjectionMatrix,
     };
+    setSpectateConfigDevices(newSpectateConfigDevices);
     canCreateSpectateConfig();
   };
 
@@ -436,6 +438,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
     setSpectateConfigs(await retrieveSpectateConfigs());
 
     closeSpectateConfigModal();
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken: searchParams.get('landscapeToken')!, deviceId: searchParams.get('deviceId')! })}`,
+    });
   };
 
   const openEditSpectateConfigModal = () => {
@@ -476,6 +482,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
     reassignSelectedItems();
 
     closeEditSpectateConfigModal();
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken: searchParams.get('landscapeToken')!, deviceId: searchParams.get('deviceId')! })}`,
+    });
   };
 
   const deleteSpectateConfig = async () => {
@@ -587,7 +597,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
                     Spectate Configuration:
                   </label>
                   <Select
-                    className="form-select mr-2"
+                    className="mr-2"
                     styles={{
                       control: (provided) => ({
                         ...provided,
@@ -623,7 +633,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
                     Select Spectate Device:
                   </label>
                   <Select
-                    className="form-select mr-2"
+                    className="mr-2"
                     styles={{
                       control: (provided) => ({
                         ...provided,
@@ -632,10 +642,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
                       }),
                     }}
                     placeholder="Please select a device"
-                    options={configDevices}
-                    onChange={(newValue) => updateSelectedDevice(newValue!)}
-                    value={selectedDevice}
-                    getOptionLabel={(device) => device}
+                    options={configDevices.map((device) => ({ value: device, label: device }))}
+                    onChange={(newValue) => updateSelectedDevice(newValue!.value)}
+                    value={selectedDevice ? { value: selectedDevice, label: selectedDevice } : null}
+                    getOptionLabel={(device) => device.label}
                   ></Select>
                   <Button
                     title="New Configuration"
