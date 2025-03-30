@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { TickCallback } from '../../components/visualization/rendering/browser-rendering';
 
 export default class Spheres {
   spheres: Array<THREE.Mesh>;
@@ -39,9 +40,9 @@ export function addSpheres(
   color: string,
   position: THREE.Vector3,
   scene: THREE.Scene,
-  updatables: any[]
+  tickCallbacks: TickCallback[]
 ) {
   const spheres = new Spheres(color, position);
   scene.add(...spheres.spheres);
-  updatables.push(spheres);
+  tickCallbacks.push({ id: 'sphere', callback: spheres.tick.bind(spheres) });
 }

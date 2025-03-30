@@ -78,6 +78,7 @@ import useSyncState from '../hooks/sync-state';
 import { useShallow } from 'zustand/react/shallow';
 import { ImmersiveView } from '../rendering/application/immersive-view';
 import { useTimestampStore } from '../stores/timestamp';
+import ArRendering from '../components/extended-reality/ar-rendering';
 
 const queryParams = [
   'roomId',
@@ -446,16 +447,26 @@ export default function Visualization() {
     setVisualizationPausedRenderingService(false);
 
     if (snapshotSelected) {
-      const snapshotToken = await useSnapshotTokenStore.getState().retrieveToken(searchParams.get('owner')!, Number(searchParams.get('createdAt')!), searchParams.get('isShared')! === "true" ? true : false);
+      const snapshotToken = await useSnapshotTokenStore
+        .getState()
+        .retrieveToken(
+          searchParams.get('owner')!,
+          Number(searchParams.get('createdAt')!),
+          searchParams.get('isShared')! === 'true' ? true : false
+        );
       if (snapshotToken === null) {
-        useToastHandlerStore.getState().showErrorToastMessage('Snapshot could not be loaded');
-        navigate("/landscapes");
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Snapshot could not be loaded');
+        navigate('/landscapes');
       } else {
         useSnapshotTokenStore.setState({ snapshotToken: snapshotToken });
       }
 
       if (useSnapshotTokenStore.getState().snapshotToken !== null) {
-        useLandscapeTokenStore.setState({ token: useSnapshotTokenStore.getState().snapshotToken?.landscapeToken});
+        useLandscapeTokenStore.setState({
+          token: useSnapshotTokenStore.getState().snapshotToken?.landscapeToken,
+        });
         loadSnapshot();
       }
     }
@@ -523,7 +534,6 @@ export default function Visualization() {
 
     eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
   };
-
 
   // # endregion
 
@@ -765,26 +775,16 @@ export default function Visualization() {
 
         {/* ! Rendering mode */}
         {showAR ? (
-          <></>
-        ) : // <ArRendering
-        //   id="ar-rendering"
-        //   landscapeData={renderingServiceLandscapeData}
-        //   switchToOnScreenMode={switchToOnScreenMode}
-        //   toggleVisualizationUpdating={
-        //     renderingServiceToggleVisualizationUpdating
-        //   }
-        //   visualizationPaused={renderingServiceVisualizationPaused}
-        //   openedSettingComponent={
-        //     sidebarHandler.openedSettingComponent
-        //   }
-        //   toggleSettingsSidebarComponent={
-        //     sidebarHandler.toggleSettingsSidebarComponent
-        //   }
-        //   showSettingsSidebar={sidebarHandler.showSettingsSidebar}
-        //   openSettingsSidebar={sidebarHandler.openSettingsSidebar}
-        //   closeSettingsSidebar={sidebarHandler.closeSettingsSidebar}
-        // />
-        showVR ? (
+          <ArRendering
+            id="ar-rendering"
+            landscapeData={renderingServiceLandscapeData!}
+            switchToOnScreenMode={switchToOnScreenMode}
+            toggleVisualizationUpdating={
+              renderingServiceToggleVisualizationUpdating
+            }
+            visualizationPaused={renderingServiceVisualizationPaused}
+          />
+        ) : showVR ? (
           <VrRendering
             id="vr-rendering"
             landscapeData={renderingServiceLandscapeData!}

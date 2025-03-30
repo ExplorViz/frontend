@@ -27,7 +27,6 @@ export type TimeUnit = 'ns' | 'ms' | 's';
 interface TraceSelectionProps {
   readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
-  readonly application: Application;
   readonly selectedTrace: Trace;
   readonly applicationTraces: Trace[];
   moveCameraTo(emberModel: Class | Span): void;
@@ -36,7 +35,6 @@ interface TraceSelectionProps {
 
 export default function TraceSelection({
   structureData,
-  application,
   selectedTrace,
   applicationTraces,
   moveCameraTo,

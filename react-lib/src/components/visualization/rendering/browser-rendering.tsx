@@ -1217,10 +1217,6 @@ export default function BrowserRendering({
                         structureData={landscapeData!.structureLandscapeData}
                         landscapeData={landscapeData!}
                         moveCameraTo={moveCameraTo}
-                        application={
-                          getSelectedApplicationObject3D()!.dataModel
-                            .application // Unsure if this is the correct value to pass
-                        }
                       />
                     )}
                   </div>
@@ -1342,5 +1338,6 @@ export type TickCallback = {
   id: string;
   callback:
     | ((delta: number, frame?: XRFrame) => void | Promise<void>)
-    | ((delta?: number, frame?: XRFrame) => void | Promise<void>);
+    | ((delta?: number, frame?: XRFrame) => void | Promise<void>)
+    | ((delta: number, frame: XRFrame) => void | Promise<void>);
 };

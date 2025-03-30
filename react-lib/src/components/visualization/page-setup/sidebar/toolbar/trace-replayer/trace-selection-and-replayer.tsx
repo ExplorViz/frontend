@@ -24,7 +24,6 @@ interface TraceSelectionAndReplayerProps {
   renderingLoop: RenderingLoop;
   readonly dynamicData: DynamicLandscapeData;
   readonly structureData: StructureLandscapeData;
-  readonly application: Application;
   readonly landscapeData: LandscapeData;
   highlightTrace(trace: Trace, traceStep: string): void;
   removeHighlighting(): void;
@@ -40,7 +39,6 @@ export default function TraceSelectionAndReplayer({
   renderingLoop,
   dynamicData,
   structureData,
-  application,
   landscapeData,
   highlightTrace,
   removeHighlighting,
@@ -95,7 +93,6 @@ export default function TraceSelectionAndReplayer({
         selectTrace={selectTrace}
         dynamicData={dynamicData}
         structureData={structureData}
-        application={application}
         applicationTraces={applicationTraces}
         selectedTrace={selectedTrace!}
       />

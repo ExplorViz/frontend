@@ -8,8 +8,12 @@ import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
-import  { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { updateColors } from 'react-lib/src/utils/application-rendering/entity-manipulation';
+import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
+import {
+  closeAllComponents,
+  moveCameraTo,
+  updateColors,
+} from 'react-lib/src/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'react-lib/src/utils/application-rendering/spheres';
 import hitTest from 'react-lib/src/utils/hit-test';
 import Raycaster from 'react-lib/src/utils/raycaster';
@@ -43,7 +47,14 @@ import ZoomButton from 'react-lib/src/components/extended-reality/visualization/
 import PrimaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button';
 import SecondaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button';
 import PingButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
-import { PlusIcon, ArrowLeftIcon, ArrowRightIcon, DashIcon, GearIcon, ThreeBarsIcon } from '@primer/octicons-react';
+import {
+  PlusIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  DashIcon,
+  GearIcon,
+  ThreeBarsIcon,
+} from '@primer/octicons-react';
 import { Button } from 'react-bootstrap';
 import { useShallow } from 'zustand/react/shallow';
 import SettingsSidebar from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar.tsx';
@@ -51,48 +62,202 @@ import SidebarComponent from 'react-lib/src/components/visualization/page-setup/
 import CollaborationControls from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx';
 import ArSettingsSelector from 'react-lib/src/components/extended-reality/visualization/page-setup/sidebar/ar-settings-selector.tsx';
 import TraceSelectionAndReplayer from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer.tsx';
-import Settings from '../../pages/settings';
+import Settings from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 import eventEmitter from 'react-lib/src/utils/event-emitter';
-
+import { TickCallback } from 'react-lib/src/components/visualization/rendering/browser-rendering';
+import PopupData from '../visualization/rendering/popups/popup-data';
+import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
+import { useAuthStore } from 'react-lib/src/stores/auth';
+import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import ApplicationData from 'react-lib/src/utils/application-data';
+import useHeatmapRenderer from '../../hooks/heatmap-renderer';
+import ContextMenu from '../context-menu';
+import useInteractionModifier from '../../hooks/interaction-modifier';
+import useLandscapeDataWatcher from '../../hooks/landscape-data-watcher';
+import useCollaborativeModifier from '../../hooks/collaborative-modifier';
 
 interface ArRenderingArgs {
+  readonly id: string;
   readonly landscapeData: LandscapeData;
-  readonly openedSettingComponent: string | null;
-  readonly showSettingsSidebar: boolean;
   readonly visualizationPaused: boolean;
   switchToOnScreenMode(): void;
-  toggleSettingsSidebarComponent(componentPath: string): boolean; // is passed down to the viz navbar
-  openSettingsSidebar(): void;
-  closeSettingsSidebar(): void;
   toggleVisualizationUpdating(): void;
 }
 
 export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
-  const loadingIndicator = LoadingIndicator;
-  const arSettingsOpener = ArSettingsOpener;
-  const collaborationOpener = CollaborationOpener;
-  const settingsOpener = SettingsOpener;
-  const heatmapInfo = HeatmapInfo;
+  // MARK: Stores
 
-  // outerDiv!: HTMLElement;
-  const outerDiv = useRef<HTMLElement | null>(null);
+  const sceneRepositoryActions = useSceneRepositoryStore(
+    useShallow((state) => ({
+      getScene: state.getScene,
+    }))
+  );
 
-  // canvas!: HTMLCanvasElement;
-  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const localUserState = useLocalUserStore(
+    useShallow((state) => ({
+      defaultCamera: state.defaultCamera,
+    }))
+  );
 
-  // currentSession: XRSession | null = null;
+  const localUserActions = useLocalUserStore(
+    useShallow((state) => ({
+      getCamera: state.getCamera,
+      setDefaultCamera: state.setDefaultCamera,
+      ping: state.ping,
+      tick: state.tick,
+    }))
+  );
+
+  const popupHandlerState = usePopupHandlerStore(
+    useShallow((state) => ({
+      popupData: state.popupData,
+    }))
+  );
+
+  const popupHandlerActions = usePopupHandlerStore(
+    useShallow((state) => ({
+      addPopup: state.addPopup,
+      updatePopup: state.updatePopup,
+      updateMeshReference: state.updateMeshReference,
+      removePopup: state.removePopup,
+      clearPopups: state.clearPopups,
+      pinPopup: state.pinPopup,
+      sharePopup: state.sharePopup,
+      handleHoverOnMesh: state.handleHoverOnMesh,
+      removeUnpinnedPopups: state.removeUnpinnedPopups,
+    }))
+  );
+
+  const applicationRendererActions = useApplicationRendererStore(
+    useShallow((state) => ({
+      getMeshById: state.getMeshById,
+      getApplicationById: state.getApplicationById,
+      addCommunicationForAllApplications:
+        state.addCommunicationForAllApplications,
+      openAllComponentsOfAllApplications:
+        state.openAllComponentsOfAllApplications,
+      openParents: state.openParents,
+      toggleCommunicationRendering: state.toggleCommunicationRendering,
+      setOpenApplicationsMap: state.setOpenApplicationsMap,
+      setLandscape3D: state.setLandscape3D,
+      openAllComponents: state.openAllComponents,
+      closeAllComponents: state.closeAllComponents,
+      toggleComponent: state.toggleComponent,
+    }))
+  );
+
+  const annotationHandlerActions = useAnnotationHandlerStore(
+    useShallow((state) => ({
+      addAnnotation: state.addAnnotation,
+    }))
+  );
+
+  const authState = useAuthStore(
+    useShallow((state) => ({
+      user: state.user,
+    }))
+  );
+
+  const userSettingsState = useUserSettingsStore(
+    useShallow((state) => ({
+      colors: state.colors,
+    }))
+  );
+
+  const userSettingsActions = useUserSettingsStore(
+    useShallow((state) => ({
+      applyDefaultSettings: state.applyDefaultSettings,
+    }))
+  );
+
+  const configurationState = useConfigurationStore(
+    useShallow((state) => ({
+      isCommRendered: state.isCommRendered,
+    }))
+  );
+
+  const highlightingActions = useHighlightingStore(
+    useShallow((state) => ({
+      updateHighlighting: state.updateHighlighting,
+      removeHighlightingForAllApplications:
+        state.removeHighlightingForAllApplications,
+      toggleHighlight: state.toggleHighlight,
+      toggleHighlightById: state.toggleHighlightById,
+    }))
+  );
+
+  const collaborationSessionState = useCollaborationSessionStore(
+    useShallow((state) => ({
+      isOnline: state.isOnline,
+    }))
+  );
+
+  const collaborationSessionActions = useCollaborationSessionStore(
+    useShallow((state) => ({
+      idToRemoteUser: state.idToRemoteUser,
+    }))
+  );
+
+  const messageSenderActions = useMessageSenderStore(
+    useShallow((state) => ({
+      sendMousePingUpdate: state.sendMousePingUpdate,
+    }))
+  );
+
+  const heatmapConfigurationState = useHeatmapConfigurationStore(
+    useShallow((state) => ({
+      heatmapActive: state.heatmapActive,
+      currentApplication: state.currentApplication,
+    }))
+  );
+
+  const heatmapConfigurationActions = useHeatmapConfigurationStore(
+    useShallow((state) => ({
+      setActive: state.setActive,
+      setActiveApplication: state.setActiveApplication,
+    }))
+  );
+
+  const toastHandlerActions = useToastHandlerStore();
+
+  // MARK: State
+
+  const [showToolsSidebar, setShowToolsSiderbar] = useState<boolean>(false);
+  const [showSettingsSidebar, setShowSettingsSidebar] =
+    useState<boolean>(false);
+  const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
+    null
+  );
+  const [openedSettingComponent, setOpenedSettingComponent] = useState<
+    string | null
+  >(null);
+
+  const [rendererResolutionMultiplier, setRendererResolutionMultiplier] =
+    useState<number>(2);
+
+  const [scene] = useState<THREE.Scene>(() =>
+    sceneRepositoryActions.getScene('ar', true)
+  );
+
+  const [landscape3D] = useState<Landscape3D>(() => new Landscape3D());
+
+  const [mousePosition, setMousePosition] = useState<THREE.Vector3>(
+    new THREE.Vector3(0, 0, 0)
+  );
+
+  // MARK: Refs
+
+  const outerDivRef = useRef<HTMLDivElement>(null);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const currentSession = useRef<XRSession | null>(null);
-
-  const [arZoomHandler, setArZoomHandler] = useState<ArZoomHandler | undefined>(undefined);
 
   const landscapeMarker = useRef<THREE.Group>(new THREE.Group());
 
   const applicationMarkers = useRef<THREE.Group[]>([]);
 
-  // Private variable
-  const willDestroyController! = useRef<AbortController>(null);
-
-  const [rendererResolutionMultiplier, setRendererResolutionMultiplier] = useState<number>(2);
+  const willDestroyController = useRef<AbortController>(new AbortController());
 
   const lastPopupClear = useRef<number>(0);
 
@@ -100,90 +265,38 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const [showSettings, setShowSettings] = useState<boolean>(false);
 
-  const localPing = useRef<{ obj: THREE.Object3D; time: number } | undefined | null>(null);
+  const localPing = useRef<
+    { obj: THREE.Object3D; time: number } | undefined | null
+  >(undefined);
 
-  const [scene, setScene] = useState<THREE.Scene>(() => new THREE.Scene());
+  const renderer = useRef<THREE.WebGLRenderer | null>(null);
 
-  // Private variable
-  const [landscape3D, setLandscape3D] = useState<Landscape3D>(() => new Landscape3D()); 
-
-  // Private variable
-  const renderer! = useRef<THREE.WebGLRenderer | null>(null);
-
-  const updatables = useRef<any[]>([]);
+  const tickCallbacks = useRef<TickCallback[]>([]);
 
   const raycaster = useRef<Raycaster>(new Raycaster());
 
-  const reticle = useRef<THREE.Mesh>(new THREE.Mesh());
+  const reticle = useRef<THREE.Mesh | null>(null);
 
+  const arZoomHandler = useRef<ArZoomHandler | undefined>(undefined);
+
+  const renderingLoop = useRef<RenderingLoop | null>(null);
+
+  const hoveredObject = useRef<EntityMesh | null>(null);
+
+  // TODO
   const mouse = useRef<THREE.Vector2>(new THREE.Vector2());
-  // Not used?
-  // get appSettings() {
-  //   return this.userSettings.visualizationSettings;
-  // }
 
-  const rightClickMenuItems = () => {
-    const pauseItemtitle = arRenderingArgs.visualizationPaused
-      ? 'Resume Visualization'
-      : 'Pause Visualization';
-    const commButtonTitle = useConfigurationStore.getState().isCommRendered
-      ? 'Hide Communication'
-      : 'Add Communication';
-    return [
-      { title: 'Leave AR View', action: leaveArView },
-      { title: 'Remove Popups', action: removeAllPopups },
-      { title: 'Reset View', action: resetView },
-      { title: pauseItemtitle, action: arRenderingArgs.toggleVisualizationUpdating },
-      {
-        title: 'Open All Components',
-        action: useApplicationRendererStore.getState().openAllComponentsOfAllApplications,
-      },
-      {
-        title: commButtonTitle,
-        action: useApplicationRendererStore.getState().toggleCommunicationRendering,
-      },
-    ];
-  }
+  // MARK Constants
+
+  const camera = localUserState.defaultCamera;
+  const intersectableObjects = scene.children;
+
+  // MARK Event handlers
 
   const leaveArView = () => {
     currentSession.current?.end();
     arRenderingArgs.switchToOnScreenMode();
-  }
-
-  const outerDivRef = useRef<HTMLElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  // #endregion CLASS FIELDS AND GETTERS
-  useEffect(() => {
-
-    setScene(useSceneRepositoryStore.getState().getScene('ar', true));
-    scene.background = null;
-
-    // useApplicationRendererStore.getState().getOpenApplications().clear(); TODO: Is this mutable array or why would this work?
-    setLandscape3D(new Landscape3D());
-    scene.add(landscape3D);
-    // updatables.push(localUser); TODO: What to do with this?
-
-    document.addEventListener('contextmenu', (event) => event.preventDefault());
-    useApplicationRendererStore.setState({landscape3D: landscape3D});
-
-    outerDiv.current = outerDivRef.current;
-    initRendering();
-
-    canvasRef.current!.oncontextmenu = (e) => {
-      e.preventDefault();
-    };
-  });
-
-  const camera = () => {
-    return useLocalUserStore.getState().defaultCamera;
-  }
-
-  const [xcamera, setXcamera] = useState<any>(null); // Not used at all
-
-  // #region COMPONENT AND SCENE INITIALIZATION
-  //
-  const renderingLoop = useRef<RenderingLoop | null>(null);
+  };
 
   /**
    * Calls all three related init functions and adds the three
@@ -195,16 +308,14 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     initRenderer();
     initAr();
 
-    setArZoomHandler(new ArZoomHandler(
-      useLocalUserStore.getState().defaultCamera,
-    ));
+    arZoomHandler.current = new ArZoomHandler(localUserActions.getCamera());
 
     renderingLoop.current = new RenderingLoop({
       camera: camera,
       scene: scene,
       renderer: renderer.current!,
-      updatables: updatables,
-      zoomHandler: arZoomHandler!,
+      tickCallbacks: tickCallbacks.current,
+      zoomHandler: arZoomHandler.current!,
     });
     ImmersiveView.instance.registerRenderingLoop(renderingLoop.current);
     const controller = renderer.current!.xr.getController(0);
@@ -212,12 +323,14 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     // controller.addEventListener('select', this.onSelect);
     scene.add(controller);
 
-    window.addEventListener('resize', () => {
-      resize();
+    window.addEventListener('resize', resize);
+
+    addSpheres('skyblue', mousePosition, scene, tickCallbacks.current);
+    tickCallbacks.current.push({
+      id: 'ar-rendering',
+      callback: tick,
     });
 
-    addSpheres('skyblue', mousePosition, scene, updatables.current);
-    // renderingLoop.updatables.push(this); // How to handle this?
     renderingLoop.current.start();
     initCameraCrosshair();
 
@@ -237,55 +350,57 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         domOverlay: { root: document.body },
       })
       .then(onSessionStarted);
-  }
+  };
 
   /**
    * Creates a PerspectiveCamera according to canvas size and sets its initial position
-   * Privat function
    */
   const initCamera = () => {
     // Set camera properties
-    useLocalUserStore.setState({
-      defaultCamera: new THREE.PerspectiveCamera(65,
+    localUserActions.setDefaultCamera(
+      new THREE.PerspectiveCamera(
+        65,
         document.body.clientWidth / document.body.clientHeight,
         0.01,
         20
-      )});
+      )
+    );
     scene.add(useLocalUserStore.getState().defaultCamera);
-  }
+  };
 
   const initCameraCrosshair = () => {
     const geometry = new THREE.RingGeometry(0.0001, 0.0003, 30);
     const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const crosshairMesh = new THREE.Mesh(geometry, material);
 
-    useLocalUserStore.getState().defaultCamera.add(crosshairMesh);
+    localUserState.defaultCamera.add(crosshairMesh);
+    // Position just in front of camera
     crosshairMesh.position.z = -0.1;
-  }
+  };
 
   const handlePinching = (_intersection: THREE.Intersection, delta: number) => {
     landscape3D.scale.multiplyScalar(delta);
-  }
+  };
 
   const handleRotate = (_intersection: THREE.Intersection, delta: number) => {
     landscape3D.rotateY(delta);
-  }
+  };
 
   const increaseSize = () => {
     landscape3D.scale.multiplyScalar(1.1);
-  }
+  };
 
   const decreaseSize = () => {
     landscape3D.scale.multiplyScalar(0.9);
-  }
+  };
 
   const rotateLeft = () => {
     landscape3D.rotateY((12.5 * Math.PI) / 180);
-  }
+  };
 
   const rotateRight = () => {
     landscape3D.rotateY((-12.5 * Math.PI) / 180);
-  }
+  };
 
   const openMenu = () => {
     const position = {
@@ -302,8 +417,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       bubbles: true,
       cancelable: true,
     });
-    canvas.current!.dispatchEvent(evt);
-  }
+    canvasRef.current!.dispatchEvent(evt);
+  };
 
   /**
    * Initiates a WebGLRenderer
@@ -313,33 +428,23 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     renderer.current = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      canvas: canvas.current!,
+      canvas: canvasRef.current!,
       powerPreference: 'high-performance',
     });
     renderer.current.xr.enabled = true;
 
     renderer.current.setClearColor(new THREE.Color('lightgrey'), 0);
-  }
+  };
 
-  // Private function
   const initAr = () => {
-    const localReticle = new THREE.Mesh(
+    reticle.current = new THREE.Mesh(
       new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial()
     );
-    localReticle.matrixAutoUpdate = false;
-    localReticle.visible = false;
-    reticle.current = localReticle;
-    scene.add(localReticle);
-    // const button = ARButton.createButton(this.renderer, {
-    //   requiredFeatures: ['hit-test'],
-    //   optionalFeatures: ['dom-overlay', 'dom-overlay-for-handheld-ar'],
-    //   domOverlay: { root: document.body }
-    // });
-    // button.style.bottom = '70px'
-    // this.outerDiv.appendChild(button);
-    // this.resize(this.outerDiv)
-  }
+    reticle.current.matrixAutoUpdate = false;
+    reticle.current.visible = false;
+    scene.add(reticle.current);
+  };
 
   const onSessionStarted = async (session: XRSession) => {
     session.addEventListener('end', onSessionEnded);
@@ -348,35 +453,13 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     await renderer.current!.xr.setSession(session);
     currentSession.current = session;
-  }
+  };
 
   const onSessionEnded = (/* event */) => {
     currentSession.current?.removeEventListener('end', onSessionEnded);
     currentSession.current = null;
     leaveArView();
-  }
-
-  const intersectableObjects = () => {
-    return scene.children;
-  }
-
-  // #endregion COMPONENT AND SCENE INITIALIZATION
-
-  // #region ACTIONS
-
-  const outerDivInserted = async (outerDiv: HTMLElement) => {
-    outerDiv = outerDiv;
-    initRendering();
-  }
-
-  const canvasInserted = (localCanvas: HTMLCanvasElement) => {
-
-    canvas.current = localCanvas;
-
-    canvas.current!.oncontextmenu = (e) => {
-      e.preventDefault();
-    };
-  }
+  };
 
   /**
    * Call this whenever the canvas is resized. Updated properties of camera
@@ -397,33 +480,40 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-  }
+  };
 
   const resetView = () => {
     landscape3D.scale.setScalar(0.02);
     landscape3D.visible = false;
-  }
+  };
 
   const updateRendererResolution = (resolutionMultiplier: number) => {
     setRendererResolutionMultiplier(resolutionMultiplier);
     resize();
-  }
+  };
+
+  const updateCameraResolution = (width: number, height: number) => {
+    // Wild guess at what this function is supposed to do
+    const aspect = width / height;
+    camera.aspect = aspect;
+    camera.updateProjectionMatrix();
+  };
 
   const handlePrimaryCrosshairInteraction = () => {
     const intersection = raycastCenter();
     if (intersection) {
       handlePrimaryInputOn(intersection);
-    } else if (reticle.current.visible && !landscape3D.visible) {
+    } else if (reticle.current!.visible && !landscape3D.visible) {
       const mesh = landscape3D;
-      reticle.current.matrix.decompose(
+      reticle.current!.matrix.decompose(
         mesh.position,
         mesh.quaternion,
         new THREE.Vector3()
       );
       mesh.visible = true;
-      reticle.current.visible = false;
+      reticle.current!.visible = false;
     }
-  }
+  };
 
   const handleSecondaryCrosshairInteraction = () => {
     const intersection = raycastCenter();
@@ -431,9 +521,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     if (intersection) {
       handleSecondaryInputOn(intersection);
     } else {
-      useHighlightingStore.getState().removeHighlightingForAllApplications(true);
+      highlightingActions.removeHighlightingForAllApplications(true);
     }
-  }
+  };
 
   const handleOpenAllComponents = async () => {
     lastOpenAllComponents.current = Date.now();
@@ -446,14 +536,14 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     const applicationObject3D = intersection.object.parent;
 
-    useApplicationRendererStore.getState().openAllComponents(applicationObject3D);
-  }
+    applicationRendererActions.openAllComponents(applicationObject3D);
+  };
 
   const handlePing = async () => {
-    if (!useCollaborationSessionStore.getState().isOnline) {
-      useToastHandlerStore
-        .getState()
-        .showInfoToastMessage('Offline. <br> Join session with users to ping.');
+    if (!collaborationSessionState.isOnline) {
+      toastHandlerActions.showInfoToastMessage(
+        'Offline.\nJoin session with users to ping.'
+      );
       return;
     }
 
@@ -467,20 +557,24 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
 
-    useLocalUserStore.getState().ping(parentObj, pingPosition);
+    localUserActions.ping(parentObj, pingPosition);
 
     if (!useCollaborationSessionStore.getState().isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
-        useMessageSenderStore.getState().sendMousePingUpdate(
+        messageSenderActions.sendMousePingUpdate(
           parentObj.getModelId(),
           true,
           pingPosition
         );
       } else {
-        useMessageSenderStore.getState().sendMousePingUpdate('landscape', false, pingPosition);
+        messageSenderActions.sendMousePingUpdate(
+          'landscape',
+          false,
+          pingPosition
+        );
       }
     }
-  }
+  };
 
   const handleHeatmapToggle = async () => {
     const intersection = raycastCenter();
@@ -490,19 +584,16 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     ) {
       const applicationObject3D = intersection.object.parent;
       if (
-        useHeatmapConfigurationStore.getState().currentApplication ===
-          applicationObject3D &&
-        useHeatmapConfigurationStore.getState().heatmapActive
+        heatmapConfigurationState.currentApplication === applicationObject3D &&
+        heatmapConfigurationState.heatmapActive
       ) {
-        useHeatmapConfigurationStore.setState({ heatmapActive: false });
+        heatmapConfigurationActions.setActive(false);
         return;
       }
-      useHeatmapConfigurationStore
-        .getState()
-        .setActiveApplication(applicationObject3D);
-      useHeatmapConfigurationStore.setState({ heatmapActive: true });
+      heatmapConfigurationActions.setActiveApplication(applicationObject3D);
+      heatmapConfigurationActions.setActive(false);
     }
-  }
+  };
 
   const handleInfoInteraction = () => {
     // Do not add popup if user long pressed popup button to remove all popups
@@ -517,41 +608,35 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     const mesh = intersection.object;
     const position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    usePopupHandlerStore.getState().addPopup({
+    popupHandlerActions.addPopup({
       mesh,
       position,
       hovered: true,
     });
-  }
+  };
 
   const toggleSettingsPane = () => {
-    arRenderingArgs.openSettingsSidebar();
-  }
+    setShowSettingsSidebar((showSettingsSidebar) => !showSettingsSidebar);
+  };
 
   const removeAllPopups = () => {
     lastPopupClear.current = Date.now();
-    usePopupHandlerStore.getState().clearPopups();
-  }
-
-  // #endregion ACTIONS
-
-  // #region MOUSE & KEYBOARD EVENT HANDLER
+    popupHandlerActions.clearPopups();
+  };
 
   const handleDoubleClick = (intersection: THREE.Intersection | null) => {
     if (!intersection) return;
 
     handlePrimaryInputOn(intersection);
-  }
-
-  const [mousePosition, setMousePosition] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  };
 
   const handleSingleClick = (intersection: THREE.Intersection | null) => {
     if (!intersection) return;
 
-    mousePosition.copy(intersection.point);
+    setMousePosition(intersection.point.clone());
 
     handleSecondaryInputOn(intersection);
-  }
+  };
 
   const handleMouseWheel = (delta: number) => {
     const intersection = raycastCenter();
@@ -565,9 +650,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       // Scale hit object with respect to scroll direction and scroll distance
       object.scale.copy(object.scale.multiplyScalar(1 - delta / 25));
     }
-  }
+  };
 
-  // Private function
   const raycastCenter = () => {
     const possibleObjects = intersectableObjects;
     return raycaster.current.raycasting(
@@ -575,17 +659,11 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       camera,
       possibleObjects
     );
-  }
-
-  // #endregion MOUSE & KEYBOARD EVENT HANDLER
-
-  // #region RENDERING
-
-  const hoveredObject = useRef<EntityMesh | null>(null);
+  };
 
   const tick = (delta: number, frame: XRFrame) => {
     const intersection = raycastCenter();
-    usePopupHandlerStore.getState().handleHoverOnMesh(intersection?.object);
+    popupHandlerActions.handleHoverOnMesh(intersection?.object);
     if (intersection) {
       const mesh = intersection.object;
       if (isEntityMesh(mesh)) {
@@ -600,35 +678,29 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     }
 
     if (renderer.current!.xr.enabled) {
-      if (!landscape3D.visible || reticle.current.visible) {
-        hitTest(renderer.current!, reticle.current, frame);
+      if (!landscape3D.visible || reticle.current!.visible) {
+        hitTest(renderer.current!, reticle.current!, frame);
       }
     }
-    useCollaborationSessionStore.getState().idToRemoteUser.forEach((remoteUser) => {
+    collaborationSessionActions.idToRemoteUser.forEach((remoteUser) => {
       remoteUser.update(delta);
     });
-  }
-
-  // #endregion RENDERING
-
-  // #region UTILS
-  // Private function
+  };
 
   const handlePrimaryInputOn = (intersection: THREE.Intersection) => {
-    const localLastOpenComponents = lastOpenAllComponents.current;
     const { object } = intersection;
 
     function handleApplicationObject(appObject: THREE.Object3D) {
       if (
         !(appObject.parent instanceof ApplicationObject3D) ||
-        Date.now() - localLastOpenComponents < 20
+        Date.now() - lastOpenAllComponents.current < 20
       )
         return;
 
       if (appObject instanceof ComponentMesh) {
-        useApplicationRendererStore.getState().toggleComponent(appObject, appObject.parent);
+        applicationRendererActions.toggleComponent(appObject, appObject.parent);
       } else if (appObject instanceof FoundationMesh) {
-        useApplicationRendererStore.getState().closeAllComponents(appObject.parent);
+        applicationRendererActions.closeAllComponents(appObject.parent);
       }
     }
 
@@ -636,9 +708,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     if (object.parent instanceof ApplicationObject3D) {
       handleApplicationObject(object);
     }
-  }
+  };
 
-  // Private function
   const handleSecondaryInputOn = (intersection: THREE.Intersection) => {
     const { object } = intersection;
 
@@ -647,295 +718,382 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       object instanceof ClazzMesh ||
       object instanceof ClazzCommunicationMesh
     ) {
-      useHighlightingStore.getState().toggleHighlight(object, {
+      highlightingActions.toggleHighlight(object, {
         sendMessage: true,
       });
     }
-  }
+  };
 
-  const removeUnpinnedPopups = () => {
-    usePopupHandlerStore.getState().removeUnpinnedPopups();
-  }
+  const removeUnpinnedPopups = popupHandlerActions.removeUnpinnedPopups;
 
-  // willDestroy() {
-  //   super.willDestroy();
-  const willDestroy = () => {
-    renderingLoop.current!.stop();
-    // Remove event listers.
-    willDestroyController.current!.abort();
-  }
+  const updateSceneColors = () => {
+    updateColors(scene, userSettingsState.colors!);
+  };
 
-  const updateColors = () => {
-    updateColors();
-  }
+  const addAnnotationForPopup = (popup: PopupData) => {
+    const mesh = applicationRendererActions.getMeshById(popup.entity.id);
+    if (!mesh) return;
 
-  useResizeDetector({
-      refreshMode: 'debounce',
-      refreshRate: 100,
-      targetRef: canvas,
-      onResize: resize,
+    annotationHandlerActions.addAnnotation({
+      annotationId: undefined,
+      mesh: mesh,
+      position: { x: popup.mouseX + 400, y: popup.mouseY },
+      hovered: true,
+      annotationTitle: '',
+      annotationText: '',
+      sharedBy: '',
+      owner: authState.user!.name.toString(),
+      shared: false,
+      inEdit: true,
+      lastEditor: undefined,
+      wasMoved: true,
+    });
+  };
+
+  const enterFullscreen = () => {
+    if (!canvasRef.current) {
+      console.error('Unable to enter fullscreen: Canvas ref is not set');
+      return;
+    }
+    canvasRef.current.requestFullscreen();
+  };
+
+  const removePopup = (entityId: string) => {
+    popupHandlerActions.removePopup(entityId);
+
+    // remove potential toggle effect
+    const mesh = applicationRendererActions.getMeshById(entityId);
+    if (mesh?.isHovered) {
+      mesh.resetHoverEffect();
+    }
+  };
+
+  const showApplication = (appId: string) => {
+    removePopup(appId);
+    // const applicationObject3D =
+    //   applicationRendererActions.getApplicationById(appId);
+    // if (applicationObject3D) {
+    //   cameraControls.current!.focusCameraOn(0.8, applicationObject3D);
+    // }
+  };
+
+  const toggleToolsSidebarComponent = (component: string): boolean => {
+    const newOpenedToolComponent =
+      openedToolComponent === component ? null : component;
+    setOpenedToolComponent(newOpenedToolComponent);
+    return newOpenedToolComponent === component;
+  };
+
+  const toggleSettingsSidebarComponent = (component: string): boolean => {
+    const newOpenedSettingComponent =
+      openedSettingComponent === component ? null : component;
+    setOpenedSettingComponent(newOpenedSettingComponent);
+    return newOpenedSettingComponent === component;
+  };
+
+  // MARK: Variables
+
+  const rightClickMenuItems = [
+    { title: 'Leave AR View', action: leaveArView },
+    { title: 'Remove Popups', action: removeAllPopups },
+    { title: 'Reset View', action: resetView },
+    {
+      title: arRenderingArgs.visualizationPaused
+        ? 'Resume Visualization'
+        : 'Pause Visualization',
+      action: arRenderingArgs.toggleVisualizationUpdating,
+    },
+    {
+      title: 'Open All Components',
+      action: applicationRendererActions.openAllComponentsOfAllApplications,
+    },
+    {
+      title: configurationState.isCommRendered
+        ? 'Hide Communication'
+        : 'Add Communication',
+      action: applicationRendererActions.toggleCommunicationRendering,
+    },
+  ];
+
+  // MARK: Effects
+
+  useEffect(function init() {
+    scene.background = null;
+
+    applicationRendererActions.setOpenApplicationsMap(new Map());
+
+    scene.add(landscape3D);
+    tickCallbacks.current.push({
+      id: 'local-user',
+      callback: localUserActions.tick,
     });
 
-  const localUser = useLocalUserStore(
-    useShallow((state) => ({
-      color: state.color,
-      userGroup: state.userGroup,
-      defaultCamera: state.defaultCamera,
-      controller1: state.controller1,
-      controller2: state.controller2,
-      setDefaultCamera: state.setDefaultCamera,
-      setXr: state.setXr,
-      teleportToPosition: state.teleportToPosition,
-      setController1: state.setController1,
-      setController2: state.setController2,
-      reset: state.reset,
-      setVisualizationMode: state.setVisualizationMode,
-      setPanoramaSphere: state.setPanoramaSphere,
-      updateControllers: state.updateControllers,
-      moveInCameraDirection: state.moveInCameraDirection,
-      rotateCamera: state.rotateCamera,
-      getCameraHeight: state.getCameraHeight,
-      setCameraHeight: state.setCameraHeight,
-      ping: state.ping,
-      getCamera: state.getCamera,
-    }))
+    const onContextMenu = (event: MouseEvent) => event.preventDefault();
+
+    document.addEventListener('contextmenu', onContextMenu);
+    applicationRendererActions.setLandscape3D(landscape3D);
+
+    initRendering();
+
+    if (!canvasRef.current) {
+      console.error('Canvas ref is not set');
+      return;
+    }
+
+    canvasRef.current.oncontextmenu = (e) => {
+      e.preventDefault();
+    };
+
+    return function cleanup() {
+      renderingLoop.current!.stop();
+
+      // Remove event listers.
+      document.removeEventListener('contextmenu', onContextMenu);
+      willDestroyController.current.abort();
+    };
+  }, []);
+
+  // MARK: Hooks
+
+  useInteractionModifier(
+    canvasRef,
+    intersectableObjects,
+    camera,
+    {
+      onDoubleClick: handleDoubleClick,
+      onSingleClick: handleSingleClick,
+      onPinch: handlePinching,
+      onRotate: handleRotate,
+    },
+    rendererResolutionMultiplier
   );
 
-  const getIntersections = (event: React.MouseEvent) => {
-    if (!canvas.current || localUser.defaultCamera || !scene) return null;
+  useHeatmapRenderer(camera, scene);
 
-    const rect = canvas.current.getBoundingClientRect();
-    mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  useLandscapeDataWatcher(arRenderingArgs.landscapeData, landscape3D);
 
-    raycaster.current.setFromCamera(mouse.current, localUser.defaultCamera);
-    const intersections = raycaster.current.intersectObjects(
-      scene.children,
-      true
-    );
+  useCollaborativeModifier();
 
-    return intersections.length > 0 ? intersections[0] : null;
-  };
+  useResizeDetector({
+    refreshMode: 'debounce',
+    refreshRate: 100,
+    targetRef: outerDivRef,
+    onResize: resize,
+  });
 
-  const handleMouseClick = (
-    event: React.MouseEvent,
-    callback: (intersection: THREE.Intersection | null | undefined) => void
-  ) => {
-    const intersection = getIntersections(event);
-    if (intersection) callback(intersection);
-  };
+  // MARK: JSX
 
+  return (
+    <div className="row" style={{ height: '100%' }}>
+      <div
+        className="d-flex col-12"
+        style={{ flexDirection: 'column', height: '100%' }}
+      >
+        <div id="rendering" ref={outerDivRef}>
+          {heatmapConfigurationState.heatmapActive && <HeatmapInfo />}
 
-  return(
-    <div className='row' style={{height: 100}}>
-      <div className='d-flex col-12' style={{flex-direction:'column', height: 100}}>
-        <div
-          id='rendering'
-          ref={outerDivRef}
-        >
-          {/* TODO: Don't know where heatmapConf is coming from 
-          {heatmapConf.heatmapActive && (
-            <HeatmapInfo/>
-          )} 
-          {loadNewLandscape.isRunning ? (
-            <LoadingIndicator text='Loading New Landscape'/>
-          ):(
-            <LoadingIndicator text='Loading New Application'/>
+          {/* {loadNewLandscape.isRunning ? (
+            <LoadingIndicator text="Loading New Landscape" />
+          ) : {addApplication.isRunning && (
+            <LoadingIndicator text="Loading New Application" />
           )} */}
 
-          {!arRenderingArgs.showSettingsSidebar && (
-            <div className='ar-right-relative foreground mt-6'>
+          {!showSettingsSidebar && (
+            <div className="ar-right-relative foreground mt-6">
               <Button
-                id='arSettingsOpener'
+                id="arSettingsOpener"
                 onClick={toggleSettingsPane}
-                variant='outline-secondary'
-                title='Settings'
+                variant="outline-secondary"
+                title="Settings"
               >
-                <GearIcon size="small" className='octicon align-middle' />
+                <GearIcon size="small" className="align-middle" />
               </Button>
             </div>
           )}
-          {usePopupHandlerStore.getState().popupData.length > 0 && (
-            usePopupHandlerStore.getState().popupData.map((d) => (
+          {popupHandlerState.popupData.map((d) => (
             <PopupCoordinator
+              key={d.entity.id}
               popupData={d}
-              pinPopup={usePopupHandlerStore.getState().pinPopup}
-              sharePopup={usePopupHandlerStore.getState().sharePopup}
-              removePopup={usePopupHandlerStore.getState().removePopup}
-              structureData={arRenderingArgs.landscapeData.structureLandscapeData}
-              toggleHighlightById={useHighlightingStore.getState().toggleHighlightById}
-              openParents={useApplicationRendererStore.getState().openParents}
+              pinPopup={popupHandlerActions.pinPopup}
+              sharePopup={popupHandlerActions.sharePopup}
+              removePopup={popupHandlerActions.removePopup}
+              updatePopup={popupHandlerActions.updatePopup}
+              updateMeshReference={popupHandlerActions.updateMeshReference}
+              structureData={
+                arRenderingArgs.landscapeData.structureLandscapeData
+              }
+              toggleHighlightById={highlightingActions.toggleHighlightById}
+              openParents={applicationRendererActions.openParents}
+              addAnnotationForPopup={addAnnotationForPopup}
+              showApplication={showApplication}
             />
-            )))}
-          {/* FIXME: bring into react */}
-          {/* <canvas
-            id='threejs-canvas'
-            className='webgl position-absolute
-              {{if this.hoverHandler.hoveredEntityObj "pointer-cursor"}}'
-            ref = {canvasRef}
-            {{interaction-modifier
-              raycastObjects=this.intersectableObjects
-              rendererResolutionMultiplier=this.rendererResolutionMultiplier
-              camera=this.camera
-              doubleClick=this.handleDoubleClick
-              singleClick=this.handleSingleClick
-              pinch=this.handlePinching
-              rotate=this.handleRotate
-            }}
-            {{heatmap-renderer camera=this.camera scene=this.scene}}
-            {{landscape-data-watcher
-              landscapeData=@landscapeData
-              landscape3D=this.landscape3D
-            }}
-            {{collaboration/collaborative-modifier
-              raycastObject3D=this.intersectableObjects
-              camera=this.localUser.defaultCamera
-            }}
-          > 
-            <ContextMenu @items={{this.rightClickMenuItems}} />
-          </canvas>*/}
+          ))}
 
-          <div className='ar-left-button-container'>
+          <ContextMenu items={rightClickMenuItems}>
+            <canvas
+              id="threejs-canvas"
+              className="webgl position-absolute"
+              ref={canvasRef}
+            />
+          </ContextMenu>
 
+          <div className="ar-left-button-container">
             <PopupButton
               handleInfoInteraction={handleInfoInteraction}
               removeAllPopups={removeAllPopups}
             />
 
-            <HeatmapButton
-              toggleHeatmap={handleHeatmapToggle}
-            />
+            <HeatmapButton toggleHeatmap={handleHeatmapToggle} />
 
             <ZoomButton />
 
-            <div id='ar-minus-interaction-container'>
+            <div id="ar-minus-interaction-container">
               <Button
-                variant='primary'
-                className='half-transparent'
+                variant="primary"
+                className="half-transparent"
                 onClick={decreaseSize}
               >
-                <DashIcon size="small" className='octicon align-middle ar-button-svg' />
+                <DashIcon size="small" className="align-middle ar-button-svg" />
               </Button>
             </div>
 
-            <div id='ar-left-interaction-container'>
+            <div id="ar-left-interaction-container">
               <Button
-                variant='primary'
-                className='half-transparent'
+                variant="primary"
+                className="half-transparent"
                 onClick={rotateLeft}
               >
-                <ArrowLeftIcon size="small" className='octicon align-middle ar-button-svg' />
+                <ArrowLeftIcon
+                  size="small"
+                  className="align-middle ar-button-svg"
+                />
               </Button>
             </div>
-
           </div>
 
-          <div className='ar-right-button-container'>
-
-            <div id='ar-three-bars-interaction-container'>
+          <div className="ar-right-button-container">
+            <div id="ar-three-bars-interaction-container">
               <Button
-                variant='primary'
-                className='half-transparent'
+                variant="primary"
+                className="half-transparent"
                 onClick={openMenu}
               >
-                <ThreeBarsIcon size="small" className='octicon align-middle ar-button-svg' />
+                <ThreeBarsIcon
+                  size="small"
+                  className="octicon align-middle ar-button-svg"
+                />
               </Button>
             </div>
 
             <PrimaryInteractionButton
-              handlePrimaryCrosshairInteraction={handlePrimaryCrosshairInteraction}
+              handlePrimaryCrosshairInteraction={
+                handlePrimaryCrosshairInteraction
+              }
               openAllComponents={handleOpenAllComponents}
             />
 
             <SecondaryInteractionButton
-              handleSecondaryCrosshairInteraction={handleSecondaryCrosshairInteraction}
+              handleSecondaryCrosshairInteraction={
+                handleSecondaryCrosshairInteraction
+              }
             />
 
-            <PingButton
-              handlePing={handlePing}
-              // TODO: isUserAlone doesn't have a default value and no value can be infered, look whether this workers
-              userIsAlone={true}
-            />
+            <PingButton handlePing={handlePing} />
 
-            <div id='ar-plus-interaction-container'>
+            <div id="ar-plus-interaction-container">
               <Button
-                variant='primary'
-                className='half-transparent'
+                variant="primary"
+                className="half-transparent"
                 onClick={increaseSize}
               >
-                <PlusIcon size="small" className='octicon align-middle ar-button-svg' />
+                <PlusIcon size="small" className="align-middle ar-button-svg" />
               </Button>
             </div>
 
-            <div id='ar-right-interaction-container'>
+            <div id="ar-right-interaction-container">
               <Button
-                variant='primary'
-                className='half-transparent'
+                variant="primary"
+                className="half-transparent"
                 onClick={rotateRight}
               >
-                <ArrowRightIcon size="small" className='octicon align-middle ar-button-svg' />
+                <ArrowRightIcon
+                  size="small"
+                  className="align-middle ar-button-svg"
+                />
               </Button>
             </div>
-
           </div>
-
         </div>
       </div>
       {showSettingsSidebar && (
-        <div className='sidebar right col-8' id='settingsSidebar'>
-          <div className='mt-6 d-flex flex-row w-100'>
+        <div className="sidebar right col-8" id="settingsSidebar">
+          <div className="mt-6 d-flex flex-row w-100">
             <SettingsSidebar
-              closeSettingsSidebar={arRenderingArgs.closeSettingsSidebar}
+              closeSettingsSidebar={() => setShowSettingsSidebar(false)}
             >
-              <div className='explorviz-visualization-navbar'>
-                <ul className='nav justify-content-center'>
-                  <ArSettingsOpener 
-                    openedComponent={arRenderingArgs.openedSettingComponent} 
-                    toggleSettingsSidebarComponent={arRenderingArgs.toggleSettingsSidebarComponent} 
+              <div className="explorviz-visualization-navbar">
+                <ul className="nav justify-content-center">
+                  <ArSettingsOpener
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
                   />
 
                   <CollaborationOpener
-                    openedComponent={arRenderingArgs.openedSettingComponent}
-                    toggleSettingsSidebarComponent={arRenderingArgs.toggleSettingsSidebarComponent}
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
                   />
                   <SettingsOpener
-                      openedComponent={arRenderingArgs.openedSettingComponent}
-                      toggleSettingsSidebarComponent={arRenderingArgs.toggleSettingsSidebarComponent}
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
                   />
                 </ul>
               </div>
-              {arRenderingArgs.openedSettingComponent && (
-                <SidebarComponent
-                  componentId={arRenderingArgs.openedSettingComponent}
-                >
-                  { arRenderingArgs.openedSettingComponent === 'Collaboration' && (
-                    <CollaborationControls
-                    />
+              {openedSettingComponent && (
+                <SidebarComponent componentId={openedSettingComponent}>
+                  {openedSettingComponent === 'Collaboration' && (
+                    <CollaborationControls />
                   )}
-                  { arRenderingArgs.openedSettingComponent === 'AR-Settings' && (
+                  {openedSettingComponent === 'AR-Settings' && (
                     <ArSettingsSelector
-                      updateView={updateColors}
-                      updateCameraResolution={initArJs}
+                      updateCameraResolution={updateCameraResolution}
                       updateRendererResolution={updateRendererResolution}
                     />
                   )}
-                  {arRenderingArgs.openedSettingComponent === 'trace-selection' && (
+                  {openedSettingComponent === 'trace-selection' && (
                     <TraceSelectionAndReplayer
-                      highlightTrace={highlightTrace}
-                      removeHighlighting={removeHighlighting}
-                      dynamicData={landscapeData.dynamicLandscapeData}
-                      structureData={landscapeData.structureLandscapeData}
+                      highlightTrace={() => {}}
+                      removeHighlighting={() => {}}
+                      dynamicData={
+                        arRenderingArgs.landscapeData.dynamicLandscapeData
+                      }
+                      structureData={
+                        arRenderingArgs.landscapeData.structureLandscapeData
+                      }
+                      renderingLoop={renderingLoop.current!}
+                      landscapeData={arRenderingArgs.landscapeData}
+                      moveCameraTo={moveCameraTo}
                     />
                   )}
-                  {arRenderingArgs.openedSettingComponent === 'Settings' && (
+                  {openedSettingComponent === 'Settings' && (
                     <Settings
                       enterFullscreen={enterFullscreen}
-                      popups={popupHandler.popupData}
-                      redrawCommunication={applicationRenderer.addCommunicationForAllApplications}
-                      resetSettings={userSettings.applyDefaultSettings}
-                      setGamepadSupport={setGamepadSupport}
-                      updateColors={updateColors}
-                      updateHighlighting={highlightingService.updateHighlighting}
+                      popups={popupHandlerState.popupData}
+                      redrawCommunication={
+                        applicationRendererActions.addCommunicationForAllApplications
+                      }
+                      resetSettings={userSettingsActions.applyDefaultSettings}
+                      setGamepadSupport={() => {}}
+                      updateColors={updateSceneColors}
+                      updateHighlighting={
+                        highlightingActions.updateHighlighting
+                      }
+                      showSemanticZoomClusterCenters={() => {}}
                     />
                   )}
                 </SidebarComponent>
@@ -945,12 +1103,5 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         </div>
       )}
     </div>
-
-    // TODO: not sure where this is coming from
-    // {{add-listener
-    //   this.heatmapConfiguration
-    //   'updatedClazzMetrics'
-    //   this.applyHeatmap
-    // }}
-  )
+  );
 }

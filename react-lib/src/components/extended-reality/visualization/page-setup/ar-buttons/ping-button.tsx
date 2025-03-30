@@ -7,19 +7,21 @@ import { NorthStarIcon } from '@primer/octicons-react';
 
 interface PingButtonProps {
   handlePing: () => void;
-  userIsAlone: boolean;
 }
 
-export default function PingButton({
-  handlePing,
-  userIsAlone,
-}: PingButtonProps) {
+export default function PingButton({ handlePing }: PingButtonProps) {
   const getAllRemoteUsers = useCollaborationSessionStore(
     (state) => state.getAllRemoteUsers
   );
   const highlightingColor = useHighlightingStore(
     (state) => state.highlightingColor
   )().getHexString();
+
+  const userIsAlone = (() => {
+    const numberOfOtherUsers = Array.from(getAllRemoteUsers()).length;
+
+    return numberOfOtherUsers === 0;
+  })();
 
   return (
     <div id="ar-ping-interaction-container">
