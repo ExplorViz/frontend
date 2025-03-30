@@ -165,14 +165,14 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
 
     removeAllRemoteUsers: () => {
       get().idToRemoteUser.forEach((user) => {
-        user.removeAllObjects3D(); // TODO: Does this work or does it change this to hard?
+        user.removeAllObjects3D();
       });
       set({ idToRemoteUser: new Map() });
     },
 
     getUserById: (id: string) => {
       if (useLocalUserStore.getState().userId === id) {
-        return useLocalUserStore;
+        return useLocalUserStore.getState();
       } else {
         return get().idToRemoteUser.get(id);
       }
@@ -231,7 +231,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       useUserSettingsStore.getState().applyDefaultSettings(false);
 
       if (get().getUserCount() === 1) {
-        useLocalUserStore.getState().isHost = true;
+        useLocalUserStore.setState({ isHost: true });
       }
 
       useChatStore
@@ -330,8 +330,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     },
 
     onSelfDisconnected: (event?: any) => {
-      get().disconnect();
-      useLocalUserStore.getState().isHost = false;
+      useLocalUserStore.setState({ isHost: false });
 
       if (get().isConnecting()) {
         useToastHandlerStore
@@ -493,17 +492,6 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
 
       set({ connectionStatus: 'offline', currentRoomId: null });
       useWebSocketStore.getState().closeSocket();
-
-      // Remove roomId from URL
-      if (
-        useRouterStore.getState().getLocation().pathname === '/visualization'
-      ) {
-        useRouterStore.getState().navigateTo!('/visualization');
-        // TODO: In case of errors: this is old code. No landscapeToken given.
-        // this.router.transitionTo('visualization', {
-        //   queryParams: { roomId: null },
-        // });
-      }
     },
 
     /**

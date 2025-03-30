@@ -36,7 +36,7 @@ import {
   UnmuteIcon,
   XIcon,
 } from '@primer/octicons-react';
-import { createSearchParams, useNavigate } from 'react-router-dom';
+import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom';
 
 interface CollaborationControlsProps {}
 
@@ -120,10 +120,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
     (state) => state.showErrorToastMessage
   );
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [rooms, setRooms] = useState<RoomListRecord[]>([]);
-  const [deviceId, setDeviceId] = useState<string | null>(
-    new URLSearchParams(window.location.search).get('deviceId')
-  );
+  const [deviceId, setDeviceId] = useState<string | null>(searchParams.get('deviceId'));
   const [landscapeTokens, setLandscapeTokens] = useState<LandscapeToken[]>([]);
   const [mutedUsers, setMutedUsers] = useState<string[]>([]);
   const [spectateConfigEnabled, setSpectateConfigEnabled] =
@@ -188,6 +188,10 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
   const leaveSession = () => {
     showInfoToastMessage('Disconnected from Room');
     collaborationSessionDisconnect();
+    navigate({
+      pathname: '/visualization',
+      search: `?${createSearchParams({ landscapeToken: searchParams.get('landscapeToken')!, deviceId: searchParams.get('deviceId')! })}`,
+    });
   };
 
   const loadRooms = async (alert = true) => {
