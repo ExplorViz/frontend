@@ -17,9 +17,9 @@ export default function PingButton({
   const getAllRemoteUsers = useCollaborationSessionStore(
     (state) => state.getAllRemoteUsers
   );
-  const highlightingColorStyle = useHighlightingStore(
-    (state) => state.highlightingColorStyle
-  );
+  const highlightingColor = useHighlightingStore(
+    (state) => state.highlightingColor
+  )().getHexString();
 
   return (
     <div id="ar-ping-interaction-container">
@@ -35,7 +35,7 @@ export default function PingButton({
         <Button
           variant="primary"
           style={{
-            backgroundColor: highlightingColorStyle,
+            color: highlightingColor,
           }}
           className="half-transparent"
           onClick={handlePing}

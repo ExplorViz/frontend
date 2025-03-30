@@ -17,13 +17,8 @@ interface RoomListArgs {
 }
 
 export default function RoomList({ tokens, selectToken }: RoomListArgs) {
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
-  );
-  const showSuccessToastMessage = useToastHandlerStore(
-    (state) => state.showSuccessToastMessage
-  );
-
+  const { showSuccessToastMessage, showErrorToastMessage } =
+    useToastHandlerStore();
   const joinRoom = useCollaborationSessionStore((state) => state.joinRoom);
   const listRooms = useRoomServiceStore((state) => state.listRooms);
 
@@ -47,12 +42,13 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
         (elem) => elem.value == room.landscapeToken
       )?.alias;
     });
-    setRooms(
+    setRooms((rooms) =>
       rooms.filter(
         (room) =>
           tokens.find((elem) => elem.value == room.landscapeToken) !== undefined
       )
     );
+
     if (alert) {
       showSuccessToastMessage('Updated room list');
     }
@@ -103,7 +99,7 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
                 <Button
                   variant="primary"
                   className="align-self-center pt-2 px-3"
-                  onClick={() => loadRooms(true)}
+                  onClick={() => loadRooms()}
                 >
                   <SyncIcon size="small" />
                 </Button>

@@ -38,10 +38,10 @@ import { useConfigurationStore } from 'react-lib/src/stores/configuration';
 import { useResizeDetector } from 'react-resize-detector';
 import PopupCoordinator from 'react-lib/src/components/visualization/rendering/popups/popup-coordinator.tsx';
 import PopupButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/popup-button.tsx';
-import HeatmapButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button_tmp';
-import ZoomButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button_tmp';
-import PrimaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button_tmp';
-import SecondaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button_tmp';
+import HeatmapButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button';
+import ZoomButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button';
+import PrimaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button';
+import SecondaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button';
 import PingButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
 import { PlusIcon, ArrowLeftIcon, ArrowRightIcon, DashIcon, GearIcon, ThreeBarsIcon } from '@primer/octicons-react';
 import { Button } from 'react-bootstrap';
@@ -197,7 +197,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     setArZoomHandler(new ArZoomHandler(
       useLocalUserStore.getState().defaultCamera,
-      // arSettings
     ));
 
     renderingLoop.current = new RenderingLoop({
@@ -433,14 +432,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       handleSecondaryInputOn(intersection);
     } else {
       useHighlightingStore.getState().removeHighlightingForAllApplications(true);
-    }
-  }
-
-  const handleZoomToggle = () => {
-    if (arZoomHandler?.zoomEnabled) {
-      arZoomHandler?.disableZoom();
-    } else {
-      arZoomHandler?.enableZoom();
     }
   }
 
@@ -815,10 +806,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
               toggleHeatmap={handleHeatmapToggle}
             />
 
-            <ZoomButton
-              arZoomHandler={arZoomHandler}
-              handleZoomToggle={handleZoomToggle}
-            />
+            <ZoomButton />
 
             <div id='ar-minus-interaction-container'>
               <Button

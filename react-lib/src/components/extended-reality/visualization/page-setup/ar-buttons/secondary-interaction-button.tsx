@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import { PaintbrushIcon } from '@primer/octicons-react';
-import { useHighlightingServiceStore } from 'react-lib/src/stores/highlighting-service';
+import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
 
 interface SecondaryInteractionButtonArgs {
   handleSecondaryCrosshairInteraction(): void;
@@ -10,22 +10,19 @@ interface SecondaryInteractionButtonArgs {
 export default function SecondaryInteractionButton({
   handleSecondaryCrosshairInteraction,
 }: SecondaryInteractionButtonArgs) {
-  const highlightingColorStyle = useHighlightingServiceStore(
-    (state) => state.highlightingColorStyle
-  );
+  const highlightingColor = useHighlightingStore(
+    (state) => state.highlightingColor
+  )().getHexString();
 
   return (
     <div id="ar-secondary-interaction-container">
       <Button
         variant="primary"
-        style={highlightingColorStyle}
+        style={{ color: highlightingColor }}
         className="half-transparent"
         onClick={handleSecondaryCrosshairInteraction}
       >
-        <PaintbrushIcon
-          size="small"
-          className="octicon align-middle ar-button-svg"
-        />
+        <PaintbrushIcon size="small" className="align-middle ar-button-svg" />
       </Button>
     </div>
   );

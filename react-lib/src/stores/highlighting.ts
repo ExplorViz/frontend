@@ -26,14 +26,11 @@ import {
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 
-// TODO: WAIT FOR USED SERVICES TO BE MIGRATED
-
 interface HighlightingState {
   hoveredOnHighlightedMesh: boolean;
   applyHighlightingOnHover: () => boolean;
   opacity: () => number;
   highlightingColor: () => Color;
-  highlightingColorStyle: () => string;
   updateHighlighting: () => void;
   highlightById: (
     modelId: string,
@@ -107,10 +104,6 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     } else {
       return useUserSettingsStore.getState().colors!.highlightedEntityColor;
     }
-  },
-
-  highlightingColorStyle: () => {
-    return `color:#${get().highlightingColor().getHexString()}`;
   },
 
   updateHighlighting: () => {
