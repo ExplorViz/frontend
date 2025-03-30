@@ -42,7 +42,7 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
         (elem) => elem.value == room.landscapeToken
       )?.alias;
     });
-    setRooms((rooms) =>
+    setRooms(
       rooms.filter(
         (room) =>
           tokens.find((elem) => elem.value == room.landscapeToken) !== undefined
