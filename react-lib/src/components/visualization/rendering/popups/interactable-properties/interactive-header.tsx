@@ -6,6 +6,7 @@ import {
   isClass,
   isPackage,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import EditMesh from './edit-mesh';
 
 interface InteractiveHeaderProps {
   entity: any;
@@ -46,7 +47,7 @@ export default function InteractiveHeader({
       } else if (isPackage(entity)) {
         renamePackage(name, entity.id);
       } else if (isClass(entity)) {
-        renameClass(name, entity.id, appId);
+        renameClass(name, entity.id, appId !== undefined ? appId : '');
       }
       setShouldExitEditMode(true);
     } else {
@@ -81,5 +82,5 @@ export default function InteractiveHeader({
     save();
   };
 
-  return <>{restructureMode && <EditMesh entity={entity} appId={appId} />}</>;
+  return <>{restructureMode && <EditMesh entity={entity} appId={appId !== undefined ? appId : ''} />}</>;
 }

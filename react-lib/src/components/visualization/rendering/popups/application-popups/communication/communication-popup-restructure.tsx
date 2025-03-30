@@ -17,6 +17,7 @@ import Tooltip from 'react-bootstrap/Tooltip';
 import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
 import EditCommMesh from 'react-lib/src/components/visualization/rendering/popups/interactable-properties/edit-comm-mesh.tsx';
 import EditOperationName from 'react-lib/src/components/visualization/rendering/popups/interactable-properties/edit-operation-name.tsx';
+import ClassCommunication from '../../../../../../utils/landscape-schemes/dynamic/class-communication';
 
 interface CommunicationPopupRestructureProps {
   communication: ClazzCommuMeshDataModel;
@@ -131,7 +132,7 @@ export default function CommunicationPopupRestructure({
                 </tr>
                 {/* Name */}
                 <tr>
-                  <EditOperationName communication={classCommunication} />
+                  <EditOperationName communication={classCommunication as unknown as ClassCommunication} />
 
                   <td className="text-nowrap align-top">
                     <CommentIcon verticalAlign="middle" size="small" />
@@ -166,13 +167,17 @@ export default function CommunicationPopupRestructure({
                     %
                   </td>
                 </tr>
-                {restructureMode && (
-                  <EditCommMesh classCommunication={classCommunication} />
+                {communication.communication instanceof ComponentCommunication && (
+                  <>
+                    {restructureMode && (
+                      <EditCommMesh classCommunication={classCommunication as unknown as ClassCommunication} />
+                    )}
+                    {index <
+                      (communication.communication as ComponentCommunication)
+                        .classCommunications.length -
+                        1 && <hr />}
+                  </>
                 )}
-                {index <
-                  (communication.communication as ComponentCommunication)
-                    .classCommunications.length -
-                    1 && <hr />}
               </>
             );
           }

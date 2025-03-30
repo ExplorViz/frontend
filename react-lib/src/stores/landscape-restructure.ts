@@ -30,6 +30,7 @@ import {
   isClass,
   isPackage,
   StructureLandscapeData,
+  TypeOfAnalysis,
 } from 'react-lib/src/utils/landscape-schemes/structure-data';
 import {
   getApplicationFromClass,
@@ -120,8 +121,8 @@ interface LandscapeRestructureState {
   addCommunication: (methodName: string, collabMode?: boolean) => void;
   deleteCommunication: (
     comm: ClassCommunication,
-    undo: boolean,
-    collabMode: boolean
+    undo?: boolean,
+    collabMode?: boolean
   ) => void;
   toggleRestructureMode: () => void;
   toggleRestructureModeLocally: () => Promise<void>;
@@ -130,50 +131,50 @@ interface LandscapeRestructureState {
   renameApplication: (
     name: string,
     id: string,
-    collabMode: boolean,
-    undo: boolean
+    collabMode?: boolean,
+    undo?: boolean
   ) => void;
   renamePackage: (
     name: string,
     id: string,
-    collabMode: boolean,
-    undo: boolean
+    collabMode?: boolean,
+    undo?: boolean
   ) => void;
   renameSubPackage: (
     name: string,
     id: string,
-    collabMode: boolean,
-    undo: boolean
+    collabMode?: boolean,
+    undo?: boolean
   ) => void;
   getAppFromPackage: (pckg: Package) => Application | undefined;
   renameClass: (
     name: string,
     id: string,
     appId: string,
-    collabMode: boolean,
-    undo: boolean
+    collabMode?: boolean,
+    undo?: boolean
   ) => void;
   renameOperation: (
     communication: ClassCommunication,
     newName: string,
-    collabMode: boolean,
-    undo: boolean
+    collabMode?: boolean,
+    undo?: boolean
   ) => void;
   restoreApplication: (
     app: Application,
     undoCutOperation: boolean,
-    collabMode: boolean
+    collabMode?: boolean
   ) => void;
   restorePackage: (
     pckg: Package,
     undoCutOperation: boolean,
-    collabMode: boolean
+    collabMode?: boolean
   ) => void;
   restoreClass: (
     app: Application,
     clazz: Class,
     undoCutOperation: boolean,
-    collabMode: boolean
+    collabMode?: boolean
   ) => void;
   removeInsertTexture: (element: Package) => void;
   undoDuplicateApp: (app: Application) => void;
@@ -199,17 +200,17 @@ interface LandscapeRestructureState {
   addPackage: (app: Application, collabMode?: boolean) => void;
   addCollaborativeClass: (pckgId: string) => void;
   addClass: (pckg: Package, collabMode?: boolean) => void;
-  deleteCollaborativeApplication: (appId: string, undo: boolean) => void;
-  deleteApp: (app: Application, collabMode: boolean, undo: boolean) => void;
+  deleteCollaborativeApplication: (appId: string, undo?: boolean) => void;
+  deleteApp: (app: Application, collabMode?: boolean, undo?: boolean) => void;
   _processDeletedAppData: (app: Application) => void;
-  deleteCollaborativePackage: (pckgId: string, undo: boolean) => void;
-  deletePackage: (pckg: Package, collabMode: boolean, undo: boolean) => void;
+  deleteCollaborativePackage: (pckgId: string, undo?: boolean) => void;
+  deletePackage: (pckg: Package, collabMode?: boolean, undo?: boolean) => void;
   storeDeletedAppData: (app: Application) => void;
   restoreDeletedAppData: (app: Application) => void;
   storeDeletedPackageData: (pckg: Package) => void;
   restoreDeletedPackageData: (pckg: Package) => void;
-  deleteCollaborativeClass: (clazzId: string, undo: boolean) => void;
-  deleteClass: (clazz: Class, collabMode: boolean, undo: boolean) => void;
+  deleteCollaborativeClass: (clazzId: string, undo?: boolean) => void;
+  deleteClass: (clazz: Class, collabMode?: boolean, undo?: boolean) => void;
   cutPackage: (pckg: Package) => void;
   cutClass: (clazz: Class) => void;
   resetClipboard: () => void;
@@ -231,12 +232,12 @@ interface LandscapeRestructureState {
   getApp(appChild: Package | Class): Application | undefined;
   pastePackage: (
     destination: Application | Package,
-    collabMode: boolean
+    collabMode?: boolean
   ) => void;
   pasteClass: (destination: Package, collabMode?: boolean) => void;
   movePackageOrClass(
     destination: Application | Package,
-    collabMode: boolean
+    collabMode?: boolean
   ): void;
   undoBundledEntries(bundledCreateEntries: BaseChangeLogEntry[]): void;
   undoEntry: (entry: BaseChangeLogEntry) => void;
@@ -253,6 +254,7 @@ interface LandscapeRestructureState {
   setAllClassCommunications: (
     allClassCommunications: ClassCommunication[]
   ) => void;
+  _addOriginOfData: (entity: Package) => Package;
 }
 
 export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
@@ -1599,7 +1601,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const app = get().getAppFromPackage(pckg);
         if (app) {
-          const subPackage = createPackage(
+          let subPackage = createPackage(
             'newPackage' + get().newMeshCounter,
             'New Package ' + get().newMeshCounter
           );
@@ -1610,7 +1612,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           newClass.parent = subPackage;
           subPackage.parent = pckg;
           subPackage.classes.push(newClass as Class);
+          subPackage = get()._addOriginOfData(subPackage);
           pckg.subPackages.push(subPackage); // TODO: Does this work on the states?
+
 
           // Create Changelog Entry
           useChangelogStore
@@ -1664,7 +1668,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               false
             );
 
-        const newPckg = createPackage(
+        let newPckg = createPackage(
           'newPackage' + get().newMeshCounter,
           'New Package ' + get().newMeshCounter
         );
@@ -1674,6 +1678,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         );
         newClass.parent = newPckg;
         newPckg.classes.push(newClass as Class);
+        newPckg = get()._addOriginOfData(newPckg);
         app.packages.push(newPckg); // TODO: Does this work for rerendering?
 
         // Create Changelog Entry
@@ -1734,6 +1739,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             'New Class ' + get().newMeshCounter
           );
           clazz.parent = pckg;
+          clazz.originOfData = TypeOfAnalysis.Static;
           pckg.classes.push(clazz as Class);
 
           // Create Changelog Entry
@@ -2493,6 +2499,33 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
       }
     },
 
+    // INFO: originOfData had to be added for packages and classes
+    //       to fix crashing on adding or pasting packages/classes
+    _addOriginOfData: (entity: Package) => {
+      let newEntity = {...entity};
+
+      if (newEntity.originOfData === undefined) {
+        newEntity.originOfData = TypeOfAnalysis.Static;
+      }
+
+      let clazzes = newEntity.classes;
+      clazzes.forEach((clazz) => {
+        if (clazz.originOfData === undefined) {
+          clazz.originOfData = TypeOfAnalysis.Static;
+        }
+      });
+      newEntity.classes = clazzes;
+
+      let subpackages: Package[] = [];
+      newEntity.subPackages.forEach((sp) => {
+        const subpackage = get()._addOriginOfData(sp);
+        subpackages.push(subpackage);
+      });
+      newEntity.subPackages = subpackages;
+
+      return newEntity;
+    },
+
     movePackageOrClass: (
       destination: Application | Package,
       collabMode: boolean = false
@@ -2515,16 +2548,18 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const meshTextureMapping: Partial<MeshModelTextureMapping> = {
           action: RestructureAction.CutInsert,
-          texturePath: 'images/slash.png',
+          texturePath: '/images/slash.png',
         };
 
         // Distinguish between clipped Package and clipped Class
         if (isPackage(get().clippedMesh)) {
           // Copy the clipped package
-          const cuttedPackage = copyPackageContent(
+          let cuttedPackage = copyPackageContent(
             get().clippedMesh as Package
           );
-          cuttedPackage.parent = get().clippedMesh!.parent; // TODO: Does this work?
+          cuttedPackage.parent = get().clippedMesh!.parent;
+
+          cuttedPackage = get()._addOriginOfData(cuttedPackage);
 
           // Set the texture to correct mesh
           meshTextureMapping.meshType = EntityType.Package;
@@ -2536,6 +2571,8 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             destination,
             wrapper
           );
+
+          console.log(cuttedPackage);
 
           // Create Changelog Entry
           if (get().clippedMesh!.parent && app) {

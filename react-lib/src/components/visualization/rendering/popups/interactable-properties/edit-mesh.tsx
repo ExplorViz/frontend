@@ -15,6 +15,9 @@ import {
   DiffRenamedIcon,
   DuplicateIcon,
   PackageIcon,
+  RepoPullIcon,
+  RepoPushIcon,
+  StackIcon,
   TrashIcon,
 } from '@primer/octicons-react';
 
@@ -122,70 +125,196 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
   };
 
   if (isDeleted) {
-    return <></>;
+    return (
+      <>
+        <hr />
+        {isEntityPackage ? (
+          <>
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Add Package</Tooltip>}
+            >
+              <Button
+                style={{
+                  backgroundColor: packageColor,
+                  borderColor: packageColor,
+                }}
+                onClick={addPackage}
+              >
+                <PackageIcon size="small" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Add Class</Tooltip>}
+            >
+              <Button
+                style={{
+                  backgroundColor: clazzColor,
+                  borderColor: clazzColor,
+                }}
+                onClick={addClass}
+              >
+                <PackageIcon size="small" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Delete</Tooltip>}
+            >
+              <Button variant="danger" onClick={deleteMesh}>
+                <TrashIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Copy</Tooltip>}
+            >
+              <Button variant="dark" onClick={cutMesh}>
+                <CopyIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+
+            {isInsertable && (
+              <>
+                <OverlayTrigger
+                  placement="top"
+                  trigger={['hover', 'focus']}
+                  overlay={<Tooltip>Paste</Tooltip>}
+                >
+                  <Button variant="light" onClick={pasteMesh}>
+                    <DuplicateIcon size="small" className="align-right" />
+                  </Button>
+                </OverlayTrigger>
+
+                <OverlayTrigger
+                  placement="top"
+                  trigger={['hover', 'focus']}
+                  overlay={<Tooltip>Paste</Tooltip>}
+                >
+                  <Button variant="warning" onClick={insertMesh}>
+                    <DiffRenamedIcon size="small" className="align-right" />
+                  </Button>
+                </OverlayTrigger>
+              </>
+            )}
+          </>
+        ) : isEntityApplication ? (
+          <>
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Duplicate</Tooltip>}
+            >
+              <Button variant="info" onClick={duplicateApp}>
+                <StackIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Add Package</Tooltip>}
+            >
+              <Button
+                style={{
+                  backgroundColor: packageColor,
+                  borderColor: packageColor,
+                }}
+                onClick={addPackage}
+              >
+                <PackageIcon size="small" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Delete</Tooltip>}
+            >
+              <Button variant="danger" onClick={deleteMesh}>
+                <TrashIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+
+            {isInsertable && (
+              <>
+                <OverlayTrigger
+                  placement="top"
+                  trigger={['hover', 'focus']}
+                  overlay={<Tooltip>Paste</Tooltip>}
+                >
+                  <Button variant="light" onClick={pasteMesh}>
+                    <DuplicateIcon size="small" className="align-right" />
+                  </Button>
+                </OverlayTrigger>
+
+                <OverlayTrigger
+                  placement="top"
+                  trigger={['hover', 'focus']}
+                  overlay={<Tooltip>Paste</Tooltip>}
+                >
+                  <Button variant="warning" onClick={insertMesh}>
+                    <DiffRenamedIcon size="small" className="align-right" />
+                  </Button>
+                </OverlayTrigger>
+              </>
+            )}
+          </>
+        ) : isEntityClass ? (
+          <>
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Delete</Tooltip>}
+            >
+              <Button variant="danger" onClick={deleteMesh}>
+                <TrashIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Copy</Tooltip>}
+            >
+              <Button variant="dark" onClick={cutMesh}>
+                <CopyIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Communication Source</Tooltip>}
+            >
+              <Button variant="secondary" onClick={setCommunicationSource}>
+                <RepoPullIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Communication Target</Tooltip>}
+            >
+              <Button variant="secondary" onClick={setCommunicationTarget}>
+                <RepoPushIcon size="small" className="align-right" />
+              </Button>
+            </OverlayTrigger>
+          </>
+        ) : (
+        <></>
+        )
+      }  
+      </>
+    );
   }
-
-  const elemPackage = (
-    <>
-      <OverlayTrigger
-        placement="top"
-        trigger={['hover', 'focus']}
-        overlay={<Tooltip>Add Package</Tooltip>}
-      >
-        <Button
-          style={{
-            backgroundColor: packageColor,
-            borderColor: packageColor,
-          }}
-          onClick={addPackage}
-        >
-          <PackageIcon size="small" />
-        </Button>
-      </OverlayTrigger>
-
-      <OverlayTrigger
-        placement="top"
-        trigger={['hover', 'focus']}
-        overlay={<Tooltip>Delete</Tooltip>}
-      >
-        <Button variant="danger" onClick={deleteMesh}>
-          <TrashIcon size="small" className="align-right" />
-        </Button>
-      </OverlayTrigger>
-
-      <OverlayTrigger
-        placement="top"
-        trigger={['hover', 'focus']}
-        overlay={<Tooltip>Copy</Tooltip>}
-      >
-        <Button variant="dark" onClick={cutMesh}>
-          <CopyIcon size="small" className="align-right" />
-        </Button>
-      </OverlayTrigger>
-
-      {isInsertable && (
-        <>
-          <OverlayTrigger
-            placement="top"
-            trigger={['hover', 'focus']}
-            overlay={<Tooltip>Paste</Tooltip>}
-          >
-            <Button variant="light" onClick={pasteMesh}>
-              <DuplicateIcon size="small" className="align-right" />
-            </Button>
-          </OverlayTrigger>
-
-          <OverlayTrigger
-            placement="top"
-            trigger={['hover', 'focus']}
-            overlay={<Tooltip>Paste</Tooltip>}
-          >
-            <Button variant="warning" onClick={insertMesh}>
-              <DiffRenamedIcon size="small" className="align-right" />
-            </Button>
-          </OverlayTrigger>
-        </>
-      )}
-    </>
-  );
 }
