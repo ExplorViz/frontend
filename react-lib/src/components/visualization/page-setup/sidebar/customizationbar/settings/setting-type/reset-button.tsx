@@ -11,8 +11,7 @@ export default function ResetButton({
   return (
     <button
       type="button"
-      className="btn btn-small btn-outline-dark"
-      style={{ padding: '0', height: '1.5rem', width: '1.5rem' }}
+      className="btn btn-small btn-light setting-reset-button"
       title="Reset to default"
       aria-label="Reset to default"
       onClick={() => onClick(args)}

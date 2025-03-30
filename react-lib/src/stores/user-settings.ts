@@ -94,7 +94,7 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
   shareVisualizationSettings: () => {
     useMessageSenderStore
       .getState()
-      .sendSharedSettings(get().applicationSettings);
+      .sendSharedSettings(get().visualizationSettings);
   },
 
   updateSettings: (settings: VisualizationSettings) => {
@@ -105,12 +105,12 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
     useHighlightingStore.getState().updateHighlighting();
     let tmpDefaultCamera = useLocalUserStore.getState().defaultCamera;
     tmpDefaultCamera.fov = get().visualizationSettings.cameraFov.value;
+    tmpDefaultCamera.updateProjectionMatrix();
     useLocalUserStore.setState({ defaultCamera: tmpDefaultCamera });
-    useLocalUserStore.getState().defaultCamera.updateProjectionMatrix();
   },
 
   updateSetting: (name: VisualizationSettingId, value?: unknown) => {
-    const setting = get().visualizationSettings[name];
+    const setting = {...get().visualizationSettings[name]};
 
     const newValue = value ?? defaultVizSettings[name].value;
 
@@ -131,7 +131,7 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
       });
     } else if (isColorSetting(setting) && typeof newValue === 'string') {
       setting.value = newValue;
-      let newVisualizationSettings = get().visualizationSettings;
+      let newVisualizationSettings = {...get().visualizationSettings};
       newVisualizationSettings[name].value = newValue;
       set({ visualizationSettings: newVisualizationSettings });
     }
@@ -158,7 +158,7 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
 
     let settingId: keyof ColorSettings;
     for (settingId in get().colors) {
-      let newVisualizationSettings = get().visualizationSettings;
+      let newVisualizationSettings = {...get().visualizationSettings};
       newVisualizationSettings[settingId].value = scheme[settingId];
       set({ visualizationSettings: newVisualizationSettings });
     }
@@ -179,11 +179,11 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
     let settingId: keyof ColorSettings;
     for (settingId in get().colors) {
       if (updatedColors) {
-        let newApplicationColors = get().colors!;
+        let newApplicationColors = {...get().colors!};
         newApplicationColors[settingId].set(updatedColors[settingId]);
         set({ colors: newApplicationColors });
       } else {
-        let newApplicationColors = get().colors!;
+        let newApplicationColors = {...get().colors!};
         newApplicationColors[settingId].set(
           get().visualizationSettings[settingId].value
         );

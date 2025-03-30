@@ -2572,8 +2572,6 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             wrapper
           );
 
-          console.log(cuttedPackage);
-
           // Create Changelog Entry
           if (get().clippedMesh!.parent && app) {
             useChangelogStore

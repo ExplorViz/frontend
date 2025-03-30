@@ -8,16 +8,18 @@ export default function ColorPicker({
   id,
   setting,
   updateColors,
+  resetState,
 }: {
   id: ColorSettingId; // ColorSettingId
   setting: any; // ColorSetting
   updateColors(): void;
+  resetState: boolean;
 }) {
   const colorPickerRef: React.MutableRefObject<any> = useRef(null);
 
   useEffect(() => {
     setupApplicationColorpicker(id, colorPickerRef);
-  }, []);
+  }, [resetState]);
 
   const setupApplicationColorpicker = (
     colorName: keyof ExplorVizColors,

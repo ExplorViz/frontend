@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 
 import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
 import { ColorSchemeId } from 'react-lib/src/utils/settings/color-schemes';
@@ -9,6 +9,9 @@ import {
   SettingGroup,
   RangeSetting as RangeSettingSchema,
   ColorSettingId,
+  isFlagSetting,
+  isRangeSetting,
+  isColorSetting,
 } from 'react-lib/src/utils/settings/settings-schemas';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
@@ -52,6 +55,8 @@ export default function Settings({
   updateColors,
   updateHighlighting,
 }: SettingsProps) {
+  const [resetState, setResetState] = useState<boolean>(true);
+
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -461,6 +466,7 @@ export default function Settings({
   const applyColorScheme = (colorScheme: ColorSchemeId) => {
     setColorScheme(colorScheme);
     updateColors?.();
+    setResetState(!resetState);
   };
 
   const updateVisualizationState = () => {
@@ -478,6 +484,7 @@ export default function Settings({
   const resetGroup = (groupId: string) => {
     applyDefaultSettingsForGroup(groupId);
     updateVisualizationState();
+    setResetState(!resetState);
   };
 
   const resetSettingsAndUpdate = async () => {
@@ -511,31 +518,34 @@ export default function Settings({
           <div className="ml-3">
             {settingIdArray.map((settingId) => {
               const setting = visualizationSettings[settingId];
-              if (setting.isFlagSetting) {
+              if (isFlagSetting(setting)) {
                 return (
                   <FlagSetting
                     key={settingId}
                     setting={setting}
                     settingId={settingId}
                     onChange={updateFlagSetting}
+                    resetState={resetState}
                   />
                 );
-              } else if (setting.isRangeSetting) {
+              } else if (isRangeSetting(setting)) {
                 return (
                   <RangeSetting
                     key={settingId}
                     setting={setting}
                     settingId={settingId}
                     onChange={updateRangeSetting}
+                    resetState={resetState}
                   />
                 );
-              } else if (setting.isColorSetting) {
+              } else if (isColorSetting(setting)) {
                 return (
                   <ColorPicker
                     key={settingId}
                     id={settingId as ColorSettingId}
                     setting={setting}
                     updateColors={updateColors}
+                    resetState={resetState}
                   />
                 );
               } else if (setting.isButtonSetting) {
@@ -545,6 +555,7 @@ export default function Settings({
                     setting={setting}
                     settingId={settingId}
                     onClick={updateButtonSetting}
+                    resetState={resetState}
                   />
                 );
               }
