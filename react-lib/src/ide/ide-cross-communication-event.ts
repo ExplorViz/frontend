@@ -1,4 +1,4 @@
-import { IDEApiCall } from 'react-lib/src/ide/ide-websocket';
+import { IDEApiCall } from 'explorviz-frontend/src/ide/ide-websocket';
 
 export default class IdeCrossCommunicationEvent extends Event {
   data: IDEApiCall | undefined;

@@ -1,5 +1,5 @@
 import sha256 from 'crypto-js/sha256';
-import isObject from 'react-lib/src/utils/object-helpers';
+import isObject from 'explorviz-frontend/src/utils/object-helpers';
 
 export interface Variable {
   private: boolean;

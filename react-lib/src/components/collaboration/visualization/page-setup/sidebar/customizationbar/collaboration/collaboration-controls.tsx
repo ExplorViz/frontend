@@ -4,28 +4,28 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Select from 'react-select';
 
-import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { useRoomServiceStore } from 'react-lib/src/stores/collaboration/room-service';
-import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useAuthStore } from 'react-lib/src/stores/auth';
+import { RoomListRecord } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
+import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   useLandscapeTokenStore,
   LandscapeToken,
-} from 'react-lib/src/stores/landscape-token';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { useChatStore } from 'react-lib/src/stores/chat';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+} from 'explorviz-frontend/src/stores/landscape-token';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import {
   useSpectateConfigurationStore,
   SpectateConfig,
-} from 'react-lib/src/stores/spectate-configuration';
-import { useTimestampStore } from 'react-lib/src/stores/timestamp';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+} from 'explorviz-frontend/src/stores/spectate-configuration';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   DeviceCameraVideoIcon,
   DiffAddedIcon,

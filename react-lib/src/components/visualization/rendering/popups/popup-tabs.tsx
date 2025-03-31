@@ -1,8 +1,8 @@
 import React, { ReactNode, useMemo } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 
-import generateUuidv4 from 'react-lib/src/utils/helpers/uuid4-generator';
-import { Class, TypeOfAnalysis } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
+import { Class, TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzPopupRestructure from './application-popups/clazz/clazz-popup-restructure';
 
 function isValidPopupSection(

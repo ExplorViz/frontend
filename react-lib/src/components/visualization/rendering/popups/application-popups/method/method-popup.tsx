@@ -1,11 +1,11 @@
 import React from 'react';
 
-import PopupTabs from 'react-lib/src/components/visualization/rendering/popups/popup-tabs.tsx';
+import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs.tsx';
 import {
   Method,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 
 interface MethodPopupProps {
   restructureMode: boolean;

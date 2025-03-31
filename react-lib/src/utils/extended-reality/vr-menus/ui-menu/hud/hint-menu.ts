@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import HudMenu from 'react-lib/src/utils/extended-reality/vr-menus/hud-menu';
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
+import HudMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/hud-menu';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
 import {
   DEFAULT_MENU_RESOLUTION,
   UiMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
 
 const OPEN_ANIMATION_CLIP = new THREE.AnimationClip('open-animation', 0.75, [
   new THREE.KeyframeTrack('.scale[x]', [0.0, 0.75], [0.0, 1.0]),

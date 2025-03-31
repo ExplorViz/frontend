@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
-import GrabMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/grab-menu';
-import SharedScaleMenuState from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/scale-menu/shared-state';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import BaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/base-menu';
+import GrabMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-less-menu/grab-menu';
+import SharedScaleMenuState from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-less-menu/scale-menu/shared-state';
 
 export type ScaleMenuArgs = {
   sharedState: SharedScaleMenuState;

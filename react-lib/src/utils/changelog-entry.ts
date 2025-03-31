@@ -1,18 +1,18 @@
-import { RestructureAction } from 'react-lib/src/utils/restructure-helper';
+import { RestructureAction } from 'explorviz-frontend/src/utils/restructure-helper';
 import {
   Application,
   Class,
   Package,
   StructureLandscapeData,
   isPackage,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getApplicationFromPackage,
   getApplicationFromSubPackage,
-} from 'react-lib/src/utils/landscape-structure-helpers';
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 // import { tracked } from '@glimmer/tracking';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 
 export abstract class BaseChangeLogEntry {
   id: string;

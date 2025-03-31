@@ -1,17 +1,17 @@
 import { create } from 'zustand';
-import MousePing from 'react-lib/src/utils/collaboration/mouse-ping-helper';
+import MousePing from 'explorviz-frontend/src/utils/collaboration/mouse-ping-helper';
 import * as THREE from 'three';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import { getPoses } from 'react-lib/src/utils/extended-reality/vr-helpers/vr-poses';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import { getPoses } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import { useMessageSenderStore } from './message-sender';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useChatStore } from 'react-lib/src/stores/chat';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 

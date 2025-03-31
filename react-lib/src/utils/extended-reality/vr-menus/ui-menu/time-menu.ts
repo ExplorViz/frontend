@@ -1,15 +1,15 @@
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
-} from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import ArrowbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/arrowbutton-item';
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
-import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
-import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import ArrowbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/arrowbutton-item';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, {
   UiMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import { useTimestampStore } from 'react-lib/src/stores/timestamp';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 
 const MS_PER_SECOND = 1000;
 const TIMESTAMP_INTERVAL = 10 * MS_PER_SECOND;

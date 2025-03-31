@@ -1,20 +1,20 @@
 import * as THREE from 'three';
-import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
-import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
-import ApplicationData from 'react-lib/src/utils/application-data';
-import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
-import { findFirstOpenOrLastClosedAncestorComponent } from 'react-lib/src/utils/link-helper';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout.ts';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/src/utils/link-helper';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { Vector3 } from 'three';
-import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import { ChildMesh } from 'react-lib/src/view-objects/3d/application/child-mesh-interface';
+import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ChildMesh } from 'explorviz-frontend/src/view-objects/3d/application/child-mesh-interface';
 
 /**
  * This extended Object3D adds additional functionality to

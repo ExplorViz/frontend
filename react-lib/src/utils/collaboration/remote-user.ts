@@ -1,21 +1,21 @@
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import * as THREE from 'three';
-import NameTagSprite from 'react-lib/src/utils/extended-reality/view-objects/vr/name-tag-sprite';
-import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
-import RayMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ray-mesh';
-import { DEFAULT_RAY_LENGTH } from 'react-lib/src/utils/extended-reality/vr-controller';
-import VrControllerModelFactory from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
-import MousePing from 'react-lib/src/utils/collaboration/mouse-ping-helper';
+import NameTagSprite from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/name-tag-sprite';
+import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
+import RayMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ray-mesh';
+import { DEFAULT_RAY_LENGTH } from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import VrControllerModelFactory from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
+import MousePing from 'explorviz-frontend/src/utils/collaboration/mouse-ping-helper';
 import {
   ControllerPose,
   Pose,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
   ControllerId,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
-import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
+import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 
 type Camera = {
   model: THREE.Object3D;

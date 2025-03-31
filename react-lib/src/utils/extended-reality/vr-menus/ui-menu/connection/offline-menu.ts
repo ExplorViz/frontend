@@ -1,10 +1,10 @@
-import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
-import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import ConnectionBaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
+import TextbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/title-item';
+import ConnectionBaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
 
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { UiMenuArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 
 export default class OfflineMenu extends ConnectionBaseMenu {
   constructor(args: UiMenuArgs) {

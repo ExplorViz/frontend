@@ -1,7 +1,7 @@
-import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { useAuthStore } from 'react-lib/src/stores/auth';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 

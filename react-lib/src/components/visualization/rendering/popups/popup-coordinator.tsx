@@ -8,33 +8,33 @@ import {
   ShareAndroidIcon,
   XIcon,
 } from '@primer/octicons-react';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import {
   Class,
   Package,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   isApplication,
   isClass,
   isMethod,
   isNode,
   isPackage,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import FoundationPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup.tsx';
-import ComponentPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/component/component-popup.tsx';
-import ClazzPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup.tsx';
-import MethodPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/method/method-popup.tsx';
-import CommunicationPopup from 'react-lib/src/components/visualization/rendering/popups/application-popups/communication/communication-popup.tsx';
-import K8sPopup from 'react-lib/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
-import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
+import FoundationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup.tsx';
+import ComponentPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup.tsx';
+import ClazzPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup.tsx';
+import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/method/method-popup.tsx';
+import CommunicationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup.tsx';
+import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;

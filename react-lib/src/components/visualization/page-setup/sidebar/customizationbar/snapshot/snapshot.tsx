@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
-import { useRoomSerializerStore } from 'react-lib/src/stores/collaboration/room-serializer';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import { useAuthStore } from 'react-lib/src/stores/auth';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   useSnapshotTokenStore,
   SnapshotToken,
-} from 'react-lib/src/stores/snapshot-token';
-import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
-import AnnotationData from 'react-lib/src/components/visualization/rendering/annotations/annotation-data';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 
 interface SnapshotProps {
   landscapeData: LandscapeData;

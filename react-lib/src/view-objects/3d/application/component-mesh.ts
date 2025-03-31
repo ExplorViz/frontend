@@ -1,12 +1,12 @@
-import { Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
-import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
-import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
+import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
-import { SceneLayers } from 'react-lib/src/stores/minimap-service';
-import { getStoredNumberSetting } from 'react-lib/src/utils/settings/local-storage-settings';
-import { positionBoxLabel } from 'react-lib/src/utils/application-rendering/labeler';
+import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import { getStoredNumberSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { positionBoxLabel } from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import ApplicationObject3D from './application-object-3d';
 
 export default class ComponentMesh extends BoxMesh {

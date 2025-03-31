@@ -1,7 +1,7 @@
 import {
   Position,
   isPosition,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 
 export const POPUP_OPENED_EVENT = 'popup_opened';
 

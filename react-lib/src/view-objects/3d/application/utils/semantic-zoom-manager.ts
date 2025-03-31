@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { Mesh } from 'three';
-import type CommunicationRendering from 'react-lib/src/utils/application-rendering/communication-rendering';
+import type CommunicationRendering from 'explorviz-frontend/src/utils/application-rendering/communication-rendering';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import { VisualizationSettings } from 'react-lib/src/utils/settings/settings-schemas';
-import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
 import { SemanticZoomableObject } from './semantic-zoomable-object';
 import { Appearence } from './semantic-zoom-appearance';
 import { Recipe } from './semantic-zoom-recipe';

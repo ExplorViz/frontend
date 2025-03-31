@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import ApplicationData from 'react-lib/src/utils/application-data';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 
 interface ApplicationRepositoryState {
   applications: Map<string, ApplicationData>; // tracked

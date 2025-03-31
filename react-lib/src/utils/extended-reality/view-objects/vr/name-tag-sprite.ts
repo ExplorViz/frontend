@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import TextTexture from 'react-lib/src/utils/extended-reality/vr-helpers/text-texture';
+import TextTexture from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/text-texture';
 
 const SIZE_PER_PIXEL = 1 / 500;
 

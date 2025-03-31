@@ -1,22 +1,22 @@
 import { create } from 'zustand';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import * as THREE from 'three';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/chat-message';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-message';
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/delete-message';
-import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/delete-message';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from '../utils/event-emitter';
 
 export interface ChatMessageInterface {

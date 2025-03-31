@@ -1,28 +1,28 @@
 import { create } from 'zustand';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import { useChatStore } from 'react-lib/src/stores/chat';
-import * as Highlighting from 'react-lib/src/utils/application-rendering/highlighting';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import * as Highlighting from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { Color } from 'three';
-import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import {
   getAllAncestorComponents,
   openComponentsByList,
-} from 'react-lib/src/utils/application-rendering/entity-manipulation';
+} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 

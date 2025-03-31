@@ -1,5 +1,5 @@
-import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 export type TimelineDataForCommit = {
   timestamps: Timestamp[];

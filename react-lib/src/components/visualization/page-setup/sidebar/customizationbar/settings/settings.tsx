@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { ColorSchemeId } from 'react-lib/src/utils/settings/color-schemes';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   VisualizationSettingId,
   VisualizationSettings,
@@ -12,27 +12,27 @@ import {
   isFlagSetting,
   isRangeSetting,
   isColorSetting,
-} from 'react-lib/src/utils/settings/settings-schemas';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { useRoomSerializerStore } from 'react-lib/src/stores/collaboration/room-serializer';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
-import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
-import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
 import { Mesh } from 'three';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import { defaultVizSettings } from 'react-lib/src/utils/settings/default-settings';
-import ColorSchemeSelector from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector';
-import ColorPicker from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
-import ResetButton from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
-import FlagSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
-import RangeSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
-import ButtonSetting from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
+import ColorSchemeSelector from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector';
+import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
+import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
+import FlagSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
+import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
+import ButtonSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting';
 
 interface SettingsProps {
   enterFullscreen(): void;

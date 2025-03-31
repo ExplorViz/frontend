@@ -1,4 +1,4 @@
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 
 export type VrInputEvent<T> = {
   target: T;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 const userService = import.meta.env.USER_SERV_URL;
 

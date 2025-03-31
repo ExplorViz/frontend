@@ -1,8 +1,8 @@
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import * as THREE from 'three';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
-import { BLOCK_OPTIONS_CONTAINER } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/detail-info-menu';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import { BLOCK_OPTIONS_CONTAINER } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/detail-info-menu';
 
 export type CloseIconTextures = {
   defaultTexture: THREE.Texture;

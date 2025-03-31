@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 type AllMetricScoresObject = {
   metricName: string;

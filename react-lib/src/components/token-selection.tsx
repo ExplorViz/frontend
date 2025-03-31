@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LandscapeToken } from '../stores/landscape-token';
 import { useAuthStore } from '../stores/auth';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import {
   DesktopDownloadIcon,
@@ -10,7 +10,7 @@ import {
   TrashIcon,
 } from '@primer/octicons-react';
 import AdditionalTokenInfo from './additional-token-info';
-import ShareLandscape from 'react-lib/src/components/share-landscape';
+import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
 import JSZip from 'jszip';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];

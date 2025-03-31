@@ -1,16 +1,16 @@
 import { create } from 'zustand';
-import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
+import { GrabbableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
 import * as THREE from 'three';
 import {
   ObjectGrabbedResponse,
   isObjectGrabbedResponse,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-grabbed';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-grabbed';
 import {
   OBJECT_GRABBED_EVENT,
   ObjectGrabbedMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/object-grabbed';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/object-grabbed';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 
 // TODO: Remove add and remove functions for attributes
 //       after full migration

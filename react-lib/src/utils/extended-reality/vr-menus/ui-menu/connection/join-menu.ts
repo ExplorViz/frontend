@@ -1,11 +1,11 @@
-import { useRoomServiceStore } from 'react-lib/src/stores/collaboration/room-service';
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
-import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
-import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
-import ConnectionBaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
-import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/title-item';
+import ConnectionBaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/connection/base';
+import { RoomListRecord } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { UiMenuArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
 
 /**
  * Time in seconds before the new room list should be fetched.

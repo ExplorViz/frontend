@@ -1,12 +1,12 @@
 // import { tracked } from '@glimmer/tracking';
-import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   ApplicationMetrics,
   Metric,
-} from 'react-lib/src/utils/metric-schemes/metric-data';
-import { FlatData } from 'react-lib/src/utils/flat-data-schemes/flat-data';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout';
+} from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
+import { FlatData } from 'explorviz-frontend/src/utils/flat-data-schemes/flat-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 
 export default class ApplicationData {
   application: Application;

@@ -2,8 +2,8 @@ import {
   applicationHasClass,
   getAllClassesInApplication,
   getAllMethodHashCodesInApplication,
-} from 'react-lib/src/utils/application-helpers';
-import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'explorviz-frontend/src/utils/application-helpers';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Application,
   Node,
@@ -12,15 +12,15 @@ import {
   StructureLandscapeData,
   Method,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAncestorPackages,
   getPackageById,
-} from 'react-lib/src/utils/package-helpers';
+} from 'explorviz-frontend/src/utils/package-helpers';
 import {
   getTraceIdToSpanTree,
   SpanTree,
-} from 'react-lib/src/utils/trace-helpers';
+} from 'explorviz-frontend/src/utils/trace-helpers';
 
 export function getAllApplicationsInLandscape(
   landscapeStructure: StructureLandscapeData

@@ -1,8 +1,8 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 
 export default class DetailInfoScrollarea
   extends ThreeMeshUI.Block

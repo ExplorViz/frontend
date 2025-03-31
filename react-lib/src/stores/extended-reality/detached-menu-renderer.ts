@@ -2,18 +2,18 @@ import { create } from 'zustand';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import {
   SerializedAnnotation,
   SerializedDetachedMenu,
   SerializedPopup,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import { SPECTATE_VIEW_ENTITY_TYPE } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
-import { useDetachedMenuGroupsStore } from 'react-lib/src/stores/extended-reality/detached-menu-groups';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import { SPECTATE_VIEW_ENTITY_TYPE } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
+import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
 
 interface DetachedMenuRendererState {
   restore: (

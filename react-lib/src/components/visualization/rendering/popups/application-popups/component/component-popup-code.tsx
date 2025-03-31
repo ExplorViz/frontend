@@ -3,7 +3,7 @@ import React from 'react';
 import {
   Package,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface ComponentPopupCodeProps {
   component: Package;

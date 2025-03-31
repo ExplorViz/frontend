@@ -3,16 +3,16 @@ import { useApplicationRendererStore } from './application-renderer';
 import {
   useRenderingServiceStore,
   EvolutionModeRenderingConfiguration,
-} from 'react-lib/src/stores/rendering-service';
+} from 'explorviz-frontend/src/stores/rendering-service';
 import {
   Class,
   Package,
   StructureLandscapeData,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 
 interface VisibilityServiceState {
   _evolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration;

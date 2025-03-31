@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import HeatmapLegend from 'react-lib/src/components/heatmap/heatmap-legend.tsx';
-import MetricSelector from 'react-lib/src/components/heatmap/metric-selector.tsx';
-import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import HeatmapLegend from 'explorviz-frontend/src/components/heatmap/heatmap-legend.tsx';
+import MetricSelector from 'explorviz-frontend/src/components/heatmap/metric-selector.tsx';
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 
 export default function HeatmapInfo() {
   const heatmapRef = useRef(null);

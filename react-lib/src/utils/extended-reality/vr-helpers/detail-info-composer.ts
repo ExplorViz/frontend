@@ -1,28 +1,28 @@
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'react-lib/src/utils/application-helpers';
-import { Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/application-helpers';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getSubPackagesOfPackage,
   getClassesInPackage,
-} from 'react-lib/src/utils/package-helpers';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+} from 'explorviz-frontend/src/utils/package-helpers';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,
   EntityType,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import { MethodMesh } from 'react-lib/src/view-objects/3d/application/method-mesh';
-import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { MethodMesh } from 'explorviz-frontend/src/view-objects/3d/application/method-mesh';
+import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 
 export type DetailedInfo = {
   title: string;

@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { requestData } from 'react-lib/src/utils/landscape-http-request-util';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (

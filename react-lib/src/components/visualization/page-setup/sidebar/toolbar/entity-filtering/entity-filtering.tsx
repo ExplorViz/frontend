@@ -1,17 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 
 import Button from 'react-bootstrap/Button';
-import TraceFiltering from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-filtering';
-import StructureFiltering from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/structure-filtering';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import TraceFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-filtering';
+import StructureFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/structure-filtering';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   NEW_SELECTED_TIMESTAMP_EVENT,
   useTimestampStore,
-} from 'react-lib/src/stores/timestamp';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+} from 'explorviz-frontend/src/stores/timestamp';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface EntityFilteringProps {
   readonly landscapeData: LandscapeData;

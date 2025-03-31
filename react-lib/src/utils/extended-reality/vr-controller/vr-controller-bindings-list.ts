@@ -1,5 +1,5 @@
-import { VRControllerCallbackFunctions } from 'react-lib/src/utils/extended-reality/vr-controller';
-import VRControllerBindings from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-bindings';
+import { VRControllerCallbackFunctions } from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import VRControllerBindings from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-bindings';
 
 export default class VRControllerBindingsList {
   defaultBindings: VRControllerBindings;

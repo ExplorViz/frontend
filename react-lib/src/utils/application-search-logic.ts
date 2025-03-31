@@ -1,4 +1,4 @@
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 
 export default function getPossibleEntityNames(name: string) {
   const searchString = name.toLowerCase();

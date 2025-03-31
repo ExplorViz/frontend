@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 
 import { XIcon } from '@primer/octicons-react';
-import SidebarResizer from 'react-lib/src/components/visualization/page-setup/sidebar/sidebar-resizer';
+import SidebarResizer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-resizer';
 
 interface ToolSelection {
   closeToolSelection: () => void;

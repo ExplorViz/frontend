@@ -1,4 +1,4 @@
-import { Gradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
+import { Gradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 
 export default function revertKey(gradient: Gradient) {
   const replacedItems = Object.keys(gradient).map((key) => ({

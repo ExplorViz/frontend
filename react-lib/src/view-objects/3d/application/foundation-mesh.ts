@@ -1,10 +1,10 @@
-import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
-import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
-import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
-import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
-import { SceneLayers } from 'react-lib/src/stores/minimap-service';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
+import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
+import MinimapLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/minimap-label-mesh';
+import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 
 export default class FoundationMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,

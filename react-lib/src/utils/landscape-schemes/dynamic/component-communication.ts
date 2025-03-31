@@ -1,12 +1,12 @@
-import { getClassesInPackage } from 'react-lib/src/utils/package-helpers';
+import { getClassesInPackage } from 'explorviz-frontend/src/utils/package-helpers';
 import {
   Application,
   Class,
   Package,
   isClass,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import MethodCall from 'react-lib/src/utils/landscape-schemes/dynamic/method-call';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import MethodCall from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/method-call';
 
 export default class ComponentCommunication {
   id: string = '';

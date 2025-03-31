@@ -1,16 +1,16 @@
 import { create } from 'zustand';
-import { useAuthStore } from 'react-lib/src/stores/auth';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useRoomSerializerStore } from './room-serializer';
 import {
   RoomListRecord,
   isRoomListRecord,
-} from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
-import { RoomCreatedResponse } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-created';
-import { InitialRoomPayload } from 'react-lib/src/utils/collaboration/room-payload/sendable/initial-room';
+} from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
+import { RoomCreatedResponse } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-created';
+import { InitialRoomPayload } from 'explorviz-frontend/src/utils/collaboration/room-payload/sendable/initial-room';
 import {
   LobbyJoinedResponse,
   isLobbyJoinedResponse,
-} from 'react-lib/src/utils/collaboration/room-payload/receivable/lobby-joined';
+} from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/lobby-joined';
 
 const collaborationService = import.meta.env.VITE_COLLABORATION_SERV_URL;
 

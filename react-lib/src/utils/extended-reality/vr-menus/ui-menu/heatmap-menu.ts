@@ -1,10 +1,10 @@
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
-import RectangleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/rectangle-item';
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import { DetachableMenu } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
+import RectangleItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/rectangle-item';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
 import UiMenu, { DEFAULT_MENU_RESOLUTION, UiMenuArgs } from '../ui-menu';
-import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
+import { EntityType } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 
 export default class HeatmapMenu extends UiMenu implements DetachableMenu {
   private entryItems: Map<string, TextItem>;

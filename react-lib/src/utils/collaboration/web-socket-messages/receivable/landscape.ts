@@ -1,20 +1,20 @@
 import {
   Scale,
   isScale,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/Scale';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/Scale';
 import {
   EntityType,
   isEntityType,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import {
   Position,
   isPosition,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
-import { SerializedHighlightedExternLink } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
+import { SerializedHighlightedExternLink } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 
 export const INITIAL_LANDSCAPE_EVENT = 'landscape';
 

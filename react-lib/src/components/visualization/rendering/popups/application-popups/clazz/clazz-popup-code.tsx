@@ -1,16 +1,16 @@
 import React from 'react';
 
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
-import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   ApplicationMetricsCode,
   ClassMetricCode,
-} from 'react-lib/src/utils/metric-schemes/metric-data';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { calculateFqn } from 'react-lib/src/utils/landscape-structure-helpers';
-import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
+} from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { calculateFqn } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 
 interface ClazzPopupCodeProps {
   popupData: PopupData;

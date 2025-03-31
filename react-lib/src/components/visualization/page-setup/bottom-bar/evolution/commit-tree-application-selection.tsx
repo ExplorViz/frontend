@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppNameCommitTreeMap } from 'react-lib/src/utils/evolution-schemes/evolution-data';
-import { useCommitTreeStateStore } from 'react-lib/src/stores/commit-tree-state';
+import { AppNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 
 export default function CommitTreeApplicationSelection({
   appNameCommitTreeMap,

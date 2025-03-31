@@ -1,11 +1,11 @@
 import React from 'react';
 
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import PopupTabs from 'react-lib/src/components/visualization/rendering/popups/popup-tabs.tsx';
-import { Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ComponentPopupRuntime from 'react-lib/src/components/visualization/rendering/popups/application-popups/component/component-popup-runtime';
-import ComponentPopupCode from 'react-lib/src/components/visualization/rendering/popups/application-popups/component/component-popup-code';
-import ComponentPopupRestructure from 'react-lib/src/components/visualization/rendering/popups/application-popups/component/component-popup-restructure';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs.tsx';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ComponentPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-runtime';
+import ComponentPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-code';
+import ComponentPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-restructure';
 
 interface ComponentPopupProps {
   popupData: PopupData;

@@ -1,5 +1,5 @@
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import BaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/base-menu';
 
 /**
  * A menu that has no controller bindings.

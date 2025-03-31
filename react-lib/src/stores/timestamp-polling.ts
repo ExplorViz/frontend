@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
-import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
-import { CROSS_COMMIT_IDENTIFIER } from 'react-lib/src/utils/evolution-schemes/evolution-data';
+import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { useAuthStore } from './auth';
-import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
-import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useLandscapeTokenStore } from './landscape-token';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;

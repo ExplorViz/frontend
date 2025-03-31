@@ -1,31 +1,31 @@
 import React, { useEffect } from 'react';
 
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ALL_HIGHLIGHTS_RESET_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
 import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/change-landscape';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/change-landscape';
 import {
   CHANGELOG_REMOVE_ENTRY_EVENT,
   CHANGELOG_RESTORE_ENTRIES_EVENT,
   ChangeLogRemoveEntryMessage,
   ChangeLogRestoreEntriesMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/changelog-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/changelog-update';
 import {
   COMPONENT_UPDATE_EVENT,
   ComponentUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/component-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/component-update';
 import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
 import {
   MOUSE_PING_UPDATE_EVENT,
   MousePingUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -52,37 +52,37 @@ import {
   RestructureRestoreClassMessage,
   RestructureRestorePackageMessage,
   RestructureUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/restructure-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/restructure-update';
 import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/share-settings';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useChangelogStore } from 'react-lib/src/stores/changelog';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { BaseChangeLogEntry } from 'react-lib/src/utils/changelog-entry';
-import { getClassById } from 'react-lib/src/utils/class-helpers';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/share-settings';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { BaseChangeLogEntry } from 'explorviz-frontend/src/utils/changelog-entry';
+import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
   Package,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getApplicationInLandscapeById } from 'react-lib/src/utils/landscape-structure-helpers';
-import { getPackageById } from 'react-lib/src/utils/package-helpers';
-import { VisualizationSettings } from 'react-lib/src/utils/settings/settings-schemas';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import WaypointIndicator from 'react-lib/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getApplicationInLandscapeById } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { getPackageById } from 'explorviz-frontend/src/utils/package-helpers';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import WaypointIndicator from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import * as THREE from 'three';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function useCollaborativeModifier() {

@@ -7,13 +7,13 @@ import {
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
-} from 'react-lib/src/utils/settings/settings-schemas';
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import {
   getStoredSettings,
   saveSettings,
   validateRangeSetting,
-} from 'react-lib/src/utils/settings/local-storage-settings';
-import { defaultVizSettings } from 'react-lib/src/utils/settings/default-settings';
+} from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   classicColors,
   ColorSchemeId,
@@ -21,14 +21,14 @@ import {
   defaultColors,
   blueColors,
   ColorScheme,
-} from 'react-lib/src/utils/settings/color-schemes';
-import { updateColors as EMUpdateColors } from 'react-lib/src/utils/application-rendering/entity-manipulation';
+} from 'explorviz-frontend/src/utils/settings/color-schemes';
+import { updateColors as EMUpdateColors } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import * as THREE from 'three';
-import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
 interface UserSettingsState {
   visualizationSettings: VisualizationSettings; // tracked

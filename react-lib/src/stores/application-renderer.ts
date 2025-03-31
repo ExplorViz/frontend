@@ -1,54 +1,54 @@
 // #region Imports
 import { create } from 'zustand';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import ApplicationData from 'react-lib/src/utils/application-data';
-import CommunicationRendering from 'react-lib/src/utils/application-rendering/communication-rendering';
-import * as EntityManipulation from 'react-lib/src/utils/application-rendering/entity-manipulation';
-import * as EntityRendering from 'react-lib/src/utils/application-rendering/entity-rendering';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
+import CommunicationRendering from 'explorviz-frontend/src/utils/application-rendering/communication-rendering';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import * as EntityRendering from 'explorviz-frontend/src/utils/application-rendering/entity-rendering';
 import {
   HightlightComponentArgs,
   removeAllHighlightingFor,
-} from 'react-lib/src/utils/application-rendering/highlighting';
-import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import * as Labeler from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import {
   Class,
   getApplicationsFromNodes,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
-import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
-import VrApplicationObject3D from 'react-lib/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
+import VrApplicationObject3D from 'explorviz-frontend/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
 import { useConfigurationStore } from './configuration';
 import { useApplicationRepositoryStore } from './repos/application-repository';
-import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
+import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
 import { useUserSettingsStore } from './user-settings';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
-import { getSubPackagesOfPackage } from 'react-lib/src/utils/package-helpers';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
+import { getSubPackagesOfPackage } from 'explorviz-frontend/src/utils/package-helpers';
 import { useHighlightingStore } from './highlighting';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { useRoomSerializerStore } from 'react-lib/src/stores/collaboration/room-serializer';
-import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
-import { CommitComparison } from 'react-lib/src/utils/evolution-schemes/evolution-data';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { CommitComparison } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'react-lib/src/utils/application-helpers';
+} from 'explorviz-frontend/src/utils/application-helpers';
 import { MeshLineMaterial } from 'meshline';
-import { FlatDataModelBasicInfo } from 'react-lib/src/utils/flat-data-schemes/flat-data';
-import { useTextureServiceStore } from 'react-lib/src/stores/texture-service';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-import layoutLandscape from 'react-lib/src/utils/elk-layouter';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import { FlatDataModelBasicInfo } from 'explorviz-frontend/src/utils/flat-data-schemes/flat-data';
+import { useTextureServiceStore } from 'explorviz-frontend/src/stores/texture-service';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 // #endregion imports
 
 export type LayoutData = {

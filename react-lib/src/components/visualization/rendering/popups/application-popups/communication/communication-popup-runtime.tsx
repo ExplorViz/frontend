@@ -3,8 +3,8 @@ import React from 'react';
 import {
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import {
   CodeIcon,
   ArrowSwitchIcon,
@@ -13,7 +13,7 @@ import {
 } from '@primer/octicons-react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
+import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
 
 interface CommunicationPopupRuntimeProps {
   communication: ClazzCommuMeshDataModel;

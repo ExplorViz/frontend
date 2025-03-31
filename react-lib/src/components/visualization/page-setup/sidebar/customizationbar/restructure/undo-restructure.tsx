@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
-import { useChangelogStore } from 'react-lib/src/stores/changelog';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { ReplyIcon } from '@primer/octicons-react';
 
 interface UndoRestructureProps {}

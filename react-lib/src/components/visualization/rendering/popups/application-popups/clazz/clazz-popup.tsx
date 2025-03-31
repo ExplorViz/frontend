@@ -1,10 +1,10 @@
 import React from 'react';
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzPopupRuntime from 'react-lib/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-runtime';
-import ClazzPopupCode from 'react-lib/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-code';
-import ClazzPopupRestructure from 'react-lib/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-restructure';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import PopupTabs from 'react-lib/src/components/visualization/rendering/popups/popup-tabs.tsx';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-runtime';
+import ClazzPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-code';
+import ClazzPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-restructure';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs.tsx';
 
 interface ClazzPopupProps {
   popupData: PopupData;

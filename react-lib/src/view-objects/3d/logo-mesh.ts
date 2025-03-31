@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 
 export default class LogoMesh extends BaseMesh {
   texture: THREE.Texture;

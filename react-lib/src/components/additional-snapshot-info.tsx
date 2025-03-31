@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 
 import { useAuthStore } from '../stores/auth';
 import { TinySnapshot } from '../stores/snapshot-token';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import CopyButton from 'react-lib/src/components/copy-button.tsx';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { InfoIcon } from '@primer/octicons-react';
 import { Tooltip, Popover } from 'react-bootstrap';

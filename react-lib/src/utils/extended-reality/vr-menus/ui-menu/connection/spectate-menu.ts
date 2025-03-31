@@ -1,16 +1,16 @@
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
-import DisableInputMenu from 'react-lib/src/utils/extended-reality/vr-menus/ui-less-menu/disable-input-menu';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
+import DisableInputMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-less-menu/disable-input-menu';
 import UiMenu, {
   DEFAULT_MENU_RESOLUTION,
   SIZE_RESOLUTION_FACTOR,
   UiMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 
 export type SpectateMenuArgs = UiMenuArgs & {
   remoteUser: RemoteUser;

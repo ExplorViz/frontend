@@ -1,16 +1,16 @@
 import ThreeMeshUI from 'three-mesh-ui';
-import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
-import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
+import { DetachableMenu } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
+import InteractiveMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/interactive-menu';
 import * as THREE from 'three';
-import { SIZE_RESOLUTION_FACTOR } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import { SIZE_RESOLUTION_FACTOR } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import {
   BLOCK_OPTIONS_CONTAINER,
   BLOCK_OPTIONS_TITLE,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/detail-info-menu';
-import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/detail-info-menu';
+import { EntityType } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
 export type SpectateViewMenuArgs = {
   renderer: THREE.WebGLRenderer;

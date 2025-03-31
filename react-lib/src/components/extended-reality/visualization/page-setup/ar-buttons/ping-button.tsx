@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import Button from 'react-bootstrap/Button';
 import { NorthStarIcon } from '@primer/octicons-react';
 

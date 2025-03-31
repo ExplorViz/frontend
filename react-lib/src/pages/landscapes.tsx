@@ -12,10 +12,10 @@ import { useNavigate, createSearchParams, useParams } from 'react-router-dom';
 import { useToastHandlerStore } from '../stores/toast-handler';
 import { useAuthStore } from '../stores/auth';
 import { Tabs, Tab, Button } from 'react-bootstrap';
-import TokenSelection from 'react-lib/src/components/token-selection';
-import RoomList from 'react-lib/src/components/collaboration/room-list';
-import SnapshotSelection from 'react-lib/src/components/snapshot-selection';
-import TokenCreationModal from 'react-lib/src/components/token-creation-modal';
+import TokenSelection from 'explorviz-frontend/src/components/token-selection';
+import RoomList from 'explorviz-frontend/src/components/collaboration/room-list';
+import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
+import TokenCreationModal from 'explorviz-frontend/src/components/token-creation-modal';
 import LandscapeLoader from './landscapes-loading';
 
 export default function Landscapes() {

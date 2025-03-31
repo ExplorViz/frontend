@@ -1,10 +1,10 @@
 import ThreeMeshUI from 'three-mesh-ui';
 import UserListItem, {
   BLOCK_OPTIONS_LIST_ITEM,
-} from 'react-lib/src/utils/extended-reality/view-objects/vr/user-list-item';
-import OnlineMenu2 from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu/connection/online-menu2';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+} from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/user-list-item';
+import OnlineMenu2 from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/connection/online-menu2';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
 export type UserListArgs = ThreeMeshUI.BlockOptions & {
   menu: OnlineMenu2;

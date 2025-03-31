@@ -4,10 +4,10 @@ import {
   Application,
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 import { Button } from 'react-bootstrap';
-import ArPopupCoordinator from 'react-lib/src/components/extended-reality/visualization/rendering/popups/ar-popup-coordinator';
+import ArPopupCoordinator from 'explorviz-frontend/src/components/extended-reality/visualization/rendering/popups/ar-popup-coordinator';
 import PopupData from '../../../../visualization/rendering/popups/popup-data';
 
 interface PopupWrapperArgs {

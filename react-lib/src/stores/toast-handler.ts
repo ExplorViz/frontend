@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import eventEmitter from 'react-lib/src/utils/event-emitter';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 
 interface ToastHandlerState {
   showInfoToastMessage: (message: string, header?: string) => void;

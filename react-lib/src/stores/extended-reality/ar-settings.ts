@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 
 interface ARSettingsState {
   landscapeOpacity: number; // tracked

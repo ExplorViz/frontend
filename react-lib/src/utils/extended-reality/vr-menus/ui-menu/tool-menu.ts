@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import TextTexture from 'react-lib/src/utils/extended-reality/vr-helpers/text-texture';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import TextTexture from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/text-texture';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   VRControllerThumbpadHorizontalDirection,
-} from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
-import { SIZE_RESOLUTION_FACTOR } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import InteractiveMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/interactive-menu';
+import { SIZE_RESOLUTION_FACTOR } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 
 type ToolArgs = {
   label: string;

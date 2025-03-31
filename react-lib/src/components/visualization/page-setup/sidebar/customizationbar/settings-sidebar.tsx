@@ -1,7 +1,7 @@
 import { XIcon } from '@primer/octicons-react';
 import React, { ReactNode } from 'react';
 import SidebarResizer from '../sidebar-resizer';
-import UndoRestructure from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/restructure/undo-restructure';
+import UndoRestructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/undo-restructure';
 
 interface SettingsSidebarProps {
   closeSettingsSidebar: () => void;

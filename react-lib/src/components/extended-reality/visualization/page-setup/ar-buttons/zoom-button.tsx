@@ -2,7 +2,7 @@ import React from 'react';
 
 import Button from 'react-bootstrap/Button';
 import { SearchIcon } from '@primer/octicons-react';
-import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 
 interface ZoomButtonArgs {}
 

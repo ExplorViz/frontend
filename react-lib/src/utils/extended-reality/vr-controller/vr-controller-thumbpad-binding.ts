@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import VRControllerLabelGroup from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-label-group';
-import VRControllerLabelMesh from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-label-mesh';
-import { VRControllerThumbpadLabelPositions } from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-label-positions';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import VRControllerLabelGroup from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-label-group';
+import VRControllerLabelMesh from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-label-mesh';
+import { VRControllerThumbpadLabelPositions } from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-label-positions';
 
 type VRControllerThumbpadLabels = {
   labelUp?: string;

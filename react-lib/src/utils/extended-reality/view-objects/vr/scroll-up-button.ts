@@ -1,5 +1,5 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
 
 export default class ScrollUpButton

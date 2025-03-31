@@ -1,5 +1,5 @@
-import ApplicationObject3D from "react-lib/src/view-objects/3d/application/application-object-3d";
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import ApplicationObject3D from "explorviz-frontend/src/view-objects/3d/application/application-object-3d";
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from "three";
 
 export default function applySimpleHeatOnFoundation(

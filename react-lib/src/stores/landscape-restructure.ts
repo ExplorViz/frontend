@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   addFoundationToLandscape,
   addMethodToClass,
@@ -21,7 +21,7 @@ import {
   pastePackage,
   pasteClass,
   duplicateApplication,
-} from 'react-lib/src/utils/restructure-helper';
+} from 'explorviz-frontend/src/utils/restructure-helper';
 import {
   Application,
   Class,
@@ -31,32 +31,32 @@ import {
   isPackage,
   StructureLandscapeData,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getApplicationFromClass,
   getApplicationFromPackage,
   getApplicationFromSubPackage,
   getApplicationInLandscapeById,
-} from 'react-lib/src/utils/landscape-structure-helpers';
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import {
   getClassesInPackage,
   getPackageById,
   getSubPackagesOfPackage,
-} from 'react-lib/src/utils/package-helpers';
-import { getClassById } from 'react-lib/src/utils/class-helpers';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+} from 'explorviz-frontend/src/utils/package-helpers';
+import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
   RestructureAction,
   EntityType,
-} from 'react-lib/src/utils/restructure-helper';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
+} from 'explorviz-frontend/src/utils/restructure-helper';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import * as THREE from 'three';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'react-lib/src/utils/application-helpers';
+} from 'explorviz-frontend/src/utils/application-helpers';
 import {
   AppChangeLogEntry,
   BaseChangeLogEntry,
@@ -64,14 +64,14 @@ import {
   CommunicationChangeLogEntry,
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
-} from 'react-lib/src/utils/changelog-entry';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+} from 'explorviz-frontend/src/utils/changelog-entry';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import eventEmitter from '../utils/event-emitter';
 import { useApplicationRendererStore } from './application-renderer';
 import { useChangelogStore } from './changelog';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from './user-settings';
 
 type MeshModelTextureMapping = {

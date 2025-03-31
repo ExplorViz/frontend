@@ -1,21 +1,21 @@
 import * as THREE from 'three';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import { Font } from 'three-stdlib'; // import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import gsap from 'gsap';
-import MinimapLabelMesh from 'react-lib/src/view-objects/3d/application/minimap-label-mesh';
-import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
-import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh';
-import { SceneLayers } from 'react-lib/src/stores/minimap-service';
+import MinimapLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/minimap-label-mesh';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import LabelMesh from 'explorviz-frontend/src/view-objects/3d/label-mesh';
+import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import {
   ExplorVizColors,
   useUserSettingsStore,
-} from 'react-lib/src/stores/user-settings';
-import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-import ClazzLabelMesh from 'react-lib/src/view-objects/3d/application/clazz-label-mesh';
+} from 'explorviz-frontend/src/stores/user-settings';
+import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import ClazzLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-label-mesh';
 import SemanticZoomManager from '../../view-objects/3d/application/utils/semantic-zoom-manager';
 
 /**

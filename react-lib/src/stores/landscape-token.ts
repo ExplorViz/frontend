@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { useAuthStore } from 'react-lib/src/stores/auth';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 const userService = import.meta.env.VITE_USER_SERV_URL;
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { TIMESTAMP_UPDATE_EVENT } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
+import { TIMESTAMP_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import eventEmitter from '../utils/event-emitter';
 
 export const NEW_SELECTED_TIMESTAMP_EVENT = 'new_selected_timestamp';

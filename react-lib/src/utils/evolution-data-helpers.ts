@@ -1,4 +1,4 @@
-import { AppNameCommitTreeMap } from 'react-lib/src/utils/evolution-schemes/evolution-data';
+import { AppNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
 export function findAppNameAndBranchNameForCommit(
   appCommitMap: AppNameCommitTreeMap,

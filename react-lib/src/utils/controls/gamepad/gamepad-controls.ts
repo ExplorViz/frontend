@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-// import { Position2D } from 'react-lib/src/modifiers/interaction-modifier';
-import CrosshairMesh from 'react-lib/src/view-objects/3d/crosshair-mesh.ts';
-import { defaultRaycastFilter } from 'react-lib/src/utils/raycaster';
-import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
-import { gamepadMappings } from 'react-lib/src/utils/controls/gamepad/gamepad-mappings';
+// import { Position2D } from 'explorviz-frontend/src/modifiers/interaction-modifier';
+import CrosshairMesh from 'explorviz-frontend/src/view-objects/3d/crosshair-mesh.ts';
+import { defaultRaycastFilter } from 'explorviz-frontend/src/utils/raycaster';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { gamepadMappings } from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-mappings';
 
 export type Position2D = {
   x: number;

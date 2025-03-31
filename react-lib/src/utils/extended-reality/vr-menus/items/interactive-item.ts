@@ -1,4 +1,4 @@
-import Item, { ItemArgs } from 'react-lib/src/utils/extended-reality/vr-menus/items/item';
+import Item, { ItemArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/item';
 
 export type InteractiveItemArgs = ItemArgs & {
   onHover?: () => void;

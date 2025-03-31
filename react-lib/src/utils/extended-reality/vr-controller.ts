@@ -1,18 +1,18 @@
-import { defaultRaycastFilter } from 'react-lib/src/utils/raycaster';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+import { defaultRaycastFilter } from 'explorviz-frontend/src/utils/raycaster';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import * as THREE from 'three';
-import { canIntersectAllParentObjects } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
-import TeleportMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/teleport-mesh';
-import VRControllerBindingsList from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-bindings-list';
-import VRControllerLabelGroup from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-label-group';
-import VrControllerModel from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model';
-import VrControllerModelFactory from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
+import { canIntersectAllParentObjects } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import TeleportMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/teleport-mesh';
+import VRControllerBindingsList from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-bindings-list';
+import VRControllerLabelGroup from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-label-group';
+import VrControllerModel from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-model';
+import VrControllerModelFactory from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
 import {
   displayAsSolidObject,
   displayAsWireframe,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/wireframe';
-import MenuGroup from 'react-lib/src/utils/extended-reality/vr-menus/menu-group';
-import { ControllerId } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/wireframe';
+import MenuGroup from 'explorviz-frontend/src/utils/extended-reality/vr-menus/menu-group';
+import { ControllerId } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
 import SemanticZoomManager from '../../view-objects/3d/application/utils/semantic-zoom-manager';
 /**
  * Length of the controller's ray when there is no intersection point.

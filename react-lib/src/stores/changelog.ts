@@ -6,21 +6,21 @@ import {
   CommunicationChangeLogEntry,
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
-} from 'react-lib/src/utils/changelog-entry';
+} from 'explorviz-frontend/src/utils/changelog-entry';
 import {
   Application,
   Class,
   Package,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   RestructureAction,
   EntityType,
   changeID,
-} from 'react-lib/src/utils/restructure-helper';
-import { getAncestorPackages } from 'react-lib/src/utils/package-helpers';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+} from 'explorviz-frontend/src/utils/restructure-helper';
+import { getAncestorPackages } from 'explorviz-frontend/src/utils/package-helpers';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import eventEmitter from '../utils/event-emitter';
 
 interface ChangelogState {

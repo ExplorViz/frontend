@@ -1,6 +1,6 @@
-import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
-import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+import { Metric } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import Select from 'react-select';
 
 const formatOptionLabel = (metric: Metric) => (

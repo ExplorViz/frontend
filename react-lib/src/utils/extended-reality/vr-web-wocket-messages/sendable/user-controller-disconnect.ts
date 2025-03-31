@@ -1,7 +1,7 @@
 import {
   ControllerId,
   isControllerId,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
 
 export const USER_CONTROLLER_DISCONNECT_EVENT = 'user_controller_disconnect';
 

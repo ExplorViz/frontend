@@ -1,5 +1,5 @@
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
-import { ItemArgs } from 'react-lib/src/utils/extended-reality/vr-menus/items/item';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
+import { ItemArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/item';
 
 export const TITLE_FONT_SIZE = 50;
 export const TITLE_TEXT_COLOR = '#ffffff';

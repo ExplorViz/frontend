@@ -1,8 +1,8 @@
-import { defaultColors } from 'react-lib/src/utils/settings/color-schemes';
+import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   SettingLevel,
   VisualizationSettings,
-} from 'react-lib/src/utils/settings/settings-schemas';
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings

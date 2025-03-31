@@ -2,75 +2,75 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { useShallow } from 'zustand/react/shallow';
 import { useResizeDetector } from 'react-resize-detector';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import useInteractionModifier, {
   Position2D,
-} from 'react-lib/src/hooks/interaction-modifier';
-import { usePopupHandlerStore } from 'react-lib/src/stores/popup-handler';
-import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
+} from 'explorviz-frontend/src/hooks/interaction-modifier';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
 import {
   moveCameraTo,
   updateColors,
-} from 'react-lib/src/utils/application-rendering/entity-manipulation';
+} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import {
   Span,
   Trace,
-} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import { Vector3 } from 'three';
 import * as THREE from 'three';
 import { MapControls } from 'three-stdlib';
-import { useSpectateUserStore } from 'react-lib/src/stores/collaboration/spectate-user';
+import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import IdeWebsocket from 'react-lib/src/ide/ide-websocket';
-import IdeCrossCommunication from 'react-lib/src/ide/ide-cross-communication';
-import { removeAllHighlightingFor } from 'react-lib/src/utils/application-rendering/highlighting';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
-import { useRoomSerializerStore } from 'react-lib/src/stores/collaboration/room-serializer';
-import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
-import { SnapshotToken } from 'react-lib/src/stores/snapshot-token';
-import { useAuthStore } from 'react-lib/src/stores/auth';
-import GamepadControls from 'react-lib/src/utils/controls/gamepad/gamepad-controls';
-import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import { ImmersiveView } from 'react-lib/src/rendering/application/immersive-view';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
-import Raycaster from 'react-lib/src/utils/raycaster';
-import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator';
-import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
-import VscodeExtensionOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
-import RestructureOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener';
-import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener';
-import SnapshotOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
-import TraceReplayerOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
-import ApplicationSearchOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
-import EntityFilteringOpener from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
-import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info';
-import VscodeExtensionSettings from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
-import ApplicationSearch from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import IdeWebsocket from 'explorviz-frontend/src/ide/ide-websocket';
+import IdeCrossCommunication from 'explorviz-frontend/src/ide/ide-cross-communication';
+import { removeAllHighlightingFor } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import Raycaster from 'explorviz-frontend/src/utils/raycaster';
+import calculateHeatmap from 'explorviz-frontend/src/utils/calculate-heatmap';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import LoadingIndicator from 'explorviz-frontend/src/components/visualization/rendering/loading-indicator';
+import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
+import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
+import RestructureOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener';
+import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener';
+import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
+import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
+import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
+import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
+import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
+import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
+import ApplicationSearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 import Button from 'react-bootstrap/Button';
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
@@ -88,7 +88,7 @@ import Restructure from '../page-setup/sidebar/customizationbar/restructure/rest
 import { ApiToken } from '../../../stores/user-api-token';
 import { LandscapeToken } from '../../../stores/landscape-token';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
-import Settings from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
+import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 import useLandscapeDataWatcher from '../../../hooks/landscape-data-watcher';
 import useSyncState from '../../../hooks/sync-state';
 import useHeatmapRenderer from '../../../hooks/heatmap-renderer';

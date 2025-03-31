@@ -1,40 +1,40 @@
 import { create } from 'zustand';
 
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
-import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
-import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { SerializedPopup } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import { useDetachedMenuRendererStore } from 'react-lib/src/stores/extended-reality/detached-menu-renderer';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
 import {
   getTypeOfEntity,
   isEntityMesh,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { MenuDetachedForwardMessage } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { MenuDetachedForwardMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   MenuDetachedResponse,
   isMenuDetachedResponse,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import * as THREE from 'three';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 
 type Position2D = {
   x: number;

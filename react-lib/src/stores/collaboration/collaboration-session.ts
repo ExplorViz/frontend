@@ -1,48 +1,48 @@
 import { create } from 'zustand';
 
-import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
+import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import * as THREE from 'three';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useUserFactoryStore } from './user-factory';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import {
   useWebSocketStore,
   SELF_DISCONNECTED_EVENT,
-} from 'react-lib/src/stores/collaboration/web-socket';
+} from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useRoomServiceStore } from './room-service';
 import {
   SELF_CONNECTED_EVENT,
   SelfConnectedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/self-connected';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/self-connected';
 import {
   USER_CONNECTED_EVENT,
   UserConnectedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/user-connected';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/user-connected';
 import {
   USER_DISCONNECTED_EVENT,
   UserDisconnectedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/user-disconnect';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/user-disconnect';
 import {
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
-import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
-import { useMinimapStore } from 'react-lib/src/stores/minimap-service';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import {
   USER_KICK_EVENT,
   UserKickEvent,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/kick-user';
-import { useChatStore } from 'react-lib/src/stores/chat';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/kick-user';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from '../../utils/event-emitter';
 import { createSearchParams } from 'react-router-dom';
 import { useRouterStore } from '../store-router';

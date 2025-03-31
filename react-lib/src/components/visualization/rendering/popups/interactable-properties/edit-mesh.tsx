@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import {
   isApplication,
   isClass,
   isPackage,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';

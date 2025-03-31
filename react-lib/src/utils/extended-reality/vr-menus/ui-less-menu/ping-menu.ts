@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import AnimatedMenu from 'react-lib/src/utils/extended-reality/vr-menus/animated-menu';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import AnimatedMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/animated-menu';
 
 export type PingMenuArgs = {
   scene: THREE.Scene;

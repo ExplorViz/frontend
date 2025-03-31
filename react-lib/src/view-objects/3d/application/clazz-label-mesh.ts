@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh.ts';
-import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';
+import LabelMesh from 'explorviz-frontend/src/view-objects/3d/label-mesh.ts';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import * as Labeler from 'explorviz-frontend/src/utils/application-rendering/labeler';
 
 export default class ClazzLabelMesh extends LabelMesh {
   //parents: THREE.Object3D | undefined = undefined;

@@ -1,5 +1,5 @@
 {
-  "name": "react-lib",
+  "name": "explorviz-frontend",
   "version": "1.0.0",
   "main": "index.js",
   "description": "Small description for explorviz-frontend goes here",
@@ -39,6 +39,8 @@
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-prettier": "^5.1.3",
     "eslint-plugin-react-dom": "^1.31.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
     "eslint-plugin-react-x": "^1.31.0",
     "events": "^3.3.0",
     "fast-deep-equal": "^3.1.3",
@@ -46,6 +48,7 @@
     "prettier": "^3.3.2",
     "react-router-dom": "^7.3.0",
     "sass": "^1.70.0",
+    "typescript-eslint": "^8.28.0",
     "vite": "^6.2.1",
     "yuidoc-bootstrap-theme": "1.0.6",
     "yuidocjs": "0.10.2",

@@ -1,18 +1,18 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import ThreeMeshUI from 'three-mesh-ui';
 import * as THREE from 'three';
-import UserList from 'react-lib/src/utils/extended-reality/view-objects/vr/user-list';
-import { UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import UserList from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/user-list';
+import { UiMenuArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
-} from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
-import DisconnectButton from 'react-lib/src/utils/extended-reality/view-objects/vr/disconnect-button';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import InteractiveMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/interactive-menu';
+import DisconnectButton from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/disconnect-button';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 
 export type UserMenuArgs = UiMenuArgs & {
   renderer: THREE.WebGLRenderer;

@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
-import AnnotationData from 'react-lib/src/components/visualization/rendering/annotations/annotation-data';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import {
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import * as THREE from 'three';
-import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -22,7 +22,7 @@ import {
   LocationIcon,
   TrashIcon,
 } from '@primer/octicons-react';
-import { Position2D } from 'react-lib/src/hooks/interaction-modifier';
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useShallow } from 'zustand/react/shallow';
 import { useToastHandlerStore } from '../../../../stores/toast-handler';
 import { useApplicationRendererStore } from '../../../../stores/application-renderer';

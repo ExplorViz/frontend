@@ -1,52 +1,52 @@
 import { create } from 'zustand';
-import AnnotationData from 'react-lib/src/components/visualization/rendering/annotations/annotation-data';
-import { isEntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { SerializedAnnotation } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-import { getStoredSettings } from 'react-lib/src/utils/settings/local-storage-settings';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
-import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
+import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { SerializedAnnotation } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   ANNOTATION_OPENED_EVENT,
   AnnotationOpenedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-opened';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-opened';
 import {
   ANNOTATION_CLOSED_EVENT,
   AnnotationClosedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-closed';
-import { AnnotationForwardMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-closed';
+import { AnnotationForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
 import {
   AnnotationResponse,
   isAnnotationResponse,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
-import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { useAuthStore } from './auth';
 import {
   ANNOTATION_UPDATED_EVENT,
   AnnotationUpdatedMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-updated';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-updated';
 import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
-import { AnnotationUpdatedForwardMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
+import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/annotation-edit';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-edit';
 import {
   AnnotationEditResponse,
   isAnnotationEditResponse,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
-import { useDetachedMenuRendererStore } from 'react-lib/src/stores/extended-reality/detached-menu-renderer';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
+import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
 import eventEmitter from '../utils/event-emitter';
 
 type Position2D = {

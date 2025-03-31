@@ -1,4 +1,4 @@
-import { CommitComparisonMetric } from 'react-lib/src/utils/metric-schemes/metric-data';
+import { CommitComparisonMetric } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
 
 export type AppNameCommitTreeMap = Map<string, CommitTree>;
 

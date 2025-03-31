@@ -1,6 +1,6 @@
 import React from 'react';
-import ComponentOpener from 'react-lib/src/components/visualization/page-setup/sidebar/component-opener.tsx';
-import { SidebarOpenerProps } from 'react-lib/src/components/visualization/page-setup/sidebar/types';
+import ComponentOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/component-opener.tsx';
+import { SidebarOpenerProps } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/types';
 
 export default function RestructureOpener({
   openedComponent,

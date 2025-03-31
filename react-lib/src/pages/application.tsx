@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
-import Navbar from 'react-lib/src/components/page-setup/navbar';
+import Navbar from 'explorviz-frontend/src/components/page-setup/navbar';
 import ToastMessage from '../components/page-setup/toast-message';
-import { useInitNavigation } from 'react-lib/src/stores/store-router';
+import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
 import { useSnapshotTokenStore } from '../stores/snapshot-token';
 import {
   LandscapeToken,

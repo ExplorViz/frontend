@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import { useAuthStore } from 'react-lib/src/stores/auth';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { OverlayTrigger, Tooltip, Popover } from 'react-bootstrap';
 import {
   ShareAndroidIcon,

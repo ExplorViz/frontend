@@ -1,9 +1,9 @@
-import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
 import {
   Class,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getAncestorPackages } from 'react-lib/src/utils/package-helpers';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getAncestorPackages } from 'explorviz-frontend/src/utils/package-helpers';
 
 export function getClassAncestorPackages(clss: Class) {
   return [clss.parent, ...getAncestorPackages(clss.parent)];

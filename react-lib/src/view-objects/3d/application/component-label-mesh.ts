@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import LabelMesh from 'react-lib/src/view-objects/3d/label-mesh.ts';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-import { getStoredNumberSetting } from 'react-lib/src/utils/settings/local-storage-settings';
+import LabelMesh from 'explorviz-frontend/src/view-objects/3d/label-mesh.ts';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
+import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import { getStoredNumberSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 
 export default class ComponentLabelMesh extends LabelMesh {
   minHeight: number;

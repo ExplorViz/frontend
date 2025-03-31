@@ -2,9 +2,9 @@ import React, { MutableRefObject, useEffect, useRef } from 'react';
 
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
 import { useLocalUserStore } from '../stores/collaboration/local-user';
-import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
+import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
 import { useMinimapStore } from '../stores/minimap-service';
-import Raycaster from 'react-lib/src/utils/raycaster';
+import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';

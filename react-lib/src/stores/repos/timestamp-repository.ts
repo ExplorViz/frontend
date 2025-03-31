@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
-import TimelineDataObjectHandler from 'react-lib/src/utils/timeline/timeline-data-object-handler';
-import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
-import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
-import { useTimestampStore } from 'react-lib/src/stores/timestamp';
-import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
+import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useRenderingServiceStore } from '../rendering-service';
 
 interface TimestampRespositoryState {

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader.js';
 import * as THREE from 'three';
-import { ActionIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/action-icon';
-import { CloseIconTextures } from 'react-lib/src/utils/extended-reality/view-objects/vr/close-icon';
+import { ActionIconTextures } from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/action-icon';
+import { CloseIconTextures } from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/close-icon';
 
 interface VrAssetRepoState {
   closeIconTextures: CloseIconTextures;

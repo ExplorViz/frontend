@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUserApiTokenStore, ApiToken } from '../stores/user-api-token';
-import ApiTokenSelection from 'react-lib/src/components/api-token-selection';
+import ApiTokenSelection from 'explorviz-frontend/src/components/api-token-selection';
 
 export default function Settings() {
   const [refreshKey, setRefreshKey] = useState<number>(0);

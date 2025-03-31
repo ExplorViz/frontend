@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 
 export default class ArZoomHandler {
   private mainCamera: THREE.PerspectiveCamera;

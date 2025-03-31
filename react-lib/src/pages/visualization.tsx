@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   AnalysisMode,
   useRenderingServiceStore,
-} from 'react-lib/src/stores/rendering-service';
+} from 'explorviz-frontend/src/stores/rendering-service';
 import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
 import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
@@ -13,10 +13,10 @@ import { useSpectateConfigurationStore } from '../stores/spectate-configuration'
 import {
   useLocalUserStore,
   VisualizationMode,
-} from 'react-lib/src/stores/collaboration/local-user';
-import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
+} from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
-import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useCommitTreeStateStore } from '../stores/commit-tree-state';
 import eventEmitter from '../utils/event-emitter';
 import {
@@ -49,29 +49,29 @@ import { useReloadHandlerStore } from '../stores/reload-handler';
 import { useApplicationRendererStore } from '../stores/application-renderer';
 import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
 import { useToastHandlerStore } from '../stores/toast-handler';
-import { useSnapshotTokenStore } from 'react-lib/src/stores/snapshot-token';
-import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
 } from '../utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useTimestampPollingStore } from 'react-lib/src/stores/timestamp-polling';
+import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
 import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
-// import ArRendering from 'react-lib/src/components/extended-reality/ar-rendering';
-import VrRendering from 'react-lib/src/components/extended-reality/vr-rendering';
+// import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
+import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
 import { useUserSettingsStore } from '../stores/user-settings';
-import BrowserRendering from 'react-lib/src/components/visualization/rendering/browser-rendering';
+import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import { useLandscapeTokenStore } from '../stores/landscape-token';
 import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useFontRepositoryStore } from '../stores/repos/font-repository';
 import { Button } from 'react-bootstrap';
-import PlotlyTimeline from 'react-lib/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
+import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
 import EvolutionRenderingButtons from '../components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import PlotlyCommitTree from 'react-lib/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
+import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import { ChevronUpIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
 import useSyncState from '../hooks/sync-state';

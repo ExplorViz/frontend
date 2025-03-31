@@ -1,9 +1,9 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import SearchMenu from 'react-lib/src/utils/extended-reality/vr-menus/search-menu';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import SearchMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/search-menu';
 
 export type KeyboardMeshArgs = ThreeMeshUI.KeyboardOptions & {
   userText: ThreeMeshUI.Text;

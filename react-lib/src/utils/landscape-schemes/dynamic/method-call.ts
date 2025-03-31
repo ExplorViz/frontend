@@ -1,7 +1,7 @@
 import {
   Application,
   Class,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 // import { Span } from './dynamic-data';
 
 export default class MethodCall {

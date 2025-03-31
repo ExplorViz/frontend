@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import eventEmitter from '../utils/event-emitter';
-import { CommunicationLink } from 'react-lib/src/ide/ide-websocket';
+import { CommunicationLink } from 'explorviz-frontend/src/ide/ide-websocket';
 
 interface IdeWebsocketFacadeState {
   roomName: string;

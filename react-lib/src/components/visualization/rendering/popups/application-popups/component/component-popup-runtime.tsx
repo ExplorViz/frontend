@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Package } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { TypeOfAnalysis } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface ComponentPopupRuntimeProps {
   component: Package;

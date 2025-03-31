@@ -1,12 +1,12 @@
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import UiMenu, {
   UiMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
 import {
   useCollaborationSessionStore,
   ConnectionStatus,
-} from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+} from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 
 export default abstract class ConnectionBaseMenu extends UiMenu {
   private initialConnectionStatus: ConnectionStatus;

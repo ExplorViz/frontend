@@ -3,8 +3,8 @@ import { format } from 'date-fns';
 import {
   useSnapshotTokenStore,
   TinySnapshot,
-} from 'react-lib/src/stores/snapshot-token';
-import convertDate from 'react-lib/src/utils/helpers/time-convter';
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
 import { ShareAndroidIcon } from '@primer/octicons-react';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 

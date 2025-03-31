@@ -1,7 +1,7 @@
 import {
   Controller,
   isController,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller';
 
 export const USER_CONTROLLER_CONNECT_EVENT = 'user_controller_connect';
 

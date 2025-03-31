@@ -1,4 +1,4 @@
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 
 export function combineDynamicLandscapeData(
   dynamicsA: DynamicLandscapeData,

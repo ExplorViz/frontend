@@ -1,17 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { Metric } from 'react-lib/src/utils/metric-schemes/metric-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Metric } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import applySimpleHeatOnFoundation, {
   addHeatmapHelperLine,
   computeHeatMapViewPos,
   removeHeatmapHelperLines,
-} from 'react-lib/src/utils/heatmap/heatmap-helper';
-import simpleHeatmap from 'react-lib/src/utils/heatmap/simple-heatmap';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
+} from 'explorviz-frontend/src/utils/heatmap/heatmap-helper';
+import simpleHeatmap from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 

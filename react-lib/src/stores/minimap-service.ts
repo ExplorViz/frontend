@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
-import Raycaster from 'react-lib/src/utils/raycaster';
-import RemoteUser from 'react-lib/src/utils/collaboration/remote-user';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
+import Raycaster from 'explorviz-frontend/src/utils/raycaster';
+import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
 import * as THREE from 'three';
 import Landscape3D from '../view-objects/3d/landscape/landscape-3d';
 

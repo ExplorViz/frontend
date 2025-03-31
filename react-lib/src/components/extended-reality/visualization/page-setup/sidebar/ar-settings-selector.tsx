@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { Dropdown } from 'react-bootstrap';
 
 interface ArSettingsSelectorArgs {

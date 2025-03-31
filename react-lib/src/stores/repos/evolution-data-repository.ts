@@ -3,12 +3,12 @@ import {
   CommitTree,
   AppNameCommitTreeMap,
   CommitComparison,
-} from 'react-lib/src/utils/evolution-schemes/evolution-data';
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { StructureLandscapeData } from '../../utils/landscape-schemes/structure-data';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
-} from 'react-lib/src/utils/landscape-structure-helpers';
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import {
   ApplicationMetrics,
   ApplicationMetricsCode,
@@ -16,8 +16,8 @@ import {
 import {
   SelectedCommit,
   useCommitTreeStateStore,
-} from 'react-lib/src/stores/commit-tree-state';
-import { useEvolutionDataFetchServiceStore } from 'react-lib/src/stores/evolution-data-fetch-service';
+} from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useEvolutionDataFetchServiceStore } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
 
 interface EvolutionDataRepositoryState {
   _appNameCommitTreeMap: AppNameCommitTreeMap;

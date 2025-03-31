@@ -1,14 +1,14 @@
 import { create } from 'zustand';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
   ApplicationMetrics,
   Metric,
-} from 'react-lib/src/utils/metric-schemes/metric-data';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import revertKey from 'react-lib/src/utils/heatmap/heatmap-generator';
+} from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import revertKey from 'explorviz-frontend/src/utils/heatmap/heatmap-generator';
 
-import { getDefaultGradient as getSimpleDefaultGradient } from 'react-lib/src/utils/heatmap/simple-heatmap';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { getDefaultGradient as getSimpleDefaultGradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 export type HeatmapMode =
   | 'snapshotHeatmap'

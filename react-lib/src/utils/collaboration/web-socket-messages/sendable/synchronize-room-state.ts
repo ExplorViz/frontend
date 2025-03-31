@@ -2,12 +2,12 @@ import {
   InitialRoomApp,
   InitialRoomDetachedMenu,
   InitialRoomLandscape,
-} from 'react-lib/src/utils/collaboration/room-payload/sendable/initial-room';
+} from 'explorviz-frontend/src/utils/collaboration/room-payload/sendable/initial-room';
 import {
   SerializedAnnotation,
   SerializedHighlightedExternLink,
   SerializedPopup,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 
 export const SYNC_ROOM_STATE_EVENT = 'sync_room_state';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { TrashIcon } from '@primer/octicons-react';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';

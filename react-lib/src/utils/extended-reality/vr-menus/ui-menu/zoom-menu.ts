@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import UiMenu, { SIZE_RESOLUTION_FACTOR, UiMenuArgs } from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerThumbpadBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import UiMenu, { SIZE_RESOLUTION_FACTOR, UiMenuArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
 
 const CIRCLE_SEGMENTS = 48;
 

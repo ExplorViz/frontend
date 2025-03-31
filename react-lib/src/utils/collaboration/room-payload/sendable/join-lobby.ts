@@ -1,5 +1,5 @@
-import { Position } from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
-import { Quaternion } from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
+import { Position } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
+import { Quaternion } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export type JoinLobbyPayload = {
   userName: string;

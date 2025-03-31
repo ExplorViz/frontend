@@ -1,14 +1,14 @@
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import ArrowbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/arrowbutton-item';
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
-import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
-import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerThumbpadBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import ArrowbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/arrowbutton-item';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, {
   UiMenuArgs,
-} from 'react-lib/src/utils/extended-reality/vr-menus/ui-menu';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
 /**
  * The maximum change of the camera's height per frame when the trigger is fully pressed.

@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 
-import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import {
   useHeatmapConfigurationStore,
-  HeatmapMode,
-} from 'react-lib/src/stores/heatmap/heatmap-configuration';
+  HeatmapMode
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';

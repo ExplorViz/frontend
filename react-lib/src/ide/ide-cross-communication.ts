@@ -1,19 +1,19 @@
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
   Application,
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import CommunicationArrowMesh from 'react-lib/src/view-objects/3d/application/communication-arrow-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import IdeCrossCommunicationEvent from 'react-lib/src/ide/ide-cross-communication-event';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import IdeCrossCommunicationEvent from 'explorviz-frontend/src/ide/ide-cross-communication-event';
 import { Object3DEventMap } from 'three';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',

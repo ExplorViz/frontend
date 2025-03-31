@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useChatStore } from 'react-lib/src/stores/chat';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import * as THREE from 'three';
 import {
   DownloadIcon,

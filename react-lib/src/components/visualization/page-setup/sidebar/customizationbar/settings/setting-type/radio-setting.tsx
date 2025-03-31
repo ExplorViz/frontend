@@ -1,5 +1,5 @@
 import React from 'react';
-import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 
 export default function RadioSetting({ setting, onChange }) {
   return (

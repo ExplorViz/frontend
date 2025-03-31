@@ -5,7 +5,7 @@ import { Tooltip } from 'react-bootstrap';
 import {
   useSnapshotTokenStore,
   TinySnapshot,
-} from 'react-lib/src/stores/snapshot-token';
+} from 'explorviz-frontend/src/stores/snapshot-token';
 
 interface DeleteSnapshotProps {
   token: TinySnapshot;

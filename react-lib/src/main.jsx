@@ -6,7 +6,7 @@ import Application from './pages/application.tsx';
 import Settings from './pages/settings.tsx';
 import Visualization from './pages/visualization.tsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'react-lib/src/scss/app.scss';
+import 'explorviz-frontend/src/scss/app.scss';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>

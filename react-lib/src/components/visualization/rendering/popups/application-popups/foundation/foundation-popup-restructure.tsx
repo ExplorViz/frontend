@@ -1,7 +1,7 @@
 import React from 'react';
 
-import InteractiveHeader from 'react-lib/src/components/visualization/rendering/popups/interactable-properties/interactive-header.tsx';
-import { Application } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import InteractiveHeader from 'explorviz-frontend/src/components/visualization/rendering/popups/interactable-properties/interactive-header.tsx';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface FoundationPopupRestructureProps {
   application: Application;

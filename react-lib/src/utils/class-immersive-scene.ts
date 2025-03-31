@@ -7,7 +7,7 @@ import {
   Variable,
 } from './landscape-schemes/structure-data';
 import * as THREE from 'three';
-import { ImmersiveView } from 'react-lib/src/rendering/application/immersive-view';
+import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
 
 class ObjectSizeList {
   /**

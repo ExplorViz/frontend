@@ -1,19 +1,19 @@
 import {
   Color,
   isColor,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/color';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/color';
 import {
   Controller,
   isController,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller';
 import {
   Position,
   isPosition,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const SELF_CONNECTED_EVENT = 'self_connected';
 

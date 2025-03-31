@@ -1,19 +1,19 @@
 import * as THREE from 'three';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
-import AnimationMesh from 'react-lib/src/view-objects/3d/animation-mesh.ts';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
+import AnimationMesh from 'explorviz-frontend/src/view-objects/3d/animation-mesh.ts';
 import {
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   ExplorVizColors,
   useUserSettingsStore,
-} from 'react-lib/src/stores/user-settings';
-import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
+} from 'explorviz-frontend/src/stores/user-settings';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import {
   closeComponentMesh,
@@ -23,8 +23,8 @@ import {
   openComponentsRecursively,
 } from './entity-manipulation';
 
-import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';
-import CommunicationRendering from 'react-lib/src/utils/application-rendering/communication-rendering';
+import * as Labeler from 'explorviz-frontend/src/utils/application-rendering/labeler';
+import CommunicationRendering from 'explorviz-frontend/src/utils/application-rendering/communication-rendering';
 
 /**
  * Takes an application mesh, computes it position and adds it to the application object.

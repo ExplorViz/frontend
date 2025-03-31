@@ -1,7 +1,7 @@
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
-} from 'react-lib/src/utils/application-helpers';
+} from 'explorviz-frontend/src/utils/application-helpers';
 import {
   StructureLandscapeData,
   Node,
@@ -12,15 +12,15 @@ import {
   Method,
   isApplication,
   getNodeById,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getApplicationFromPackage } from 'react-lib/src/utils/landscape-structure-helpers';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getApplicationFromPackage } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import sha256 from 'crypto-js/sha256';
 import {
   getAncestorPackages,
   getClassesInPackage,
   getSubPackagesOfPackage,
-} from 'react-lib/src/utils/package-helpers';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+} from 'explorviz-frontend/src/utils/package-helpers';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 
 export enum EntityType {
   App = 'APP',

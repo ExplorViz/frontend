@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { CommentIcon } from '@primer/octicons-react';
 
 interface EditOperationNameProps {

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import calculateColorBrightness from 'react-lib/src/utils/helpers/threejs-helpers';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
 import { Appearence } from './application/utils/semantic-zoom-appearance';
 import { Recipe } from './application/utils/semantic-zoom-recipe';

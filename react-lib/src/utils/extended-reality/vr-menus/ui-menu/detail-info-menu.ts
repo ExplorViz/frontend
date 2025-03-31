@@ -1,5 +1,5 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import composeContent, {
   EntityMesh,
   getCommunicationSourceAppId,
@@ -10,22 +10,22 @@ import composeContent, {
   getCommunicationTargetClassId,
   getIdOfEntity,
   getTypeOfEntity,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import ThreeMeshUI from 'three-mesh-ui';
-import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
-import { DetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import InteractiveMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/interactive-menu';
+import { DetachableMenu } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import * as THREE from 'three';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
-} from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import DetailInfoMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/detail-info-mesh';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import DetailInfoMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/detail-info-mesh';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   EntityType,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 
 export type DetailInfoMenuArgs = {
   object: EntityMesh;

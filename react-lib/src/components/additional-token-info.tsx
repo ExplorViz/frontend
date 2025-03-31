@@ -1,10 +1,10 @@
 import React, { useRef } from 'react';
 import { Tooltip, Popover } from 'react-bootstrap';
-import CopyButton from 'react-lib/src/components/copy-button.tsx';
-import { useAuthStore } from 'react-lib/src/stores/auth';
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { InfoIcon } from '@primer/octicons-react';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 
 export default function AdditionalTokenInfo({
   token,

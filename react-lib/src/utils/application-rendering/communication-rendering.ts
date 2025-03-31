@@ -1,18 +1,18 @@
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import applyCommunicationLayout, {
   calculateLineThickness,
-} from 'react-lib/src/utils/application-rendering/communication-layouter';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import CommunicationLayout from 'react-lib/src/view-objects/layout-models/communication-layout.ts';
+} from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout.ts';
 import { Vector3 } from 'three';
-import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
-import { findFirstOpen } from 'react-lib/src/utils/link-helper';
-import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
-import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { findFirstOpen } from 'explorviz-frontend/src/utils/link-helper';
+import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { VisualizationSettings } from '../settings/settings-schemas';
 
 export default class CommunicationRendering {

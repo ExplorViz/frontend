@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Method } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { Method } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BaseMesh from '../base-mesh';
-import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
+import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
 export class MethodMesh extends BaseMesh {
   dataModel: Method;

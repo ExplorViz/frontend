@@ -1,4 +1,4 @@
-import { Span, Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { Span, Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 
 /**
  * Returns the span's total duration in nanoseconds

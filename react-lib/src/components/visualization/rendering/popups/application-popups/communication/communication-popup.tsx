@@ -1,16 +1,16 @@
 import React from 'react';
 
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import { TypeOfAnalysis } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import PopupTabs from 'react-lib/src/components/visualization/rendering/popups/popup-tabs';
-import CommunicationPopupRuntime from 'react-lib/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-runtime.tsx';
-import CommunicationPopupCode from 'react-lib/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-code.tsx';
-import CommunicationPopupRestructure from 'react-lib/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-restructure.tsx';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs';
+import CommunicationPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-runtime.tsx';
+import CommunicationPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-code.tsx';
+import CommunicationPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-restructure.tsx';
 import {
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 
 interface CommunicationPopupProps {
   popupData: PopupData;

@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import HelpTooltip from 'react-lib/src/components/help-tooltip';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface TraceStartProps {
   readonly traces: DynamicLandscapeData;

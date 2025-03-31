@@ -1,5 +1,5 @@
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
 
 export default class CommunicationLayout {

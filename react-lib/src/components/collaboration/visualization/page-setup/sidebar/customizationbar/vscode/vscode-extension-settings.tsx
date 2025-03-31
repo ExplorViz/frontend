@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { useIdeWebsocketFacadeStore } from 'react-lib/src/stores/ide-websocket-facade';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import CopyButton from 'react-lib/src/components/copy-button.tsx';
+import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';

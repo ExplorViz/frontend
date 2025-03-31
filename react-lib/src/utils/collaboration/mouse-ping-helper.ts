@@ -1,8 +1,8 @@
 // import { timeout, task } from 'ember-concurrency';
 import * as THREE from 'three';
 import { AnimationMixer } from 'three';
-import PingMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/ping-mesh';
-import { SceneLayers } from 'react-lib/src/stores/minimap-service';
+import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
+import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 
 export default class MousePing {
   mesh: PingMesh;

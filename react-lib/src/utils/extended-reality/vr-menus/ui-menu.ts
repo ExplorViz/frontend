@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
-} from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import InteractiveMenu from 'react-lib/src/utils/extended-reality/vr-menus/interactive-menu';
-import InteractiveItem from 'react-lib/src/utils/extended-reality/vr-menus/items/interactive-item';
-import Item from 'react-lib/src/utils/extended-reality/vr-menus/items/item';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import InteractiveMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/interactive-menu';
+import InteractiveItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/interactive-item';
+import Item from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/item';
 
 export const DEFAULT_MENU_RESOLUTION = 512;
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import HelpTooltip from 'react-lib/src/components/help-tooltip';
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface ClassMethodFilteringProps {
   readonly classes: Class[];

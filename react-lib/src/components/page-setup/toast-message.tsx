@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import generateUuidv4 from 'react-lib/src/utils/helpers/uuid4-generator';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { ToastContainer, Toast } from 'react-bootstrap';
 import { Toast as BootstrapToast } from 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';

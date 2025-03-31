@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import {
   useCommitTreeStateStore,
   SelectedCommit,
-} from 'react-lib/src/stores/commit-tree-state';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
-import { useVisibilityServiceStore } from 'react-lib/src/stores/visibility-service';
+} from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useShallow } from 'zustand/react/shallow';
 
 interface IArgs {

@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import { PaintbrushIcon } from '@primer/octicons-react';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 
 interface SecondaryInteractionButtonArgs {
   handleSecondaryCrosshairInteraction(): void;

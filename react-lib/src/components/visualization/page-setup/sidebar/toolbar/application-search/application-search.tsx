@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-import getPossibleEntityNames from 'react-lib/src/utils/application-search-logic';
+import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
 import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
 import Button from 'react-bootstrap/Button';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 
 interface ApplicationSearchEntity {
   fqn: string;

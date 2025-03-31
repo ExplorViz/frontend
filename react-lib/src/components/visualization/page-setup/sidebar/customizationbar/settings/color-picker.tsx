@@ -1,8 +1,8 @@
 import React from 'react';
 import { useEffect, useRef } from 'react';
 import Picker from 'vanilla-picker';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import { ColorSettingId } from 'react-lib/src/utils/settings/settings-schemas';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export default function ColorPicker({
   id,

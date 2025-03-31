@@ -1,11 +1,11 @@
-import { SceneLayers } from 'react-lib/src/stores/minimap-service';
-import { K8sEntity } from 'react-lib/src/utils/k8s-landscape-visualization-assembler';
+import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import { K8sEntity } from 'explorviz-frontend/src/utils/k8s-landscape-visualization-assembler';
 import * as THREE from 'three';
-import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh';
-import ComponentLabelMesh from 'react-lib/src/view-objects/3d/application/component-label-mesh';
-import SemanticZoomManager from 'react-lib/src/view-objects/3d/application/utils/semantic-zoom-manager';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout';
-import { getStoredNumberSetting } from 'react-lib/src/utils/settings/local-storage-settings';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh';
+import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { getStoredNumberSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 
 export default class K8sMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;

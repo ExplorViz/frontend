@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import SemanticZoomManager from '../../../../view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class ApplicationGroup extends THREE.Group {

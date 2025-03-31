@@ -1,7 +1,7 @@
 import {
   Nonce,
   isNonce,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/nonce';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/nonce';
 
 export const OBJECT_GRABBED_EVENT = 'object_grabbed';
 

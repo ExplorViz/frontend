@@ -1,18 +1,18 @@
 import React, { useEffect, useRef } from 'react';
 
-import { ForwardedMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   HEATMAP_UPDATE_EVENT,
   HeatmapUpdateArgs,
   HeatmapUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/heatmap-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/heatmap-update';
 import {
   HeatmapMode,
   useHeatmapConfigurationStore,
-} from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import equal from 'fast-deep-equal';
 import { useShallow } from 'zustand/react/shallow';
 

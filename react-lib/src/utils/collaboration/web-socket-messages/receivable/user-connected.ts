@@ -1,15 +1,15 @@
 import {
   Color,
   isColor,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/color';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/color';
 import {
   Position,
   isPosition,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const USER_CONNECTED_EVENT = 'user_connected';
 

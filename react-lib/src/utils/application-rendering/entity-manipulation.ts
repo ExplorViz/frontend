@@ -1,28 +1,28 @@
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import * as Labeler from 'react-lib/src/utils/application-rendering/labeler';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import * as Labeler from 'explorviz-frontend/src/utils/application-rendering/labeler';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
   Class,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   DynamicLandscapeData,
   isSpan,
   Span,
-} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { spanIdToClass } from 'react-lib/src/utils/landscape-structure-helpers';
-import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
-import { removeHighlighting } from 'react-lib/src/utils/application-rendering/highlighting';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { spanIdToClass } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
+import { removeHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh.ts';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import {
   getStoredNumberSetting,
   getStoredSettings,
-} from 'react-lib/src/utils/settings/local-storage-settings';
-import { ExplorVizColors } from 'react-lib/src/stores/user-settings';
+} from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { ExplorVizColors } from 'explorviz-frontend/src/stores/user-settings';
 
 /**
  * Given a package or class, returns a list of all ancestor components.

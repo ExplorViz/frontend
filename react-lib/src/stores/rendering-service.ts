@@ -1,26 +1,26 @@
 import { create } from 'zustand';
-import { Timestamp } from 'react-lib/src/utils/landscape-schemes/timestamp';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
   getAllMethodHashesOfLandscapeStructureData,
-} from 'react-lib/src/utils/landscape-structure-helpers';
-import { areArraysEqual } from 'react-lib/src/utils/helpers/array-helpers';
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { useReloadHandlerStore } from './reload-handler';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
-import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { useTimestampStore } from './timestamp';
-import TimelineDataObjectHandler from 'react-lib/src/utils/timeline/timeline-data-object-handler';
-import { animatePlayPauseIcon } from 'react-lib/src/utils/animate';
-import { combineDynamicLandscapeData } from 'react-lib/src/utils/landscape-dynamic-helpers';
-import { useEvolutionDataRepositoryStore } from 'react-lib/src/stores/repos/evolution-data-repository';
+import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
+import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
+import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
-} from 'react-lib/src/stores/commit-tree-state';
-import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+} from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 export type AnalysisMode = 'evolution' | 'runtime';
 

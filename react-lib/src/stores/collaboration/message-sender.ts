@@ -1,83 +1,83 @@
 import { create } from 'zustand';
-import { AllHighlightsResetMessage } from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
+import { AllHighlightsResetMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
 import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/change-landscape';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/change-landscape';
 import {
   CHANGELOG_REMOVE_ENTRY_EVENT,
   CHANGELOG_RESTORE_ENTRIES_EVENT,
   ChangeLogRemoveEntryMessage,
   ChangeLogRestoreEntriesMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/changelog-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/changelog-update';
 import {
   PING_UPDATE_EVENT,
   PingUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/ping-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/ping-update';
 import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/chat-message';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/chat-message';
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/chat-syncronization';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/chat-syncronization';
 import {
   USER_MUTE_EVENT,
   UserMuteUpdate,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/mute-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mute-update';
 import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/share-settings';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/share-settings';
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
-import { ControllerId } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
+import { ControllerId } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
 import {
   EntityType,
   RestructureAction,
-} from 'react-lib/src/utils/restructure-helper';
-import { default as VRController } from 'react-lib/src/utils/extended-reality/vr-controller';
-import { getControllerPose } from 'react-lib/src/utils/extended-reality/vr-helpers/vr-poses';
-import { JoinVrMessage } from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
+} from 'explorviz-frontend/src/utils/restructure-helper';
+import { default as VRController } from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import { getControllerPose } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
+import { JoinVrMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import {
   OBJECT_MOVED_EVENT,
   ObjectMovedMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
 import {
   OBJECT_RELEASED_EVENT,
   ObjectReleasedMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-released';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-released';
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
 import {
   USER_CONTROLLER_DISCONNECT_EVENT,
   UserControllerDisconnectMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import {
   ControllerPose,
   Pose,
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
-} from 'react-lib/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import * as THREE from 'three';
-import { useWebSocketStore } from 'react-lib/src/stores/collaboration/web-socket';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import {
   COMPONENT_UPDATE_EVENT,
   ComponentUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/component-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/component-update';
 import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
 import {
   MOUSE_PING_UPDATE_EVENT,
   MousePingUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -105,25 +105,25 @@ import {
   RestructureRestoreClassMessage,
   RestructureRestorePackageMessage,
   RestructureUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/restructure-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/restructure-update';
 import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
-import { SerializedRoom } from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
+import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import {
   USER_KICK_EVENT,
   UserKickEvent,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/kick-user';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/kick-user';
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/sendable/delete-message';
-import { VisualizationSettings } from 'react-lib/src/utils/settings/settings-schemas';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/delete-message';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // TODO: This could probably be a utility
 // But for migration reasons, its first implemented as store.

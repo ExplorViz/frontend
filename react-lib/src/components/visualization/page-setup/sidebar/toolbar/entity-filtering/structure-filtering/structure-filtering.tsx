@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import ClassMethodFiltering from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/class-method-filtering';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+import ClassMethodFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/class-method-filtering';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   Package,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getAllClassesInApplication } from 'react-lib/src/utils/application-helpers';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface StructureFilteringProps {
   readonly landscapeData: LandscapeData;

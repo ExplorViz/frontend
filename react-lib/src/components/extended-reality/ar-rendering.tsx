@@ -1,52 +1,52 @@
 import { useRef, useState, useEffect } from 'react';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'react-lib/src/stores/collaboration/message-sender';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
-import { usePopupHandlerStore } from 'react-lib/src/stores/popup-handler';
-import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useHighlightingStore } from 'react-lib/src/stores/highlighting';
-import { useSceneRepositoryStore } from 'react-lib/src/stores/repos/scene-repository';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   closeAllComponents,
   moveCameraTo,
   updateColors,
-} from 'react-lib/src/utils/application-rendering/entity-manipulation';
-import { addSpheres } from 'react-lib/src/utils/application-rendering/spheres';
-import hitTest from 'react-lib/src/utils/hit-test';
-import Raycaster from 'react-lib/src/utils/raycaster';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { addSpheres } from 'explorviz-frontend/src/utils/application-rendering/spheres';
+import hitTest from 'explorviz-frontend/src/utils/hit-test';
+import Raycaster from 'explorviz-frontend/src/utils/raycaster';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
-import ArZoomHandler from 'react-lib/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
+import ArZoomHandler from 'explorviz-frontend/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import {
   EntityMesh,
   isEntityMesh,
-} from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import { ImmersiveView } from 'react-lib/src/rendering/application/immersive-view';
-import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-import LoadingIndicator from 'react-lib/src/components/visualization/rendering/loading-indicator.tsx';
-import ArSettingsOpener from 'react-lib/src/components/extended-reality/visualization/page-setup/navbar/ar-settings-opener.tsx';
-import CollaborationOpener from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
-import SettingsOpener from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
-import HeatmapInfo from 'react-lib/src/components/heatmap/heatmap-info.tsx';
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import LoadingIndicator from 'explorviz-frontend/src/components/visualization/rendering/loading-indicator.tsx';
+import ArSettingsOpener from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/navbar/ar-settings-opener.tsx';
+import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
+import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
+import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info.tsx';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useResizeDetector } from 'react-resize-detector';
-import PopupCoordinator from 'react-lib/src/components/visualization/rendering/popups/popup-coordinator.tsx';
-import PopupButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/popup-button.tsx';
-import HeatmapButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button';
-import ZoomButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button';
-import PrimaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button';
-import SecondaryInteractionButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button';
-import PingButton from 'react-lib/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
+import PopupCoordinator from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-coordinator.tsx';
+import PopupButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/popup-button.tsx';
+import HeatmapButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button';
+import ZoomButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button';
+import PrimaryInteractionButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button';
+import SecondaryInteractionButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button';
+import PingButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
 import {
   PlusIcon,
   ArrowLeftIcon,
@@ -57,19 +57,19 @@ import {
 } from '@primer/octicons-react';
 import { Button } from 'react-bootstrap';
 import { useShallow } from 'zustand/react/shallow';
-import SettingsSidebar from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar.tsx';
-import SidebarComponent from 'react-lib/src/components/visualization/page-setup/sidebar/sidebar-component.tsx';
-import CollaborationControls from 'react-lib/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx';
-import ArSettingsSelector from 'react-lib/src/components/extended-reality/visualization/page-setup/sidebar/ar-settings-selector.tsx';
-import TraceSelectionAndReplayer from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer.tsx';
-import Settings from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import { TickCallback } from 'react-lib/src/components/visualization/rendering/browser-rendering';
+import SettingsSidebar from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar.tsx';
+import SidebarComponent from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-component.tsx';
+import CollaborationControls from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx';
+import ArSettingsSelector from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/sidebar/ar-settings-selector.tsx';
+import TraceSelectionAndReplayer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer.tsx';
+import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { TickCallback } from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PopupData from '../visualization/rendering/popups/popup-data';
-import { useAnnotationHandlerStore } from 'react-lib/src/stores/annotation-handler';
-import { useAuthStore } from 'react-lib/src/stores/auth';
-import { Trace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import ApplicationData from 'react-lib/src/utils/application-data';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import useHeatmapRenderer from '../../hooks/heatmap-renderer';
 import ContextMenu from '../context-menu';
 import useInteractionModifier from '../../hooks/interaction-modifier';

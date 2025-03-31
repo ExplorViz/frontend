@@ -8,8 +8,8 @@ import {
   Package,
 } from './landscape-schemes/structure-data';
 import { getStoredNumberSetting } from './settings/local-storage-settings';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout';
-import generateUuidv4 from 'react-lib/src/utils/helpers/uuid4-generator';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers

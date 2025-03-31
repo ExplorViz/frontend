@@ -3,11 +3,11 @@ import React from 'react';
 import {
   Application,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAllClassesInApplicationForGivenOrigin,
   getAllPackagesInApplicationForGivenOrigin,
-} from 'react-lib/src/utils/application-helpers';
+} from 'explorviz-frontend/src/utils/application-helpers';
 
 interface FoundationPopupCodeProps {
   application: Application;

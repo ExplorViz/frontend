@@ -12,7 +12,7 @@ import {
   SignOutIcon,
   UndoIcon,
 } from '@primer/octicons-react';
-import StatusIcons from 'react-lib/src/components/page-setup/status-icons';
+import StatusIcons from 'explorviz-frontend/src/components/page-setup/status-icons';
 
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 

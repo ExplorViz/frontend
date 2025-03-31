@@ -3,7 +3,7 @@ import React from 'react';
 import Tooltip from 'react-bootstrap/Tooltip';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { CopyIcon } from '@primer/octicons-react';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 interface CopyButtonProps {
   text: string;

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 
 export default class FloorMesh
   extends THREE.Mesh

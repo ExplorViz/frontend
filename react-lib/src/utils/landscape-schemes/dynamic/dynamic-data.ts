@@ -1,4 +1,4 @@
-import isObject from 'react-lib/src/utils/object-helpers';
+import isObject from 'explorviz-frontend/src/utils/object-helpers';
 
 export type Trace = {
   landscapeToken: string;

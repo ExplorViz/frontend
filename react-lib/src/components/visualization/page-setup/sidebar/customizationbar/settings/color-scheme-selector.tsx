@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ColorSchemeId } from 'react-lib/src/utils/settings/color-schemes';
+import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 
 export default function ColorSchemeSelector({
   colorSchemes,

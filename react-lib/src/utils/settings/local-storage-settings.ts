@@ -1,12 +1,12 @@
 import isObject, {
   objectsHaveSameKeys,
-} from 'react-lib/src/utils/object-helpers';
-import { defaultVizSettings } from 'react-lib/src/utils/settings/default-settings';
+} from 'explorviz-frontend/src/utils/object-helpers';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   VisualizationSettings,
   RangeSetting,
   VisualizationSettingId,
-} from 'react-lib/src/utils/settings/settings-schemas';
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export function getStoredSettings(): VisualizationSettings {
   const settingsJson = localStorage.getItem('ExplorVizSettings');

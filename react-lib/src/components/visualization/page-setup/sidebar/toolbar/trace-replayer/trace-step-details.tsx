@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import Button from 'react-bootstrap/Button';
-import { formatNumber } from 'react-lib/src/utils/format-number';
+import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
 
 type TimeUnit = 'ns' | 'ms' | 's';
 

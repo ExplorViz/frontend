@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import LogoMesh from 'react-lib/src/view-objects/3d/logo-mesh';
+import LogoMesh from 'explorviz-frontend/src/view-objects/3d/logo-mesh';
 
 export default class ThreeImageLoader {
   // Used for efficient re-use and access of logos

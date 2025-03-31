@@ -1,28 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
-import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useChangelogStore } from 'react-lib/src/stores/changelog';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { format } from 'date-fns';
-import convertDate from 'react-lib/src/utils/helpers/time-convter';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import { LandscapeToken } from 'react-lib/src/stores/landscape-token';
-import AnnotationData from 'react-lib/src/components/visualization/rendering/annotations/annotation-data';
+import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import {
   useSnapshotTokenStore,
   SnapshotToken,
-} from 'react-lib/src/stores/snapshot-token';
-import { useRoomSerializerStore } from 'react-lib/src/stores/collaboration/room-serializer';
-import { useTimestampRepositoryStore } from 'react-lib/src/stores/repos/timestamp-repository';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useAuthStore } from 'react-lib/src/stores/auth';
-import { ApiToken } from 'react-lib/src/stores/user-api-token';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
-import WideCheckbox from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import Button from 'react-bootstrap/Button';

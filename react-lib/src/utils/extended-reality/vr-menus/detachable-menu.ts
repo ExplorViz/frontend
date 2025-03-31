@@ -1,5 +1,5 @@
-import { EntityType } from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
-import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
+import { EntityType } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
+import BaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/base-menu';
 
 export interface DetachableMenu extends BaseMenu {
   getDetachId(): string;

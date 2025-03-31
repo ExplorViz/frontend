@@ -1,11 +1,11 @@
-import TextItem from 'react-lib/src/utils/extended-reality/vr-menus/items/text-item';
-import TextbuttonItem from 'react-lib/src/utils/extended-reality/vr-menus/items/textbutton-item';
-import TitleItem from 'react-lib/src/utils/extended-reality/vr-menus/items/title-item';
+import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/text-item';
+import TextbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/textbutton-item';
+import TitleItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
-import { removeAllHighlightingFor } from 'react-lib/src/utils/application-rendering/highlighting';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useDetachedMenuGroupsStore } from 'react-lib/src/stores/extended-reality/detached-menu-groups';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
+import { removeAllHighlightingFor } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 
 export type ResetMenuArgs = UiMenuArgs & {
   online: boolean;

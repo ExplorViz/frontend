@@ -5,25 +5,25 @@ import {
   DynamicLandscapeData,
   Span,
   Trace,
-} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   Package,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   calculateDuration,
   getSortedTraceSpans,
-} from 'react-lib/src/utils/trace-helpers';
-import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
-import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
-import { useLocalUserStore } from 'react-lib/src/stores/collaboration/local-user';
-import { useUserSettingsStore } from 'react-lib/src/stores/user-settings';
-import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
-import { getAllAncestorComponents } from 'react-lib/src/utils/application-rendering/entity-manipulation';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+} from 'explorviz-frontend/src/utils/trace-helpers';
+import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { getAllAncestorComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Button from 'react-bootstrap/Button';
 import {
   ChevronLeftIcon,
@@ -32,8 +32,8 @@ import {
   SquareFillIcon,
   XCircleIcon,
 } from '@primer/octicons-react';
-import TraceNavigation from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-navigation';
-import TraceStepDetails from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-step-details';
+import TraceNavigation from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-navigation';
+import TraceStepDetails from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-step-details';
 
 const TICK_CALLBACK_ID = 'trace-replayer-main';
 

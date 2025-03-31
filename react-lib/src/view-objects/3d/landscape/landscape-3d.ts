@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import LandscapeModel from './landscape-model';
-import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import K8sMesh from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
+import { GrabbableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import SemanticZoomManager from '../application/utils/semantic-zoom-manager';
 
 export default class Landscape3D

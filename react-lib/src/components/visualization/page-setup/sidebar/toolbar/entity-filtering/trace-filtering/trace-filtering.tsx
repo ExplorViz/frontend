@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import TraceStart from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
-import TraceDuration from 'react-lib/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-duration';
+import TraceStart from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
+import TraceDuration from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-duration';
 import {
   DynamicLandscapeData,
   Trace,
-} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
-import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
-import { StructureLandscapeData } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'react-lib/src/stores/timestamp';
-import eventEmitter from 'react-lib/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface TraceFilteringProps {
   readonly landscapeData: LandscapeData;

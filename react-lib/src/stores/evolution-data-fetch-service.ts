@@ -3,16 +3,16 @@ import {
   Commit,
   CommitComparison,
   CommitTree,
-} from 'react-lib/src/utils/evolution-schemes/evolution-data';
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { ApplicationMetricsCode } from '../utils/metric-schemes/metric-data';
-import { SelectedCommit } from 'react-lib/src/stores/commit-tree-state';
+import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
-import { useAuthStore } from 'react-lib/src/stores/auth';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 
 interface EvolutionDataFetchState {
   fetchApplications: () => Promise<string[]>;

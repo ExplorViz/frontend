@@ -1,7 +1,7 @@
 import {
   Application,
   BaseModel,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 export type FlatData = {
   hashCodeClassMap: Map<string, any>;

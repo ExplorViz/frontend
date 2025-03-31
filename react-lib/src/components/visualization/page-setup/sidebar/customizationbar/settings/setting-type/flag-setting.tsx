@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
-import WideCheckbox from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox.tsx';
-import ResetButton from 'react-lib/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
+import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox.tsx';
+import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
 
 export default function FlagSetting({ setting, onChange, settingId, resetState }: any) {
   // ToDo: Refactor such that value points to setting's object and updates correctly with reset

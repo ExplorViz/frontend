@@ -4,21 +4,21 @@ import {
   DynamicLandscapeData,
   Trace,
   Span,
-} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   Application,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import CameraControls from 'react-lib/src/utils/application-rendering/camera-controls';
-import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
-import { getSortedTraceSpans } from 'react-lib/src/utils/trace-helpers';
-import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
-import { useRenderingServiceStore } from 'react-lib/src/stores/rendering-service';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
+import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
+import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import TraceSelection from './trace-selection';
 import TraceReplayerMain from './trace-replayer-main';
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 
 interface TraceSelectionAndReplayerProps {
   renderingLoop: RenderingLoop;

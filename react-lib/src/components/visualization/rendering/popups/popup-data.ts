@@ -4,10 +4,10 @@ import {
   Method,
   Node,
   Package,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'react-lib/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { K8sDataModel } from 'react-lib/src/view-objects/3d/k8s/k8s-mesh';
-import { EntityMesh } from 'react-lib/src/utils/extended-reality/vr-helpers/detail-info-composer';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 
 export interface PopupDataArgs {
   mouseX: number;

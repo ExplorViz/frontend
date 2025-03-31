@@ -1,18 +1,18 @@
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout.ts';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
-import BoxMesh from 'react-lib/src/view-objects/3d/application/box-mesh.ts';
-import ClazzLabelMesh from 'react-lib/src/view-objects/3d/application/clazz-label-mesh';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
+import ClazzLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-label-mesh';
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import {
   ImmersiveView,
   ImmersiveViewMixin,
-} from 'react-lib/src/rendering/application/immersive-view';
+} from 'explorviz-frontend/src/rendering/application/immersive-view';
 import gsap from 'gsap';
-import ImmsersiveClassScene from 'react-lib/src/utils/class-immersive-scene';
+import ImmsersiveClassScene from 'explorviz-frontend/src/utils/class-immersive-scene';
 import { MethodGroup } from './method-group';
-import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
-import { SceneLayers } from 'react-lib/src/stores/minimap-service';
+import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;

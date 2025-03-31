@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { useGrabbedObjectStore } from 'react-lib/src/stores/extended-reality/grabbed-object';
-import { GrabbableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
-import { useVrMenuFactoryStore } from 'react-lib/src/stores/extended-reality/vr-menu-factory';
+import { useGrabbedObjectStore } from 'explorviz-frontend/src/stores/extended-reality/grabbed-object';
+import { GrabbableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerThumbpadBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import BaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/base-menu';
+import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 
 export type GrabMenuArgs = {
   grabbedObject: GrabbableObject;

@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useLandscapeRestructureStore } from 'react-lib/src/stores/landscape-restructure';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import {
   isApplication,
   isClass,
   isPackage,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import EditMesh from './edit-mesh';
 
 interface InteractiveHeaderProps {

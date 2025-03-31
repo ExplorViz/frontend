@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react';
 import {
   useLandscapeTokenStore,
   LandscapeToken,
-} from 'react-lib/src/stores/landscape-token';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
-import { useRoomServiceStore } from 'react-lib/src/stores/collaboration/room-service';
-import { RoomListRecord } from 'react-lib/src/utils/collaboration/room-payload/receivable/room-list';
-import { useToastHandlerStore } from 'react-lib/src/stores/toast-handler';
+} from 'explorviz-frontend/src/stores/landscape-token';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
+import { RoomListRecord } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
 import { SyncIcon } from '@primer/octicons-react';
 

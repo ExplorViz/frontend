@@ -1,15 +1,15 @@
 import {
   Scale,
   isScale,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/Scale';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/Scale';
 import {
   Position,
   isPosition,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const OBJECT_MOVED_EVENT = 'object_moved';
 

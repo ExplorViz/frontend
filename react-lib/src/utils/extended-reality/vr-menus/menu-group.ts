@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import FloorMesh from 'react-lib/src/utils/extended-reality/view-objects/vr/floor-mesh';
-import VRController from 'react-lib/src/utils/extended-reality/vr-controller';
-import VRControllerBindings from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-bindings';
-import BaseMenu from 'react-lib/src/utils/extended-reality/vr-menus/base-menu';
-import { isDetachableMenu } from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
-import { useDetachedMenuGroupsStore } from 'react-lib/src/stores/extended-reality/detached-menu-groups';
+import FloorMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/floor-mesh';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import VRControllerBindings from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-bindings';
+import BaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/base-menu';
+import { isDetachableMenu } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
+import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
 
 export default class MenuGroup extends THREE.Group {
   private menus: BaseMenu[];

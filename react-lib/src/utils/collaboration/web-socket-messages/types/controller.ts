@@ -1,6 +1,6 @@
-import { isPosition, Position } from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
-import { isQuaternion, Quaternion } from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
-import { ControllerId } from 'react-lib/src/utils/collaboration/web-socket-messages/types/controller-id';
+import { isPosition, Position } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
+import { isQuaternion, Quaternion } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
+import { ControllerId } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
 
 export type Controller = {
   controllerId: ControllerId;

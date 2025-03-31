@@ -3,11 +3,11 @@ import {
   Class,
   Package,
   TypeOfAnalysis,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getSubPackagesOfPackage,
   packageContainsClass,
-} from 'react-lib/src/utils/package-helpers';
+} from 'explorviz-frontend/src/utils/package-helpers';
 
 export function getAllPackagesInApplication(application: Application) {
   return [

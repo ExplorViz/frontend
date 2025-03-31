@@ -2,22 +2,22 @@ import { create } from 'zustand';
 import {
   useApplicationRendererStore,
   AddApplicationArgs,
-} from 'react-lib/src/stores/application-renderer';
-import { useLandscapeTokenStore } from 'react-lib/src/stores/landscape-token';
-import { useLinkRendererStore } from 'react-lib/src/stores/link-renderer';
-import { useTimestampStore } from 'react-lib/src/stores/timestamp';
-import { isTrace } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+} from 'explorviz-frontend/src/stores/application-renderer';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { isTrace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
-import { useDetachedMenuGroupsStore } from 'react-lib/src/stores/extended-reality/detached-menu-groups';
+import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
 import {
   DetachableMenu,
   isDetachableMenu,
-} from 'react-lib/src/utils/extended-reality/vr-menus/detachable-menu';
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
 import {
   SerializedAnnotation,
   SerializedApp,
@@ -26,9 +26,9 @@ import {
   SerializedLandscape,
   SerializedPopup,
   SerializedRoom,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import PopupData from 'react-lib/src/components/visualization/rendering/popups/popup-data';
-import AnnotationData from 'react-lib/src/components/visualization/rendering/annotations/annotation-data';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 
 // TODO: Is not used yet (imports and so on)
 // Has imports of components and stores that doesn't exist right now

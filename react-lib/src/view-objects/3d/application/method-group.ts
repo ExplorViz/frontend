@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Class } from 'react-lib/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'react-lib/src/view-objects/layout-models/box-layout';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { MethodMesh } from './method-mesh';
 
 export class MethodGroup extends THREE.Group {

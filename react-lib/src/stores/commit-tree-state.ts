@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import {
   AppNameCommitTreeMap,
   Commit,
-} from 'react-lib/src/utils/evolution-schemes/evolution-data';
-import { findAppNameAndBranchNameForCommit } from 'react-lib/src/utils/evolution-data-helpers';
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { findAppNameAndBranchNameForCommit } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 
 export type SelectedCommit = Commit;
 

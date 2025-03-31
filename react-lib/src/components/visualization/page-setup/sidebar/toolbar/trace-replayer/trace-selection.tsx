@@ -4,13 +4,13 @@ import {
   DynamicLandscapeData,
   Span,
   Trace,
-} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   Application,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import {
   calculateDuration,
   getSortedTraceSpans,
@@ -18,8 +18,8 @@ import {
   sortTracesByDuration,
   sortTracesById,
   sortTracesByRequestCount,
-} from 'react-lib/src/utils/trace-helpers';
-import { formatNumber } from 'react-lib/src/utils/format-number';
+} from 'explorviz-frontend/src/utils/trace-helpers';
+import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
 import Button from 'react-bootstrap/Button';
 
 export type TimeUnit = 'ns' | 'ms' | 's';

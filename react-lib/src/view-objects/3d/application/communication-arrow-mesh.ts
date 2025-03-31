@@ -1,9 +1,9 @@
-import { VisualizationMode } from 'react-lib/src/stores/collaboration/local-user';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/component-communication';
+import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
 import { SemanticZoomableObjectBaseMixin } from './utils/semantic-zoom-manager';
-import BaseMesh from 'react-lib/src/view-objects/3d/base-mesh';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
 
 class CommunicationArrowMeshPrivate extends BaseMesh {
   dataModel: ClassCommunication | ComponentCommunication;

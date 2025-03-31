@@ -1,19 +1,19 @@
 import {
   Scale,
   isScale,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/Scale';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/Scale';
 import {
   EntityType,
   isEntityType,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/entity-type';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import {
   Position,
   isPosition,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/position';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 import {
   Quaternion,
   isQuaternion,
-} from 'react-lib/src/utils/collaboration/web-socket-messages/types/quaternion';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
 
 export const MENU_DETACHED_FORWARD_EVENT = 'menu_detached';
 

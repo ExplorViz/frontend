@@ -1,9 +1,9 @@
-import { createScene } from 'react-lib/src//utils/scene';
+import { createScene } from 'explorviz-frontend/src//utils/scene';
 import * as THREE from 'three';
-import RenderingLoop from 'react-lib/src/rendering/application/rendering-loop';
-import { MapControls } from 'react-lib/src/utils/controls/MapControls';
-import { OrbitControls } from 'react-lib/src/utils/controls/OrbitControls';
-import { PointerLockControls } from 'react-lib/src/utils/controls/PointerLockControls';
+import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
+import { MapControls } from 'explorviz-frontend/src/utils/controls/MapControls';
+import { OrbitControls } from 'explorviz-frontend/src/utils/controls/OrbitControls';
+import { PointerLockControls } from 'explorviz-frontend/src/utils/controls/PointerLockControls';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 
 type UserActionType = 'zoomin' | 'zoomout' | 'rotate' | 'move';

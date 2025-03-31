@@ -1,38 +1,38 @@
 import React, { useEffect, useState } from 'react';
 
-import { LandscapeData } from 'react-lib/src/utils/landscape-schemes/landscape-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { useApplicationRendererStore } from '../stores/application-renderer';
-import { useConfigurationStore } from 'react-lib/src/stores/configuration';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
-import { useApplicationRepositoryStore } from 'react-lib/src/stores/repos/application-repository';
-import ApplicationData, { K8sData } from 'react-lib/src/utils/application-data';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import ApplicationData, { K8sData } from 'explorviz-frontend/src/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
-} from 'react-lib/src/utils/application-rendering/class-communication-computer';
-import calculateHeatmap from 'react-lib/src/utils/calculate-heatmap';
+} from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
+import calculateHeatmap from 'explorviz-frontend/src/utils/calculate-heatmap';
 import {
   Application,
   getApplicationsFromNodes,
   getK8sAppsFromNodes,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
 import { useLocalUserStore } from '../stores/collaboration/local-user';
 import { useHighlightingStore } from '../stores/highlighting';
 import { useLinkRendererStore } from '../stores/link-renderer';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { useUserSettingsStore } from '../stores/user-settings';
 import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
-import { DynamicLandscapeData } from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import { useFontRepositoryStore } from 'react-lib/src/stores/repos/font-repository';
-import visualizeK8sLandscape from 'react-lib/src/utils/k8s-landscape-visualization-assembler';
-import { useHeatmapConfigurationStore } from 'react-lib/src/stores/heatmap/heatmap-configuration';
-import { CommunicationLink } from 'react-lib/src/ide/ide-cross-communication';
-import Landscape3D from 'react-lib/src/view-objects/3d/landscape/landscape-3d';
-import LandscapeModel from 'react-lib/src/view-objects/3d/landscape/landscape-model';
-import layoutLandscape from 'react-lib/src/utils/elk-layouter';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
+import visualizeK8sLandscape from 'explorviz-frontend/src/utils/k8s-landscape-visualization-assembler';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { CommunicationLink } from 'explorviz-frontend/src/ide/ide-cross-communication';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import LandscapeModel from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-model';
+import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { useShallow } from 'zustand/react/shallow';
 import { updateHighlighting } from '../utils/application-rendering/highlighting';
 

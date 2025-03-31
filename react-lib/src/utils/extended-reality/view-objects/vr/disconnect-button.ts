@@ -1,7 +1,7 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import { IntersectableObject } from 'react-lib/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
-import { useCollaborationSessionStore } from 'react-lib/src/stores/collaboration/collaboration-session';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 
 export type DisconnectButtonArgs = ThreeMeshUI.BlockOptions;
 

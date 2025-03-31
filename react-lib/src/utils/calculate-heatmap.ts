@@ -1,7 +1,7 @@
 import {
   ApplicationMetrics,
   Metric,
-} from 'react-lib/src/utils/metric-schemes/metric-data';
+} from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
 
 const windowSize = 9;
 

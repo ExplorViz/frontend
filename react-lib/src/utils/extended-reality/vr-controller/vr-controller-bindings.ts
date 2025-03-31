@@ -1,7 +1,7 @@
-import VRControllerButtonBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import VRControllerLabelGroup from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-label-group';
-import { VRControllerLabelPositions } from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-label-positions';
-import VRControllerThumbpadBinding from 'react-lib/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerLabelGroup from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-label-group';
+import { VRControllerLabelPositions } from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-label-positions';
+import VRControllerThumbpadBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
 
 export default class VRControllerBindings {
   thumbpad?: VRControllerThumbpadBinding;

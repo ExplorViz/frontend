@@ -1,20 +1,20 @@
-import ApplicationObject3D from 'react-lib/src/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'react-lib/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'react-lib/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'react-lib/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'react-lib/src/view-objects/3d/application/foundation-mesh';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import {
   getAllClassesInApplication,
   getAllClassIdsInApplication,
   getAllPackagesInApplication,
-} from 'react-lib/src/utils/application-helpers';
-import { getClassAncestorPackages } from 'react-lib/src/utils/class-helpers';
-import ClassCommunication from 'react-lib/src/utils/landscape-schemes/dynamic/class-communication';
+} from 'explorviz-frontend/src/utils/application-helpers';
+import { getClassAncestorPackages } from 'explorviz-frontend/src/utils/class-helpers';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   isTrace,
   Span,
   Trace,
-} from 'react-lib/src/utils/landscape-schemes/dynamic/dynamic-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
   isApplication,
@@ -22,9 +22,9 @@ import {
   isPackage,
   Package,
   StructureLandscapeData,
-} from 'react-lib/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'react-lib/src/utils/landscape-structure-helpers';
-import { getClassesInPackage } from 'react-lib/src/utils/package-helpers';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { getClassesInPackage } from 'explorviz-frontend/src/utils/package-helpers';
 
 // #region Add/Update/Remove Highlighting
 
