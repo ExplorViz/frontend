@@ -1,0 +1,31 @@
+# test files
+/tests/
+
+# resource
+/public/
+
+# types
+/types/
+
+# unconventional js
+/blueprints/*/files/
+/vendor/
+
+# compiled output
+/dist/
+/tmp/
+
+# dependencies
+/bower_components/
+/node_modules/
+
+# misc
+/coverage/
+!.*
+.*/
+.eslintcache
+
+# akr
+public/assets/web-workers/*
+yuidoc-packages.js
+.prettierrc.js
