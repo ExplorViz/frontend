@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-// TODO: Wait for router to be migrated
 
 interface AuthState {
   user: AuthenticatedUser | undefined;

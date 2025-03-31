@@ -688,7 +688,6 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     eventEmitter.emit('showChangeLog');
   },
 
-  // TODO: Check if foundEntry operation will update state
   moveClassEntry: (
     app: Application,
     clazz: Class,
@@ -729,7 +728,6 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     eventEmitter.emit('showChangeLog');
   },
 
-  // TODO: Check if foundEntry operations will update the state
   renameOperationEntry: (
     communication: ClassCommunication,
     newName: string
@@ -822,7 +820,6 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
       ),
     });
 
-    // TODO: Check if this loop works after migration!
     for (const deletedList of get().deletedChangeLogEntries.values()) {
       const index = deletedList.findIndex((deleted) => {
         return deleted.id === lastEntry!.id;

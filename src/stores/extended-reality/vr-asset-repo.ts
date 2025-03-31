@@ -15,7 +15,6 @@ interface VrAssetRepoState {
 export const useVrAssetRepoStore = create<VrAssetRepoState>((set, get) => {
   const textureLoader = new THREE.TextureLoader();
 
-  // TODO: Check where the files come from
   return {
     closeIconTextures: {
       defaultTexture: textureLoader.load('images/x_white_transp.png'),

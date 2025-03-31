@@ -142,7 +142,7 @@ export const useDetachedMenuGroupsStore = create<DetachedMenuGroupsState>(
     updateDetachedMenus: (delta: number) => {
       get().detachedMenuGroups.forEach((menuGroup) =>
         menuGroup.updateMenu(delta)
-      ); // TODO: Does this need to be set again?
+      );
     },
 
     /**
@@ -169,7 +169,6 @@ export const useDetachedMenuGroupsStore = create<DetachedMenuGroupsState>(
 
       // Create menu group for the detached menu.
       const detachedMenuGroup = new DetachedMenuGroup({
-        // TODO: Change call because of store reference?
         menu,
         menuId,
       });

@@ -323,7 +323,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       return get().userIdMuteList?.includes(userId);
     },
 
-    // TODO maybe remove _applyCurrentFilter and only keep this?
     filterChat: (filterMode: string, filterValue: string): void => {
       get()._applyCurrentFilter(filterMode, filterValue);
     },
@@ -334,7 +333,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       });
     },
 
-    // TODO: private
     _applyCurrentFilter: (
       filterMode: string = '',
       filterValue: string = ''
@@ -364,7 +362,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       }
     },
 
-    // TODO: private
     // This could be made into a utility function
     _getTime: () => {
       const h = new Date().getHours();

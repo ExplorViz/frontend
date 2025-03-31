@@ -200,16 +200,16 @@ interface LandscapeRestructureState {
   addPackage: (app: Application, collabMode?: boolean) => void;
   addCollaborativeClass: (pckgId: string) => void;
   addClass: (pckg: Package, collabMode?: boolean) => void;
-  deleteCollaborativeApplication: (appId: string, undo?: boolean) => void;
+  deleteCollaborativeApplication: (appId: string, undo: boolean) => void;
   deleteApp: (app: Application, collabMode?: boolean, undo?: boolean) => void;
   _processDeletedAppData: (app: Application) => void;
-  deleteCollaborativePackage: (pckgId: string, undo?: boolean) => void;
+  deleteCollaborativePackage: (pckgId: string, undo: boolean) => void;
   deletePackage: (pckg: Package, collabMode?: boolean, undo?: boolean) => void;
   storeDeletedAppData: (app: Application) => void;
   restoreDeletedAppData: (app: Application) => void;
   storeDeletedPackageData: (pckg: Package) => void;
   restoreDeletedPackageData: (pckg: Package) => void;
-  deleteCollaborativeClass: (clazzId: string, undo?: boolean) => void;
+  deleteCollaborativeClass: (clazzId: string, undo: boolean) => void;
   deleteClass: (clazz: Class, collabMode?: boolean, undo?: boolean) => void;
   cutPackage: (pckg: Package) => void;
   cutClass: (clazz: Class) => void;
@@ -631,7 +631,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             });
           }
           // Set new Application name
-          app.name = name; // TODO: Does this trigger any rerendering?
+          app.name = name;
 
           eventEmitter.emit('showChangeLog');
           eventEmitter.emit(
@@ -701,7 +701,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           }
 
           // Set new Package name
-          pckg.name = name; // TODO: Does this trigger any rerendering?
+          pckg.name = name;
 
           eventEmitter.emit('showChangeLog');
           eventEmitter.emit(
@@ -768,7 +768,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           }
 
           // Set new Package name
-          pckg.name = name; // TODO: Does this trigger any rerendering?
+          pckg.name = name;
 
           eventEmitter.emit('showChangeLog');
           eventEmitter.emit(
@@ -854,7 +854,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             }
 
             // Set new Class name
-            clazzToRename.name = name; // TODO: Does this trigger any rerendering?
+            clazzToRename.name = name;
 
             eventEmitter.emit('showChangeLog');
             eventEmitter.emit(
@@ -890,7 +890,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         useChangelogStore
           .getState()
           .renameOperationEntry(communication, newName);
-        communication.operationName = newName; // TODO: Does this trigger any rerendering?
+        communication.operationName = newName;
 
         // If the communication was not updated before, then create an entry
         if (!found) {
@@ -906,7 +906,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         );
         newUpdatedClassCommunications.delete(key);
         set({ updatedClassCommunications: newUpdatedClassCommunications });
-        communication.operationName = newName; // TODO: Does this trigger any rerendering?
+        communication.operationName = newName;
       }
 
       eventEmitter.emit('showChangeLog');
@@ -942,7 +942,6 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
       });
       if (undoCutOperation) {
         if (get().createdClassCommunication.length) {
-          // TODO: Does this work? Changing the value for each object
           get().createdClassCommunication.forEach((comm) => {
             if (!comm.sourceApp) {
               comm.sourceApp = app;
@@ -1008,7 +1007,6 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const app = get().getApp(pckg)!;
         if (get().createdClassCommunication.length) {
-          // TODO: Does this work for overwriting attributes of comm?
           get().createdClassCommunication.forEach((comm) => {
             if (!comm.sourceApp) {
               comm.sourceApp = app;
@@ -1086,7 +1084,6 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         restoreID({ entity: clazz }, 'removed|');
         if (get().createdClassCommunication.length) {
-          // TODO: Does this work for updating attributes of comm?
           get().createdClassCommunication.forEach((comm) => {
             // referencing the original app again
             if (!comm.sourceApp) {
@@ -1338,9 +1335,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 } else {
-                  mesh.changeTexture(elem.texturePath);
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 }
               });
             } else if (
@@ -1355,19 +1352,19 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectComponent) {
-                  mesh.changeTexture(elem.texturePath); // TODO: wrong?
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 }
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 }
               });
             } else if (elem.meshType === EntityType.Clazz) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 const isCorrectClass =
                   mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id; // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 }
               });
             }
@@ -1395,9 +1392,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh.dataModel.id === elem.pckg?.id;
                 const isCorrectClass =
                   mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id; // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectComponent || isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 }
               });
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
@@ -1406,15 +1403,15 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                     mesh instanceof ComponentMesh &&
                     mesh.dataModel.id === pckg.id;
                   if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath); // TODO: wrong?
+                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                   }
                 });
 
                 allClassesInPackage.forEach((clazz) => {
                   const isCorrectClass =
-                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id; // TODO: Doesn't exist on type ClazzMesh?
+                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id; 
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                   }
                 });
               });
@@ -1422,9 +1419,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 const isCorrectClass =
                   mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id; // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.dataModel.id === elem.clazz?.id; 
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 }
               });
             }
@@ -1436,7 +1433,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const foundationMesh = currentAppModel?.modelIdToMesh.get(
                   elem.app.id
                 );
-                foundationMesh?.changeTexture(elem.texturePath);
+                foundationMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
               }
             } else if (elem.meshType === EntityType.Package) {
               const appliedTexture = get()._findAppliedTexture(
@@ -1448,7 +1445,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const componentMesh = currentAppModel?.modelIdToMesh.get(
                   elem.pckg?.id as string
                 );
-                componentMesh?.changeTexture(elem.texturePath);
+                componentMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
               }
             } else if (elem.meshType === EntityType.Clazz) {
               const appliedTexture = get()._findAppliedTexture(
@@ -1459,7 +1456,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath);
+                clazzMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
               }
             }
             // Apply X texture for copied Meshes
@@ -1467,9 +1464,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 } else {
-                  mesh.changeTexture(elem.texturePath);
+                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                 }
               });
             } else if (elem.meshType === EntityType.Package) {
@@ -1486,22 +1483,22 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 elem.pckg?.id as string
               );
 
-              componentMesh?.changeTexture(elem.texturePath);
+              componentMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 allSubPackages.forEach((pckg) => {
                   const isCorrectComponent =
                     mesh instanceof ComponentMesh &&
                     mesh.dataModel.id === pckg.id;
                   if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath); // TODO: wrong?
+                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                   }
                 });
 
                 allClassesInPackage.forEach((clazz) => {
                   const isCorrectClass =
-                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id; // TODO: Doesn't exist on type ClazzMesh?
+                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                   }
                 });
               });
@@ -1509,7 +1506,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               const clazzMesh = currentAppModel?.modelIdToMesh.get(
                 elem.clazz?.id as string
               );
-              clazzMesh?.changeTexture(elem.texturePath);
+              clazzMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
             }
             // Apply Slash texture for inserted Meshes
           } else if (elem.action === RestructureAction.CutInsert) {
@@ -1529,23 +1526,23 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const componentMesh = currentAppModel?.modelIdToMesh.get(
                   elem.pckg?.id as string
                 );
-                componentMesh?.changeTexture(elem.texturePath);
+                componentMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
                 currentAppModel?.modelIdToMesh.forEach((mesh) => {
                   allSubPackages.forEach((pckg) => {
                     const isCorrectComponent =
                       mesh instanceof ComponentMesh &&
                       mesh.dataModel.id === pckg.id;
                     if (isCorrectComponent) {
-                      mesh.changeTexture(elem.texturePath); // TODO: wrong?
+                      mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                     }
                   });
 
                   allClassesInPackage.forEach((clazz) => {
                     const isCorrectClass =
                       mesh instanceof ClazzMesh &&
-                      mesh.dataModel.id === clazz.id; // TODO: Doesn't exist on type ClazzMesh?
+                      mesh.dataModel.id === clazz.id;
                     if (isCorrectClass) {
-                      mesh.changeTexture(elem.texturePath); // TODO: Doesn't exist on type ClazzMesh?
+                      mesh.changeTexture(elem.texturePath); // TODO: Need a loader
                     }
                   });
                 });
@@ -1558,7 +1555,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath);
+                clazzMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
               }
             }
           }
@@ -1613,7 +1610,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           subPackage.parent = pckg;
           subPackage.classes.push(newClass as Class);
           subPackage = get()._addOriginOfData(subPackage);
-          pckg.subPackages.push(subPackage); // TODO: Does this work on the states?
+          pckg.subPackages.push(subPackage);
 
 
           // Create Changelog Entry
@@ -1679,7 +1676,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         newClass.parent = newPckg;
         newPckg.classes.push(newClass as Class);
         newPckg = get()._addOriginOfData(newPckg);
-        app.packages.push(newPckg); // TODO: Does this work for rerendering?
+        app.packages.push(newPckg);
 
         // Create Changelog Entry
         useChangelogStore
@@ -1937,9 +1934,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           if (app && pckg.parent) {
             useChangelogStore
               .getState()
-              .deleteSubPackageEntry(app, pckg, false); // TODO: undoInsert was missing
+              .deleteSubPackageEntry(app, pckg, false);
           } else if (app && !pckg.parent) {
-            useChangelogStore.getState().deletePackageEntry(app, pckg, false); // TODO: undoInsert was missing
+            useChangelogStore.getState().deletePackageEntry(app, pckg, false);
           }
 
           get().storeDeletedPackageData(pckg);
@@ -2335,7 +2332,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         // Copy the clipped package
         const copiedPackage = copyPackageContent(get().clippedMesh as Package);
-        if (isPackage(destination)) copiedPackage.parent = destination; // TODO: Does this work?
+        if (isPackage(destination)) copiedPackage.parent = destination;
 
         const meshTextureMapping: Partial<MeshModelTextureMapping> = {
           action: RestructureAction.CopyPaste,
@@ -2439,7 +2436,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         // Copy the clipped class
         const copiedClass = copyClassContent(get().clippedMesh as Class);
-        copiedClass.parent = destination; // TODO: Does this work?
+        copiedClass.parent = destination;
 
         const meshTextureMapping: Partial<MeshModelTextureMapping> = {
           action: RestructureAction.CopyPaste,
@@ -2474,7 +2471,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           );
 
         const destinationApp = get().getApp(destination);
-        meshTextureMapping.app = destinationApp; // TODO: Does this work?
+        meshTextureMapping.app = destinationApp;
         set({
           meshModelTextureMappings: [
             ...get().meshModelTextureMappings,
@@ -2617,7 +2614,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         } else if (isClass(get().clippedMesh) && app) {
           // Copy the clipped class
           const cuttedClass = copyClassContent(get().clippedMesh as Class);
-          cuttedClass.parent = get().clippedMesh!.parent; // TODO: Does this work?
+          cuttedClass.parent = get().clippedMesh!.parent;
 
           // Set the texture to correct mesh
           meshTextureMapping.meshType = EntityType.Clazz;
