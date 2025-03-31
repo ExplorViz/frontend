@@ -17,6 +17,11 @@ export default function FlagSetting({ setting, onChange, settingId, resetState }
     setValue(!value);
   };
 
+  const reset = () => {
+    onChange(settingId);
+    setSingleResetState(!singleResetState);
+  }
+
   return (
     <div className="setting-container d-flex justify-content-between">
       <div>
@@ -25,7 +30,7 @@ export default function FlagSetting({ setting, onChange, settingId, resetState }
       </div>
       <div className="d-flex align-self-center">
         <WideCheckbox value={value} onToggle={() => handleInput()} />
-        <ResetButton onClick={() => {onChange(settingId); setSingleResetState(!singleResetState);}} />
+        <ResetButton onClick={() => reset()} />
       </div>
     </div>
   );

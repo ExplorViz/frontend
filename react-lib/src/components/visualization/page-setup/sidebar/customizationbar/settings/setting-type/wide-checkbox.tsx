@@ -11,8 +11,8 @@ export default function WideCheckbox({
     <label className="wide-checkbox-container">
       <input
         type="checkbox"
-        defaultChecked={value}
-        onClick={() => onToggle(!value)}
+        checked={value}
+        onChange={() => onToggle(!value)}
       />
       <span className="wide-checkbox"></span>
     </label>
