@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+
 import HelpTooltip from 'react-lib/src/components/help-tooltip.tsx';
 import {
   useHeatmapConfigurationStore,
@@ -7,9 +8,9 @@ import {
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { ShareAndroidIcon } from '@primer/octicons-react';
+import { ArrowSwitchIcon, ShareAndroidIcon } from '@primer/octicons-react';
 
-interface Args {
+interface HeatmapLegendProps {
   descriptions?: {
     aggregatedHeatmap: string;
     windowedHeatmap: string;
@@ -17,33 +18,7 @@ interface Args {
   };
 }
 
-function getSubHeader(mode: HeatmapMode) {
-  if (mode === 'snapshotHeatmap') {
-    return 'Snapshot score:';
-  }
-  if (mode === 'aggregatedHeatmap') {
-    return 'Cont. score:';
-  }
-  if (mode === 'windowedHeatmap') {
-    return 'Windowed (average) score:';
-  }
-  return 'Subheader';
-}
-
-function getDescriptions(descriptions: any) {
-  return (
-    descriptions ?? {
-      aggregatedHeatmap:
-        'Continuously aggregates metric scores by adding a part of the previous metric score to the new (visualized) value.',
-      windowedHeatmap:
-        'Visualizes the average for the selected metric considering the last ten scores.',
-      snapshotHeatmap:
-        'Visualizes the metric scores of the currently rendered snapshot.',
-    }
-  );
-}
-
-export default function HeatmapLegend(args: Args) {
+export default function HeatmapLegend({ descriptions }: HeatmapLegendProps) {
   const heatmapShared = useHeatmapConfigurationStore(
     (state) => state.heatmapShared
   );
@@ -102,40 +77,29 @@ export default function HeatmapLegend(args: Args) {
   return (
     <div id="heatmap-legend-container" className="d-flex flex-column p-2">
       <div id="legend-header">
-        {/* THIS WAS ALREADY COMMENTED {{!-- <div>
-                <span id='legend-header-content'>Heatmap</span>
-                {{#if (eq this.heatmapConfiguration.selectedMode 'aggregatedHeatmap')}}
-                    <div
-                    {{react
-                    this.helpTooltipComponent
-                    title=this.descriptions.aggregatedHeatmap
-                    }}/>
-                {{else if (eq this.heatmapConfiguration.selectedMode 'windowedHeatmap')}}
-                    <div
-                    {{react
-                    this.helpTooltipComponent
-                    title=this.descriptions.windowedHeatmap
-                    }}/>
-                {{else}}
-                    <div
-                    {{react
-                    this.helpTooltipComponent
-                    title=this.descriptions.snapshotHeatmap
-                    }}/>
-                {{/if}}
-                </div>
-                <div>
-                <button
-                    class='button-svg-with-hover'
-                    type='button'
-                    {{on 'click' this.switchHeatMapMode}}
-                >
-                    {{svg-jar 'arrow-switch-16' class='octicon align-middle'}}
-                    <BsTooltip @placement='bottom' @triggerEvents='hover'>
-                    Switch Heat Map Mode.
-                    </BsTooltip>
-                </button>
-                </div> --}} */}
+        {/* <div>
+          <span id="legend-header-content">Heatmap</span>
+          {descriptions && (
+            <HelpTooltip
+              title={descriptions[selectedMode] || ''}
+            />
+          )}
+        </div>
+        <div>
+          <button
+            className="button-svg-with-hover"
+            type="button"
+            onClick={switchHeatmapMode}
+          >
+            <OverlayTrigger
+              placement="bottom"
+              trigger={['hover', 'focus']}
+              overlay={<Tooltip>Switch Heatmap Mode</Tooltip>}
+            >
+              <ArrowSwitchIcon size="small" className="align-middle" />
+            </OverlayTrigger>
+          </button>
+        </div> */}
 
         <div>
           <OverlayTrigger
@@ -197,11 +161,11 @@ export default function HeatmapLegend(args: Args) {
                 ></canvas>
               </div>
               <div id="heatmap-legend-label">
-                <span className="heatmap-label">{selectedMetric!.max}</span>
+                <span className="heatmap-label">{selectedMetric?.max}</span>
                 <span className="heatmap-label">
-                  {(selectedMetric!.max / 2).toFixed(0)}
+                  {selectedMetric ? (selectedMetric!.max / 2).toFixed(0) : null}
                 </span>
-                <span className="heatmap-label">{selectedMetric!.min}</span>
+                <span className="heatmap-label">{selectedMetric?.min}</span>
               </div>
             </>
           ) : (
@@ -210,5 +174,31 @@ export default function HeatmapLegend(args: Args) {
         </div>
       </div>
     </div>
+  );
+}
+
+function getSubHeader(mode: HeatmapMode) {
+  if (mode === 'snapshotHeatmap') {
+    return 'Snapshot score:';
+  }
+  if (mode === 'aggregatedHeatmap') {
+    return 'Cont. score:';
+  }
+  if (mode === 'windowedHeatmap') {
+    return 'Windowed (average) score:';
+  }
+  return 'Subheader';
+}
+
+function getDescriptions(descriptions: any) {
+  return (
+    descriptions ?? {
+      aggregatedHeatmap:
+        'Continuously aggregates metric scores by adding a part of the previous metric score to the new (visualized) value.',
+      windowedHeatmap:
+        'Visualizes the average for the selected metric considering the last ten scores.',
+      snapshotHeatmap:
+        'Visualizes the metric scores of the currently rendered snapshot.',
+    }
   );
 }
