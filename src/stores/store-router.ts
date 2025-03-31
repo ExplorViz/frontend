@@ -13,6 +13,7 @@ interface RouterStoreState {
 
 export const useRouterStore = create<RouterStoreState>((set, get) => ({
   navigateTo: undefined,
+  /* eslint-disable react-hooks/rules-of-hooks */
   getLocation: () => {
     const location = useLocation();
     return location;

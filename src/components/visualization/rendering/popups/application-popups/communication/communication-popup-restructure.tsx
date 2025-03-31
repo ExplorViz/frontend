@@ -74,7 +74,7 @@ export default function CommunicationPopupRestructure({
         {communication.communication.methodCalls.map(
           (classCommunication, index) => {
             return (
-              <>
+              <React.Fragment key={index}>
                 {/* Relationship */}
                 <tr>
                   <td className="text-nowrap align-top">
@@ -178,7 +178,7 @@ export default function CommunicationPopupRestructure({
                         1 && <hr />}
                   </>
                 )}
-              </>
+              </React.Fragment>
             );
           }
         )}

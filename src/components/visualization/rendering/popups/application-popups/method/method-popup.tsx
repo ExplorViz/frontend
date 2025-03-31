@@ -43,7 +43,7 @@ export default function MethodPopup({
               </thead>
               <tbody>
                 {method.parameters.map((params) => (
-                  <tr>
+                  <tr key={params.name}>
                     <td>{params.name}</td>
                     <td>{params.type}</td>
                   </tr>

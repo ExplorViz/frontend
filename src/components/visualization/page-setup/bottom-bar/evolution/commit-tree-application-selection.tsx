@@ -17,6 +17,7 @@ export default function CommitTreeApplicationSelection({
     let obj = { array: Array.from(appNameCommitTreeMap.keys()) };
     let dropdownMenu = obj.array.map((item) => (
       <div
+        key={item}
         className="dropdown-item pointer-cursor"
         onClick={() =>
           useCommitTreeStateStore

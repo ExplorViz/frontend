@@ -6,7 +6,7 @@ import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reali
 
 interface ZoomButtonArgs {}
 
-export default function ZoomButton({}: ZoomButtonArgs) {
+export default function ZoomButton() {
   const zoomEnabled = useARSettingsStore((state) => state.zoomEnabled);
   const toggleZoomEnabled = useARSettingsStore(
     (state) => state.toggleZoomEnabled

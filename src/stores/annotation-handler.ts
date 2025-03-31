@@ -503,7 +503,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
               ...get().annotationData.filter((anno) => anno.annotationId !== an.annotationId),
               {...an, hovered: an.entity.id === mesh.getModelId()}
             ]})
-          };
+          }
         });
       } else {
         get().annotationData.forEach((an) => {

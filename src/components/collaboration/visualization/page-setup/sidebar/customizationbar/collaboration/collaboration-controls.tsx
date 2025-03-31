@@ -40,7 +40,7 @@ import { createSearchParams, useNavigate, useSearchParams } from 'react-router-d
 
 interface CollaborationControlsProps {}
 
-export default function CollaborationControls({}: CollaborationControlsProps) {
+export default function CollaborationControls() {
   const localUserColor = useLocalUserStore((state) => state.color);
   const localUserName = useLocalUserStore((state) => state.userName);
   const localUserId = useLocalUserStore((state) => state.userId);
@@ -670,7 +670,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
 
           <ul>
             {users.map((user) => (
-              <div className="chat-right-buttons collaboration-list-item">
+              <div className="chat-right-buttons collaboration-list-item" key={user.name}>
                 <li style={user.style}>
                   <div className="nav-link-with-cursor">{user.name}</div>
                 </li>
@@ -745,7 +745,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
 
           <ul>
             {rooms.map((room) => (
-              <div className="flex-space-between collaboration-list-item">
+              <div className="flex-space-between collaboration-list-item" key={room.roomId}>
                 <li>{room.roomName}</li>
                 <Button
                   title="Join Room"
@@ -802,7 +802,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
 
             <label className="mt-2">Devices:</label>
             {spectateConfigDevices.map((device, index) => (
-              <div className="ml-3">
+              <div className="ml-3" key={index}>
                 <hr />
                 <label htmlFor="deviceId">Device ID:</label>
                 {index === 0 ? (
@@ -1032,7 +1032,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
             <label className="mt-2">Devices:</label>
 
             {spectateConfigDevices.map((device, index) => (
-              <div className="ml-3">
+              <div className="ml-3" key={index}>
                 <hr />
                 <label htmlFor="deviceId">Device ID:</label>
                 {index === 0 ? (

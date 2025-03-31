@@ -16,7 +16,7 @@ interface ApplicationSearchEntity {
 
 interface ApplicationSearchProps {}
 
-export default function ApplicationSearch({}: ApplicationSearchProps) {
+export default function ApplicationSearch() {
   useApplicationRepositoryStore((state) => state.applications);
   const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
   const highlightById = useHighlightingStore((state) => state.highlightById);

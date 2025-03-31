@@ -878,6 +878,7 @@ export default function Restructure({
                     className="card"
                     onClick={() => toggleCheckBox(index)}
                     style={{ cursor: 'pointer' }}
+                    key={index}
                   >
                     <div className="card-body">
                       <div className="form-check position-relative" hidden>
@@ -920,7 +921,7 @@ export default function Restructure({
               <strong>Gitlab</strong>
             </h6>
             {issues.map((issue, index) => (
-              <>
+              <React.Fragment key={index}>
                 <div className="ml-3">
                   <div className="d-flex justify-content-between">
                     <label htmlFor="issueTitle"></label>
@@ -982,7 +983,7 @@ export default function Restructure({
                   <ul></ul>
                   <ul>
                     {issue.screenshots.map((screenshot, screenshotIndex) => (
-                      <li>
+                      <li key={screenshotIndex}>
                         <button
                           type="button"
                           style={{ padding: 0, margin: 0 }}
@@ -1009,7 +1010,7 @@ export default function Restructure({
                   </Button>
                 </div>
                 <ul></ul>
-              </>
+              </React.Fragment>
             ))}
             <div className="ml-3 mt-2">
               <div className="d-flex justify-content-between mt-3">

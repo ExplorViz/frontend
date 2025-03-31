@@ -21,7 +21,7 @@ interface ChatUser {
 
 interface ChatBoxProps {}
 
-export default function ChatBox({}: ChatBoxProps) {
+export default function ChatBox() {
   const connectionStatus = useCollaborationSessionStore(
     (state) => state.connectionStatus
   );
@@ -421,7 +421,7 @@ export default function ChatBox({}: ChatBoxProps) {
                         onChange={updateFilterValue}
                       >
                         {usersInChat.map((user) => (
-                          <option value={user.name}>{user.name}</option>
+                          <option value={user.name} key={user.id}>{user.name}</option>
                         ))}
                       </select>
                     </label>

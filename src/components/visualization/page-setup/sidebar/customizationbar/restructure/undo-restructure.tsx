@@ -6,7 +6,7 @@ import { ReplyIcon } from '@primer/octicons-react';
 
 interface UndoRestructureProps {}
 
-export default function UndoRestructure({}: UndoRestructureProps) {
+export default function UndoRestructure() {
   const canUndo = useLandscapeRestructureStore(
     (state) => state.restructureMode
   );

@@ -73,7 +73,7 @@ export default function AnnotationCoordinator({
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
 
-  const sharedByColor = !!annotationData.sharedBy
+  const sharedByColor = annotationData.sharedBy
     ? getColor(annotationData.sharedBy)
     : '';
 

@@ -187,7 +187,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
       const clonedSocket = Object.assign(Object.create(Object.getPrototypeOf(get()._currentSocket)), get()._currentSocket);
       clonedSocket.disconnect();
       set({ _currentSocket: clonedSocket });
-    };
+    }
   },
 
   // private

@@ -121,7 +121,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
             {args.token.ownerId === user!.sub ? (
               <>
                 {args.token.sharedUsersIds.map((userWithAccess) => (
-                  <tr className="d-flex">
+                  <tr className="d-flex" key={userWithAccess}>
                     <td className="col-10">{userWithAccess}</td>
                     <td className="col-2">
                       <OverlayTrigger

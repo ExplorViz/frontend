@@ -33,10 +33,10 @@ function calculatePackageNameModelMap(application) {
 
   let returnValue = new Map();
 
-  for (const package of topLevelPackages) {
+  for (const pckg of topLevelPackages) {
     returnValue = new Map([
       ...returnValue,
-      ...calculatePackageNameModelMapForPackageAndChildren(package),
+      ...calculatePackageNameModelMapForPackageAndChildren(pckg),
     ]);
   }
 
@@ -72,10 +72,10 @@ function calculateFqnToModelMap(application) {
 
   let returnValue = new Map();
 
-  for (const package of topLevelPackages) {
+  for (const pckg of topLevelPackages) {
     returnValue = new Map([
       ...returnValue,
-      ...calculatePackageNameModelMapForPackageAndChildren(package),
+      ...calculatePackageNameModelMapForPackageAndChildren(pckg),
     ]);
   }
 

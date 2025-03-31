@@ -136,23 +136,19 @@ export const useEvolutionDataFetchServiceStore =
     },
 
     _fetchFromService: async <T>(url: string): Promise<T> => {
-      try {
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-            'Access-Control-Allow-Origin': '*',
-          },
-        });
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new FetchError(response.status, errorText);
-        }
-
-        return (await response.json()) as T;
-      } catch (error) {
-        throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new FetchError(response.status, errorText);
       }
+
+      return (await response.json()) as T;
     },
   }));
 
