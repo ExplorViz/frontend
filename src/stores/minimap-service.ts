@@ -214,7 +214,6 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
   /**
    * Gets the current position of the user, either by camera position or camera target
    */
-  // TODO private
   getCurrentPosition: () => {
     const userPosition = new THREE.Vector3();
     if (
@@ -232,7 +231,6 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
    * Checks if the user is inside the bounding box
    * @param intersection Intersection of the user
    */
-  // TODO private
   checkBoundingBox: (intersection: THREE.Vector3) => {
     const boundingBox = new THREE.Box3().setFromObject(get().landscape3D);
     if (boundingBox) {

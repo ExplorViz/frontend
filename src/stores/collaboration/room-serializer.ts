@@ -30,8 +30,6 @@ import {
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 
-// TODO: Is not used yet (imports and so on)
-// Has imports of components and stores that doesn't exist right now
 
 interface RoomSerializerState {
   serializedRoom?: SerializedRoom;
@@ -101,7 +99,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
         highlightedExternCommunicationLinks:
           get()._serializehighlightedExternCommunicationLinks(),
         popups: get()._serializeOpenPopups(popupData, snapshot),
-        annotations: get()._serializeOpenAnnotations(annotationData, snapshot), // TODO: previously annotationData, snapshot),
+        annotations: get()._serializeOpenAnnotations(annotationData, snapshot),
         detachedMenus: get()._serializeDetachedMenus(),
       };
       return serializedRoom;
@@ -112,7 +110,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
     _serializeLandscape: (): SerializedLandscape => {
       return {
         landscapeToken: useLandscapeTokenStore.getState().token?.value,
-        timestamp: useTimestampStore.getState().timestamp, // TODO: wrong?
+        timestamp: useTimestampStore.getState().timestamp, // TODO: Timestamp was refactored in the past, whats right here?
       };
     },
 
@@ -292,7 +290,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
         .map((detachedMenuGroup) => {
           const detachedMenu = detachedMenuGroup.currentMenu as DetachableMenu;
           return {
-            userId: null, // TODO Check if this works
+            userId: null,
             objectId: detachedMenuGroup.getGrabId(),
             entityId: detachedMenu.getDetachId(),
             entityType: detachedMenu.getEntityType(),
@@ -318,7 +316,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
             const color = (externLinkMesh.material as THREE.MeshBasicMaterial)
               .color;
             return {
-              userId: '', // TODO: userId
+              userId: '',
               appId: '',
               entityType: 'ClazzCommunicationMesh',
               entityId: externLinkMesh.getModelId(),

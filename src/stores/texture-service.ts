@@ -75,7 +75,7 @@ export const useTextureServiceStore = create<TextureServiceState>(
           const start = mesh.layout.startPoint;
           const end = mesh.layout.endPoint;
           const dist = start.distanceTo(end);
-          (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3); // TODO: wrong?
+          (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3);
         } else {
           mesh.changeTexture(loadedTexture);
         }
@@ -92,7 +92,7 @@ export const useTextureServiceStore = create<TextureServiceState>(
           const start = mesh.layout.startPoint;
           const end = mesh.layout.endPoint;
           const dist = start.distanceTo(end);
-          (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3); // TODO: wrong?
+          (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3);
         } else {
           mesh.changeTexture(loadedTexture);
         }
@@ -109,7 +109,7 @@ export const useTextureServiceStore = create<TextureServiceState>(
           const start = mesh.layout.startPoint;
           const end = mesh.layout.endPoint;
           const dist = start.distanceTo(end);
-          (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3); // TODO: wrong?
+          (mesh as EntityMesh).changeTexture(loadedTexture, Math.ceil(dist), 3);
         } else {
           mesh.changeTexture(loadedTexture);
         }

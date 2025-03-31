@@ -249,7 +249,6 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     }
   },
 
-  // TODO: Does it work like this with the parameters in forEach for stores?
   removeHighlightingForAllApplications: (sendMessage: boolean) => {
     const { communicationMeshes, applications } = get()._getParams();
 

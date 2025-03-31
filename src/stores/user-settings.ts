@@ -54,7 +54,6 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
   visualizationSettings: getStoredSettings(),
   colors: undefined,
 
-  // TODO: Clarify functionality!
   // Used as constructor for applicationColors
   _constructApplicationColors: () => {
     get().setColorsFromSettings();
@@ -90,7 +89,6 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
     }
   },
 
-  // TODO: there is not applicationSettings in user-settings.ts
   shareVisualizationSettings: () => {
     useMessageSenderStore
       .getState()

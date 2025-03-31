@@ -410,5 +410,3 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
     },
   })
 );
-
-// TODO private methods

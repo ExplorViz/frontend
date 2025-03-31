@@ -47,8 +47,6 @@ type ResponseHandler<T> = (msg: T) => void;
 
 const collaborationService = import.meta.env.VITE_COLLABORATION_SERV_URL;
 
-// TODO Evented
-
 export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
 const RECEIVABLE_EVENTS = [

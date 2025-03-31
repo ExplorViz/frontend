@@ -9,7 +9,6 @@ import { useHMDStore } from 'explorviz-frontend/src/stores/extended-reality/hmd'
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 
 // TODO this could probably just be a utility
-// TODO wait until RemoteUser is migrated
 
 interface UserFactoryState {
   createUser: ({

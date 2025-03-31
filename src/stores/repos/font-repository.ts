@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader'; // TODO: Why not imported?
+import { Font } from 'three-stdlib';
 
 interface FontRepositoryState {
   font?: Font;

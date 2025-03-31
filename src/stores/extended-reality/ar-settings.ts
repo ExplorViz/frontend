@@ -44,7 +44,7 @@ export const useARSettingsStore = create<ARSettingsState>((set, get) => ({
       .getState()
       .getOpenApplications()
       .forEach((applicationObject3D) => {
-        applicationObject3D.setOpacity(get().applicationOpacity); // TODO: Does this make problems, because not updating state of applicationRenderer?
+        applicationObject3D.setOpacity(get().applicationOpacity);
       });
   },
 }));

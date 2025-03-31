@@ -292,7 +292,6 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
     }
   },
 
-  // TODO: How to handle LocalUser type?
   displaySpectateMessage: (
     spectatedUser: RemoteUser | any, // any instead of old LocalUser class
     spectatingUsers: (RemoteUser | any)[], // any instead of old LocalUser class

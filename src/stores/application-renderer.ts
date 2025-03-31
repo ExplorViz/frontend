@@ -199,7 +199,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     getPositionInLandscape: (mesh: THREE.Object3D) => {
       const landscapePosition = new THREE.Vector3();
       mesh.getWorldPosition(landscapePosition);
-      get().landscape3D!.worldToLocal(landscapePosition); // TODO: Does this work?
+      get().landscape3D!.worldToLocal(landscapePosition);
       return landscapePosition;
     },
 

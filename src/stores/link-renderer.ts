@@ -85,14 +85,14 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     const sourceMesh = sourceApp.getBoxMeshByModelId(sourceClass.id);
     let start = new THREE.Vector3();
     if (sourceMesh) {
-      start = sourceMesh.getWorldPosition(new THREE.Vector3()); // TODO: Wrong?
+      start = sourceMesh.getWorldPosition(new THREE.Vector3());
       landscapeGroup.worldToLocal(start);
     }
 
     const targetMesh = targetApp.getBoxMeshByModelId(targetClass.id);
     let end = new THREE.Vector3();
     if (targetMesh) {
-      end = targetMesh.getWorldPosition(new THREE.Vector3()); // TODO: Wrong?
+      end = targetMesh.getWorldPosition(new THREE.Vector3());
       landscapeGroup.worldToLocal(end);
     }
 

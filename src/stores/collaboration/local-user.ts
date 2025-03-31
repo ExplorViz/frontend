@@ -109,7 +109,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
     visualizationMode: 'browser', // tracked
     mousePing: new MousePing(new THREE.Color('red'), initAnimationMixer),
     userGroup: initUserGroup,
-    task: undefined, // TODO: Check if this is used anywhere
+    task: undefined,
     controller1: undefined,
     controller2: undefined,
     panoramaSphere: undefined,
@@ -117,7 +117,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
     xr: undefined,
     isHost: false, // tracked
 
-    // TODO: Where to call this?
     init: () => {
       if (get().xr?.isPresenting) {
         return get().xr?.getCamera();
@@ -229,7 +228,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
     },
 
     updateCameraAspectRatio: (width: number, height: number) => {
-      // TODO: Whats this???
       // this.renderer.setSize(width, height); // Should this be this.applicationRenderer?
       const newDefaultCamera = get().defaultCamera;
       newDefaultCamera.aspect = width / height;
@@ -278,7 +276,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         return;
       }
 
-      const app3D = obj.parent; // TODO: Something wrong?
+      const app3D = obj.parent;
       if (!(app3D instanceof ApplicationObject3D)) {
         return;
       }
@@ -290,7 +288,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         .openParents(obj, app3D.getModelId());
 
       get().mousePing.pingNonRestartable(
-        // TODO: Wrong?
         app3D,
         pingPosition,
         durationInMs
@@ -328,7 +325,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         .sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
       useChatStore.getState().sendChatMessage(
         get().userId,
-        `${get().userName}(${get().userId}) pinged ${obj.dataModel.name}`, // TODO: wrong?
+        `${get().userName}(${get().userId}) pinged ${obj.dataModel.name}`,
         true,
         'ping',
         [app3D.getModelId(), pingPosition.toArray(), durationInMs]
@@ -475,8 +472,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       set({ defaultCamera: newDefaultCamera });
     },
 
-    // TODO: Check if this works with get() or if we need
-    // two methods (one for each controller)
     reset: () => {
       get().resetPositionAndRotation();
 

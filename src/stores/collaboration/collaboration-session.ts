@@ -357,7 +357,6 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
 
       useHighlightingStore.getState().resetColorsOfHighlightedEntities();
 
-      // TODO handle this by listening to the selfDisconnectEvent in the highlightingService?
       useHighlightingStore.getState().updateHighlighting();
 
       useChatStore
