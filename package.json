@@ -21,6 +21,7 @@
     "typescript": "5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.23.0",
     "@types/bootstrap": "^5.2.10",
     "@types/chart.js": "2.9.41",
     "@types/crypto-js": "4.2.2",
