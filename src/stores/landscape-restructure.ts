@@ -1335,9 +1335,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 } else {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 }
               });
             } else if (
@@ -1352,10 +1352,10 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectComponent) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 }
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 }
               });
             } else if (elem.meshType === EntityType.Clazz) {
@@ -1364,7 +1364,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 }
               });
             }
@@ -1394,7 +1394,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectComponent || isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 }
               });
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
@@ -1403,7 +1403,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                     mesh instanceof ComponentMesh &&
                     mesh.dataModel.id === pckg.id;
                   if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                    mesh.changeTexture(elem.texturePath); 
                   }
                 });
 
@@ -1411,7 +1411,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   const isCorrectClass =
                     mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id; 
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                    mesh.changeTexture(elem.texturePath); 
                   }
                 });
               });
@@ -1421,7 +1421,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id; 
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 }
               });
             }
@@ -1433,7 +1433,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const foundationMesh = currentAppModel?.modelIdToMesh.get(
                   elem.app.id
                 );
-                foundationMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
+                foundationMesh?.changeTexture(elem.texturePath); 
               }
             } else if (elem.meshType === EntityType.Package) {
               const appliedTexture = get()._findAppliedTexture(
@@ -1445,7 +1445,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const componentMesh = currentAppModel?.modelIdToMesh.get(
                   elem.pckg?.id as string
                 );
-                componentMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
+                componentMesh?.changeTexture(elem.texturePath); 
               }
             } else if (elem.meshType === EntityType.Clazz) {
               const appliedTexture = get()._findAppliedTexture(
@@ -1456,7 +1456,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
+                clazzMesh?.changeTexture(elem.texturePath); 
               }
             }
             // Apply X texture for copied Meshes
@@ -1464,9 +1464,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 } else {
-                  mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                  mesh.changeTexture(elem.texturePath); 
                 }
               });
             } else if (elem.meshType === EntityType.Package) {
@@ -1483,14 +1483,14 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 elem.pckg?.id as string
               );
 
-              componentMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
+              componentMesh?.changeTexture(elem.texturePath); 
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 allSubPackages.forEach((pckg) => {
                   const isCorrectComponent =
                     mesh instanceof ComponentMesh &&
                     mesh.dataModel.id === pckg.id;
                   if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                    mesh.changeTexture(elem.texturePath); 
                   }
                 });
 
@@ -1498,7 +1498,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   const isCorrectClass =
                     mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                    mesh.changeTexture(elem.texturePath); 
                   }
                 });
               });
@@ -1506,7 +1506,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               const clazzMesh = currentAppModel?.modelIdToMesh.get(
                 elem.clazz?.id as string
               );
-              clazzMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
+              clazzMesh?.changeTexture(elem.texturePath); 
             }
             // Apply Slash texture for inserted Meshes
           } else if (elem.action === RestructureAction.CutInsert) {
@@ -1526,14 +1526,14 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const componentMesh = currentAppModel?.modelIdToMesh.get(
                   elem.pckg?.id as string
                 );
-                componentMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
+                componentMesh?.changeTexture(elem.texturePath); 
                 currentAppModel?.modelIdToMesh.forEach((mesh) => {
                   allSubPackages.forEach((pckg) => {
                     const isCorrectComponent =
                       mesh instanceof ComponentMesh &&
                       mesh.dataModel.id === pckg.id;
                     if (isCorrectComponent) {
-                      mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                      mesh.changeTexture(elem.texturePath); 
                     }
                   });
 
@@ -1542,7 +1542,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                       mesh instanceof ClazzMesh &&
                       mesh.dataModel.id === clazz.id;
                     if (isCorrectClass) {
-                      mesh.changeTexture(elem.texturePath); // TODO: Need a loader
+                      mesh.changeTexture(elem.texturePath); 
                     }
                   });
                 });
@@ -1555,7 +1555,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath); // TODO: Need a loader
+                clazzMesh?.changeTexture(elem.texturePath); 
               }
             }
           }

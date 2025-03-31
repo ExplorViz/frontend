@@ -25,7 +25,26 @@ export default abstract class BoxMesh<
 
   // TODO: give problems in landscape-restructure.ts
   // Override
-  changeTexture(texture: THREE.Texture) {
+  changeTexture(texture: THREE.Texture | string) {
+    if (texture instanceof String) {
+      const textureLoader = new THREE.TextureLoader();
+      const newTexture = new THREE.Texture();
+
+      textureLoader.load(
+        texture as string,
+        (loadedTexture) => {
+          newTexture.image = loadedTexture.image;
+          newTexture.needsUpdate = true;
+        },
+        undefined,
+        (error) => {
+          console.error('Error loading texture:', error);
+        }
+      );
+
+      texture = newTexture;
+    }
+
     if (
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof THREE.MeshLambertMaterial
