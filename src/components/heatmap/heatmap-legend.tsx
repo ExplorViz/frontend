@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import {
   useHeatmapConfigurationStore,
-  HeatmapMode
+  HeatmapMode,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';

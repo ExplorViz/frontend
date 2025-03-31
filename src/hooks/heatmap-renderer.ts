@@ -204,5 +204,5 @@ export default function useHeatmapRenderer(
       lastSelectedApplication.current = heatmapState.currentApplication;
       applyHeatmap(heatmapState.currentApplication, selectedMetric);
     }
-  });
+  }); // TODO add dependency array for performance
 }

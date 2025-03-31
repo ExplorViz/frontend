@@ -153,13 +153,6 @@ export default function BrowserRendering({
     }))
   );
 
-  const renderingServiceActions = useRenderingServiceStore(
-    useShallow((state) => ({
-      triggerRenderingForGivenLandscapeData:
-        state.triggerRenderingForGivenLandscapeData,
-    }))
-  );
-
   const localUserState = useLocalUserStore(
     useShallow((state) => ({
       camera: state.defaultCamera,
@@ -587,7 +580,9 @@ export default function BrowserRendering({
     if (applicationObject3D.dataModel.applicationMetrics.metrics.length === 0) {
       const workerPayload = {
         structure: applicationObject3D.dataModel.application,
-        dynamic: landscapeData?.dynamicLandscapeData,
+        dynamic:
+          useRenderingServiceStore.getState()._landscapeData
+            ?.dynamicLandscapeData, // getState is necessary to ensure newest version of data
       };
 
       worker.onmessage = (e) => {
@@ -601,8 +596,9 @@ export default function BrowserRendering({
 
     if (getSelectedApplicationObject3D() !== applicationObject3D) {
       setSelectedApplicationId(applicationObject3D.getModelId());
-      heatmapConfigurationActions.setActiveApplication(applicationObject3D);
     }
+
+    heatmapConfigurationActions.setActiveApplication(applicationObject3D);
 
     applicationObject3D.updateMatrixWorld();
     // TODO: Update links (make them invisible?)

@@ -69,9 +69,6 @@ export default function HeatmapInfo() {
     element.current = popoverDiv;
 
     const containerDiv = element.current.parentElement as HTMLElement;
-    console.log(
-      'containerDiv: ' + containerDiv + ' ' + containerDiv.clientWidth
-    );
 
     element.current!.style.top = '100px';
     element.current!.style.left = `${containerDiv.clientWidth / 2}px`;
