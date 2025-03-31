@@ -155,9 +155,6 @@ importers:
       web-worker:
         specifier: ^1.3.0
         version: 1.5.0
-    dependenciesMeta:
-      react-lib:
-        injected: true
     devDependencies:
       '@babel/core':
         specifier: ^7.23.9
@@ -438,9 +435,15 @@ importers:
       zustand:
         specifier: ^5.0.2
         version: 5.0.3(@types/react@18.3.18)(react@19.0.0)
+    dependenciesMeta:
+      react-lib:
+        injected: true
 
   react-lib:
     dependencies:
+      3d-force-graph:
+        specifier: 1.73.0
+        version: 1.73.0
       '@primer/octicons-react':
         specifier: ^19.14.0
         version: 19.14.0(react@19.0.0)
@@ -450,15 +453,42 @@ importers:
       '@types/react-dom':
         specifier: '18'
         version: 18.3.5(@types/react@18.3.18)
+      '@webxr-input-profiles/motion-controllers':
+        specifier: 1.0.0
+        version: 1.0.0
+      chart.js:
+        specifier: 4.4.1
+        version: 4.4.1
+      colors:
+        specifier: 1.4.0
+        version: 1.4.0
+      crypto-js:
+        specifier: 4.2.0
+        version: 4.2.0
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      elkjs:
+        specifier: 0.9.3
+        version: 0.9.3
+      gsap:
+        specifier: 3.12.5
+        version: 3.12.5
+      hammerjs:
+        specifier: 2.0.8
+        version: 2.0.8
       jquery:
         specifier: ^3.7.1
         version: 3.7.1
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      meshline:
+        specifier: 3.2.0
+        version: 3.2.0(three@0.161.0)
       plotly.js-dist:
         specifier: ^2.29.0
-        version: 2.35.3
+        version: 2.29.0
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -477,22 +507,91 @@ importers:
       react-select:
         specifier: ^5.9.0
         version: 5.9.0(@types/react@18.3.18)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      rsvp:
+        specifier: 4.8.5
+        version: 4.8.5
+      simpleheat:
+        specifier: 0.4.0
+        version: 0.4.0
+      socket.io-client:
+        specifier: 4.7.4
+        version: 4.7.4
+      stats.js:
+        specifier: 0.17.0
+        version: 0.17.0
+      three:
+        specifier: 0.161.0
+        version: 0.161.0
+      three-forcegraph:
+        specifier: 1.41.10
+        version: 1.41.10(three@0.161.0)
+      three-mesh-ui:
+        specifier: 6.5.4
+        version: 6.5.4(three@0.161.0)
       three-stdlib:
         specifier: ^2.35.14
         version: 2.35.14(three@0.161.0)
       typescript:
         specifier: '5'
         version: 5.3.3
+      vanilla-picker:
+        specifier: 2.12.2
+        version: 2.12.2
+      web-worker:
+        specifier: 1.3.0
+        version: 1.3.0
     devDependencies:
       '@types/bootstrap':
         specifier: ^5.2.10
         version: 5.2.10
+      '@types/chart.js':
+        specifier: 2.9.41
+        version: 2.9.41
+      '@types/crypto-js':
+        specifier: 4.2.2
+        version: 4.2.2
+      '@types/hammerjs':
+        specifier: 2.0.45
+        version: 2.0.45
+      '@types/node':
+        specifier: 20.11.0
+        version: 20.11.0
+      '@types/rsvp':
+        specifier: 4.0.9
+        version: 4.0.9
+      '@types/three':
+        specifier: 0.161.2
+        version: 0.161.2
+      '@typescript-eslint/eslint-plugin':
+        specifier: 6.21.0
+        version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.3.3))(eslint@8.57.1)(typescript@5.3.3)
+      '@typescript-eslint/parser':
+        specifier: 6.21.0
+        version: 6.21.0(eslint@8.57.1)(typescript@5.3.3)
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.3.4(vite@6.2.1(@types/node@20.11.0)(sass@1.83.1)(terser@5.37.0))
+      body-parser:
+        specifier: 1.20.2
+        version: 1.20.2
       bootstrap:
         specifier: ^5.3.3
         version: 5.3.3(@popperjs/core@2.11.8)
+      eslint:
+        specifier: ^8.56.0
+        version: 8.57.1
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@8.57.1)
+      eslint-plugin-import:
+        specifier: ^2.29.1
+        version: 2.31.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.3.3))(eslint@8.57.1)
+      eslint-plugin-n:
+        specifier: ^16.6.2
+        version: 16.6.2(eslint@8.57.1)
+      eslint-plugin-prettier:
+        specifier: ^5.1.3
+        version: 5.2.1(@types/eslint@9.6.1)(eslint-config-prettier@9.1.0(eslint@8.57.1))(eslint@8.57.1)(prettier@3.4.2)
       eslint-plugin-react-dom:
         specifier: ^1.31.0
         version: 1.31.0(eslint@8.57.1)(typescript@5.3.3)
@@ -505,6 +604,12 @@ importers:
       fast-deep-equal:
         specifier: ^3.1.3
         version: 3.1.3
+      loader.js:
+        specifier: 4.7.0
+        version: 4.7.0
+      prettier:
+        specifier: ^3.3.2
+        version: 3.4.2
       react-router-dom:
         specifier: ^7.3.0
         version: 7.3.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -514,11 +619,21 @@ importers:
       vite:
         specifier: ^6.2.1
         version: 6.2.1(@types/node@20.11.0)(sass@1.83.1)(terser@5.37.0)
+      yuidoc-bootstrap-theme:
+        specifier: 1.0.6
+        version: 1.0.6
+      yuidocjs:
+        specifier: 0.10.2
+        version: 0.10.2
       zustand:
         specifier: ^5.0.2
         version: 5.0.3(@types/react@18.3.18)(react@19.0.0)
 
 packages:
+
+  3d-force-graph@1.73.0:
+    resolution: {integrity: sha512-fMuZxQRIx6pVnn/JiB/0VnM0VD6uRpku1TkXMXYbnzKiMziPYQnaKobQ/QAqSskrQGJA9RUaale0ux4lOsCnOw==}
+    engines: {node: '>=12'}
 
   3d-force-graph@1.74.5:
     resolution: {integrity: sha512-CyneQqxoFwTGOqBVe8DSED0uQrU3q4+xpgvl0kbNHctv/kdBRgOKSSJgyB7j+08mUKaHchelMmwNVmQf5XaJrA==}
@@ -2177,6 +2292,9 @@ packages:
   '@types/glob@8.1.0':
     resolution: {integrity: sha512-IO+MJPVhoqz+28h1qLAcBEH2+xHMK6MTyHJc7MTnnYb6wsoLR29POVGJ7LycmVXIqyy/4/2ShP5sUwTXuOwb/w==}
 
+  '@types/hammerjs@2.0.45':
+    resolution: {integrity: sha512-qkcUlZmX6c4J8q45taBKTL3p+LbITgyx7qhlPYOdOHZB7B31K0mXbP5YA7i7SgDeEGuI9MnumiKPEMrxg8j3KQ==}
+
   '@types/hammerjs@2.0.46':
     resolution: {integrity: sha512-ynRvcq6wvqexJ9brDMS4BnBLzmr0e14d6ZJTEShTBWKymQiHwlAyGu0ZPEFI2Fh1U53F7tN9ufClWM5KvqkKOw==}
 
@@ -3141,6 +3259,10 @@ packages:
   bn.js@5.2.1:
     resolution: {integrity: sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==}
 
+  body-parser@1.20.2:
+    resolution: {integrity: sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==}
+    engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
+
   body-parser@1.20.3:
     resolution: {integrity: sha512-7rAxByjUMqQ3/bHJy7D6OGXvx/MMc4IqBn/X0fcM1QUcAItpZrBEYhWGem+tzXH90c+G01ypMcYJBO9Y30203g==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
@@ -3499,6 +3621,10 @@ packages:
 
   charm@1.0.2:
     resolution: {integrity: sha512-wqW3VdPnlSWT4eRiYX+hcs+C6ViBPUWk1qTCd+37qw9kEm/a5n2qcyQDMBWvSYKN/ctqZzeXNQaeBjOetJJUkw==}
+
+  chart.js@4.4.1:
+    resolution: {integrity: sha512-C74QN1bxwV1v2PEujhmKjOZ7iUM4w6BWs23Md/6aOZZSlwMzeCIDGuZay++rBgChYru7/+QFeoQW0fQoP534Dg==}
+    engines: {pnpm: '>=7'}
 
   chart.js@4.4.7:
     resolution: {integrity: sha512-pwkcKfdzTMAU/+jNosKhNL2bHtJc/sSmYgVbuGTEDhzkrhmyihmP7vUc/5ZK9WopidMDHNe3Wm7jOd/WhuHWuw==}
@@ -4138,6 +4264,10 @@ packages:
 
   data-bind-mapper@1.0.1:
     resolution: {integrity: sha512-xWkgLj/mSDs/Y2flAMXwLKxnCh+rFScf4N8hSOtpsMxXYXui7CbtIUYP52VXQze9HhRND2Ua/AiEHZ8j/vtB0w==}
+    engines: {node: '>=12'}
+
+  data-joint@1.3.2:
+    resolution: {integrity: sha512-bhsecfh2jIjEMXemZQOwcEK0YuxOJHawvP62EjQruXF+SSTZzN2pNQPXqLJ5IWfdxPI+8wQczWf8XyNdtLbEdg==}
     engines: {node: '>=12'}
 
   data-urls@2.0.0:
@@ -4894,6 +5024,9 @@ packages:
 
   engine.io-client@4.1.4:
     resolution: {integrity: sha512-843fqAdKeUMFqKi1sSjnR11tJ4wi8sIefu6+JC1OzkkJBmjtc/gM/rZ53tJfu5Iae/3gApm5veoS+v+gtT0+Fg==}
+
+  engine.io-client@6.5.4:
+    resolution: {integrity: sha512-GeZeeRjpD2qf49cZQ0Wvh/8NJNfeXkXXcoGh+F77oEAgo9gUHwT1fCRxSNU+YEEaysOJTnsFHmM5oAcPy4ntvQ==}
 
   engine.io-client@6.6.2:
     resolution: {integrity: sha512-TAr+NKeoVTjEVW8P3iHguO1LO6RlUz9O5Y8o7EY0fU+gY1NYqas7NN3slpFtbXEsLMHk0h90fJMfKjRkQ0qUIw==}
@@ -5947,6 +6080,10 @@ packages:
 
   include-path-searcher@0.1.0:
     resolution: {integrity: sha512-KlpXnsZOrBGo4PPKqPFi3Ft6dcRyh8fTaqgzqDRi8jKAsngJEWWOxeFIWC8EfZtXKaZqlsNf9XRwcQ49DVgl/g==}
+
+  index-array-by@1.4.2:
+    resolution: {integrity: sha512-SP23P27OUKzXWEC/TOyWlwLviofQkCSCKONnc62eItjp69yCZZPqDQtr3Pw5gJDnPeUMqExmKydNZaJO0FU9pw==}
+    engines: {node: '>=12'}
 
   infer-owner@1.0.4:
     resolution: {integrity: sha512-IClj+Xz94+d7irH5qRyfJonOdfTzuDaifE6ZPWfx0N0+/ATZCbuTPq2prFl526urkQd90WyUKIh1DfBQ2hMz9A==}
@@ -7541,6 +7678,9 @@ packages:
     resolution: {integrity: sha512-nDywThFk1i4BQK4twPQ6TA4RT8bDY96yeuCVBWL3ePARCiEKDRSrNGbFIgUJpLp+XeIR65v8ra7WuJOFUBtkMA==}
     engines: {node: '>=8'}
 
+  plotly.js-dist@2.29.0:
+    resolution: {integrity: sha512-RwVeITXolsqZEQJfWIGJB7EABaKAQo9uf+Bz+DICftY2o4idRoD9kOmxQ5YjpbifISBf9udFhYA5FY/vINlK+g==}
+
   plotly.js-dist@2.35.3:
     resolution: {integrity: sha512-dqB9+FUyBFZN04xWnZoYwaeeF4Jj9T/m0CHYmoozmPC3R4Dy0TRJsHgbRVLPxgYQqodzniVUj17+2wmJuGaZAg==}
 
@@ -7729,6 +7869,10 @@ packages:
 
   qs@1.0.2:
     resolution: {integrity: sha512-tHuOP9TN/1VmDM/ylApGK1QF3PSIP8I6bHDEfoKNQeViREQ/sfu1bAUrA1hoDun8p8Tpm7jcsz47g+3PiGoYdg==}
+
+  qs@6.11.0:
+    resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}
+    engines: {node: '>=0.6'}
 
   qs@6.13.0:
     resolution: {integrity: sha512-+38qI9SOr8tfZ4QmJNplMUxqjbe7LKvvZgWdExBOmd+egZTtjLB67Gu0HRX3u/XOq7UU2Nx6nsjvS16Z9uwfpg==}
@@ -8397,6 +8541,10 @@ packages:
     resolution: {integrity: sha512-4sIGOGOmCg3AOgGi7EEr6ZkTZRkrXwub70bBB/F0JSkMOUFpA77WsL87o34DffQQ31PkbMUIadGOk+3tx1KGbw==}
     engines: {node: '>=10.0.0'}
 
+  socket.io-client@4.7.4:
+    resolution: {integrity: sha512-wh+OkeF0rAVCrABWQBaEjLfb7DVPotMbu0cgWgyR0v6eA4EoVnAwcIeIbcdTE3GT/H3kbdLl7OoH2+asoDRIIg==}
+    engines: {node: '>=10.0.0'}
+
   socket.io-client@4.8.1:
     resolution: {integrity: sha512-hJVXfu3E28NmzGk8o1sHhN3om52tRvwYeidbj7xKy2eIIse5IoKX3USlS6Tqt3BHAtflLIkCQBkzVrEEfWUyYQ==}
     engines: {node: '>=10.0.0'}
@@ -8746,6 +8894,12 @@ packages:
     engines: {node: '>= 10.13.0'}
     peerDependencies:
       webpack: ^4.27.0 || ^5.0.0
+
+  three-forcegraph@1.41.10:
+    resolution: {integrity: sha512-XrrH0HzlWQiY5A30RMtlu+SpAM/LOoHMyaQouCFgavTSLrSsP4UIUP3eWrfJ0be1xDPuMGt3iofSYjgu4UT2NA==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      three: '>=0.118.3'
 
   three-forcegraph@1.42.11:
     resolution: {integrity: sha512-MXESG+qXXzsZDaY1N0M3fW1sfgJinm/DjNwO9oS9XXT1NRK9KoRijYDt5ilzI8M4OdJ3pA4YdaV3nDBw2HPVOw==}
@@ -9164,6 +9318,9 @@ packages:
   validate-peer-dependencies@1.2.0:
     resolution: {integrity: sha512-nd2HUpKc6RWblPZQ2GDuI65sxJ2n/UqZwSBVtj64xlWjMx0m7ZB2m9b2JS3v1f+n9VWH/dd1CMhkHfP6pIdckA==}
 
+  vanilla-picker@2.12.2:
+    resolution: {integrity: sha512-dk0gNeNL9fQFGd1VEhNDQfFlbCqAiksRh1H2tVPlavkH88n/a/y30rXi9PPKrYPTK5kEfPO4xcldt4ts/1wIAg==}
+
   vanilla-picker@2.12.3:
     resolution: {integrity: sha512-qVkT1E7yMbUsB2mmJNFmaXMWE2hF8ffqzMMwe9zdAikd8u2VfnsVY2HQcOUi2F38bgbxzlJBEdS1UUhOXdF9GQ==}
 
@@ -9265,6 +9422,9 @@ packages:
 
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
+
+  web-worker@1.3.0:
+    resolution: {integrity: sha512-BSR9wyRsy/KOValMgd5kMyr3JzpdeoR9KVId8u5GVlTTAtNChlsE4yTxeY7zMdNSyOmoKBv8NH2qeRY9Tg+IaA==}
 
   web-worker@1.5.0:
     resolution: {integrity: sha512-RiMReJrTAiA+mBjGONMnjVDP2u3p9R1vkcGz6gDIrOMT3oGuYwX2WRMYI9ipkphSuE5XKEhydbhNEJh4NY9mlw==}
@@ -9474,6 +9634,10 @@ packages:
     resolution: {integrity: sha512-3XfeQE/wNkvrIktn2Kf0869fC0BN6UpydVasGIeSm2B1Llihf7/0UfZM+eCkOw3P7bP4+qPgqhm7ZoxuJtFU0Q==}
     engines: {node: '>=0.4.0'}
 
+  xmlhttprequest-ssl@2.0.0:
+    resolution: {integrity: sha512-QKxVRxiRACQcVuQEYFsI1hhkrMlrXHPegbbd1yn9UHOmRxY+si12nQYzri3vbzt8VdTTRviqcKxcyllFas5z2A==}
+    engines: {node: '>=0.4.0'}
+
   xmlhttprequest-ssl@2.1.2:
     resolution: {integrity: sha512-TEU+nJVUUnA4CYJFLvK5X9AOeH4KvDvhIfm0vV1GaQRtchnG0hgK5p8hw/xjv8cunWYCsiPCSDzObPyhEwq3KQ==}
     engines: {node: '>=0.4.0'}
@@ -9555,6 +9719,14 @@ packages:
 
 snapshots:
 
+  3d-force-graph@1.73.0:
+    dependencies:
+      accessor-fn: 1.5.1
+      kapsule: 1.16.0
+      three: 0.161.0
+      three-forcegraph: 1.41.10(three@0.161.0)
+      three-render-objects: 1.32.1(three@0.161.0)
+
   3d-force-graph@1.74.5:
     dependencies:
       accessor-fn: 1.5.1
@@ -9583,26 +9755,6 @@ snapshots:
       picocolors: 1.1.1
 
   '@babel/compat-data@7.26.5': {}
-
-  '@babel/core@7.26.0':
-    dependencies:
-      '@ampproject/remapping': 2.3.0
-      '@babel/code-frame': 7.26.2
-      '@babel/generator': 7.26.5
-      '@babel/helper-compilation-targets': 7.26.5
-      '@babel/helper-module-transforms': 7.26.0(@babel/core@7.26.0)
-      '@babel/helpers': 7.26.0
-      '@babel/parser': 7.26.5
-      '@babel/template': 7.25.9
-      '@babel/traverse': 7.26.5
-      '@babel/types': 7.26.5
-      convert-source-map: 2.0.0
-      debug: 4.4.0
-      gensync: 1.0.0-beta.2
-      json5: 2.2.3
-      semver: 6.3.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@babel/core@7.26.0(supports-color@8.1.1)':
     dependencies:
@@ -9690,26 +9842,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/helper-module-imports@7.25.9':
-    dependencies:
-      '@babel/traverse': 7.26.5
-      '@babel/types': 7.26.5
-    transitivePeerDependencies:
-      - supports-color
-
   '@babel/helper-module-imports@7.25.9(supports-color@8.1.1)':
     dependencies:
       '@babel/traverse': 7.26.5(supports-color@8.1.1)
       '@babel/types': 7.26.5
-    transitivePeerDependencies:
-      - supports-color
-
-  '@babel/helper-module-transforms@7.26.0(@babel/core@7.26.0)':
-    dependencies:
-      '@babel/core': 7.26.0
-      '@babel/helper-module-imports': 7.25.9
-      '@babel/helper-validator-identifier': 7.25.9
-      '@babel/traverse': 7.26.5
     transitivePeerDependencies:
       - supports-color
 
@@ -10156,12 +10292,12 @@ snapshots:
 
   '@babel/plugin-transform-react-jsx-self@7.25.9(@babel/core@7.26.0)':
     dependencies:
-      '@babel/core': 7.26.0
+      '@babel/core': 7.26.0(supports-color@8.1.1)
       '@babel/helper-plugin-utils': 7.26.5
 
   '@babel/plugin-transform-react-jsx-source@7.25.9(@babel/core@7.26.0)':
     dependencies:
-      '@babel/core': 7.26.0
+      '@babel/core': 7.26.0(supports-color@8.1.1)
       '@babel/helper-plugin-utils': 7.26.5
 
   '@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.0)':
@@ -10410,18 +10546,6 @@ snapshots:
       '@babel/code-frame': 7.26.2
       '@babel/parser': 7.26.5
       '@babel/types': 7.26.5
-
-  '@babel/traverse@7.26.5':
-    dependencies:
-      '@babel/code-frame': 7.26.2
-      '@babel/generator': 7.26.5
-      '@babel/parser': 7.26.5
-      '@babel/template': 7.25.9
-      '@babel/types': 7.26.5
-      debug: 4.4.0
-      globals: 11.12.0
-    transitivePeerDependencies:
-      - supports-color
 
   '@babel/traverse@7.26.5(supports-color@8.1.1)':
     dependencies:
@@ -10764,7 +10888,7 @@ snapshots:
 
   '@emotion/babel-plugin@11.13.5':
     dependencies:
-      '@babel/helper-module-imports': 7.25.9
+      '@babel/helper-module-imports': 7.25.9(supports-color@8.1.1)
       '@babel/runtime': 7.26.0
       '@emotion/hash': 0.9.2
       '@emotion/memoize': 0.9.0
@@ -10983,7 +11107,7 @@ snapshots:
   '@eslint/eslintrc@2.1.4':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@8.1.1)
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.2
@@ -11197,7 +11321,7 @@ snapshots:
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@8.1.1)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -11826,6 +11950,8 @@ snapshots:
       '@types/minimatch': 5.1.2
       '@types/node': 20.11.0
 
+  '@types/hammerjs@2.0.45': {}
+
   '@types/hammerjs@2.0.46': {}
 
   '@types/htmlbars-inline-precompile@3.0.3': {}
@@ -11997,7 +12123,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 8.26.0(typescript@5.3.3)
       '@typescript-eslint/utils': 8.26.0(eslint@8.57.1)(typescript@5.3.3)
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@8.1.1)
       eslint: 8.57.1
       ts-api-utils: 2.0.1(typescript@5.3.3)
       typescript: 5.3.3
@@ -12027,7 +12153,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.26.0
       '@typescript-eslint/visitor-keys': 8.26.0
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@8.1.1)
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -12076,7 +12202,7 @@ snapshots:
 
   '@vitejs/plugin-react@4.3.4(vite@6.2.1(@types/node@20.11.0)(sass@1.83.1)(terser@5.37.0))':
     dependencies:
-      '@babel/core': 7.26.0
+      '@babel/core': 7.26.0(supports-color@8.1.1)
       '@babel/plugin-transform-react-jsx-self': 7.25.9(@babel/core@7.26.0)
       '@babel/plugin-transform-react-jsx-source': 7.25.9(@babel/core@7.26.0)
       '@types/babel__core': 7.20.5
@@ -13145,6 +13271,23 @@ snapshots:
 
   bn.js@5.2.1: {}
 
+  body-parser@1.20.2:
+    dependencies:
+      bytes: 3.1.2
+      content-type: 1.0.5
+      debug: 2.6.9(supports-color@8.1.1)
+      depd: 2.0.0
+      destroy: 1.2.0
+      http-errors: 2.0.0
+      iconv-lite: 0.4.24
+      on-finished: 2.4.1
+      qs: 6.11.0
+      raw-body: 2.5.2
+      type-is: 1.6.18
+      unpipe: 1.0.0
+    transitivePeerDependencies:
+      - supports-color
+
   body-parser@1.20.3:
     dependencies:
       bytes: 3.1.2
@@ -13919,6 +14062,10 @@ snapshots:
     dependencies:
       inherits: 2.0.4
 
+  chart.js@4.4.1:
+    dependencies:
+      '@kurkle/color': 0.3.4
+
   chart.js@4.4.7:
     dependencies:
       '@kurkle/color': 0.3.4
@@ -14467,6 +14614,10 @@ snapshots:
     dependencies:
       accessor-fn: 1.5.1
 
+  data-joint@1.3.2:
+    dependencies:
+      index-array-by: 1.4.2
+
   data-urls@2.0.0:
     dependencies:
       abab: 2.0.6
@@ -14517,10 +14668,6 @@ snapshots:
       ms: 2.1.3
 
   debug@4.3.7:
-    dependencies:
-      ms: 2.1.3
-
-  debug@4.4.0:
     dependencies:
       ms: 2.1.3
 
@@ -16082,6 +16229,18 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  engine.io-client@6.5.4:
+    dependencies:
+      '@socket.io/component-emitter': 3.1.2
+      debug: 4.3.7
+      engine.io-parser: 5.2.3
+      ws: 8.17.1
+      xmlhttprequest-ssl: 2.0.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   engine.io-client@6.6.2:
     dependencies:
       '@socket.io/component-emitter': 3.1.2
@@ -16475,7 +16634,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@8.1.1)
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -17542,6 +17701,8 @@ snapshots:
   imurmurhash@0.1.4: {}
 
   include-path-searcher@0.1.0: {}
+
+  index-array-by@1.4.2: {}
 
   infer-owner@1.0.4: {}
 
@@ -19038,6 +19199,8 @@ snapshots:
     dependencies:
       find-up: 3.0.0
 
+  plotly.js-dist@2.29.0: {}
+
   plotly.js-dist@2.35.3: {}
 
   polished@4.3.1:
@@ -19212,6 +19375,10 @@ snapshots:
   q@1.5.1: {}
 
   qs@1.0.2: {}
+
+  qs@6.11.0:
+    dependencies:
+      side-channel: 1.1.0
 
   qs@6.13.0:
     dependencies:
@@ -20050,6 +20217,17 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  socket.io-client@4.7.4:
+    dependencies:
+      '@socket.io/component-emitter': 3.1.2
+      debug: 4.3.7
+      engine.io-client: 6.5.4
+      socket.io-parser: 4.2.4
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   socket.io-client@4.8.1:
     dependencies:
       '@socket.io/component-emitter': 3.1.2
@@ -20534,6 +20712,20 @@ snapshots:
       schema-utils: 3.3.0
       webpack: 5.97.1
 
+  three-forcegraph@1.41.10(three@0.161.0):
+    dependencies:
+      accessor-fn: 1.5.1
+      d3-array: 3.2.4
+      d3-force-3d: 3.0.5
+      d3-scale: 4.0.2
+      d3-scale-chromatic: 3.1.0
+      data-joint: 1.3.2
+      kapsule: 1.16.0
+      ngraph.forcelayout: 3.3.1
+      ngraph.graph: 20.0.1
+      three: 0.161.0
+      tinycolor2: 1.6.0
+
   three-forcegraph@1.42.11(three@0.161.0):
     dependencies:
       accessor-fn: 1.5.1
@@ -20973,6 +21165,10 @@ snapshots:
       resolve-package-path: 3.1.0
       semver: 7.6.3
 
+  vanilla-picker@2.12.2:
+    dependencies:
+      '@sphinxxxx/color-conversion': 2.2.2
+
   vanilla-picker@2.12.3:
     dependencies:
       '@sphinxxxx/color-conversion': 2.2.2
@@ -21075,6 +21271,8 @@ snapshots:
   wcwidth@1.0.1:
     dependencies:
       defaults: 1.0.4
+
+  web-worker@1.3.0: {}
 
   web-worker@1.5.0: {}
 
@@ -21297,6 +21495,8 @@ snapshots:
   xmlchars@2.2.0: {}
 
   xmlhttprequest-ssl@1.6.3: {}
+
+  xmlhttprequest-ssl@2.0.0: {}
 
   xmlhttprequest-ssl@2.1.2: {}
 
