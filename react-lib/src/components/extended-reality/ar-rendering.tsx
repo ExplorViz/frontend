@@ -188,7 +188,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const collaborationSessionState = useCollaborationSessionStore(
     useShallow((state) => ({
-      isOnline: state.isOnline,
+      connectionStatus: state.connectionStatus,
     }))
   );
 
@@ -540,7 +540,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   };
 
   const handlePing = async () => {
-    if (!collaborationSessionState.isOnline) {
+    if (collaborationSessionState.connectionStatus !== 'online') {
       toastHandlerActions.showInfoToastMessage(
         'Offline.\nJoin session with users to ping.'
       );

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useARSettingsStore } from 'react-lib/src/stores/extended-reality/ar-settings';
 import { useApplicationRendererStore } from 'react-lib/src/stores/application-renderer';
 import { useConfigurationStore } from 'react-lib/src/stores/configuration';
-import { Button } from 'react-bootstrap';
+import { Dropdown } from 'react-bootstrap';
 
 interface ArSettingsSelectorArgs {
   updateCameraResolution(width: number, height: number): void;
@@ -10,9 +10,20 @@ interface ArSettingsSelectorArgs {
 }
 
 export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
-  const [buttonSize, setButtonSize] = useState<number>();
-  const [buttonPadding, setButtonPadding] = useState<number>();
+  const [buttonSize, setButtonSize] = useState<number>(() =>
+    getCssVminSize('--ar-button-size')
+  );
+  const [buttonPadding, setButtonPadding] = useState<number>(() =>
+    getCssVminSize('--ar-button-padding')
+  );
 
+  const renderCommunication = useARSettingsStore(
+    (state) => state.renderCommunication
+  );
+  const applicationOpacity = useARSettingsStore(
+    (state) => state.applicationOpacity
+  );
+  const zoomLevel = useARSettingsStore((state) => state.zoomLevel);
   const commWidthMutliplier = useConfigurationStore(
     (state) => state.commWidthMultiplier
   );
@@ -35,36 +46,35 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     { name: 'very low', multiplier: 0.5 },
   ];
 
-  useEffect(() => {
-    setButtonSize(getCssVminSize('--ar-button-size'));
-    setButtonPadding(getCssVminSize('--ar-button-padding'));
-  });
-
-  const updateZoomLevel = (event: any) => {
+  const updateZoomLevel = (event: React.FormEvent<HTMLInputElement>) => {
     useARSettingsStore.setState({
-      zoomLevel: Number.parseFloat(event.target.value),
+      zoomLevel: Number.parseFloat(event.currentTarget.value),
     });
   };
 
-  const updateCommunicationWidth = (event: any) => {
+  const updateCommunicationWidth = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
     useConfigurationStore.setState({
-      commWidthMultiplier: Number.parseFloat(event.target.value),
+      commWidthMultiplier: Number.parseFloat(event.currentTarget.value),
     });
     useApplicationRendererStore.getState().updateCommunication();
   };
 
-  const updateCommunicationHeight = (event: any) => {
+  const updateCommunicationHeight = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
     useConfigurationStore.setState({
-      commCurveHeightMultiplier: Number.parseFloat(event.target.value),
+      commCurveHeightMultiplier: Number.parseFloat(event.currentTarget.value),
     });
     useApplicationRendererStore.getState().updateCommunication();
   };
 
-  const updateCameraResoltion = (width: number, height: number) => {
+  const updateCameraResolution = (width: number, height: number) => {
     args.updateCameraResolution(width, height);
   };
 
-  const updateRendererResoltion = (multiplier: number) => {
+  const updateRendererResolution = (multiplier: number) => {
     args.updateRendererResolution(multiplier);
   };
 
@@ -86,8 +96,12 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     useApplicationRendererStore.getState().updateCommunication();
   };
 
-  const updateApplicationOpacity = (event: any) => {
-    useARSettingsStore.getState().setApplicationOpacity(event.target.value);
+  const updateApplicationOpacity = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    useARSettingsStore
+      .getState()
+      .setApplicationOpacity(Number.parseFloat(event.currentTarget.value));
   };
 
   const stackPopups = useARSettingsStore((state) => state.stackPopups);
@@ -100,31 +114,11 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     setCssVariable('--ar-button-size', `${size}vmin`);
   };
 
-  const updateButtonSpacing = (event: any) => {
-    const padding = event.target.value;
-    setButtonPadding(padding);
+  const updateButtonSpacing = (event: React.FormEvent<HTMLInputElement>) => {
+    const padding = event.currentTarget.value;
+    setButtonPadding(Number.parseFloat(padding));
 
     setCssVariable('--ar-button-padding', `${padding}vmin`);
-  };
-
-  // TODO: setCssVariable could produce problems, if not cool
-  //   const root = document.querySelector(':root');
-  //   if (root) {
-  //      (<HTMLElement>root).style.setProperty(variable, value);
-  //   }
-  // };
-  const setCssVariable = (variable: string, value: string) => {
-    const root = document.documentElement;
-    root.style.setProperty(variable, value);
-  };
-
-  const getCssVminSize = (variable: string) => {
-    const root = document.documentElement;
-
-    const cssString = getComputedStyle(root).getPropertyValue(variable);
-    const cssValue = Number.parseFloat(cssString.replace('vmin', ''));
-
-    return cssValue;
   };
 
   return (
@@ -137,9 +131,9 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
             className="center-horizontal"
             target="_blank"
           >
-            <Button type="submit" className="btn btn-primary autoMargin">
+            <button type="submit" className="btn btn-primary autoMargin">
               Download Markers
-            </Button>
+            </button>
           </form>
         </div>
 
@@ -147,60 +141,61 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
           id="cameraPresets"
           className="dropdown arSettingsGridItem arPresetGridItem"
         >
-          <Button
-            type="button"
-            className="btn btn-outline-dark dropdown-toggle autoMargin"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            Camera Resolution
-          </Button>
-          <div className="dropdown-menu">
-            {cameraPresets.length > 0 &&
-              cameraPresets.map((cameraPreset) => (
-                <div
-                  className="dropdown-item pointer-cursor"
-                  onClick={() =>
-                    updateCameraResoltion(
+          <Dropdown data-bs-theme="dark">
+            <Dropdown.Toggle
+              variant="secondary"
+              className="autoMargin"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              Camera Resolution
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              {cameraPresets.map((cameraPreset) => (
+                <Dropdown.Item
+                  key={cameraPreset.name}
+                  onSelect={() =>
+                    updateCameraResolution(
                       cameraPreset.width,
                       cameraPreset.height
                     )
                   }
                 >
                   {cameraPreset.name}
-                </div>
+                </Dropdown.Item>
               ))}
-          </div>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
 
         <div
           id="rendererPresets"
           className="dropdown arSettingsGridItem arPresetGridItem"
         >
-          <button
-            className="btn btn-outline-dark dropdown-toggle autoMargin"
-            type="button"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            Rendering Resolution
-          </button>
+          <Dropdown data-bs-theme="dark">
+            <Dropdown.Toggle
+              variant="secondary"
+              className="autoMargin"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              Rendering Resolution
+            </Dropdown.Toggle>
 
-          <div className="dropdown-menu">
-            {renderResolutions.length > 0 &&
-              renderResolutions.map((renderResolution) => (
-                <div
-                  className="dropdown-item pointer-cursor"
-                  onClick={() =>
-                    updateRendererResoltion(renderResolution.multiplier)
+            <Dropdown.Menu>
+              {renderResolutions.map((renderResolution) => (
+                <Dropdown.Item
+                  key={renderResolution.name}
+                  onSelect={() =>
+                    updateRendererResolution(renderResolution.multiplier)
                   }
                 >
                   {renderResolution.name}
-                </div>
+                </Dropdown.Item>
               ))}
-          </div>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
 
         <div id="communicationSettingsContainer" className="arSettingsGridItem">
@@ -212,8 +207,8 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
               <input
                 id="renderCommunicationCheckbox"
                 type="checkbox"
-                checked={useARSettingsStore.getState().renderCommunication}
-                onInput={toggleRenderClassCommunication}
+                checked={renderCommunication}
+                onChange={toggleRenderClassCommunication}
               />
             </div>
           </div>
@@ -268,7 +263,7 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
                 id="communicationDistanceCheckbox"
                 type="checkbox"
                 checked={commCurveHeightDependsOnDistance}
-                onInput={toggleApplicationDependsOnDistance}
+                onChange={toggleApplicationDependsOnDistance}
               />
             </div>
           </div>
@@ -283,16 +278,14 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
               <input
                 id="applicationOpacityRange"
                 type="range"
-                value={useARSettingsStore.getState().applicationOpacity}
+                value={applicationOpacity}
                 className="form-range"
                 min="0.1"
                 max="1.0"
                 step="0.1"
                 onInput={updateApplicationOpacity}
               />
-              <div className="arSliderLabel">
-                {useARSettingsStore.getState().applicationOpacity}
-              </div>
+              <div className="arSliderLabel">{applicationOpacity}</div>
             </div>
           </div>
         </div>
@@ -346,16 +339,14 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
               <input
                 id="zoomLevelRange"
                 type="range"
-                value={useARSettingsStore.getState().zoomLevel}
+                value={zoomLevel}
                 className="form-range"
                 min="2.0"
                 max="5.0"
                 step="0.25"
                 onInput={updateZoomLevel}
               />
-              <div className="arSliderLabel">
-                {useARSettingsStore.getState().zoomLevel}
-              </div>
+              <div className="arSliderLabel">{zoomLevel}</div>
             </div>
           </div>
 
@@ -376,4 +367,20 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
       </div>
     </div>
   );
+}
+
+function getCssVminSize(variable: string) {
+  const root = document.documentElement;
+
+  const cssString = getComputedStyle(root).getPropertyValue(variable);
+  const cssValue = Number.parseFloat(cssString.replace('vmin', ''));
+
+  return cssValue;
+}
+
+function setCssVariable(variable: string, value: string) {
+  const root = document.querySelector(':root');
+  if (root) {
+    (root as HTMLElement).style.setProperty(variable, value);
+  }
 }
