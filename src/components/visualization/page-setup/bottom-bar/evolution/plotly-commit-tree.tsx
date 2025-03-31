@@ -7,6 +7,7 @@ import {
   CROSS_COMMIT_IDENTIFIER,
 } from '../../../../../utils/evolution-schemes/evolution-data';
 import Plotly from 'plotly.js-dist';
+import { Console } from 'console';
 
 interface PlotlyCommitTreeArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
@@ -390,7 +391,7 @@ export default function PlotlyCommitTree({
         getPlotlyOptionsObject()
       );
     } else {
-      // TODO: error text no commits
+      console.log("No commits found for selected application!");
     }
   };
 

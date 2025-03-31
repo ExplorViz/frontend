@@ -753,8 +753,6 @@ export default function Visualization() {
 
   // #endregion
 
-  // TODO: Check for Args from parent
-
   return (
     <>
       <div id="vizspace">
@@ -857,8 +855,8 @@ export default function Visualization() {
             {/* ! Runtime / Code Charts */}
             <div
               id="bottom-bar-chart-container"
-              className={`bottom-bar-chart 
-                ${isCommitTreeSelected && isBottomBarMaximized ? 'bottom-bar-chart-commitTree' : ''} 
+              className={`bottom-bar-chart
+                ${isCommitTreeSelected && isBottomBarMaximized ? 'bottom-bar-chart-commitTree' : ''}
                 ${!isBottomBarMaximized ? 'bottom-bar-chart-hide' : ''}`}
             >
               <div id="bottom-bar-chart-button-div">
@@ -886,7 +884,6 @@ export default function Visualization() {
               {isCommitTreeSelected && (
                 <>
                   <div className="row justify-content-md-center">
-                    {/* !-- TODO: CommitTreeApplicationSelection is a bit off to the left. Find solution. */}
                     <div className="row justify-content-md-center">
                       <CommitTreeApplicationSelection
                         appNameCommitTreeMap={

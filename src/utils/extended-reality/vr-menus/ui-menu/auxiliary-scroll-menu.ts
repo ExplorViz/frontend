@@ -5,7 +5,7 @@ import BaseMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/bas
 import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 import DetailInfoScrollarea from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
 import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
-import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering'; // TODO: Migrate component
+import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
 
 export type AuxiliaryScrollMenuArgs = {
   object: DetailInfoScrollarea;

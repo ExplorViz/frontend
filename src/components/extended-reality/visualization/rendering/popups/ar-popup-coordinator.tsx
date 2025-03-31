@@ -54,17 +54,13 @@ export default function ArPopupCoordinator({
         <div className="ar-popover">
           {entityType == 'application' ? (
             <FoundationPopup popupData={popupData} restructureMode={false} />
-          ) : // <FoundationPopup application={popupData.entity} /> // TODO: Thats the old implementation with non existent params
+          ) :
           entityType == 'package' ? (
             <ComponentPopup popupData={popupData} restructureMode={false} />
-          ) : // <ComponentPopup component={popupData.entity} /> // TODO: Thats the old implementation with non existent params
+          ) :
           entityType == 'class' ? (
             <ClazzPopup popupData={popupData} restructureMode={false} />
           ) : (
-            // <ClazzPopup
-            //   clazz={popupData.entity}
-            //   applicationId={popupData.applicationId}
-            // /> // TODO: Thats the old implementation with non existent params
             entityType == 'classCommunication' && (
               <CommunicationPopup
                 popupData={popupData}
@@ -73,12 +69,6 @@ export default function ArPopupCoordinator({
                 toggleHighlightById={toggleHighlightById}
                 openParents={openParents}
               />
-              // <CommunicationPopup
-              //   communication={popupData.entity}
-              //   showApplication={showApplication}
-              //   toggleHighlightById={toggleHighlightById}
-              //   openParents={openParents}
-              // /> // TODO: Thats the old implementation with non existent params
             )
           )}
         </div>

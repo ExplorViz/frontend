@@ -121,7 +121,6 @@ function composeFoundationContent(componentMesh: FoundationMesh) {
   return content;
 }
 
-// TODO: Remove applicationRepo on migration
 function composeClazzContent(clazzMesh: ClazzMesh) {
   const clazz = clazzMesh.dataModel;
 
