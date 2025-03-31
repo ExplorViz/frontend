@@ -31,6 +31,7 @@ linting:
   stage: code-analysis
   before_script:
     - node --version
+    - npm install -g pnpm
     - pnpm --version
     - pnpm install
   script:
