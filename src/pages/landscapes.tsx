@@ -135,8 +135,7 @@ export default function Landscapes() {
   };
 
   const deleteToken = async (tokenId: string, event: React.MouseEvent) => {
-    // Avoid triggering selectToken() on underlying table row
-    event.stopPropagation(); // TODO: Does this work with React. It should
+    event.stopPropagation();
 
     try {
       await sendTokenDeleteRequest(tokenId);
@@ -152,7 +151,6 @@ export default function Landscapes() {
     refreshRoute();
   };
 
-  // TODO: How to solve fetch?
   const sendTokenCreateRequest = (alias = '') => {
     let uId = user?.sub;
 

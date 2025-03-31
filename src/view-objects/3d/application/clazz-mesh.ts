@@ -159,8 +159,6 @@ export class _ClazzMesh extends BoxMesh {
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         ImmersiveView.instance.exitObject(this);
-        // TODO fix Remove of the Listener
-        // document.removeEventListener('keydown', this);
       }
     });
   };

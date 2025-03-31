@@ -11,11 +11,6 @@ export type Position2D = {
 };
 
 /**
- * TODO: Migration Comment
- * Migrate after all imports are migrated.
- */
-
-/**
  * Checks an axis position against a fixed threshold to filter out small disturbances
  * @param axis_value The gamepad axis position to be checked against dead zone
  * @returns `axis_value` if outside the dead zone threshold, otherwise 0

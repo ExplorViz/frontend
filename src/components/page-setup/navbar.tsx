@@ -44,7 +44,7 @@ export default function Navbar() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside); // TODO: Check if this is a problem in visualization
+    document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);

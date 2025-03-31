@@ -3,7 +3,6 @@ import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
 
 export default function RangeSetting({ setting, onChange, settingId, resetState }: any) {
-  // ToDo: Refactor such that value points to setting's object and updates correctly with reset
   const [value, setValue]: any = useState(setting.value);
   const [singleResetState, setSingleResetState] = useState<boolean>(false);
 

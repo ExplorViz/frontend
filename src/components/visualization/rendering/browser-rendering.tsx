@@ -951,8 +951,6 @@ export default function BrowserRendering({
       { id: 'minimap', callback: useMinimapStore.getState().tick }
     );
 
-    // TODO reset popupHandler state?
-
     ImmersiveView.instance.callbackOnEntering = () => {
       usePopupHandlerStore.getState().setDeactivated(true);
       usePopupHandlerStore.getState().clearPopups();

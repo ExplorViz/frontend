@@ -283,9 +283,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const hoveredObject = useRef<EntityMesh | null>(null);
 
-  // TODO
-  const mouse = useRef<THREE.Vector2>(new THREE.Vector2());
-
   // MARK Constants
 
   const camera = localUserState.defaultCamera;
@@ -636,20 +633,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     setMousePosition(intersection.point.clone());
 
     handleSecondaryInputOn(intersection);
-  };
-
-  const handleMouseWheel = (delta: number) => {
-    const intersection = raycastCenter();
-
-    if (
-      intersection &&
-      intersection.object.parent instanceof ApplicationObject3D
-    ) {
-      const object = intersection.object.parent;
-
-      // Scale hit object with respect to scroll direction and scroll distance
-      object.scale.copy(object.scale.multiplyScalar(1 - delta / 25));
-    }
   };
 
   const raycastCenter = () => {
