@@ -20,8 +20,11 @@ export default function HelpTooltip({
       trigger={['hover', 'focus']}
       overlay={<Tooltip>{title}</Tooltip>}
     >
-      <div className="inline" style={{ marginRight: '0.25rem' }}>
-        <InfoIcon verticalAlign="middle" size="small" fill="#777" />
+      <div
+        className="inline"
+        style={{ marginLeft: '0.25rem', marginRight: '0.25rem' }}
+      >
+        <InfoIcon className="align-middle" size="small" fill="#777" />
       </div>
     </OverlayTrigger>
   );
