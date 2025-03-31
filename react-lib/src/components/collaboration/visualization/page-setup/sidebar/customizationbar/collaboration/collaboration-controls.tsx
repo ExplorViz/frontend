@@ -123,7 +123,7 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [rooms, setRooms] = useState<RoomListRecord[]>([]);
-  const [deviceId, setDeviceId] = useState<string | null>(searchParams.get('deviceId'));
+  const [deviceId, setDeviceId] = useState<string | null>(null);
   const [landscapeTokens, setLandscapeTokens] = useState<LandscapeToken[]>([]);
   const [mutedUsers, setMutedUsers] = useState<string[]>([]);
   const [spectateConfigEnabled, setSpectateConfigEnabled] =
@@ -542,6 +542,13 @@ export default function CollaborationControls({}: CollaborationControlsProps) {
   useEffect(() => {
     setMutedUsers(userIdMuteList || []);
     loadRooms(false);
+
+    const deviceIdParam = searchParams.get('deviceId');
+    if (deviceIdParam === null) {
+      setDeviceId('default');
+    } else {
+      setDeviceId(deviceIdParam);
+    }
   }, []);
 
   return (
