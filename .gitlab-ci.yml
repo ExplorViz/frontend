@@ -31,26 +31,27 @@ linting:
   stage: code-analysis
   before_script:
     - node --version
-    - npm --version
-    - npm install
+    - pnpm --version
+    - pnpm install
   script:
-    - npm run lint
+    - pnpx eslint
   artifacts:
     expire_in: 1h
     paths:
       - node_modules
 
-test:
-  stage: test
-  script:
-    - ember test
+# No test environment right now
+# test:
+#   stage: test
+#   script:
+#     - ember test
 
 .build:
   stage: build
   variables:
     VERSION_TAG: $CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   script:
-    - ember build --prod
+    - pnpm vite build
   artifacts:
     expire_in: 1h
     paths:
