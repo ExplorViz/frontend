@@ -12,6 +12,7 @@ import {
 
 export default function Application() {
   const [tokenId, setTokenId] = useState<string>('');
+  const [checkedLandscapeToken, setCheckedLandscapeToken] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const user = useAuthStore((state) => state.user);
@@ -51,6 +52,7 @@ export default function Application() {
           !searchParams.get('landscapeToken') ||
           landscapeToken?.value === searchParams.get('landscapeToken')
         ) {
+          setCheckedLandscapeToken(true);
           return;
         }
         try {
@@ -62,6 +64,7 @@ export default function Application() {
           if (selectedToken) {
             setLandscapeToken(selectedToken);
             // Navigate to visualization (if not yet there)
+            setCheckedLandscapeToken(true);
             navigate({
               pathname: '/visualization',
               search: `?${createSearchParams({ landscapeToken: selectedToken.value })}`,
@@ -71,6 +74,7 @@ export default function Application() {
             navigate('/landscapes');
           }
         } catch (error) {
+          setCheckedLandscapeToken(true);
           console.error('Error in setUpLandscapeSelection:', error);
         }
       }
@@ -79,7 +83,7 @@ export default function Application() {
     if (user) {
       autoSelectLandscape();
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <>
@@ -91,7 +95,9 @@ export default function Application() {
             <ToastMessage />
           </>
         )}
-        <Outlet />
+        {checkedLandscapeToken &&
+         (<Outlet />)
+         }
       </div>
     </>
   );
