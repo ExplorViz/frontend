@@ -1221,7 +1221,7 @@ export default function BrowserRendering({
         </div>
       )}
       {showSettingsSidebar && (
-        <div className="sidebar right col-4" id="settingsSidebar">
+        <div className="sidebar right" id="settingsSidebar">
           <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
             <SettingsSidebar
               closeSettingsSidebar={() => setShowSettingsSidebar(false)}
