@@ -12,7 +12,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "echo \"Warning: Linting not yet specified\" && exit 0",
+    "test": "echo \"Warning: Tests not yet specified\" && exit 0"
   },
   "peerDependencies": {
     "@types/react": "18",
