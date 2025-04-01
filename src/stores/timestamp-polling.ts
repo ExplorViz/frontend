@@ -132,14 +132,11 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
       newestLocalTimestamp?: Timestamp
     ) => {
       return new Promise<Timestamp[]>((resolve, reject) => {
-        if (useLandscapeTokenStore.getState().token === null) {
+        if (!useLandscapeTokenStore.getState().token) {
           reject(new Error('No landscape token selected'));
           return;
         }
-        if (useLandscapeTokenStore.getState().token === null) {
-          reject(new Error('No landscape token selected'));
-          return;
-        }
+
         let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         if (newestLocalTimestamp) {
