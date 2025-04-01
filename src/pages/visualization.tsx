@@ -177,6 +177,7 @@ export default function Visualization() {
 
     if (
       landscapeTokenServiceToken === null &&
+      !searchParams.get('landscapeToken') &&
       snapshotToken === null &&
       !snapshotSelected
     ) {

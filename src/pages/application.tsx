@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Outlet, useNavigate } from 'react-router-dom';
+import { useSearchParams, Outlet, useNavigate, createSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
 import Navbar from 'explorviz-frontend/src/components/page-setup/navbar';
 import ToastMessage from '../components/page-setup/toast-message';
@@ -20,6 +20,7 @@ export default function Application() {
   const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
+  const retrieveTokens = useLandscapeTokenStore((state) => state.retrieveTokens);
 
   const navigate = useNavigate();
 
@@ -27,30 +28,6 @@ export default function Application() {
 
   // equivalent to old auto-select-landscape
   useEffect(() => {
-    const getLandscapeTokens = async () => {
-      const uId = user?.sub;
-
-      if (!uId) {
-        throw new Error('Could not find user');
-      }
-
-      const encodedUid = encodeURI(uId);
-      const response = await fetch(
-        `${import.meta.env.VITE_USER_SERV_URL}/user/${encodedUid}/token`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Bad response from user service');
-      }
-
-      return (await response.json()) as LandscapeToken[];
-    };
-
     const autoSelectLandscape = async () => {
       if (
         searchParams.get('owner') &&
@@ -77,14 +54,18 @@ export default function Application() {
           return;
         }
         try {
-          const tokens = await getLandscapeTokens();
+          const tokens = await retrieveTokens();
           const selectedToken = tokens.find(
             (token) => token.value === searchParams.get('landscapeToken')
           );
 
           if (selectedToken) {
             setLandscapeToken(selectedToken);
-            navigate('/visualization');
+            // Navigate to visualization (if not yet there)
+            navigate({
+              pathname: '/visualization',
+              search: `?${createSearchParams({ landscapeToken: selectedToken.value })}`,
+            });
           } else {
             // Token not found => remove faulty query param
             navigate('/landscapes');

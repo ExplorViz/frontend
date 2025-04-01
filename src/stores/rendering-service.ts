@@ -428,6 +428,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       useToastHandlerStore
         .getState()
         .showErrorToastMessage('An error occured for the rendering!');
+      console.error(e);
+
       get().resumeVisualizationUpdating();
     },
 
