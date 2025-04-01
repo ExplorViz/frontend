@@ -16,7 +16,7 @@ You will need the following things properly installed on your computer.
 
 ## Running / Development
 
-- Start the application with custom env file: `pnpm run dev`
+- Start the application: `pnpm run dev`
 - (Update mocked backend stack: `cd .dev && docker compose pull`)
 - Start mocked backend: `cd .dev && docker compose up -d`
 - Open frontend at [http://localhost:4200](http://localhost:4200)
