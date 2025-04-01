@@ -186,7 +186,6 @@ export default function CollaborationControls() {
   };
 
   const leaveSession = () => {
-    showInfoToastMessage('Disconnected from Room');
     collaborationSessionDisconnect();
     navigate({
       pathname: '/visualization',
@@ -285,7 +284,7 @@ export default function CollaborationControls() {
     });
 
     setSelectedConfig(config);
-    
+
     let newDevices: string[] = [];
     config.devices.forEach((device) => {
       newDevices = [...newDevices, device.deviceId];
