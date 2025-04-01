@@ -1025,7 +1025,7 @@ export default function BrowserRendering({
 
       heatmapConfigurationActions.cleanup();
       renderingLoop.current?.stop();
-      configurationActions.setIsCommRendered(false);
+      configurationActions.setIsCommRendered(true);
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();
 

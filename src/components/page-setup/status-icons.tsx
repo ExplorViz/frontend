@@ -1,4 +1,3 @@
-import React, { useRef } from 'react';
 import { useCollaborationSessionStore } from '../../stores/collaboration/collaboration-session';
 import { useSpectateUserStore } from '../../stores/collaboration/spectate-user';
 import { useConfigurationStore } from '../../stores/configuration';
@@ -21,13 +20,9 @@ export default function StatusIcons() {
     (state) => state.idToRemoteUser
   );
 
-  const isSpectating = useRef<boolean>(spectatedUser !== null);
-  const isCommunicationHidden = useRef<boolean>(!isCommRendered);
-  const users = useRef<number>(idToRemoteUser.size + 1);
-
   return (
     <div className="navbar-status-icons">
-      {isSpectating.current && (
+      {spectatedUser !== null && (
         <div className="navbar-danger-icon">
           <OverlayTrigger
             placement="bottom"
@@ -51,19 +46,19 @@ export default function StatusIcons() {
         <OverlayTrigger
           placement="bottom"
           overlay={
-            <Tooltip>Connected to a room with {users.current} users.</Tooltip>
+            <Tooltip>Connected to a room with {idToRemoteUser.size + 1} users.</Tooltip>
           }
         >
           <div className="navbar-success-icon">
             <>
               <GlobeIcon size="small" />
-              &nbsp;({users.current})
+              &nbsp;({idToRemoteUser.size + 1})
             </>
           </div>
         </OverlayTrigger>
       )}
 
-      {isCommunicationHidden.current && (
+      {!isCommRendered && (
         <div className="navbar-danger-icon">
           <OverlayTrigger
             placement="bottom"
