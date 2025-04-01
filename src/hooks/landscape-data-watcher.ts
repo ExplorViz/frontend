@@ -152,7 +152,7 @@ export default function useLandscapeDataWatcher(
     let { k8sNodes } = structureLandscapeData;
     k8sNodes = k8sNodes || [];
     const applications = getApplicationsFromNodes(nodes);
-    const k8sApps = getK8sAppsFromNodes(k8sNodes);
+    const k8sAppData = getK8sAppsFromNodes(k8sNodes);
 
     // Applications might be removed in evolution mode
     if (applications.length !== applicationRepositoryState.applications.size) {
@@ -205,15 +205,17 @@ export default function useLandscapeDataWatcher(
       app3Ds.push(app3D);
     }
 
+    const k8sApp3Ds: ApplicationObject3D[] = [];
+
     // Add k8sApps
-    const k8sAppPromises = k8sApps.map(async (k8sApp) => {
+    for(const k8sData of k8sAppData) {
       const applicationData = await updateApplicationData(
-        k8sApp.app,
+        k8sData.app,
         {
-          k8sNode: k8sApp.k8sNode.name,
-          k8sNamespace: k8sApp.k8sNamespace.name,
-          k8sDeployment: k8sApp.k8sDeployment.name,
-          k8sPod: k8sApp.k8sPod.name,
+          k8sNode: k8sData.k8sNode.name,
+          k8sNamespace: k8sData.k8sNamespace.name,
+          k8sDeployment: k8sData.k8sDeployment.name,
+          k8sPod: k8sData.k8sPod.name,
         },
         classCommunications,
         boxLayoutMap
@@ -227,12 +229,8 @@ export default function useLandscapeDataWatcher(
         return;
       }
 
-      return app3D;
-    });
-
-    const k8sApp3Ds = (await Promise.all(
-      k8sAppPromises
-    )) as ApplicationObject3D[];
+      k8sApp3Ds.push(app3D);
+    }
 
     const k8sParameters = {
       font: useFontRepositoryStore.getState().font,
