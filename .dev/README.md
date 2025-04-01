@@ -4,13 +4,15 @@ You will need the following things properly installed on your computer.
 
 - [Git](https://git-scm.com/)
 - [Node.js 20](https://nodejs.org/) (as required per package.json)
+- [pnpm](https://pnpm.io/installation)
 - [Docker](https://www.docker.com) for (mocked) backend
+
 
 ## Installation
 
 - `git clone <repository-url>` this repository
 - `cd frontend`
-- `pnpm install` to install all required Node dependencies
+- `pnpm install` to install all required Node.js dependencies
 
 ## Running / Development
 
