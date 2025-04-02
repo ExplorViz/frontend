@@ -6,8 +6,8 @@ import {
   Trace,
 } from 'explorviz-frontend/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  Class,
   Application,
+  Class,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
@@ -19,8 +19,7 @@ import {
   sortTracesById,
   sortTracesByRequestCount,
 } from 'explorviz-frontend/utils/trace-helpers';
-
-export type TimeUnit = 'ns' | 'ms' | 's';
+import { TimeUnit } from 'chart.js';
 
 interface Args {
   moveCameraTo(emberModel: Class | Span): void;
@@ -31,13 +30,13 @@ interface Args {
   readonly application: Application;
   readonly selectedTrace: Trace;
   readonly applicationTraces: Trace[];
+
+  toggleUnit(): void;
+
+  readonly unit: TimeUnit;
 }
 
 export default class TraceSelection extends Component<Args> {
-  // default time units
-  @tracked
-  traceTimeUnit: TimeUnit = 'ns';
-
   @tracked
   sortBy: any = 'traceId';
 
@@ -205,19 +204,6 @@ export default class TraceSelection extends Component<Args> {
     this.filterTerm = (
       inputEvent.target as HTMLInputElement
     ).value.toLowerCase();
-  }
-
-  @action
-  toggleTraceTimeUnit() {
-    const timeUnit = this.traceTimeUnit;
-
-    if (timeUnit === 'ns') {
-      this.traceTimeUnit = 'ms';
-    } else if (timeUnit === 'ms') {
-      this.traceTimeUnit = 's';
-    } else if (timeUnit === 's') {
-      this.traceTimeUnit = 'ns';
-    }
   }
 
   @action

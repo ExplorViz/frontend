@@ -12,6 +12,8 @@ import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-lo
 import { service } from '@ember/service';
 import RenderingService from 'explorviz-frontend/services/rendering-service';
 
+export type TimeUnit = 'ns' | 'μs' | 'ms' | 's';
+
 interface Args {
   highlightTrace(trace: Trace, traceStep: string): void;
 
@@ -26,6 +28,8 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
   @tracked
   selectedTrace: Trace | null = null;
 
+  callback: (() => void)[] = [];
+
   get applicationTraces() {
     const hashCodeToClassMap = getHashCodeToClassMap(this.args.structureData);
 
@@ -36,13 +40,40 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
     );
   }
 
+  // default time units
+  @tracked
+  unit: TimeUnit = 'ns';
+
+  @action
+  toggleUnit() {
+    switch (this.unit) {
+      case 'ns':
+        this.unit = 'μs';
+        break;
+      case 'μs':
+        this.unit = 'ms';
+        break;
+      case 'ms':
+        this.unit = 's';
+        break;
+      case 's':
+        this.unit = 'ns';
+        break;
+    }
+  }
+
   @service('rendering-service')
   renderingService!: RenderingService;
+
+  private visualizationPaused: boolean = false;
 
   @action
   selectTrace(trace: Trace) {
     if (trace !== this.selectedTrace) {
-      this.renderingService.pauseVisualizationUpdating(true);
+      this.visualizationPaused = this.renderingService.visualizationPaused;
+      if (!this.visualizationPaused) {
+        this.renderingService.pauseVisualizationUpdating(true);
+      }
       this.selectedTrace = trace;
       const traceSteps = getSortedTraceSpans(trace);
 
@@ -53,7 +84,9 @@ export default class TraceSelectionAndReplayer extends Component<Args> {
       }
     } else {
       // Reset highlighting when highlighted trace is clicked again
-      this.renderingService.resumeVisualizationUpdating();
+      if (!this.visualizationPaused) {
+        this.renderingService.resumeVisualizationUpdating();
+      }
       this.selectedTrace = null;
       this.args.removeHighlighting();
     }

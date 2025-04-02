@@ -2,102 +2,120 @@
   Trace Player
 </h5>
 
-<div align='center' class='mb-3'>
-  <BsButton
-    class='th-btn'
-    title='Previous'
-    @onClick={{this.previous}}
-    @type='button'
-  >
-    {{svg-jar 'chevron-left-16' class='octicon align-middle'}}
-  </BsButton>
-
-  <BsButton class='th-btn' title='Next' @onClick={{this.stop}} @type='button'>
-    {{svg-jar 'square-fill-16' class='octicon align-middle'}}
-  </BsButton>
-
-  {{#if this.paused}}
-    <BsButton
-      class='th-btn'
-      title='Play'
-      @onClick={{this.start}}
-      @type='button'
-    >
-      {{svg-jar 'play-16' class='octicon align-middle'}}
+{{#if this.ready}}
+  <div align='center' class='mb-3'>
+    <BsButton class='th-btn' title='Next' @onClick={{this.stop}} @type='button'>
+      {{svg-jar 'square-fill-24' class='octicon align-middle'}}
     </BsButton>
-  {{else}}
-    <BsButton
-      class='th-btn navbar-highlight playing'
-      title='Stop'
-      @onClick={{this.pause}}
-      @type='button'
-    >
-      {{svg-jar 'x-circle-16' class='octicon align-middle'}}
-    </BsButton>
-  {{/if}}
 
-  <BsButton class='th-btn' title='Next' @onClick={{this.next}} @type='button'>
-    {{svg-jar 'chevron-right-16' class='octicon align-middle'}}
-  </BsButton>
-</div>
-
-<div class='mb-3'>
-  <div class='range-slider--container'>
-    <div style='width: 100%;'>
-      <label for='trace-speed-selector'>Playback speed</label>
-      <input
-        id='trace-speed-slider'
-        value={{this.selectedSpeed}}
-        min={{this.minSpeed}}
-        max={{this.maxSpeed}}
-        type='range'
-        step='1'
-        class='form-control mr-2'
-        onchange={{this.changeSpeed}}
-        oninput={{fn this.inputSpeed this}}
-      />
-      <div class='range-slider--values'>
-        <span>{{this.minSpeed}}</span>
-        <span style='font-weight: bold;'>{{this.selectedSpeed}}</span>
-        <span>{{this.maxSpeed}}</span>
-      </div>
-    </div>
+    {{#if this.paused}}
+      <BsButton
+        class='th-btn'
+        title='Play'
+        @onClick={{this.start}}
+        @type='button'
+      >
+        {{svg-jar 'play-24' class='octicon align-middle'}}
+      </BsButton>
+    {{else}}
+      <BsButton
+        class='th-btn navbar-highlight playing'
+        title='Stop'
+        @onClick={{this.pause}}
+        @type='button'
+      >
+        {{svg-jar 'x-circle-24' class='octicon align-middle'}}
+      </BsButton>
+    {{/if}}
   </div>
-</div>
 
-<div class='mb-3'>
-  <div class='range-slider--container'>
-    <div style='width: 100%;'>
-      <label for='trace-progress'>Progress</label>
-      <input
-        id='trace-progress'
-        value={{this.progress}}
-        min='0'
-        max='100'
-        type='range'
-        step='1'
-        class='form-control mr-2'
-      />
-      {{this.progress}}%
-    </div>
+  <div class='mb-3'>
+    <label for='eager-checkbox'></label>
+    <input
+      id='eager-checkbox'
+      type='checkbox'
+      checked={{this.eager}}
+      onclick={{this.toggleEager}}
+    />
+    Eager Expansion
   </div>
-</div>
 
-<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceNavigation
-  @selectPreviousTraceStep={{this.previous}}
-  @selectNextTraceStep={{this.next}}
-  @currentTraceStepIndex={{this.index}}
-  @traceLength={{this.trace.length}}
-/>
+  <div class='mb-3'>
+    <label for='afterimage-checkbox'></label>
+    <input
+      id='afterimage-checkbox'
+      type='checkbox'
+      checked={{this.afterimage}}
+      onclick={{this.toggleAfterimage}}
+    />
+    Remove Traces
+  </div>
 
-<hr />
+  <div class='mb-3'>
+    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceSpeed
+      @callback={{this.callbackSpeed}}
+    />
+  </div>
 
-<Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
-  @operationName={{this.operationName}}
-  @sourceClass={{this.sourceClass}}
-  @targetClass={{this.targetClass}}
-  @sourceApplicationName={{this.sourceApplication.name}}
-  @targetApplicationName={{this.targetApplication.name}}
-  @spanStartTime={{this.currentTraceStep.startTime}}
-  @spanEndTime={{this.currentTraceStep.endTime}}
-/>
+  <div class='mb-3'>
+    <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
+      @timeline={{this.timeline}}
+      @select={{false}}
+      @cursor={{true}}
+      @selection={{this.callbackSelection}}
+      @observer={{this.observer}}
+      @callback={{this.callbackCursor}}
+    />
+  </div>
+
+  <div class='mb-3'>
+    <ul class="nav nav-tabs">
+      {{#each this.tabs as |tab|}}
+        {{#if tab.active}}
+          <BsButton
+            class='nav-link active'
+            title={{tab.label}}
+            style={{tab.style}}
+            @onClick={{tab.enable}}
+            @type='button'>
+            {{tab.label}}
+          </BsButton>
+        {{else}}
+          <BsButton
+            class='nav-link'
+            title={{tab.label}}
+            style={{tab.style}}
+            @onClick={{tab.enable}}
+            @type='button'>
+            {{tab.label}}
+          </BsButton>
+        {{/if}}
+      {{/each}}
+    </ul>
+  </div>
+
+  {{#each this.tabs as |tab|}}
+    {{#if tab.active}}
+      <ul class="nav nav-tabs">
+        <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceStepDetails
+          @name={{tab.name}}
+          @caller={{tab.caller}}
+          @callee={{tab.callee}}
+          @origin={{tab.origin}}
+          @target={{tab.target}}
+          @start={{tab.start}}
+          @end={{tab.end}}
+          @duration={{tab.duration}}
+          @unit={{@unit}}
+        />
+      </ul>
+    {{/if}}
+  {{/each}}
+
+{{else}}
+  <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TracePreprocess
+    @tree={{this.tree}}
+    @timeline={{this.timeline}}
+    @callback={{this.callbackReady}}
+  />
+{{/if}}

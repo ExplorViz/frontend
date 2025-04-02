@@ -1,0 +1,56 @@
+<div class="alert alert-danger" role="alert">
+  Detected issues with trace!
+</div>
+<div class='mb-3'>
+  <Visualization::PageSetup::Sidebar::Toolbar::TraceReplayer::TraceTimeline
+    @timeline={{@timeline}}
+    @select={{true}}
+    @cursor={{false}}
+    @selection={{this.callbackSelection}}
+    @observer={{this.observer}}
+    @callback={{this.callbackCursor}}
+  />
+</div>
+
+<div class='mb-3'>
+  <div class='range-slider--container'>
+    <div style='width: 100%;'>
+      <label for='trace-delay-selector'>Event Delay</label>
+      <input
+        id='trace-delay-slider'
+        value={{this.value}}
+        min={{this.min}}
+        max={{this.max}}
+        type='range'
+        step={{this.step}}
+        class='form-control mr-2'
+        onchange={{this.change}}
+        oninput={{fn this.input this}}
+      />
+      <div class='range-slider--values'>
+        <span>{{this.min}}</span>
+        <span style='font-weight: bold;'>{{this.value}}</span>
+        <span>{{this.max}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div align='center' class='mb-3'>
+  <BsButton
+    class='btn-outline-secondary'
+    title='Ignore'
+    @onClick={{this.apply}}
+    @type='button'
+  >
+    Apply
+  </BsButton>
+  <BsButton
+    class='btn-danger'
+    title='Ignore'
+    @onClick={{this.ignore}}
+    @type='button'
+  >
+    Ignore
+  </BsButton>
+</div>

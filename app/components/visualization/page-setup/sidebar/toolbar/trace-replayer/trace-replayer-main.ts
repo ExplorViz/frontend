@@ -12,92 +12,30 @@ import {
   Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/utils/landscape-schemes/structure-data';
+import { getSortedTraceSpans } from 'explorviz-frontend/utils/trace-helpers';
 import {
-  calculateDuration,
-  getSortedTraceSpans,
-} from 'explorviz-frontend/utils/trace-helpers';
-import { getHashCodeToClassMap } from 'explorviz-frontend/utils/landscape-structure-helpers';
+  getApplicationFromClass,
+  getHashCodeToClassMap,
+} from 'explorviz-frontend/utils/landscape-structure-helpers';
 import ApplicationRenderer from 'explorviz-frontend/services/application-renderer';
 import LocalUser from 'explorviz-frontend/services/collaboration/local-user';
 import RenderingLoop from 'explorviz-frontend/rendering/application/rendering-loop';
 import { LandscapeData } from 'explorviz-frontend/utils/landscape-schemes/landscape-data';
 import BaseMesh from 'explorviz-frontend/view-objects/3d/base-mesh';
 import Configuration from 'explorviz-frontend/services/configuration';
-import { getAllAncestorComponents } from 'explorviz-frontend/utils/application-rendering/entity-manipulation';
-
-const DEFAULT_OPACITY = 1;
-
-class Blob extends BaseMesh<THREE.SphereGeometry, THREE.Material> {
-  constructor(
-    radius: number,
-    color: THREE.Color = new THREE.Color('red'),
-    opacity: number = 1
-  ) {
-    super(color, color, opacity);
-    this.highlight();
-    this.geometry = new THREE.SphereGeometry(radius, 8, 8);
-  }
-
-  move(position: THREE.Vector3): void {
-    this.position.copy(position);
-  }
-}
-
-export class Afterimage {
-  private mesh: BaseMesh;
-
-  private opacity: number = DEFAULT_OPACITY;
-
-  constructor(mesh: BaseMesh) {
-    this.mesh = mesh;
-    this.mesh.highlight();
-    this.mesh.turnTransparent(this.opacity);
-  }
-
-  delete() {
-    this.mesh.turnOpaque();
-    this.mesh.unhighlight();
-    this.opacity = -1;
-  }
-
-  tick(): void {
-    if (this.opacity >= 0.3) {
-      this.mesh.show();
-      this.mesh.highlight();
-      this.mesh.turnTransparent(this.opacity);
-    } else {
-      this.mesh.hide();
-      this.mesh.unhighlight();
-    }
-    this.opacity -= 0.01;
-  }
-
-  alive(): boolean {
-    return this.opacity > 0;
-  }
-
-  reset() {
-    this.opacity = DEFAULT_OPACITY;
-    this.mesh.highlight();
-    this.mesh.turnTransparent(this.opacity);
-  }
-}
-
-// class Leg {
-//   constructor() {}
-// }
-
-class Record {
-  public clazz: Class;
-  public mesh: BaseMesh;
-  public duration: number;
-
-  constructor(clazz: Class, mesh: BaseMesh, duration: number) {
-    this.clazz = clazz;
-    this.mesh = mesh;
-    this.duration = duration;
-  }
-}
+import {
+  TraceNode,
+  TraceTree,
+  TraceTreeBuilder,
+  TraceTreeVisitor,
+} from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
+import {
+  AnimationEntity,
+  GeometryFactory,
+  HueSpace,
+  Partition,
+  Tab,
+} from 'explorviz-frontend/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
 
 interface Args {
   selectedTrace: Trace;
@@ -110,14 +48,8 @@ interface Args {
 }
 
 export default class TraceReplayerMain extends Component<Args> {
-  @tracked
-  currentTraceStep: Span | null = null;
-
-  @tracked
-  trace: Span[] = [];
-
   @service('application-renderer')
-  applicationRenderer!: ApplicationRenderer;
+  renderer!: ApplicationRenderer;
 
   @service('collaboration/local-user')
   localUser!: LocalUser;
@@ -127,58 +59,95 @@ export default class TraceReplayerMain extends Component<Args> {
 
   private classMap: Map<string, Class>;
 
+  private readonly tree: TraceTree;
+
+  private readonly scene: THREE.Scene;
+
+  @tracked
+  timeline: TraceNode[];
+
+  trace: Span[];
+
+  builder: (() => TraceTree)[] = [];
+  geometry: GeometryFactory;
+
   constructor(owner: any, args: Args) {
     super(owner, args);
-    const { selectedTrace } = this.args;
+    this.isCommRendered = this.configuration.isCommRendered;
+
+    const selectedTrace = this.args.selectedTrace;
     this.trace = getSortedTraceSpans(selectedTrace);
 
-    if (this.trace.length > 0) {
-      const [firstStep] = this.trace;
-      this.currentTraceStep = firstStep;
-    }
+    this.geometry = new GeometryFactory(this.renderer);
 
     this.classMap = getHashCodeToClassMap(this.args.structureData);
+    this.scene = this.args.renderingLoop.scene;
 
-    this.trace.forEach((span) => {
-      const clazz = this.classMap.get(span.methodHash);
-      if (clazz) {
-        const mesh = this.applicationRenderer.getMeshById(clazz.id);
-        if (mesh) {
-          this.records.push(new Record(clazz, mesh, calculateDuration(span)));
-        }
+    this.tree = new TraceTreeBuilder(
+      this.trace,
+      this.classMap,
+      this.renderer
+    ).build();
+
+    this.timeline = [];
+
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+      this.timeline.push(node);
+      if (node.end - node.start < 1) {
+        this.ready = false;
       }
     });
+    this.tree.accept(visitor);
 
-    console.log(this.records);
+    this.cursor = 0;
+
+    // if (
+    //   this.args.selectedTrace &&
+    //   this.args.selectedTrace.spanList.length > 0
+    // ) {
+    //   this.args.highlightTrace(
+    //     this.args.selectedTrace,
+    //     this.args.selectedTrace.spanList[0].spanId
+    //   );
+    // }
   }
 
-  public minSpeed = 1;
-  public maxSpeed = 20;
   @tracked
-  public selectedSpeed = 5;
+  ready: boolean = false;
 
-  @action
-  inputSpeed(_: any, htmlInputElement: any) {
-    const newValue = htmlInputElement.target.value;
-    if (newValue) {
-      this.selectedSpeed = Number(newValue);
+  callbackReady = () => {
+    const timeline: TraceNode[] = [];
+
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+      timeline.push(node);
+      if (node.end - node.start < 1) {
+        this.ready = false;
+      }
+    });
+    this.tree.accept(visitor);
+
+    if (timeline.length > 100) {
+      this.ready = false;
     }
-  }
 
-  @action
-  changeSpeed(event: any) {
-    this.selectedSpeed = Number(event.target.value);
-  }
+    this.cursor = 0;
 
-  private delta: number = 0;
-  private records: Record[] = [];
-
-  private blob: Blob | undefined = undefined;
-  private curve: THREE.QuadraticBezierCurve3 | undefined = undefined;
-  private duration = 0;
+    this.timeline = timeline;
+    this.ready = true;
+  };
 
   @tracked
-  progress = 0;
+  speed = 5;
+
+  callbackSpeed = (speed: number) => {
+    this.speed = speed;
+  };
+
+  @tracked
+  entities: Map<string, AnimationEntity> = new Map();
+
+  @tracked
+  tabs: Tab[] = [];
 
   @tracked
   paused: boolean = true;
@@ -186,125 +155,170 @@ export default class TraceReplayerMain extends Component<Args> {
   @tracked
   stopped: boolean = true;
 
-  @tracked
-  index: number = -1;
+  opacity: number = 0.3;
 
-  private meshes = new Set<BaseMesh>();
-  private afterimages = new Set<Afterimage>();
-
-  @action
-  next() {
-    if (this.paused) {
-      this.index = Math.min(this.index + 1, this.records.length);
-    }
-  }
-
-  @action
-  previous() {
-    if (this.paused) {
-      this.index = Math.max(this.index - 1, 0);
-    }
-  }
-
-  tick(delta: number) {
-    this.delta += delta;
-
-    if (this.blob && this.curve) {
-      const progress = this.delta / this.duration;
-      if (0.0 <= progress && progress <= 1.0) {
-        // const afterimage = this.blob.clone();
-        // this.args.renderingLoop.scene.add(afterimage);
-        // this.afterimages.add(new Afterimage(afterimage));
-        this.blob.move(this.curve.getPoint(progress));
-      }
-    }
-    this.progress = Math.ceil((this.index / this.trace.length) * 100);
-
-    if (!this.stopped && !this.paused && this.delta > this.duration) {
-      this.delta = 0;
-
-      if (this.index >= 0 && this.index < this.records.length - 1) {
-        const origin = this.records[this.index++];
-        const target = this.records[this.index];
-
-        this.duration = (1 + origin.duration / 1000.0) / this.selectedSpeed;
-
-        getAllAncestorComponents(origin.clazz).forEach((component) => {
-          this.applicationRenderer.getMeshById(component.id);
-        });
-
-        // if (this.highlights.has(origin.clazz.id)) {
-        //   this.highlights.get(origin.clazz.id)?.reset();
-        // } else {
-        //   this.highlights.set(
-        //     origin.clazz.id,
-        //     new Afterimage(origin.mesh)
-        //   );
-        // }
-        //
-        // if (this.highlights.has(target.clazz.id)) {
-        //   this.highlights.get(target.clazz.id)?.reset();
-        // } else {
-        //   this.highlights.set(
-        //     target.clazz.id,
-        //     new Afterimage(target.mesh)
-        //   );
-        // }
-
-        this.afterimages.add(new Afterimage(origin.mesh));
-        this.afterimages.add(new Afterimage(target.mesh));
-
-        const scale = this.applicationRenderer.landscape3D.scale;
-        const support = this.applicationRenderer.landscape3D.position;
-        const start = this.applicationRenderer
-          .getPositionInLandscape(origin.mesh)
-          .multiply(scale)
-          .add(support);
-        const end = this.applicationRenderer
-          .getPositionInLandscape(target.mesh)
-          .multiply(scale)
-          .add(support);
-
-        const classDistance = Math.hypot(end.x - start.x, end.z - start.z);
-        const height =
-          classDistance *
-          0.2 *
-          this.applicationRenderer.appSettings.curvyCommHeight.value;
-        const middle = new THREE.Vector3(
-          start.x + (end.x - start.x) / 2.0,
-          height + start.y + (end.y - start.y) / 2.0,
-          start.z + (end.z - start.z) / 2.0
-        );
-
-        this.curve = new THREE.QuadraticBezierCurve3(start, middle, end);
-
-        this.blob?.move(start);
-        this.blob?.show();
-
-        // this.args.highlightTrace(this.args.selectedTrace, current.spanId);
-      } else {
-        this.stop();
-      }
-    }
-
-    if (this.afterimages.size > 0) {
-      const prune = new Set<Afterimage>();
-      this.afterimages.forEach((afterimage) => {
-        afterimage.tick();
-        if (!afterimage.alive()) {
-          prune.add(afterimage);
-        }
-      });
-      prune.forEach((afterimage) => this.afterimages.delete(afterimage));
-    }
-  }
-
-  turnComponentAndAncestorsTransparent(component: Package, opacity: number) {
-    if (component) {
-      const mesh = this.applicationRenderer.getMeshById(component.id);
+  private turnTransparent(opacity: number = this.opacity) {
+    this.classMap.forEach((clazz) => {
+      const mesh = this.renderer.getMeshById(clazz.id);
       if (mesh instanceof BaseMesh) {
         mesh.turnTransparent(opacity);
-        this.turnComponentAndAncestorsTransparent(component.parent, opacity);
+        mesh.unhighlight();
+        this.turnAncestorsTransparent(clazz.parent, opacity);
+      }
+    });
+  }
+
+  private turnAncestorsTransparent(
+    component: Package,
+    opacity: number,
+    step: number = 0
+  ) {
+    if (component && opacity >= this.opacity) {
+      const mesh = this.renderer.getMeshById(component.id);
+      if (mesh instanceof BaseMesh) {
+        mesh.turnTransparent(opacity);
+        mesh.unhighlight();
+        this.turnAncestorsTransparent(component.parent, opacity - step, step);
+      }
+    }
+  }
+
+  @tracked
+  cursor: number;
+
+  callbackSelection = () => {};
+
+  callbackCursor = (cursor: number) => {
+    const paused = this.paused;
+    this.stop();
+    this.cursor = cursor;
+    this.start();
+    this.tick(0);
+    if (paused) {
+      this.pause();
+    }
+  };
+
+  observer: ((cursor: number) => void)[] = [];
+
+  @tracked
+  afterimage = true;
+
+  toggleAfterimage = (): void => {
+    this.afterimage = !this.afterimage;
+  };
+
+  @tracked
+  eager = true;
+
+  toggleEager = (): void => {
+    this.eager = !this.eager;
+  };
+
+  tick(delta: number) {
+    if (!this.stopped && !this.paused) {
+      this.turnTransparent();
+
+      this.cursor += delta * this.speed;
+
+      this.observer.forEach((notify) => {
+        notify(this.cursor);
+      });
+
+      if (this.entities.size > 0) {
+        this.entities.forEach((entity: AnimationEntity, id: string) => {
+          // move entity
+          {
+            const start = entity.callee.start;
+            const end = this.eager
+              ? entity.callee.children.reduce(
+                  (end, node) => Math.min(node.start, end),
+                  entity.callee.end
+                )
+              : entity.callee.end;
+
+            const progress = (this.cursor - start) / (end - start);
+
+            if (0.0 <= progress && progress <= 1.0) {
+              entity.move(progress);
+            } else {
+              entity.afterimage();
+            }
+          }
+
+          // spawn children
+          const colors = entity.colorSpace.partition(
+            entity.callee.children.length
+          );
+          const heights = entity.heightSpace.partition(
+            entity.callee.children.length
+          );
+          entity.callee.children.forEach((node, idx: number) => {
+            if (
+              node.start <= this.cursor &&
+              node.end >= this.cursor &&
+              !this.entities.has(node.id)
+            ) {
+              const spawn = new AnimationEntity(
+                this.scene,
+                this.geometry,
+                entity.callee,
+                node,
+                heights[idx],
+                colors[idx]
+              );
+              const origin = getApplicationFromClass(
+                this.args.structureData,
+                entity.callee.clazz
+              );
+              const target = getApplicationFromClass(
+                this.args.structureData,
+                node.clazz
+              );
+
+              this.entities.set(node.id, spawn);
+
+              this.tabs.forEach((tab) => {
+                tab.active = false;
+              });
+              const tab = new Tab(
+                entity.callee,
+                node,
+                origin,
+                target,
+                spawn.colorSpace.color,
+                () => {
+                  this.tabs.forEach((tab) => {
+                    tab.active = false;
+                  });
+                }
+              );
+              tab.active = true;
+              this.tabs = [...this.tabs, tab];
+            }
+          });
+
+          // destroy entity
+          if (this.afterimage && entity.callee.end <= this.cursor) {
+            entity.destroy();
+            this.entities.delete(id);
+
+            this.tabs = this.tabs.filter((tab) => entity.callee.id !== tab.id);
+            if (this.tabs.length > 0) {
+              this.tabs.at(-1)!.active = true;
+            }
+          }
+
+          entity.caller.mesh.highlight();
+          entity.caller.mesh.turnOpaque();
+          this.turnAncestorsTransparent(entity.caller.clazz.parent, 1, 0.1);
+
+          entity.callee.mesh.highlight();
+          entity.callee.mesh.turnOpaque();
+          this.turnAncestorsTransparent(entity.callee.clazz.parent, 1, 0.1);
+        });
+      } else {
+        this.stop();
       }
     }
   }
@@ -315,29 +329,65 @@ export default class TraceReplayerMain extends Component<Args> {
   start() {
     if (this.stopped) {
       this.stopped = false;
-      this.index = 0;
       this.args.renderingLoop.updatables.push(this);
 
       this.isCommRendered = this.configuration.isCommRendered;
       this.configuration.isCommRendered = false;
-      this.applicationRenderer.openAllComponentsOfAllApplications();
-      this.applicationRenderer.removeCommunicationForAllApplications();
+      this.renderer.openAllComponentsOfAllApplications();
+      this.renderer.removeCommunicationForAllApplications();
 
-      this.classMap.forEach((clazz) => {
-        const mesh = this.applicationRenderer.getMeshById(clazz.id);
-        mesh?.turnTransparent();
-        this.turnComponentAndAncestorsTransparent(clazz.parent, 0.3);
+      // find alive entities
+      const nodes: TraceNode[] = this.timeline.filter((node) => {
+        return node.start <= this.cursor && node.end >= this.cursor;
+      });
+      nodes.sort((a: TraceNode, b: TraceNode): number => {
+        return a.start === b.start
+          ? a.end === b.end
+            ? a.id < b.id
+              ? -1
+              : 1
+            : a.end - b.end
+          : a.start - b.start;
       });
 
-      for (let i = 0; i < 3; ++i) {
-        const blob = new Blob(0.02);
-        blob.hide();
-        this.args.renderingLoop.scene.add(blob);
-        this.blob = blob;
-        this.meshes.add(blob);
-      }
-    }
+      // spawn initial set of entities
+      const colors = HueSpace.default.partition(nodes.length);
+      const heights = new Partition(0.5, 1.5).partition(nodes.length);
+      nodes.forEach((caller: TraceNode, idx: number): void => {
+        const spawn = new AnimationEntity(
+          this.scene,
+          this.geometry,
+          caller,
+          caller,
+          heights[idx],
+          colors[idx]
+        );
+        const origin = getApplicationFromClass(
+          this.args.structureData,
+          caller.clazz
+        );
 
+        this.entities.set(caller.id, spawn);
+
+        this.tabs.forEach((tab) => {
+          tab.active = false;
+        });
+        const tab = new Tab(
+          caller,
+          caller,
+          origin,
+          origin,
+          spawn.colorSpace.color,
+          () => {
+            this.tabs.forEach((tab) => {
+              tab.active = false;
+            });
+          }
+        );
+        tab.active = true;
+        this.tabs = [...this.tabs, tab];
+      });
+    }
     this.paused = false;
   }
 
@@ -350,87 +400,38 @@ export default class TraceReplayerMain extends Component<Args> {
   stop() {
     this.paused = true;
     this.stopped = true;
-    this.index = -1;
     this.args.renderingLoop.updatables.removeObject(this);
-    this.progress = 0;
 
     this.configuration.isCommRendered = this.isCommRendered;
     if (this.configuration.isCommRendered) {
-      this.applicationRenderer.addCommunicationForAllApplications();
+      this.renderer.addCommunicationForAllApplications();
     }
 
-    this.classMap.forEach((clazz) => {
-      const mesh = this.applicationRenderer.getMeshById(clazz.id);
-      mesh?.turnOpaque();
-      this.turnComponentAndAncestorsTransparent(clazz.parent, 1);
+    this.turnTransparent(1);
+
+    this.entities.forEach((entity) => {
+      entity.destroy();
+    });
+    this.entities.clear();
+    this.tabs.clear();
+    this.cursor = 0;
+    this.observer.forEach((observer) => {
+      observer(this.cursor);
     });
 
-    for (const mesh of this.meshes) {
-      this.args.renderingLoop.scene.remove(mesh);
+    if (
+      this.args.selectedTrace &&
+      this.args.selectedTrace.spanList.length > 0
+    ) {
+      this.args.highlightTrace(
+        this.args.selectedTrace,
+        this.args.selectedTrace.spanList[0].spanId
+      );
     }
-    this.meshes.clear();
-
-    this.afterimages.forEach((clazz) => {
-      clazz.delete();
-    });
-    this.afterimages.clear();
   }
 
-  @action
-  selectNextTraceStep() {
-    // Can only select next step if a trace is selected
-    if (!this.currentTraceStep) {
-      return;
-    }
-
-    const currentTracePosition = this.trace.findIndex(
-      (span) => span === this.currentTraceStep
-    );
-
-    if (currentTracePosition === -1) {
-      return;
-    }
-
-    const nextStepPosition = currentTracePosition + 1;
-
-    if (nextStepPosition > this.trace.length - 1) {
-      return;
-    }
-
-    this.currentTraceStep = this.trace[nextStepPosition];
-
-    this.args.highlightTrace(
-      this.args.selectedTrace,
-      this.currentTraceStep.spanId
-    );
-  }
-
-  @action
-  selectPreviousTraceStep() {
-    // Can only select next step if a trace is selected
-    if (!this.currentTraceStep) {
-      return;
-    }
-
-    const currentTracePosition = this.trace.findIndex(
-      (span) => span === this.currentTraceStep
-    );
-
-    if (currentTracePosition === -1) {
-      return;
-    }
-
-    const previousStepPosition = currentTracePosition - 1;
-
-    if (previousStepPosition < 0) {
-      return;
-    }
-
-    this.currentTraceStep = this.trace[previousStepPosition];
-
-    this.args.highlightTrace(
-      this.args.selectedTrace,
-      this.currentTraceStep.spanId
-    );
+  willDestroy() {
+    super.willDestroy();
+    this.stop();
   }
 }

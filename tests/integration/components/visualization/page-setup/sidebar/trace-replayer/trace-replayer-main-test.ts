@@ -4,7 +4,7 @@ import { setupRenderingTest } from 'ember-qunit';
 import hbs from 'htmlbars-inline-precompile'; */
 
 module(
-  'Integration | Component | visualization/page-setup/sidebar/trace-replayer/trace-replayer-main',
+  'Integration | Component | visualization/page-setup/sidebar/trace-replayer/trace-player',
   function (hooks) {
     setupRenderingTest(hooks);
 
