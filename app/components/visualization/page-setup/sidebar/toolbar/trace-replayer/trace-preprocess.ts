@@ -72,12 +72,6 @@ export default class Preprocess extends Component<Args> {
       ++pid;
       this.args.tree.accept(visitor);
 
-      console.log({
-        traceEvents: events,
-        displayTimeUnit: 'us',
-        systemTraceEvents: 'SystemTraceData',
-      });
-
       this.working = false;
     }
 
