@@ -12,7 +12,7 @@ const PING_ANIMATION_CLIP = new THREE.AnimationClip('ping-animation', 1, [
 
 const PING_RADIUS = 1.4;
 
-const PING_SEGMENTS = 22;
+const PING_SEGMENTS = 100;
 
 export default class PingMesh extends THREE.Mesh {
   private action: THREE.AnimationAction;

@@ -17,6 +17,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/utils/extended-reality/vr-helpers/detail-info-composer';
+import Landscape3D from 'explorviz-frontend/view-objects/3d/landscape/landscape-3d';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -236,7 +237,11 @@ export default class LocalUser extends Service.extend({
     durationInMs: number = 5000
   ) {
     const app3D = obj.parent;
-    if (!app3D || !(app3D instanceof ApplicationObject3D)) {
+
+    if (
+      !app3D ||
+      !(app3D instanceof ApplicationObject3D || app3D instanceof Landscape3D)
+    ) {
       return;
     }
 

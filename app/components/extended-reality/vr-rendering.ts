@@ -1096,7 +1096,6 @@ export default class VrRendering extends Component<Args> {
     const parentObj = intersectedViewObj.object.parent;
     const pingPosition = intersectedViewObj.point;
     if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
       this.localUser.ping(parentObj, pingPosition);
       if (parentObj instanceof ApplicationObject3D) {
         this.sender.sendMousePingUpdate(
