@@ -94,6 +94,8 @@ export default class GrabMenu extends BaseMenu {
   onCloseMenu() {
     super.onCloseMenu();
     this.removeFromGripSpace();
+    // Move landscape up if it should stick in or beneath the floor
+    this.collideWithFloor();
     this.grabbedObjectService.releaseObject(this.grabbedObject);
   }
 
@@ -157,11 +159,6 @@ export default class GrabMenu extends BaseMenu {
   makeMenuButtonBinding() {
     // The menu button cannot be used to close the menu.
     return undefined;
-  }
-
-  onUpdateMenu(delta: number) {
-    super.onUpdateMenu(delta);
-    this.collideWithFloor();
   }
 
   /**
