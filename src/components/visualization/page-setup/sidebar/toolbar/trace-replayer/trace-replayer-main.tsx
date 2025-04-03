@@ -24,6 +24,7 @@ import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/appli
 import { useShallow } from 'zustand/react/shallow';
 import TraceSpeed from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-speed';
 import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';
+import { PlayIcon, SquareCircleIcon } from '@primer/octicons-react';
 
 interface TraceReplayerMainProps {
   selectedTrace: Trace;
@@ -122,27 +123,32 @@ export default function TraceReplayerMain({
 
       {ready ? (
         <div align="center" className="mb-3">
-          <Button className="th-btn" title="Next" onClick={stop} type="button">
-            Replace with your SVG icon Next
+          <Button
+            className="th-btn mx-2"
+            title="Next"
+            onClick={stop}
+            type="button"
+          >
+            <SquareCircleIcon size="small" />
           </Button>
 
           {paused ? (
             <Button
-              className="th-btn"
+              className="th-btn mx-2"
               title="Play"
               onClick={start}
               type="button"
             >
-              Replace with your SVG icon Play
+              <PlayIcon size="small" />
             </Button>
           ) : (
             <Button
-              className="th-btn navbar-highlight playing"
+              className="th-btn mx-2 navbar-highlight playing"
               title="Stop"
               onClick={pause}
               type="button"
             >
-              Replace with your SVG icon Stop
+              <PlayIcon size="small" />
             </Button>
           )}
         </div>
@@ -150,10 +156,11 @@ export default function TraceReplayerMain({
         <div>Render Trace Preprocess component here</div>
       )}
 
-      <div className="mb-3">
+      <div className="my-3">
         <label htmlFor="eager-checkbox"></label>
         <input
           id="eager-checkbox"
+          className="mx-2"
           type="checkbox"
           checked={eager}
           onChange={toggleEager}
@@ -161,10 +168,11 @@ export default function TraceReplayerMain({
         Eager Expansion
       </div>
 
-      <div className="mb-3">
+      <div className="my-3">
         <label htmlFor="afterimage-checkbox"></label>
         <input
           id="afterimage-checkbox"
+          className="mx-2"
           type="checkbox"
           checked={afterimage}
           onChange={toggleAfterimage}
