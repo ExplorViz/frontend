@@ -91,6 +91,8 @@ export default class GrabMenu extends BaseMenu {
   onCloseMenu() {
     super.onCloseMenu();
     this.removeFromGripSpace();
+    // Move landscape up if it should stick in or beneath the floor
+    this.collideWithFloor();
     useGrabbedObjectStore.getState().releaseObject(this.grabbedObject);
   }
 
@@ -134,7 +136,6 @@ export default class GrabMenu extends BaseMenu {
             const length = yAxis * 0.1;
 
             this.grabbedObject.translateOnAxis(direction, length);
-            this.collideWithFloor();
           }
         },
       }
@@ -154,11 +155,6 @@ export default class GrabMenu extends BaseMenu {
   makeMenuButtonBinding() {
     // The menu button cannot be used to close the menu.
     return undefined;
-  }
-
-  onUpdateMenu(delta: number) {
-    super.onUpdateMenu(delta);
-    this.collideWithFloor();
   }
 
   /**

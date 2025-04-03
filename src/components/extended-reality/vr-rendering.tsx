@@ -1108,7 +1108,6 @@ export default function VrRendering({
     const parentObj = intersectedViewObj.object.parent;
     const pingPosition = intersectedViewObj.point;
     if (parentObj) {
-      parentObj.worldToLocal(pingPosition);
       localUser.ping(parentObj, pingPosition);
       if (parentObj instanceof ApplicationObject3D) {
         messageSender.sendMousePingUpdate(
@@ -1306,7 +1305,7 @@ export default function VrRendering({
         </>
       </VrDropArea>
       {userSettings.visualizationSettings.showVrOnClick.value && (
-        <div className="position-absolute mt-6 ml-3" style={{zIndex: 12000}}>
+        <div className="position-absolute mt-6 ml-3" style={{ zIndex: 12000 }}>
           <Button
             id="backToLandscapeButton"
             onClick={switchToOnScreenMode}

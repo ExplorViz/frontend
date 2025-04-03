@@ -12,6 +12,7 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -277,7 +278,10 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       }
 
       const app3D = obj.parent;
-      if (!(app3D instanceof ApplicationObject3D)) {
+      if (
+        !app3D ||
+        !(app3D instanceof ApplicationObject3D || app3D instanceof Landscape3D)
+      ) {
         return;
       }
 
@@ -287,11 +291,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         .getState()
         .openParents(obj, app3D.getModelId());
 
-      get().mousePing.pingNonRestartable(
-        app3D,
-        pingPosition,
-        durationInMs
-      );
+      get().mousePing.pingNonRestartable(app3D, pingPosition, durationInMs);
 
       useMessageSenderStore
         .getState()
@@ -304,7 +304,10 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       durationInMs: number = 5000
     ) => {
       const app3D = obj.parent;
-      if (!app3D || !(app3D instanceof ApplicationObject3D)) {
+      if (
+        !app3D ||
+        !(app3D instanceof ApplicationObject3D || app3D instanceof Landscape3D)
+      ) {
         return;
       }
 
@@ -323,13 +326,15 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       useMessageSenderStore
         .getState()
         .sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
-      useChatStore.getState().sendChatMessage(
-        get().userId,
-        `${get().userName}(${get().userId}) pinged ${obj.dataModel.name}`,
-        true,
-        'ping',
-        [app3D.getModelId(), pingPosition.toArray(), durationInMs]
-      );
+      useChatStore
+        .getState()
+        .sendChatMessage(
+          get().userId,
+          `${get().userName}(${get().userId}) pinged ${obj.dataModel.name}`,
+          true,
+          'ping',
+          [app3D.getModelId(), pingPosition.toArray(), durationInMs]
+        );
     },
 
     pingReplay: (
