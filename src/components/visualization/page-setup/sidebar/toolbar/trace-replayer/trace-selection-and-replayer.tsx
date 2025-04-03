@@ -1,68 +1,75 @@
 import React, { useEffect, useState } from 'react';
-
 import {
   DynamicLandscapeData,
   Trace,
-  Span,
 } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import {
-  Class,
-  Application,
-  StructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
 import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
+import TraceReplayerMain from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-main';
+import TraceSelection from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
-import TraceSelection from './trace-selection';
-import TraceReplayerMain from './trace-replayer-main';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { useShallow } from 'zustand/react/shallow';
+
+export type TimeUnit = 'ns' | 'μs' | 'ms' | 's';
 
 interface TraceSelectionAndReplayerProps {
+  highlightTrace: (trace: Trace, traceStep: string) => void;
+  removeHighlighting: () => void;
   renderingLoop: RenderingLoop;
-  readonly dynamicData: DynamicLandscapeData;
-  readonly structureData: StructureLandscapeData;
-  readonly landscapeData: LandscapeData;
-  highlightTrace(trace: Trace, traceStep: string): void;
-  removeHighlighting(): void;
-  moveCameraTo(
-    model: Class | Span,
-    applicationObject3D: ApplicationObject3D,
-    dynamicData: DynamicLandscapeData,
-    cameraControls: CameraControls
-  ): void;
+  dynamicData: DynamicLandscapeData;
+  structureData: StructureLandscapeData;
 }
 
-export default function TraceSelectionAndReplayer({
+const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
+  highlightTrace,
+  removeHighlighting,
   renderingLoop,
   dynamicData,
   structureData,
-  landscapeData,
-  highlightTrace,
-  removeHighlighting,
-  moveCameraTo,
-}: TraceSelectionAndReplayerProps) {
-  const pauseVisualizationUpdating = useRenderingServiceStore(
-    (state) => state.pauseVisualizationUpdating
-  );
-  const resumeVisualizationUpdating = useRenderingServiceStore(
-    (state) => state.resumeVisualizationUpdating
+}) => {
+  const renderingStore = useRenderingServiceStore(
+    useShallow((state) => ({
+      pauseVisualizationUpdating: state.pauseVisualizationUpdating,
+      resumeVisualizationUpdating: state.resumeVisualizationUpdating,
+      visualizationPaused: state._visualizationPaused,
+    }))
   );
 
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
+  const [unit, setUnit] = useState<TimeUnit>('ns');
 
-  const hashCodeToClassMap = getHashCodeToClassMap(structureData);
-  const applicationTraces = dynamicData.filter((trace) =>
-    trace.spanList.some(
+  const applicationTraces = dynamicData.filter((trace) => {
+    const hashCodeToClassMap = getHashCodeToClassMap(structureData);
+    return trace.spanList.some(
       (span) => hashCodeToClassMap.get(span.methodHash) !== undefined
-    )
-  );
+    );
+  });
+
+  const toggleUnit = () => {
+    switch (unit) {
+      case 'ns':
+        setUnit('μs');
+        break;
+      case 'μs':
+        setUnit('ms');
+        break;
+      case 'ms':
+        setUnit('s');
+        break;
+      case 's':
+        setUnit('ns');
+        break;
+    }
+  };
 
   const selectTrace = (trace: Trace) => {
     if (trace !== selectedTrace) {
-      pauseVisualizationUpdating(true);
+      const visualizationPaused = renderingStore.visualizationPaused;
+      if (!visualizationPaused) {
+        renderingStore.pauseVisualizationUpdating(true);
+      }
       setSelectedTrace(trace);
       const traceSteps = getSortedTraceSpans(trace);
 
@@ -72,7 +79,9 @@ export default function TraceSelectionAndReplayer({
       }
     } else {
       // Reset highlighting when highlighted trace is clicked again
-      resumeVisualizationUpdating();
+      if (!renderingStore.visualizationPaused) {
+        renderingStore.resumeVisualizationUpdating();
+      }
       setSelectedTrace(null);
       removeHighlighting();
     }
@@ -84,29 +93,32 @@ export default function TraceSelectionAndReplayer({
         removeHighlighting();
       }
     };
-  }, []);
+  }, [selectedTrace, removeHighlighting]);
 
   return (
-    <>
+    <div>
       <TraceSelection
-        moveCameraTo={moveCameraTo}
         selectTrace={selectTrace}
         dynamicData={dynamicData}
         structureData={structureData}
         applicationTraces={applicationTraces}
         selectedTrace={selectedTrace!}
+        unit={unit}
+        toggleUnit={toggleUnit}
       />
 
       {selectedTrace && (
         <TraceReplayerMain
           selectedTrace={selectedTrace}
-          dynamicData={dynamicData}
           structureData={structureData}
+          dynamicData={dynamicData}
           renderingLoop={renderingLoop}
           highlightTrace={highlightTrace}
-          landscapeData={landscapeData}
+          unit={unit}
         />
       )}
-    </>
+    </div>
   );
-}
+};
+
+export default TraceSelectionAndReplayer;

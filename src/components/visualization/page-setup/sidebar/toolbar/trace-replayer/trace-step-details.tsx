@@ -14,6 +14,10 @@ interface TraceStepDetailsProps {
   readonly targetApplicationName: string;
   readonly spanStartTime: number;
   readonly spanEndTime: number;
+  readonly start: number;
+  readonly end: number;
+  readonly duration: number;
+  readonly unit: string;
 }
 
 export default function TraceStepDetails({
@@ -24,6 +28,10 @@ export default function TraceStepDetails({
   targetApplicationName,
   spanStartTime,
   spanEndTime,
+  start,
+  end,
+  duration,
+  unit,
 }: TraceStepDetailsProps) {
   const [timeUnit, setTimeUnit] = useState<TimeUnit>('ns');
   const spanDuration = spanEndTime - spanStartTime;
