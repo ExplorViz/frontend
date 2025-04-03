@@ -99,7 +99,6 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
     <div>
       <TraceSelection
         selectTrace={selectTrace}
-        dynamicData={dynamicData}
         structureData={structureData}
         applicationTraces={applicationTraces}
         selectedTrace={selectedTrace!}
@@ -111,10 +110,7 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
         <TraceReplayerMain
           selectedTrace={selectedTrace}
           structureData={structureData}
-          dynamicData={dynamicData}
           renderingLoop={renderingLoop}
-          highlightTrace={highlightTrace}
-          unit={unit}
         />
       )}
     </div>

@@ -121,9 +121,11 @@ export default class RenderingLoop {
 
   tick(frame?: XRFrame) {
     const delta = clock.getDelta();
-    this.tickCallbacks.forEach((tickCallback) =>
-      tickCallback.callback(delta, frame)
-    );
+    this.tickCallbacks.forEach((tickCallback) => {
+      if (frame) {
+        tickCallback.callback(delta, frame);
+      }
+    });
   }
 
   private handleLightHelper() {

@@ -21,10 +21,8 @@ import { Button } from 'react-bootstrap'; // Assuming you're using react-bootstr
 import { TimeUnit } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 
 interface TraceSelectionProps {
-  moveCameraTo: (emberModel: Class | Span) => void;
   selectTrace: (trace: Trace) => void;
   structureData: StructureLandscapeData;
-  application: Application;
   selectedTrace: Trace;
   applicationTraces: Trace[];
   toggleUnit: () => void;
@@ -215,7 +213,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
                 onClick={() => handleSortByProperty('traceDuration')}
                 scope="col"
               >
-                <Button onClick={toggleUnit} className="th-btn" outline>
+                <Button onClick={toggleUnit} className="th-btn">
                   {unit}
                 </Button>
               </th>

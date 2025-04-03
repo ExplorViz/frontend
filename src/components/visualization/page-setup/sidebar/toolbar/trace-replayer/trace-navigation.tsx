@@ -1,5 +1,5 @@
-import { ChevronLeftIcon, ChevronRightIcon } from '@primer/octicons-react';
 import React from 'react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@primer/octicons-react';
 
 import Button from 'react-bootstrap/Button';
 

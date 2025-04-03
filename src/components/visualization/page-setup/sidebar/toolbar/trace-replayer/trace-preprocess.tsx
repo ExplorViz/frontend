@@ -7,17 +7,17 @@ import {
 import { Button } from 'react-bootstrap'; // Assuming you're using react-bootstrap for buttons
 import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';
 
-interface PreprocessProps {
+interface TracePreProcessProps {
   tree: TraceTree;
   timeline: TraceNode[];
   callback: (tree: TraceTree) => void;
 }
 
-export default function Preprocess({
+export default function TracePreProcess({
   tree,
   timeline,
   callback,
-}: PreprocessProps) {
+}: TracePreProcessProps) {
   const min = 1;
   const max = 10;
   const step = 1;
@@ -35,6 +35,14 @@ export default function Preprocess({
       }
     }
   };
+
+  // get value() {
+  //   return this.delay;
+  // }
+
+  // set value(value: number) {
+  //   this.delay = Math.min(Math.max(value, this.min), this.max);
+  // }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!working) {
@@ -221,7 +229,7 @@ export default function Preprocess({
         </div>
       </div>
 
-      <div align="center" className="mb-3">
+      <div className="mb-3">
         <Button
           className="btn-outline-secondary"
           title="Ignore"

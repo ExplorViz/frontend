@@ -6,7 +6,10 @@ import {
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
-import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import {
+  getApplicationFromClass,
+  getHashCodeToClassMap,
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
@@ -17,29 +20,29 @@ import {
 import {
   AnimationEntity,
   GeometryFactory,
+  HueSpace,
+  Partition,
   Tab,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
-import { Button } from 'react-bootstrap'; // Assuming you're using react-bootstrap for buttons
+import { Button } from 'react-bootstrap';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useShallow } from 'zustand/react/shallow';
 import TraceSpeed from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-speed';
 import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';
 import { PlayIcon, SquareCircleIcon } from '@primer/octicons-react';
+import TracePreProcess from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-preprocess';
+import TraceStepDetails from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-step-details';
 
 interface TraceReplayerMainProps {
   selectedTrace: Trace;
   structureData: StructureLandscapeData;
   renderingLoop: RenderingLoop;
-  highlightTrace: (trace: Trace, traceStep: string) => void;
-  landscapeData: LandscapeData;
 }
 
 export default function TraceReplayerMain({
   selectedTrace,
   structureData,
   renderingLoop,
-  highlightTrace,
-  landscapeData,
 }: TraceReplayerMainProps) {
   const appRenderer = useApplicationRendererStore(
     useShallow((state) => ({
@@ -70,30 +73,210 @@ export default function TraceReplayerMain({
       appRenderer.getPositionInLandscape
     )
   );
-
+  const observer: ((cursor: number) => void)[] = [];
   const trace = getSortedTraceSpans(selectedTrace);
   const tree = new TraceTreeBuilder(trace, classMap).build();
 
   useEffect(() => {
+    const nodes: TraceNode[] = [];
     const visitor = new TraceTreeVisitor((node: TraceNode): void => {
-      // setTimeline((prev: any) => [...prev, node]);
+      nodes.push(node);
       if (node.end - node.start < 1) {
         setReady(false);
       }
     });
     tree.accept(visitor);
+    setTimeline(nodes);
     setReady(true);
-  }, [tree]);
+  }, []);
+
+  const callbackReady = () => {
+    const timeline: TraceNode[] = [];
+
+    const visitor = new TraceTreeVisitor((node: TraceNode): void => {
+      timeline.push(node);
+      if (node.end - node.start < 1) {
+        setReady(false);
+      }
+    });
+    tree.accept(visitor);
+
+    if (timeline.length > 100) {
+      setReady(false);
+    }
+
+    setCursor(0);
+
+    setTimeline(timeline);
+    setReady(true);
+  };
+
+  const tick = (delta: number) => {
+    if (!stopped && !paused) {
+      // this.turnTransparent();
+
+      setCursor(cursor + delta * speed);
+
+      observer.forEach((notify) => {
+        notify(cursor);
+      });
+
+      if (entities.size > 0) {
+        entities.forEach((entity: AnimationEntity, id: string) => {
+          // move entity
+          {
+            const start = entity.callee.start;
+            const end = eager
+              ? entity.callee.children.reduce(
+                  (end, node) => Math.min(node.start, end),
+                  entity.callee.end
+                )
+              : entity.callee.end;
+
+            const progress = (cursor - start) / (end - start);
+
+            if (0.0 <= progress && progress <= 1.0) {
+              entity.move(progress);
+            } else {
+              entity.afterimage();
+            }
+          }
+
+          // spawn children
+          const colors = entity.colorSpace.partition(
+            entity.callee.children.length
+          );
+          const heights = entity.heightSpace.partition(
+            entity.callee.children.length
+          );
+          entity.callee.children.forEach((node, idx: number) => {
+            if (
+              node.start <= cursor &&
+              node.end >= cursor &&
+              !entities.has(node.id)
+            ) {
+              const spawn = new AnimationEntity(
+                scene,
+                geometry,
+                entity.callee,
+                node,
+                heights[idx],
+                colors[idx]
+              );
+              const origin = getApplicationFromClass(
+                structureData,
+                entity.callee.clazz
+              );
+              const target = getApplicationFromClass(structureData, node.clazz);
+
+              entities.set(node.id, spawn);
+
+              tabs.forEach((tab) => {
+                tab.active = false;
+              });
+              const tab = new Tab(
+                entity.callee,
+                node,
+                origin,
+                target,
+                spawn.colorSpace.color,
+                () => {
+                  tabs.forEach((tab) => {
+                    tab.active = false;
+                  });
+                }
+              );
+              tab.active = true;
+              setTabs([...tabs, tab]);
+            }
+          });
+
+          // Destroy entity
+          if (afterimage && entity.callee.end <= cursor) {
+            entity.destroy();
+            entities.delete(id);
+
+            setTabs(tabs.filter((tab) => entity.callee.id !== tab.id));
+            if (tabs.length > 0) {
+              tabs.at(-1)!.active = true;
+            }
+          }
+
+          entity.caller.mesh.highlight();
+          entity.caller.mesh.turnOpaque();
+          // turnAncestorsTransparent(entity.caller.clazz.parent, 1, 0.1);
+
+          entity.callee.mesh.highlight();
+          entity.callee.mesh.turnOpaque();
+          // turnAncestorsTransparent(entity.callee.clazz.parent, 1, 0.1);
+        });
+      } else {
+        stop();
+      }
+    }
+  };
 
   const start = () => {
-    if (stopped) {
-      setStopped(false);
-      // renderingLoop.updatables.push({ tick }); // Assuming tick is defined elsewhere
-
-      // Additional logic for starting the rendering
-      // ...
-    }
     setPaused(false);
+    if (stopped) {
+      return;
+    }
+    setStopped(true);
+    renderingLoop.tickCallbacks.push({ id: 'trace-player', callback: tick });
+
+    // this.isCommRendered = this.configuration.isCommRendered;
+    // this.configuration.isCommRendered = false;
+    // this.renderer.openAllComponentsOfAllApplications();
+    // this.renderer.removeCommunicationForAllApplications();
+
+    // Find alive entities
+    const nodes: TraceNode[] = timeline.filter((node) => {
+      return node.start <= cursor && node.end >= cursor;
+    });
+    nodes.sort((a: TraceNode, b: TraceNode): number => {
+      return a.start === b.start
+        ? a.end === b.end
+          ? a.id < b.id
+            ? -1
+            : 1
+          : a.end - b.end
+        : a.start - b.start;
+    });
+
+    // Spawn initial set of entities
+    const colors = HueSpace.default.partition(nodes.length);
+    const heights = new Partition(0.5, 1.5).partition(nodes.length);
+    nodes.forEach((caller: TraceNode, idx: number): void => {
+      const spawn = new AnimationEntity(
+        scene,
+        geometry,
+        caller,
+        caller,
+        heights[idx],
+        colors[idx]
+      );
+      const origin = getApplicationFromClass(structureData, caller.clazz);
+
+      entities.set(caller.id, spawn);
+
+      tabs.forEach((tab) => {
+        tab.active = false;
+      });
+      const tab = new Tab(
+        caller,
+        caller,
+        origin,
+        origin,
+        spawn.colorSpace.color,
+        () => {
+          tabs.forEach((tab) => {
+            tab.active = false;
+          });
+        }
+      );
+      tab.active = true;
+      setTabs([...tabs, tab]);
+    });
   };
 
   const pause = () => {
@@ -103,10 +286,34 @@ export default function TraceReplayerMain({
   const stop = () => {
     setPaused(true);
     setStopped(true);
-    // renderingLoop.updatables.removeObject({ tick }); // Assuming tick is defined elsewhere
+    // renderingLoop.tickCallbacks.remove({
+    //   id: 'trace-player',
+    //   callback: tick,
+    // });
 
-    // Additional logic for stopping the rendering
-    // ...
+    // this.configuration.isCommRendered = this.isCommRendered;
+    // if (this.configuration.isCommRendered) {
+    //   this.renderer.addCommunicationForAllApplications();
+    // }
+
+    // this.turnTransparent(1);
+
+    entities.forEach((entity) => {
+      entity.destroy();
+    });
+    entities.clear();
+    setTabs([]);
+    setCursor(0);
+    observer.forEach((observer) => {
+      observer(cursor);
+    });
+
+    if (selectedTrace && selectedTrace.spanList.length > 0) {
+      // this.args.highlightTrace(
+      //   this.args.selectedTrace,
+      //   this.args.selectedTrace.spanList[0].spanId
+      // );
+    }
   };
 
   const toggleEager = () => {
@@ -119,10 +326,10 @@ export default function TraceReplayerMain({
 
   return (
     <div>
-      <h5 align="center">Trace Player</h5>
+      <h5>Trace Player</h5>
 
       {ready ? (
-        <div align="center" className="mb-3">
+        <div className="mb-3">
           <Button
             className="th-btn mx-2"
             title="Next"
@@ -153,7 +360,13 @@ export default function TraceReplayerMain({
           )}
         </div>
       ) : (
-        <div>Render Trace Preprocess component here</div>
+        <div>
+          <TracePreProcess
+            tree={tree}
+            timeline={timeline}
+            callback={callbackReady}
+          />
+        </div>
       )}
 
       <div className="my-3">
@@ -214,7 +427,16 @@ export default function TraceReplayerMain({
         (tab) =>
           tab.active && (
             <ul className="nav nav-tabs" key={tab.id}>
-              Render TraceStepDetails component here
+              <TraceStepDetails
+                operationName={tab.name}
+                caller={tab.caller}
+                callee={tab.callee}
+                origin={tab.origin}
+                target={tab.target}
+                start={tab.start}
+                end={tab.end}
+                duration={tab.duration}
+              />
             </ul>
           )
       )}
