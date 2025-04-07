@@ -4,7 +4,7 @@ import {
   TraceTree,
   TraceTreeVisitor,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
-import { Button } from 'react-bootstrap'; // Assuming you're using react-bootstrap for buttons
+import { Button } from 'react-bootstrap';
 import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';
 
 interface TracePreProcessProps {
@@ -23,39 +23,25 @@ export default function TracePreProcess({
   const step = 1;
 
   const [delay, setDelay] = useState<number>(1);
-  const [working, setWorking] = useState<boolean>(false);
-  const [start, setStart] = useState<number>(-Infinity);
-  const [end, setEnd] = useState<number>(Infinity);
+  let working = false;
+  let start = -Infinity;
+  let end = Infinity;
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Do not change delay while animation is running
     if (!working) {
-      const value = Number(event.target.value);
-      if (!isNaN(value)) {
-        setDelay(Math.min(Math.max(value, min), max));
-      }
+      return;
     }
-  };
 
-  // get value() {
-  //   return this.delay;
-  // }
-
-  // set value(value: number) {
-  //   this.delay = Math.min(Math.max(value, this.min), this.max);
-  // }
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!working) {
-      const value = Number(event.target.value);
-      if (!isNaN(value)) {
-        setDelay(Math.min(Math.max(value, min), max));
-      }
+    const value = Number(event.target.value);
+    if (!isNaN(value)) {
+      setDelay(Math.min(Math.max(value, min), max));
     }
   };
 
   const apply = () => {
     if (delay > 0) {
-      setWorking(true);
+      working = true;
       pruneTree();
 
       const events: any[] = [];
@@ -70,7 +56,7 @@ export default function TracePreProcess({
 
       ++pid;
       tree.accept(visitor);
-      setWorking(false);
+      working = false;
     }
 
     callback(tree);
@@ -194,14 +180,14 @@ export default function TracePreProcess({
           timeline={timeline}
           select={true}
           cursor={false}
-          selection={(start, end) => {
+          selection={(s, e) => {
             if (!working) {
-              setStart(start);
-              setEnd(end);
+              start = s;
+              end = e;
             }
           }}
-          observer={[]} // Provide the observer as needed
-          callback={() => {}} // Provide the callback as needed
+          observer={[]}
+          callback={() => {}}
         />
       </div>
 
@@ -217,7 +203,7 @@ export default function TracePreProcess({
               type="range"
               step={step}
               className="form-control mr-2"
-              onChange={handleChange}
+              onChange={handleInput}
               onInput={handleInput}
             />
             <div className="range-slider--values">

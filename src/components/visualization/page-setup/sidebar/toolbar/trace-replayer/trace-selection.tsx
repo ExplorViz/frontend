@@ -1,10 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  Span,
-  Trace,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import {
-  Application,
   Class,
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -131,10 +127,10 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
         sortTracesById(filteredTraces, isSortedAsc);
         break;
       case 'firstClassName':
-        sortTracesByFirstClassName(filteredTraces, isSortedAsc, firstClasses);
+        sortTracesByFirstClassName(filteredTraces, isSortedAsc);
         break;
       case 'lastClassName':
-        sortTracesByLastClassName(filteredTraces, isSortedAsc, lastClasses);
+        sortTracesByLastClassName(filteredTraces, isSortedAsc);
         break;
       case 'steps':
         sortTracesByRequestCount(filteredTraces, isSortedAsc);

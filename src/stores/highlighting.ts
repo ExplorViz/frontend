@@ -446,7 +446,7 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
       get().removeHighlightingForAllApplications(false);
     }
 
-    Highlighting.setHightlightStatusForMesh(
+    Highlighting.setHighlightStatusForMesh(
       mesh.getModelId(),
       application,
       highlighted

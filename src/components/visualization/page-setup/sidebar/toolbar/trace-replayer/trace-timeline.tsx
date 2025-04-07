@@ -28,6 +28,8 @@ export default function TraceTimeline({
     scrollZoom: false,
   };
 
+  const max = Math.max(...timeline.map((node) => node.end));
+
   const data = [
     {
       mode: 'markers',
@@ -58,8 +60,6 @@ export default function TraceTimeline({
       y: timeline.map(() => 0.25),
     },
   ];
-
-  const max = Math.max(...timeline.map((node) => node.end));
 
   const layout = {
     dragmode: select ? 'select' : 'pan',
@@ -176,6 +176,7 @@ export default function TraceTimeline({
     callback,
     selection,
     timeline,
+    max,
   ]);
 
   return <div style={{ width: '100%' }} className="plotlyDiv" ref={divRef} />;

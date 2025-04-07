@@ -34,7 +34,7 @@ import { getClassesInPackage } from 'explorviz-frontend/src/utils/package-helper
  * @param modelId Either component, class or class communication id of model which shall be (un)highlighted
  * @param applicationObject3D Application mesh which contains the mesh
  */
-export function setHightlightStatusForMesh(
+export function setHighlightStatusForMesh(
   modelId: string,
   applicationObject3D: ApplicationObject3D,
   highlighted: boolean
@@ -83,19 +83,19 @@ export function highlightTrace(
 
   applicationObject3D.highlightedEntity = trace;
 
-  // All clazzes in application
+  // All classes in application
   const allClassesAsArray = getAllClassesInApplication(
     applicationObject3D.dataModel.application
   );
-  const allClazzes = new Set<Class>(allClassesAsArray);
+  const allClasses = new Set<Class>(allClassesAsArray);
 
-  const involvedClazzes = new Set<Class>();
+  const involvedClasses = new Set<Class>();
 
   let highlightedSpan: Span | undefined;
 
   const hashCodeToClassMap = getHashCodeToClassMap(landscapeStructureData);
 
-  // find span matching traceStep
+  // Find span matching traceStep
   trace.spanList.forEach((span) => {
     if (span.spanId === traceStep) {
       highlightedSpan = span;
@@ -106,7 +106,7 @@ export function highlightTrace(
     return;
   }
 
-  // get both classes involved in the procedure call of the highlighted span
+  // Get both classes involved in the procedure call of the highlighted span
   let highlightedSpanParentClass: Class | undefined;
   const highlightedSpanClass = hashCodeToClassMap.get(
     highlightedSpan.methodHash
@@ -120,18 +120,18 @@ export function highlightTrace(
     }
   });
 
-  // mark all classes in span as involved in the trace
+  // Mark all classes in span as involved in the trace
   trace.spanList.forEach((span) => {
     const spanClass = hashCodeToClassMap.get(span.methodHash);
 
     if (spanClass) {
-      involvedClazzes.add(spanClass);
+      involvedClasses.add(spanClass);
     }
   });
 
   const spanIdToClass = new Map<string, Class>();
 
-  // map all spans to their respective clazz
+  // Map all spans to their respective clazz
   trace.spanList.forEach((span) => {
     const { methodHash, spanId } = span;
 
@@ -142,7 +142,7 @@ export function highlightTrace(
     }
   });
 
-  // strings of format sourceClass_to_targetClass
+  // Strings of format sourceClass_to_targetClass
   const classesThatCommunicateInTrace = new Set<string>();
 
   trace.spanList.forEach((span) => {
@@ -167,7 +167,7 @@ export function highlightTrace(
 
     const commMesh = applicationObject3D.getCommMeshByModelId(id);
 
-    // highlight communication mesh that matches highlighted span
+    // Highlight communication mesh that matches highlighted span
     if (
       (sourceClass === highlightedSpanParentClass &&
         targetClass === highlightedSpanClass) ||
@@ -177,7 +177,7 @@ export function highlightTrace(
       commMesh?.highlight();
     }
 
-    // turn all communication meshes that are not involved in the trace transparent
+    // Turn all communication meshes that are not involved in the trace transparent
     if (
       !classesThatCommunicateInTrace.has(
         `${sourceClass.id}_to_${targetClass.id}`
@@ -190,34 +190,36 @@ export function highlightTrace(
     }
   });
 
-  const involvedClazzesArray = Array.from(involvedClazzes);
-  const nonInvolvedClazzes = new Set(
-    [...allClazzes].filter(
-      (x) => !involvedClazzesArray.find((elem) => elem.id == x.id)
+  const involvedClassesArray = Array.from(involvedClasses);
+  const nonInvolvedClasses = new Set(
+    [...allClasses].filter(
+      (x) => !involvedClassesArray.find((elem) => elem.id == x.id)
     )
   );
 
   const componentSet = new Set<Package>();
 
-  involvedClazzes.forEach((clazz) => {
-    getClassAncestorPackages(clazz).forEach((pckg) => componentSet.add(pckg));
+  involvedClasses.forEach((classModel) => {
+    getClassAncestorPackages(classModel).forEach((pckg) =>
+      componentSet.add(pckg)
+    );
   });
 
   // turn classes and packages transparent, which are not involved in the trace
-  nonInvolvedClazzes.forEach((clazz) => {
-    const clazzMesh = applicationObject3D.getBoxMeshByModelId(clazz.id);
+  nonInvolvedClasses.forEach((classModel) => {
+    const classMesh = applicationObject3D.getBoxMeshByModelId(classModel.id);
     const componentMesh = applicationObject3D.getBoxMeshByModelId(
-      clazz.parent.id
+      classModel.parent.id
     );
     if (
-      clazzMesh instanceof ClazzMesh &&
+      classMesh instanceof ClazzMesh &&
       componentMesh instanceof ComponentMesh &&
       componentMesh.opened
     ) {
-      clazzMesh.turnTransparent(opacity);
+      classMesh.turnTransparent(opacity);
     }
     turnComponentAndAncestorsTransparent(
-      clazz.parent,
+      classModel.parent,
       applicationObject3D,
       componentSet,
       opacity
@@ -241,7 +243,7 @@ export function updateHighlighting(
   );
   turnCommunicationTransparent(communicationMeshes, opacity);
 
-  // Get all class ids of all selected components, inluding highlighted classes
+  // Get all class ids of all selected components, including highlighted classes
   const allSelectedClassIds = getAllSelectedClassIds(applicationObject3DList);
 
   // Add classes which are involved via communication with selected classes
@@ -291,7 +293,7 @@ export function removeHighlighting(
   applicationObject3D: ApplicationObject3D
 ) {
   if (mesh.highlighted)
-    setHightlightStatusForMesh(mesh.getModelId(), applicationObject3D, false);
+    setHighlightStatusForMesh(mesh.getModelId(), applicationObject3D, false);
 }
 
 // #endregion
@@ -315,11 +317,11 @@ export function turnComponentsAndClassesTransparent(
     );
     classIdsInApplication.forEach((classId) => {
       // set everything transparent at the beginning
-      const clazzMesh = application.getMeshById(classId);
-      if (clazzMesh instanceof ClazzMesh) {
-        clazzMesh.turnTransparent(opacity);
+      const classMesh = application.getMeshById(classId);
+      if (classMesh instanceof ClazzMesh) {
+        classMesh.turnTransparent(opacity);
         turnComponentAndAncestorsTransparent(
-          clazzMesh.dataModel.parent,
+          classMesh.dataModel.parent,
           application,
           new Set(),
           opacity

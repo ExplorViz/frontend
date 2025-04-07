@@ -1209,7 +1209,6 @@ export default function BrowserRendering({
                         dynamicData={landscapeData!.dynamicLandscapeData}
                         renderingLoop={renderingLoop.current!}
                         structureData={landscapeData!.structureLandscapeData}
-                        landscapeData={landscapeData!}
                         moveCameraTo={moveCameraTo}
                       />
                     )}
@@ -1330,8 +1329,5 @@ export default function BrowserRendering({
 
 export type TickCallback = {
   id: string;
-  callback:
-    | ((delta: number, frame?: XRFrame) => void | Promise<void>)
-    | ((delta?: number, frame?: XRFrame) => void | Promise<void>)
-    | ((delta: number, frame: XRFrame) => void | Promise<void>);
+  callback: (delta: number, frame: XRFrame | undefined) => void | Promise<void>;
 };
