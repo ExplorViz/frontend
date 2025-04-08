@@ -4,6 +4,9 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "eslint.workingDirectories": [
+    "app/",
+  ],
 
   "[gts]": {
     "editor.formatOnSave": true,

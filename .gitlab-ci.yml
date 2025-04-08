@@ -31,26 +31,31 @@ linting:
   stage: code-analysis
   before_script:
     - node --version
-    - npm --version
-    - npm install
+    - npm install -g pnpm
+    - pnpm --version
+    - pnpm install
   script:
-    - npm run lint
+    - pnpx eslint
   artifacts:
     expire_in: 1h
     paths:
       - node_modules
 
-test:
-  stage: test
-  script:
-    - ember test
+# No test environment right now
+# test:
+#   stage: test
+#   script:
+#     - ember test
 
 .build:
   stage: build
+  before_script:
+    - node --version
+    - npm install -g pnpm
   variables:
     VERSION_TAG: $CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   script:
-    - ember build --prod
+    - pnpm vite build
   artifacts:
     expire_in: 1h
     paths:
@@ -63,16 +68,6 @@ build-prod:
   rules:
     - if: '$CI_PIPELINE_SOURCE != "schedule"'
 
-build-prod-noauth:
-  extends:
-    - .build
-  variables:
-    VERSION_TAG: $CI_COMMIT_BRANCH-noauth-$CI_COMMIT_SHORT_SHA
-  rules:
-    - if: '$CI_PIPELINE_SOURCE != "schedule"'
-  before_script:
-    - export AUTH0_ENABLED=false
-
 deploy-prod:
   extends:
     - .build-and-deploy
@@ -83,32 +78,22 @@ deploy-prod:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
 
-deploy-dev-noauth:
-  extends:
-    - .build-and-deploy
-  dependencies:
-    - build-prod-noauth
-  variables:
-    DOCKERHUB_TAG: 'dev-noauth'
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
-
-deploy-merge-request-auth:
+deploy-dev:
   extends:
     - .build-and-deploy
   dependencies:
     - build-prod
   variables:
-    DOCKERHUB_TAG: mr-$CI_MERGE_REQUEST_IID-noauth
+    DOCKERHUB_TAG: 'dev'
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
 
-deploy-merge-request-noauth:
+deploy-merge-request:
   extends:
     - .build-and-deploy
   dependencies:
-    - build-prod-noauth
+    - build-prod
   variables:
-    DOCKERHUB_TAG: mr-$CI_MERGE_REQUEST_IID-noauth
+    DOCKERHUB_TAG: mr-$CI_MERGE_REQUEST_IID
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'

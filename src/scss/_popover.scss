@@ -1,0 +1,61 @@
+@media (min-width: 576px) {
+  .popover {
+    cursor: move;
+    max-width: 550px !important;
+    padding: 0.3rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .popover > .popover-body {
+    overflow-x: auto;
+
+    > table {
+      display: inline-table;
+    }
+  }
+}
+
+.popover > .popover-header {
+  margin: 0.3rem 0;
+}
+
+.popover > .popover-body {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.popover.hovered {
+  background-color: #bbbbbb !important;
+  border-color: #eeeeee !important;
+}
+
+.popover.hovered > .popover-header {
+  background-color: #999999 !important;
+  border-color: #aaaaaa !important;
+}
+
+.popover > button {
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+}
+
+.popover > button[disabled] {
+  /* Ensure correct hover effect on popup even though button is disabled */
+  pointer-events: none;
+}
+
+.no-user-select {
+  user-select: none;
+}
+
+.popup-close-button {
+  margin-left: 0.5rem;
+  float: right;
+}
+
+.popover button {
+  margin-right: 0.25rem !important;
+}

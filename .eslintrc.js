@@ -3,11 +3,11 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2019,
+    requireConfigFile: false,
     sourceType: 'module',
     project: './tsconfig.json',
   },
   plugins: [
-    // 'ember',
     'prettier',
     '@typescript-eslint',
     'import',
@@ -24,9 +24,6 @@ module.exports = {
   env: {
     browser: true,
     node: true,
-  },
-  globals: {
-    auth0: false,
   },
   rules: {
     'prettier/prettier': 'error',
@@ -52,8 +49,6 @@ module.exports = {
     'no-plusplus': 'off',
     'import/no-cycle': 'off',
     'prefer-rest-params': 'off',
-    'ember/no-mixins': 'off',
-    'ember/require-computed-property-dependencies': 'off',
     'no-param-reassign': ['error', { props: false }],
     'func-names': ['error', 'always', { generators: 'never' }],
   },
@@ -61,8 +56,6 @@ module.exports = {
     // node files
     {
       files: [
-        'ember-cli-build.js',
-        'testem.js',
         'config/**/*.js',
         'lib/*/index.js',
       ],
