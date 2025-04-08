@@ -8,8 +8,8 @@ type TimeUnit = 'ns' | 'ms' | 's';
 
 interface TraceStepDetailsProps {
   readonly operationName: string;
-  readonly sourceClass?: Class;
-  readonly targetClass: Class;
+  readonly sourceClass?: string;
+  readonly targetClass: string;
   readonly sourceApplicationName?: string;
   readonly targetApplicationName: string;
   readonly spanStartTime: number;
@@ -17,7 +17,6 @@ interface TraceStepDetailsProps {
   readonly start: number;
   readonly end: number;
   readonly duration: number;
-  readonly unit: string;
 }
 
 export default function TraceStepDetails({
@@ -28,10 +27,7 @@ export default function TraceStepDetails({
   targetApplicationName,
   spanStartTime,
   spanEndTime,
-  start,
-  end,
   duration,
-  unit,
 }: TraceStepDetailsProps) {
   const [timeUnit, setTimeUnit] = useState<TimeUnit>('ns');
   const spanDuration = spanEndTime - spanStartTime;
@@ -88,7 +84,7 @@ export default function TraceStepDetails({
                 </Button>
               </th>
               <td className="col-9 container-word-wrap">
-                {formatNumber(spanDuration, timeUnit)}
+                {formatNumber(duration, timeUnit)}
               </td>
             </tr>
           </tbody>

@@ -351,6 +351,9 @@ export default function TraceReplayerMain({
   };
 
   const stop = () => {
+    if (stopped) {
+      return;
+    }
     renderingLoop.tickCallbacks = renderingLoop.tickCallbacks.filter(
       (callback) => {
         return callback.id !== 'trace-player';
@@ -380,6 +383,7 @@ export default function TraceReplayerMain({
       //   selectedTrace.spanList[0].spanId
       // );
     }
+    stopped = true;
   };
 
   const toggleEager = () => {
@@ -499,12 +503,10 @@ export default function TraceReplayerMain({
             <ul className="nav nav-tabs" key={tab.id}>
               <TraceStepDetails
                 operationName={tab.name}
-                caller={tab.caller}
-                callee={tab.callee}
-                origin={tab.origin}
-                target={tab.target}
-                start={tab.start}
-                end={tab.end}
+                sourceClass={tab.caller}
+                targetClass={tab.callee}
+                sourceApplicationName={tab.origin}
+                targetApplicationName={tab.target}
                 duration={tab.duration}
               />
             </ul>
