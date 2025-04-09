@@ -58,6 +58,7 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
       onMouseUp={onMouseUp}
       onMouseDown={onMouseDown}
       onContextMenu={onContextMenu}
+      style={{ width: '100%' }}
     >
       {visible && position && (
         <ul
@@ -68,7 +69,7 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
             left: position.x,
             listStyle: 'none',
             padding: 0,
-            zIndex: 500,
+            zIndex: '2000',
           }}
         >
           {items.map((item) => (

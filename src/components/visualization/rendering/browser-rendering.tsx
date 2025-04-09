@@ -95,6 +95,8 @@ import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
 import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
 import eventEmitter from '../../../utils/event-emitter';
 import { useRenderingServiceStore } from '../../../stores/rendering-service';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -1124,8 +1126,17 @@ export default function BrowserRendering({
 
           {heatmapConfigurationState.heatmapActive && <HeatmapInfo />}
 
+          <canvas
+            id="threejs-canvas"
+            className={'webgl'}
+            style={{ display: 'none' }}
+            ref={canvas}
+          />
           <ContextMenu items={rightClickMenuItems}>
-            <canvas id="threejs-canvas" className={'webgl'} ref={canvas} />
+            <Canvas>
+              <OrbitControls />
+              <primitive object={scene} position={[0, 0, 0]} />
+            </Canvas>
           </ContextMenu>
           {/* {loadNewLandscape.isRunning && (
             <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
