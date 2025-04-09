@@ -1,3 +1,4 @@
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import isObject, {
   objectsHaveSameKeys,
 } from 'explorviz-frontend/src/utils/object-helpers';
@@ -9,25 +10,7 @@ import {
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export function getStoredSettings(): VisualizationSettings {
-  const settingsJson = localStorage.getItem('ExplorVizSettings');
-
-  if (settingsJson === null) {
-    return defaultVizSettings;
-  }
-
-  const parsedSettings = JSON.parse(settingsJson);
-
-  if (areValidSettings(parsedSettings)) {
-    return parsedSettings;
-  } else {
-    localStorage.removeItem('ExplorVizSettings');
-    return defaultVizSettings;
-  }
-}
-
-export function getStoredSettingValueById(id: VisualizationSettingId) {
-  const settings = getStoredSettings();
-  return settings[id].value;
+  return useUserSettingsStore.getState().visualizationSettings;
 }
 
 export function getStoredNumberSetting(id: VisualizationSettingId): number {
@@ -57,11 +40,4 @@ export function validateRangeSetting(
   } else if (value < range.min || value > range.max) {
     throw new Error(`Value must be between ${range.min} and ${range.max}`);
   }
-}
-
-export function saveSettings(visualizationSettings: VisualizationSettings) {
-  localStorage.setItem(
-    'ExplorVizSettings',
-    JSON.stringify(visualizationSettings)
-  );
 }
