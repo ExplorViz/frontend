@@ -23,6 +23,7 @@ export default class ComponentMesh extends BoxMesh {
   public get labelMesh(): ComponentLabelMesh | null {
     return this._labelMesh;
   }
+
   public set labelMesh(value: ComponentLabelMesh | null) {
     if (this._labelMesh != null) {
       SemanticZoomManager.instance.remove(this._labelMesh);

@@ -6,7 +6,9 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import ApplicationData, { K8sData } from 'explorviz-frontend/src/utils/application-data';
+import ApplicationData, {
+  K8sData,
+} from 'explorviz-frontend/src/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
@@ -39,8 +41,12 @@ import { updateHighlighting } from '../utils/application-rendering/highlighting'
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
   landscape3D: Landscape3D
-) {
+): ApplicationData[] {
   // MARK: Stores
+
+  const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
+    []
+  );
 
   const applicationRendererState = useApplicationRendererStore(
     useShallow((state) => ({
@@ -189,6 +195,7 @@ export default function useLandscapeDataWatcher(
     landscapeRestructureState.setAllClassCommunications(classCommunications);
 
     let app3Ds: ApplicationObject3D[] = [];
+    const applicationModels = [];
     // Compute app3Ds which are not part of Kubernetes deployment
     for (let i = 0; i < applications.length; ++i) {
       const applicationData = await updateApplicationData(
@@ -197,18 +204,19 @@ export default function useLandscapeDataWatcher(
         classCommunications,
         boxLayoutMap
       );
+      applicationModels.push(applicationData);
 
       // Create or update app3D
-      const app3D =
-        await applicationRendererState.addApplicationTask(applicationData);
+      // const app3D =
+      //   await applicationRendererState.addApplicationTask(applicationData);
 
-      app3Ds.push(app3D);
+      // app3Ds.push(app3D);
     }
 
     const k8sApp3Ds: ApplicationObject3D[] = [];
 
     // Add k8sApps
-    for(const k8sData of k8sAppData) {
+    for (const k8sData of k8sAppData) {
       const applicationData = await updateApplicationData(
         k8sData.app,
         {
@@ -312,6 +320,8 @@ export default function useLandscapeDataWatcher(
     landscapeRestructureState.applyColorMappings();
 
     document.dispatchEvent(new Event('Landscape initialized'));
+
+    setApplicationModels(applicationModels);
   };
 
   const updateApplicationData = async (
@@ -377,4 +387,6 @@ export default function useLandscapeDataWatcher(
       flatDataWorker.terminate();
     };
   }, []);
+
+  return applicationModels;
 }

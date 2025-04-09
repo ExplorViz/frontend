@@ -5,6 +5,7 @@ import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh
 import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
 import MinimapLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/minimap-label-mesh';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class FoundationMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -34,6 +35,10 @@ export default class FoundationMesh<
     this.dataModel = foundation;
 
     this.layers.enable(SceneLayers.Foundation);
+
+    // Semantic Zoom
+    this.saveOriginalAppearence();
+    SemanticZoomManager.instance.add(this);
   }
 
   setDefaultMaterial() {

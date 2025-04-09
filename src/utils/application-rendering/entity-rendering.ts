@@ -229,15 +229,15 @@ export function addFoundationAndChildrenToApplication(
     return;
   }
 
-  const { foundationColor, highlightedEntityColor } = colors;
+  // const { foundationColor, highlightedEntityColor } = colors;
 
-  const foundationMesh = new FoundationMesh(
-    applicationLayout,
-    application,
-    foundationColor,
-    highlightedEntityColor
-  );
-  addMeshToApplication(foundationMesh, applicationObject3D);
+  // const foundationMesh = new FoundationMesh(
+  //   applicationLayout,
+  //   application,
+  //   foundationColor,
+  //   highlightedEntityColor
+  // );
+  // addMeshToApplication(foundationMesh, applicationObject3D);
 
   const children = application.packages;
 

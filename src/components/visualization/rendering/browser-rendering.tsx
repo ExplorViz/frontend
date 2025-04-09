@@ -97,6 +97,9 @@ import eventEmitter from '../../../utils/event-emitter';
 import { useRenderingServiceStore } from '../../../stores/rendering-service';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import Landscape3dWrapper from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d-wrapper';
+import useTraceUpdate from 'explorviz-frontend/src/hooks/trace-update';
+import Application3dWrapper from 'explorviz-frontend/src/view-objects/3d/application/application-3d-wrapper';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -130,6 +133,20 @@ export default function BrowserRendering({
   restructureLandscape,
   removeTimestampListener,
 }: BrowserRenderingProps) {
+  useTraceUpdate({
+    id,
+    landscapeData,
+    landscapeToken,
+    userApiTokens,
+    visualizationPaused,
+    isDisplayed,
+    snapshot,
+    snapshotReload,
+    toggleVisualizationUpdating,
+    switchToAR,
+    restructureLandscape,
+    removeTimestampListener,
+  });
   // MARK: Stores
 
   const applicationRendererActions = useApplicationRendererStore(
@@ -154,6 +171,8 @@ export default function BrowserRendering({
       cleanup: state.cleanup,
     }))
   );
+
+  const landscape3D = useApplicationRendererStore().landscape3D;
 
   const localUserState = useLocalUserStore(
     useShallow((state) => ({
@@ -807,7 +826,7 @@ export default function BrowserRendering({
   };
 
   const handleResize = () => {
-    if (!outerDiv.current) {
+    if (!outerDiv.current || !landscape3D) {
       console.error('Outer div ref was not assigned');
       return;
     }
@@ -862,7 +881,6 @@ export default function BrowserRendering({
   const [openedSettingComponent, setOpenedSettingComponent] = useState<
     string | null
   >(null);
-  const [landscape3D] = useState<Landscape3D>(() => new Landscape3D());
   const [updateLayout, setUpdateLayout] = useState<boolean>(false);
   const [scene] = useState<THREE.Scene>(() =>
     sceneRepositoryActions.getScene('browser', true)
@@ -931,165 +949,180 @@ export default function BrowserRendering({
 
   // MARK: Effects and hooks
 
-  useEffect(function initialize() {
-    scene.background = userSettingsState.colors!.backgroundColor;
+  useEffect(
+    function initialize() {
+      if (!landscape3D) return;
 
-    useLocalUserStore
-      .getState()
-      .setDefaultCamera(new THREE.PerspectiveCamera());
+      scene.background = userSettingsState.colors!.backgroundColor;
 
-    configurationActions.setSemanticZoomEnabled(
-      SemanticZoomManager.instance.isEnabled
-    );
-
-    scene.add(landscape3D);
-    tickCallbacks.current.push(
-      { id: 'browser-rendering', callback: tick },
-      { id: 'spectate-user', callback: useSpectateUserStore.getState().tick },
-      { id: 'minimap', callback: useMinimapStore.getState().tick }
-    );
-
-    ImmersiveView.instance.callbackOnEntering = () => {
-      usePopupHandlerStore.getState().setDeactivated(true);
-      usePopupHandlerStore.getState().clearPopups();
-    };
-
-    ImmersiveView.instance.callbackOnExit = () => {
-      usePopupHandlerStore.getState().setDeactivated(false);
-    };
-
-    // Semantic Zoom Manager shows/removes all communication arrows due to high rendering time.
-    // If the Semantic Zoom feature is enabled, all previously generated arrows are hidden.
-    // After that, the manager decides on which level to show.
-    // If it gets disabled, all previous arrows are restored.
-    // All this is done by shifting layers.
-    SemanticZoomManager.instance.registerActivationCallback((onOff) => {
-      useLinkRendererStore
+      useLocalUserStore
         .getState()
-        .getAllLinks()
-        .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
-          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
-            if (onOff) {
-              arrow.layers.disableAll();
-            } else {
-              arrow.layers.set(0);
-            }
+        .setDefaultCamera(new THREE.PerspectiveCamera());
+
+      configurationActions.setSemanticZoomEnabled(
+        SemanticZoomManager.instance.isEnabled
+      );
+
+      // scene.add(landscape3D);
+      tickCallbacks.current.push(
+        { id: 'browser-rendering', callback: tick },
+        { id: 'spectate-user', callback: useSpectateUserStore.getState().tick },
+        { id: 'minimap', callback: useMinimapStore.getState().tick }
+      );
+
+      ImmersiveView.instance.callbackOnEntering = () => {
+        usePopupHandlerStore.getState().setDeactivated(true);
+        usePopupHandlerStore.getState().clearPopups();
+      };
+
+      ImmersiveView.instance.callbackOnExit = () => {
+        usePopupHandlerStore.getState().setDeactivated(false);
+      };
+
+      // Semantic Zoom Manager shows/removes all communication arrows due to high rendering time.
+      // If the Semantic Zoom feature is enabled, all previously generated arrows are hidden.
+      // After that, the manager decides on which level to show.
+      // If it gets disabled, all previous arrows are restored.
+      // All this is done by shifting layers.
+      SemanticZoomManager.instance.registerActivationCallback((onOff) => {
+        useLinkRendererStore
+          .getState()
+          .getAllLinks()
+          .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
+            currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+              if (onOff) {
+                arrow.layers.disableAll();
+              } else {
+                arrow.layers.set(0);
+              }
+            });
           });
-        });
-      applicationRendererActions.getOpenApplications().forEach((ap) => {
-        ap.getCommMeshes().forEach((currentCommunicationMesh) => {
-          currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
-            if (onOff) {
-              arrow.layers.disableAll();
-            } else {
-              arrow.layers.set(0);
-            }
+        applicationRendererActions.getOpenApplications().forEach((ap) => {
+          ap.getCommMeshes().forEach((currentCommunicationMesh) => {
+            currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
+              if (onOff) {
+                arrow.layers.disableAll();
+              } else {
+                arrow.layers.set(0);
+              }
+            });
           });
         });
       });
-    });
-    // Loads the AutoOpenClose activation state from the settings.
-    SemanticZoomManager.instance.toggleAutoOpenClose(
-      userSettingsState.visualizationSettings.autoOpenCloseFeature.value
-    );
+      // Loads the AutoOpenClose activation state from the settings.
+      SemanticZoomManager.instance.toggleAutoOpenClose(
+        userSettingsState.visualizationSettings.autoOpenCloseFeature.value
+      );
 
-    useApplicationRendererStore.getState().setLandscape3D(landscape3D);
+      // useApplicationRendererStore.getState().setLandscape3D(landscape3D);
 
-    // Open sidebars automatically on certain restructure actions
+      // Open sidebars automatically on certain restructure actions
 
-    const handleOpenSettingsSidebarEvent = () => {
-      setShowSettingsSidebar(true);
-    };
+      const handleOpenSettingsSidebarEvent = () => {
+        setShowSettingsSidebar(true);
+      };
 
-    const handleToggleSettingsSidebarComponentEvent = (component: string) => {
-      const newOpenedSettingComponent =
-        openedSettingComponent === component ? null : component;
-      setOpenedSettingComponent(newOpenedSettingComponent);
-      return newOpenedSettingComponent === component;
-    };
+      const handleToggleSettingsSidebarComponentEvent = (component: string) => {
+        const newOpenedSettingComponent =
+          openedSettingComponent === component ? null : component;
+        setOpenedSettingComponent(newOpenedSettingComponent);
+        return newOpenedSettingComponent === component;
+      };
 
-    eventEmitter.on('openSettingsSidebar', handleOpenSettingsSidebarEvent);
-    eventEmitter.on(
-      'restructureComponent',
-      handleToggleSettingsSidebarComponentEvent
-    );
-
-    // Cleanup on component unmount
-    return function cleanup() {
-      worker.terminate();
-      renderingLoop.current?.stop();
-      applicationRendererActions.cleanup();
-      applicationRepositoryActions.cleanup();
-      renderer.current?.dispose();
-      renderer.current?.forceContextLoss();
-
-      ideWebsocket.dispose();
-
-      heatmapConfigurationActions.cleanup();
-      renderingLoop.current?.stop();
-      configurationActions.setIsCommRendered(true);
-      popupHandlerActions.cleanup();
-      annotationHandlerActions.cleanup();
-
-      eventEmitter.off('openSettingsSidebar', handleOpenSettingsSidebarEvent);
-      eventEmitter.off(
+      eventEmitter.on('openSettingsSidebar', handleOpenSettingsSidebarEvent);
+      eventEmitter.on(
         'restructureComponent',
         handleToggleSettingsSidebarComponentEvent
       );
 
-      // Clean up WebGL rendering context by forcing context loss
-      const gl = canvas.current?.getContext('webgl');
-      if (!gl) {
-        return;
-      }
-      const glExtension = gl.getExtension('WEBGL_lose_context');
-      if (!glExtension) return;
-      glExtension.loseContext();
-    };
-  }, []);
+      // Cleanup on component unmount
+      return function cleanup() {
+        worker.terminate();
+        // renderingLoop.current?.stop();
+        applicationRendererActions.cleanup();
+        applicationRepositoryActions.cleanup();
+        // renderer.current?.dispose();
+        // renderer.current?.forceContextLoss();
 
-  useEffect(function handleCanvasInserted() {
-    if (!canvas.current) {
-      console.error('Canvas ref was not assigned');
-      return;
-    }
+        ideWebsocket.dispose();
 
-    landscapeRestructureActions.setCanvas(canvas.current);
-    canvas.current.oncontextmenu = (e) => {
-      e.preventDefault();
-    };
+        heatmapConfigurationActions.cleanup();
+        // renderingLoop.current?.stop();
+        configurationActions.setIsCommRendered(true);
+        popupHandlerActions.cleanup();
+        annotationHandlerActions.cleanup();
 
-    initCameras();
-    initRenderer();
-  }, []);
+        eventEmitter.off('openSettingsSidebar', handleOpenSettingsSidebarEvent);
+        eventEmitter.off(
+          'restructureComponent',
+          handleToggleSettingsSidebarComponentEvent
+        );
 
-  useResizeDetector({
-    refreshMode: 'debounce',
-    refreshRate: 100,
-    targetRef: outerDiv,
-    onResize: handleResize,
-  });
+        // Clean up WebGL rendering context by forcing context loss
+        // const gl = canvas.current?.getContext('webgl');
+        // if (!gl) {
+        //   return;
+        // }
+        // const glExtension = gl.getExtension('WEBGL_lose_context');
+        // if (!glExtension) return;
+        // glExtension.loseContext();
+      };
+    },
+    [landscape3D]
+  );
+
+  // useEffect(
+  //   function handleCanvasInserted() {
+  //     if (!landscape3D) return;
+
+  //     if (!canvas.current) {
+  //       console.error('Canvas ref was not assigned');
+  //       return;
+  //     }
+
+  //     landscapeRestructureActions.setCanvas(canvas.current);
+  //     canvas.current.oncontextmenu = (e) => {
+  //       e.preventDefault();
+  //     };
+
+  //     console.log('Init');
+
+  //     // initCameras();
+  //     // initRenderer();
+  //   },
+  //   [landscape3D]
+  // );
+
+  // useResizeDetector({
+  //   refreshMode: 'debounce',
+  //   refreshRate: 100,
+  //   targetRef: outerDiv,
+  //   onResize: handleResize,
+  // });
 
   useSyncState();
-  useInteractionModifier(
-    canvas,
-    getRaycastObjects(),
-    localUserActions.getCamera(),
-    {
-      onSingleClick: handleSingleClick,
-      onDoubleClick: handleDoubleClick,
-      onMouseMove: handleMouseMove,
-      onMouseOut: handleMouseOut,
-      onMouseStop: handleMouseStop,
-      onCtrlDown: handleCtrlDown,
-      onCtrlUp: handleCtrlUp,
-      onAltDown: handleAltDown,
-      onAltUp: handleAltUp,
-      onSpaceDown: handleSpaceBar,
-    }
-  );
+  // useInteractionModifier(
+  //   canvas,
+  //   getRaycastObjects(),
+  //   localUserActions.getCamera(),
+  //   {
+  //     onSingleClick: handleSingleClick,
+  //     onDoubleClick: handleDoubleClick,
+  //     onMouseMove: handleMouseMove,
+  //     onMouseOut: handleMouseOut,
+  //     onMouseStop: handleMouseStop,
+  //     onCtrlDown: handleCtrlDown,
+  //     onCtrlUp: handleCtrlUp,
+  //     onAltDown: handleAltDown,
+  //     onAltUp: handleAltUp,
+  //     onSpaceDown: handleSpaceBar,
+  //   }
+  // );
+  console.log('Re-render');
+
   useHeatmapRenderer(localUserState.camera, scene);
-  useLandscapeDataWatcher(landscapeData, landscape3D);
+  const applicationModels = useLandscapeDataWatcher(landscapeData, landscape3D);
+
   useCollaborativeModifier();
 
   // MARK: JSX
@@ -1126,16 +1159,36 @@ export default function BrowserRendering({
 
           {heatmapConfigurationState.heatmapActive && <HeatmapInfo />}
 
-          <canvas
+          {/* <canvas
             id="threejs-canvas"
             className={'webgl'}
             style={{ display: 'none' }}
             ref={canvas}
-          />
+          /> */}
           <ContextMenu items={rightClickMenuItems}>
-            <Canvas>
+            <Canvas id="threejs-canvas" className={'webgl'} ref={canvas}>
               <OrbitControls />
-              <primitive object={scene} position={[0, 0, 0]} />
+              <Landscape3dWrapper>
+                {applicationModels.map((appModel) => (
+                  <Application3dWrapper
+                    key={appModel.application.id}
+                    applicationData={appModel}
+                  />
+                ))}
+              </Landscape3dWrapper>
+              <ambientLight intensity={Math.PI / 2} />
+              <spotLight
+                position={[10, 10, 10]}
+                angle={0.15}
+                penumbra={1}
+                decay={0}
+                intensity={Math.PI}
+              />
+              <pointLight
+                position={[-10, -10, -10]}
+                decay={0}
+                intensity={Math.PI}
+              />
             </Canvas>
           </ContextMenu>
           {/* {loadNewLandscape.isRunning && (

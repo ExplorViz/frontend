@@ -44,7 +44,7 @@ export function positionBoxLabel(
   // TODO: The calculation of the z-position can still be off on tall boxes
   const boxDimensions = new THREE.Vector3();
   label.geometry.boundingBox?.getSize(boxDimensions);
-  const parentScale = label.parent!.scale;
+  const parentScale = boxMesh!.scale;
   const parentAspectRatio = parentScale.x / parentScale.z;
 
   const zPosOfOpenBox =
@@ -135,6 +135,31 @@ export function addBoxTextLabel(
   boxMesh.add(labelMesh);
 
   positionBoxLabel(boxMesh);
+
+  return labelMesh;
+}
+
+export function getBoxLabel(
+  boxMesh: ComponentMesh | FoundationMesh | K8sMesh,
+  font: Font,
+  color: THREE.Color,
+  minHeight = 1.5,
+  minLength = 4
+) {
+  if (boxMesh.labelMesh) return;
+  const labelMesh = new ComponentLabelMesh(
+    boxMesh,
+    font,
+    color,
+    minHeight,
+    minLength
+  );
+  labelMesh.computeLabel(boxMesh, boxMesh.dataModel.name);
+
+  boxMesh.labelMesh = labelMesh;
+  positionBoxLabel(boxMesh);
+
+  return labelMesh;
 }
 
 /**
