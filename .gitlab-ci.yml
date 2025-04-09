@@ -16,7 +16,6 @@ stages:
   - test
   - build
   - deploy:images
-  - deploy:retagging
 
 workflow:
   rules:
@@ -35,19 +34,27 @@ linting:
     - pnpm --version
     - pnpm install
   script:
-    - pnpx eslint
+    - pnpm run lint
   artifacts:
     expire_in: 1h
     paths:
       - node_modules
 
-# No test environment right now
-# test:
-#   stage: test
-#   script:
-#     - ember test
+test:
+  stage: test
+  before_script:
+    - node --version
+    - npm install -g pnpm
+    - pnpm --version
+    - pnpm install
+  script:
+    - pnpm run test
+  artifacts:
+    expire_in: 1h
+    paths:
+      - node_modules
 
-.build:
+build:
   stage: build
   before_script:
     - node --version
@@ -61,38 +68,14 @@ linting:
     paths:
       - node_modules
       - dist
-
-build-prod:
-  extends:
-    - .build
   rules:
     - if: '$CI_PIPELINE_SOURCE != "schedule"'
-
-deploy-prod:
-  extends:
-    - .build-and-deploy
-  dependencies:
-    - build-prod
-  variables:
-    DOCKERHUB_TAG: 'production'
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
-
-deploy-dev:
-  extends:
-    - .build-and-deploy
-  dependencies:
-    - build-prod
-  variables:
-    DOCKERHUB_TAG: 'dev'
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH == "main"'
 
 deploy-merge-request:
   extends:
     - .build-and-deploy
   dependencies:
-    - build-prod
+    - build
   variables:
     DOCKERHUB_TAG: mr-$CI_MERGE_REQUEST_IID
   rules:
