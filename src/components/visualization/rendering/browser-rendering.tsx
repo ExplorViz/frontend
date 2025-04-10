@@ -1176,18 +1176,26 @@ export default function BrowserRendering({
                   />
                 ))}
               </Landscape3dWrapper>
-              <ambientLight intensity={Math.PI / 2} />
+              <ambientLight />
               <spotLight
-                position={[10, 10, 10]}
-                angle={0.15}
-                penumbra={1}
-                decay={0}
-                intensity={Math.PI}
+                name="SpotLight"
+                intensity={0.5}
+                distance={2000}
+                position={[-200, 100, 100]}
+                castShadow={
+                  userSettingsState.visualizationSettings.castShadows.value
+                }
+                angle={0.3}
+                penumbra={0.2}
+                decay={2}
               />
-              <pointLight
-                position={[-10, -10, -10]}
-                decay={0}
-                intensity={Math.PI}
+              <directionalLight
+                name="DirectionalLight"
+                intensity={0.55 * Math.PI}
+                position={[-5, 5, 5]}
+                castShadow={
+                  userSettingsState.visualizationSettings.castShadows.value
+                }
               />
             </Canvas>
           </ContextMenu>
