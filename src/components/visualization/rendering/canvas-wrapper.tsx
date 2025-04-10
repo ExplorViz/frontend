@@ -1,4 +1,4 @@
-import { OrbitControls } from '@react-three/drei';
+import { CameraControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -30,7 +30,20 @@ export default function CanvasWrapper({
 
   return (
     <Canvas id="threejs-canvas" className={'webgl'}>
-      <OrbitControls />
+      <CameraControls
+        dollySpeed={0.3}
+        maxPolarAngle={0.5 * Math.PI}
+        minDistance={1}
+        maxDistance={100}
+        smoothTime={0}
+        mouseButtons={{
+          left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
+          middle: 0, // None
+          wheel: 32, // Zoom
+          right: 1, // Rotate
+        }}
+      />
+      <PerspectiveCamera position={[10, 10, 10]} makeDefault />
       <Landscape3dWrapper>
         {applicationModels.map((appModel) => (
           <Application3dWrapper
