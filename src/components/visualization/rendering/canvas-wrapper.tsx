@@ -32,16 +32,18 @@ export default function CanvasWrapper({
     <Canvas id="threejs-canvas" className={'webgl'}>
       <CameraControls
         dollySpeed={0.3}
-        maxPolarAngle={0.5 * Math.PI}
-        minDistance={1}
+        draggingSmoothTime={0.05}
         maxDistance={100}
-        smoothTime={0}
+        maxPolarAngle={0.5 * Math.PI}
+        makeDefault
+        minDistance={1}
         mouseButtons={{
           left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
           middle: 0, // None
           wheel: 32, // Zoom
           right: 1, // Rotate
         }}
+        smoothTime={0.5}
       />
       <PerspectiveCamera position={[10, 10, 10]} makeDefault />
       <Landscape3dWrapper>
