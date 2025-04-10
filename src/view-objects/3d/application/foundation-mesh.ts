@@ -6,6 +6,14 @@ import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/applicati
 import MinimapLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/minimap-label-mesh';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { extend, ThreeElement } from '@react-three/fiber';
+
+interface Args {
+  layout: BoxLayout,
+  foundation: Application,
+  defaultColor: THREE.Color,
+  highlightingColor: THREE.Color
+}
 
 export default class FoundationMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
@@ -19,12 +27,7 @@ export default class FoundationMesh<
   labelMesh: ComponentLabelMesh | null = null;
   minimapLabelMesh: MinimapLabelMesh | null = null;
 
-  constructor(
-    layout: BoxLayout,
-    foundation: Application,
-    defaultColor: THREE.Color,
-    highlightingColor: THREE.Color
-  ) {
+  constructor({layout, foundation, defaultColor, highlightingColor}: Args) {
     super(layout, defaultColor, highlightingColor);
 
     this.receiveShadow = true;
@@ -50,5 +53,14 @@ export default class FoundationMesh<
 
   getModelId() {
     return this.dataModel.id;
+  }
+}
+
+extend({ FoundationMesh })
+
+// Add types to ThreeElements elements so primitives pick up on it
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    foundationMesh: ThreeElement<typeof FoundationMesh>;
   }
 }
