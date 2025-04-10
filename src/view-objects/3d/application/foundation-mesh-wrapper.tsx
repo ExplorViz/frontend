@@ -1,10 +1,11 @@
+import { ThreeElements } from '@react-three/fiber';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -15,9 +16,6 @@ export default function FoundationMeshWrapper({
   application: Application;
   boxLayout: BoxLayout;
 }) {
-  const [foundationMesh, setFoundationMesh] = useState<FoundationMesh | null>(
-    null
-  );
   const [foundationPositon, setFoundationPosition] = useState<THREE.Vector3>(
     new THREE.Vector3()
   );
@@ -29,20 +27,23 @@ export default function FoundationMeshWrapper({
     }))
   );
 
-  const computeFoundation = async () => {
-    setFoundationMesh(
-      new FoundationMesh(
-        boxLayout,
-        application,
-        useUserSettingsStore.getState().colors!.foundationColor,
-        useUserSettingsStore.getState().colors!.highlightedEntityColor
-      )
-    );
-  };
+  const { foundationColor, highlightedEntityColor } = useUserSettingsStore(
+    useShallow((state) => ({
+      foundationColor: state.colors?.foundationColor,
+      highlightedEntityColor: state.colors?.highlightedEntityColor,
+    }))
+  );
 
-  useEffect(() => {
-    computeFoundation();
-  }, [application, boxLayout]);
+  const opts = useMemo<ThreeElements['foundationMesh']['args'][0]>(() => {
+    return {
+      foundation: application,
+      layout: boxLayout,
+      defaultColor: foundationColor || new THREE.Color(0x000000),
+      highlightingColor: highlightedEntityColor || new THREE.Color(0x000000),
+    };
+  }, [application, boxLayout, foundationColor, highlightedEntityColor]);
+
+  const ref = useRef<FoundationMesh>(null!);
 
   useEffect(() => {
     const layoutPosition = boxLayout.position;
@@ -64,34 +65,33 @@ export default function FoundationMeshWrapper({
     setFoundationPosition(
       new THREE.Vector3().copy(centerPoint).sub(appLayoutPosition)
     );
-  }, []);
+  }, [boxLayout]);
 
   const handleOnPointerOver = () => {
-    foundationMesh?.applyHoverEffect();
+    ref.current.applyHoverEffect();
   };
 
   const handleOnPointerOut = () => {
-    foundationMesh?.resetHoverEffect();
+    ref.current.resetHoverEffect();
   };
 
   const handleClick = () => {
     // TODO: Select active application
-    highlightingActions.toggleHighlight(foundationMesh!, { sendMessage: true });
+    highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };
 
   return (
     <>
-      {foundationMesh && (
-        <primitive
-          position={foundationPositon}
-          onPointerOver={handleOnPointerOver}
-          onPointerOut={handleOnPointerOut}
-          onClick={handleClick}
-          object={foundationMesh}
-        >
-          <LabelMeshWrapper parent={foundationMesh} />
-        </primitive>
-      )}
+      <foundationMesh
+        position={foundationPositon}
+        onClick={handleClick}
+        onPointerOver={handleOnPointerOver}
+        onPointerOut={handleOnPointerOut}
+        args={[opts]}
+        ref={ref}
+      >
+        <LabelMeshWrapper parent={ref.current} />
+      </foundationMesh>
     </>
   );
 }
