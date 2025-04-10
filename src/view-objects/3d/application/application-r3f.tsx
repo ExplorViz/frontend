@@ -1,11 +1,11 @@
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import FoundationMeshWrapper from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh-wrapper';
+import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function Application3dWrapper({
+export default function ApplicationR3F({
   applicationData,
 }: {
   applicationData: ApplicationData;
@@ -32,7 +32,7 @@ export default function Application3dWrapper({
     <>
       {app3D && (
         <primitive object={app3D}>
-          <FoundationMeshWrapper
+          <FoundationR3F
             application={applicationData.application}
             boxLayout={app3D.layout}
           />

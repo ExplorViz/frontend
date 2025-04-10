@@ -9,10 +9,10 @@ import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/applicat
 import { extend, ThreeElement } from '@react-three/fiber';
 
 interface Args {
-  layout: BoxLayout,
-  foundation: Application,
-  defaultColor: THREE.Color,
-  highlightingColor: THREE.Color
+  layout: BoxLayout;
+  foundation: Application;
+  defaultColor: THREE.Color;
+  highlightingColor: THREE.Color;
 }
 
 export default class FoundationMesh<
@@ -27,7 +27,7 @@ export default class FoundationMesh<
   labelMesh: ComponentLabelMesh | null = null;
   minimapLabelMesh: MinimapLabelMesh | null = null;
 
-  constructor({layout, foundation, defaultColor, highlightingColor}: Args) {
+  constructor({ layout, foundation, defaultColor, highlightingColor }: Args) {
     super(layout, defaultColor, highlightingColor);
 
     this.receiveShadow = true;
@@ -56,7 +56,7 @@ export default class FoundationMesh<
   }
 }
 
-extend({ FoundationMesh })
+extend({ FoundationMesh });
 
 // Add types to ThreeElements elements so primitives pick up on it
 declare module '@react-three/fiber' {

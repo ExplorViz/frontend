@@ -1,10 +1,8 @@
-import { ThreeElements } from '@react-three/fiber';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import { useEffect, useState } from 'react';
-import * as THREE from 'three';
 
-export default function Landscape3dWrapper({
+export default function LandscapeR3F({
   children,
 }: {
   children: React.ReactNode;

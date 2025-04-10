@@ -3,10 +3,10 @@ import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import Application3dWrapper from 'explorviz-frontend/src/view-objects/3d/application/application-3d-wrapper';
-import ClassCommunicationMeshWrapper from 'explorviz-frontend/src/view-objects/3d/application/class-communication-mesh-wrapper';
+import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
+import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
-import Landscape3dWrapper from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d-wrapper';
+import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
@@ -46,20 +46,20 @@ export default function CanvasWrapper({
         smoothTime={0.5}
       />
       <PerspectiveCamera position={[10, 10, 10]} makeDefault />
-      <Landscape3dWrapper>
+      <LandscapeR3F>
         {applicationModels.map((appModel) => (
-          <Application3dWrapper
+          <ApplicationR3F
             key={appModel.application.id}
             applicationData={appModel}
           />
         ))}
         {interAppCommunications.map((communication) => (
-          <ClassCommunicationMeshWrapper
+          <CommunicationR3F
             key={communication.id}
             communicationModel={communication}
           />
         ))}
-      </Landscape3dWrapper>
+      </LandscapeR3F>
       <ambientLight />
       <spotLight
         name="SpotLight"

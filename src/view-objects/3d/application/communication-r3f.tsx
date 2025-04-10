@@ -1,16 +1,23 @@
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function ClassCommunicationMeshWrapper({
+export default function CommunicationR3F({
   communicationModel,
 }: {
   communicationModel: ClassCommunication;
 }) {
   const [communicationMesh, setCommunicationMesh] =
     useState<ClazzCommunicationMesh | null>(null);
+
+  const highlightingActions = useHighlightingStore(
+    useShallow((state) => ({
+      toggleHighlight: state.toggleHighlight,
+    }))
+  );
 
   const linkActions = useLinkRendererStore(
     useShallow((state) => ({
@@ -31,19 +38,21 @@ export default function ClassCommunicationMeshWrapper({
     computeCommunicationMesh();
   }, [communicationModel]);
 
-  const handleOnPointerOver = () => {
+  const handleOnPointerOver = (event: any) => {
+    event.stopPropagation();
     communicationMesh?.applyHoverEffect();
   };
 
-  const handleOnPointerOut = () => {
+  const handleOnPointerOut = (event: any) => {
+    event.stopPropagation();
     communicationMesh?.resetHoverEffect();
   };
 
-  const handleClick = () => {
-    // TODO: Select active application
-    // highlightingActions.toggleHighlight(communicationMesh!, {
-    //   sendMessage: true,
-    // });
+  const handleClick = (event: any) => {
+    event.stopPropagation();
+    highlightingActions.toggleHighlight(communicationMesh!, {
+      sendMessage: true,
+    });
   };
 
   return (

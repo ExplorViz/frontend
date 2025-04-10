@@ -9,14 +9,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function FoundationMeshWrapper({
+export default function FoundationR3F({
   application,
   boxLayout,
 }: {
   application: Application;
   boxLayout: BoxLayout;
 }) {
-  const [foundationPositon, setFoundationPosition] = useState<THREE.Vector3>(
+  const [foundationPosition, setFoundationPosition] = useState<THREE.Vector3>(
     new THREE.Vector3()
   );
 
@@ -67,22 +67,25 @@ export default function FoundationMeshWrapper({
     );
   }, [boxLayout]);
 
-  const handleOnPointerOver = () => {
+  const handleOnPointerOver = (event: any) => {
+    event.stopPropagation();
     ref.current.applyHoverEffect();
   };
 
-  const handleOnPointerOut = () => {
+  const handleOnPointerOut = (event: any) => {
+    event.stopPropagation();
     ref.current.resetHoverEffect();
   };
 
-  const handleClick = () => {
+  const handleClick = (event: any) => {
+    event.stopPropagation();
     // TODO: Select active application
     highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };
 
   return (
     <foundationMesh
-      position={foundationPositon}
+      position={foundationPosition}
       onClick={handleClick}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}

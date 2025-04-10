@@ -97,10 +97,10 @@ import eventEmitter from '../../../utils/event-emitter';
 import { useRenderingServiceStore } from '../../../stores/rendering-service';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import Landscape3dWrapper from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d-wrapper';
+import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import useTraceUpdate from 'explorviz-frontend/src/hooks/trace-update';
-import Application3dWrapper from 'explorviz-frontend/src/view-objects/3d/application/application-3d-wrapper';
-import ClassCommunicationMeshWrapper from 'explorviz-frontend/src/view-objects/3d/application/class-communication-mesh-wrapper';
+import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
+import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 interface BrowserRenderingProps {

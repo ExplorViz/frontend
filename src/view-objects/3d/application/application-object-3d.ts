@@ -15,6 +15,7 @@ import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ChildMesh } from 'explorviz-frontend/src/view-objects/3d/application/child-mesh-interface';
+import { extend, ThreeElement } from '@react-three/fiber';
 
 /**
  * This extended Object3D adds additional functionality to
@@ -507,5 +508,14 @@ export default class ApplicationObject3D
     });
     this.resetMeshReferences();
     this.highlightedEntity = null;
+  }
+}
+
+extend({ FoundationMesh });
+
+// Add types to ThreeElements elements so primitives pick up on it
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    applicationObject3D: ThreeElement<typeof ApplicationObject3D>;
   }
 }

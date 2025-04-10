@@ -83,18 +83,18 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     }
 
     const sourceMesh = sourceApp.getBoxMeshByModelId(sourceClass.id);
-    let start = new THREE.Vector3();
-    if (sourceMesh) {
-      start = sourceMesh.getWorldPosition(new THREE.Vector3());
-      landscapeGroup.worldToLocal(start);
-    }
+    let start = new THREE.Vector3().copy(sourceApp.position);
+    // if (sourceMesh) {
+    //   start = sourceMesh.getWorldPosition(new THREE.Vector3());
+    //   landscapeGroup.worldToLocal(start);
+    // }
 
     const targetMesh = targetApp.getBoxMeshByModelId(targetClass.id);
-    let end = new THREE.Vector3();
-    if (targetMesh) {
-      end = targetMesh.getWorldPosition(new THREE.Vector3());
-      landscapeGroup.worldToLocal(end);
-    }
+    let end = new THREE.Vector3().copy(targetApp.position);
+    // if (targetMesh) {
+    //   end = targetMesh.getWorldPosition(new THREE.Vector3());
+    //   landscapeGroup.worldToLocal(end);
+    // }
 
     // Add arrow
     const commLayout = new CommunicationLayout(classCommunication);
