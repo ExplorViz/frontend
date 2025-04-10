@@ -101,6 +101,7 @@ import Landscape3dWrapper from 'explorviz-frontend/src/view-objects/3d/landscape
 import useTraceUpdate from 'explorviz-frontend/src/hooks/trace-update';
 import Application3dWrapper from 'explorviz-frontend/src/view-objects/3d/application/application-3d-wrapper';
 import ClassCommunicationMeshWrapper from 'explorviz-frontend/src/view-objects/3d/application/class-communication-mesh-wrapper';
+import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -303,15 +304,6 @@ export default function BrowserRendering({
       cleanup: state.cleanup,
     }))
   );
-
-  const toastHandlerActions = useToastHandlerStore(
-    useShallow((state) => ({
-      showInfoToastMessage: state.showInfoToastMessage,
-      showSuccessToastMessage: state.showSuccessToastMessage,
-      showErrorToastMessage: state.showErrorToastMessage,
-    }))
-  );
-
   // MARK: Event handlers
 
   const getSelectedApplicationObject3D = () => {
@@ -406,10 +398,6 @@ export default function BrowserRendering({
       selectedObject3D,
       landscapeData.structureLandscapeData
     );
-  };
-
-  const resetView = async () => {
-    cameraControls.current!.resetCameraFocusOn(1.0, [landscape3D]);
   };
 
   const initCameras = () => {
@@ -918,36 +906,6 @@ export default function BrowserRendering({
   const toggleForceAppearenceLayer = useRef<boolean>(false);
   const semanticZoomToggle = useRef<boolean>(false);
 
-  // MARK: Variables
-
-  const rightClickMenuItems = [
-    { title: 'Reset View', action: resetView },
-    {
-      title: 'Open All Components',
-      action: () => {
-        if (
-          userSettingsState.visualizationSettings.autoOpenCloseFeature.value ==
-            true &&
-          userSettingsState.visualizationSettings.semanticZoomState.value ==
-            true
-        ) {
-          toastHandlerActions.showErrorToastMessage(
-            'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
-          );
-          return;
-        }
-        applicationRendererActions.openAllComponentsOfAllApplications();
-      },
-    },
-    {
-      title: configurationState.isCommRendered
-        ? 'Hide Communication'
-        : 'Add Communication',
-      action: applicationRendererActions.toggleCommunicationRendering,
-    },
-    { title: 'Enter AR', action: switchToAR },
-  ];
-
   // MARK: Effects and hooks
 
   useEffect(
@@ -1164,45 +1122,11 @@ export default function BrowserRendering({
 
           {heatmapConfigurationState.heatmapActive && <HeatmapInfo />}
 
-          <ContextMenu items={rightClickMenuItems}>
-            <Canvas id="threejs-canvas" className={'webgl'} ref={canvas}>
-              <OrbitControls />
-              <Landscape3dWrapper>
-                {applicationModels.map((appModel) => (
-                  <Application3dWrapper
-                    key={appModel.application.id}
-                    applicationData={appModel}
-                  />
-                ))}
-                {interAppCommunications.map((communication) => (
-                  <ClassCommunicationMeshWrapper
-                    key={communication.id}
-                    communicationModel={communication}
-                  />
-                ))}
-              </Landscape3dWrapper>
-              <ambientLight />
-              <spotLight
-                name="SpotLight"
-                intensity={0.5}
-                distance={2000}
-                position={[-200, 100, 100]}
-                castShadow={
-                  userSettingsState.visualizationSettings.castShadows.value
-                }
-                angle={0.3}
-                penumbra={0.2}
-                decay={2}
-              />
-              <directionalLight
-                name="DirectionalLight"
-                intensity={0.55 * Math.PI}
-                position={[-5, 5, 5]}
-                castShadow={
-                  userSettingsState.visualizationSettings.castShadows.value
-                }
-              />
-            </Canvas>
+          <ContextMenu switchToAR={switchToAR}>
+            <CanvasWrapper
+              landscapeData={landscapeData}
+              landscape3D={landscape3D}
+            />
           </ContextMenu>
           {/* {loadNewLandscape.isRunning && (
             <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">

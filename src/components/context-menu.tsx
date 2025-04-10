@@ -1,6 +1,11 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { Position2D } from '../hooks/interaction-modifier';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useShallow } from 'zustand/react/shallow';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 
 export type ContextMenuItem = {
   title: string;
@@ -8,11 +13,14 @@ export type ContextMenuItem = {
 };
 
 interface ContextMenuProps {
-  items: ContextMenuItem[];
   children: ReactNode;
+  switchToAR: () => void;
 }
 
-export default function ContextMenu({ items, children }: ContextMenuProps) {
+export default function ContextMenu({
+  children,
+  switchToAR,
+}: ContextMenuProps) {
   const [visible, setVisible] = useState<boolean>(false);
   const [position, setPosition] = useState<Position2D | null>(null);
 
@@ -21,6 +29,71 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
   const reveal = () => setVisible(true);
 
   const hide = () => setVisible(false);
+
+  const applicationRendererActions = useApplicationRendererStore(
+    useShallow((state) => ({
+      openAllComponentsOfAllApplications:
+        state.openAllComponentsOfAllApplications,
+      toggleCommunicationRendering: state.toggleCommunicationRendering,
+    }))
+  );
+
+  const configurationState = useConfigurationStore(
+    useShallow((state) => ({
+      isCommRendered: state.isCommRendered,
+    }))
+  );
+
+  const userSettingsState = useUserSettingsStore(
+    useShallow((state) => ({
+      visualizationSettings: state.visualizationSettings,
+      colors: state.colors,
+    }))
+  );
+
+  const toastHandlerActions = useToastHandlerStore(
+    useShallow((state) => ({
+      showInfoToastMessage: state.showInfoToastMessage,
+      showSuccessToastMessage: state.showSuccessToastMessage,
+      showErrorToastMessage: state.showErrorToastMessage,
+    }))
+  );
+
+  const resetView = async () => {
+    toastHandlerActions.showErrorToastMessage(
+      'Needs to be implemented',
+      'TODO'
+    );
+    // cameraControls.current!.resetCameraFocusOn();
+  };
+
+  const menuItems: ContextMenuItem[] = [
+    { title: 'Reset View', action: resetView },
+    {
+      title: 'Open All Components',
+      action: () => {
+        if (
+          userSettingsState.visualizationSettings.autoOpenCloseFeature.value ==
+            true &&
+          userSettingsState.visualizationSettings.semanticZoomState.value ==
+            true
+        ) {
+          toastHandlerActions.showErrorToastMessage(
+            'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
+          );
+          return;
+        }
+        applicationRendererActions.openAllComponentsOfAllApplications();
+      },
+    },
+    {
+      title: configurationState.isCommRendered
+        ? 'Hide Communication'
+        : 'Add Communication',
+      action: applicationRendererActions.toggleCommunicationRendering,
+    },
+    { title: 'Enter AR', action: switchToAR },
+  ];
 
   const onMouseUp = (event: React.MouseEvent) => {
     if (event.button === 2 && !mouseMoved.current) {
@@ -72,7 +145,7 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
             zIndex: '2000',
           }}
         >
-          {items.map((item) => (
+          {menuItems.map((item) => (
             <ContextMenuItem
               key={item.title}
               title={item.title}
