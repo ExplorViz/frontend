@@ -14,7 +14,7 @@ export default class ClazzLabelMesh extends LabelMesh {
     size: number,
     letterLimit: number = 15
   ) {
-    super(font, labelText, textColor);
+    super({font, labelText, textColor});
 
     this.renderOrder = 1;
 

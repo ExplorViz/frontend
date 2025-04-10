@@ -10,7 +10,7 @@ export default class MinimapLabelMesh extends LabelMesh {
     textColor = new THREE.Color('white'),
     size: number
   ) {
-    super(font, labelText, textColor);
+    super({font, labelText, textColor});
     this.computeLabel(labelText, size);
   }
 
