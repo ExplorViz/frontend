@@ -81,17 +81,15 @@ export default function FoundationMeshWrapper({
   };
 
   return (
-    <>
-      <foundationMesh
-        position={foundationPositon}
-        onClick={handleClick}
-        onPointerOver={handleOnPointerOver}
-        onPointerOut={handleOnPointerOut}
-        args={[opts]}
-        ref={ref}
-      >
-        <LabelMeshWrapper parent={ref.current} />
-      </foundationMesh>
-    </>
+    <foundationMesh
+      position={foundationPositon}
+      onClick={handleClick}
+      onPointerOver={handleOnPointerOver}
+      onPointerOut={handleOnPointerOut}
+      args={[opts]}
+      ref={ref}
+    >
+      <LabelMeshWrapper />
+    </foundationMesh>
   );
 }
