@@ -1182,7 +1182,9 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
       if (closestCentroidIndex == -1) continue;
       // add point to centroid labels:
       labels.get(closestCentroidIndex)['points'].push(a);
-      labels.get(closestCentroidIndex)['assignedObjects'].push(aassignedToObjects);
+      labels
+        .get(closestCentroidIndex)
+        ['assignedObjects'].push(aassignedToObjects);
     }
     return labels;
   }

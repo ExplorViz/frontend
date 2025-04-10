@@ -8,7 +8,14 @@ import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import { getStoredNumberSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import { positionBoxLabel } from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import ApplicationObject3D from './application-object-3d';
+import { extend, ThreeElement } from '@react-three/fiber';
 
+interface Args {
+  layout: BoxLayout;
+  component: Package;
+  defaultColor: THREE.Color;
+  highlightingColor: THREE.Color;
+}
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
 
@@ -33,12 +40,7 @@ export default class ComponentMesh extends BoxMesh {
     this._labelMesh = value;
   }
 
-  constructor(
-    layout: BoxLayout,
-    component: Package,
-    defaultColor: THREE.Color,
-    highlightingColor: THREE.Color
-  ) {
+  constructor({ layout, component, defaultColor, highlightingColor }: Args) {
     super(layout, defaultColor, highlightingColor);
 
     this.receiveShadow = true;
@@ -83,5 +85,14 @@ export default class ComponentMesh extends BoxMesh {
 
   getModelId() {
     return this.dataModel.id;
+  }
+}
+
+extend({ ComponentMesh });
+
+// Add types to ThreeElements elements so primitives pick up on it
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    componentMesh: ThreeElement<typeof ComponentMesh>;
   }
 }

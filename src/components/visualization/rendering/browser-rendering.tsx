@@ -1077,8 +1077,6 @@ export default function BrowserRendering({
   //     onSpaceDown: handleSpaceBar,
   //   }
   // );
-  console.log('Re-render');
-
   useHeatmapRenderer(localUserState.camera, scene);
 
   const { applicationModels, interAppCommunications } = useLandscapeDataWatcher(

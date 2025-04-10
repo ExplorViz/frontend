@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
@@ -97,6 +96,8 @@ export function addComponentAndChildrenToScene(
   font: Font,
   componentLevel = 1
 ) {
+  // TODO:
+  return;
   const application = applicationObject3D.dataModel.application;
   const componentLayout = applicationObject3D.getBoxLayout(component.id);
   const applicationLayout = applicationObject3D.getBoxLayout(application.id);
@@ -116,12 +117,12 @@ export function addComponentAndChildrenToScene(
   // Set color alternating (e.g. light and dark green) according to component level
   const color =
     componentLevel % 2 === 0 ? componentEvenColor : componentOddColor;
-  const componentMesh = new ComponentMesh(
-    componentLayout,
+  const componentMesh = new ComponentMesh({
+    layout: componentLayout,
     component,
-    color,
-    highlightedEntityColor
-  );
+    defaultColor: color,
+    highlightingColor: highlightedEntityColor,
+  });
 
   // automatically open packages when zooming in.
   // mesh.callBeforeAppearenceZero = () => {

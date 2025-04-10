@@ -32,7 +32,7 @@ export default class FoundationMesh<
 
     this.receiveShadow = true;
 
-    const geometry = new THREE.BoxGeometry(1, 1, 1, 1, 1, 1);
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
     this.setDefaultMaterial();
     this.dataModel = foundation;

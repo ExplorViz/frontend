@@ -82,7 +82,6 @@ export function positionBoxLabel(
       label.position.z = 0;
     }
   }
-  console.log('Old position:', label.position);
 }
 
 export function positionBoxLabelWithData(

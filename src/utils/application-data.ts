@@ -1,5 +1,8 @@
 // import { tracked } from '@glimmer/tracking';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   ApplicationMetrics,
@@ -52,6 +55,18 @@ export default class ApplicationData {
 
   getId() {
     return this.application.id;
+  }
+
+  getPackages(packages = this.application.packages) {
+    let newPackages: Package[] = [];
+    packages.forEach((appPackage) => {
+      newPackages.push(appPackage);
+      newPackages = newPackages.concat(
+        this.getPackages(appPackage.subPackages)
+      );
+    });
+
+    return newPackages;
   }
 
   getClassCount(packages = this.application.packages, count = 0) {
