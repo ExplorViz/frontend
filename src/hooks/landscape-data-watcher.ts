@@ -41,12 +41,18 @@ import { updateHighlighting } from '../utils/application-rendering/highlighting'
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
   landscape3D: Landscape3D
-): ApplicationData[] {
+): {
+  applicationModels: ApplicationData[];
+  interAppCommunications: ClassCommunication[];
+} {
   // MARK: Stores
 
   const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
     []
   );
+  const [interAppCommunications, setInterAppCommunications] = useState<
+    ClassCommunication[]
+  >([]);
 
   const applicationRendererState = useApplicationRendererStore(
     useShallow((state) => ({
@@ -322,6 +328,7 @@ export default function useLandscapeDataWatcher(
     document.dispatchEvent(new Event('Landscape initialized'));
 
     setApplicationModels(applicationModels);
+    setInterAppCommunications(interAppCommunications);
   };
 
   const updateApplicationData = async (
@@ -388,5 +395,5 @@ export default function useLandscapeDataWatcher(
     };
   }, []);
 
-  return applicationModels;
+  return { applicationModels, interAppCommunications };
 }

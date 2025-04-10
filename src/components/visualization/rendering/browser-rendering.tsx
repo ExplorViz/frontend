@@ -100,6 +100,7 @@ import { OrbitControls } from '@react-three/drei';
 import Landscape3dWrapper from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d-wrapper';
 import useTraceUpdate from 'explorviz-frontend/src/hooks/trace-update';
 import Application3dWrapper from 'explorviz-frontend/src/view-objects/3d/application/application-3d-wrapper';
+import ClassCommunicationMeshWrapper from 'explorviz-frontend/src/view-objects/3d/application/class-communication-mesh-wrapper';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -1121,7 +1122,11 @@ export default function BrowserRendering({
   console.log('Re-render');
 
   useHeatmapRenderer(localUserState.camera, scene);
-  const applicationModels = useLandscapeDataWatcher(landscapeData, landscape3D);
+
+  const { applicationModels, interAppCommunications } = useLandscapeDataWatcher(
+    landscapeData,
+    landscape3D
+  );
 
   useCollaborativeModifier();
 
@@ -1159,12 +1164,6 @@ export default function BrowserRendering({
 
           {heatmapConfigurationState.heatmapActive && <HeatmapInfo />}
 
-          {/* <canvas
-            id="threejs-canvas"
-            className={'webgl'}
-            style={{ display: 'none' }}
-            ref={canvas}
-          /> */}
           <ContextMenu items={rightClickMenuItems}>
             <Canvas id="threejs-canvas" className={'webgl'} ref={canvas}>
               <OrbitControls />
@@ -1173,6 +1172,12 @@ export default function BrowserRendering({
                   <Application3dWrapper
                     key={appModel.application.id}
                     applicationData={appModel}
+                  />
+                ))}
+                {interAppCommunications.map((communication) => (
+                  <ClassCommunicationMeshWrapper
+                    key={communication.id}
+                    communicationModel={communication}
                   />
                 ))}
               </Landscape3dWrapper>
