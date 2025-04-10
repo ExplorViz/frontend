@@ -14,9 +14,17 @@ import {
   ExplorVizColors,
   useUserSettingsStore,
 } from 'explorviz-frontend/src/stores/user-settings';
-import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import K8sMesh, {
+  K8sDataModel,
+} from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import ClazzLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-label-mesh';
 import SemanticZoomManager from '../../view-objects/3d/application/utils/semantic-zoom-manager';
+import {
+  Application,
+  isApplication,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -56,6 +64,57 @@ export function positionBoxLabel(
     // Do not animate label on foundation since it is always opened
     label.position.z = zPosOfOpenBox;
   } else if (boxMesh.opened) {
+    if (getStoredSettings().enableAnimations.value) {
+      gsap.to(label.position, {
+        duration: 0.25,
+        z: zPosOfOpenBox,
+      });
+    } else {
+      label.position.z = zPosOfOpenBox;
+    }
+  } else {
+    if (getStoredSettings().enableAnimations.value) {
+      gsap.to(label.position, {
+        duration: 0.25,
+        z: 0,
+      });
+    } else {
+      label.position.z = 0;
+    }
+  }
+  console.log('Old position:', label.position);
+}
+
+export function positionBoxLabelWithData(
+  label: ComponentLabelMesh,
+  dataModel: Application | Package | K8sDataModel,
+  boxLayout: BoxLayout
+) {
+  // Align text with component parent
+  label.rotation.x = -(Math.PI / 2);
+
+  label.geometry.center();
+
+  const scaleX = boxLayout.width;
+  const scaleZ = boxLayout.depth;
+
+  // Set y-position just above the box of the parent mesh (0.5 since position is in center)
+  label.position.y = 0.51;
+
+  // TODO: The calculation of the z-position can still be off on tall boxes
+  const boxDimensions = new THREE.Vector3();
+  label.geometry.boundingBox?.getSize(boxDimensions);
+
+  const parentAspectRatio = scaleX / scaleZ;
+
+  const zPosOfOpenBox = 0.5 - (boxDimensions.y * parentAspectRatio) / 2;
+
+  // Foundation is labeled like an opened component
+  if (isApplication(dataModel)) {
+    // Do not animate label on foundation since it is always opened
+    label.position.z = zPosOfOpenBox;
+    // } else if (boxMesh.opened) {
+  } else if (true) {
     if (getStoredSettings().enableAnimations.value) {
       gsap.to(label.position, {
         duration: 0.25,
@@ -158,6 +217,27 @@ export function getBoxLabel(
 
   boxMesh.labelMesh = labelMesh;
   positionBoxLabel(boxMesh);
+
+  return labelMesh;
+}
+
+export function getBoxLabelWithData(
+  boxMesh: ComponentMesh | FoundationMesh | K8sMesh,
+  font: Font,
+  color: THREE.Color,
+  minHeight = 1.5,
+  minLength = 4
+) {
+  const labelMesh = new ComponentLabelMesh(
+    boxMesh,
+    font,
+    color,
+    minHeight,
+    minLength
+  );
+  labelMesh.computeLabelWithData(boxMesh.dataModel, boxMesh.layout);
+
+  positionBoxLabelWithData(labelMesh, boxMesh.dataModel, boxMesh.layout);
 
   return labelMesh;
 }
