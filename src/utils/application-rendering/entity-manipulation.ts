@@ -18,13 +18,8 @@ import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaborati
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
-import {
-  getStoredNumberSetting,
-  getStoredSettings,
-} from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import { ExplorVizColors } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -85,8 +80,8 @@ export function openComponentAndAncestor(
  * @param app3D Application object which contains the mesh
  */
 export function openComponentMesh(mesh: ComponentMesh) {
-  const vizualizationStore = useVisualizationStore.getState();
-  const visualizationState = vizualizationStore.actions.getComponentState(
+  const visualizationStore = useVisualizationStore.getState();
+  const visualizationState = visualizationStore.actions.getComponentState(
     mesh.getModelId()
   );
   if (visualizationState.isOpen) {
@@ -109,7 +104,7 @@ export function openComponentMesh(mesh: ComponentMesh) {
     mesh.position.y = yPos; */
   /*   } */
 
-  vizualizationStore.actions.updateComponentState(mesh.getModelId(), {
+  visualizationStore.actions.updateComponentState(mesh.getModelId(), {
     isOpen: true,
     isVisible: true,
   });
@@ -119,7 +114,7 @@ export function openComponentMesh(mesh: ComponentMesh) {
 
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-    vizualizationStore.actions.updateComponentState(childComponent.id, {
+    visualizationStore.actions.updateComponentState(childComponent.id, {
       isVisible: true,
     });
   });
