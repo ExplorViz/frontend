@@ -84,17 +84,17 @@ export function openComponentAndAncestor(
  * @param mesh Component mesh which shall be opened
  * @param app3D Application object which contains the mesh
  */
-export function openComponentMesh(
-  mesh: ComponentMesh
-) {
+export function openComponentMesh(mesh: ComponentMesh) {
   const vizualizationStore = useVisualizationStore.getState();
-  const visualizationState = vizualizationStore.actions.getComponentState(mesh.getModelId());
+  const visualizationState = vizualizationStore.actions.getComponentState(
+    mesh.getModelId()
+  );
   if (visualizationState.isOpen) {
     return;
   }
 
-    // add back later
-/*   if (getStoredSettings().enableAnimations.value) {
+  // add back later
+  /*   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
       duration: 0.25,
       height: OPENED_COMPONENT_HEIGHT,
@@ -105,9 +105,9 @@ export function openComponentMesh(
       y: yPos,
     });
   } else { */
-/*     mesh.height = OPENED_COMPONENT_HEIGHT;
+  /*     mesh.height = OPENED_COMPONENT_HEIGHT;
     mesh.position.y = yPos; */
-/*   } */
+  /*   } */
 
   vizualizationStore.actions.updateComponentState(mesh.getModelId(), {
     isOpen: true,
@@ -126,13 +126,13 @@ export function openComponentMesh(
 
   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
-/*     const childMesh = app3D.getBoxMeshByModelId(clazz.id);
+    /*     const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh) { */
-/*       vizualizationStore.actions.updateComponentState(clazz.id, {
+    /*       vizualizationStore.actions.updateComponentState(clazz.id, {
         isVisible: true,
       }); */
-      // childMesh.saveOriginalAppearence();
-/*     } */
+    // childMesh.saveOriginalAppearence();
+    /*     } */
   });
 }
 
@@ -142,20 +142,16 @@ export function openComponentMesh(
  * @param mesh Component mesh which shall be closed
  * @param app3D Application object which contains the mesh
  */
-export function closeComponentMesh(
-  componentId: string,
-  dataModel: Package,
-) {
-  console.log('test')
+export function closeComponentMesh(componentId: string, dataModel: Package) {
   const vizualizationStore = useVisualizationStore.getState();
-  const visualizationState = vizualizationStore.actions.getComponentState(componentId);
-  console.log(visualizationState.isOpen)
+  const visualizationState =
+    vizualizationStore.actions.getComponentState(componentId);
   if (!visualizationState.isOpen) {
     return;
   }
 
   // Position is in center of box, need to subtract apps layout position
-/*   const yPos =
+  /*   const yPos =
     mesh.layout.positionY +
     CLOSED_COMPONENT_HEIGHT / 2 -
     app3D.layout.positionY;
@@ -179,29 +175,27 @@ export function closeComponentMesh(
     isOpen: false,
   });
 
-/*   Labeler.positionBoxLabel(mesh);
+  /*   Labeler.positionBoxLabel(mesh);
   mesh.saveOriginalAppearence(); */
 
   const childComponents = dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-      console.log('hide component')
-      vizualizationStore.actions.updateComponentState(childComponent.id, {
-        isVisible: false,
-      });
-
-      console.log('closeComponentMesh', vizualizationStore.actions.getComponentState(childComponent.id));
-      if (vizualizationStore.actions.getComponentState(childComponent.id).isOpen) {
-        console.log('is open');
-        closeComponentMesh(childComponent.id, childComponent);
-      }
-      // Reset highlighting if highlighted entity is no longer visible
-/*       if (!keepHighlighted && childMesh.highlighted) {
+    vizualizationStore.actions.updateComponentState(childComponent.id, {
+      isVisible: false,
+    });
+    if (
+      vizualizationStore.actions.getComponentState(childComponent.id).isOpen
+    ) {
+      closeComponentMesh(childComponent.id, childComponent);
+    }
+    // Reset highlighting if highlighted entity is no longer visible
+    /*       if (!keepHighlighted && childMesh.highlighted) {
         removeHighlighting(childMesh, app3D);
       }
       childMesh.saveOriginalAppearence(); */
   });
 
-/*   const clazzes = mesh.dataModel.classes;
+  /*   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
     const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh instanceof ClazzMesh) {

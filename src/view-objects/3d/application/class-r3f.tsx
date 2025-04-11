@@ -18,10 +18,6 @@ export default function ClassR3F({
   appLayout: BoxLayout;
   layout: BoxLayout;
 }) {
-  const [classPosition, setClassPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3()
-  );
-
   const highlightingActions = useHighlightingStore(
     useShallow((state) => ({
       toggleHighlight: state.toggleHighlight,
@@ -47,29 +43,6 @@ export default function ClassR3F({
 
   const ref = useRef<ComponentMesh>(null!);
 
-  useEffect(() => {
-    const layoutPosition = layout.position;
-
-    // Box meshes origin is in the center
-    const centerPoint = new THREE.Vector3(
-      layoutPosition.x + layout.width / 2.0,
-      layoutPosition.y + layout.height / 2.0,
-      layoutPosition.z + layout.depth / 2.0
-    );
-
-    // Offset position with applications position
-    const appLayoutPosition = new THREE.Vector3(
-      appLayout.positionX,
-      appLayout.positionY,
-      appLayout.positionZ
-    );
-
-    const position = new THREE.Vector3()
-      .copy(centerPoint)
-      .sub(appLayoutPosition);
-    setClassPosition(position);
-  }, [layout]);
-
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
     ref.current.applyHoverEffect();
@@ -87,7 +60,7 @@ export default function ClassR3F({
 
   return (
     <clazzMesh
-      position={classPosition}
+      position={layout.position}
       onClick={handleClick}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}

@@ -46,25 +46,7 @@ export default function FoundationR3F({
   const ref = useRef<FoundationMesh>(null!);
 
   useEffect(() => {
-    const layoutPosition = boxLayout.position;
-
-    // Box meshes origin is in the center
-    const centerPoint = new THREE.Vector3(
-      layoutPosition.x + boxLayout.width / 2.0,
-      layoutPosition.y + boxLayout.height / 2.0,
-      layoutPosition.z + boxLayout.depth / 2.0
-    );
-
-    // Offset position with applications position
-    const appLayoutPosition = new THREE.Vector3(
-      boxLayout.positionX,
-      boxLayout.positionY,
-      boxLayout.positionZ
-    );
-
-    setFoundationPosition(
-      new THREE.Vector3().copy(centerPoint).sub(appLayoutPosition)
-    );
+    setFoundationPosition(boxLayout.position);
   }, [boxLayout]);
 
   const handleOnPointerOver = (event: any) => {
@@ -77,15 +59,9 @@ export default function FoundationR3F({
     ref.current.resetHoverEffect();
   };
 
-  const { controls } = useThree();
-
   const handleClick = (event: any) => {
-    console.log(controls);
-
-    // controls.fitToSphere(FoundationMesh, true);
-
     event.stopPropagation();
-    // TODO: Select active application
+    // TODO: Select active application for heatmap
 
     highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };

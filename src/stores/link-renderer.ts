@@ -13,6 +13,8 @@ import { useConfigurationStore } from './configuration';
 import { useUserSettingsStore } from './user-settings';
 import { VisualizationSettings } from '../utils/settings/settings-schemas';
 import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 
 interface LinkRendererState {
   linkIdToMesh: Map<string, ClazzCommunicationMesh>;
@@ -27,11 +29,7 @@ interface LinkRendererState {
   ) => ClazzCommunicationMesh | undefined;
   getLinkById: (linkId: string) => ClazzCommunicationMesh | undefined;
   _computeCurveHeight: (commLayout: CommunicationLayout) => number;
-  _addArrows: (
-    pipe: ClazzCommunicationMesh,
-    curveHeight: number,
-    viewCenterPoint: THREE.Vector3
-  ) => void;
+  _addArrows: (pipe: ClazzCommunicationMesh, curveHeight: number) => void;
   setFlag: (flag: boolean) => void;
 }
 
@@ -83,18 +81,31 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     }
 
     const sourceMesh = sourceApp.getBoxMeshByModelId(sourceClass.id);
-    let start = new THREE.Vector3().copy(sourceApp.position);
-    // if (sourceMesh) {
-    //   start = sourceMesh.getWorldPosition(new THREE.Vector3());
-    //   landscapeGroup.worldToLocal(start);
-    // }
+    if (
+      !(sourceMesh instanceof ClazzMesh || sourceMesh instanceof ComponentMesh)
+    ) {
+      console.error(
+        `Cannot find source mesh for ${sourceClass.id} in ${sourceApp.id}`
+      );
+      return;
+    }
+
+    let start = new THREE.Vector3()
+      .copy(sourceApp.layout.position)
+      .add(sourceMesh.layout.position);
 
     const targetMesh = targetApp.getBoxMeshByModelId(targetClass.id);
-    let end = new THREE.Vector3().copy(targetApp.position);
-    // if (targetMesh) {
-    //   end = targetMesh.getWorldPosition(new THREE.Vector3());
-    //   landscapeGroup.worldToLocal(end);
-    // }
+    if (
+      !(targetMesh instanceof ClazzMesh || targetMesh instanceof ComponentMesh)
+    ) {
+      console.error(
+        `Cannot find source mesh for ${sourceClass.id} in ${sourceApp.id}`
+      );
+      return;
+    }
+    let end = new THREE.Vector3()
+      .copy(targetApp.layout.position)
+      .add(targetMesh.layout.position);
 
     // Add arrow
     const commLayout = new CommunicationLayout(classCommunication);
@@ -108,9 +119,9 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     line.geometry.dispose();
 
     const curveHeight = get()._computeCurveHeight(commLayout);
-    line.render(new THREE.Vector3(), curveHeight);
+    line.render(curveHeight);
 
-    get()._addArrows(line, curveHeight, new THREE.Vector3());
+    get()._addArrows(line, curveHeight);
     // SemanticZoomManager: save the original appearence
     line.saveOriginalAppearence();
     line.saveCurrentlyActiveLayout();
@@ -179,11 +190,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     return baseCurveHeight * get().appSettings().curvyCommHeight.value;
   },
 
-  _addArrows: (
-    pipe: ClazzCommunicationMesh,
-    curveHeight: number,
-    viewCenterPoint: THREE.Vector3
-  ) => {
+  _addArrows: (pipe: ClazzCommunicationMesh, curveHeight: number) => {
     pipe.children.forEach((child) => {
       if (child instanceof CommunicationArrowMesh) {
         pipe.remove(child);
@@ -198,7 +205,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
       useUserSettingsStore.getState().colors!.communicationArrowColor;
 
     if (arrowThickness > 0.0) {
-      pipe.addArrows(viewCenterPoint, arrowThickness, arrowHeight, arrowColor);
+      pipe.addArrows(arrowThickness, arrowHeight, arrowColor);
     }
 
     if (pipe.material.opacity !== 1) {

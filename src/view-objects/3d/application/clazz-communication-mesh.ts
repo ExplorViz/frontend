@@ -45,17 +45,17 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.setAppearence(2, () => {
       this.layout.lineThickness = this._layout_original.lineThickness / 2;
       this.geometry.dispose();
-      this.render(this.applicationCenter, this.curveHeight);
+      this.render(this.curveHeight);
     });
     this.setAppearence(3, () => {
       this.layout.lineThickness = this._layout_original.lineThickness / 3;
       this.geometry.dispose();
-      this.render(this.applicationCenter, this.curveHeight);
+      this.render(this.curveHeight);
     });
     this.setAppearence(4, () => {
       this.layout.lineThickness = this._layout_original.lineThickness / 4;
       this.geometry.dispose();
-      this.render(this.applicationCenter, this.curveHeight);
+      this.render(this.curveHeight);
     });
   }
 
@@ -141,16 +141,16 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    *
    * @param applicationCenter The center point of the application
    */
-  renderAsLine(applicationCenter: THREE.Vector3) {
+  renderAsLine() {
     const { layout } = this;
     const { startPoint } = layout;
     const { endPoint } = layout;
 
-    const start = new THREE.Vector3();
-    start.subVectors(startPoint, applicationCenter);
+    const start = startPoint; //new THREE.Vector3();
+    // start.subVectors(startPoint, applicationCenter);
 
-    const end = new THREE.Vector3();
-    end.subVectors(endPoint, applicationCenter);
+    const end = endPoint; // new THREE.Vector3();
+    // end.subVectors(endPoint, applicationCenter);
 
     const direction = new THREE.Vector3().subVectors(end, start);
     const orientation = new THREE.Matrix4();
@@ -179,9 +179,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const { layout } = this;
 
     // Place sphere for communication above corresponding class
-    this.position.copy(
-      new THREE.Vector3().subVectors(layout.startPoint, applicationCenter)
-    );
+    this.position.copy(layout.startPoint);
     this.geometry = new THREE.SphereGeometry(0.5);
 
     return;
@@ -194,26 +192,20 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @param curveHeight Max height of the communication. Default 0.0
    * @param desiredSegments The number of segments (tubes) the geometry persists of. Default 20
    */
-  render(
-    applicationCenter = new THREE.Vector3(),
-    curveHeight = 0.0,
-    desiredSegments = 20
-  ) {
+  render(curveHeight = 0.0, desiredSegments = 20) {
     // Handle recursive communication
     if (this.dataModel.communication.isRecursive) {
-      this.renderRecursiveCommunication(applicationCenter);
+      this.renderRecursiveCommunication();
       return;
     }
 
-    this.applicationCenter = applicationCenter;
     this.curveHeight = curveHeight;
     const { layout } = this;
 
-    const start = new THREE.Vector3();
-    start.subVectors(layout.startPoint, applicationCenter);
+    const start = layout.startPoint;
 
-    const end = new THREE.Vector3();
-    end.subVectors(layout.endPoint, applicationCenter);
+    const end = layout.endPoint; // new THREE.Vector3();
+    // end.subVectors(layout.endPoint, applicationCenter);
 
     // Determine middle
     const dir = end.clone().sub(start);
@@ -246,12 +238,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @param yOffset Units to move the communication arrows up by. Default 1.0
    * @param color The color of the arrows. Default black
    */
-  addArrows(
-    applicationCenter = new THREE.Vector3(),
-    width: number,
-    yOffset: number,
-    color: THREE.Color
-  ) {
+  addArrows(width: number, yOffset: number, color: THREE.Color) {
     const { layout } = this;
     // Scale arrow with communication line thickness
     const { startPoint } = layout;
@@ -263,8 +250,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     const end = new THREE.Vector3();
 
     if (!this.dataModel.communication.isRecursive) {
-      start.subVectors(startPoint, applicationCenter);
-      end.subVectors(endPoint, applicationCenter);
+      start.copy(startPoint);
+      end.copy(endPoint);
     }
 
     this.addArrow(start, end, arrowWidth, yOffset, color);
@@ -393,7 +380,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     if (arg === 'vr' && !this.isHovered) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
-      this.render(this.applicationCenter, this.curveHeight);
+      this.render(this.curveHeight);
       super.applyHoverEffect();
 
       this.getArrowMeshes().forEach((arrowMesh) => {
@@ -410,7 +397,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       if (mode === 'vr') {
         this.layout.lineThickness /= 5;
         this.geometry.dispose();
-        this.render(this.applicationCenter, this.curveHeight);
+        this.render(this.curveHeight);
       }
 
       this.getArrowMeshes().forEach((arrowMesh) => {

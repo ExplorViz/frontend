@@ -183,17 +183,17 @@ export default function applyCommunicationLayout(
 
         const sourceLayout = boxLayoutMap.get(sourceEntity.id);
         if (sourceLayout) {
-          commLayout.startX = sourceLayout.positionX + sourceLayout.width / 2.0;
+          commLayout.startX = sourceLayout.positionX;
           commLayout.startY = sourceLayout.positionY;
-          commLayout.startZ = sourceLayout.positionZ + sourceLayout.depth / 2.0;
+          commLayout.startZ = sourceLayout.positionZ;
         }
 
         const targetLayout = boxLayoutMap.get(targetEntity.id);
         if (targetLayout) {
-          commLayout.endX = targetLayout.positionX + targetLayout.width / 2.0;
+          commLayout.endX = targetLayout.positionX;
           // commLayout.endY = targetLayout.positionY + 0.05;
           commLayout.endY = targetLayout.positionY;
-          commLayout.endZ = targetLayout.positionZ + targetLayout.depth / 2.0;
+          commLayout.endZ = targetLayout.positionZ;
         }
 
         // Place recursive communication slightly above class

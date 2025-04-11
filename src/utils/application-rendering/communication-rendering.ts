@@ -35,11 +35,7 @@ export default class CommunicationRendering {
   }
 
   // Add arrow indicators for class communication
-  private addArrows(
-    pipe: ClazzCommunicationMesh,
-    curveHeight: number,
-    viewCenterPoint: Vector3
-  ) {
+  private addArrows(pipe: ClazzCommunicationMesh, curveHeight: number) {
     const arrowOffset =
       useUserSettingsStore.getState().visualizationSettings.commArrowOffset
         .value;
@@ -50,7 +46,7 @@ export default class CommunicationRendering {
       useUserSettingsStore.getState().colors!.communicationArrowColor;
 
     if (arrowThickness > 0.0) {
-      pipe.addArrows(viewCenterPoint, arrowThickness, arrowHeight, arrowColor);
+      pipe.addArrows(arrowThickness, arrowHeight, arrowColor);
     }
   }
 
@@ -198,13 +194,11 @@ export default class CommunicationRendering {
 
         const curveHeight = this.computeCurveHeight(commLayout);
 
-        const appOffset = applicationObject3D.layout.position;
-
-        pipe.render(appOffset, curveHeight);
+        pipe.render(curveHeight);
 
         applicationObject3D.add(pipe);
 
-        this.addArrows(pipe, curveHeight, appOffset);
+        this.addArrows(pipe, curveHeight);
 
         if (classCommunication.isBidirectional) {
           this.addBidirectionalArrow(pipe);

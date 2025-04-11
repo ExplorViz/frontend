@@ -263,13 +263,15 @@ export function convertElkToBoxLayout(
   }
 
   const boxLayout = new BoxLayout();
-  boxLayout.positionX = xOffset + elkGraph.x!;
-  boxLayout.positionY = COMPONENT_HEIGHT * depth;
-  boxLayout.positionZ = zOffset + elkGraph.y!;
+
   // Prevent 0 value for width and depth
   boxLayout.width = elkGraph.width || CLASS_FOOTPRINT;
   boxLayout.depth = elkGraph.height || CLASS_FOOTPRINT;
   boxLayout.height = height;
+
+  boxLayout.positionX = xOffset + elkGraph.x!;
+  boxLayout.positionY = COMPONENT_HEIGHT * depth;
+  boxLayout.positionZ = zOffset + elkGraph.y!;
 
   // Landscape and applications are on the same level
   if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
@@ -277,9 +279,25 @@ export function convertElkToBoxLayout(
     depth = depth - 1;
   }
 
+  if (
+    elkGraph.id.startsWith(PACKAGE_PREFIX) ||
+    elkGraph.id.startsWith(CLASS_PREFIX)
+  ) {
+    // Geometries in three.js are centered around the origin
+    boxLayout.positionX = boxLayout.positionX + boxLayout.width / 2.0;
+    boxLayout.positionY = boxLayout.positionY + boxLayout.height / 2.0;
+    boxLayout.positionZ = boxLayout.positionZ + boxLayout.depth / 2.0;
+  }
+
   // Ids in ELK must not start with numbers, therefore we added letters as prefix
   if (elkGraph.id.substring(APP_PREFIX.length) !== DUMMY_PREFIX) {
     layoutMap.set(elkGraph.id.substring(APP_PREFIX.length), boxLayout);
+  }
+
+  if (elkGraph.id.startsWith(APP_PREFIX)) {
+    // Add application offset since all components and classes are placed directly in app
+    xOffset -= boxLayout.positionX;
+    zOffset -= boxLayout.positionZ;
   }
 
   elkGraph.children?.forEach((child: any) => {

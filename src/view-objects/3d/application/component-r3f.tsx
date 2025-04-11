@@ -112,26 +112,7 @@ export default function ComponentR3F({
   ]);
 
   useEffect(() => {
-    const layoutPosition = layout.position;
-
-    // Box meshes origin is in the center
-    const centerPoint = new THREE.Vector3(
-      layoutPosition.x + layout.width / 2.0,
-      layoutPosition.y + layout.height / 2.0,
-      layoutPosition.z + layout.depth / 2.0
-    );
-
-    // Offset position with applications position
-    const appLayoutPosition = new THREE.Vector3(
-      appLayout.positionX,
-      appLayout.positionY,
-      appLayout.positionZ
-    );
-
-    const position = new THREE.Vector3()
-      .copy(centerPoint)
-      .sub(appLayoutPosition);
-    setComponentPosition(position);
+    setComponentPosition(layout.position);
   }, [layout]);
 
   const handleOnPointerOver = (event: any) => {
@@ -150,7 +131,7 @@ export default function ComponentR3F({
 
   return (
     <componentMesh
-      position={componentPosition}
+      position={layout.position}
       highlighted={isSelected}
       opened={isOpen}
       visible={isVisible}
