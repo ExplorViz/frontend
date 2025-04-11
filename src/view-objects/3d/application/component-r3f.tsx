@@ -69,7 +69,6 @@ export default function ComponentR3F({
       .copy(centerPoint)
       .sub(appLayoutPosition);
     setComponentPosition(position);
-    console.log(new THREE.Vector3().copy(centerPoint).sub(appLayoutPosition));
   }, [layout]);
 
   const handleOnPointerOver = (event: any) => {
