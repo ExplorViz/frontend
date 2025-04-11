@@ -1,22 +1,24 @@
-import { ThreeElements, useThree } from '@react-three/fiber';
+import { ThreeElements } from '@react-three/fiber';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function FoundationR3F({
-  application,
-  boxLayout,
+export default function ClassR3F({
+  dataModel,
+  appLayout,
+  layout,
 }: {
-  application: Application;
-  boxLayout: BoxLayout;
+  dataModel: Class;
+  appLayout: BoxLayout;
+  layout: BoxLayout;
 }) {
-  const [foundationPosition, setFoundationPosition] = useState<THREE.Vector3>(
+  const [classPosition, setClassPosition] = useState<THREE.Vector3>(
     new THREE.Vector3()
   );
 
@@ -27,45 +29,46 @@ export default function FoundationR3F({
     }))
   );
 
-  const { foundationColor, highlightedEntityColor } = useUserSettingsStore(
+  const { classColor, highlightedEntityColor } = useUserSettingsStore(
     useShallow((state) => ({
-      foundationColor: state.colors?.foundationColor,
+      classColor: state.colors?.clazzColor,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
     }))
   );
 
-  const opts = useMemo<ThreeElements['foundationMesh']['args'][0]>(() => {
+  const opts = useMemo<ThreeElements['clazzMesh']['args'][0]>(() => {
     return {
-      foundation: application,
-      layout: boxLayout,
-      defaultColor: foundationColor || new THREE.Color(0x000000),
+      layout,
+      clazz: dataModel,
+      defaultColor: classColor || new THREE.Color(0x000000),
       highlightingColor: highlightedEntityColor || new THREE.Color(0x000000),
     };
-  }, [application, boxLayout, foundationColor, highlightedEntityColor]);
+  }, [dataModel, layout, classColor, highlightedEntityColor]);
 
-  const ref = useRef<FoundationMesh>(null!);
+  const ref = useRef<ComponentMesh>(null!);
 
   useEffect(() => {
-    const layoutPosition = boxLayout.position;
+    const layoutPosition = layout.position;
 
     // Box meshes origin is in the center
     const centerPoint = new THREE.Vector3(
-      layoutPosition.x + boxLayout.width / 2.0,
-      layoutPosition.y + boxLayout.height / 2.0,
-      layoutPosition.z + boxLayout.depth / 2.0
+      layoutPosition.x + layout.width / 2.0,
+      layoutPosition.y + layout.height / 2.0,
+      layoutPosition.z + layout.depth / 2.0
     );
 
     // Offset position with applications position
     const appLayoutPosition = new THREE.Vector3(
-      boxLayout.positionX,
-      boxLayout.positionY,
-      boxLayout.positionZ
+      appLayout.positionX,
+      appLayout.positionY,
+      appLayout.positionZ
     );
 
-    setFoundationPosition(
-      new THREE.Vector3().copy(centerPoint).sub(appLayoutPosition)
-    );
-  }, [boxLayout]);
+    const position = new THREE.Vector3()
+      .copy(centerPoint)
+      .sub(appLayoutPosition);
+    setClassPosition(position);
+  }, [layout]);
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
@@ -77,29 +80,21 @@ export default function FoundationR3F({
     ref.current.resetHoverEffect();
   };
 
-  const { controls } = useThree();
-
   const handleClick = (event: any) => {
-    console.log(controls);
-
-    // controls.fitToSphere(FoundationMesh, true);
-
     event.stopPropagation();
-    // TODO: Select active application
-
     highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };
 
   return (
-    <foundationMesh
-      position={foundationPosition}
+    <clazzMesh
+      position={classPosition}
       onClick={handleClick}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       args={[opts]}
       ref={ref}
     >
-      <LabelMeshWrapper />
-    </foundationMesh>
+      {/* <LabelMeshWrapper /> */}
+    </clazzMesh>
   );
 }

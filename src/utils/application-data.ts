@@ -1,6 +1,7 @@
 // import { tracked } from '@glimmer/tracking';
 import {
   Application,
+  Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
@@ -69,14 +70,16 @@ export default class ApplicationData {
     return newPackages;
   }
 
-  getClassCount(packages = this.application.packages, count = 0) {
-    let newCount = count;
+  getClasses(
+    packages = this.application.packages,
+    classes: Class[] = []
+  ): Class[] {
     packages.forEach((appPackage) => {
-      newCount += appPackage.classes.length;
-      newCount += this.getClassCount(appPackage.subPackages);
+      classes = classes.concat(appPackage.classes);
+      classes = this.getClasses(appPackage.subPackages, classes);
     });
 
-    return newCount;
+    return classes;
   }
 }
 export interface K8sData {

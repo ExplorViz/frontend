@@ -257,7 +257,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
 
       // Check if new classes have been discovered
       const oldClassCount = app3D.getClassMeshes().length;
-      const newClassCount = applicationData.getClassCount();
+      const newClassCount = applicationData.getClasses().length;
       // Might happen in evolution that we have no classes at all
       const hasStructureChanged =
         oldClassCount === 0 || oldClassCount !== newClassCount;

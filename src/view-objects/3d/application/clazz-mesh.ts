@@ -13,6 +13,7 @@ import ImmsersiveClassScene from 'explorviz-frontend/src/utils/class-immersive-s
 import { MethodGroup } from './method-group';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import { extend, ThreeElement } from '@react-three/fiber';
 
 export class _ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
@@ -236,13 +237,24 @@ export class _ClazzMesh extends BoxMesh {
   }
 }
 
+interface Args {
+  layout: BoxLayout;
+  clazz: Class;
+  defaultColor: THREE.Color;
+  highlightingColor: THREE.Color;
+}
+
 export default class ClazzMesh extends ImmersiveViewMixin(_ClazzMesh) {
-  constructor(
-    layout: BoxLayout,
-    clazz: Class,
-    defaultColor: THREE.Color,
-    highlightingColor: THREE.Color
-  ) {
+  constructor({ layout, clazz, defaultColor, highlightingColor }: Args) {
     super(layout, clazz, defaultColor, highlightingColor);
+  }
+}
+
+extend({ ClazzMesh });
+
+// Add types to ThreeElements elements so primitives pick up on it
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    clazzMesh: ThreeElement<typeof ClazzMesh>;
   }
 }
