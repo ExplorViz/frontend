@@ -23,6 +23,8 @@ import {
   getStoredSettings,
 } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import { ExplorVizColors } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -83,22 +85,16 @@ export function openComponentAndAncestor(
  * @param app3D Application object which contains the mesh
  */
 export function openComponentMesh(
-  mesh: ComponentMesh,
-  app3D: ApplicationObject3D
+  mesh: ComponentMesh
 ) {
-  if (mesh.opened) {
+  const vizualizationStore = useVisualizationStore.getState();
+  const visualizationState = vizualizationStore.actions.getComponentState(mesh.getModelId());
+  if (visualizationState.isOpen) {
     return;
   }
 
-  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
-    'openedComponentHeight'
-  );
-
-  // Position is center of box, need to subtract apps layout position
-  const yPos =
-    mesh.layout.positionY + mesh.layout.height / 2 - app3D.layout.positionY;
-
-  if (getStoredSettings().enableAnimations.value) {
+    // add back later
+/*   if (getStoredSettings().enableAnimations.value) {
     gsap.to(mesh, {
       duration: 0.25,
       height: OPENED_COMPONENT_HEIGHT,
@@ -108,31 +104,35 @@ export function openComponentMesh(
       duration: 0.25,
       y: yPos,
     });
-  } else {
-    mesh.height = OPENED_COMPONENT_HEIGHT;
-    mesh.position.y = yPos;
-  }
+  } else { */
+/*     mesh.height = OPENED_COMPONENT_HEIGHT;
+    mesh.position.y = yPos; */
+/*   } */
 
-  mesh.opened = true;
-  mesh.visible = true;
-  mesh.saveOriginalAppearence();
+  vizualizationStore.actions.updateComponentState(mesh.getModelId(), {
+    isOpen: true,
+    isVisible: true,
+  });
+
+  // mesh.saveOriginalAppearence();
   Labeler.positionBoxLabel(mesh);
 
   const childComponents = mesh.dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-    const childMesh = app3D.getBoxMeshByModelId(childComponent.id);
-    if (childMesh) {
-      childMesh.visible = true;
-    }
+    vizualizationStore.actions.updateComponentState(childComponent.id, {
+      isVisible: true,
+    });
   });
 
   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
-    const childMesh = app3D.getBoxMeshByModelId(clazz.id);
-    if (childMesh) {
-      childMesh.visible = true;
-      childMesh.saveOriginalAppearence();
-    }
+/*     const childMesh = app3D.getBoxMeshByModelId(clazz.id);
+    if (childMesh) { */
+/*       vizualizationStore.actions.updateComponentState(clazz.id, {
+        isVisible: true,
+      }); */
+      // childMesh.saveOriginalAppearence();
+/*     } */
   });
 }
 
@@ -143,20 +143,19 @@ export function openComponentMesh(
  * @param app3D Application object which contains the mesh
  */
 export function closeComponentMesh(
-  mesh: ComponentMesh,
-  app3D: ApplicationObject3D,
-  keepHighlighted: boolean
+  componentId: string,
+  dataModel: Package,
 ) {
-  if (!mesh.opened) {
+  console.log('test')
+  const vizualizationStore = useVisualizationStore.getState();
+  const visualizationState = vizualizationStore.actions.getComponentState(componentId);
+  console.log(visualizationState.isOpen)
+  if (!visualizationState.isOpen) {
     return;
   }
 
-  const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
-    'closedComponentHeight'
-  );
-
   // Position is in center of box, need to subtract apps layout position
-  const yPos =
+/*   const yPos =
     mesh.layout.positionY +
     CLOSED_COMPONENT_HEIGHT / 2 -
     app3D.layout.positionY;
@@ -174,28 +173,35 @@ export function closeComponentMesh(
   } else {
     mesh.height = CLOSED_COMPONENT_HEIGHT;
     mesh.position.y = yPos;
-  }
+  } */
 
-  mesh.opened = false;
-  Labeler.positionBoxLabel(mesh);
-  mesh.saveOriginalAppearence();
-  const childComponents = mesh.dataModel.subPackages;
-  childComponents.forEach((childComponent) => {
-    const childMesh = app3D.getBoxMeshByModelId(childComponent.id);
-    if (childMesh instanceof ComponentMesh) {
-      childMesh.visible = false;
-      if (childMesh.opened) {
-        closeComponentMesh(childMesh, app3D, keepHighlighted);
-      }
-      // Reset highlighting if highlighted entity is no longer visible
-      if (!keepHighlighted && childMesh.highlighted) {
-        removeHighlighting(childMesh, app3D);
-      }
-      childMesh.saveOriginalAppearence();
-    }
+  vizualizationStore.actions.updateComponentState(componentId, {
+    isOpen: false,
   });
 
-  const clazzes = mesh.dataModel.classes;
+/*   Labeler.positionBoxLabel(mesh);
+  mesh.saveOriginalAppearence(); */
+
+  const childComponents = dataModel.subPackages;
+  childComponents.forEach((childComponent) => {
+      console.log('hide component')
+      vizualizationStore.actions.updateComponentState(childComponent.id, {
+        isVisible: false,
+      });
+
+      console.log('closeComponentMesh', vizualizationStore.actions.getComponentState(childComponent.id));
+      if (vizualizationStore.actions.getComponentState(childComponent.id).isOpen) {
+        console.log('is open');
+        closeComponentMesh(childComponent.id, childComponent);
+      }
+      // Reset highlighting if highlighted entity is no longer visible
+/*       if (!keepHighlighted && childMesh.highlighted) {
+        removeHighlighting(childMesh, app3D);
+      }
+      childMesh.saveOriginalAppearence(); */
+  });
+
+/*   const clazzes = mesh.dataModel.classes;
   clazzes.forEach((clazz) => {
     const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh instanceof ClazzMesh) {
@@ -205,7 +211,7 @@ export function closeComponentMesh(
         removeHighlighting(childMesh, app3D);
       }
     }
-  });
+  }); */
 }
 
 /**

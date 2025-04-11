@@ -13,14 +13,39 @@ export default abstract class BaseMesh<
   implements SemanticZoomableObject
 {
   // @tracked
-  highlighted: boolean = false;
+  private _highlighted: boolean = false;
+
+  set highlighted(value: boolean) {
+    if(value) {
+      this.highlight();
+    } else {
+      this.unhighlight();
+    }
+  }
+
+  get highlighted(): boolean {
+    return this._highlighted;
+  }
+
   defaultColor: THREE.Color;
 
   defaultOpacity: number;
 
   highlightingColor: THREE.Color;
 
-  isHovered = false;
+  private _isHovered = false;
+
+  set isHovered(value: boolean) {
+    if(value) {
+      this.applyHoverEffect();
+    } else {
+      this.resetHoverEffect();
+    }
+  }
+
+  get isHovered(): boolean {
+    return this._isHovered;
+  }
 
   appearenceLevel: number = 0;
 
@@ -276,7 +301,7 @@ export default abstract class BaseMesh<
   }
 
   highlight() {
-    this.highlighted = true;
+    this._highlighted = true;
     if (
       this.material instanceof THREE.MeshLambertMaterial ||
       this.material instanceof THREE.MeshBasicMaterial ||
@@ -287,7 +312,7 @@ export default abstract class BaseMesh<
   }
 
   unhighlight() {
-    this.highlighted = false;
+    this._highlighted = false;
     if (
       this.material instanceof THREE.MeshLambertMaterial ||
       this.material instanceof THREE.MeshBasicMaterial ||
@@ -328,7 +353,7 @@ export default abstract class BaseMesh<
    * @param colorShift Specifies color shift: <1 is darker and >1 is lighter
    */
   applyHoverEffect(colorShift = 1.1): void {
-    if (this.isHovered) return;
+    if (this._isHovered) return;
 
     // Calculate and apply brighter color to material ('hover effect')
     if (
@@ -341,7 +366,7 @@ export default abstract class BaseMesh<
         colorShift
       );
     }
-    this.isHovered = true;
+    this._isHovered = true;
   }
 
   /**
@@ -358,7 +383,7 @@ export default abstract class BaseMesh<
       // Restore normal color (depends on highlighting status)
       this.material.color = highlighted ? highlightingColor : defaultColor;
     }
-    this.isHovered = false;
+    this._isHovered = false;
   }
 
   updateColor() {

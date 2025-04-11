@@ -29,7 +29,16 @@ export default function CanvasWrapper({
   );
 
   return (
-    <Canvas id="threejs-canvas" className={'webgl'}>
+    <Canvas
+      id="threejs-canvas"
+      className={'webgl'}
+      onCreated={(state) => {
+        state.setEvents({
+          filter: (intersections) =>
+            intersections.filter((i) => i.object.visible),
+        });
+      }}
+    >
       <CameraControls
         dollySpeed={0.3}
         draggingSmoothTime={0.05}

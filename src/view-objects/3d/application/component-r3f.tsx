@@ -1,7 +1,13 @@
 import { ThreeElements } from '@react-three/fiber';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import {
+  closeComponentMesh,
+  openComponentMesh,
+} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getStoredNumberSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
@@ -22,31 +28,82 @@ export default function ComponentR3F({
     new THREE.Vector3()
   );
 
-  const highlightingActions = useHighlightingStore(
-    useShallow((state) => ({
-      toggleHighlight: state.toggleHighlight,
-      updateHighlightingOnHover: state.updateHighlightingOnHover,
-    }))
-  );
-
-  const { foundationColor: componentColor, highlightedEntityColor } =
-    useUserSettingsStore(
+  const { isOpen, isSelected, isVisible, updateComponentState } =
+    useVisualizationStore(
       useShallow((state) => ({
-        foundationColor: state.colors?.componentEvenColor,
-        highlightedEntityColor: state.colors?.highlightedEntityColor,
+        isOpen: state.componentData[component.id].isOpen,
+        isSelected: state.componentData[component.id].isSelected,
+        isVisible: state.componentData[component.id].isVisible,
+        updateComponentState: state.actions.updateComponentState,
       }))
     );
+
+  const handleClick = (event: any) => {
+    updateComponentState(component.id, {
+      isSelected: !isSelected,
+    });
+    // todo: propagate state to collab service
+    // highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
+  };
+
+  const handleDoubleClick = (event: any) => {
+    if (!isOpen) {
+      openComponentMesh(ref.current);
+      const yPos = layout.positionY + layout.height / 2 - appLayout.positionY;
+
+      ref.current.height = OPENED_COMPONENT_HEIGHT;
+      setComponentPosition(
+        new THREE.Vector3(componentPosition.x, yPos, componentPosition.z)
+      );
+    } else {
+      closeComponentMesh(component.id, component);
+      const yPos =
+        layout.positionY + CLOSED_COMPONENT_HEIGHT / 2 - appLayout.positionY;
+      ref.current.height = CLOSED_COMPONENT_HEIGHT;
+      setComponentPosition(
+        new THREE.Vector3(componentPosition.x, yPos, componentPosition.z)
+      );
+    }
+    /*     updateComponentState(component.id, {
+      isOpen: !visualizationState.isOpen,
+    }); */
+    // todo: propagate state to collab service
+  };
+
+  const OPENED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'openedComponentHeight'
+  );
+  const CLOSED_COMPONENT_HEIGHT = getStoredNumberSetting(
+    'closedComponentHeight'
+  );
+
+  const ref = useRef<ComponentMesh>(null!);
+
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
+
+  const { componentColor, highlightedEntityColor } = useUserSettingsStore(
+    useShallow((state) => ({
+      highlightedEntityColor:
+        state.visualizationSettings.highlightedEntityColor.value,
+      componentColor: state.visualizationSettings.componentEvenColor.value,
+    }))
+  );
 
   const opts = useMemo<ThreeElements['componentMesh']['args'][0]>(() => {
     return {
       layout,
       component,
-      defaultColor: componentColor || new THREE.Color(0x000000),
-      highlightingColor: highlightedEntityColor || new THREE.Color(0x000000),
+      defaultColor: new THREE.Color(componentColor),
+      highlightingColor: new THREE.Color(highlightedEntityColor),
     };
-  }, [component, layout, componentColor, highlightedEntityColor]);
-
-  const ref = useRef<ComponentMesh>(null!);
+  }, [
+    component,
+    layout,
+    componentColor,
+    highlightedEntityColor,
+    componentColor,
+  ]);
 
   useEffect(() => {
     const layoutPosition = layout.position;
@@ -69,28 +126,30 @@ export default function ComponentR3F({
       .copy(centerPoint)
       .sub(appLayoutPosition);
     setComponentPosition(position);
-    console.log(new THREE.Vector3().copy(centerPoint).sub(appLayoutPosition));
   }, [layout]);
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    ref.current.applyHoverEffect();
+    updateComponentState(component.id, {
+      isHovered: true,
+    });
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    ref.current.resetHoverEffect();
-  };
-
-  const handleClick = (event: any) => {
-    event.stopPropagation();
-    highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
+    updateComponentState(component.id, {
+      isHovered: false,
+    });
   };
 
   return (
     <componentMesh
       position={componentPosition}
-      onClick={handleClick}
+      highlighted={isSelected}
+      opened={isOpen}
+      visible={isVisible}
+      onClick={handleClickWithPrevent}
+      onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       args={[opts]}

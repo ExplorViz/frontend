@@ -23,7 +23,15 @@ export default class ComponentMesh extends BoxMesh {
 
   dataModel: Package;
 
-  opened: boolean = true;
+  _opened: boolean = true;
+
+  public get opened(): boolean {
+    return this._opened;
+  }
+  public set opened(value: boolean) {
+    this._opened = value;
+  }
+
 
   // Set by labeler
   private _labelMesh: ComponentLabelMesh | null = null;

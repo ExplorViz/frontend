@@ -1,13 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useShallow } from 'zustand/react/shallow';
-import { useResizeDetector } from 'react-resize-detector';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import useInteractionModifier, {
-  Position2D,
-} from 'explorviz-frontend/src/hooks/interaction-modifier';
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
@@ -42,7 +39,6 @@ import IdeCrossCommunication from 'explorviz-frontend/src/ide/ide-cross-communic
 import { removeAllHighlightingFor } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
@@ -54,10 +50,7 @@ import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import calculateHeatmap from 'explorviz-frontend/src/utils/calculate-heatmap';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import LoadingIndicator from 'explorviz-frontend/src/components/visualization/rendering/loading-indicator';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
 import RestructureOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener';
@@ -95,13 +88,11 @@ import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
 import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
 import eventEmitter from '../../../utils/event-emitter';
 import { useRenderingServiceStore } from '../../../stores/rendering-service';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import useTraceUpdate from 'explorviz-frontend/src/hooks/trace-update';
-import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
-import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { getAllPackagesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -302,6 +293,13 @@ export default function BrowserRendering({
     useShallow((state) => ({
       setActiveApplication: state.setActiveApplication,
       cleanup: state.cleanup,
+    }))
+  );
+
+  const { setComponentState, removeAllComponentStates } = useVisualizationStore(
+    useShallow((state) => ({
+      setComponentState: state.actions.setComponentState,
+      removeAllComponentStates: state.actions.removeAllComponentStates,
     }))
   );
   // MARK: Event handlers
@@ -907,6 +905,28 @@ export default function BrowserRendering({
   const semanticZoomToggle = useRef<boolean>(false);
 
   // MARK: Effects and hooks
+
+  useEffect(() => {
+    if (landscapeData) {
+      const allPackages = getAllApplicationsInLandscape(
+        landscapeData.structureLandscapeData
+      )
+        .map((app) => getAllPackagesInApplication(app))
+        .flat();
+      allPackages.forEach((pkg) => {
+        setComponentState(pkg.id, {
+          id: pkg.id,
+          isOpen: true,
+          isVisible: true,
+          isSelected: false,
+          isHovered: false,
+        });
+      });
+    }
+    return () => {
+      removeAllComponentStates();
+    };
+  }, [landscapeData]);
 
   useEffect(
     function initialize() {
