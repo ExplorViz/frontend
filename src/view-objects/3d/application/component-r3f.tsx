@@ -82,27 +82,33 @@ export default function ComponentR3F({
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
-  const { componentColor, highlightedEntityColor } = useUserSettingsStore(
-    useShallow((state) => ({
-      highlightedEntityColor:
-        state.visualizationSettings.highlightedEntityColor.value,
-      componentColor: state.visualizationSettings.componentEvenColor.value,
-    }))
-  );
+  const { componentEvenColor, componentOddColor, highlightedEntityColor } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        highlightedEntityColor:
+          state.visualizationSettings.highlightedEntityColor.value,
+        componentEvenColor:
+          state.visualizationSettings.componentEvenColor.value,
+        componentOddColor: state.visualizationSettings.componentOddColor.value,
+      }))
+    );
 
   const opts = useMemo<ThreeElements['componentMesh']['args'][0]>(() => {
     return {
       layout,
       component,
-      defaultColor: new THREE.Color(componentColor),
+      defaultColor:
+        component.level % 2 === 0
+          ? new THREE.Color(componentEvenColor)
+          : new THREE.Color(componentOddColor),
       highlightingColor: new THREE.Color(highlightedEntityColor),
     };
   }, [
     component,
     layout,
-    componentColor,
+    componentEvenColor,
+    componentOddColor,
     highlightedEntityColor,
-    componentColor,
   ]);
 
   useEffect(() => {

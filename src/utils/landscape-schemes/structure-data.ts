@@ -48,6 +48,7 @@ export type Class = BaseModel &
     name: string;
     methods: Method[];
     parent: Package;
+    level: number;
   };
 
 export type Package = BaseModel &
@@ -56,6 +57,7 @@ export type Package = BaseModel &
     subPackages: Package[];
     classes: Class[];
     parent?: Package;
+    level: number;
   };
 
 export type Application = BaseModel &
