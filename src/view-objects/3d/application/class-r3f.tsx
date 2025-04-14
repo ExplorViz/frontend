@@ -1,4 +1,5 @@
 import { ThreeElements } from '@react-three/fiber';
+import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -50,15 +51,20 @@ export default function ClassR3F({
     ref.current.resetHoverEffect();
   };
 
-  const handleClick = (event: any) => {
-    event.stopPropagation();
+  const handleClick = (/*event: any*/) => {
     highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };
+
+  const handleDoubleClick = (/*event: any*/) => {};
+
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
   return (
     <clazzMesh
       position={layout.position}
-      onClick={handleClick}
+      onClick={handleClickWithPrevent}
+      onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       args={[opts]}
