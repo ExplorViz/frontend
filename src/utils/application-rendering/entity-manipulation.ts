@@ -135,10 +135,11 @@ export function openComponentMesh(mesh: ComponentMesh) {
  * @param mesh Component mesh which shall be closed
  * @param app3D Application object which contains the mesh
  */
-export function closeComponentMesh(componentId: string, dataModel: Package) {
+export function closeComponentMesh(dataModel: Package) {
   const visualizationStore = useVisualizationStore.getState();
-  const visualizationState =
-    visualizationStore.actions.getComponentState(componentId);
+  const visualizationState = visualizationStore.actions.getComponentState(
+    dataModel.id
+  );
   if (!visualizationState.isOpen) {
     return;
   }
@@ -164,7 +165,7 @@ export function closeComponentMesh(componentId: string, dataModel: Package) {
     mesh.position.y = yPos;
   } */
 
-  visualizationStore.actions.updateComponentState(componentId, {
+  visualizationStore.actions.updateComponentState(dataModel.id, {
     isOpen: false,
   });
 
@@ -179,7 +180,7 @@ export function closeComponentMesh(componentId: string, dataModel: Package) {
     if (
       visualizationStore.actions.getComponentState(childComponent.id).isOpen
     ) {
-      closeComponentMesh(childComponent.id, childComponent);
+      closeComponentMesh(childComponent);
     }
     // Reset highlighting if highlighted entity is no longer visible
     /*       if (!keepHighlighted && childMesh.highlighted) {
@@ -206,17 +207,14 @@ export function closeComponentMesh(componentId: string, dataModel: Package) {
  *
  * @param applicationObject3D Application object which contains the components
  */
-export function closeAllComponents(
-  applicationObject3D: ApplicationObject3D,
-  keepHighlighted: boolean
-) {
+export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
   const application = applicationObject3D.dataModel.application;
 
   // Close each component
   application.packages.forEach((component) => {
     const componentMesh = applicationObject3D.getBoxMeshByModelId(component.id);
     if (componentMesh instanceof ComponentMesh) {
-      closeComponentMesh(componentMesh, applicationObject3D, keepHighlighted);
+      closeComponentMesh(componentMesh.dataModel);
     }
   });
 }
@@ -267,7 +265,7 @@ export function closeComponentsRecursively(
     if (mesh !== undefined && mesh instanceof ComponentMesh && mesh.opened) {
       // mesh.opened needed!
 
-      closeComponentMesh(mesh, applicationObject3D, false);
+      closeComponentMesh(mesh.dataModel);
       useMessageSenderStore
         .getState()
         .sendComponentUpdate(
@@ -310,13 +308,9 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D) {
  * @param mesh Mesh which shall be opened / closed
  * @param applicationObject3D Application object which contains the mesh
  */
-export function toggleComponentMeshState(
-  mesh: ComponentMesh,
-  applicationObject3D: ApplicationObject3D,
-  keepHighlighted: boolean
-) {
+export function toggleComponentMeshState(mesh: ComponentMesh) {
   if (mesh.opened) {
-    closeComponentMesh(mesh, applicationObject3D, keepHighlighted);
+    closeComponentMesh(mesh.dataModel);
   } else {
     openComponentMesh(mesh);
   }

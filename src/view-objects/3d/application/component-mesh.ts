@@ -49,7 +49,6 @@ export default class ComponentMesh extends BoxMesh {
 
   constructor({ layout, component, defaultColor, highlightingColor }: Args) {
     super(layout, defaultColor, highlightingColor);
-
     this.receiveShadow = true;
     this.castShadow = true;
 

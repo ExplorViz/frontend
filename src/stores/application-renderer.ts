@@ -510,11 +510,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       componentMesh: ComponentMesh,
       applicationObject3D: ApplicationObject3D
     ) => {
-      EntityManipulation.toggleComponentMeshState(
-        componentMesh,
-        applicationObject3D,
-        get().appSettings().keepHighlightingOnOpenOrClose.value
-      );
+      EntityManipulation.toggleComponentMeshState(componentMesh);
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
     },
 
@@ -555,10 +551,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     },
 
     closeAllComponentsLocally: (applicationObject3D: ApplicationObject3D) => {
-      EntityManipulation.closeAllComponents(
-        applicationObject3D,
-        get().appSettings().keepHighlightingOnOpenOrClose.value
-      );
+      EntityManipulation.closeAllComponents(applicationObject3D);
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
     },
 

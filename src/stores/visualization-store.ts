@@ -3,20 +3,20 @@ import { create } from 'zustand';
 interface ComponentState {
   id: string;
   isVisible: boolean;
-  isSelected: boolean;
+  isHighlighted: boolean;
   isHovered: boolean;
   isOpen: boolean;
 }
 
 interface VisualizationStoreState {
-  componentData: {[id: string]: ComponentState};
+  componentData: { [id: string]: ComponentState };
   actions: {
     getComponentState: (id: string) => ComponentState;
     setComponentState: (id: string, state: ComponentState) => void;
     updateComponentState: (id: string, state: Partial<ComponentState>) => void;
     removeComponentState: (id: string) => void;
     removeAllComponentStates: () => void;
-  }
+  };
 }
 
 export const useVisualizationStore = create<VisualizationStoreState>(
@@ -28,7 +28,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         if (!state) {
           throw new Error(`Component with id ${id} not found`);
         }
-        return get().componentData[id]
+        return get().componentData[id];
       },
       setComponentState: (id: string, state: Omit<ComponentState, 'id'>) => {
         const existingState = get().componentData[id];
@@ -38,13 +38,16 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         set((prevState) => ({
           componentData: {
             ...prevState.componentData,
-            [id]: {...state, id},
+            [id]: { ...state, id },
           },
         }));
       },
-      updateComponentState: (id: string, state: Partial<Omit<ComponentState, 'id'>>) => {
+      updateComponentState: (
+        id: string,
+        state: Partial<Omit<ComponentState, 'id'>>
+      ) => {
         const currentState = get().actions.getComponentState(id);
-        if(!currentState) {
+        if (!currentState) {
           throw new Error(`Component with id ${id} not found`);
         }
         set((prevState) => ({

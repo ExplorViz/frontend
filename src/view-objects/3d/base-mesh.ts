@@ -16,7 +16,7 @@ export default abstract class BaseMesh<
   private _highlighted: boolean = false;
 
   set highlighted(value: boolean) {
-    if(value) {
+    if (value) {
       this.highlight();
     } else {
       this.unhighlight();
@@ -36,7 +36,7 @@ export default abstract class BaseMesh<
   private _isHovered = false;
 
   set isHovered(value: boolean) {
-    if(value) {
+    if (value) {
       this.applyHoverEffect();
     } else {
       this.resetHoverEffect();

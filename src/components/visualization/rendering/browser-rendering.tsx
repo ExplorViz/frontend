@@ -918,7 +918,7 @@ export default function BrowserRendering({
           id: pkg.id,
           isOpen: true,
           isVisible: true,
-          isSelected: false,
+          isHighlighted: false,
           isHovered: false,
         });
       });
