@@ -6,9 +6,10 @@ import * as EntityManipulation from 'explorviz-frontend/src/utils/application-re
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { gsap } from 'gsap';
 
 export default function ComponentR3F({
   component,
@@ -36,6 +37,7 @@ export default function ComponentR3F({
     closedComponentHeight,
     componentEvenColor,
     componentOddColor,
+    enableAnimations,
     highlightedEntityColor,
     openedComponentHeight,
   } = useUserSettingsStore(
@@ -48,22 +50,85 @@ export default function ComponentR3F({
         state.visualizationSettings.closedComponentHeight.value,
       openedComponentHeight:
         state.visualizationSettings.openedComponentHeight.value,
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
     }))
   );
 
+  // Open component using gsap animation system
+  const openWithAnimation = useCallback(() => {
+    const gsapValues = {
+      height: componentHeight,
+      positionY: componentPosition.y,
+    };
+    gsap.to(gsapValues, {
+      height: openedComponentHeight,
+      positionY: layout.positionY,
+      duration: 0.25,
+      onUpdate: () => {
+        setComponentHeight(gsapValues.height);
+        setComponentPosition(
+          layout.position.clone().setY(gsapValues.positionY)
+        );
+      },
+    });
+  }, [componentHeight, openedComponentHeight, componentPosition, layout]);
+
+  // Close component using gsap animation system
+  const closeWithAnimation = useCallback(() => {
+    const gsapValues = {
+      height: componentHeight,
+      positionY: componentPosition.y,
+    };
+    gsap.to(gsapValues, {
+      height: closedComponentHeight,
+      positionY:
+        layout.positionY + (closedComponentHeight - openedComponentHeight) / 2,
+      duration: 0.25,
+      onUpdate: () => {
+        setComponentHeight(gsapValues.height);
+        setComponentPosition(
+          layout.position.clone().setY(gsapValues.positionY)
+        );
+      },
+    });
+  }, [
+    closedComponentHeight,
+    componentHeight,
+    openedComponentHeight,
+    componentPosition,
+    layout,
+  ]);
+
   useEffect(() => {
     if (isOpen) {
-      setComponentPosition(layout.position);
-      setComponentHeight(openedComponentHeight);
+      if (enableAnimations) {
+        openWithAnimation();
+      } else {
+        setComponentPosition(layout.position);
+        setComponentHeight(openedComponentHeight);
+      }
     } else {
-      const closedPosition = layout.position.clone();
-      // Y-Position of layout is center of opened component
-      closedPosition.y =
-        layout.positionY + (closedComponentHeight - openedComponentHeight) / 2;
-      setComponentPosition(closedPosition);
-      setComponentHeight(closedComponentHeight);
+      if (enableAnimations) {
+        closeWithAnimation();
+      } else {
+        const closedPosition = layout.position.clone();
+        // Y-Position of layout is center of opened component
+        closedPosition.y =
+          layout.positionY +
+          (closedComponentHeight - openedComponentHeight) / 2;
+        setComponentPosition(closedPosition);
+        setComponentHeight(closedComponentHeight);
+      }
     }
-  }, [isOpen, layout, openedComponentHeight, closedComponentHeight]);
+  }, [
+    isOpen,
+    layout,
+    closeWithAnimation,
+    openWithAnimation,
+    openedComponentHeight,
+    closedComponentHeight,
+    enableAnimations,
+  ]);
 
   const handleClick = (/*event: any*/) => {
     updateComponentState(component.id, {
