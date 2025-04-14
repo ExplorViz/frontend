@@ -88,7 +88,6 @@ import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
 import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
 import eventEmitter from '../../../utils/event-emitter';
 import { useRenderingServiceStore } from '../../../stores/rendering-service';
-import useTraceUpdate from 'explorviz-frontend/src/hooks/trace-update';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
@@ -126,20 +125,6 @@ export default function BrowserRendering({
   restructureLandscape,
   removeTimestampListener,
 }: BrowserRenderingProps) {
-  useTraceUpdate({
-    id,
-    landscapeData,
-    landscapeToken,
-    userApiTokens,
-    visualizationPaused,
-    isDisplayed,
-    snapshot,
-    snapshotReload,
-    toggleVisualizationUpdating,
-    switchToAR,
-    restructureLandscape,
-    removeTimestampListener,
-  });
   // MARK: Stores
 
   const applicationRendererActions = useApplicationRendererStore(
