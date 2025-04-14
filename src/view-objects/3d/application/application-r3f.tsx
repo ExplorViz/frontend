@@ -8,7 +8,7 @@ import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/applicat
 import ClassR3F from 'explorviz-frontend/src/view-objects/3d/application/class-r3f';
 import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/component-r3f';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ApplicationR3F({
@@ -26,17 +26,17 @@ export default function ApplicationR3F({
   const [packages, setPackages] = useState<Package[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
 
-  const computeApp = async () => {
-    const test =
+  const computeApp = useCallback(async () => {
+    const application3D =
       await applicationRendererState.addApplicationTask(applicationData);
-    setApp3D(test);
+    setApp3D(application3D);
     setPackages(applicationData.getPackages());
     setClasses(applicationData.getClasses());
-  };
+  }, [applicationData, applicationRendererState]);
 
   useEffect(() => {
     computeApp();
-  }, [applicationData]);
+  }, [applicationData, computeApp]);
 
   return (
     <>
@@ -58,7 +58,6 @@ export default function ApplicationR3F({
             <ClassR3F
               key={classData.id}
               dataModel={classData}
-              appLayout={app3D.layout}
               layout={app3D.getBoxLayout(classData.id)!}
             />
           ))}

@@ -54,13 +54,10 @@ export default class K8sMesh extends BoxMesh {
     this.layers.enable(SceneLayers.Component);
   }
 
-  updateLayout(
-    layout: BoxLayout | undefined,
-    offset: THREE.Vector3 = new THREE.Vector3()
-  ) {
+  updateLayout(layout: BoxLayout | undefined) {
     if (!layout) return;
 
-    super.updateLayout(layout, offset);
+    super.updateLayout(layout);
 
     if (!this.opened) {
       const OPENED_HEIGHT = getStoredNumberSetting('openedComponentHeight');

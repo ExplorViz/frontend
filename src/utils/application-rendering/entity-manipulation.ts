@@ -13,10 +13,8 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { spanIdToClass } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
-import { removeHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
-import gsap from 'gsap';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import { ExplorVizColors } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -49,7 +47,7 @@ export function openComponentsByList(
     const ancestorMesh = application.getBoxMeshByModelId(component.id);
     if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened) {
       didOpenComponent = true;
-      openComponentMesh(ancestorMesh, application);
+      openComponentMesh(ancestorMesh);
     }
   });
   return didOpenComponent;
@@ -69,7 +67,7 @@ export function openComponentAndAncestor(
   ancestors.forEach((ancestorComponent) => {
     const ancestorMesh = application.getBoxMeshByModelId(ancestorComponent.id);
     if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened)
-      openComponentMesh(ancestorMesh, application);
+      openComponentMesh(ancestorMesh);
   });
 }
 
@@ -138,9 +136,9 @@ export function openComponentMesh(mesh: ComponentMesh) {
  * @param app3D Application object which contains the mesh
  */
 export function closeComponentMesh(componentId: string, dataModel: Package) {
-  const vizualizationStore = useVisualizationStore.getState();
+  const visualizationStore = useVisualizationStore.getState();
   const visualizationState =
-    vizualizationStore.actions.getComponentState(componentId);
+    visualizationStore.actions.getComponentState(componentId);
   if (!visualizationState.isOpen) {
     return;
   }
@@ -166,7 +164,7 @@ export function closeComponentMesh(componentId: string, dataModel: Package) {
     mesh.position.y = yPos;
   } */
 
-  vizualizationStore.actions.updateComponentState(componentId, {
+  visualizationStore.actions.updateComponentState(componentId, {
     isOpen: false,
   });
 
@@ -175,11 +173,11 @@ export function closeComponentMesh(componentId: string, dataModel: Package) {
 
   const childComponents = dataModel.subPackages;
   childComponents.forEach((childComponent) => {
-    vizualizationStore.actions.updateComponentState(childComponent.id, {
+    visualizationStore.actions.updateComponentState(childComponent.id, {
       isVisible: false,
     });
     if (
-      vizualizationStore.actions.getComponentState(childComponent.id).isOpen
+      visualizationStore.actions.getComponentState(childComponent.id).isOpen
     ) {
       closeComponentMesh(childComponent.id, childComponent);
     }
@@ -239,7 +237,7 @@ export function openComponentsRecursively(
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
       // !mesh.opened needed!
 
-      openComponentMesh(mesh, applicationObject3D);
+      openComponentMesh(mesh);
       useMessageSenderStore
         .getState()
         .sendComponentUpdate(
@@ -292,7 +290,7 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D) {
   applicationObject3D.dataModel.application.packages.forEach((child) => {
     const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
     if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
-      openComponentMesh(mesh, applicationObject3D);
+      openComponentMesh(mesh);
       useMessageSenderStore
         .getState()
         .sendComponentUpdate(
@@ -320,7 +318,7 @@ export function toggleComponentMeshState(
   if (mesh.opened) {
     closeComponentMesh(mesh, applicationObject3D, keepHighlighted);
   } else {
-    openComponentMesh(mesh, applicationObject3D);
+    openComponentMesh(mesh);
   }
 }
 
@@ -341,7 +339,7 @@ export function restoreComponentState(
     const boxMesh = applicationObject3D.getBoxMeshByModelId(componentId);
 
     if (boxMesh instanceof ComponentMesh) {
-      openComponentMesh(boxMesh, applicationObject3D);
+      openComponentMesh(boxMesh);
     }
   });
 
@@ -384,7 +382,7 @@ export function applyDefaultApplicationLayout(
     if (component !== undefined) {
       const mesh = appObject3D.getBoxMeshByModelId(component.id);
       if (mesh instanceof ComponentMesh) {
-        openComponentMesh(mesh, applicationObject3D);
+        openComponentMesh(mesh);
       }
 
       applyComponentLayout(appObject3D, component.subPackages);

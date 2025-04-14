@@ -49,9 +49,7 @@ export class _ClazzMesh extends BoxMesh {
     defaultColor: THREE.Color,
     highlightingColor: THREE.Color
   ) {
-    const tmpLayout = layout.copy();
-    tmpLayout.height = 1;
-    super(tmpLayout, defaultColor, highlightingColor);
+    super(layout, defaultColor, highlightingColor);
 
     this._original_layout = layout;
     this.castShadow = true;

@@ -1,4 +1,4 @@
-import { ThreeElements, useThree } from '@react-three/fiber';
+import { ThreeElements } from '@react-three/fiber';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -46,7 +46,13 @@ export default function FoundationR3F({
   const ref = useRef<FoundationMesh>(null!);
 
   useEffect(() => {
-    setFoundationPosition(boxLayout.position);
+    setFoundationPosition(
+      new THREE.Vector3(
+        boxLayout.width / 2,
+        boxLayout.positionY,
+        boxLayout.depth / 2
+      )
+    );
   }, [boxLayout]);
 
   const handleOnPointerOver = (event: any) => {

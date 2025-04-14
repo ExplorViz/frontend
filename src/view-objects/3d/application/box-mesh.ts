@@ -46,8 +46,9 @@ export default abstract class BoxMesh<
     }
 
     if (
-      this.material instanceof THREE.MeshBasicMaterial ||
-      this.material instanceof THREE.MeshLambertMaterial
+      (this.material instanceof THREE.MeshBasicMaterial ||
+        this.material instanceof THREE.MeshLambertMaterial) &&
+      texture instanceof THREE.Texture
     ) {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
@@ -96,19 +97,9 @@ export default abstract class BoxMesh<
     //  this.restoreAppearence();
   }
 
-  updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
+  updateLayout(layout: BoxLayout) {
     this.layout = layout;
-    const layoutPosition = this.layout.position.clone();
-
-    // Box meshes origin is in the center
-    const centerPoint = new THREE.Vector3(
-      layoutPosition.x + this.layout.width / 2.0,
-      layoutPosition.y + this.layout.height / 2.0,
-      layoutPosition.z + this.layout.depth / 2.0
-    );
-
-    this.position.copy(centerPoint);
-    this.position.sub(offset);
+    this.position.copy(layout.position);
 
     this.height = layout.height;
     this.width = layout.width;

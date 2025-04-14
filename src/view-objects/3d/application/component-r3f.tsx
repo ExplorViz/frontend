@@ -117,6 +117,7 @@ export default function ComponentR3F({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
+    ref.current.applyHoverEffect();
     updateComponentState(component.id, {
       isHovered: true,
     });
@@ -124,6 +125,7 @@ export default function ComponentR3F({
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
+    ref.current.resetHoverEffect();
     updateComponentState(component.id, {
       isHovered: false,
     });

@@ -3,19 +3,16 @@ import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ClassR3F({
   dataModel,
-  appLayout,
   layout,
 }: {
   dataModel: Class;
-  appLayout: BoxLayout;
   layout: BoxLayout;
 }) {
   const highlightingActions = useHighlightingStore(

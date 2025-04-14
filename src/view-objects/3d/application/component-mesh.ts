@@ -32,7 +32,6 @@ export default class ComponentMesh extends BoxMesh {
     this._opened = value;
   }
 
-
   // Set by labeler
   private _labelMesh: ComponentLabelMesh | null = null;
   public get labelMesh(): ComponentLabelMesh | null {
@@ -67,9 +66,9 @@ export default class ComponentMesh extends BoxMesh {
     this.layers.enable(SceneLayers.Component);
   }
 
-  updateLayout(layout: BoxLayout, offset: THREE.Vector3 = new THREE.Vector3()) {
+  updateLayout(layout: BoxLayout) {
     const aspectRatioChanged = this.layout.aspectRatio != layout.aspectRatio;
-    super.updateLayout(layout, offset);
+    super.updateLayout(layout);
 
     // Avoid distorted text by recomputing text geometry
     if (aspectRatioChanged && this.labelMesh) {
@@ -84,6 +83,8 @@ export default class ComponentMesh extends BoxMesh {
       );
 
       this.height = CLOSED_COMPONENT_HEIGHT;
+
+      // TODO: Check if this is still correct
       this.position.y =
         this.layout.positionY +
         CLOSED_COMPONENT_HEIGHT / 2 -

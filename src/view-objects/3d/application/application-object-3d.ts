@@ -90,11 +90,7 @@ export default class ApplicationObject3D
 
     const appLayout = this.boxLayoutMap.get(this.dataModel.getId());
     if (appLayout) {
-      this.position.set(
-        appLayout?.positionX,
-        appLayout?.positionY,
-        appLayout?.positionZ
-      );
+      this.position.copy(appLayout.position);
     }
 
     this.children.forEach((mesh) => {
@@ -105,7 +101,7 @@ export default class ApplicationObject3D
       ) {
         const boxLayout = this.getBoxLayout(mesh.dataModel.id);
         if (boxLayout) {
-          mesh.updateLayout(boxLayout, this.layout.position);
+          mesh.updateLayout(boxLayout);
         }
       }
     });

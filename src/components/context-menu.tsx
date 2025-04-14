@@ -73,10 +73,8 @@ export default function ContextMenu({
       title: 'Open All Components',
       action: () => {
         if (
-          userSettingsState.visualizationSettings.autoOpenCloseFeature.value ==
-            true &&
-          userSettingsState.visualizationSettings.semanticZoomState.value ==
-            true
+          userSettingsState.visualizationSettings.autoOpenCloseFeature.value &&
+          userSettingsState.visualizationSettings.semanticZoomState.value
         ) {
           toastHandlerActions.showErrorToastMessage(
             'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
