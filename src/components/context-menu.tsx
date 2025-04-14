@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { closeAllComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 
 export type ContextMenuItem = {
   title: string;
@@ -34,6 +35,8 @@ export default function ContextMenu({
     useShallow((state) => ({
       openAllComponentsOfAllApplications:
         state.openAllComponentsOfAllApplications,
+      closeAllComponentsOfAllApplications:
+        state.closeAllComponentsOfAllApplications,
       toggleCommunicationRendering: state.toggleCommunicationRendering,
     }))
   );
@@ -82,6 +85,21 @@ export default function ContextMenu({
           return;
         }
         applicationRendererActions.openAllComponentsOfAllApplications();
+      },
+    },
+    {
+      title: 'Close All Components',
+      action: () => {
+        if (
+          userSettingsState.visualizationSettings.autoOpenCloseFeature.value &&
+          userSettingsState.visualizationSettings.semanticZoomState.value
+        ) {
+          toastHandlerActions.showErrorToastMessage(
+            'Close All Components not useable when Semantic Zoom with auto open/close is enabled.'
+          );
+          return;
+        }
+        applicationRendererActions.closeAllComponentsOfAllApplications();
       },
     },
     {

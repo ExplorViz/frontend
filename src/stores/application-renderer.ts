@@ -98,6 +98,7 @@ interface ApplicationRendererState {
   updateApplicationObject3DAfterUpdate: (
     applicationObject3D: ApplicationObject3D
   ) => void;
+  closeAllComponentsOfAllApplications: () => void;
   openAllComponentsOfAllApplications: () => void;
   toggleCommunicationRendering: () => void;
   openParents: (
@@ -447,6 +448,10 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
 
     openAllComponentsOfAllApplications: () => {
       get().forEachOpenApplication(get().openAllComponents);
+    },
+
+    closeAllComponentsOfAllApplications: () => {
+      get().forEachOpenApplication(get().closeAllComponents);
     },
 
     /**
