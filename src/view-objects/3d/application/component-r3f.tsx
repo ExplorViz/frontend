@@ -73,11 +73,11 @@ export default function ComponentR3F({
     // highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };
 
-  const handleDoubleClick = (event: any) => {
+  const handleDoubleClick = (/*event: any*/) => {
     if (!isOpen) {
-      EntityManipulation.openComponentMesh(event.object);
+      EntityManipulation.openComponent(component);
     } else {
-      EntityManipulation.closeComponentMesh(component);
+      EntityManipulation.closeComponent(component);
     }
   };
 

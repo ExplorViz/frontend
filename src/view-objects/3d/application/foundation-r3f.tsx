@@ -1,6 +1,8 @@
 import { ThreeElements } from '@react-three/fiber';
+import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { openAllComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
@@ -65,17 +67,24 @@ export default function FoundationR3F({
     ref.current.resetHoverEffect();
   };
 
-  const handleClick = (event: any) => {
-    event.stopPropagation();
+  const handleClick = (/*event: any*/) => {
     // TODO: Select active application for heatmap
-
     highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };
+
+  const handleDoubleClick = (event: any) => {
+    openAllComponents(event.object.dataModel);
+    // highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
+  };
+
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
   return (
     <foundationMesh
       position={foundationPosition}
-      onClick={handleClick}
+      onClick={handleClickWithPrevent}
+      onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       args={[opts]}

@@ -15,10 +15,10 @@ import {
 import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import {
-  closeComponentMesh,
+  closeComponent,
   closeComponentsRecursively,
   openComponentAndAncestor,
-  openComponentMesh,
+  openComponent,
   openComponentsRecursively,
 } from './entity-manipulation';
 
@@ -138,7 +138,7 @@ export function addComponentAndChildrenToScene(
     if (componentMesh.opened) return;
     openComponentAndAncestor(component, applicationObject3D);
     //Open itsself
-    openComponentMesh(componentMesh, applicationObject3D);
+    openComponent(componentMesh, applicationObject3D);
     //Open its childs
     openComponentsRecursively(component, applicationObject3D);
 
@@ -162,7 +162,7 @@ export function addComponentAndChildrenToScene(
     if (!componentMesh.opened) return;
 
     closeComponentsRecursively(component, applicationObject3D);
-    closeComponentMesh(componentMesh, applicationObject3D, false);
+    closeComponent(componentMesh, applicationObject3D, false);
     updateApplicationObject3DAfterUpdate(
       applicationObject3D,
       SemanticZoomManager.instance.appCommRendering!,

@@ -495,8 +495,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       }
 
       EntityManipulation.openComponentsByList(
-        EntityManipulation.getAllAncestorComponents(entityModel),
-        applicationObject3D
+        EntityManipulation.getAllAncestorComponents(entityModel)
       );
 
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
@@ -510,7 +509,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       componentMesh: ComponentMesh,
       applicationObject3D: ApplicationObject3D
     ) => {
-      EntityManipulation.toggleComponentMeshState(componentMesh);
+      EntityManipulation.toggleComponentState(componentMesh);
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
     },
 
@@ -545,13 +544,17 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     },
 
     openAllComponentsLocally: (applicationObject3D: ApplicationObject3D) => {
-      EntityManipulation.openAllComponents(applicationObject3D);
+      EntityManipulation.openAllComponents(
+        applicationObject3D.dataModel.application
+      );
 
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
     },
 
     closeAllComponentsLocally: (applicationObject3D: ApplicationObject3D) => {
-      EntityManipulation.closeAllComponents(applicationObject3D);
+      EntityManipulation.closeAllComponents(
+        applicationObject3D.dataModel.application
+      );
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);
     },
 

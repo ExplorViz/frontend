@@ -1,8 +1,8 @@
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import * as Labeler from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
+  Application,
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -13,8 +13,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { spanIdToClass } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import { ExplorVizColors } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -36,51 +34,35 @@ export function getAllAncestorComponents(entity: Package | Class): Package[] {
  * Opens all components which are given in a list.
  *
  * @param components List of components which shall be opened
- * @param application Parent application object of the components
  */
-export function openComponentsByList(
-  components: Package[],
-  application: ApplicationObject3D
-) {
-  let didOpenComponent = false;
+export function openComponentsByList(components: Package[]) {
   components.forEach((component) => {
-    const ancestorMesh = application.getBoxMeshByModelId(component.id);
-    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened) {
-      didOpenComponent = true;
-      openComponentMesh(ancestorMesh);
-    }
+    openComponent(component);
   });
-  return didOpenComponent;
 }
 
 /**
  * Opens the component and its ancestors
  *
  * @param components List of components which shall be opened
- * @param application Parent application object of the components
  */
-export function openComponentAndAncestor(
-  component: Package | Class,
-  application: ApplicationObject3D
-) {
+export function openComponentAndAncestor(component: Package | Class) {
   const ancestors = getAllAncestorComponents(component);
   ancestors.forEach((ancestorComponent) => {
-    const ancestorMesh = application.getBoxMeshByModelId(ancestorComponent.id);
-    if (ancestorMesh instanceof ComponentMesh && !ancestorMesh.opened)
-      openComponentMesh(ancestorMesh);
+    openComponent(ancestorComponent);
   });
 }
 
 /**
- * Opens a given component mesh.
+ * Opens a given component.
  *
- * @param mesh Component mesh which shall be opened
+ * @param component Component which shall be opened
  * @param app3D Application object which contains the mesh
  */
-export function openComponentMesh(mesh: ComponentMesh) {
+export function openComponent(component: Package) {
   const visualizationStore = useVisualizationStore.getState();
   const visualizationState = visualizationStore.actions.getComponentState(
-    mesh.getModelId()
+    component.id
   );
   if (visualizationState.isOpen) {
     return;
@@ -102,23 +84,23 @@ export function openComponentMesh(mesh: ComponentMesh) {
     mesh.position.y = yPos; */
   /*   } */
 
-  visualizationStore.actions.updateComponentState(mesh.getModelId(), {
+  visualizationStore.actions.updateComponentState(component.id, {
     isOpen: true,
     isVisible: true,
   });
 
   // mesh.saveOriginalAppearence();
-  Labeler.positionBoxLabel(mesh);
+  // Labeler.positionBoxLabel(component);
 
-  const childComponents = mesh.dataModel.subPackages;
+  const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
     visualizationStore.actions.updateComponentState(childComponent.id, {
       isVisible: true,
     });
   });
 
-  const clazzes = mesh.dataModel.classes;
-  clazzes.forEach((clazz) => {
+  const classes = component.classes;
+  classes.forEach((classModel) => {
     /*     const childMesh = app3D.getBoxMeshByModelId(clazz.id);
     if (childMesh) { */
     /*       vizualizationStore.actions.updateComponentState(clazz.id, {
@@ -130,15 +112,14 @@ export function openComponentMesh(mesh: ComponentMesh) {
 }
 
 /**
- * Closes a given component mesh.
+ * Closes a given component.
  *
- * @param mesh Component mesh which shall be closed
- * @param app3D Application object which contains the mesh
+ * @param component Component which shall be closed
  */
-export function closeComponentMesh(dataModel: Package) {
+export function closeComponent(component: Package) {
   const visualizationStore = useVisualizationStore.getState();
   const visualizationState = visualizationStore.actions.getComponentState(
-    dataModel.id
+    component.id
   );
   if (!visualizationState.isOpen) {
     return;
@@ -165,14 +146,14 @@ export function closeComponentMesh(dataModel: Package) {
     mesh.position.y = yPos;
   } */
 
-  visualizationStore.actions.updateComponentState(dataModel.id, {
+  visualizationStore.actions.updateComponentState(component.id, {
     isOpen: false,
   });
 
   /*   Labeler.positionBoxLabel(mesh);
   mesh.saveOriginalAppearence(); */
 
-  const childComponents = dataModel.subPackages;
+  const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
     visualizationStore.actions.updateComponentState(childComponent.id, {
       isVisible: false,
@@ -180,7 +161,7 @@ export function closeComponentMesh(dataModel: Package) {
     if (
       visualizationStore.actions.getComponentState(childComponent.id).isOpen
     ) {
-      closeComponentMesh(childComponent);
+      closeComponent(childComponent);
     }
     // Reset highlighting if highlighted entity is no longer visible
     /*       if (!keepHighlighted && childMesh.highlighted) {
@@ -203,19 +184,14 @@ export function closeComponentMesh(dataModel: Package) {
 }
 
 /**
- * Closes all component meshes which are currently added to the applicationObject3D
+ * Closes all components which are part of the given application
  *
- * @param applicationObject3D Application object which contains the components
+ * @param application Application object which contains the components
  */
-export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
-  const application = applicationObject3D.dataModel.application;
-
+export function closeAllComponents(application: Application) {
   // Close each component
   application.packages.forEach((component) => {
-    const componentMesh = applicationObject3D.getBoxMeshByModelId(component.id);
-    if (componentMesh instanceof ComponentMesh) {
-      closeComponentMesh(componentMesh.dataModel);
-    }
+    closeComponent(component);
   });
 }
 
@@ -223,82 +199,67 @@ export function closeAllComponents(applicationObject3D: ApplicationObject3D) {
  * Takes a component and open all children component meshes recursively
  *
  * @param component Component of which the children shall be opened
- * @param applicationObject3D Application object which contains the component
  */
-export function openComponentsRecursively(
-  component: Package,
-  applicationObject3D: ApplicationObject3D
-) {
-  const components = component.subPackages;
-  components.forEach((child) => {
-    const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
-      // !mesh.opened needed!
+export function openComponentsRecursively(component: Package) {
+  openComponent(component);
 
-      openComponentMesh(mesh);
-      useMessageSenderStore
-        .getState()
-        .sendComponentUpdate(
-          applicationObject3D.getModelId(),
-          mesh.getModelId(),
-          mesh.opened,
-          mesh instanceof FoundationMesh
-        );
-    }
-    openComponentsRecursively(child, applicationObject3D);
+  const subComponents = component.subPackages;
+  subComponents.forEach((subComponent) => {
+    openComponent(component);
+    // TODO:Fix message sender
+    // useMessageSenderStore
+    //   .getState()
+    //   .sendComponentUpdate(
+    //     applicationObject3D.getModelId(),
+    //     mesh.getModelId(),
+    //     mesh.opened,
+    //     mesh instanceof FoundationMesh
+    //   );
+    openComponentsRecursively(subComponent);
   });
 }
 
 /**
- * Takes a component and closes all children component meshes recursively
+ * Takes a component and closes all its children components recursively
  *
- * @param component Component of which the children shall be closed
- * @param applicationObject3D Application object which contains the component
+ * @param component Component of which the children components shall be closed
  */
-export function closeComponentsRecursively(
-  component: Package,
-  applicationObject3D: ApplicationObject3D
-) {
+export function closeComponentsRecursively(component: Package) {
   const components = component.subPackages;
-  components.forEach((child) => {
-    const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh && mesh.opened) {
-      // mesh.opened needed!
-
-      closeComponentMesh(mesh.dataModel);
-      useMessageSenderStore
-        .getState()
-        .sendComponentUpdate(
-          applicationObject3D.getModelId(),
-          mesh.getModelId(),
-          mesh.opened,
-          mesh instanceof FoundationMesh
-        );
-    }
-    closeComponentsRecursively(child, applicationObject3D);
+  components.forEach((subComponent) => {
+    closeComponent(subComponent);
+    // TODO: Fix message sender
+    //   useMessageSenderStore
+    //     .getState()
+    //     .sendComponentUpdate(
+    //       applicationObject3D.getModelId(),
+    //       mesh.getModelId(),
+    //       mesh.opened,
+    //       mesh instanceof FoundationMesh
+    //     );
+    // }
+    closeComponentsRecursively(subComponent);
   });
 }
 
 /**
- * Opens all component meshes which are currently added to the applicationObject3D
+ * Opens all components which are part of the given application
  *
- * @param applicationObject3D Application object which contains the components
+ * @param application Application object which contains the components
  */
-export function openAllComponents(applicationObject3D: ApplicationObject3D) {
-  applicationObject3D.dataModel.application.packages.forEach((child) => {
-    const mesh = applicationObject3D.getBoxMeshByModelId(child.id);
-    if (mesh !== undefined && mesh instanceof ComponentMesh && !mesh.opened) {
-      openComponentMesh(mesh);
-      useMessageSenderStore
-        .getState()
-        .sendComponentUpdate(
-          applicationObject3D.getModelId(),
-          mesh.getModelId(),
-          mesh.opened,
-          mesh instanceof FoundationMesh
-        );
-    }
-    openComponentsRecursively(child, applicationObject3D);
+export function openAllComponents(application: Application) {
+  application.packages.forEach((childComponent) => {
+    openComponent(childComponent);
+    // ToDo: Fix message sender
+    // useMessageSenderStore
+    //   .getState()
+    //   .sendComponentUpdate(
+    //     applicationObject3D.getModelId(),
+    //     mesh.getModelId(),
+    //     mesh.opened,
+    //     mesh instanceof FoundationMesh
+    //   );
+    openComponentsRecursively(childComponent);
   });
 }
 
@@ -306,13 +267,12 @@ export function openAllComponents(applicationObject3D: ApplicationObject3D) {
  * Opens a component mesh which is closed and vice versa
  *
  * @param mesh Mesh which shall be opened / closed
- * @param applicationObject3D Application object which contains the mesh
  */
-export function toggleComponentMeshState(mesh: ComponentMesh) {
+export function toggleComponentState(mesh: ComponentMesh) {
   if (mesh.opened) {
-    closeComponentMesh(mesh.dataModel);
+    closeComponent(mesh.dataModel);
   } else {
-    openComponentMesh(mesh);
+    openComponent(mesh.dataModel);
   }
 }
 
@@ -333,7 +293,7 @@ export function restoreComponentState(
     const boxMesh = applicationObject3D.getBoxMeshByModelId(componentId);
 
     if (boxMesh instanceof ComponentMesh) {
-      openComponentMesh(boxMesh);
+      openComponent(boxMesh.dataModel);
     }
   });
 
@@ -376,7 +336,7 @@ export function applyDefaultApplicationLayout(
     if (component !== undefined) {
       const mesh = appObject3D.getBoxMeshByModelId(component.id);
       if (mesh instanceof ComponentMesh) {
-        openComponentMesh(mesh);
+        openComponent(mesh.dataModel);
       }
 
       applyComponentLayout(appObject3D, component.subPackages);
