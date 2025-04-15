@@ -45,7 +45,7 @@ import eventEmitter from '../../utils/event-emitter';
 
 type ResponseHandler<T> = (msg: T) => void;
 
-const collaborationService = import.meta.env.VITE_COLLABORATION_SERV_URL;
+const collaborationService = import.meta.env.VITE_COLLAB_SERV_URL;
 
 export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
@@ -184,7 +184,10 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
 
   closeSocket: () => {
     if (get().isWebSocketOpen()) {
-      const clonedSocket = Object.assign(Object.create(Object.getPrototypeOf(get()._currentSocket)), get()._currentSocket);
+      const clonedSocket = Object.assign(
+        Object.create(Object.getPrototypeOf(get()._currentSocket)),
+        get()._currentSocket
+      );
       clonedSocket.disconnect();
       set({ _currentSocket: clonedSocket });
     }

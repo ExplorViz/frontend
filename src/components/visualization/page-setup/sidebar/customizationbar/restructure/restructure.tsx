@@ -36,7 +36,7 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 
 const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
-const gitlabApi = import.meta.env.VITE_GITLAB_API;
+const gitlabApi = import.meta.env.VITE_GIT_FACADE_SERV_URL;
 
 type Issue = { title: string; content: string; screenshots: string[] };
 type GitlabProject = { id: string; name: string };

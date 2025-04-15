@@ -225,7 +225,9 @@ export default function Landscapes() {
         >
           <Tab eventKey="landscapes" title="Landscapes" id="landscape-tab">
             <div
-              className={'d-flex flex-row justify-content-center selection-table'}
+              className={
+                'd-flex flex-row justify-content-center selection-table'
+              }
               style={{ maxHeight: '80vh', overflowY: 'auto' }}
             >
               <TokenSelection
