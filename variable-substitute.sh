@@ -1,22 +1,23 @@
 #!/bin/sh
 set -eu
 
-sed -i "s#change-code-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html
+echo "FRONTEND_HOST_URL: $FRONTEND_HOST_URL"
 
-sed -i "s#change-span-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-code-url|$FRONTEND_HOST_URL|g" '{}' +
 
-sed -i "s#change-user-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-vscode-url|$FRONTEND_HOST_URL|g" '{}' +
 
-sed -i "s#change-vscode-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-user-url|$FRONTEND_HOST_URL|g" '{}' +
 
-sed -i "s#change-collaboration-url#$FRONTEND_HOST_URL#g" /usr/share/nginx/html/index.html
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-collaboration-url|$FRONTEND_HOST_URL|g" '{}' +
 
-sed -i "s#change-frontend-host-name#$FRONTEND_HOST_NAME#g" /usr/share/nginx/html/index.html
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-span-url|$FRONTEND_HOST_URL|g" '{}' +
 
-DEFAULT_NICKNAME="${NO_AUTH_USER_NICKNAME:-Jessy}"
-sed -i "s#Jessy#$DEFAULT_NICKNAME#g" /usr/share/nginx/html/index.html
+DEFAULT_NICKNAME="${VITE_AUTH_DISABLED_NICKNAME:-Jessy}"
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-nickname|$FRONTEND_HOST_URL|g" '{}' +
+sed -i "s#change-nickname#$DEFAULT_NICKNAME#g" /usr/share/nginx/html/index.html
 
 DEFAULT_TOKEN="${ONLY_SHOW_TOKEN:-}"
-sed -i "s#change-token#$DEFAULT_TOKEN#g" /usr/share/nginx/html/index.html
+find /usr/share/nginx/html -type f \( -name '*.js' -o -name '*.css' \) -exec sed -i "s|change-token|$DEFAULT_TOKEN|g" '{}' +
 
 exec "$@"

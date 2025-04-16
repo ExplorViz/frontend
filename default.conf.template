@@ -4,19 +4,19 @@ server {
   # BEGIN User-Service
 
   location /user {
-    proxy_pass ${NGINX_COLLAB_SERV_URL};
+    proxy_pass ${USER_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /token {
-    proxy_pass ${NGINX_COLLAB_SERV_URL};
+    proxy_pass ${USER_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /snapshot {
-    proxy_pass ${NGINX_COLLAB_SERV_URL};
+    proxy_pass ${USER_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
@@ -26,19 +26,19 @@ server {
   # BEGIN Dynamic-Data
 
   location ~* /v2/landscapes/[0-9a-z-]+/structure {
-    proxy_pass ${NGINX_SPAN_SERV_URL};
+    proxy_pass ${LANDSCAPE_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/dynamic {
-    proxy_pass ${NGINX_SPAN_SERV_URL};
+    proxy_pass ${TRACE_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/timestamps {
-    proxy_pass ${NGINX_SPAN_SERV_URL};
+    proxy_pass ${TIMESTAMPS_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
@@ -48,7 +48,7 @@ server {
   # BEGIN Static-Data
 
   location /v2/code {
-    proxy_pass ${NGINX_CODE_SERV_URL};
+    proxy_pass ${CODE_SERV_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
@@ -58,14 +58,14 @@ server {
   # BEGIN Collab
 
   location /room {
-    proxy_pass ${NGINX_COLLAB_SERV_URL};
+    proxy_pass ${COLLABORATION_URL};
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
   }
 
   location /socket.io {
-    proxy_pass ${NGINX_COLLAB_SERV_URL};
+    proxy_pass ${COLLABORATION_URL};
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -79,7 +79,7 @@ server {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $host;
 
-    proxy_pass ${NGINX_VSCODE_SERV_URL};
+    proxy_pass ${VSCODE_SERV_URL};
 
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
