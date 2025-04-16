@@ -3,9 +3,8 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ClassR3F({
@@ -35,20 +34,18 @@ export default function ClassR3F({
     };
   }, []);
 
-  const ref = useRef<ComponentMesh>(null!);
-
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    ref.current.applyHoverEffect();
+    event.object.applyHoverEffect();
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    ref.current.resetHoverEffect();
+    event.object.resetHoverEffect();
   };
 
-  const handleClick = (/*event: any*/) => {
-    highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
+  const handleClick = (event: any) => {
+    highlightingActions.toggleHighlight(event.object, { sendMessage: true });
   };
 
   const handleDoubleClick = (/*event: any*/) => {};
@@ -67,7 +64,6 @@ export default function ClassR3F({
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       args={[opts]}
-      ref={ref}
     >
       {/* <LabelMeshWrapper /> */}
     </clazzMesh>

@@ -37,6 +37,7 @@ export default function ComponentR3F({
     closedComponentHeight,
     componentEvenColor,
     componentOddColor,
+    componentTextColor,
     enableAnimations,
     highlightedEntityColor,
     openedComponentHeight,
@@ -51,6 +52,7 @@ export default function ComponentR3F({
       openedComponentHeight:
         state.visualizationSettings.openedComponentHeight.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
+      componentTextColor: state.visualizationSettings.componentTextColor.value,
     }))
   );
 
@@ -181,7 +183,7 @@ export default function ComponentR3F({
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
     >
-      <LabelMeshWrapper />
+      <LabelMeshWrapper color={componentTextColor} />
     </componentMesh>
   );
 }

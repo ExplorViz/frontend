@@ -1,5 +1,4 @@
 import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getBoxLabelWithData } from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import LabelMesh from 'explorviz-frontend/src/view-objects/3d/label-mesh';
@@ -9,7 +8,7 @@ import ComponentMesh from './application/component-mesh';
 import K8sMesh from './k8s/k8s-mesh';
 import * as THREE from 'three';
 
-export default function LabelMeshWrapper() {
+export default function LabelMeshWrapper({ color }: { color: string }) {
   const ref = useRef<LabelMesh>(null);
   const fontStore = useFontRepositoryStore(
     useShallow((state) => ({
@@ -30,7 +29,7 @@ export default function LabelMeshWrapper() {
       getBoxLabelWithData(
         parent,
         font,
-        useUserSettingsStore.getState().colors!.foundationTextColor
+        new THREE.Color(color)
         // minHeight = 1.5,
         // minLength = 4
       )

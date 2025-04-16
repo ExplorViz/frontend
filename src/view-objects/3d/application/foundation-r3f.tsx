@@ -28,13 +28,16 @@ export default function FoundationR3F({
     }))
   );
 
-  const { foundationColor, highlightedEntityColor } = useUserSettingsStore(
-    useShallow((state) => ({
-      foundationColor: state.visualizationSettings.foundationColor.value,
-      highlightedEntityColor:
-        state.visualizationSettings.highlightedEntityColor.value,
-    }))
-  );
+  const { foundationColor, foundationTextColor, highlightedEntityColor } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        foundationColor: state.visualizationSettings.foundationColor.value,
+        highlightedEntityColor:
+          state.visualizationSettings.highlightedEntityColor.value,
+        foundationTextColor:
+          state.visualizationSettings.foundationTextColor.value,
+      }))
+    );
 
   const constructorArgs = useMemo<
     ThreeElements['foundationMesh']['args'][0]
@@ -89,7 +92,7 @@ export default function FoundationR3F({
       onPointerOut={handleOnPointerOut}
       args={[constructorArgs]}
     >
-      <LabelMeshWrapper />
+      <LabelMeshWrapper color={foundationTextColor} />
     </foundationMesh>
   );
 }
