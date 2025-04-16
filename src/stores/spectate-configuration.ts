@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
-const collaborationServiceApi = import.meta.env.VITE_COLLABORATION_SERV_URL;
+const collaborationServiceApi = import.meta.env.VITE_COLLAB_SERV_URL;
 
 interface SpectateConfigurationState {
   spectateConfig: SpectateConfig | null; // tracked

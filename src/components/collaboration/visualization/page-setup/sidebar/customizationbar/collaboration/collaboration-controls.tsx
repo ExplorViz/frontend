@@ -36,9 +36,14 @@ import {
   UnmuteIcon,
   XIcon,
 } from '@primer/octicons-react';
-import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  createSearchParams,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 
-interface CollaborationControlsProps {}
+// interface CollaborationControlsProps {}
 
 export default function CollaborationControls() {
   const localUserColor = useLocalUserStore((state) => state.color);
@@ -46,27 +51,19 @@ export default function CollaborationControls() {
   const localUserId = useLocalUserStore((state) => state.userId);
   const isLocalUserHost = useLocalUserStore((state) => state.isHost);
   const timestamp = useTimestampStore((state) => state.timestamp);
-  const connectionStatus = useCollaborationSessionStore(
-    (state) => state.connectionStatus
+
+  const collabStore = useCollaborationSessionStore(
+    useShallow((state) => ({
+      connectionStatus: state.connectionStatus,
+      currentRoomId: state.currentRoomId,
+      getAllRemoteUsers: state.getAllRemoteUsers,
+      hostRoom: state.hostRoom,
+      disconnect: state.disconnect,
+      joinRoom: state.joinRoom,
+      lookupRemoteUserById: state.lookupRemoteUserById,
+    }))
   );
-  const currentRoomId = useCollaborationSessionStore(
-    (state) => state.currentRoomId
-  );
-  const getAllRemoteUsers = useCollaborationSessionStore(
-    (state) => state.getAllRemoteUsers
-  );
-  const collaborationSessionHost = useCollaborationSessionStore(
-    (state) => state.hostRoom
-  );
-  const collaborationSessionDisconnect = useCollaborationSessionStore(
-    (state) => state.disconnect
-  );
-  const collaborationSessionJoin = useCollaborationSessionStore(
-    (state) => state.joinRoom
-  );
-  const lookupRemoteUserById = useCollaborationSessionStore(
-    (state) => state.lookupRemoteUserById
-  );
+
   const spectatedUser = useSpectateUserStore((state) => state.spectatedUser);
   const activateSpectation = useSpectateUserStore((state) => state.activate);
   const deactivateSpectation = useSpectateUserStore(
@@ -162,31 +159,33 @@ export default function CollaborationControls() {
         isKickable: false,
       });
     }
-    const remoteUsers = Array.from(getAllRemoteUsers()).map((user) => {
-      const isSpectatedByUs = spectatedUser?.userId === user.userId;
-      return {
-        remoteUserId: user.userId,
-        name: user.userName,
-        style: { color: `#${user.color.getHexString()}` },
-        isLocalUser: false,
-        isSpectatedByUs: isSpectatedByUs,
-        isSpectatable: true,
-        isMuteable: isLocalUserHost,
-        isMuted: false,
-        isKickable: isLocalUserHost,
-      };
-    });
+    const remoteUsers = Array.from(collabStore.getAllRemoteUsers()).map(
+      (user) => {
+        const isSpectatedByUs = spectatedUser?.userId === user.userId;
+        return {
+          remoteUserId: user.userId,
+          name: user.userName,
+          style: { color: `#${user.color.getHexString()}` },
+          isLocalUser: false,
+          isSpectatedByUs: isSpectatedByUs,
+          isSpectatable: true,
+          isMuteable: isLocalUserHost,
+          isMuted: false,
+          isKickable: isLocalUserHost,
+        };
+      }
+    );
 
     return users.concat(remoteUsers);
   })();
 
   const hostRoom = () => {
-    collaborationSessionHost();
+    collabStore.hostRoom();
     showSuccessToastMessage('Hosting new Room.');
   };
 
   const leaveSession = () => {
-    collaborationSessionDisconnect();
+    collabStore.disconnect();
     navigate({
       pathname: '/visualization',
       search: `?${createSearchParams({ landscapeToken: searchParams.get('landscapeToken')!, deviceId: searchParams.get('deviceId')! })}`,
@@ -209,14 +208,14 @@ export default function CollaborationControls() {
   const joinRoom = async (room: RoomListRecord) => {
     // In case join action fails, the room list should be up-to-date
     loadRooms(false);
-    collaborationSessionJoin(room.roomId);
+    collabStore.joinRoom(room.roomId);
   };
 
   const toggleSpectate = (user: {
     remoteUserId: string;
     isSpectatedByUs: boolean;
   }) => {
-    const remoteUser = lookupRemoteUserById(user.remoteUserId);
+    const remoteUser = collabStore.lookupRemoteUserById(user.remoteUserId);
     if (remoteUser && !user.isSpectatedByUs) {
       activateSpectation(remoteUser);
     } else {
@@ -254,7 +253,7 @@ export default function CollaborationControls() {
   const configurationSelected = (selectedConfig: string) => {
     if (!selectedConfig) return;
 
-    const remoteUserIds = Array.from(getAllRemoteUsers()).map(
+    const remoteUserIds = Array.from(collabStore.getAllRemoteUsers()).map(
       (user) => user.userId
     );
     activateSpectateConfig(selectedConfig, remoteUserIds);
@@ -290,7 +289,6 @@ export default function CollaborationControls() {
       newDevices = [...newDevices, device.deviceId];
     });
     setConfigDevices(newDevices);
-
   };
 
   const updateSelectedDevice = (device: string) => {
@@ -552,11 +550,11 @@ export default function CollaborationControls() {
 
   return (
     <>
-      {connectionStatus === 'online' && (
+      {collabStore.connectionStatus === 'online' && (
         <>
           <div>
             <label className="bold">Room: </label>
-            <label>{currentRoomId}</label>
+            <label>{collabStore.currentRoomId}</label>
           </div>
 
           <div>
@@ -566,13 +564,10 @@ export default function CollaborationControls() {
               aria-label="Default select example"
               style={{ maxWidth: 'calc(100% - 100px)' }}
               onChange={landscapeSelected}
-              value={currentToken.value}
+              value={currentToken!.value}
             >
               {landscapeTokens.map((token) => (
-                <option
-                  key={token.alias}
-                  value={token.value}
-                >
+                <option key={token.alias} value={token.value}>
                   {token.alias}
                 </option>
               ))}
@@ -648,9 +643,18 @@ export default function CollaborationControls() {
                       }),
                     }}
                     placeholder="Please select a device"
-                    options={configDevices.map((device) => ({ value: device, label: device }))}
-                    onChange={(newValue) => updateSelectedDevice(newValue!.value)}
-                    value={selectedDevice ? { value: selectedDevice, label: selectedDevice } : null}
+                    options={configDevices.map((device) => ({
+                      value: device,
+                      label: device,
+                    }))}
+                    onChange={(newValue) =>
+                      updateSelectedDevice(newValue!.value)
+                    }
+                    value={
+                      selectedDevice
+                        ? { value: selectedDevice, label: selectedDevice }
+                        : null
+                    }
                     getOptionLabel={(device) => device.label}
                   ></Select>
                   <Button
@@ -669,7 +673,10 @@ export default function CollaborationControls() {
 
           <ul>
             {users.map((user) => (
-              <div className="chat-right-buttons collaboration-list-item" key={user.name}>
+              <div
+                className="chat-right-buttons collaboration-list-item"
+                key={user.name}
+              >
                 <li style={user.style}>
                   <div className="nav-link-with-cursor">{user.name}</div>
                 </li>
@@ -726,7 +733,7 @@ export default function CollaborationControls() {
         </>
       )}
 
-      {connectionStatus === 'offline' && (
+      {collabStore.connectionStatus === 'offline' && (
         <>
           <div className="flex-space-between">
             <label className="bold">
@@ -744,7 +751,10 @@ export default function CollaborationControls() {
 
           <ul>
             {rooms.map((room) => (
-              <div className="flex-space-between collaboration-list-item" key={room.roomId}>
+              <div
+                className="flex-space-between collaboration-list-item"
+                key={room.roomId}
+              >
                 <li>{room.roomName}</li>
                 <Button
                   title="Join Room"
@@ -773,7 +783,7 @@ export default function CollaborationControls() {
         </>
       )}
 
-      {connectionStatus === 'online' && (
+      {collabStore.connectionStatus === 'online' && (
         <Button
           title="Disconnect from Room"
           variant="outline-danger"

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useAuthStore } from './auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
-const userService = import.meta.env.USER_SERV_URL;
+const userService = import.meta.env.VITE_USER_SERV_URL;
 
 export type ApiToken = {
   uid: string;

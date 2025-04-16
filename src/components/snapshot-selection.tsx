@@ -215,7 +215,10 @@ export default function SnapshotSelection({
                           <AdditionalSnapshotInfo token={personalToken} />
                         </li>
                         <li>
-                          <ShareSnapshot token={personalToken} reload={reload} />
+                          <ShareSnapshot
+                            token={personalToken}
+                            reload={reload}
+                          />
                         </li>
                         <li>
                           <DeleteSnapshot
@@ -236,7 +239,7 @@ export default function SnapshotSelection({
               )}
             </tbody>
             <tfoot>
-            <tr>
+              <tr>
                 <td colSpan={3} className="p-1">
                   <div className="d-flex flex-row justify-content-center">
                     <Button
