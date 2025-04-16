@@ -20,6 +20,16 @@ export class _ClazzMesh extends BoxMesh {
 
   material: THREE.MeshLambertMaterial | THREE.Material;
 
+  set defaultColor(color: THREE.Color) {
+    super.defaultColor = color;
+    if (
+      this.material instanceof THREE.MeshLambertMaterial &&
+      !this.highlighted
+    ) {
+      this.material.color = color;
+    }
+  }
+
   // Set by labeler
   private _labelMesh: ClazzLabelMesh | null = null;
   public get labelMesh(): ClazzLabelMesh | null {
@@ -43,19 +53,17 @@ export class _ClazzMesh extends BoxMesh {
   private zoomOutCounter: number = 0;
   private lastExecution: number = 0;
 
-  constructor(
-    layout: BoxLayout,
-    clazz: Class,
-    defaultColor: THREE.Color,
-    highlightingColor: THREE.Color
-  ) {
-    super(layout, defaultColor, highlightingColor);
+  constructor(clazz: Class) {
+    super();
 
-    this._original_layout = layout;
+    // TODO: Fix this
+    // this._original_layout = layout;
     this.castShadow = true;
     this.receiveShadow = true;
 
-    this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
+    this.material = new THREE.MeshLambertMaterial({
+      color: new THREE.Color(0xff0000),
+    });
     this.material.transparent = true;
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
@@ -236,15 +244,12 @@ export class _ClazzMesh extends BoxMesh {
 }
 
 interface Args {
-  layout: BoxLayout;
   clazz: Class;
-  defaultColor: THREE.Color;
-  highlightingColor: THREE.Color;
 }
 
 export default class ClazzMesh extends ImmersiveViewMixin(_ClazzMesh) {
-  constructor({ layout, clazz, defaultColor, highlightingColor }: Args) {
-    super(layout, clazz, defaultColor, highlightingColor);
+  constructor({ clazz }: Args) {
+    super(clazz);
   }
 }
 

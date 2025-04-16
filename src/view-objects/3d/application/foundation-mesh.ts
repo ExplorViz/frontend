@@ -1,5 +1,4 @@
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout.ts';
 import * as THREE from 'three';
 import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
 import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
@@ -9,10 +8,7 @@ import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/applicat
 import { extend, ThreeElement } from '@react-three/fiber';
 
 interface Args {
-  layout: BoxLayout;
   foundation: Application;
-  defaultColor: THREE.Color;
-  highlightingColor: THREE.Color;
 }
 
 export default class FoundationMesh<
@@ -27,14 +23,15 @@ export default class FoundationMesh<
   labelMesh: ComponentLabelMesh | null = null;
   minimapLabelMesh: MinimapLabelMesh | null = null;
 
-  constructor({ layout, foundation, defaultColor, highlightingColor }: Args) {
-    super(layout, defaultColor, highlightingColor);
+  constructor({ foundation }: Args) {
+    super();
 
     this.receiveShadow = true;
 
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
-    this.setDefaultMaterial();
+    this.material = new THREE.MeshLambertMaterial({ color: this.defaultColor });
+    this.material.needsUpdate = true;
     this.dataModel = foundation;
 
     this.layers.enable(SceneLayers.Foundation);
@@ -42,13 +39,6 @@ export default class FoundationMesh<
     // Semantic Zoom
     this.saveOriginalAppearence();
     SemanticZoomManager.instance.add(this);
-  }
-
-  setDefaultMaterial() {
-    const material = new THREE.MeshLambertMaterial({
-      color: this.defaultColor,
-    });
-    this.material = material;
   }
 
   getModelId() {

@@ -6,7 +6,6 @@ import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useMemo, useRef } from 'react';
-import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ClassR3F({
@@ -32,12 +31,9 @@ export default function ClassR3F({
 
   const opts = useMemo<ThreeElements['clazzMesh']['args'][0]>(() => {
     return {
-      layout,
       clazz: dataModel,
-      defaultColor: classColor || new THREE.Color(0x000000),
-      highlightingColor: highlightedEntityColor || new THREE.Color(0x000000),
     };
-  }, [dataModel, layout, classColor, highlightedEntityColor]);
+  }, []);
 
   const ref = useRef<ComponentMesh>(null!);
 
@@ -63,6 +59,9 @@ export default function ClassR3F({
   return (
     <clazzMesh
       position={layout.position}
+      defaultColor={classColor}
+      highlightingColor={highlightedEntityColor}
+      layout={layout}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}

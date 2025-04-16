@@ -11,10 +11,7 @@ import ApplicationObject3D from './application-object-3d';
 import { extend, ThreeElement } from '@react-three/fiber';
 
 interface Args {
-  layout: BoxLayout;
   component: Package;
-  defaultColor: THREE.Color;
-  highlightingColor: THREE.Color;
 }
 export default class ComponentMesh extends BoxMesh {
   geometry: THREE.BoxGeometry;
@@ -47,15 +44,14 @@ export default class ComponentMesh extends BoxMesh {
     this._labelMesh = value;
   }
 
-  constructor({ layout, component, defaultColor, highlightingColor }: Args) {
-    super(layout, defaultColor, highlightingColor);
+  constructor({ component }: Args) {
+    super();
     this.receiveShadow = true;
     this.castShadow = true;
 
-    this.material = new THREE.MeshLambertMaterial({ color: defaultColor });
+    this.geometry = new THREE.BoxGeometry(1, 1, 1);
+    this.material = new THREE.MeshLambertMaterial({ color: this.defaultColor });
     this.material.transparent = true;
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    this.geometry = geometry;
     this.dataModel = component;
 
     // Semantic Zoom preparations

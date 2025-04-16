@@ -120,15 +120,7 @@ export default function ComponentR3F({
         setComponentHeight(closedComponentHeight);
       }
     }
-  }, [
-    isOpen,
-    layout,
-    closeWithAnimation,
-    openWithAnimation,
-    openedComponentHeight,
-    closedComponentHeight,
-    enableAnimations,
-  ]);
+  }, [isOpen]);
 
   const handleClick = (/*event: any*/) => {
     updateComponentState(component.id, {
@@ -149,23 +141,13 @@ export default function ComponentR3F({
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
-  const opts = useMemo<ThreeElements['componentMesh']['args'][0]>(() => {
+  const constructorArgs = useMemo<
+    ThreeElements['componentMesh']['args'][0]
+  >(() => {
     return {
-      layout,
       component,
-      defaultColor:
-        component.level % 2 === 0
-          ? new THREE.Color(componentEvenColor)
-          : new THREE.Color(componentOddColor),
-      highlightingColor: new THREE.Color(highlightedEntityColor),
     };
-  }, [
-    component,
-    layout,
-    componentEvenColor,
-    componentOddColor,
-    highlightedEntityColor,
-  ]);
+  }, []);
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
@@ -185,16 +167,19 @@ export default function ComponentR3F({
 
   return (
     <componentMesh
-      position={componentPosition}
-      highlighted={isHighlighted}
+      args={[constructorArgs]}
+      defaultColor={componentOddColor}
       height={componentHeight}
+      highlighted={isHighlighted}
+      highlightingColor={highlightedEntityColor}
+      layout={layout}
       opened={isOpen}
+      position={componentPosition}
       visible={isVisible}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
-      args={[opts]}
     >
       <LabelMeshWrapper />
     </componentMesh>

@@ -4,10 +4,9 @@ import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { openAllComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -31,21 +30,19 @@ export default function FoundationR3F({
 
   const { foundationColor, highlightedEntityColor } = useUserSettingsStore(
     useShallow((state) => ({
-      foundationColor: state.colors?.foundationColor,
-      highlightedEntityColor: state.colors?.highlightedEntityColor,
+      foundationColor: state.visualizationSettings.foundationColor.value,
+      highlightedEntityColor:
+        state.visualizationSettings.highlightedEntityColor.value,
     }))
   );
 
-  const opts = useMemo<ThreeElements['foundationMesh']['args'][0]>(() => {
+  const constructorArgs = useMemo<
+    ThreeElements['foundationMesh']['args'][0]
+  >(() => {
     return {
       foundation: application,
-      layout: boxLayout,
-      defaultColor: foundationColor || new THREE.Color(0x000000),
-      highlightingColor: highlightedEntityColor || new THREE.Color(0x000000),
     };
-  }, [application, boxLayout, foundationColor, highlightedEntityColor]);
-
-  const ref = useRef<FoundationMesh>(null!);
+  }, []);
 
   useEffect(() => {
     setFoundationPosition(
@@ -59,17 +56,17 @@ export default function FoundationR3F({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    ref.current.applyHoverEffect();
+    event.object.applyHoverEffect();
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    ref.current.resetHoverEffect();
+    event.object.resetHoverEffect();
   };
 
-  const handleClick = (/*event: any*/) => {
+  const handleClick = (event: any) => {
     // TODO: Select active application for heatmap
-    highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
+    highlightingActions.toggleHighlight(event.object, { sendMessage: true });
   };
 
   const handleDoubleClick = (event: any) => {
@@ -83,12 +80,14 @@ export default function FoundationR3F({
   return (
     <foundationMesh
       position={foundationPosition}
+      defaultColor={foundationColor}
+      highlightingColor={highlightedEntityColor}
+      layout={boxLayout}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
-      args={[opts]}
-      ref={ref}
+      args={[constructorArgs]}
     >
       <LabelMeshWrapper />
     </foundationMesh>

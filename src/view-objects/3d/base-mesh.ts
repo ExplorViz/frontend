@@ -27,11 +27,33 @@ export default abstract class BaseMesh<
     return this._highlighted;
   }
 
-  defaultColor: THREE.Color;
+  _defaultColor: THREE.Color = new THREE.Color();
+
+  get defaultColor(): THREE.Color {
+    return this._defaultColor;
+  }
+
+  set defaultColor(value: THREE.Color) {
+    this._defaultColor = value;
+    if (
+      this.material instanceof THREE.MeshBasicMaterial &&
+      !this._highlighted
+    ) {
+      this.material.color = value;
+    }
+  }
 
   defaultOpacity: number;
 
-  highlightingColor: THREE.Color;
+  _highlightingColor: THREE.Color = new THREE.Color('red');
+
+  get highlightingColor(): THREE.Color {
+    return this._highlightingColor;
+  }
+
+  set highlightingColor(value: THREE.Color) {
+    this._highlightingColor = value;
+  }
 
   private _isHovered = false;
 

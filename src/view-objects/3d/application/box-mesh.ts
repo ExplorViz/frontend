@@ -6,16 +6,18 @@ export default abstract class BoxMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,
   TMaterial extends THREE.Material | THREE.Material[] = THREE.Material,
 > extends BaseMesh<TGeometry, TMaterial> {
-  layout: BoxLayout;
+  _layout: BoxLayout = new BoxLayout();
 
-  constructor(
-    layout: BoxLayout,
-    defaultColor: THREE.Color,
-    highlightingColor: THREE.Color
-  ) {
-    super(defaultColor, highlightingColor);
+  constructor() {
+    super();
+  }
 
-    this.layout = layout;
+  get layout(): BoxLayout {
+    return this._layout;
+  }
+
+  set layout(layout: BoxLayout) {
+    this._layout = layout;
 
     // Set default dimensions to layout data
     this.height = layout.height;
