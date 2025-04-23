@@ -58,7 +58,7 @@ const COLORS_GRAD = [
   '#FFFFFF',
 ];
 
-function getOffset(rect, firstOffset) {
+function getOffset(rect: DOMRect, firstOffset: NodeOffset) {
   return {
     x:
       rect.right * NODE_SCALAR - (rect.width * NODE_SCALAR) / 2 - firstOffset.x,
@@ -76,7 +76,7 @@ export default function BabiaHtml({
   renderHTMLOnlyLeafs = false,
 }) {
   const groupRef = useRef();
-  const [boxes, setBoxes] = useState([]);
+  const [boxes, setBoxes] = useState<BoxData[]>([]);
 
   console.log('BabiaHtml', html);
 
@@ -85,19 +85,20 @@ export default function BabiaHtml({
       setBoxes([]);
       return;
     }
-    let tempBoxes = [];
+    let tempBoxes: BoxData[] = [];
     const rootChildren = Array.from(html.children);
-    let firstOffset = null;
+    let firstOffset: NodeOffset | null = null;
 
-    const processNode = (node, level) => {
-      const rect = node.getBoundingClientRect();
+    const processNode = (node: any, level: number) => {
+      const rect: DOMRect = node.getBoundingClientRect();
+
       if (!firstOffset) {
         firstOffset = { x: rect.left * NODE_SCALAR, y: rect.top * NODE_SCALAR };
       }
 
       const offset = getOffset(rect, firstOffset);
 
-      const boxData = {
+      const boxData: BoxData = {
         id: Math.random(),
         position: [offset.x, offset.y, level * distanceLevels],
         size: [rect.width * NODE_SCALAR, rect.height * NODE_SCALAR, 0.01],
@@ -133,7 +134,7 @@ export default function BabiaHtml({
 
   return (
     <group ref={groupRef}>
-      {boxes.map((box, index) => (
+      {boxes.map((box, _) => (
         <Box3D
           key={box.id}
           box={box}
@@ -144,7 +145,7 @@ export default function BabiaHtml({
   );
 }
 
-function Box3D({ box, color }) {
+function Box3D({ box, color }: { box: BoxData; color: string }) {
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
 
@@ -196,3 +197,18 @@ function Box3D({ box, color }) {
     </group>
   );
 }
+
+type BoxData = {
+  id: number;
+  position: [number, number, number];
+  size: [number, number, number];
+  level: number;
+  html: any;
+  children: any[];
+  texture: any;
+};
+
+type NodeOffset = {
+  x: number;
+  y: number;
+};
