@@ -1,8 +1,8 @@
-import { Html } from '@react-three/drei';
+import { Box, Html } from '@react-three/drei';
 import { Container, Root } from '@react-three/uikit';
-import { Input } from '@react-three/uikit-apfel';
+import { Input } from '@react-three/uikit-default';
 import { Button } from '@react-three/uikit-default';
-import { ChevronRight, RefreshCcw } from '@react-three/uikit-lucide';
+import { ChevronLeft, SkipBack, Table } from '@react-three/uikit-lucide';
 import BabiaHtml from 'explorviz-frontend/src/view-objects/3d/application/babia-html';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useRef, useState } from 'react';
@@ -26,6 +26,11 @@ export default function EmbeddedBrowser({
   const inputWidth = 450;
 
   const triggerHtmlVisualizer = () => {
+    if (html) {
+      setHtml(undefined);
+      return;
+    }
+
     let iFrameHtml: HTMLElement | undefined;
     try {
       iFrameHtml =
@@ -42,6 +47,7 @@ export default function EmbeddedBrowser({
 
   return (
     <>
+      <Box position={[142, 155, -1]} args={[290, 200, 1]} />
       <Root
         positionBottom={positionBottom}
         positionLeft={positionLeft}
@@ -71,7 +77,7 @@ export default function EmbeddedBrowser({
               }
             }}
           >
-            <RefreshCcw />
+            <SkipBack />
           </Button>
           <Button
             width={navbarHeight}
@@ -81,7 +87,7 @@ export default function EmbeddedBrowser({
               triggerHtmlVisualizer();
             }}
           >
-            <ChevronRight />
+            {html ? <ChevronLeft /> : <Table />}
           </Button>
           <Container>
             <Html

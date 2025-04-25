@@ -1,19 +1,23 @@
-import { Html } from '@react-three/drei';
-import { useEffect, useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
+import { Box, Html } from '@react-three/drei';
+import { Container, Root, Text } from '@react-three/uikit';
+import { Input } from '@react-three/uikit-default';
+import { Button, Checkbox, Label } from '@react-three/uikit-default';
+import { RefreshCcw } from '@react-three/uikit-lucide';
+import sha256 from 'js-sha256';
+import { useEffect, useState } from 'react';
 
-export default function BabiaHtml({
-  html,
-  distanceLevels: distanceBetweenLevels = 5,
-  renderHTML = true,
-  renderHTMLOnlyLeafs = false,
-}: {
-  html: HTMLElement | null;
-  distanceLevels: number;
-  renderHTML: boolean;
-  renderHTMLOnlyLeafs: boolean;
-}) {
+export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
+  const [useHashedColors, setUseHashedColors] = useState(false);
+  const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
+
+  const sizeX = 1000;
+  const sizeY = 1000;
+  const scale = 0.5;
+  const positionBottom = -500 * scale;
+  const positionLeft = 800;
+  const navbarHeight = 40;
+  const inputWidth = 75;
 
   useEffect(() => {
     if (!html) {
@@ -43,22 +47,22 @@ export default function BabiaHtml({
         texture: null,
       };
 
-      if (renderHTML && typeof html2canvas !== 'undefined') {
-        const isLeaf = node.children.length === 0;
+      // if (renderHTML && typeof html2canvas !== 'undefined') {
+      //   const isLeaf = node.children.length === 0;
 
-        // Create a temporary node to render the HTML
+      //   // Create a temporary node to render the HTML
 
-        // node.parentNode?.removeChild(node);
-        // document.body.appendChild(node);
-        if (!renderHTMLOnlyLeafs || isLeaf) {
-          // const canvas = await html2canvas(node);
-          // console.log('canvas', canvas);
-          // const texture = new THREE.Texture(canvas);
-          // texture.needsUpdate = true;
-          // boxData.texture = texture;
-          // setBoxes((prev) => [...prev]); // trigger re-render
-        }
-      }
+      //   // node.parentNode?.removeChild(node);
+      //   // document.body.appendChild(node);
+      //   if (!renderHTMLOnlyLeafs || isLeaf) {
+      //     // const canvas = await html2canvas(node);
+      //     // console.log('canvas', canvas);
+      //     // const texture = new THREE.Texture(canvas);
+      //     // texture.needsUpdate = true;
+      //     // boxData.texture = texture;
+      //     // setBoxes((prev) => [...prev]); // trigger re-render
+      //   }
+      // }
 
       tempBoxes.push(boxData);
 
@@ -69,16 +73,80 @@ export default function BabiaHtml({
 
     rootChildren.forEach((node) => processNode(node, 0));
     setBoxes(tempBoxes);
-  }, [html, distanceBetweenLevels, renderHTML, renderHTMLOnlyLeafs]);
+  }, [html, distanceBetweenLevels]);
 
   return (
     <group>
+      {html && (
+        <Root
+          positionBottom={positionBottom}
+          positionLeft={positionLeft}
+          sizeX={sizeX}
+          sizeY={sizeY}
+          pixelSize={scale}
+          onWheel={(event) => {
+            if (event.deltaX > 0) {
+              setDistanceBetweenLevels((prev) => prev + 1);
+            }
+            if (event.deltaX < 0) {
+              setDistanceBetweenLevels((prev) => prev - 1);
+            }
+          }}
+        >
+          <Container flexDirection="row" alignItems="flex-start" gap={115}>
+            <Container gap={10}>
+              <Label>
+                <Text fontSize={20}>Depth:</Text>
+              </Label>
+              <Input
+                value={distanceBetweenLevels.toString()}
+                onValueChange={(value) => {
+                  const newValue = parseFloat(value);
+                  if (!isNaN(newValue)) {
+                    setDistanceBetweenLevels(newValue);
+                  }
+                }}
+                width={inputWidth}
+                height={navbarHeight}
+              />
+            </Container>
+            <Container flexDirection="column" gap={8}>
+              <Container flexDirection="row" gap={5}>
+                <Checkbox
+                  checked={useHashedColors}
+                  onCheckedChange={(isActive) => {
+                    setUseHashedColors(isActive);
+                  }}
+                />
+                ;
+                <Label>
+                  <Text>Hashed Colors</Text>
+                </Label>
+              </Container>
+              <Container flexDirection="row" gap={5}>
+                <Checkbox />
+                <Label>
+                  <Text>Show HTML</Text>
+                </Label>
+              </Container>
+            </Container>
+            <Container gap={10}>
+              <Button width={navbarHeight} height={navbarHeight} padding={0}>
+                <RefreshCcw />
+              </Button>
+            </Container>
+          </Container>
+        </Root>
+      )}
       {boxes.map((box, _) => (
         <Box3D
           key={box.id}
           box={box}
-          // color={getRandomColor()}
-          color={COLORS_GRAD[box.level % COLORS_GRAD.length]}
+          color={
+            useHashedColors
+              ? generateColorFromObject(box.html)
+              : COLORS_GRAD[box.level % COLORS_GRAD.length]
+          }
         />
       ))}
     </group>
@@ -91,6 +159,7 @@ function Box3D({ box, color }: { box: BoxData; color: string }) {
 
   return (
     <group position={[300, 218, 0]}>
+      <Box position={[135, -63, -1]} args={[290, 200, 1]} />
       <mesh
         position={box.position}
         onPointerEnter={(event) => {
@@ -205,13 +274,10 @@ function getOffset(rect: DOMRect, firstOffset: NodeOffset) {
   };
 }
 
-function getRandomColor() {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+function generateColorFromObject(obj: any): string {
+  const hash = sha256(JSON.stringify(obj));
+  const hexColor = '#' + hash.substring(0, 6);
+  return hexColor;
 }
 
 type BoxData = {

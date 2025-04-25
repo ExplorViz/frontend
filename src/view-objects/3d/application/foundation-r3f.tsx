@@ -18,7 +18,11 @@ export default function FoundationR3F({
   boxLayout: BoxLayout;
 }) {
   const [foundationPosition, setFoundationPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3()
+    new THREE.Vector3(
+      boxLayout.width / 2,
+      boxLayout.positionY,
+      boxLayout.depth / 2
+    )
   );
 
   const highlightingActions = useHighlightingStore(
