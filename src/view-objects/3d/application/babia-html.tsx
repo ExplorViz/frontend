@@ -1,15 +1,19 @@
-import { Box, Html } from '@react-three/drei';
+import { Box, Html, Outlines } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Input } from '@react-three/uikit-default';
 import { Button, Checkbox, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
 import sha256 from 'js-sha256';
 import { useEffect, useState } from 'react';
+import * as htmlToImage from 'html-to-image';
+import * as THREE from 'three';
 
 export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
+  const [htmlTexture, setHtmlTexture] = useState<any>(null);
+  const [renderHTML, setRenderHtml] = useState(false);
 
   const sizeX = 1000;
   const sizeY = 1000;
@@ -24,9 +28,44 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       setBoxes([]);
       return;
     }
+
     let tempBoxes: BoxData[] = [];
     const rootChildren = Array.from(html.children);
     let firstOffset: NodeOffset | null = null;
+
+    if (renderHTML) {
+      htmlToImage
+        .toPng(html)
+        .then((dataUrl) => {
+          const img = new Image();
+          document.body.appendChild(img);
+          console.log('Image', img);
+          const loader = new THREE.TextureLoader();
+
+          // load a resource
+          loader.load(
+            // resource URL
+            dataUrl,
+
+            // onLoad callback
+            function (texture) {
+              // in this example we create the material when the texture is loaded
+              setHtmlTexture(texture);
+            },
+
+            // onProgress callback currently not supported
+            undefined,
+
+            // onError callback
+            function (err) {
+              console.error('An error happened.');
+            }
+          );
+        })
+        .catch((err) => {
+          console.error('oops, something went wrong!', err);
+        });
+    }
 
     const processNode = async (node: HTMLElement, level: number) => {
       const rect: DOMRect = node.getBoundingClientRect();
@@ -37,15 +76,23 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
       const offset = getOffset(rect, firstOffset);
 
+      // Only display html element itself without child nodes
+      const htmlString = node.outerHTML.replace(node.innerHTML || '', '');
+
       const boxData: BoxData = {
         id: Math.random(),
         position: [offset.x, offset.y, level * distanceBetweenLevels],
-        size: [rect.width * NODE_SCALAR, rect.height * NODE_SCALAR, 0.01],
+        size: [
+          rect.width * NODE_SCALAR * 0.98,
+          rect.height * NODE_SCALAR * 0.98,
+          0.01,
+        ],
         level,
-        html: node.outerHTML,
+        html: htmlString,
         children: [],
-        texture: null,
+        texture: level === 0 ? htmlTexture : null,
       };
+      console.log(boxData.texture);
 
       // if (renderHTML && typeof html2canvas !== 'undefined') {
       //   const isLeaf = node.children.length === 0;
@@ -124,9 +171,14 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 </Label>
               </Container>
               <Container flexDirection="row" gap={5}>
-                <Checkbox />
+                <Checkbox
+                  checked={renderHTML}
+                  onCheckedChange={(isActive) => {
+                    setRenderHtml(isActive);
+                  }}
+                />
                 <Label>
-                  <Text>Show HTML</Text>
+                  <Text>Render HTML</Text>
                 </Label>
               </Container>
             </Container>
