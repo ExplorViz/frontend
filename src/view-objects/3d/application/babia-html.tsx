@@ -1,11 +1,10 @@
-import { Box, Html, Outlines } from '@react-three/drei';
+import { Box, Html } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
-import { Input } from '@react-three/uikit-default';
-import { Button, Checkbox, Label } from '@react-three/uikit-default';
+import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
+import * as htmlToImage from 'html-to-image';
 import sha256 from 'js-sha256';
 import { useEffect, useState } from 'react';
-import * as htmlToImage from 'html-to-image';
 import * as THREE from 'three';
 
 export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
@@ -23,6 +22,8 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const navbarHeight = 40;
   const inputWidth = 75;
 
+  const [restrictToLayer, setRestrictToLayer] = useState(0);
+
   useEffect(() => {
     if (!html) {
       setBoxes([]);
@@ -39,7 +40,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         .then((dataUrl) => {
           const img = new Image();
           document.body.appendChild(img);
-          console.log('Image', img);
           const loader = new THREE.TextureLoader();
 
           // load a resource
@@ -92,26 +92,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         children: [],
         texture: level === 0 ? htmlTexture : null,
       };
-      console.log(boxData.texture);
 
-      // if (renderHTML && typeof html2canvas !== 'undefined') {
-      //   const isLeaf = node.children.length === 0;
-
-      //   // Create a temporary node to render the HTML
-
-      //   // node.parentNode?.removeChild(node);
-      //   // document.body.appendChild(node);
-      //   if (!renderHTMLOnlyLeafs || isLeaf) {
-      //     // const canvas = await html2canvas(node);
-      //     // console.log('canvas', canvas);
-      //     // const texture = new THREE.Texture(canvas);
-      //     // texture.needsUpdate = true;
-      //     // boxData.texture = texture;
-      //     // setBoxes((prev) => [...prev]); // trigger re-render
-      //   }
-      // }
-
-      tempBoxes.push(boxData);
+      if (!restrictToLayer || boxData.level + 1 === restrictToLayer) {
+        tempBoxes.push(boxData);
+      }
 
       Array.from(node.children).forEach((child) =>
         processNode(child, level + 1)
@@ -120,7 +104,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
     rootChildren.forEach((node) => processNode(node, 0));
     setBoxes(tempBoxes);
-  }, [html, distanceBetweenLevels]);
+  }, [html, distanceBetweenLevels, restrictToLayer]);
 
   return (
     <group>
@@ -136,11 +120,11 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
               setDistanceBetweenLevels((prev) => prev + 1);
             }
             if (event.deltaX < 0) {
-              setDistanceBetweenLevels((prev) => prev - 1);
+              setDistanceBetweenLevels((prev) => Math.max(1, prev - 1));
             }
           }}
         >
-          <Container flexDirection="row" alignItems="flex-start" gap={115}>
+          <Container flexDirection="row" alignItems="flex-start" gap={10}>
             <Container gap={10}>
               <Label>
                 <Text fontSize={20}>Depth:</Text>
@@ -151,6 +135,31 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                   const newValue = parseFloat(value);
                   if (!isNaN(newValue)) {
                     setDistanceBetweenLevels(newValue);
+                  }
+                }}
+                width={inputWidth}
+                height={navbarHeight}
+              />
+            </Container>
+            <Container gap={10}>
+              <Label>
+                <Text fontSize={15}>Only Show Layer:</Text>
+              </Label>
+              <Input
+                value={restrictToLayer.toString()}
+                onValueChange={(value) => {
+                  const newValue = parseFloat(value);
+                  if (!isNaN(newValue)) {
+                    setRestrictToLayer(newValue);
+                  }
+                }}
+                onWheel={(event) => {
+                  event.stopPropagation();
+                  if (event.deltaX > 0) {
+                    setRestrictToLayer((prev) => prev + 1);
+                  }
+                  if (event.deltaX < 0) {
+                    setRestrictToLayer((prev) => Math.max(0, prev - 1));
                   }
                 }}
                 width={inputWidth}
