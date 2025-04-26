@@ -2,10 +2,8 @@ import { Box, Html } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
-import * as htmlToImage from 'html-to-image';
 import sha256 from 'js-sha256';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
+import { useEffect, useRef, useState } from 'react';
 
 export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
@@ -18,6 +16,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     setReloadCounter(reloadCounter + 1);
   };
   const observer = useRef(new MutationObserver(observerCallback));
+  const maxLayer = useRef(0);
 
   const [updateWithObserver, setUpdateWithObserver] = useState(true);
 
@@ -88,7 +87,13 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     //     });
     // }
 
+    let maxLevel = 0;
+
     const processNode = async (node: HTMLElement, level: number) => {
+      if (level > maxLevel) {
+        maxLevel = level;
+      }
+
       const rect: DOMRect = node.getBoundingClientRect();
 
       if (!firstOffset) {
@@ -127,6 +132,8 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     };
 
     rootChildren.forEach((node) => processNode(node, 0));
+
+    maxLayer.current = maxLevel;
     setBoxes(tempBoxes);
   }, [
     html,
@@ -182,13 +189,17 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                   onValueChange={(value) => {
                     const newValue = parseFloat(value);
                     if (!isNaN(newValue)) {
-                      setRestrictToLayer(newValue);
+                      setRestrictToLayer(
+                        Math.max(0, Math.min(maxLayer.current + 1, newValue))
+                      );
                     }
                   }}
                   onWheel={(event) => {
                     event.stopPropagation();
                     if (event.deltaX > 0) {
-                      setRestrictToLayer((prev) => prev + 1);
+                      setRestrictToLayer((prev) =>
+                        Math.min(maxLayer.current + 1, prev + 1)
+                      );
                     }
                     if (event.deltaX < 0) {
                       setRestrictToLayer((prev) => Math.max(0, prev - 1));
