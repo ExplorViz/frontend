@@ -20,9 +20,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const positionBottom = -500 * scale;
   const positionLeft = 800;
   const navbarHeight = 40;
-  const inputWidth = 75;
+  const inputWidth = 50;
 
   const [restrictToLayer, setRestrictToLayer] = useState(0);
+  const [searchString, setSearchString] = useState('');
 
   useEffect(() => {
     if (!html) {
@@ -93,7 +94,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         texture: level === 0 ? htmlTexture : null,
       };
 
-      if (!restrictToLayer || boxData.level + 1 === restrictToLayer) {
+      if (
+        (!restrictToLayer || boxData.level + 1 === restrictToLayer) &&
+        (!searchString || htmlString.includes(searchString))
+      ) {
         tempBoxes.push(boxData);
       }
 
@@ -104,7 +108,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
     rootChildren.forEach((node) => processNode(node, 0));
     setBoxes(tempBoxes);
-  }, [html, distanceBetweenLevels, restrictToLayer]);
+  }, [html, distanceBetweenLevels, restrictToLayer, searchString]);
 
   return (
     <group>
@@ -125,46 +129,48 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           }}
         >
           <Container flexDirection="row" alignItems="flex-start" gap={10}>
-            <Container gap={10}>
-              <Label>
-                <Text fontSize={20}>Depth:</Text>
-              </Label>
-              <Input
-                value={distanceBetweenLevels.toString()}
-                onValueChange={(value) => {
-                  const newValue = parseFloat(value);
-                  if (!isNaN(newValue)) {
-                    setDistanceBetweenLevels(newValue);
-                  }
-                }}
-                width={inputWidth}
-                height={navbarHeight}
-              />
-            </Container>
-            <Container gap={10}>
-              <Label>
-                <Text fontSize={15}>Only Show Layer:</Text>
-              </Label>
-              <Input
-                value={restrictToLayer.toString()}
-                onValueChange={(value) => {
-                  const newValue = parseFloat(value);
-                  if (!isNaN(newValue)) {
-                    setRestrictToLayer(newValue);
-                  }
-                }}
-                onWheel={(event) => {
-                  event.stopPropagation();
-                  if (event.deltaX > 0) {
-                    setRestrictToLayer((prev) => prev + 1);
-                  }
-                  if (event.deltaX < 0) {
-                    setRestrictToLayer((prev) => Math.max(0, prev - 1));
-                  }
-                }}
-                width={inputWidth}
-                height={navbarHeight}
-              />
+            <Container flexDirection="column" alignItems="flex-start" gap={10}>
+              <Container gap={35}>
+                <Label>
+                  <Text fontSize={15}>Depth:</Text>
+                </Label>
+                <Input
+                  value={distanceBetweenLevels.toString()}
+                  onValueChange={(value) => {
+                    const newValue = parseFloat(value);
+                    if (!isNaN(newValue)) {
+                      setDistanceBetweenLevels(newValue);
+                    }
+                  }}
+                  width={inputWidth}
+                  height={navbarHeight / 2}
+                />
+              </Container>
+              <Container gap={0}>
+                <Label>
+                  <Text fontSize={10}>Only Show Layer:</Text>
+                </Label>
+                <Input
+                  value={restrictToLayer.toString()}
+                  onValueChange={(value) => {
+                    const newValue = parseFloat(value);
+                    if (!isNaN(newValue)) {
+                      setRestrictToLayer(newValue);
+                    }
+                  }}
+                  onWheel={(event) => {
+                    event.stopPropagation();
+                    if (event.deltaX > 0) {
+                      setRestrictToLayer((prev) => prev + 1);
+                    }
+                    if (event.deltaX < 0) {
+                      setRestrictToLayer((prev) => Math.max(0, prev - 1));
+                    }
+                  }}
+                  width={inputWidth}
+                  height={navbarHeight / 2}
+                />
+              </Container>
             </Container>
             <Container flexDirection="column" gap={8}>
               <Container flexDirection="row" gap={5}>
@@ -190,6 +196,19 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                   <Text>Render HTML</Text>
                 </Label>
               </Container>
+            </Container>
+            <Container gap={10}>
+              <Label>
+                <Text fontSize={15}>Search:</Text>
+              </Label>
+              <Input
+                value={searchString}
+                onValueChange={(value) => {
+                  setSearchString(value);
+                }}
+                width={150}
+                height={navbarHeight}
+              />
             </Container>
             <Container gap={10}>
               <Button width={navbarHeight} height={navbarHeight} padding={0}>
