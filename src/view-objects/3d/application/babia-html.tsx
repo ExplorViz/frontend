@@ -12,7 +12,8 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [useHashedColors, setUseHashedColors] = useState(false);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
   const [htmlTexture, setHtmlTexture] = useState<any>(null);
-  const [renderHTML, setRenderHtml] = useState(false);
+  const [updateWithObserver, setUpdateWithObserver] = useState(false);
+  const [reloadCounter, setReloadCounter] = useState(0);
 
   const sizeX = 1000;
   const sizeY = 1000;
@@ -31,11 +32,25 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       return;
     }
 
+    // Callback function to execute when mutations to the iframe are observed
+    const callback = function (mutationsList: any, observer: any) {
+      if (updateWithObserver) {
+        setReloadCounter(reloadCounter + 1);
+      }
+    };
+
+    const observer = new MutationObserver(callback);
+    observer.observe(html, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+
     let tempBoxes: BoxData[] = [];
     const rootChildren = Array.from(html.children);
     let firstOffset: NodeOffset | null = null;
 
-    if (renderHTML) {
+    if (updateWithObserver) {
       htmlToImage
         .toPng(html)
         .then((dataUrl) => {
@@ -108,7 +123,14 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
     rootChildren.forEach((node) => processNode(node, 0));
     setBoxes(tempBoxes);
-  }, [html, distanceBetweenLevels, restrictToLayer, searchString]);
+  }, [
+    html,
+    distanceBetweenLevels,
+    restrictToLayer,
+    searchString,
+    reloadCounter,
+    updateWithObserver,
+  ]);
 
   return (
     <group>
@@ -175,6 +197,17 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
             <Container flexDirection="column" gap={8}>
               <Container flexDirection="row" gap={5}>
                 <Checkbox
+                  checked={updateWithObserver}
+                  onCheckedChange={(isActive) => {
+                    setUpdateWithObserver(isActive);
+                  }}
+                />
+                <Label>
+                  <Text>Cont. Update</Text>
+                </Label>
+              </Container>
+              <Container flexDirection="row" gap={5}>
+                <Checkbox
                   checked={useHashedColors}
                   onCheckedChange={(isActive) => {
                     setUseHashedColors(isActive);
@@ -183,17 +216,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 ;
                 <Label>
                   <Text>Hashed Colors</Text>
-                </Label>
-              </Container>
-              <Container flexDirection="row" gap={5}>
-                <Checkbox
-                  checked={renderHTML}
-                  onCheckedChange={(isActive) => {
-                    setRenderHtml(isActive);
-                  }}
-                />
-                <Label>
-                  <Text>Render HTML</Text>
                 </Label>
               </Container>
             </Container>
@@ -211,7 +233,12 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
               />
             </Container>
             <Container gap={10}>
-              <Button width={navbarHeight} height={navbarHeight} padding={0}>
+              <Button
+                width={navbarHeight}
+                height={navbarHeight}
+                padding={0}
+                onClick={() => setReloadCounter(reloadCounter + 1)}
+              >
                 <RefreshCcw />
               </Button>
             </Container>
