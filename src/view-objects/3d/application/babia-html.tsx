@@ -4,7 +4,7 @@ import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
 import * as htmlToImage from 'html-to-image';
 import sha256 from 'js-sha256';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
@@ -12,8 +12,14 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [useHashedColors, setUseHashedColors] = useState(false);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
   const [htmlTexture, setHtmlTexture] = useState<any>(null);
-  const [updateWithObserver, setUpdateWithObserver] = useState(false);
   const [reloadCounter, setReloadCounter] = useState(0);
+  const observerCallback = () => {
+    console.log('Observe');
+    setReloadCounter(reloadCounter + 1);
+  };
+  const observer = useRef(new MutationObserver(observerCallback));
+
+  const [updateWithObserver, setUpdateWithObserver] = useState(true);
 
   const sizeX = 1000;
   const sizeY = 1000;
@@ -32,56 +38,55 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       return;
     }
 
-    // Callback function to execute when mutations to the iframe are observed
-    const callback = function (mutationsList: any, observer: any) {
-      if (updateWithObserver) {
-        setReloadCounter(reloadCounter + 1);
-      }
-    };
+    // Avoid that multiple observer fire in parallel
+    observer.current.disconnect();
 
-    const observer = new MutationObserver(callback);
-    observer.observe(html, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-    });
+    // Register (new) observer
+    observer.current = new MutationObserver(observerCallback);
+    if (updateWithObserver) {
+      observer.current.observe(html, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+    }
 
     let tempBoxes: BoxData[] = [];
     const rootChildren = Array.from(html.children);
     let firstOffset: NodeOffset | null = null;
 
-    if (updateWithObserver) {
-      htmlToImage
-        .toPng(html)
-        .then((dataUrl) => {
-          const img = new Image();
-          document.body.appendChild(img);
-          const loader = new THREE.TextureLoader();
+    // if (updateWithObserver) {
+    //   htmlToImage
+    //     .toPng(html)
+    //     .then((dataUrl) => {
+    //       const img = new Image();
+    //       document.body.appendChild(img);
+    //       const loader = new THREE.TextureLoader();
 
-          // load a resource
-          loader.load(
-            // resource URL
-            dataUrl,
+    //       // load a resource
+    //       loader.load(
+    //         // resource URL
+    //         dataUrl,
 
-            // onLoad callback
-            function (texture) {
-              // in this example we create the material when the texture is loaded
-              setHtmlTexture(texture);
-            },
+    //         // onLoad callback
+    //         function (texture) {
+    //           // in this example we create the material when the texture is loaded
+    //           setHtmlTexture(texture);
+    //         },
 
-            // onProgress callback currently not supported
-            undefined,
+    //         // onProgress callback currently not supported
+    //         undefined,
 
-            // onError callback
-            function (err) {
-              console.error('An error happened.');
-            }
-          );
-        })
-        .catch((err) => {
-          console.error('oops, something went wrong!', err);
-        });
-    }
+    //         // onError callback
+    //         function (err) {
+    //           console.error('An error happened.');
+    //         }
+    //       );
+    //     })
+    //     .catch((err) => {
+    //       console.error('oops, something went wrong!', err);
+    //     });
+    // }
 
     const processNode = async (node: HTMLElement, level: number) => {
       const rect: DOMRect = node.getBoundingClientRect();
