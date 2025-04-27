@@ -1,4 +1,5 @@
 import { Box, Html } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
@@ -12,7 +13,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [htmlTexture, setHtmlTexture] = useState<any>(null);
   const [reloadCounter, setReloadCounter] = useState(0);
   const observerCallback = () => {
-    console.log('Observe');
     setReloadCounter(reloadCounter + 1);
   };
   const observer = useRef(new MutationObserver(observerCallback));
@@ -103,7 +103,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       const offset = getOffset(rect, firstOffset);
 
       // Only display html element itself without child nodes
-      const htmlString = node.outerHTML.replace(node.innerHTML || '', '');
+      let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
+      const innerText =
+        node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
+      htmlString = htmlString.replace('>', '>' + innerText);
 
       const boxData: BoxData = {
         id: Math.random(),
@@ -121,7 +124,8 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
       if (
         (!restrictToLayer || boxData.level + 1 === restrictToLayer) &&
-        (!searchString || htmlString.includes(searchString))
+        (!searchString ||
+          htmlString.toLowerCase().includes(searchString.toLowerCase()))
       ) {
         tempBoxes.push(boxData);
       }
@@ -319,7 +323,7 @@ function Box3D({ box, color }: { box: BoxData; color: string }) {
               padding: '10px',
               border: '1px solid black',
               whiteSpace: 'pre-wrap',
-              fontSize: '75px',
+              fontSize: '150px',
             }}
           >
             <code>{box.html}</code>

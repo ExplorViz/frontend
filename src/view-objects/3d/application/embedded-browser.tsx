@@ -4,14 +4,9 @@ import { Input } from '@react-three/uikit-default';
 import { Button } from '@react-three/uikit-default';
 import { ChevronLeft, SkipBack, Table } from '@react-three/uikit-lucide';
 import BabiaHtml from 'explorviz-frontend/src/view-objects/3d/application/babia-html';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useRef, useState } from 'react';
 
-export default function EmbeddedBrowser({
-  appLayout,
-}: {
-  appLayout: BoxLayout;
-}) {
+export default function EmbeddedBrowser() {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
   const [html, setHtml] = useState<HTMLElement | undefined>(undefined);
   const defaultUrl = 'http://localhost:4200';
@@ -21,7 +16,7 @@ export default function EmbeddedBrowser({
   const sizeY = 1000;
   const scale = 0.5;
   const positionBottom = -500 * scale;
-  const positionLeft = 700 * scale + appLayout.width * scale;
+  const positionLeft = 700 * scale + 150;
   const navbarHeight = 40;
   const inputWidth = 450;
 
@@ -89,33 +84,29 @@ export default function EmbeddedBrowser({
           >
             {html ? <ChevronLeft /> : <Table />}
           </Button>
-          <Container>
-            <Html
-              scale={scale * 11.5}
-              position={[
-                scale * -280 + positionLeft * scale,
-                scale * -220 + positionBottom * scale,
-                0,
-              ]}
-              style={{ userSelect: 'none' }}
-              castShadow
-              receiveShadow
-              transform
-            >
-              {url && (
-                <iframe
-                  title="embed"
-                  width={1920}
-                  height={1080}
-                  src={url}
-                  sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin"
-                  ref={iFrameRef}
-                />
-              )}
-            </Html>
-          </Container>
+          <Container></Container>
         </Container>
       </Root>
+      <Html
+        scale={scale * 11.5}
+        position={[140, 142, 1]}
+        style={{ userSelect: 'none' }}
+        castShadow
+        receiveShadow
+        occlude="blending"
+        transform
+      >
+        {url && (
+          <iframe
+            title="embed"
+            width={1920}
+            height={1080}
+            src={url}
+            sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin"
+            ref={iFrameRef}
+          />
+        )}
+      </Html>
       {<BabiaHtml html={html} />}
     </>
   );

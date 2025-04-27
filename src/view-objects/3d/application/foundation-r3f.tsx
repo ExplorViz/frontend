@@ -59,7 +59,7 @@ export default function FoundationR3F({
         boxLayout.depth / 2
       )
     );
-  }, [boxLayout]);
+  }, [application, boxLayout]);
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
