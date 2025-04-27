@@ -123,13 +123,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         texture: level === 0 ? htmlTexture : null,
       };
 
-      if (
-        (!restrictToLayer || boxData.level + 1 === restrictToLayer) &&
-        (!searchString ||
-          htmlWithText.toLowerCase().includes(searchString.toLowerCase()))
-      ) {
-        tempBoxes.push(boxData);
-      }
+      tempBoxes.push(boxData);
 
       Array.from(node.children).forEach((child) =>
         processNode(child, level + 1)
@@ -140,14 +134,15 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
     maxLayer.current = maxLevel;
     setBoxes(tempBoxes);
-  }, [
-    html,
-    distanceBetweenLevels,
-    restrictToLayer,
-    searchString,
-    reloadCounter,
-    updateWithObserver,
-  ]);
+  }, [html, reloadCounter, updateWithObserver]);
+
+  useEffect(() => {
+    const tempBoxes = boxes;
+    tempBoxes.forEach((box) => {
+      box.position[2] = box.level * distanceBetweenLevels;
+    });
+    setBoxes(structuredClone(tempBoxes));
+  }, [distanceBetweenLevels]);
 
   return (
     <group>
@@ -268,6 +263,13 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       )}
       {boxes.map((box, _) => (
         <Box3D
+          visible={
+            (!restrictToLayer || box.level + 1 === restrictToLayer) &&
+            (!searchString ||
+              box.htmlWithText
+                .toLowerCase()
+                .includes(searchString.toLowerCase()))
+          }
           key={box.id}
           box={box}
           color={
@@ -281,12 +283,20 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   );
 }
 
-function Box3D({ box, color }: { box: BoxData; color: string }) {
+function Box3D({
+  box,
+  color,
+  visible,
+}: {
+  box: BoxData;
+  color: string;
+  visible: boolean;
+}) {
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
 
   return (
-    <group position={[300, 218, 0]}>
+    <group position={[300, 218, 0]} visible={visible}>
       <Box position={[135, -63, -1]} args={[290, 200, 1]} />
       <mesh
         position={box.position}
