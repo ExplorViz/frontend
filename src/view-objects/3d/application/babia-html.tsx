@@ -29,6 +29,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
   const [restrictToLayer, setRestrictToLayer] = useState(0);
   const [searchString, setSearchString] = useState('');
+  const [cropToViewport, setCropToViewport] = useState(true);
+
+  const clamp = (num: number, min: number, max: number) =>
+    Math.min(Math.max(num, min), max);
 
   useEffect(() => {
     if (!html) {
@@ -93,7 +97,22 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         maxLevel = level;
       }
 
-      const rect: DOMRect = node.getBoundingClientRect();
+      let rect: DOMRect = node.getBoundingClientRect();
+
+      const clampedLeft = clamp(rect.left, 0, 1920);
+      const clampedRight = clamp(rect.right, 0, 1920);
+      const clampedWidth = Math.max(0, clampedRight - clampedLeft);
+      const clampedTop = clamp(rect.top, 0, 1080);
+      const clampedBottom = clamp(rect.bottom, 0, 1080);
+      const clampedHeight = Math.max(0, clampedBottom - clampedTop);
+      if (cropToViewport) {
+        rect = new DOMRect(
+          clampedLeft,
+          clampedTop,
+          clampedWidth,
+          clampedHeight
+        );
+      }
 
       if (!firstOffset) {
         firstOffset = { x: rect.left * NODE_SCALAR, y: rect.top * NODE_SCALAR };
@@ -125,7 +144,9 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
       console.log(boxData.size[0], boxData.size[1], boxData.size[2]);
 
-      tempBoxes.push(boxData);
+      if (!cropToViewport || (clampedWidth > 0 && clampedHeight > 0)) {
+        tempBoxes.push(boxData);
+      }
 
       Array.from(node.children).forEach((child) =>
         processNode(child, level + 1)
@@ -136,7 +157,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
     maxLayer.current = maxLevel;
     setBoxes(tempBoxes);
-  }, [html, reloadCounter, updateWithObserver]);
+  }, [cropToViewport, html, reloadCounter, updateWithObserver]);
 
   const isBoxVisible = (box: BoxData) => {
     return (
@@ -212,7 +233,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 />
               </Container>
             </Container>
-            <Container flexDirection="column" gap={8}>
+            <Container flexDirection="column" gap={3}>
               <Container flexDirection="row" gap={5}>
                 <Checkbox
                   checked={updateWithObserver}
@@ -222,6 +243,18 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 />
                 <Label>
                   <Text>Cont. Update</Text>
+                </Label>
+              </Container>
+              <Container flexDirection="row" gap={5}>
+                <Checkbox
+                  checked={cropToViewport}
+                  onCheckedChange={(isActive) => {
+                    setCropToViewport(isActive);
+                  }}
+                />
+                ;
+                <Label>
+                  <Text>Crop to Viewport</Text>
                 </Label>
               </Container>
               <Container flexDirection="row" gap={5}>
@@ -316,7 +349,10 @@ function Box3D({
           event.stopPropagation();
           setHovered(false);
         }}
-        onClick={() => setClicked((prev) => !prev)}
+        onClick={() => {
+          console.log(box);
+          setClicked((prev) => !prev);
+        }}
       >
         <boxGeometry args={box.size} />
         <meshBasicMaterial
