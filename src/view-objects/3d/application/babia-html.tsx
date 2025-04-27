@@ -142,8 +142,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         texture: level === 0 ? htmlTexture : null,
       };
 
-      console.log(boxData.size[0], boxData.size[1], boxData.size[2]);
-
       if (!cropToViewport || (clampedWidth > 0 && clampedHeight > 0)) {
         tempBoxes.push(boxData);
       }
@@ -333,7 +331,29 @@ function Box3D({
   const [clicked, setClicked] = useState(false);
 
   return (
-    <group position={[300, 218, 0]} visible={visible}>
+    <group
+      position={[300, 218, 0]}
+      intersectChildren={false}
+      visible={visible}
+      onPointerEnter={(event) => {
+        if (visible) {
+          event.stopPropagation();
+          setHovered(true);
+        }
+      }}
+      onPointerLeave={(event) => {
+        if (visible) {
+          event.stopPropagation();
+        }
+        setHovered(false);
+      }}
+      onClick={(event) => {
+        if (visible) {
+          event.stopPropagation();
+          setClicked((prev) => !prev);
+        }
+      }}
+    >
       <Box position={[135, -63, -1]} args={[290, 200, 1]} />
       <mesh
         position={[
@@ -341,18 +361,6 @@ function Box3D({
           box.position[1],
           box.level * distanceBetweenLevels,
         ]}
-        onPointerEnter={(event) => {
-          event.stopPropagation();
-          setHovered(true);
-        }}
-        onPointerLeave={(event) => {
-          event.stopPropagation();
-          setHovered(false);
-        }}
-        onClick={() => {
-          console.log(box);
-          setClicked((prev) => !prev);
-        }}
       >
         <boxGeometry args={box.size} />
         <meshBasicMaterial
@@ -383,7 +391,7 @@ function Box3D({
           position={[
             box.position[0],
             box.position[1] + 1,
-            box.position[2] + 0.2,
+            box.level * distanceBetweenLevels + 0.2,
           ]}
           transform
           occlude
