@@ -1,4 +1,4 @@
-import { Box, Html } from '@react-three/drei';
+import { Box, Html, Line } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
@@ -111,8 +111,8 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         id: Math.random(),
         position: [offset.x, offset.y, level * distanceBetweenLevels],
         size: [
-          rect.width * NODE_SCALAR * 0.98,
-          rect.height * NODE_SCALAR * 0.98,
+          Math.max(1, rect.width * NODE_SCALAR * 0.98),
+          Math.max(1, rect.height * NODE_SCALAR * 0.98),
           0.01,
         ],
         level,
@@ -122,6 +122,8 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
         children: [],
         texture: level === 0 ? htmlTexture : null,
       };
+
+      console.log(boxData.size[0], boxData.size[1], boxData.size[2]);
 
       tempBoxes.push(boxData);
 
@@ -270,6 +272,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 .toLowerCase()
                 .includes(searchString.toLowerCase()))
           }
+          distanceBetweenLevels={distanceBetweenLevels}
           key={box.id}
           box={box}
           color={
@@ -286,10 +289,12 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 function Box3D({
   box,
   color,
+  distanceBetweenLevels,
   visible,
 }: {
   box: BoxData;
   color: string;
+  distanceBetweenLevels: number;
   visible: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -317,6 +322,17 @@ function Box3D({
           transparent={true}
         />
       </mesh>
+      <Line
+        points={[
+          [box.position[0], box.position[1], box.position[2]],
+          [
+            box.position[0],
+            box.position[1],
+            box.position[2] - distanceBetweenLevels,
+          ],
+        ]}
+        color={'black'}
+      />
 
       {(hovered || clicked) && (
         <Html
