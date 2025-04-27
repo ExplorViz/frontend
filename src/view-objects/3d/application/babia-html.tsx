@@ -138,13 +138,13 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     setBoxes(tempBoxes);
   }, [html, reloadCounter, updateWithObserver]);
 
-  useEffect(() => {
-    const tempBoxes = boxes;
-    tempBoxes.forEach((box) => {
-      box.position[2] = box.level * distanceBetweenLevels;
-    });
-    setBoxes(structuredClone(tempBoxes));
-  }, [distanceBetweenLevels]);
+  const isBoxVisible = (box: BoxData) => {
+    return (
+      (!restrictToLayer || box.level + 1 === restrictToLayer) &&
+      (!searchString ||
+        box.htmlWithText.toLowerCase().includes(searchString.toLowerCase()))
+    );
+  };
 
   return (
     <group>
@@ -261,17 +261,16 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
               </Button>
             </Container>
           </Container>
+          <Container positionBottom={620} positionLeft={-540}>
+            <Text>
+              HTML Nodes: {boxes.filter((box) => isBoxVisible(box)).length}
+            </Text>
+          </Container>
         </Root>
       )}
       {boxes.map((box, _) => (
         <Box3D
-          visible={
-            (!restrictToLayer || box.level + 1 === restrictToLayer) &&
-            (!searchString ||
-              box.htmlWithText
-                .toLowerCase()
-                .includes(searchString.toLowerCase()))
-          }
+          visible={isBoxVisible(box)}
           distanceBetweenLevels={distanceBetweenLevels}
           key={box.id}
           box={box}
@@ -304,7 +303,11 @@ function Box3D({
     <group position={[300, 218, 0]} visible={visible}>
       <Box position={[135, -63, -1]} args={[290, 200, 1]} />
       <mesh
-        position={box.position}
+        position={[
+          box.position[0],
+          box.position[1],
+          box.level * distanceBetweenLevels,
+        ]}
         onPointerEnter={(event) => {
           event.stopPropagation();
           setHovered(true);
@@ -322,18 +325,23 @@ function Box3D({
           transparent={true}
         />
       </mesh>
-      <Line
-        points={[
-          [box.position[0], box.position[1], box.position[2]],
-          [
-            box.position[0],
-            box.position[1],
-            box.position[2] - distanceBetweenLevels,
-          ],
-        ]}
-        color={'black'}
-      />
-
+      {box.level !== 0 && (
+        <Line
+          points={[
+            [
+              box.position[0],
+              box.position[1],
+              box.level * distanceBetweenLevels,
+            ],
+            [
+              box.position[0],
+              box.position[1],
+              box.level * distanceBetweenLevels - distanceBetweenLevels,
+            ],
+          ]}
+          color={'black'}
+        />
+      )}
       {(hovered || clicked) && (
         <Html
           position={[
