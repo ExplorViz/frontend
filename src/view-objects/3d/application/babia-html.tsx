@@ -1,5 +1,4 @@
 import { Box, Html } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
@@ -106,7 +105,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
       const innerText =
         node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
-      htmlString = htmlString.replace('>', '>' + innerText);
+      const htmlWithText = htmlString.replace('>', '>' + innerText);
 
       const boxData: BoxData = {
         id: Math.random(),
@@ -117,7 +116,9 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           0.01,
         ],
         level,
-        html: htmlString,
+        htmlString,
+        innerText,
+        htmlWithText,
         children: [],
         texture: level === 0 ? htmlTexture : null,
       };
@@ -125,7 +126,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       if (
         (!restrictToLayer || boxData.level + 1 === restrictToLayer) &&
         (!searchString ||
-          htmlString.toLowerCase().includes(searchString.toLowerCase()))
+          htmlWithText.toLowerCase().includes(searchString.toLowerCase()))
       ) {
         tempBoxes.push(boxData);
       }
@@ -271,7 +272,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           box={box}
           color={
             useHashedColors
-              ? generateColorFromObject(box.html)
+              ? generateColorFromObject(box.htmlString)
               : COLORS_GRAD[box.level % COLORS_GRAD.length]
           }
         />
@@ -326,7 +327,7 @@ function Box3D({ box, color }: { box: BoxData; color: string }) {
               fontSize: '150px',
             }}
           >
-            <code>{box.html}</code>
+            <code>{box.htmlWithText}</code>
           </div>
         </Html>
       )}
@@ -412,7 +413,9 @@ type BoxData = {
   position: [number, number, number];
   size: [number, number, number];
   level: number;
-  html: any;
+  htmlString: string;
+  innerText: string;
+  htmlWithText: string;
   children: any[];
   texture: any;
 };
