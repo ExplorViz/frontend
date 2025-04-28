@@ -92,11 +92,17 @@ export function openComponent(component: Package) {
  *
  * @param component Component which shall be closed
  */
-export function closeComponent(component: Package) {
+export function closeComponent(component: Package, hide = false) {
   const visualizationStore = useVisualizationStore.getState();
   const visualizationState = visualizationStore.actions.getComponentState(
     component.id
   );
+  if (hide) {
+    visualizationStore.actions.updateComponentState(component.id, {
+      isVisible: false,
+    });
+  }
+
   if (!visualizationState.isOpen) {
     return;
   }
@@ -113,7 +119,7 @@ export function closeComponent(component: Package) {
 
   const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
-    closeComponent(childComponent);
+    closeComponent(childComponent, true);
   });
 }
 

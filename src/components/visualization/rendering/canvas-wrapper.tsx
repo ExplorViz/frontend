@@ -32,13 +32,13 @@ export default function CanvasWrapper({
     <Canvas
       id="threejs-canvas"
       className={'webgl'}
-      // gl={{ preserveDrawingBuffer: true }}
-      // onCreated={(state) => {
-      //   state.setEvents({
-      //     filter: (intersections) =>
-      //       intersections.filter((i) => i.object.visible),
-      //   });
-      // }}
+      gl={{ preserveDrawingBuffer: true }}
+      onCreated={(state) => {
+        state.setEvents({
+          filter: (intersections) =>
+            intersections.filter((i) => i.object.visible),
+        });
+      }}
       style={{ background: sceneBackgroundColor }}
     >
       <CameraControls
