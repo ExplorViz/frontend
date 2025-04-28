@@ -1,12 +1,11 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
-import { Position2D } from '../hooks/interaction-modifier';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useShallow } from 'zustand/react/shallow';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { closeAllComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useShallow } from 'zustand/react/shallow';
+import { Position2D } from '../hooks/interaction-modifier';
 
 export type ContextMenuItem = {
   title: string;

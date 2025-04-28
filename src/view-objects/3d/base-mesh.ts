@@ -35,8 +35,10 @@ export default abstract class BaseMesh<
 
   set defaultColor(value: THREE.Color) {
     this._defaultColor = value;
+
     if (
-      this.material instanceof THREE.MeshBasicMaterial &&
+      (this.material instanceof THREE.MeshBasicMaterial ||
+        this.material instanceof THREE.MeshLambertMaterial) &&
       !this._highlighted
     ) {
       this.material.color = value;

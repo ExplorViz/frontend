@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { useApplicationRendererStore } from '../stores/application-renderer';
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
+import { CommunicationLink } from 'explorviz-frontend/src/ide/ide-cross-communication';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
 import ApplicationData, {
   K8sData,
 } from 'explorviz-frontend/src/utils/application-data';
@@ -13,30 +11,27 @@ import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
 import calculateHeatmap from 'explorviz-frontend/src/utils/calculate-heatmap';
+import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
+import visualizeK8sLandscape from 'explorviz-frontend/src/utils/k8s-landscape-visualization-assembler';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
   getApplicationsFromNodes,
   getK8sAppsFromNodes,
-  StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
-import { useLocalUserStore } from '../stores/collaboration/local-user';
-import { useHighlightingStore } from '../stores/highlighting';
-import { useLinkRendererStore } from '../stores/link-renderer';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import { useUserSettingsStore } from '../stores/user-settings';
-import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
-import visualizeK8sLandscape from 'explorviz-frontend/src/utils/k8s-landscape-visualization-assembler';
-import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { CommunicationLink } from 'explorviz-frontend/src/ide/ide-cross-communication';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeModel from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-model';
-import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { useShallow } from 'zustand/react/shallow';
-import { updateHighlighting } from '../utils/application-rendering/highlighting';
+import { useApplicationRendererStore } from '../stores/application-renderer';
+import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
+import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
+import { useHighlightingStore } from '../stores/highlighting';
+import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
+import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
+import { useLinkRendererStore } from '../stores/link-renderer';
+import { useUserSettingsStore } from '../stores/user-settings';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
@@ -111,10 +106,32 @@ export default function useLandscapeDataWatcher(
     }))
   );
 
-  const userSettingsState = useUserSettingsStore(
+  const {
+    visualizationSettings,
+    colors,
+    applicationAspectRatio,
+    classFootprint,
+    classMargin,
+    appLabelMargin,
+    appMargin,
+    packageLabelMargin,
+    packageMargin,
+    openedComponentHeight,
+    closedComponentHeight,
+  } = useUserSettingsStore(
     useShallow((state) => ({
       visualizationSettings: state.visualizationSettings,
       colors: state.colors,
+      applicationAspectRatio:
+        state.visualizationSettings.applicationAspectRatio,
+      classFootprint: state.visualizationSettings.classFootprint,
+      classMargin: state.visualizationSettings.classMargin,
+      appLabelMargin: state.visualizationSettings.appLabelMargin,
+      appMargin: state.visualizationSettings.appMargin,
+      packageLabelMargin: state.visualizationSettings.packageLabelMargin,
+      packageMargin: state.visualizationSettings.packageMargin,
+      openedComponentHeight: state.visualizationSettings.openedComponentHeight,
+      closedComponentHeight: state.visualizationSettings.closedComponentHeight,
     }))
   );
 
@@ -248,7 +265,7 @@ export default function useLandscapeDataWatcher(
 
     const k8sParameters = {
       font: useFontRepositoryStore.getState().font,
-      colors: userSettingsState.colors!,
+      colors: colors!,
     };
 
     app3Ds = app3Ds.concat(k8sApp3Ds);
@@ -366,7 +383,7 @@ export default function useLandscapeDataWatcher(
     );
 
     if (
-      userSettingsState.visualizationSettings.heatmapEnabled &&
+      visualizationSettings.heatmapEnabled &&
       heatmapConfigurationState.currentApplication?.dataModel.application.id ===
         application.id
     ) {
@@ -386,7 +403,20 @@ export default function useLandscapeDataWatcher(
 
   useEffect(() => {
     handleUpdatedLandscapeData();
-  }, [landscapeData, landscape3D]);
+  }, [
+    landscapeData,
+    landscape3D,
+    // TODO: Outsource layout options to own effect for performance
+    applicationAspectRatio,
+    classFootprint,
+    classMargin,
+    appLabelMargin,
+    appMargin,
+    packageLabelMargin,
+    packageMargin,
+    openedComponentHeight,
+    closedComponentHeight,
+  ]);
 
   useEffect(() => {
     return function cleanup() {

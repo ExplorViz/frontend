@@ -123,7 +123,7 @@ export default function ComponentR3F({
         setComponentHeight(closedComponentHeight);
       }
     }
-  }, [isOpen]);
+  }, [layout, isOpen]);
 
   const handleClick = (/*event: any*/) => {
     // Prevent firing of event after landscape has been dragged

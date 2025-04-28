@@ -6,7 +6,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ClassR3F({
@@ -86,7 +86,7 @@ export default function ClassR3F({
       <Text
         color={classTextColor}
         outlineColor={'black'}
-        outlineWidth={0.001}
+        outlineWidth={0.0001}
         position={[0, 0.51, 0]}
         rotation={[1.5 * Math.PI, 0, 0.55]}
         fontSize={1.2}
