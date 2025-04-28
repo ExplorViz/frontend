@@ -13,6 +13,9 @@ export default class BoxLayout {
 
   depth: number = 1;
 
+  // Level in the component hierarchy
+  level: number = 0;
+
   get position() {
     return new THREE.Vector3(this.positionX, this.positionY, this.positionZ);
   }

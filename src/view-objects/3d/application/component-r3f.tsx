@@ -170,7 +170,9 @@ export default function ComponentR3F({
   return (
     <componentMesh
       args={[constructorArgs]}
-      defaultColor={componentOddColor}
+      defaultColor={
+        layout.level % 2 === 0 ? componentEvenColor : componentOddColor
+      }
       height={componentHeight}
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}

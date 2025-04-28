@@ -273,6 +273,8 @@ export function convertElkToBoxLayout(
   boxLayout.positionY = COMPONENT_HEIGHT * (depth - 1) + height / 2.0;
   boxLayout.positionZ = zOffset + elkGraph.y!;
 
+  boxLayout.level = depth;
+
   // Landscape and applications are on the same level
   if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
     // eslint-disable-next-line
