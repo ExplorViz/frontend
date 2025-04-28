@@ -1,34 +1,18 @@
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout.ts';
-import * as THREE from 'three';
-import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
-import ClazzLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-label-mesh';
-import SemanticZoomManager from './utils/semantic-zoom-manager';
-import {
-  ImmersiveView,
-  ImmersiveViewMixin,
-} from 'explorviz-frontend/src/rendering/application/immersive-view';
-import gsap from 'gsap';
-import ImmsersiveClassScene from 'explorviz-frontend/src/utils/class-immersive-scene';
-import { MethodGroup } from './method-group';
+import { extend, ThreeElement } from '@react-three/fiber';
+import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
-import { extend, ThreeElement } from '@react-three/fiber';
+import ImmsersiveClassScene from 'explorviz-frontend/src/utils/class-immersive-scene';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
+import gsap from 'gsap';
+import * as THREE from 'three';
+import { MethodGroup } from './method-group';
 
 export default class ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
 
   material: THREE.MeshLambertMaterial | THREE.Material;
-
-  set defaultColor(color: THREE.Color) {
-    super.defaultColor = color;
-    if (
-      this.material instanceof THREE.MeshLambertMaterial &&
-      !this.highlighted
-    ) {
-      this.material.color = color;
-    }
-  }
 
   dataModel: Class;
 
@@ -48,7 +32,7 @@ export default class ClazzMesh extends BoxMesh {
     this.receiveShadow = true;
 
     this.material = new THREE.MeshLambertMaterial({
-      color: new THREE.Color(0xff0000),
+      color: new THREE.Color(this.defaultColor),
     });
     this.material.transparent = true;
     const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -229,9 +213,9 @@ export default class ClazzMesh extends BoxMesh {
   }
 }
 
-interface Args {
-  clazz: Class;
-}
+// interface Args {
+//   clazz: Class;
+// }
 
 // export default class ClazzMesh extends ImmersiveViewMixin(_ClazzMesh) {
 //   constructor({ clazz }: Args) {
