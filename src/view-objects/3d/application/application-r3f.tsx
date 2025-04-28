@@ -44,7 +44,7 @@ export default function ApplicationR3F({
     <>
       {app3D && (
         <primitive object={app3D}>
-          <EmbeddedBrowser />
+          {/* <EmbeddedBrowser /> */}
           <FoundationR3F
             application={applicationData.application}
             boxLayout={app3D.layout}

@@ -301,11 +301,11 @@ export function updateApplicationObject3DAfterUpdate(
   }
 
   // Update labels
-  Labeler.addApplicationLabels(
-    applicationObject3D,
-    font,
-    useUserSettingsStore.getState().colors!
-  );
+  // Labeler.addApplicationLabels(
+  //   applicationObject3D,
+  //   font,
+  //   useUserSettingsStore.getState().colors!
+  // );
   // Update links
   linkUpdater?.();
 }

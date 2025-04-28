@@ -259,7 +259,7 @@ export function convertElkToBoxLayout(
 ): Map<string, BoxLayout> {
   let height = COMPONENT_HEIGHT;
   if (elkGraph.id.startsWith(CLASS_PREFIX)) {
-    height = 5;
+    height = 10;
   }
 
   const boxLayout = new BoxLayout();

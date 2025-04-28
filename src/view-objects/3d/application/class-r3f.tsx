@@ -1,3 +1,4 @@
+import { Text } from '@react-three/drei';
 import { ThreeElements } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
@@ -15,13 +16,15 @@ export default function ClassR3F({
   dataModel: Class;
   layout: BoxLayout;
 }) {
-  const { isHighlighted, isVisible, updateClassState } = useVisualizationStore(
-    useShallow((state) => ({
-      isHighlighted: state.classData[dataModel.id].isHighlighted,
-      isVisible: state.classData[dataModel.id].isVisible,
-      updateClassState: state.actions.updateClassState,
-    }))
-  );
+  const { isHighlighted, isHovered, isVisible, updateClassState } =
+    useVisualizationStore(
+      useShallow((state) => ({
+        isHighlighted: state.classData[dataModel.id].isHighlighted,
+        isHovered: state.classData[dataModel.id].isHovered,
+        isVisible: state.classData[dataModel.id].isVisible,
+        updateClassState: state.actions.updateClassState,
+      }))
+    );
 
   const highlightingActions = useHighlightingStore(
     useShallow((state) => ({
@@ -45,12 +48,12 @@ export default function ClassR3F({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    event.object.applyHoverEffect();
+    updateClassState(dataModel.id, { isHovered: true });
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    event.object.resetHoverEffect();
+    updateClassState(dataModel.id, { isHovered: false });
   };
 
   const handleClick = (/*event: any*/) => {
@@ -70,6 +73,7 @@ export default function ClassR3F({
       highlightingColor={highlightedEntityColor}
       layout={layout}
       visible={isVisible}
+      isHovered={isHovered}
       highlighted={isHighlighted}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
@@ -77,7 +81,17 @@ export default function ClassR3F({
       onPointerOut={handleOnPointerOut}
       args={[opts]}
     >
-      {/* <LabelMeshWrapper /> */}
+      <Text
+        color="white"
+        outlineColor={'black'}
+        outlineWidth={0.001}
+        position={[0, 0.51, 0]}
+        rotation={[1.5 * Math.PI, 0, 0.55]}
+        fontSize={1}
+        raycast={() => null}
+      >
+        {dataModel.name}
+      </Text>
     </clazzMesh>
   );
 }

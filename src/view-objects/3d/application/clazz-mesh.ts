@@ -15,7 +15,7 @@ import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/l
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import { extend, ThreeElement } from '@react-three/fiber';
 
-export class _ClazzMesh extends BoxMesh {
+export default class ClazzMesh extends BoxMesh {
   geometry: THREE.BoxGeometry | THREE.BufferGeometry;
 
   material: THREE.MeshLambertMaterial | THREE.Material;
@@ -30,23 +30,9 @@ export class _ClazzMesh extends BoxMesh {
     }
   }
 
-  // Set by labeler
-  private _labelMesh: ClazzLabelMesh | null = null;
-  public get labelMesh(): ClazzLabelMesh | null {
-    return this._labelMesh;
-  }
-  public set labelMesh(value: ClazzLabelMesh | null) {
-    if (this._labelMesh != null) {
-      SemanticZoomManager.instance.remove(this._labelMesh);
-      this._labelMesh.disposeRecursively(SemanticZoomManager);
-      this._labelMesh.deleteFromParent();
-    }
-    this._labelMesh = value;
-  }
-
   dataModel: Class;
 
-  _original_layout: BoxLayout;
+  // _original_layout: BoxLayout;
   currentMethodMesh: MethodGroup | undefined;
 
   // Immersive View
@@ -247,11 +233,11 @@ interface Args {
   clazz: Class;
 }
 
-export default class ClazzMesh extends ImmersiveViewMixin(_ClazzMesh) {
-  constructor({ clazz }: Args) {
-    super(clazz);
-  }
-}
+// export default class ClazzMesh extends ImmersiveViewMixin(_ClazzMesh) {
+//   constructor({ clazz }: Args) {
+//     super(clazz);
+//   }
+// }
 
 extend({ ClazzMesh });
 

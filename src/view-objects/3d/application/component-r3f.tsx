@@ -23,11 +23,12 @@ export default function ComponentR3F({
   );
   const [componentHeight, setComponentHeight] = useState<number>(layout.height);
 
-  const { isOpen, isHighlighted, isVisible, updateComponentState } =
+  const { isOpen, isHighlighted, isHovered, isVisible, updateComponentState } =
     useVisualizationStore(
       useShallow((state) => ({
         isOpen: state.componentData[component.id].isOpen,
         isHighlighted: state.componentData[component.id].isHighlighted,
+        isHovered: state.componentData[component.id].isHovered,
         isVisible: state.componentData[component.id].isVisible,
         updateComponentState: state.actions.updateComponentState,
       }))
@@ -125,9 +126,12 @@ export default function ComponentR3F({
   }, [isOpen]);
 
   const handleClick = (/*event: any*/) => {
+    // Prevent firing of event after landscape has been dragged
+
     updateComponentState(component.id, {
       isHighlighted: !isHighlighted,
     });
+
     // todo: propagate state to collab service
     // highlightingActions.toggleHighlight(ref.current, { sendMessage: true });
   };
@@ -153,7 +157,6 @@ export default function ComponentR3F({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    event.object.applyHoverEffect();
     updateComponentState(component.id, {
       isHovered: true,
     });
@@ -161,7 +164,6 @@ export default function ComponentR3F({
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    event.object.resetHoverEffect();
     updateComponentState(component.id, {
       isHovered: false,
     });
@@ -175,6 +177,7 @@ export default function ComponentR3F({
       }
       height={componentHeight}
       highlighted={isHighlighted}
+      isHovered={isHovered}
       highlightingColor={highlightedEntityColor}
       layout={layout}
       opened={isOpen}

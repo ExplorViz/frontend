@@ -1,6 +1,7 @@
 // Credits: https://medium.com/trabe/prevent-click-events-on-double-click-with-react-with-and-without-hooks-6bf3697abc40
 // Ceci García García
 
+import { ThreeEvent } from '@react-three/fiber';
 import { cancelablePromise } from '../utils/helpers/promise-helpers';
 import useCancelablePromises from './useCancelablePromises';
 
@@ -10,11 +11,12 @@ export const delay = (n: number) =>
 const useClickPreventionOnDoubleClick = (
   onClick: (...args: any[]) => void,
   onDoubleClick: (...args: any[]) => void,
-  delayInMs: number = 150
+  delayInMs: number = 150,
+  allowedDelta: number = 5
 ) => {
   const api = useCancelablePromises();
 
-  const handleClick = (e: Event) => {
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     api.clearPendingPromises();
     const waitForClick = cancelablePromise(delay(delayInMs));
@@ -23,7 +25,9 @@ const useClickPreventionOnDoubleClick = (
     return waitForClick.promise
       .then(() => {
         api.removePendingPromise(waitForClick);
-        onClick(e);
+        if (e.delta < allowedDelta) {
+          onClick(e);
+        }
       })
       .catch((errorInfo) => {
         api.removePendingPromise(waitForClick);

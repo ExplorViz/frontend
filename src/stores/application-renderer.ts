@@ -297,11 +297,11 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
         );
 
         // Add labels to application
-        Labeler.addApplicationLabels(
-          app3D,
-          useFontRepositoryStore.getState().font!,
-          useUserSettingsStore.getState().colors!
-        );
+        // Labeler.addApplicationLabels(
+        //   app3D,
+        //   useFontRepositoryStore.getState().font!,
+        //   useUserSettingsStore.getState().colors!
+        // );
       } else {
         // Layout may have been changed in settings
         app3D.updateLayout();
@@ -435,11 +435,11 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       }
 
       // Update labels
-      Labeler.addApplicationLabels(
-        applicationObject3D,
-        useFontRepositoryStore.getState().font!,
-        useUserSettingsStore.getState().colors!
-      );
+      // Labeler.addApplicationLabels(
+      //   applicationObject3D,
+      //   useFontRepositoryStore.getState().font!,
+      //   useUserSettingsStore.getState().colors!
+      // );
       // Update links
       useLinkRendererStore.getState().updateLinkPositions();
       // Update highlighting
@@ -671,13 +671,13 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       get()
         .getOpenApplications()
         .forEach((app3D) => {
-          Labeler.addApplicationLabels(
-            app3D,
-            useFontRepositoryStore.getState().font!,
-            useUserSettingsStore.getState().colors!,
-            false,
-            true
-          );
+          // Labeler.addApplicationLabels(
+          //   app3D,
+          //   useFontRepositoryStore.getState().font!,
+          //   useUserSettingsStore.getState().colors!,
+          //   false,
+          //   true
+          // );
         });
     },
 
