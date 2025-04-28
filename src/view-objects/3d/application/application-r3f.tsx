@@ -1,3 +1,4 @@
+import { useThree } from '@react-three/fiber';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import {

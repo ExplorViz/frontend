@@ -166,7 +166,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   };
 
   return (
-    <group>
+    <group
+      onPointerEnter={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
+    >
       {html && (
         <Root
           positionBottom={positionBottom}
