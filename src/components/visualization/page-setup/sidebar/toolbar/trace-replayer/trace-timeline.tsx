@@ -166,18 +166,7 @@ export default function TraceTimeline({
         }
       };
     }
-  }, [
-    data,
-    layout,
-    options,
-    cursor,
-    select,
-    observer,
-    callback,
-    selection,
-    timeline,
-    max,
-  ]);
+  }, [timeline]);
 
   return <div style={{ width: '100%' }} className="plotlyDiv" ref={divRef} />;
 }
