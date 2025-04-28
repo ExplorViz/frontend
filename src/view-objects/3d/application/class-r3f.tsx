@@ -2,6 +2,7 @@ import { ThreeElements } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useMemo } from 'react';
@@ -14,6 +15,14 @@ export default function ClassR3F({
   dataModel: Class;
   layout: BoxLayout;
 }) {
+  const { isHighlighted, isVisible, updateClassState } = useVisualizationStore(
+    useShallow((state) => ({
+      isHighlighted: state.classData[dataModel.id].isHighlighted,
+      isVisible: state.classData[dataModel.id].isVisible,
+      updateClassState: state.actions.updateClassState,
+    }))
+  );
+
   const highlightingActions = useHighlightingStore(
     useShallow((state) => ({
       toggleHighlight: state.toggleHighlight,
@@ -44,8 +53,9 @@ export default function ClassR3F({
     event.object.resetHoverEffect();
   };
 
-  const handleClick = (event: any) => {
-    highlightingActions.toggleHighlight(event.object, { sendMessage: true });
+  const handleClick = (/*event: any*/) => {
+    updateClassState(dataModel.id, { isHighlighted: !isHighlighted });
+    // highlightingActions.toggleHighlight(event.object, { sendMessage: true });
   };
 
   const handleDoubleClick = (/*event: any*/) => {};
@@ -59,6 +69,8 @@ export default function ClassR3F({
       defaultColor={classColor}
       highlightingColor={highlightedEntityColor}
       layout={layout}
+      visible={isVisible}
+      highlighted={isHighlighted}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}

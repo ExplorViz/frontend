@@ -281,8 +281,15 @@ export default function BrowserRendering({
     }))
   );
 
-  const { setComponentState, removeAllComponentStates } = useVisualizationStore(
+  const {
+    setClassState,
+    removeAllClassStates,
+    setComponentState,
+    removeAllComponentStates,
+  } = useVisualizationStore(
     useShallow((state) => ({
+      setClassState: state.actions.setClassState,
+      removeAllClassStates: state.actions.removeAllClassStates,
       setComponentState: state.actions.setComponentState,
       removeAllComponentStates: state.actions.removeAllComponentStates,
     }))
@@ -906,10 +913,19 @@ export default function BrowserRendering({
           isHighlighted: false,
           isHovered: false,
         });
+        pkg.classes.forEach((classInPckg) => {
+          setClassState(classInPckg.id, {
+            id: classInPckg.id,
+            isVisible: true,
+            isHighlighted: false,
+            isHovered: false,
+          });
+        });
       });
     }
     return () => {
       removeAllComponentStates();
+      removeAllClassStates();
     };
   }, [landscapeData]);
 

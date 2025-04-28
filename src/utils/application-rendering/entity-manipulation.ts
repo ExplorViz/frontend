@@ -57,7 +57,6 @@ export function openComponentAndAncestor(component: Package | Class) {
  * Opens a given component.
  *
  * @param component Component which shall be opened
- * @param app3D Application object which contains the mesh
  */
 export function openComponent(component: Package) {
   const visualizationStore = useVisualizationStore.getState();
@@ -68,46 +67,23 @@ export function openComponent(component: Package) {
     return;
   }
 
-  // add back later
-  /*   if (getStoredSettings().enableAnimations.value) {
-    gsap.to(mesh, {
-      duration: 0.25,
-      height: OPENED_COMPONENT_HEIGHT,
-    });
-
-    gsap.to(mesh.position, {
-      duration: 0.25,
-      y: yPos,
-    });
-  } else { */
-  /*     mesh.height = OPENED_COMPONENT_HEIGHT;
-    mesh.position.y = yPos; */
-  /*   } */
-
   visualizationStore.actions.updateComponentState(component.id, {
     isOpen: true,
     isVisible: true,
   });
 
-  // mesh.saveOriginalAppearence();
-  // Labeler.positionBoxLabel(component);
+  component.classes.forEach((classModel) => {
+    visualizationStore.actions.updateClassState(classModel.id, {
+      isVisible: true,
+    });
+    // mesh.saveOriginalAppearence();
+  });
 
   const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
     visualizationStore.actions.updateComponentState(childComponent.id, {
       isVisible: true,
     });
-  });
-
-  const classes = component.classes;
-  classes.forEach((classModel) => {
-    /*     const childMesh = app3D.getBoxMeshByModelId(clazz.id);
-    if (childMesh) { */
-    /*       vizualizationStore.actions.updateComponentState(clazz.id, {
-        isVisible: true,
-      }); */
-    // childMesh.saveOriginalAppearence();
-    /*     } */
   });
 }
 
@@ -125,62 +101,20 @@ export function closeComponent(component: Package) {
     return;
   }
 
-  // Position is in center of box, need to subtract apps layout position
-  /*   const yPos =
-    mesh.layout.positionY +
-    CLOSED_COMPONENT_HEIGHT / 2 -
-    app3D.layout.positionY;
-
-  if (getStoredSettings().enableAnimations.value) {
-    gsap.to(mesh, {
-      duration: 0.5,
-      height: CLOSED_COMPONENT_HEIGHT,
-    });
-
-    gsap.to(mesh.position, {
-      duration: 0.5,
-      y: yPos,
-    });
-  } else {
-    mesh.height = CLOSED_COMPONENT_HEIGHT;
-    mesh.position.y = yPos;
-  } */
-
   visualizationStore.actions.updateComponentState(component.id, {
     isOpen: false,
   });
 
-  /*   Labeler.positionBoxLabel(mesh);
-  mesh.saveOriginalAppearence(); */
+  component.classes.forEach((classModel) => {
+    visualizationStore.actions.updateClassState(classModel.id, {
+      isVisible: false,
+    });
+  });
 
   const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
-    visualizationStore.actions.updateComponentState(childComponent.id, {
-      isVisible: false,
-    });
-    if (
-      visualizationStore.actions.getComponentState(childComponent.id).isOpen
-    ) {
-      closeComponent(childComponent);
-    }
-    // Reset highlighting if highlighted entity is no longer visible
-    /*       if (!keepHighlighted && childMesh.highlighted) {
-        removeHighlighting(childMesh, app3D);
-      }
-      childMesh.saveOriginalAppearence(); */
+    closeComponent(childComponent);
   });
-
-  /*   const clazzes = mesh.dataModel.classes;
-  clazzes.forEach((clazz) => {
-    const childMesh = app3D.getBoxMeshByModelId(clazz.id);
-    if (childMesh instanceof ClazzMesh) {
-      childMesh.visible = false;
-      // Reset highlighting if highlighted entity is no longer visible
-      if (!keepHighlighted && childMesh.highlighted) {
-        removeHighlighting(childMesh, app3D);
-      }
-    }
-  }); */
 }
 
 /**
