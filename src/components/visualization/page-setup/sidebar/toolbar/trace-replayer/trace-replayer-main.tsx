@@ -82,7 +82,11 @@ export default function TraceReplayerMain({
 
   const [timeline, setTimeline] = useState<TraceNode[]>([]);
   const [ready, setReady] = useState<boolean>(false);
-  let entities: Map<string, AnimationEntity> = new Map();
+  const [entities, setEntities] = useState<Map<string, AnimationEntity>>(
+    new Map()
+  );
+  const [delta, setDelta] = useState(1);
+  const [frame, setFrame] = useState(0);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [afterimage, setAfterimage] = useState<boolean>(true);
   const [eager, setEager] = useState<boolean>(true);
@@ -95,9 +99,9 @@ export default function TraceReplayerMain({
 
   let speed = useRef<number>(5);
   let cursor = useRef<number>(0);
-  let paused = true;
-  let stopped = true;
-  const observer: ((cursor: number) => void)[] = [];
+  const [paused, setPaused] = useState(true);
+  const [stopped, setStopped] = useState(true);
+  const [observer, setObserver] = useState<((cursor: number) => void)[]>([]);
   const trace = getSortedTraceSpans(selectedTrace);
   const tree = new TraceTreeBuilder(trace, classMap).build();
 
@@ -164,24 +168,25 @@ export default function TraceReplayerMain({
   };
 
   const callbackCursor = (c: number) => {
-    stop();
+    // setStopped(true);
     cursor.current = c;
-    start();
-    tick(0);
-    if (paused) {
-      pause();
-    }
+    // setStopped(false);
+    setDelta(0);
+    setFrame(frame + 1);
+    // if (paused) {
+    // setPaused(true);
+    // }
   };
 
   // Function that is called each frame to animate traces
-  const tick = (delta: number) => {
+  useEffect(() => {
     if (stopped || paused) {
       return;
     }
 
     // Nothing left to animate
     if (entities.size <= 0) {
-      stop();
+      setStopped(true);
       return;
     }
 
@@ -279,17 +284,22 @@ export default function TraceReplayerMain({
       entity.callee.mesh.turnOpaque();
       turnAncestorsTransparent(entity.callee.clazz.parent, 1, 0.1);
     });
-  };
+  }, [delta, frame]);
 
-  const start = () => {
-    paused = false;
-    if (!stopped) {
+  // start()
+  useEffect(() => {
+    if (stopped) {
       return;
     }
-    stopped = false;
+
+    setPaused(false);
+
     renderingLoop.tickCallbacks.push({
       id: 'trace-player',
-      callback: (delta) => tick(delta),
+      callback: (delta) => {
+        setDelta(delta);
+        setFrame(frame + 1);
+      },
     });
 
     configuration.setIsCommRendered(false);
@@ -344,28 +354,24 @@ export default function TraceReplayerMain({
       tab.active = true;
       setTabs([...tabs, tab]);
     });
-  };
+  }, [stopped]);
 
-  const pause = () => {
-    paused = true;
-  };
-
-  const stop = () => {
-    if (stopped) {
+  // stop()
+  useEffect(() => {
+    if (!stopped) {
       return;
     }
+
     renderingLoop.tickCallbacks = renderingLoop.tickCallbacks.filter(
       (callback) => {
         return callback.id !== 'trace-player';
       }
     );
 
-    if (configuration.isCommRendered) {
-      configuration.setIsCommRendered(true);
-      appRenderer.addCommunicationForAllApplications();
-    }
+    configuration.setIsCommRendered(true);
+    appRenderer.addCommunicationForAllApplications();
 
-    turnTransparent(1);
+    // turnTransparent(1);
 
     entities.forEach((entity) => {
       entity.destroy();
@@ -383,8 +389,9 @@ export default function TraceReplayerMain({
       //   selectedTrace.spanList[0].spanId
       // );
     }
-    stopped = true;
-  };
+
+    setPaused(true);
+  }, [stopped]);
 
   const toggleEager = () => {
     setEager((prev: boolean) => !prev);
@@ -413,7 +420,10 @@ export default function TraceReplayerMain({
             <Button
               className="th-btn mx-2"
               title="Play"
-              onClick={start}
+              onClick={() => {
+                setStopped(false);
+                setPaused(false);
+              }}
               type="button"
             >
               <PlayIcon size="small" />
@@ -422,7 +432,7 @@ export default function TraceReplayerMain({
             <Button
               className="th-btn mx-2 navbar-highlight playing"
               title="Stop"
-              onClick={pause}
+              onClick={() => setPaused(true)}
               type="button"
             >
               <PlayIcon size="small" />
@@ -474,9 +484,9 @@ export default function TraceReplayerMain({
       <div className="mb-3">
         <TraceTimeline
           timeline={timeline}
-          select={true}
+          select={false}
           cursor={true}
-          observer={[]}
+          observer={observer}
           selection={(start: number, end: number) => {}}
           callback={callbackCursor}
         />
