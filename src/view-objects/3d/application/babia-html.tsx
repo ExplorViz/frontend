@@ -11,6 +11,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
   const [htmlBoxes, setHtmlBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
+  const [renderLeafNodes, setRenderLeafNodes] = useState(false);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
   const [reloadCounter, setReloadCounter] = useState(0);
   const observerCallback = () => {
@@ -129,9 +130,16 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     setBoxes(tempBoxes);
   }, [cropToViewport, html, reloadCounter, updateWithObserver]);
 
-  // Take screenshot from iframe
+  // Render HTML textures
   useEffect(() => {
-    if (!html || boxes.length === 0) return;
+    if (!html || boxes.length === 0 || !renderLeafNodes) {
+      const tempBoxes = boxes;
+      tempBoxes.forEach((box) => (box.texture = null));
+      setBoxes(tempBoxes);
+      setHtmlBoxes([]);
+
+      return;
+    }
 
     const tempBoxes = boxes;
     const leafNodes = tempBoxes.filter((node) => node.renderHtml);
@@ -163,10 +171,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           })
       );
     });
-    Promise.all(promises).then((/*values*/) => {
-      setHtmlBoxes(tempBoxes);
+    Promise.all(promises).then((values) => {
+      setHtmlBoxes(values);
     });
-  }, [boxes]);
+  }, [boxes, renderLeafNodes]);
 
   const isBoxVisible = (box: BoxData) => {
     return (
@@ -245,7 +253,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 />
               </Container>
             </Container>
-            <Container flexDirection="column" gap={3}>
+            <Container flexDirection="column" gap={1}>
               <Container flexDirection="row" gap={5}>
                 <Checkbox
                   checked={updateWithObserver}
@@ -281,6 +289,18 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                   <Text>Hashed Colors</Text>
                 </Label>
               </Container>
+              <Container flexDirection="row" gap={5}>
+                <Checkbox
+                  checked={renderLeafNodes}
+                  onCheckedChange={(isActive) => {
+                    setRenderLeafNodes(isActive);
+                  }}
+                />
+                ;
+                <Label>
+                  <Text>Render Leafs</Text>
+                </Label>
+              </Container>
             </Container>
             <Container gap={10}>
               <Label>
@@ -313,7 +333,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           </Container>
         </Root>
       )}
-      {/* {boxes.map((box, _) => (
+      {boxes.map((box, _) => (
         <Box3D
           visible={isBoxVisible(box)}
           distanceBetweenLevels={distanceBetweenLevels}
@@ -325,7 +345,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
               : COLORS_GRAD[box.level % COLORS_GRAD.length]
           }
         />
-      ))} */}
+      ))}
       {htmlBoxes.map((box, _) => (
         <Box3D
           visible={isBoxVisible(box)}
