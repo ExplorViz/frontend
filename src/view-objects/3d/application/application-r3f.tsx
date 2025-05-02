@@ -1,4 +1,3 @@
-import { useThree } from '@react-three/fiber';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import {
@@ -44,7 +43,7 @@ export default function ApplicationR3F({
     <>
       {app3D && (
         <primitive object={app3D}>
-          {/* <EmbeddedBrowser /> */}
+          <EmbeddedBrowser />
           <FoundationR3F
             application={applicationData.application}
             boxLayout={app3D.layout}

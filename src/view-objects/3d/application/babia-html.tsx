@@ -2,11 +2,14 @@ import { Box, Html, Line } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
+import * as htmlToImage from 'html-to-image';
 import sha256 from 'js-sha256';
 import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 
 export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
+  const [htmlBoxes, setHtmlBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
   const [htmlTexture, setHtmlTexture] = useState<any>(null);
@@ -14,6 +17,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const observerCallback = () => {
     setReloadCounter(reloadCounter + 1);
   };
+
   const observer = useRef(new MutationObserver(observerCallback));
   const maxLayer = useRef(0);
 
@@ -56,39 +60,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     let tempBoxes: BoxData[] = [];
     const rootChildren = Array.from(html.children);
     let firstOffset: NodeOffset | null = null;
-
-    // if (updateWithObserver) {
-    //   htmlToImage
-    //     .toPng(html)
-    //     .then((dataUrl) => {
-    //       const img = new Image();
-    //       document.body.appendChild(img);
-    //       const loader = new THREE.TextureLoader();
-
-    //       // load a resource
-    //       loader.load(
-    //         // resource URL
-    //         dataUrl,
-
-    //         // onLoad callback
-    //         function (texture) {
-    //           // in this example we create the material when the texture is loaded
-    //           setHtmlTexture(texture);
-    //         },
-
-    //         // onProgress callback currently not supported
-    //         undefined,
-
-    //         // onError callback
-    //         function (err) {
-    //           console.error('An error happened.');
-    //         }
-    //       );
-    //     })
-    //     .catch((err) => {
-    //       console.error('oops, something went wrong!', err);
-    //     });
-    // }
 
     let maxLevel = 0;
 
@@ -134,6 +105,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           Math.max(1, rect.height * NODE_SCALAR * 0.98),
           0.01,
         ],
+        renderHtml: true,
         level,
         htmlString,
         innerText,
@@ -156,6 +128,71 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     maxLayer.current = maxLevel;
     setBoxes(tempBoxes);
   }, [cropToViewport, html, reloadCounter, updateWithObserver]);
+
+  // Take screenshot from iframe
+  useEffect(() => {
+    if (!html) return;
+
+    htmlToImage
+      .toPng(html)
+      .then((dataUrl) => {
+        const img = new Image();
+        img.src = dataUrl;
+        document.body.appendChild(img);
+        const loader = new THREE.TextureLoader();
+
+        // load a resource
+        loader.load(
+          // resource URL
+          dataUrl,
+
+          // onLoad callback
+          (texture) => {
+            // in this example we create the material when the texture is loaded
+            setHtmlTexture(texture);
+          },
+
+          // onProgress callback currently not supported
+          undefined,
+
+          // onError callback
+          function (err) {
+            console.error('An error happened.');
+          }
+        );
+      })
+      .catch((err) => {
+        console.error('oops, something went wrong!', err);
+      });
+  }, [html, reloadCounter, updateWithObserver]);
+
+  useEffect(() => {
+    if (!htmlTexture) return;
+
+    const leafBoxes = boxes.filter((box) => box.renderHtml);
+    const textureNodes: BoxData[] = [];
+
+    leafBoxes.forEach((leafBox) => {
+      textureNodes.push({
+        id: leafBox.id + 1,
+        position: [
+          leafBox.position[0],
+          leafBox.position[1],
+          leafBox.position[2] + distanceBetweenLevels,
+        ],
+        size: leafBox.size,
+        level: leafBox.level + 1,
+        renderHtml: false,
+        htmlString: leafBox.htmlString,
+        innerText: leafBox.innerText,
+        htmlWithText: leafBox.htmlWithText,
+        children: [],
+        texture: htmlTexture.clone(),
+      });
+    });
+
+    setHtmlBoxes(leafBoxes);
+  }, [htmlTexture, boxes]);
 
   const isBoxVisible = (box: BoxData) => {
     return (
@@ -302,7 +339,20 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           </Container>
         </Root>
       )}
-      {boxes.map((box, _) => (
+      {/* {boxes.map((box, _) => (
+        <Box3D
+          visible={isBoxVisible(box)}
+          distanceBetweenLevels={distanceBetweenLevels}
+          key={box.id}
+          box={box}
+          color={
+            useHashedColors
+              ? generateColorFromObject(box.htmlString)
+              : COLORS_GRAD[box.level % COLORS_GRAD.length]
+          }
+        />
+      ))} */}
+      {htmlBoxes.map((box, _) => (
         <Box3D
           visible={isBoxVisible(box)}
           distanceBetweenLevels={distanceBetweenLevels}
@@ -489,11 +539,22 @@ function generateColorFromObject(obj: any): string {
   return hexColor;
 }
 
+function HtmlImage(img: any) {
+  // const texture = useLoader(THREE.TextureLoader, img);
+  return (
+    <mesh>
+      <planeGeometry args={[3, 3]} />
+      <meshBasicMaterial attach="material" map={img} />
+    </mesh>
+  );
+}
+
 type BoxData = {
   id: number;
   position: [number, number, number];
   size: [number, number, number];
   level: number;
+  renderHtml: boolean;
   htmlString: string;
   innerText: string;
   htmlWithText: string;
