@@ -967,11 +967,14 @@ export default function BrowserRendering({
         }
       });
     }
+  }, [landscapeData]);
+
+  useEffect(() => {
     return () => {
       removeAllComponentStates();
       removeAllClassStates();
     };
-  }, [landscapeData]);
+  }, []);
 
   useEffect(
     function initialize() {
