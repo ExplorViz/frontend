@@ -12,7 +12,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const [htmlBoxes, setHtmlBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
-  const [htmlTexture, setHtmlTexture] = useState<any>(null);
   const [reloadCounter, setReloadCounter] = useState(0);
   const observerCallback = () => {
     setReloadCounter(reloadCounter + 1);
@@ -105,13 +104,14 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           Math.max(1, rect.height * NODE_SCALAR * 0.98),
           0.01,
         ],
-        renderHtml: true,
+        htmlNode: node,
+        renderHtml: node.childElementCount === 0,
         level,
         htmlString,
         innerText,
         htmlWithText,
         children: [],
-        texture: level === 0 ? htmlTexture : null,
+        texture: null,
       };
 
       if (!cropToViewport || (clampedWidth > 0 && clampedHeight > 0)) {
@@ -131,68 +131,42 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
 
   // Take screenshot from iframe
   useEffect(() => {
-    if (!html) return;
+    if (!html || boxes.length === 0) return;
 
-    htmlToImage
-      .toPng(html)
-      .then((dataUrl) => {
-        const img = new Image();
-        img.src = dataUrl;
-        document.body.appendChild(img);
-        const loader = new THREE.TextureLoader();
+    const tempBoxes = boxes;
+    const leafNodes = tempBoxes.filter((node) => node.renderHtml);
 
-        // load a resource
-        loader.load(
-          // resource URL
-          dataUrl,
+    let promises: Promise<any>[] = [];
+    leafNodes.forEach((leafNode) => {
+      promises.push(
+        htmlToImage
+          .toPng(leafNode.htmlNode)
+          .then((dataUrl) => {
+            const img = new Image();
+            img.src = dataUrl;
+            document.body.appendChild(img);
+            if (img.width === 0 || img.height === 0) return leafNode;
 
-          // onLoad callback
-          (texture) => {
-            // in this example we create the material when the texture is loaded
-            setHtmlTexture(texture);
-          },
+            const loader = new THREE.TextureLoader();
 
-          // onProgress callback currently not supported
-          undefined,
+            // load a resource
+            const texture = loader.load(
+              // resource URL
+              dataUrl
+            );
+            leafNode.texture = texture;
 
-          // onError callback
-          function (err) {
-            console.error('An error happened.');
-          }
-        );
-      })
-      .catch((err) => {
-        console.error('oops, something went wrong!', err);
-      });
-  }, [html, reloadCounter, updateWithObserver]);
-
-  useEffect(() => {
-    if (!htmlTexture) return;
-
-    const leafBoxes = boxes.filter((box) => box.renderHtml);
-    const textureNodes: BoxData[] = [];
-
-    leafBoxes.forEach((leafBox) => {
-      textureNodes.push({
-        id: leafBox.id + 1,
-        position: [
-          leafBox.position[0],
-          leafBox.position[1],
-          leafBox.position[2] + distanceBetweenLevels,
-        ],
-        size: leafBox.size,
-        level: leafBox.level + 1,
-        renderHtml: false,
-        htmlString: leafBox.htmlString,
-        innerText: leafBox.innerText,
-        htmlWithText: leafBox.htmlWithText,
-        children: [],
-        texture: htmlTexture.clone(),
-      });
+            return leafNode;
+          })
+          .catch((err) => {
+            console.error('oops, something went wrong!', err);
+          })
+      );
     });
-
-    setHtmlBoxes(leafBoxes);
-  }, [htmlTexture, boxes]);
+    Promise.all(promises).then((/*values*/) => {
+      setHtmlBoxes(tempBoxes);
+    });
+  }, [boxes]);
 
   const isBoxVisible = (box: BoxData) => {
     return (
@@ -403,7 +377,8 @@ function Box3D({
       onClick={(event) => {
         if (visible) {
           event.stopPropagation();
-          setClicked((prev) => !prev);
+          box.htmlNode.click();
+          // setClicked((prev) => !prev);
         }
       }}
     >
@@ -420,6 +395,7 @@ function Box3D({
           map={box.texture}
           color={box.texture ? 'white' : color}
           transparent={true}
+          opacity={1}
         />
       </mesh>
       {box.level !== 0 && (
@@ -439,7 +415,7 @@ function Box3D({
           color={'black'}
         />
       )}
-      {(hovered || clicked) && (
+      {/* {(hovered || clicked) && (
         <Html
           position={[
             box.position[0],
@@ -461,7 +437,7 @@ function Box3D({
             <code>{box.htmlWithText}</code>
           </div>
         </Html>
-      )}
+      )} */}
     </group>
   );
 }
@@ -539,20 +515,11 @@ function generateColorFromObject(obj: any): string {
   return hexColor;
 }
 
-function HtmlImage(img: any) {
-  // const texture = useLoader(THREE.TextureLoader, img);
-  return (
-    <mesh>
-      <planeGeometry args={[3, 3]} />
-      <meshBasicMaterial attach="material" map={img} />
-    </mesh>
-  );
-}
-
 type BoxData = {
   id: number;
   position: [number, number, number];
   size: [number, number, number];
+  htmlNode: any;
   level: number;
   renderHtml: boolean;
   htmlString: string;
