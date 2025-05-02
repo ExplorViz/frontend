@@ -91,7 +91,10 @@ import { useRenderingServiceStore } from '../../../stores/rendering-service';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import { getAllPackagesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import {
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/src/utils/application-helpers';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -283,14 +286,26 @@ export default function BrowserRendering({
 
   const {
     setClassState,
+    getClassState,
     removeAllClassStates,
     setComponentState,
+    getComponentState,
+    componentData,
+    classData,
+    removeClassState,
+    removeComponentState,
     removeAllComponentStates,
   } = useVisualizationStore(
     useShallow((state) => ({
       setClassState: state.actions.setClassState,
+      getClassState: state.actions.getClassState,
       removeAllClassStates: state.actions.removeAllClassStates,
       setComponentState: state.actions.setComponentState,
+      getComponentState: state.actions.getComponentState,
+      removeComponentState: state.actions.removeComponentState,
+      removeClassState: state.actions.removeClassState,
+      componentData: state.componentData,
+      classData: state.classData,
       removeAllComponentStates: state.actions.removeAllComponentStates,
     }))
   );
@@ -905,22 +920,51 @@ export default function BrowserRendering({
       )
         .map((app) => getAllPackagesInApplication(app))
         .flat();
+      const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
+      // Remove all component states that are not in the current landscape
+      Object.keys(componentData).forEach((componentId) => {
+        if (!packagesIds.has(componentId)) {
+          removeComponentState(componentId);
+        }
+      });
       allPackages.forEach((pkg) => {
-        setComponentState(pkg.id, {
-          id: pkg.id,
-          isOpen: true,
-          isVisible: true,
-          isHighlighted: false,
-          isHovered: false,
-        });
-        pkg.classes.forEach((classInPckg) => {
-          setClassState(classInPckg.id, {
-            id: classInPckg.id,
+        // Set default state for all packages, if not already set
+        try {
+          getComponentState(pkg.id);
+        } catch (e) {
+          setComponentState(pkg.id, {
+            id: pkg.id,
+            isOpen: true,
             isVisible: true,
             isHighlighted: false,
             isHovered: false,
           });
-        });
+        }
+      });
+      const allClasses = getAllApplicationsInLandscape(
+        landscapeData.structureLandscapeData
+      )
+        .map((app) => getAllClassesInApplication(app))
+        .flat();
+      const classIds = new Set(allClasses.map((clazz) => clazz.id));
+      // Remove all component states that are not in the current landscape
+      Object.keys(classData).forEach((classId) => {
+        if (!classIds.has(classId)) {
+          removeClassState(classId);
+        }
+      });
+      allClasses.forEach((clazz) => {
+        // Set default state for all classes, if not already set
+        try {
+          getClassState(clazz.id);
+        } catch (e) {
+          setClassState(clazz.id, {
+            id: clazz.id,
+            isVisible: true,
+            isHighlighted: false,
+            isHovered: false,
+          });
+        }
       });
     }
     return () => {

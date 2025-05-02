@@ -91,7 +91,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         if (!state) {
           throw new Error(`Component with id ${id} not found`);
         }
-        return get().componentData[id];
+        return state;
       },
       setComponentState: (id: string, state: Omit<ComponentState, 'id'>) => {
         const existingState = get().componentData[id];
