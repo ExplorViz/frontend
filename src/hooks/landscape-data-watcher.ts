@@ -218,7 +218,7 @@ export default function useLandscapeDataWatcher(
     landscapeRestructureState.setAllClassCommunications(classCommunications);
 
     let app3Ds: ApplicationObject3D[] = [];
-    const applicationModels = [];
+    const applicationModels: ApplicationData[] = [];
     // Compute app3Ds which are not part of Kubernetes deployment
     for (let i = 0; i < applications.length; ++i) {
       const applicationData = await updateApplicationData(
@@ -227,6 +227,7 @@ export default function useLandscapeDataWatcher(
         classCommunications,
         boxLayoutMap
       );
+
       applicationModels.push(applicationData);
 
       // Create or update app3D

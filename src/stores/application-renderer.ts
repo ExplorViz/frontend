@@ -427,12 +427,12 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       applicationObject3D: ApplicationObject3D
     ) => {
       // Render communication
-      if (
-        useLocalUserStore.getState().visualizationMode !== 'ar' ||
-        useARSettingsStore.getState().renderCommunication
-      ) {
-        get().addCommunication(applicationObject3D);
-      }
+      // if (
+      //   useLocalUserStore.getState().visualizationMode !== 'ar' ||
+      //   useARSettingsStore.getState().renderCommunication
+      // ) {
+      //   get().addCommunication(applicationObject3D);
+      // }
 
       // Update labels
       // Labeler.addApplicationLabels(

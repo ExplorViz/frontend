@@ -1,14 +1,14 @@
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import {
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { calculateLineThickness } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ClassR3F from 'explorviz-frontend/src/view-objects/3d/application/class-r3f';
+import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/component-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
+import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
 import { useCallback, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -24,20 +24,47 @@ export default function ApplicationR3F({
   );
 
   const [app3D, setApp3D] = useState<ApplicationObject3D | null>(null);
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [classes, setClasses] = useState<Class[]>([]);
 
   const computeApp = useCallback(async () => {
     const application3D =
       await applicationRendererState.addApplicationTask(applicationData);
     setApp3D(application3D);
-    setPackages(applicationData.getPackages());
-    setClasses(applicationData.getClasses());
   }, [applicationData, applicationRendererState]);
 
   useEffect(() => {
     computeApp();
   }, [applicationData, computeApp]);
+
+  const getCommunicationLayout = (classCommunication: ClassCommunication) => {
+    const commLayout = new CommunicationLayout(classCommunication);
+
+    const sourceModelId = classCommunication.sourceClass.id;
+    const sourceLayout = app3D?.getBoxLayout(sourceModelId);
+    if (sourceLayout) {
+      commLayout.startX = sourceLayout.positionX;
+      commLayout.startY = sourceLayout.positionY;
+      commLayout.startZ = sourceLayout.positionZ;
+    }
+
+    const targetModelId = classCommunication.targetClass.id;
+    const targetLayout = app3D?.getBoxLayout(targetModelId);
+    if (targetLayout) {
+      commLayout.endX = targetLayout.positionX;
+      commLayout.endY = targetLayout.positionY;
+      commLayout.endZ = targetLayout.positionZ;
+    }
+
+    // Place recursive communication slightly above class
+    if (sourceModelId === targetModelId) {
+      commLayout.startY += 2.0;
+      commLayout.endY += 2.0;
+    }
+
+    // TODO: Calculate Thickness
+    commLayout.lineThickness = 1;
+
+    return commLayout;
+  };
 
   return (
     <>
@@ -48,19 +75,26 @@ export default function ApplicationR3F({
             application={applicationData.application}
             boxLayout={app3D.layout}
           />
-          {packages?.map((packageData) => (
+          {applicationData.getPackages().map((packageData) => (
             <ComponentR3F
               key={packageData.id}
               component={packageData}
-              appLayout={app3D.layout}
               layout={app3D.getBoxLayout(packageData.id)!}
             />
           ))}
-          {classes?.map((classData) => (
+          {applicationData.getClasses().map((classData) => (
             <ClassR3F
               key={classData.id}
               dataModel={classData}
               layout={app3D.getBoxLayout(classData.id)!}
+            />
+          ))}
+          {applicationData.classCommunications.map((communication) => (
+            <CommunicationR3F
+              key={communication.id}
+              application={applicationData.application}
+              communicationModel={communication}
+              communicationLayout={getCommunicationLayout(communication)}
             />
           ))}
         </primitive>

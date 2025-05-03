@@ -34,7 +34,7 @@ export default abstract class BaseMesh<
   }
 
   set defaultColor(value: THREE.Color) {
-    this._defaultColor = value;
+    this._defaultColor = value.clone();
 
     if (
       (this.material instanceof THREE.MeshBasicMaterial ||
@@ -389,8 +389,8 @@ export default abstract class BaseMesh<
         new THREE.Color(this.material.color),
         colorShift
       );
+      this._isHovered = true;
     }
-    this._isHovered = true;
   }
 
   /**
@@ -402,12 +402,14 @@ export default abstract class BaseMesh<
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof MeshLineMaterial
     ) {
+      console.log('Reset Hover effect');
       const { highlighted, defaultColor, highlightingColor } = this;
 
       // Restore normal color (depends on highlighting status)
       this.material.color = highlighted ? highlightingColor : defaultColor;
+
+      this._isHovered = false;
     }
-    this._isHovered = false;
   }
 
   updateColor() {

@@ -135,7 +135,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     let allChildrenEmpty = true;
     for (let index = 0; index < childNodes.length; index++) {
       const element = childNodes[index];
-      console.log(element.tagName);
 
       if (
         element.getBoundingClientRect().width > 0 &&

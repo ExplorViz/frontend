@@ -6,57 +6,71 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/appl
 import SemanticZoomManager from './utils/semantic-zoom-manager';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import { extend, ThreeElement } from '@react-three/fiber';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
 
-  layout: CommunicationLayout;
-  _layout_original: CommunicationLayout;
+  _layout: CommunicationLayout;
+
+  get layout() {
+    return this._layout;
+  }
+
+  set layout(layout: CommunicationLayout) {
+    this._layout = layout;
+    console.log('Layout:', layout);
+
+    this.render();
+  }
+
+  set defaultColor(color: any) {
+    super.defaultColor = color;
+  }
+
+  // _layout_original: CommunicationLayout;
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
 
   curveHeight: number = 0.0;
 
   applicationCenter: THREE.Vector3 = new THREE.Vector3();
 
-  constructor(
-    layout: CommunicationLayout,
-    dataModel: ClazzCommuMeshDataModel,
-    defaultColor: THREE.Color,
-    highlightingColor: THREE.Color
-  ) {
-    super(defaultColor, highlightingColor);
+  constructor(dataModel: ClazzCommuMeshDataModel, layout: CommunicationLayout) {
+    super();
     this.layout = layout;
-    this._layout_original = layout.copy();
+
+    // this._layout_original = this.layout.copy();
     this.dataModel = dataModel;
 
     this.material = new THREE.MeshBasicMaterial({
-      color: defaultColor,
+      color: this.defaultColor,
     });
     this.material.transparent = true;
-    SemanticZoomManager.instance.add(this);
-    this.saveCurrentlyActiveLayout();
-    // this.setCallBeforeAppearenceZero(() => {
-    //   this.layout = this._layout_original;
-    // });
-    // this.setCallBeforeAppearenceAboveZero(() => {
-    //   this.layout = this._layout_original;
-    // });
 
-    this.setAppearence(2, () => {
-      this.layout.lineThickness = this._layout_original.lineThickness / 2;
-      this.geometry.dispose();
-      this.render(this.curveHeight);
-    });
-    this.setAppearence(3, () => {
-      this.layout.lineThickness = this._layout_original.lineThickness / 3;
-      this.geometry.dispose();
-      this.render(this.curveHeight);
-    });
-    this.setAppearence(4, () => {
-      this.layout.lineThickness = this._layout_original.lineThickness / 4;
-      this.geometry.dispose();
-      this.render(this.curveHeight);
-    });
+    // SemanticZoomManager.instance.add(this);
+    // this.saveCurrentlyActiveLayout();
+    // // this.setCallBeforeAppearenceZero(() => {
+    // //   this.layout = this._layout_original;
+    // // });
+    // // this.setCallBeforeAppearenceAboveZero(() => {
+    // //   this.layout = this._layout_original;
+    // // });
+
+    // this.setAppearence(2, () => {
+    //   this.layout.lineThickness = this._layout_original.lineThickness / 2;
+    //   this.geometry.dispose();
+    //   this.render(this.curveHeight);
+    // });
+    // this.setAppearence(3, () => {
+    //   this.layout.lineThickness = this._layout_original.lineThickness / 3;
+    //   this.geometry.dispose();
+    //   this.render(this.curveHeight);
+    // });
+    // this.setAppearence(4, () => {
+    //   this.layout.lineThickness = this._layout_original.lineThickness / 4;
+    //   this.geometry.dispose();
+    //   this.render(this.curveHeight);
+    // });
   }
 
   /**
@@ -194,18 +208,21 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    */
   render(curveHeight = 0.0, desiredSegments = 20) {
     // Handle recursive communication
-    if (this.dataModel.communication.isRecursive) {
-      this.renderRecursiveCommunication();
-      return;
-    }
+    // if (this.dataModel.communication.isRecursive) {
+    //   this.renderRecursiveCommunication();
+    //   return;
+    // }
 
     this.curveHeight = curveHeight;
     const { layout } = this;
 
     const start = layout.startPoint;
 
-    const end = layout.endPoint; // new THREE.Vector3();
-    // end.subVectors(layout.endPoint, applicationCenter);
+    const end = layout.endPoint;
+
+    if (!end || !start) {
+      return;
+    }
 
     // Determine middle
     const dir = end.clone().sub(start);
@@ -239,6 +256,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @param color The color of the arrows. Default black
    */
   addArrows(width: number, yOffset: number, color: THREE.Color) {
+    // TODO
+    return;
     const { layout } = this;
     // Scale arrow with communication line thickness
     const { startPoint } = layout;
@@ -414,5 +433,14 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       }
     });
     return arrowMeshes;
+  }
+}
+
+extend({ ClazzCommunicationMesh });
+
+// Add types to ThreeElements elements so primitives pick up on it
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    clazzCommunicationMesh: ThreeElement<typeof ClazzCommunicationMesh>;
   }
 }
