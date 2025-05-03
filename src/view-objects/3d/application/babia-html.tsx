@@ -106,7 +106,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
           0.01,
         ],
         htmlNode: node,
-        renderHtml: node.childElementCount === 0,
+        renderHtml: renderHtml(node),
         level,
         htmlString,
         innerText,
@@ -129,6 +129,24 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     maxLayer.current = maxLevel;
     setBoxes(tempBoxes);
   }, [cropToViewport, html, reloadCounter, updateWithObserver]);
+
+  const renderHtml = (node: HTMLElement) => {
+    const childNodes = Array.from(node.children);
+    let allChildrenEmpty = true;
+    for (let index = 0; index < childNodes.length; index++) {
+      const element = childNodes[index];
+      console.log(element.tagName);
+
+      if (
+        element.getBoundingClientRect().width > 0 &&
+        element.getBoundingClientRect().height > 0 &&
+        element.tagName !== 'path'
+      ) {
+        allChildrenEmpty = false;
+      }
+    }
+    return allChildrenEmpty;
+  };
 
   // Render HTML textures
   useEffect(() => {
@@ -298,7 +316,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 />
                 ;
                 <Label>
-                  <Text>Render Leafs</Text>
+                  <Text>Render HTML</Text>
                 </Label>
               </Container>
             </Container>
@@ -435,15 +453,14 @@ function Box3D({
           color={'black'}
         />
       )}
-      {/* {(hovered || clicked) && (
+      {(hovered || clicked) && (
         <Html
           position={[
             box.position[0],
-            box.position[1] + 1,
+            box.position[1] + 5,
             box.level * distanceBetweenLevels + 0.2,
           ]}
-          transform
-          occlude
+          occlude={true}
         >
           <div
             style={{
@@ -451,13 +468,13 @@ function Box3D({
               padding: '10px',
               border: '1px solid black',
               whiteSpace: 'pre-wrap',
-              fontSize: '150px',
+              fontSize: '1.5rem',
             }}
           >
             <code>{box.htmlWithText}</code>
           </div>
         </Html>
-      )} */}
+      )}
     </group>
   );
 }
