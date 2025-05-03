@@ -1,5 +1,5 @@
 import { ThreeElements } from '@react-three/fiber';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -18,17 +18,20 @@ export default function CommunicationR3F({
   communicationLayout: CommunicationLayout;
 }) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isHighlighted, setIsHighlighted] = useState<boolean>(false);
 
-  const { communicationColor, highlightedEntityColor } = useUserSettingsStore(
-    useShallow((state) => ({
-      communicationColor: state.colors?.communicationColor,
-      highlightedEntityColor: state.colors?.highlightedEntityColor,
-    }))
-  );
+  const { communicationColor, curveHeight, highlightedEntityColor } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        communicationColor: state.colors?.communicationColor,
+        highlightedEntityColor: state.colors?.highlightedEntityColor,
+        curveHeight: state.visualizationSettings.curvyCommHeight.value,
+      }))
+    );
 
-  const highlightingActions = useHighlightingStore(
+  const { commCurveHeightDependsOnDistance } = useConfigurationStore(
     useShallow((state) => ({
-      toggleHighlight: state.toggleHighlight,
+      commCurveHeightDependsOnDistance: state.commCurveHeightDependsOnDistance,
     }))
   );
 
@@ -44,9 +47,23 @@ export default function CommunicationR3F({
 
   const handleClick = (event: any) => {
     event.stopPropagation();
-    highlightingActions.toggleHighlight(event.object!, {
-      sendMessage: true,
-    });
+    setIsHighlighted(!isHighlighted);
+    // highlightingActions.toggleHighlight(event.object!, {
+    //   sendMessage: true,
+    // });
+  };
+
+  const computeCurveHeight = () => {
+    let baseCurveHeight = 20;
+    if (commCurveHeightDependsOnDistance) {
+      const classDistance = Math.hypot(
+        communicationLayout.endX - communicationLayout.startX,
+        communicationLayout.endZ - communicationLayout.startZ
+      );
+      baseCurveHeight = classDistance * 0.5;
+    }
+
+    return baseCurveHeight * curveHeight;
   };
 
   const constructorArgs = useMemo<
@@ -69,10 +86,11 @@ export default function CommunicationR3F({
       onPointerOut={handleOnPointerOut}
       onClick={handleClick}
       defaultColor={communicationColor}
+      curveHeight={computeCurveHeight()}
       highlightingColor={highlightedEntityColor}
+      highlighted={isHighlighted}
       isHovered={isHovered}
       args={constructorArgs}
-      // layout={communicationLayout}
     ></clazzCommunicationMesh>
   );
 }

@@ -66,6 +66,8 @@ export default class CommunicationRendering {
     applicationObject3D: ApplicationObject3D,
     settings: VisualizationSettings
   ) {
+    // TODO
+    return;
     if (!useConfigurationStore.getState().isCommRendered) return;
 
     const application = applicationObject3D.dataModel.application;

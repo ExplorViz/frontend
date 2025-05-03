@@ -402,7 +402,6 @@ export default abstract class BaseMesh<
       this.material instanceof THREE.MeshBasicMaterial ||
       this.material instanceof MeshLineMaterial
     ) {
-      console.log('Reset Hover effect');
       const { highlighted, defaultColor, highlightingColor } = this;
 
       // Restore normal color (depends on highlighting status)

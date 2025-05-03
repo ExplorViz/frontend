@@ -17,6 +17,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return this._layout;
   }
 
+  set curveHeight(curveHeight: number) {
+    this._curveHeight = curveHeight;
+
+    this.render(curveHeight);
+  }
+
   set layout(layout: CommunicationLayout) {
     this._layout = layout;
     console.log('Layout:', layout);
@@ -24,14 +30,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.render();
   }
 
-  set defaultColor(color: any) {
-    super.defaultColor = color;
-  }
-
   // _layout_original: CommunicationLayout;
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
 
-  curveHeight: number = 0.0;
+  _curveHeight: number = 0.0;
 
   applicationCenter: THREE.Vector3 = new THREE.Vector3();
 
@@ -213,7 +215,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     //   return;
     // }
 
-    this.curveHeight = curveHeight;
+    this._curveHeight = curveHeight;
     const { layout } = this;
 
     const start = layout.startPoint;
@@ -399,7 +401,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     if (arg === 'vr' && !this.isHovered) {
       this.layout.lineThickness *= 5;
       this.geometry.dispose();
-      this.render(this.curveHeight);
+      this.render(this._curveHeight);
       super.applyHoverEffect();
 
       this.getArrowMeshes().forEach((arrowMesh) => {
@@ -416,7 +418,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       if (mode === 'vr') {
         this.layout.lineThickness /= 5;
         this.geometry.dispose();
-        this.render(this.curveHeight);
+        this.render(this._curveHeight);
       }
 
       this.getArrowMeshes().forEach((arrowMesh) => {
