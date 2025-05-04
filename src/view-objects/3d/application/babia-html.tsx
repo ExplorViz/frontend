@@ -7,7 +7,13 @@ import sha256 from 'js-sha256';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
+export default function BabiaHtml({
+  html,
+  updateHtml,
+}: {
+  html: HTMLElement | null;
+  updateHtml: () => void;
+}) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
   const [htmlBoxes, setHtmlBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
@@ -38,6 +44,10 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     Math.min(Math.max(num, min), max);
 
   useEffect(() => {
+    console.log('Html updated');
+  }, [html]);
+
+  useEffect(() => {
     if (!html) {
       setBoxes([]);
       return;
@@ -51,6 +61,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
     if (updateWithObserver) {
       observer.current.observe(html, {
         attributes: true,
+        characterData: true,
         childList: true,
         subtree: true,
       });
@@ -138,7 +149,8 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
       if (
         element.getBoundingClientRect().width > 0 &&
         element.getBoundingClientRect().height > 0 &&
-        element.tagName !== 'path'
+        element.tagName !== 'path' &&
+        element.tagName !== 'SPAN'
       ) {
         allChildrenEmpty = false;
       }
@@ -336,7 +348,7 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
                 width={navbarHeight}
                 height={navbarHeight}
                 padding={0}
-                onClick={() => setReloadCounter(reloadCounter + 1)}
+                onClick={() => updateHtml()}
               >
                 <RefreshCcw />
               </Button>
@@ -392,7 +404,6 @@ function Box3D({
 }) {
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
-  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
   return (
     <group
@@ -405,10 +416,6 @@ function Box3D({
           setHovered(true);
         }
       }}
-      onPointerMove={(event) => {
-        console.log(event);
-        setPopupPosition({ x: event.uv?.x || 0, y: event.uv?.y || 0 });
-      }}
       onPointerLeave={(event) => {
         if (visible) {
           event.stopPropagation();
@@ -418,8 +425,13 @@ function Box3D({
       onClick={(event) => {
         if (visible) {
           event.stopPropagation();
-          // box.htmlNode.click();
-          // setClicked((prev) => !prev);
+          setClicked((prev) => !prev);
+        }
+      }}
+      onDoubleClick={(event) => {
+        if (visible) {
+          event.stopPropagation();
+          box.htmlNode.click();
         }
       }}
     >
@@ -431,7 +443,10 @@ function Box3D({
           box.level * distanceBetweenLevels,
         ]}
       >
-        <boxGeometry args={box.size} />
+        {!clicked && <boxGeometry args={box.size} />}
+        {clicked && (
+          <boxGeometry args={[box.size[0], box.size[1], box.size[2] + 10]} />
+        )}
         <meshBasicMaterial
           map={box.texture}
           color={box.texture ? 'white' : color}
@@ -456,11 +471,11 @@ function Box3D({
           color={'black'}
         />
       )}
-      {(hovered || clicked) && (
+      {hovered && (
         <Html
           position={[
-            box.position[0] * popupPosition.x * 0.15 + box.position[0],
-            box.position[1] + 20, // + box.size[1],
+            box.position[0],
+            box.position[1] + box.size[1] / 2 + box.htmlWithText.length * 0.25,
             box.level * distanceBetweenLevels + 0.2,
           ]}
           occlude={'blending'}

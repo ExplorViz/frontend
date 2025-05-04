@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 export default function EmbeddedBrowser() {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
   const [html, setHtml] = useState<HTMLElement | undefined>(undefined);
-  const defaultUrl = 'http://localhost:4200';
+  const defaultUrl = 'http://localhost:18080';
   const [url, setUrl] = useState<string>(defaultUrl);
 
   const sizeX = 1000;
@@ -26,18 +26,19 @@ export default function EmbeddedBrowser() {
       return;
     }
 
+    updateHtml();
+  };
+
+  const updateHtml = () => {
     let iFrameHtml: HTMLElement | undefined;
     try {
-      iFrameHtml =
-        iFrameRef.current?.contentWindow?.document.getElementsByTagName(
-          'html'
-        )[0];
+      iFrameHtml = iFrameRef.current?.contentWindow?.document.getRootNode();
     } catch (error) {
       console.log(error);
       setHtml(undefined);
       return;
     }
-    setHtml(iFrameHtml?.getElementsByTagName('body')[0]);
+    setHtml(iFrameHtml);
   };
 
   return (
@@ -107,7 +108,7 @@ export default function EmbeddedBrowser() {
           />
         )}
       </Html>
-      {<BabiaHtml html={html} />}
+      {<BabiaHtml html={html} updateHtml={updateHtml} />}
     </>
   );
 }
