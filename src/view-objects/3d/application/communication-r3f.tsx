@@ -38,9 +38,10 @@ export default function CommunicationR3F({
     }))
   );
 
-  const { commCurveHeightDependsOnDistance } = useConfigurationStore(
+  const { commCurveHeightDependsOnDistance, isVisible } = useConfigurationStore(
     useShallow((state) => ({
       commCurveHeightDependsOnDistance: state.commCurveHeightDependsOnDistance,
+      isVisible: state.isCommRendered,
     }))
   );
 
@@ -91,15 +92,16 @@ export default function CommunicationR3F({
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       onClick={handleClick}
-      defaultColor={communicationColor}
-      curveHeight={computeCurveHeight()}
-      arrowWidth={arrowWidth}
-      arrowOffset={arrowOffset}
-      arrowColor={arrowColor}
-      highlightingColor={highlightedEntityColor}
-      highlighted={isHighlighted}
-      isHovered={isHovered}
       args={constructorArgs}
+      arrowColor={arrowColor}
+      arrowOffset={arrowOffset}
+      arrowWidth={arrowWidth}
+      curveHeight={computeCurveHeight()}
+      defaultColor={communicationColor}
+      highlighted={isHighlighted}
+      highlightingColor={highlightedEntityColor}
+      isHovered={isHovered}
+      visible={isVisible}
     ></clazzCommunicationMesh>
   );
 }
