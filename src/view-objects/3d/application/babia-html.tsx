@@ -204,10 +204,7 @@ export default function BabiaHtml({
       );
     });
     Promise.all(promises).then((values) => {
-      console.log('Set values', values);
-
       setHtmlBoxes(values);
-      // setReloadCounter(reloadCounter + 1);
     });
   };
 
