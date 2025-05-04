@@ -463,14 +463,13 @@ export default abstract class BaseMesh<
    *  semanticZoomManager: SemanticZoomManager
    *  Should be the type SemanticZoomManager
    */
-  disposeRecursively(
-    semanticZoomManager: any /*: SemanticZoomManager (import would lead to circular dependency)*/
-  ) {
+  disposeRecursively() // semanticZoomManager: any /*: SemanticZoomManager (import would lead to circular dependency)*/
+  {
     this.traverse((child) => {
       if (child instanceof BaseMesh) {
         if (child.geometry) {
           child.geometry.dispose();
-          semanticZoomManager.instance.remove(child);
+          // semanticZoomManager.instance.remove(child);
         }
         if (child.material instanceof THREE.Material) {
           child.material.dispose();

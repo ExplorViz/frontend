@@ -20,14 +20,23 @@ export default function CommunicationR3F({
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isHighlighted, setIsHighlighted] = useState<boolean>(false);
 
-  const { communicationColor, curveHeight, highlightedEntityColor } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        communicationColor: state.colors?.communicationColor,
-        highlightedEntityColor: state.colors?.highlightedEntityColor,
-        curveHeight: state.visualizationSettings.curvyCommHeight.value,
-      }))
-    );
+  const {
+    arrowColor,
+    arrowOffset,
+    arrowWidth,
+    communicationColor,
+    curveHeight,
+    highlightedEntityColor,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      arrowColor: state.colors?.communicationArrowColor,
+      arrowOffset: state.visualizationSettings.commArrowOffset.value,
+      arrowWidth: state.visualizationSettings.commArrowSize.value,
+      communicationColor: state.colors?.communicationColor,
+      highlightedEntityColor: state.colors?.highlightedEntityColor,
+      curveHeight: state.visualizationSettings.curvyCommHeight.value,
+    }))
+  );
 
   const { commCurveHeightDependsOnDistance } = useConfigurationStore(
     useShallow((state) => ({
@@ -68,17 +77,14 @@ export default function CommunicationR3F({
 
   const constructorArgs = useMemo<
     ThreeElements['clazzCommunicationMesh']['args']
-  >(
-    () => [
-      new ClazzCommuMeshDataModel(
-        application,
-        communicationModel,
-        communicationModel.id
-      ),
-      communicationLayout,
-    ],
-    []
-  );
+  >(() => {
+    const dataModel = new ClazzCommuMeshDataModel(
+      application,
+      communicationModel,
+      communicationModel.id
+    );
+    return [dataModel, communicationLayout];
+  }, []);
 
   return (
     <clazzCommunicationMesh
@@ -87,6 +93,9 @@ export default function CommunicationR3F({
       onClick={handleClick}
       defaultColor={communicationColor}
       curveHeight={computeCurveHeight()}
+      arrowWidth={arrowWidth}
+      arrowOffset={arrowOffset}
+      arrowColor={arrowColor}
       highlightingColor={highlightedEntityColor}
       highlighted={isHighlighted}
       isHovered={isHovered}

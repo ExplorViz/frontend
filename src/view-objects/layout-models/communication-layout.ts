@@ -52,6 +52,16 @@ export default class CommunicationLayout {
     this.startZ = start.z;
   }
 
+  getMiddlePoint({ yOffset = 0 }) {
+    const dir = this.endPoint.clone().sub(this.startPoint);
+    const length = dir.length();
+    const halfVector = dir.normalize().multiplyScalar(length * 0.5);
+    const middlePoint = this.startPoint.clone().add(halfVector);
+    middlePoint.setComponent(1, middlePoint.y + yOffset);
+
+    return middlePoint;
+  }
+
   get endPoint() {
     return new THREE.Vector3(this.endX, this.endY, this.endZ);
   }
@@ -60,6 +70,14 @@ export default class CommunicationLayout {
     this.endX = end.x;
     this.endY = end.y;
     this.endZ = end.z;
+  }
+
+  getCurve({ yOffset = 0 }) {
+    return new THREE.QuadraticBezierCurve3(
+      this.startPoint,
+      this.getMiddlePoint({ yOffset }),
+      this.endPoint
+    );
   }
 
   equals(obj?: CommunicationLayout) {
