@@ -3,8 +3,10 @@ import { Container, Root } from '@react-three/uikit';
 import { Input } from '@react-three/uikit-default';
 import { Button } from '@react-three/uikit-default';
 import { ChevronLeft, SkipBack, Table } from '@react-three/uikit-lucide';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import BabiaHtml from 'explorviz-frontend/src/view-objects/3d/application/babia-html';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function EmbeddedBrowser() {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
@@ -20,26 +22,33 @@ export default function EmbeddedBrowser() {
   const navbarHeight = 40;
   const inputWidth = 450;
 
-  const triggerHtmlVisualizer = () => {
+  const toastHandlerActions = useToastHandlerStore(
+    useShallow((state) => ({
+      showErrorToastMessage: state.showErrorToastMessage,
+    }))
+  );
+
+  const triggerHtmlVisualizer = useCallback(() => {
     if (html) {
       setHtml(undefined);
       return;
     }
 
     updateHtml();
-  };
+  }, [html]);
 
-  const updateHtml = () => {
+  const updateHtml = useCallback(() => {
     let iFrameHtml: HTMLElement | undefined;
     try {
       iFrameHtml = iFrameRef.current?.contentWindow?.document.getRootNode();
     } catch (error) {
       console.log(error);
+      toastHandlerActions.showErrorToastMessage('Could not inspect iFrame');
       setHtml(undefined);
       return;
     }
     setHtml(iFrameHtml);
-  };
+  }, [html]);
 
   return (
     <>

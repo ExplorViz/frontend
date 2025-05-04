@@ -160,6 +160,10 @@ export default function BabiaHtml({
 
   // Render HTML textures
   useEffect(() => {
+    loadHtml();
+  }, [boxes, renderLeafNodes]);
+
+  const loadHtml = async () => {
     if (!html || boxes.length === 0 || !renderLeafNodes) {
       const tempBoxes = boxes;
       tempBoxes.forEach((box) => (box.texture = null));
@@ -177,7 +181,7 @@ export default function BabiaHtml({
       promises.push(
         htmlToImage
           .toPng(leafNode.htmlNode)
-          .then((dataUrl) => {
+          .then(async (dataUrl) => {
             const img = new Image();
             img.src = dataUrl;
             document.body.appendChild(img);
@@ -186,7 +190,7 @@ export default function BabiaHtml({
             const loader = new THREE.TextureLoader();
 
             // load a resource
-            const texture = loader.load(
+            const texture = await loader.load(
               // resource URL
               dataUrl
             );
@@ -200,9 +204,12 @@ export default function BabiaHtml({
       );
     });
     Promise.all(promises).then((values) => {
+      console.log('Set values', values);
+
       setHtmlBoxes(values);
+      // setReloadCounter(reloadCounter + 1);
     });
-  }, [boxes, renderLeafNodes]);
+  };
 
   const isBoxVisible = (box: BoxData) => {
     return (
