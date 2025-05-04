@@ -17,7 +17,6 @@ export default function BabiaHtml({ html }: { html: HTMLElement | null }) {
   const observerCallback = () => {
     setReloadCounter(reloadCounter + 1);
   };
-
   const observer = useRef(new MutationObserver(observerCallback));
   const maxLayer = useRef(0);
 
@@ -393,6 +392,7 @@ function Box3D({
 }) {
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
   return (
     <group
@@ -405,6 +405,10 @@ function Box3D({
           setHovered(true);
         }
       }}
+      onPointerMove={(event) => {
+        console.log(event);
+        setPopupPosition({ x: event.uv?.x || 0, y: event.uv?.y || 0 });
+      }}
       onPointerLeave={(event) => {
         if (visible) {
           event.stopPropagation();
@@ -414,7 +418,7 @@ function Box3D({
       onClick={(event) => {
         if (visible) {
           event.stopPropagation();
-          box.htmlNode.click();
+          // box.htmlNode.click();
           // setClicked((prev) => !prev);
         }
       }}
@@ -455,11 +459,13 @@ function Box3D({
       {(hovered || clicked) && (
         <Html
           position={[
-            box.position[0],
-            box.position[1] + 5,
+            box.position[0] * popupPosition.x * 0.15 + box.position[0],
+            box.position[1] + 20, // + box.size[1],
             box.level * distanceBetweenLevels + 0.2,
           ]}
-          occlude={true}
+          occlude={'blending'}
+          transform
+          raycast={() => {}}
         >
           <div
             style={{
@@ -467,10 +473,12 @@ function Box3D({
               padding: '10px',
               border: '1px solid black',
               whiteSpace: 'pre-wrap',
-              fontSize: '1.5rem',
+              fontSize: '10rem',
+              pointerEvents: 'none',
             }}
           >
-            <code>{box.htmlWithText}</code>
+            {/* {box.htmlWithText} */}
+            <code style={{ pointerEvents: 'none' }}>{box.htmlWithText}</code>
           </div>
         </Html>
       )}
