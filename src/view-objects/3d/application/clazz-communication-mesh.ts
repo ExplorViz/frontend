@@ -25,8 +25,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   set layout(layout: CommunicationLayout) {
     this._layout = layout;
-    console.log('Layout:', layout);
-
     this.render();
   }
 

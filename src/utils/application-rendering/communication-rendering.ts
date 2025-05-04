@@ -1,18 +1,17 @@
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import applyCommunicationLayout, {
   calculateLineThickness,
 } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import { findFirstOpen } from 'explorviz-frontend/src/utils/link-helper';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout.ts';
-import { Vector3 } from 'three';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout.ts';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
-import { findFirstOpen } from 'explorviz-frontend/src/utils/link-helper';
-import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { VisualizationSettings } from '../settings/settings-schemas';
 
 export default class CommunicationRendering {
@@ -156,6 +155,7 @@ export default class CommunicationRendering {
             commLayout.lineThickness = calculateLineThickness(
               componentCommunication,
               useUserSettingsStore.getState().visualizationSettings
+                .commThickness.value
             );
             // Create new component communication
           } else {

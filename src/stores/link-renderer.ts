@@ -113,7 +113,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     commLayout.endPoint = end;
     commLayout.lineThickness = calculateLineThickness(
       classCommunication,
-      useUserSettingsStore.getState().visualizationSettings
+      useUserSettingsStore.getState().visualizationSettings.commThickness.value
     );
     line.layout = commLayout;
     line.geometry.dispose();

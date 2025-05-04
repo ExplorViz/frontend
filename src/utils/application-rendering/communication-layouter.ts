@@ -14,7 +14,7 @@ import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/set
 
 export function calculateLineThickness(
   communication: ClassCommunication | ComponentCommunication,
-  settings: VisualizationSettings
+  commLineThickness: number
 ) {
   // Normalized request count might be above 1 for component communication
   const normalizedRequestCount = clamp(
@@ -24,7 +24,7 @@ export function calculateLineThickness(
   );
 
   // Apply line thickness depending on request count
-  return normalizedRequestCount * settings.commThickness.value;
+  return normalizedRequestCount * commLineThickness;
 }
 
 /**
@@ -204,7 +204,7 @@ export default function applyCommunicationLayout(
 
         commLayout.lineThickness = calculateLineThickness(
           classCommunication,
-          settings
+          settings.commThickness.value
         );
       }
     }

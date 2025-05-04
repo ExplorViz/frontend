@@ -1,4 +1,5 @@
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import { calculateLineThickness } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
@@ -20,6 +21,12 @@ export default function ApplicationR3F({
   const applicationRendererState = useApplicationRendererStore(
     useShallow((state) => ({
       addApplicationTask: state.addApplicationTask,
+    }))
+  );
+
+  const { commLineThickness } = useUserSettingsStore(
+    useShallow((state) => ({
+      commLineThickness: state.visualizationSettings.commThickness.value,
     }))
   );
 
@@ -61,7 +68,10 @@ export default function ApplicationR3F({
     }
 
     // TODO: Calculate Thickness
-    commLayout.lineThickness = 1;
+    commLayout.lineThickness = calculateLineThickness(
+      classCommunication,
+      commLineThickness
+    );
 
     return commLayout;
   };
