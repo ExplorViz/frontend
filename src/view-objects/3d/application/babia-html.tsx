@@ -1,4 +1,4 @@
-import { Box, Html, Line } from '@react-three/drei';
+import { Box, Edges, Html, Line, SpotLight } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
@@ -124,8 +124,8 @@ export default function BabiaHtml({
             id: Math.random(),
             position: [offset.x, offset.y, level * distanceBetweenLevels],
             size: [
-              Math.max(1, rect.width * NODE_SCALAR * 0.98),
-              Math.max(1, rect.height * NODE_SCALAR * 0.98),
+              Math.max(1, rect.width * NODE_SCALAR),
+              Math.max(1, rect.height * NODE_SCALAR),
               0.01,
             ],
             htmlNode: node,
@@ -205,6 +205,7 @@ export default function BabiaHtml({
       onPointerEnter={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
     >
+      <SpotLight position={[0, 100, 50]} />
       {html && (
         <Root
           positionBottom={positionBottom}
@@ -420,14 +421,21 @@ function Box3D({
       >
         {!clicked && <boxGeometry args={box.size} />}
         {clicked && (
-          <boxGeometry args={[box.size[0], box.size[1], box.size[2] + 10]} />
+          <boxGeometry
+            args={[
+              box.size[0],
+              box.size[1],
+              box.size[2] + distanceBetweenLevels / 2,
+            ]}
+          />
         )}
-        <meshBasicMaterial
+        <meshToonMaterial
           map={box.texture}
           color={box.texture ? 'white' : color}
           transparent={true}
           opacity={1}
         />
+        <Edges linewidth={1} scale={1} color="black" />
       </mesh>
       {box.level !== 0 && (
         <Line
