@@ -15,7 +15,6 @@ export default function BabiaHtml({
   updateHtml: () => void;
 }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
-  const [htmlBoxes, setHtmlBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
   const [renderLeafNodes, setRenderLeafNodes] = useState(false);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
@@ -53,160 +52,145 @@ export default function BabiaHtml({
       return;
     }
 
-    // Avoid that multiple observer fire in parallel
-    observer.current.disconnect();
+    let img = new Image();
+    htmlToImage
+      .toPng(html.getElementsByTagName('body')[0], {
+        width: 1920,
+        height: 1080,
+      })
+      .then((dataUrl) => {
+        img.src = dataUrl;
+        document.body.appendChild(img);
+      })
+      .then(() => {
+        // Avoid that multiple observer fire in parallel
+        observer.current.disconnect();
 
-    // Register (new) observer
-    observer.current = new MutationObserver(observerCallback);
-    if (updateWithObserver) {
-      observer.current.observe(html, {
-        attributes: true,
-        characterData: true,
-        childList: true,
-        subtree: true,
-      });
-    }
+        // Register (new) observer
+        observer.current = new MutationObserver(observerCallback);
+        if (updateWithObserver) {
+          observer.current.observe(html, {
+            attributes: true,
+            characterData: true,
+            childList: true,
+            subtree: true,
+          });
+        }
 
-    let tempBoxes: BoxData[] = [];
-    const rootChildren = Array.from(html.children);
-    let firstOffset: NodeOffset | null = null;
+        let tempBoxes: BoxData[] = [];
+        const rootChildren = Array.from(html.children);
+        let firstOffset: NodeOffset | null = null;
 
-    let maxLevel = 0;
+        let maxLevel = 0;
 
-    const processNode = async (node: HTMLElement, level: number) => {
-      if (level > maxLevel) {
-        maxLevel = level;
-      }
+        const processNode = async (node: HTMLElement, level: number) => {
+          if (level > maxLevel) {
+            maxLevel = level;
+          }
 
-      let rect: DOMRect = node.getBoundingClientRect();
+          let rect: DOMRect = node.getBoundingClientRect();
 
-      const clampedLeft = clamp(rect.left, 0, 1920);
-      const clampedRight = clamp(rect.right, 0, 1920);
-      const clampedWidth = Math.max(0, clampedRight - clampedLeft);
-      const clampedTop = clamp(rect.top, 0, 1080);
-      const clampedBottom = clamp(rect.bottom, 0, 1080);
-      const clampedHeight = Math.max(0, clampedBottom - clampedTop);
-      if (cropToViewport) {
-        rect = new DOMRect(
-          clampedLeft,
-          clampedTop,
-          clampedWidth,
-          clampedHeight
-        );
-      }
-
-      if (!firstOffset) {
-        firstOffset = { x: rect.left * NODE_SCALAR, y: rect.top * NODE_SCALAR };
-      }
-
-      const offset = getOffset(rect, firstOffset);
-
-      // Only display html element itself without child nodes
-      let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
-      const innerText =
-        node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
-      const htmlWithText = htmlString.replace('>', '>' + innerText);
-
-      const boxData: BoxData = {
-        id: Math.random(),
-        position: [offset.x, offset.y, level * distanceBetweenLevels],
-        size: [
-          Math.max(1, rect.width * NODE_SCALAR * 0.98),
-          Math.max(1, rect.height * NODE_SCALAR * 0.98),
-          0.01,
-        ],
-        htmlNode: node,
-        renderHtml: renderHtml(node),
-        level,
-        htmlString,
-        innerText,
-        htmlWithText,
-        children: [],
-        texture: null,
-      };
-
-      if (!cropToViewport || (clampedWidth > 0 && clampedHeight > 0)) {
-        tempBoxes.push(boxData);
-      }
-
-      Array.from(node.children).forEach((child) =>
-        processNode(child, level + 1)
-      );
-    };
-
-    rootChildren.forEach((node) => processNode(node, 0));
-
-    maxLayer.current = maxLevel;
-    setBoxes(tempBoxes);
-  }, [cropToViewport, html, reloadCounter, updateWithObserver]);
-
-  const renderHtml = (node: HTMLElement) => {
-    const childNodes = Array.from(node.children);
-    let allChildrenEmpty = true;
-    for (let index = 0; index < childNodes.length; index++) {
-      const element = childNodes[index];
-
-      if (
-        element.getBoundingClientRect().width > 0 &&
-        element.getBoundingClientRect().height > 0 &&
-        element.tagName !== 'path' &&
-        element.tagName !== 'SPAN'
-      ) {
-        allChildrenEmpty = false;
-      }
-    }
-    return allChildrenEmpty;
-  };
-
-  // Render HTML textures
-  useEffect(() => {
-    loadHtml();
-  }, [boxes, renderLeafNodes]);
-
-  const loadHtml = async () => {
-    if (!html || boxes.length === 0 || !renderLeafNodes) {
-      const tempBoxes = boxes;
-      tempBoxes.forEach((box) => (box.texture = null));
-      setBoxes(tempBoxes);
-      setHtmlBoxes([]);
-
-      return;
-    }
-
-    const tempBoxes = boxes;
-    const leafNodes = tempBoxes.filter((node) => node.renderHtml);
-
-    let promises: Promise<any>[] = [];
-    leafNodes.forEach((leafNode) => {
-      promises.push(
-        htmlToImage
-          .toPng(leafNode.htmlNode)
-          .then(async (dataUrl) => {
-            const img = new Image();
-            img.src = dataUrl;
-            document.body.appendChild(img);
-            if (img.width === 0 || img.height === 0) return leafNode;
-
-            const loader = new THREE.TextureLoader();
-
-            // load a resource
-            const texture = await loader.load(
-              // resource URL
-              dataUrl
+          const clampedLeft = clamp(rect.left, 0, 1920);
+          const clampedRight = clamp(rect.right, 0, 1920);
+          const clampedWidth = Math.max(0, clampedRight - clampedLeft);
+          const clampedTop = clamp(rect.top, 0, 1080);
+          const clampedBottom = clamp(rect.bottom, 0, 1080);
+          const clampedHeight = Math.max(0, clampedBottom - clampedTop);
+          if (cropToViewport) {
+            rect = new DOMRect(
+              clampedLeft,
+              clampedTop,
+              clampedWidth,
+              clampedHeight
             );
-            leafNode.texture = texture;
+          }
 
-            return leafNode;
-          })
-          .catch((err) => {
-            console.error('oops, something went wrong!', err);
-          })
-      );
-    });
-    Promise.all(promises).then((values) => {
-      setHtmlBoxes(values);
-    });
-  };
+          if (!firstOffset) {
+            firstOffset = {
+              x: rect.left * NODE_SCALAR,
+              y: rect.top * NODE_SCALAR,
+            };
+          }
+
+          const offset = getOffset(rect, firstOffset);
+
+          // Only display html element itself without child nodes
+          let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
+          const innerText =
+            node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
+          const htmlWithText = htmlString.replace('>', '>' + innerText);
+
+          const boxData: BoxData = {
+            id: Math.random(),
+            position: [offset.x, offset.y, level * distanceBetweenLevels],
+            size: [
+              Math.max(1, rect.width * NODE_SCALAR * 0.98),
+              Math.max(1, rect.height * NODE_SCALAR * 0.98),
+              0.01,
+            ],
+            htmlNode: node,
+            renderHtml: renderLeafNodes && node.childElementCount === 0, //renderHtml(node),
+            level,
+            htmlString,
+            innerText,
+            htmlWithText,
+            children: [],
+            texture: null,
+          };
+
+          if (!cropToViewport || (clampedWidth > 0 && clampedHeight > 0)) {
+            tempBoxes.push(boxData);
+          }
+
+          if (boxData.renderHtml) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Define the size of the upper-left portion you want to use
+            const textureWidth = clampedWidth; // Example width
+            const textureHeight = clampedHeight; // Example height
+
+            canvas.width = textureWidth * 2;
+            canvas.height = textureHeight * 2;
+
+            // Draw the upper-left portion of the image onto the canvas
+            if (ctx) {
+              ctx.drawImage(
+                img,
+                clampedLeft * 2, // Source X (start at the left edge of the image)
+                clampedTop * 2, // Source Y (start at the top edge of the image)
+                clampedWidth * 2, // Source width (how much to take from the image)
+                clampedHeight * 2, // Source height (how much to take from the image)
+                0, // Destination X (top-left corner of the canvas)
+                0, // Destination Y (top-left corner of the canvas)
+                clampedWidth * 2, // Destination width (width of the canvas)
+                clampedHeight * 2 // Destination height (height of the canvas)
+              );
+
+              boxData.texture = new THREE.CanvasTexture(canvas);
+            }
+          }
+
+          Array.from(node.children).forEach((child) =>
+            processNode(child, level + 1)
+          );
+        };
+
+        rootChildren.forEach((node) => processNode(node, 0));
+
+        maxLayer.current = maxLevel;
+        setBoxes(tempBoxes);
+      })
+      .catch((err) => {
+        console.error('oops, something went wrong!', err);
+      });
+  }, [
+    cropToViewport,
+    html,
+    reloadCounter,
+    updateWithObserver,
+    renderLeafNodes,
+  ]);
 
   const isBoxVisible = (box: BoxData) => {
     return (
@@ -373,20 +357,7 @@ export default function BabiaHtml({
           box={box}
           color={
             useHashedColors
-              ? generateColorFromObject(box.htmlString)
-              : COLORS_GRAD[box.level % COLORS_GRAD.length]
-          }
-        />
-      ))}
-      {htmlBoxes.map((box, _) => (
-        <Box3D
-          visible={isBoxVisible(box)}
-          distanceBetweenLevels={distanceBetweenLevels}
-          key={box.id}
-          box={box}
-          color={
-            useHashedColors
-              ? generateColorFromObject(box.htmlString)
+              ? generateColorFromObject(box.htmlNode)
               : COLORS_GRAD[box.level % COLORS_GRAD.length]
           }
         />
