@@ -439,7 +439,8 @@ function Box3D({
           transparent={true}
           opacity={1}
         />
-        <Edges linewidth={1} scale={1} color="black" />
+        {clicked && <Edges linewidth={5} scale={1} color="black" />}
+        {!clicked && <Edges linewidth={1} scale={1} color="black" />}
       </mesh>
       {box.level !== 0 && (
         <Line
