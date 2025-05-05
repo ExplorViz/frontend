@@ -1,12 +1,14 @@
 import { ThreeElements } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CommunicationR3F({
@@ -20,6 +22,7 @@ export default function CommunicationR3F({
 }) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isHighlighted, setIsHighlighted] = useState<boolean>(false);
+  const meshRef = useRef<ClazzCommunicationMesh | null>(null);
 
   const {
     arrowColor,
@@ -46,21 +49,35 @@ export default function CommunicationR3F({
     }))
   );
 
+  const popupHandlerActions = usePopupHandlerStore(
+    useShallow((state) => ({
+      addPopup: state.addPopup,
+      removePopup: state.removePopup,
+    }))
+  );
+
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
     setIsHovered(true);
+
+    // popupHandlerActions.addPopup({
+    //   mesh: meshRef.current,
+    //   position: {
+    //     x: event.clientX,
+    //     y: event.clientY,
+    //   },
+    // });
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
     setIsHovered(false);
+
+    // popupHandlerActions.removePopup(communicationModel.id);
   };
 
   const handleClick = (event: any) => {
     setIsHighlighted(!isHighlighted);
-    // highlightingActions.toggleHighlight(event.object!, {
-    //   sendMessage: true,
-    // });
   };
 
   const handleDoubleClick = (event: any) => {};
@@ -108,6 +125,7 @@ export default function CommunicationR3F({
       highlightingColor={highlightedEntityColor}
       isHovered={isHovered}
       visible={isVisible}
+      ref={meshRef}
     ></clazzCommunicationMesh>
   );
 }

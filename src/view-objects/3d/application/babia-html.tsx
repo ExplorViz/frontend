@@ -56,6 +56,7 @@ export default function BabiaHtml({
       .toPng(html.getElementsByTagName('body')[0], {
         width: 1920,
         height: 1080,
+        pixelRatio: 1,
       })
       .then((dataUrl) => {
         img.src = dataUrl;
@@ -149,21 +150,23 @@ export default function BabiaHtml({
             const textureWidth = clampedWidth; // Example width
             const textureHeight = clampedHeight; // Example height
 
-            canvas.width = textureWidth * 2;
-            canvas.height = textureHeight * 2;
+            canvas.width = textureWidth;
+            canvas.height = textureHeight;
+
+            console.log(img);
 
             // Draw the upper-left portion of the image onto the canvas
             if (ctx) {
               ctx.drawImage(
                 img,
-                clampedLeft * 2, // Source X (start at the left edge of the image)
-                clampedTop * 2, // Source Y (start at the top edge of the image)
-                clampedWidth * 2, // Source width (how much to take from the image)
-                clampedHeight * 2, // Source height (how much to take from the image)
+                clampedLeft, // Source X (start at the left edge of the image)
+                clampedTop, // Source Y (start at the top edge of the image)
+                clampedWidth, // Source width (how much to take from the image)
+                clampedHeight, // Source height (how much to take from the image)
                 0, // Destination X (top-left corner of the canvas)
                 0, // Destination Y (top-left corner of the canvas)
-                clampedWidth * 2, // Destination width (width of the canvas)
-                clampedHeight * 2 // Destination height (height of the canvas)
+                clampedWidth, // Destination width (width of the canvas)
+                clampedHeight // Destination height (height of the canvas)
               );
 
               boxData.texture = new THREE.CanvasTexture(canvas);
@@ -341,13 +344,16 @@ export default function BabiaHtml({
                 width={navbarHeight}
                 height={navbarHeight}
                 padding={0}
-                onClick={() => updateHtml()}
+                onClick={() => {
+                  updateHtml();
+                  setReloadCounter(reloadCounter + 1);
+                }}
               >
                 <RefreshCcw />
               </Button>
             </Container>
           </Container>
-          <Container positionBottom={620} positionLeft={-540}>
+          <Container positionBottom={620} positionLeft={-490}>
             <Text>
               HTML Nodes: {boxes.filter((box) => isBoxVisible(box)).length}
             </Text>
