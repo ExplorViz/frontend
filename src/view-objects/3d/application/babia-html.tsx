@@ -224,9 +224,9 @@ export default function BabiaHtml({
         >
           <Container flexDirection="row" alignItems="flex-start" gap={10}>
             <Container flexDirection="column" alignItems="flex-start" gap={10}>
-              <Container gap={35}>
+              <Container gap={17}>
                 <Label>
-                  <Text fontSize={15}>Depth:</Text>
+                  <Text fontSize={15}>Distance:</Text>
                 </Label>
                 <Input
                   value={distanceBetweenLevels.toString()}
@@ -270,7 +270,7 @@ export default function BabiaHtml({
                 />
               </Container>
             </Container>
-            <Container flexDirection="column" gap={1}>
+            <Container positionTop={-7} flexDirection="column" gap={1}>
               <Container flexDirection="row" gap={5}>
                 <Checkbox
                   checked={updateWithObserver}
@@ -319,9 +319,14 @@ export default function BabiaHtml({
                 </Label>
               </Container>
             </Container>
-            <Container gap={10}>
+            <Container
+              flexDirection="column"
+              positionLeft={20}
+              positionTop={-5}
+              gap={5}
+            >
               <Label>
-                <Text fontSize={15}>Search:</Text>
+                <Text fontSize={14}>Search:</Text>
               </Label>
               <Input
                 value={searchString}
@@ -329,10 +334,10 @@ export default function BabiaHtml({
                   setSearchString(value);
                 }}
                 width={150}
-                height={navbarHeight}
+                height={30}
               />
             </Container>
-            <Container gap={10}>
+            <Container positionTop={7} positionLeft={50}>
               <Button
                 width={navbarHeight}
                 height={navbarHeight}
