@@ -1,4 +1,5 @@
 import { ThreeElements } from '@react-three/fiber';
+import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
@@ -56,12 +57,16 @@ export default function CommunicationR3F({
   };
 
   const handleClick = (event: any) => {
-    event.stopPropagation();
     setIsHighlighted(!isHighlighted);
     // highlightingActions.toggleHighlight(event.object!, {
     //   sendMessage: true,
     // });
   };
+
+  const handleDoubleClick = (event: any) => {};
+
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
   const computeCurveHeight = () => {
     let baseCurveHeight = 20;
@@ -91,7 +96,8 @@ export default function CommunicationR3F({
     <clazzCommunicationMesh
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
-      onClick={handleClick}
+      onClick={handleClickWithPrevent}
+      onDoubleClick={handleDoubleClickWithPrevent}
       args={constructorArgs}
       arrowColor={arrowColor}
       arrowOffset={arrowOffset}

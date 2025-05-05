@@ -475,7 +475,7 @@ function Box3D({
           color={'black'}
         />
       )}
-      {hovered && (
+      {(hovered || clicked) && (
         <Html
           position={[
             box.position[0],
