@@ -3,7 +3,6 @@ import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
 import * as htmlToImage from 'html-to-image';
-import sha256 from 'js-sha256';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
@@ -363,7 +362,7 @@ export default function BabiaHtml({
           box={box}
           color={
             useHashedColors
-              ? generateColorFromObject(box.htmlNode)
+              ? hashElementToColor(box.htmlNode)
               : COLORS_GRAD[box.level % COLORS_GRAD.length]
           }
         />
@@ -556,17 +555,34 @@ function getOffset(rect: DOMRect, firstOffset: NodeOffset) {
   };
 }
 
-function generateColorFromObject(obj: any): string {
-  const hash = sha256(JSON.stringify(obj));
-  const hexColor = '#' + hash.substring(0, 6);
-  return hexColor;
+function stringToHash(str: string) {
+  let hash = 133; // Start values for hashing
+
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i); // DJB2 hash
+  }
+
+  return hash >>> 0; // Ensure it's unsigned
+}
+
+function hashElementToColor(element: HTMLElement) {
+  const tagHash = stringToHash(element.tagName.toLowerCase() || '');
+  const classHash = stringToHash(element.className || '');
+  const innerHash = stringToHash(element.innerText || '');
+
+  // Convert hash to HSL color
+  const hue = tagHash % 360;
+  const saturation = 60 + (classHash % 40);
+  const lightness = 40 + (innerHash % 20);
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
 type BoxData = {
   id: number;
   position: [number, number, number];
   size: [number, number, number];
-  htmlNode: any;
+  htmlNode: HTMLElement;
   level: number;
   renderHtml: boolean;
   htmlString: string;
