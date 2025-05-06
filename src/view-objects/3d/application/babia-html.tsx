@@ -38,154 +38,34 @@ export default function BabiaHtml({
   const [searchString, setSearchString] = useState('');
   const [cropToViewport, setCropToViewport] = useState(true);
 
-  const clamp = (num: number, min: number, max: number) =>
-    Math.min(Math.max(num, min), max);
-
-  useEffect(() => {
-    console.log('Html updated');
-  }, [html]);
-
   useEffect(() => {
     if (!html) {
       setBoxes([]);
       return;
     }
 
-    let img = new Image();
-    htmlToImage
-      .toPng(html.getElementsByTagName('body')[0], {
-        width: 1920,
-        height: 1080,
-        pixelRatio: 1,
-      })
-      .then((dataUrl) => {
-        img.src = dataUrl;
-        document.body.appendChild(img);
-      })
-      .then(() => {
-        // Avoid that multiple observer fire in parallel
-        observer.current.disconnect();
-
-        // Register (new) observer
-        observer.current = new MutationObserver(observerCallback);
-        if (updateWithObserver) {
-          observer.current.observe(html, {
-            attributes: true,
-            characterData: true,
-            childList: true,
-            subtree: true,
-          });
-        }
-
-        let tempBoxes: BoxData[] = [];
-        const rootChildren = Array.from(html.children);
-        let firstOffset: NodeOffset | null = null;
-
-        let maxLevel = 0;
-
-        const processNode = async (node: HTMLElement, level: number) => {
-          if (level > maxLevel) {
-            maxLevel = level;
-          }
-
-          let rect: DOMRect = node.getBoundingClientRect();
-
-          const clampedLeft = clamp(rect.left, 0, 1920);
-          const clampedRight = clamp(rect.right, 0, 1920);
-          const clampedWidth = Math.max(0, clampedRight - clampedLeft);
-          const clampedTop = clamp(rect.top, 0, 1080);
-          const clampedBottom = clamp(rect.bottom, 0, 1080);
-          const clampedHeight = Math.max(0, clampedBottom - clampedTop);
-          if (cropToViewport) {
-            rect = new DOMRect(
-              clampedLeft,
-              clampedTop,
-              clampedWidth,
-              clampedHeight
-            );
-          }
-
-          if (!firstOffset) {
-            firstOffset = {
-              x: rect.left * NODE_SCALAR,
-              y: rect.top * NODE_SCALAR,
-            };
-          }
-
-          const offset = getOffset(rect, firstOffset);
-
-          // Only display html element itself without child nodes
-          let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
-          const innerText =
-            node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
-          const htmlWithText = htmlString.replace('>', '>' + innerText);
-
-          const boxData: BoxData = {
-            id: Math.random(),
-            position: [offset.x, offset.y, level * distanceBetweenLevels],
-            size: [
-              Math.max(1, rect.width * NODE_SCALAR),
-              Math.max(1, rect.height * NODE_SCALAR),
-              0.01,
-            ],
-            htmlNode: node,
-            renderHtml: renderLeafNodes && node.childElementCount === 0, //renderHtml(node),
-            level,
-            htmlString,
-            innerText,
-            htmlWithText,
-            children: [],
-            texture: null,
-          };
-
-          if (!cropToViewport || (clampedWidth > 0 && clampedHeight > 0)) {
-            tempBoxes.push(boxData);
-          }
-
-          if (boxData.renderHtml) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            // Define the size of the upper-left portion you want to use
-            const textureWidth = clampedWidth; // Example width
-            const textureHeight = clampedHeight; // Example height
-
-            canvas.width = textureWidth;
-            canvas.height = textureHeight;
-
-            console.log(img);
-
-            // Draw the upper-left portion of the image onto the canvas
-            if (ctx) {
-              ctx.drawImage(
-                img,
-                clampedLeft, // Source X (start at the left edge of the image)
-                clampedTop, // Source Y (start at the top edge of the image)
-                clampedWidth, // Source width (how much to take from the image)
-                clampedHeight, // Source height (how much to take from the image)
-                0, // Destination X (top-left corner of the canvas)
-                0, // Destination Y (top-left corner of the canvas)
-                clampedWidth, // Destination width (width of the canvas)
-                clampedHeight // Destination height (height of the canvas)
-              );
-
-              boxData.texture = new THREE.CanvasTexture(canvas);
-            }
-          }
-
-          Array.from(node.children).forEach((child) =>
-            processNode(child, level + 1)
-          );
-        };
-
-        rootChildren.forEach((node) => processNode(node, 0));
-
-        maxLayer.current = maxLevel;
-        setBoxes(tempBoxes);
-      })
-      .catch((err) => {
-        console.error('oops, something went wrong!', err);
-      });
+    if (renderLeafNodes) {
+      let img = new Image();
+      htmlToImage
+        .toPng(html.getElementsByTagName('body')[0], {
+          width: 1920,
+          height: 1080,
+          pixelRatio: 1,
+        })
+        .then((dataUrl) => {
+          img.src = dataUrl;
+          document.body.appendChild(img);
+        })
+        .then(() => {
+          computeBoxes(img);
+        })
+        .catch(() => {
+          console.error('Could not create image of HTML!');
+          computeBoxes();
+        });
+    } else {
+      computeBoxes();
+    }
   }, [
     cropToViewport,
     html,
@@ -193,6 +73,96 @@ export default function BabiaHtml({
     updateWithObserver,
     renderLeafNodes,
   ]);
+
+  const computeBoxes = (img: HTMLImageElement | undefined = undefined) => {
+    if (!html) return;
+
+    // Avoid that multiple observer fire in parallel
+    observer.current.disconnect();
+
+    // Register (new) observer
+    observer.current = new MutationObserver(observerCallback);
+    if (updateWithObserver) {
+      observer.current.observe(html, {
+        attributes: true,
+        characterData: true,
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    let tempBoxes: BoxData[] = [];
+    const rootChildren = Array.from(html.children);
+    let firstOffset: NodeOffset | null = null;
+
+    let maxLevel = 0;
+
+    const processNode = async (node: HTMLElement, level: number) => {
+      if (level > maxLevel) {
+        maxLevel = level;
+      }
+
+      let rect: DOMRect = node.getBoundingClientRect();
+
+      const clampedRect = getClampedRect(rect);
+      if (cropToViewport) {
+        rect = getClampedRect(rect);
+      }
+
+      if (!firstOffset) {
+        firstOffset = {
+          x: rect.left * NODE_SCALAR,
+          y: rect.top * NODE_SCALAR,
+        };
+      }
+
+      const offset = getOffset(rect, firstOffset);
+
+      // Only display html element itself without child nodes
+      let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
+      const innerText =
+        node.firstChild?.nodeType === node.TEXT_NODE ? node.innerText : '';
+      const htmlWithText = htmlString.replace('>', '>' + innerText);
+
+      const boxData: BoxData = {
+        id: Math.random(),
+        position: [offset.x, offset.y, level * distanceBetweenLevels],
+        size: [
+          Math.max(1, rect.width * NODE_SCALAR),
+          Math.max(1, rect.height * NODE_SCALAR),
+          0.01,
+        ],
+        htmlNode: node,
+        renderHtml: renderLeafNodes && node.childElementCount === 0, //renderHtml(node),
+        level,
+        htmlString,
+        innerText,
+        htmlWithText,
+        children: [],
+        texture: null,
+      };
+
+      if (
+        !cropToViewport ||
+        (clampedRect.width > 0 && clampedRect.height > 0)
+      ) {
+        tempBoxes.push(boxData);
+      }
+
+      if (boxData.renderHtml && img) {
+        boxData.texture = getTextureForRect(clampedRect, img);
+      }
+
+      Array.from(node.children).forEach((child) =>
+        processNode(child, level + 1)
+      );
+    };
+
+    rootChildren.forEach((node) => processNode(node, 0));
+
+    maxLayer.current = maxLevel;
+    setBoxes(tempBoxes);
+  };
 
   const isBoxVisible = (box: BoxData) => {
     return (
@@ -207,7 +177,6 @@ export default function BabiaHtml({
       onPointerEnter={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
     >
-      <SpotLight position={[0, 100, 50]} />
       {html && (
         <Root
           positionBottom={positionBottom}
@@ -570,6 +539,51 @@ function stringToHash(str: string) {
   }
 
   return hash >>> 0; // Ensure it's unsigned
+}
+
+function clamp(num: number, min: number, max: number) {
+  return Math.min(Math.max(num, min), max);
+}
+
+function getClampedRect(rect: any, width = 1920, height = 1080) {
+  const clampedLeft = clamp(rect.left, 0, width);
+  const clampedRight = clamp(rect.right, 0, width);
+  const clampedWidth = Math.max(0, clampedRight - clampedLeft);
+  const clampedTop = clamp(rect.top, 0, height);
+  const clampedBottom = clamp(rect.bottom, 0, height);
+  const clampedHeight = Math.max(0, clampedBottom - clampedTop);
+
+  return new DOMRect(clampedLeft, clampedTop, clampedWidth, clampedHeight);
+}
+
+function getTextureForRect(rect: DOMRect, img: HTMLImageElement) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Define the size of the upper-left portion you want to use
+  const textureWidth = rect.width; // Example width
+  const textureHeight = rect.height; // Example height
+
+  canvas.width = textureWidth;
+  canvas.height = textureHeight;
+
+  // Draw the upper-left portion of the image onto the canvas
+  if (ctx) {
+    ctx.drawImage(
+      img,
+      rect.left, // Source X (start at the left edge of the image)
+      rect.top, // Source Y (start at the top edge of the image)
+      rect.width, // Source width (how much to take from the image)
+      rect.height, // Source height (how much to take from the image)
+      0, // Destination X (top-left corner of the canvas)
+      0, // Destination Y (top-left corner of the canvas)
+      rect.width, // Destination width (width of the canvas)
+      rect.height // Destination height (height of the canvas)
+    );
+    return new THREE.CanvasTexture(canvas);
+  } else {
+    return null;
+  }
 }
 
 function hashElementToColor(element: HTMLElement) {
