@@ -1,10 +1,12 @@
-import { Box, Edges, Html, Line, SpotLight } from '@react-three/drei';
+import { Box, Edges, Html, Line } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
+import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import * as htmlToImage from 'html-to-image';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { update } from 'three-mesh-ui';
 
 export default function BabiaHtml({
   html,
@@ -26,6 +28,7 @@ export default function BabiaHtml({
 
   const [updateWithObserver, setUpdateWithObserver] = useState(true);
 
+  // Parameters for UI layout
   const sizeX = 1000;
   const sizeY = 1000;
   const scale = 0.5;
@@ -360,6 +363,17 @@ function Box3D({
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
 
+  const handleClick = () => {
+    setClicked(true);
+  };
+
+  const handleDoubleClick = () => {
+    box.htmlNode.click();
+  };
+
+  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
+    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
+
   return (
     <group
       position={[300, 218, 0]}
@@ -377,18 +391,8 @@ function Box3D({
         }
         setHovered(false);
       }}
-      onClick={(event) => {
-        if (visible) {
-          event.stopPropagation();
-          setClicked((prev) => !prev);
-        }
-      }}
-      onDoubleClick={(event) => {
-        if (visible) {
-          event.stopPropagation();
-          box.htmlNode.click();
-        }
-      }}
+      onClick={handleClickWithPrevent}
+      onDoubleClick={handleDoubleClickWithPrevent}
     >
       <Box position={[135, -63, -1]} args={[290, 200, 1]} />
       <mesh
