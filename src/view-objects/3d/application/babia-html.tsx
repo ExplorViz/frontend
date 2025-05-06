@@ -6,7 +6,6 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import * as htmlToImage from 'html-to-image';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { update } from 'three-mesh-ui';
 
 export default function BabiaHtml({
   html,
@@ -23,6 +22,7 @@ export default function BabiaHtml({
   const observerCallback = () => {
     setReloadCounter(reloadCounter + 1);
   };
+  const [clickedNode, setClickedNode] = useState<any>(null);
   const observer = useRef(new MutationObserver(observerCallback));
   const maxLayer = useRef(0);
 
@@ -75,6 +75,7 @@ export default function BabiaHtml({
     reloadCounter,
     updateWithObserver,
     renderLeafNodes,
+    clickedNode,
   ]);
 
   const computeBoxes = (img: HTMLImageElement | undefined = undefined) => {
@@ -100,9 +101,17 @@ export default function BabiaHtml({
 
     let maxLevel = 0;
 
-    const processNode = async (node: HTMLElement, level: number) => {
+    const processNode = async (
+      node: HTMLElement,
+      level: number,
+      insideClickedSubtree = false
+    ) => {
       if (level > maxLevel) {
         maxLevel = level;
+      }
+
+      if (clickedNode == node) {
+        insideClickedSubtree = true;
       }
 
       let rect: DOMRect = node.getBoundingClientRect();
@@ -121,6 +130,13 @@ export default function BabiaHtml({
 
       const offset = getOffset(rect, firstOffset);
 
+      if (clickedNode && !insideClickedSubtree) {
+        Array.from(node.children).forEach((child) =>
+          processNode(child, level + 1)
+        );
+        return;
+      }
+
       // Only display html element itself without child nodes
       let htmlString = node.outerHTML.replace(node.innerHTML || '', '');
       const innerText =
@@ -137,6 +153,7 @@ export default function BabiaHtml({
         ],
         htmlNode: node,
         renderHtml: renderLeafNodes && node.childElementCount === 0, //renderHtml(node),
+        isSubtreeRoot: node == clickedNode,
         level,
         htmlString,
         innerText,
@@ -157,7 +174,7 @@ export default function BabiaHtml({
       }
 
       Array.from(node.children).forEach((child) =>
-        processNode(child, level + 1)
+        processNode(child, level + 1, insideClickedSubtree)
       );
     };
 
@@ -343,6 +360,7 @@ export default function BabiaHtml({
               ? hashElementToColor(box.htmlNode)
               : COLORS_GRAD[box.level % COLORS_GRAD.length]
           }
+          setClickedNode={setClickedNode}
         />
       ))}
     </group>
@@ -354,17 +372,24 @@ function Box3D({
   color,
   distanceBetweenLevels,
   visible,
+  setClickedNode,
 }: {
   box: BoxData;
   color: string;
   distanceBetweenLevels: number;
   visible: boolean;
+  setClickedNode: any;
 }) {
   const [hovered, setHovered] = useState(false);
-  const [clicked, setClicked] = useState(false);
+  const [clicked, setClicked] = useState(box.isSubtreeRoot);
 
   const handleClick = () => {
-    setClicked(true);
+    setClicked(!clicked);
+    if (clicked) {
+      setClickedNode(null);
+    } else {
+      setClickedNode(box.htmlNode);
+    }
   };
 
   const handleDoubleClick = () => {
@@ -418,7 +443,9 @@ function Box3D({
           transparent={true}
           opacity={1}
         />
-        {clicked && <Edges linewidth={5} scale={1} color="black" />}
+        {(clicked || box.isSubtreeRoot) && (
+          <Edges linewidth={5} scale={1} color="black" />
+        )}
         {!clicked && <Edges linewidth={1} scale={1} color="black" />}
       </mesh>
       {box.level !== 0 && (
@@ -436,9 +463,10 @@ function Box3D({
             ],
           ]}
           color={'black'}
+          raycast={() => {}}
         />
       )}
-      {(hovered || clicked) && (
+      {(hovered || clicked || box.isSubtreeRoot) && (
         <Html
           position={[
             box.position[0],
@@ -608,6 +636,7 @@ type BoxData = {
   position: [number, number, number];
   size: [number, number, number];
   htmlNode: HTMLElement;
+  isSubtreeRoot: boolean;
   level: number;
   renderHtml: boolean;
   htmlString: string;
