@@ -2,11 +2,18 @@ import { CameraControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import {
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/src/utils/application-helpers';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
+import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
@@ -27,6 +34,95 @@ export default function CanvasWrapper({
     landscapeData,
     landscape3D
   );
+
+  const {
+    setClassState,
+    getClassState,
+    removeAllClassStates,
+    setComponentState,
+    getComponentState,
+    componentData,
+    classData,
+    removeClassState,
+    removeComponentState,
+    removeAllComponentStates,
+  } = useVisualizationStore(
+    useShallow((state) => ({
+      setClassState: state.actions.setClassState,
+      getClassState: state.actions.getClassState,
+      removeAllClassStates: state.actions.removeAllClassStates,
+      setComponentState: state.actions.setComponentState,
+      getComponentState: state.actions.getComponentState,
+      removeComponentState: state.actions.removeComponentState,
+      removeClassState: state.actions.removeClassState,
+      componentData: state.componentData,
+      classData: state.classData,
+      removeAllComponentStates: state.actions.removeAllComponentStates,
+    }))
+  );
+
+  useEffect(() => {
+    if (landscapeData) {
+      const allPackages = getAllApplicationsInLandscape(
+        landscapeData.structureLandscapeData
+      )
+        .map((app) => getAllPackagesInApplication(app))
+        .flat();
+      const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
+      // Remove all component states that are not in the current landscape
+      Object.keys(componentData).forEach((componentId) => {
+        if (!packagesIds.has(componentId)) {
+          removeComponentState(componentId);
+        }
+      });
+      allPackages.forEach((pkg) => {
+        // Set default state for all packages, if not already set
+        try {
+          getComponentState(pkg.id);
+        } catch (e) {
+          setComponentState(pkg.id, {
+            id: pkg.id,
+            isOpen: true,
+            isVisible: true,
+            isHighlighted: false,
+            isHovered: false,
+          });
+        }
+      });
+      const allClasses = getAllApplicationsInLandscape(
+        landscapeData.structureLandscapeData
+      )
+        .map((app) => getAllClassesInApplication(app))
+        .flat();
+      const classIds = new Set(allClasses.map((clazz) => clazz.id));
+      // Remove all component states that are not in the current landscape
+      Object.keys(classData).forEach((classId) => {
+        if (!classIds.has(classId)) {
+          removeClassState(classId);
+        }
+      });
+      allClasses.forEach((clazz) => {
+        // Set default state for all classes, if not already set
+        try {
+          getClassState(clazz.id);
+        } catch (e) {
+          setClassState(clazz.id, {
+            id: clazz.id,
+            isVisible: true,
+            isHighlighted: false,
+            isHovered: false,
+          });
+        }
+      });
+    }
+  }, [landscapeData]);
+
+  useEffect(() => {
+    return () => {
+      removeAllComponentStates();
+      removeAllClassStates();
+    };
+  }, []);
 
   return (
     <Canvas

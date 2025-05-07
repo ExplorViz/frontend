@@ -283,32 +283,6 @@ export default function BrowserRendering({
       cleanup: state.cleanup,
     }))
   );
-
-  const {
-    setClassState,
-    getClassState,
-    removeAllClassStates,
-    setComponentState,
-    getComponentState,
-    componentData,
-    classData,
-    removeClassState,
-    removeComponentState,
-    removeAllComponentStates,
-  } = useVisualizationStore(
-    useShallow((state) => ({
-      setClassState: state.actions.setClassState,
-      getClassState: state.actions.getClassState,
-      removeAllClassStates: state.actions.removeAllClassStates,
-      setComponentState: state.actions.setComponentState,
-      getComponentState: state.actions.getComponentState,
-      removeComponentState: state.actions.removeComponentState,
-      removeClassState: state.actions.removeClassState,
-      componentData: state.componentData,
-      classData: state.classData,
-      removeAllComponentStates: state.actions.removeAllComponentStates,
-    }))
-  );
   // MARK: Event handlers
 
   const getSelectedApplicationObject3D = () => {
@@ -464,66 +438,40 @@ export default function BrowserRendering({
    * Initiates a WebGLRenderer
    */
   const initRenderer = () => {
-    if (!canvas.current) {
-      console.error('Failed to initialize renderer: Canvas ref is undefined');
-      return;
-    }
-
-    const { width, height } = canvas.current;
-    renderer.current = new THREE.WebGLRenderer({
-      antialias: true,
-      canvas: canvas.current,
-      preserveDrawingBuffer: true,
-      powerPreference: 'high-performance',
-    });
-    renderer.current.shadowMap.enabled = true;
-    renderer.current.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.current.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.current.setSize(width, height);
-
-    renderingLoop.current = new RenderingLoop({
-      camera: localUserState.camera,
-      scene: scene,
-      renderer: renderer.current,
-      tickCallbacks: tickCallbacks.current,
-    });
-    ImmersiveView.instance.registerRenderingLoop(renderingLoop.current);
-    renderingLoop.current.start();
-
-    document.addEventListener('Landscape initialized', () => {
-      if (!initDone.current && landscape3D.children.length > 0) {
-        setTimeout(() => {
-          cameraControls.current!.resetCameraFocusOn(1.2, [landscape3D]);
-          if (
-            SemanticZoomManager.instance.isEnabled ||
-            userSettingsState.visualizationSettings.semanticZoomState.value ==
-              true
-          ) {
-            SemanticZoomManager.instance.activate();
-            configurationActions.setSemanticZoomEnabled(
-              SemanticZoomManager.instance.isEnabled
-            );
-          }
-        }, 200);
-        initDone.current = true;
-      }
-
-      if (snapshot || snapshotReload) {
-        if (!initDone.current && landscape3D.children.length > 0) {
-          setTimeout(() => {
-            applicationRendererActions.getOpenApplications();
-          }, 200);
-          initDone.current = true;
-        }
-      } else {
-        if (!initDone.current && landscape3D.children.length > 0) {
-          setTimeout(() => {
-            cameraControls.current!.resetCameraFocusOn(1.2, [landscape3D]);
-          }, 200);
-          initDone.current = true;
-        }
-      }
-    });
+    // ImmersiveView.instance.registerRenderingLoop(renderingLoop.current);
+    // document.addEventListener('Landscape initialized', () => {
+    //   if (!initDone.current && landscape3D.children.length > 0) {
+    //     setTimeout(() => {
+    //       cameraControls.current!.resetCameraFocusOn(1.2, [landscape3D]);
+    //       if (
+    //         SemanticZoomManager.instance.isEnabled ||
+    //         userSettingsState.visualizationSettings.semanticZoomState.value ==
+    //           true
+    //       ) {
+    //         SemanticZoomManager.instance.activate();
+    //         configurationActions.setSemanticZoomEnabled(
+    //           SemanticZoomManager.instance.isEnabled
+    //         );
+    //       }
+    //     }, 200);
+    //     initDone.current = true;
+    //   }
+    //   if (snapshot || snapshotReload) {
+    //     if (!initDone.current && landscape3D.children.length > 0) {
+    //       setTimeout(() => {
+    //         applicationRendererActions.getOpenApplications();
+    //       }, 200);
+    //       initDone.current = true;
+    //     }
+    //   } else {
+    //     if (!initDone.current && landscape3D.children.length > 0) {
+    //       setTimeout(() => {
+    //         cameraControls.current!.resetCameraFocusOn(1.2, [landscape3D]);
+    //       }, 200);
+    //       initDone.current = true;
+    //     }
+    //   }
+    // });
   };
 
   const handleSingleClick = (intersection: THREE.Intersection | null) => {
@@ -913,69 +861,6 @@ export default function BrowserRendering({
 
   // MARK: Effects and hooks
 
-  useEffect(() => {
-    if (landscapeData) {
-      const allPackages = getAllApplicationsInLandscape(
-        landscapeData.structureLandscapeData
-      )
-        .map((app) => getAllPackagesInApplication(app))
-        .flat();
-      const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
-      // Remove all component states that are not in the current landscape
-      Object.keys(componentData).forEach((componentId) => {
-        if (!packagesIds.has(componentId)) {
-          removeComponentState(componentId);
-        }
-      });
-      allPackages.forEach((pkg) => {
-        // Set default state for all packages, if not already set
-        try {
-          getComponentState(pkg.id);
-        } catch (e) {
-          setComponentState(pkg.id, {
-            id: pkg.id,
-            isOpen: true,
-            isVisible: true,
-            isHighlighted: false,
-            isHovered: false,
-          });
-        }
-      });
-      const allClasses = getAllApplicationsInLandscape(
-        landscapeData.structureLandscapeData
-      )
-        .map((app) => getAllClassesInApplication(app))
-        .flat();
-      const classIds = new Set(allClasses.map((clazz) => clazz.id));
-      // Remove all component states that are not in the current landscape
-      Object.keys(classData).forEach((classId) => {
-        if (!classIds.has(classId)) {
-          removeClassState(classId);
-        }
-      });
-      allClasses.forEach((clazz) => {
-        // Set default state for all classes, if not already set
-        try {
-          getClassState(clazz.id);
-        } catch (e) {
-          setClassState(clazz.id, {
-            id: clazz.id,
-            isVisible: true,
-            isHighlighted: false,
-            isHovered: false,
-          });
-        }
-      });
-    }
-  }, [landscapeData]);
-
-  useEffect(() => {
-    return () => {
-      removeAllComponentStates();
-      removeAllClassStates();
-    };
-  }, []);
-
   useEffect(
     function initialize() {
       if (!landscape3D) return;
@@ -1146,11 +1031,6 @@ export default function BrowserRendering({
   //   }
   // );
   useHeatmapRenderer(localUserState.camera, scene);
-
-  const { applicationModels, interAppCommunications } = useLandscapeDataWatcher(
-    landscapeData,
-    landscape3D
-  );
 
   useCollaborativeModifier();
 
