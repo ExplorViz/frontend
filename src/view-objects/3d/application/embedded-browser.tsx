@@ -99,13 +99,6 @@ export default function EmbeddedBrowser() {
   const updateHtml = useCallback(() => {
     let iFrameHtml: HTMLElement | undefined;
     try {
-      if (url.includes('.html')) {
-        if (url.includes('public/')) {
-          setUrl(url.replace('public/', ''));
-        } else {
-          setUrl('public/' + url);
-        }
-      }
       iFrameHtml = iFrameRef.current?.contentWindow?.document.getRootNode();
     } catch (error) {
       console.log(error);

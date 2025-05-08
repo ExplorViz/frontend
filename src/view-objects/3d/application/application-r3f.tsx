@@ -1,3 +1,6 @@
+import { Container, Root } from '@react-three/uikit';
+import { Button } from '@react-three/uikit-default';
+import { AppWindow } from '@react-three/uikit-lucide';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
@@ -18,6 +21,7 @@ export default function ApplicationR3F({
 }: {
   applicationData: ApplicationData;
 }) {
+  const [isBrowserActive, setIsBrowserActive] = useState(false);
   const [communications, setCommunications] = useState<
     {
       id: string;
@@ -107,7 +111,26 @@ export default function ApplicationR3F({
     <>
       {app3D && (
         <primitive object={app3D}>
-          <EmbeddedBrowser />
+          <Root
+            positionBottom={15}
+            positionLeft={app3D.layout.width / 2 - 5}
+            pixelSize={1}
+          >
+            <Container>
+              <Button
+                width={25}
+                height={25}
+                padding={5}
+                backgroundColor={isBrowserActive ? 'red' : 'black'}
+                onClick={() => {
+                  setIsBrowserActive(!isBrowserActive);
+                }}
+              >
+                <AppWindow />
+              </Button>
+            </Container>
+          </Root>
+          {isBrowserActive && <EmbeddedBrowser />}
           <FoundationR3F
             application={applicationData.application}
             boxLayout={app3D.layout}
