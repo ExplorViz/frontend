@@ -16,7 +16,8 @@ export default function BabiaHtml({
 }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
   const [useHashedColors, setUseHashedColors] = useState(false);
-  const [renderLeafNodes, setRenderLeafNodes] = useState(false);
+  const [renderHtmlTextures, setRenderHtmlTextures] = useState(false);
+  const [renderOnlyHtmlLeafs, setRenderOnlyHtmlLeafs] = useState(true);
   const [distanceBetweenLevels, setDistanceBetweenLevels] = useState(5);
   const [reloadCounter, setReloadCounter] = useState(0);
   const observerCallback = () => {
@@ -47,7 +48,7 @@ export default function BabiaHtml({
       return;
     }
 
-    if (renderLeafNodes) {
+    if (renderHtmlTextures) {
       let img = new Image();
       htmlToImage
         .toPng(html.getElementsByTagName('body')[0], {
@@ -74,7 +75,8 @@ export default function BabiaHtml({
     html,
     reloadCounter,
     updateWithObserver,
-    renderLeafNodes,
+    renderHtmlTextures,
+    renderOnlyHtmlLeafs,
     clickedNode,
   ]);
 
@@ -152,7 +154,9 @@ export default function BabiaHtml({
           0.01,
         ],
         htmlNode: node,
-        renderHtml: renderLeafNodes && node.childElementCount === 0, //renderHtml(node),
+        renderHtml:
+          renderHtmlTextures &&
+          (!renderOnlyHtmlLeafs || node.childElementCount === 0), //renderHtml(node),
         isSubtreeRoot: node == clickedNode,
         level,
         htmlString,
@@ -299,9 +303,9 @@ export default function BabiaHtml({
               </Container>
               <Container flexDirection="row" gap={5}>
                 <Checkbox
-                  checked={renderLeafNodes}
+                  checked={renderHtmlTextures}
                   onCheckedChange={(isActive) => {
-                    setRenderLeafNodes(isActive);
+                    setRenderHtmlTextures(isActive);
                   }}
                 />
                 ;
@@ -325,8 +329,22 @@ export default function BabiaHtml({
                   setSearchString(value);
                 }}
                 width={150}
-                height={30}
+                height={25}
               />
+              {renderHtmlTextures && (
+                <Container flexDirection="row" gap={5}>
+                  <Checkbox
+                    checked={renderOnlyHtmlLeafs}
+                    onCheckedChange={(isActive) => {
+                      setRenderOnlyHtmlLeafs(isActive);
+                    }}
+                  />
+                  ;
+                  <Label>
+                    <Text>Render only Leafs</Text>
+                  </Label>
+                </Container>
+              )}
             </Container>
             <Container positionTop={7} positionLeft={50}>
               <Button
