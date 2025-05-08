@@ -18,6 +18,14 @@ export default function ApplicationR3F({
 }: {
   applicationData: ApplicationData;
 }) {
+  const [communications, setCommunications] = useState<
+    {
+      id: string;
+      communicationModel: ClassCommunication;
+      layout: CommunicationLayout;
+    }[]
+  >([]);
+
   const applicationRendererState = useApplicationRendererStore(
     useShallow((state) => ({
       addApplicationTask: state.addApplicationTask,
@@ -42,39 +50,58 @@ export default function ApplicationR3F({
     computeApp();
   }, [applicationData, computeApp]);
 
-  const getCommunicationLayout = (classCommunication: ClassCommunication) => {
-    const commLayout = new CommunicationLayout(classCommunication);
+  useEffect(() => {
+    if (!app3D?.boxLayoutMap) return;
+    const tempCommunications = [];
 
-    const sourceModelId = classCommunication.sourceClass.id;
-    const sourceLayout = app3D?.getBoxLayout(sourceModelId);
-    if (sourceLayout) {
-      commLayout.startX = sourceLayout.positionX;
-      commLayout.startY = sourceLayout.positionY;
-      commLayout.startZ = sourceLayout.positionZ;
+    for (
+      let index = 0;
+      index < applicationData.classCommunications.length;
+      index++
+    ) {
+      const classCommunication = applicationData.classCommunications[index];
+      const commLayout = new CommunicationLayout(classCommunication);
+
+      const sourceModelId = classCommunication.sourceClass.id;
+      const sourceLayout = app3D?.getBoxLayout(sourceModelId);
+      if (sourceLayout) {
+        commLayout.startX = sourceLayout.positionX;
+        commLayout.startY = sourceLayout.positionY;
+        commLayout.startZ = sourceLayout.positionZ;
+      }
+
+      const targetModelId = classCommunication.targetClass.id;
+      const targetLayout = app3D?.getBoxLayout(targetModelId);
+      if (targetLayout) {
+        commLayout.endX = targetLayout.positionX;
+        commLayout.endY = targetLayout.positionY;
+        commLayout.endZ = targetLayout.positionZ;
+      }
+
+      // Place recursive communication slightly above class
+      if (sourceModelId === targetModelId) {
+        commLayout.startY += 2.0;
+        commLayout.endY += 2.0;
+      }
+
+      // TODO: Calculate Thickness
+      commLayout.lineThickness = calculateLineThickness(
+        classCommunication,
+        commLineThickness
+      );
+
+      tempCommunications.push({
+        id: classCommunication.id,
+        communicationModel: classCommunication,
+        layout: commLayout,
+      });
     }
-
-    const targetModelId = classCommunication.targetClass.id;
-    const targetLayout = app3D?.getBoxLayout(targetModelId);
-    if (targetLayout) {
-      commLayout.endX = targetLayout.positionX;
-      commLayout.endY = targetLayout.positionY;
-      commLayout.endZ = targetLayout.positionZ;
-    }
-
-    // Place recursive communication slightly above class
-    if (sourceModelId === targetModelId) {
-      commLayout.startY += 2.0;
-      commLayout.endY += 2.0;
-    }
-
-    // TODO: Calculate Thickness
-    commLayout.lineThickness = calculateLineThickness(
-      classCommunication,
-      commLineThickness
-    );
-
-    return commLayout;
-  };
+    setCommunications([...tempCommunications]);
+  }, [
+    applicationData,
+    app3D?.boxLayoutMap,
+    applicationData.classCommunications,
+  ]);
 
   return (
     <>
@@ -99,12 +126,12 @@ export default function ApplicationR3F({
               layout={app3D.getBoxLayout(classData.id)!}
             />
           ))}
-          {applicationData.classCommunications.map((communication) => (
+          {communications.map((communication) => (
             <CommunicationR3F
               key={communication.id}
               application={applicationData.application}
-              communicationModel={communication}
-              communicationLayout={getCommunicationLayout(communication)}
+              communicationModel={communication.communicationModel}
+              communicationLayout={communication.layout}
             />
           ))}
         </primitive>

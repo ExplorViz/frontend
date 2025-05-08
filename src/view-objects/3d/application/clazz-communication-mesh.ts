@@ -10,7 +10,7 @@ import * as THREE from 'three';
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
 
-  _layout: CommunicationLayout;
+  _layout: CommunicationLayout | undefined;
 
   get layout() {
     return this._layout;
@@ -49,8 +49,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   set arrowWidth(width: number) {
-    this._arrowWidth = width + this.layout.lineThickness / 2;
-    this.addArrows();
+    if (this.layout) {
+      this._arrowWidth = width + this.layout.lineThickness / 2;
+      this.addArrows();
+    } else {
+      this._arrowWidth = width;
+    }
   }
 
   _arrowOffset = 1;
@@ -69,10 +73,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   applicationCenter: THREE.Vector3 = new THREE.Vector3();
 
-  constructor(dataModel: ClazzCommuMeshDataModel, layout: CommunicationLayout) {
+  constructor(dataModel: ClazzCommuMeshDataModel) {
     super();
     this.dataModel = dataModel;
-    this._layout = layout;
 
     // this._layout_original = this.layout.copy();
 
@@ -239,6 +242,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @param curveSegments The number of segments (tubes) the geometry persists of. Default 20
    */
   render(curveSegments = 20) {
+    if (!this.layout) return;
+
     // Handle recursive communication
     if (this.dataModel.communication.isRecursive) {
       this.renderRecursiveCommunication();
@@ -264,6 +269,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @param color The color of the arrows. Default black
    */
   addArrows() {
+    if (!this.layout) return;
+
     // Remove old arrows which might exist
     for (let i = this.children.length - 1; i >= 0; i--) {
       const arrow = this.children[i];

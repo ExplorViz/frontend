@@ -18,7 +18,7 @@ export default function CommunicationR3F({
 }: {
   application: Application;
   communicationModel: ClassCommunication;
-  communicationLayout: CommunicationLayout;
+  communicationLayout: CommunicationLayout | undefined;
 }) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isHighlighted, setIsHighlighted] = useState<boolean>(false);
@@ -87,7 +87,7 @@ export default function CommunicationR3F({
 
   const computeCurveHeight = () => {
     let baseCurveHeight = 20;
-    if (commCurveHeightDependsOnDistance) {
+    if (communicationLayout && commCurveHeightDependsOnDistance) {
       const classDistance = Math.hypot(
         communicationLayout.endX - communicationLayout.startX,
         communicationLayout.endZ - communicationLayout.startZ
@@ -118,6 +118,7 @@ export default function CommunicationR3F({
       args={constructorArgs}
       arrowColor={arrowColor}
       arrowOffset={arrowOffset}
+      layout={communicationLayout}
       arrowWidth={arrowWidth}
       curveHeight={computeCurveHeight()}
       defaultColor={communicationColor}
