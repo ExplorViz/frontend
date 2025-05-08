@@ -16,6 +16,10 @@
   }
 }
 
+.popover {
+  z-index: 10000000;
+}
+
 .popover > .popover-header {
   margin: 0.3rem 0;
 }
