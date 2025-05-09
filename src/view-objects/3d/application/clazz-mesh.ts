@@ -23,7 +23,7 @@ export default class ClazzMesh extends BoxMesh {
   private zoomOutCounter: number = 0;
   private lastExecution: number = 0;
 
-  constructor(clazz: Class) {
+  constructor(args: { dataModel: Class }) {
     super();
 
     // TODO: Fix this
@@ -37,7 +37,7 @@ export default class ClazzMesh extends BoxMesh {
     this.material.transparent = true;
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     this.geometry = geometry;
-    this.dataModel = clazz;
+    this.dataModel = args.dataModel;
 
     // Semantic Zoom preparations
     this.saveOriginalAppearence();

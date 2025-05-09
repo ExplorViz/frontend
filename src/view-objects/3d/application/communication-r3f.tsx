@@ -1,4 +1,5 @@
-import { ThreeElements } from '@react-three/fiber';
+import { ThreeElements, ThreeEvent } from '@react-three/fiber';
+import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -22,7 +23,6 @@ export default function CommunicationR3F({
 }) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isHighlighted, setIsHighlighted] = useState<boolean>(false);
-  const meshRef = useRef<ClazzCommunicationMesh | null>(null);
 
   const {
     arrowColor,
@@ -49,38 +49,41 @@ export default function CommunicationR3F({
     }))
   );
 
-  const popupHandlerActions = usePopupHandlerStore(
+  const meshRef = useRef<ClazzCommunicationMesh | null>(null);
+
+  const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
-      removePopup: state.removePopup,
     }))
   );
+
+  const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
+    addPopup({
+      mesh: meshRef.current,
+      position: {
+        x: event.clientX,
+        y: event.clientY,
+      },
+    });
+  };
+
+  const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
     setIsHovered(true);
-
-    // popupHandlerActions.addPopup({
-    //   mesh: meshRef.current,
-    //   position: {
-    //     x: event.clientX,
-    //     y: event.clientY,
-    //   },
-    // });
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
     setIsHovered(false);
-
-    // popupHandlerActions.removePopup(communicationModel.id);
   };
 
-  const handleClick = (event: any) => {
+  const handleClick = (/*event*/) => {
     setIsHighlighted(!isHighlighted);
   };
 
-  const handleDoubleClick = (event: any) => {};
+  const handleDoubleClick = (/*event*/) => {};
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
@@ -106,11 +109,12 @@ export default function CommunicationR3F({
       communicationModel,
       communicationModel.id
     );
-    return [dataModel, communicationLayout];
+    return [dataModel];
   }, []);
 
   return (
     <clazzCommunicationMesh
+      {...pointerStopHandlers}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       onClick={handleClickWithPrevent}

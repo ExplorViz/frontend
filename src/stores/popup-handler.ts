@@ -65,7 +65,7 @@ interface PopupHandlerState {
     sharedBy,
     hovered,
   }: {
-    mesh: THREE.Object3D;
+    mesh: THREE.Object3D | null;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
@@ -236,7 +236,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     sharedBy,
     hovered,
   }) => {
-    if (!isEntityMesh(mesh) || getStoredSettings().hidePopupDelay.value == 0) {
+    if (
+      !mesh ||
+      !isEntityMesh(mesh) ||
+      getStoredSettings().hidePopupDelay.value == 0
+    ) {
       return;
     }
     if (get().deactivated) return;

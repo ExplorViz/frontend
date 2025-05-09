@@ -1,4 +1,4 @@
-import { ThreeElements } from '@react-three/fiber';
+import { ThreeElements, ThreeEvent } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -6,10 +6,13 @@ import * as EntityManipulation from 'explorviz-frontend/src/utils/application-re
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { gsap } from 'gsap';
+import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 
 export default function ComponentR3F({
   component,
@@ -22,6 +25,26 @@ export default function ComponentR3F({
     layout.position.clone()
   );
   const [componentHeight, setComponentHeight] = useState<number>(layout.height);
+
+  const meshRef = useRef<ComponentMesh | null>(null);
+
+  const { addPopup } = usePopupHandlerStore(
+    useShallow((state) => ({
+      addPopup: state.addPopup,
+    }))
+  );
+
+  const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
+    addPopup({
+      mesh: meshRef.current,
+      position: {
+        x: event.clientX,
+        y: event.clientY,
+      },
+    });
+  };
+
+  const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const { isOpen, isHighlighted, isHovered, isVisible, updateComponentState } =
     useVisualizationStore(
@@ -171,6 +194,7 @@ export default function ComponentR3F({
 
   return (
     <componentMesh
+      {...pointerStopHandlers}
       args={[constructorArgs]}
       defaultColor={
         layout.level % 2 === 0 ? componentEvenColor : componentOddColor
@@ -187,6 +211,7 @@ export default function ComponentR3F({
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
+      ref={meshRef}
     >
       <LabelMeshWrapper color={componentTextColor} />
     </componentMesh>
