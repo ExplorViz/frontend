@@ -33,14 +33,23 @@ export default function ClassR3F({
     }))
   );
 
-  const { classColor, classTextColor, highlightedEntityColor } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        classColor: state.colors?.clazzColor,
-        classTextColor: state.colors?.clazzTextColor,
-        highlightedEntityColor: state.colors?.highlightedEntityColor,
-      }))
-    );
+  const {
+    classColor,
+    classTextColor,
+    highlightedEntityColor,
+    labelOffset,
+    labelRotation,
+    maxLabelLength,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      classColor: state.colors?.clazzColor,
+      classTextColor: state.colors?.clazzTextColor,
+      highlightedEntityColor: state.colors?.highlightedEntityColor,
+      maxLabelLength: state.visualizationSettings.classLabelLength.value,
+      labelRotation: state.visualizationSettings.classLabelOrientation.value,
+      labelOffset: state.visualizationSettings.classLabelOffset.value,
+    }))
+  );
 
   const constructorArgs = useMemo<ThreeElements['clazzMesh']['args'][0]>(() => {
     return {
@@ -87,12 +96,14 @@ export default function ClassR3F({
         color={classTextColor}
         outlineColor={'black'}
         outlineWidth={0.0001}
-        position={[0, 0.51, 0]}
-        rotation={[1.5 * Math.PI, 0, 0.55]}
+        position={[0, 0.5 + labelOffset, 0]}
+        rotation={[1.5 * Math.PI, 0, labelRotation]}
         fontSize={1.2}
         raycast={() => null}
       >
-        {dataModel.name}
+        {dataModel.name.length <= maxLabelLength
+          ? dataModel.name
+          : dataModel.name.substring(0, maxLabelLength) + '...'}
       </Text>
     </clazzMesh>
   );

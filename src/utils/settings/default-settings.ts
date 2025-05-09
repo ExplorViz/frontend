@@ -330,7 +330,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   classLabelOrientation: {
     level: SettingLevel.EXTENDED,
-    value: 0.3,
+    value: 0.5,
     range: { min: 0.0, max: 6.3, step: 0.01 },
     group: 'Layout',
     displayName: 'Class Label Rotation',
