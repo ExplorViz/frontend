@@ -1,8 +1,7 @@
-import { Box, Edges, Html, Line } from '@react-three/drei';
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
-import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
+import HtmlBoxR3F from 'explorviz-frontend/src/view-objects/3d/application/html-box-r3f';
 import * as htmlToImage from 'html-to-image';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -368,7 +367,7 @@ export default function BabiaHtml({
         </Root>
       )}
       {boxes.map((box, _) => (
-        <Box3D
+        <HtmlBoxR3F
           visible={isBoxVisible(box)}
           distanceBetweenLevels={distanceBetweenLevels}
           key={box.id}
@@ -381,135 +380,6 @@ export default function BabiaHtml({
           setClickedNode={setClickedNode}
         />
       ))}
-    </group>
-  );
-}
-
-function Box3D({
-  box,
-  color,
-  distanceBetweenLevels,
-  visible,
-  setClickedNode,
-}: {
-  box: BoxData;
-  color: string;
-  distanceBetweenLevels: number;
-  visible: boolean;
-  setClickedNode: any;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const [clicked, setClicked] = useState(box.isSubtreeRoot);
-
-  const handleClick = () => {
-    setClicked(!clicked);
-    if (clicked) {
-      setClickedNode(null);
-    } else {
-      setClickedNode(box.htmlNode);
-    }
-  };
-
-  const handleDoubleClick = () => {
-    box.htmlNode.click();
-  };
-
-  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
-    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
-
-  return (
-    <group
-      position={[300, 218, 0]}
-      intersectChildren={false}
-      visible={visible}
-      onPointerEnter={(event) => {
-        if (visible) {
-          event.stopPropagation();
-          setHovered(true);
-        }
-      }}
-      onPointerLeave={(event) => {
-        if (visible) {
-          event.stopPropagation();
-        }
-        setHovered(false);
-      }}
-      onClick={handleClickWithPrevent}
-      onDoubleClick={handleDoubleClickWithPrevent}
-    >
-      <Box position={[135, -63, -1]} args={[290, 200, 1]} />
-      <mesh
-        position={[
-          box.position[0],
-          box.position[1],
-          box.level * distanceBetweenLevels,
-        ]}
-      >
-        {!clicked && <boxGeometry args={box.size} />}
-        {clicked && (
-          <boxGeometry
-            args={[
-              box.size[0],
-              box.size[1],
-              box.size[2] + distanceBetweenLevels / 2,
-            ]}
-          />
-        )}
-        <meshToonMaterial
-          map={box.texture}
-          color={box.texture ? 'white' : color}
-          transparent={true}
-          opacity={1}
-        />
-        {(clicked || box.isSubtreeRoot) && (
-          <Edges linewidth={5} scale={1} color="black" />
-        )}
-        {!clicked && <Edges linewidth={1} scale={1} color="black" />}
-      </mesh>
-      {box.level !== 0 && (
-        <Line
-          points={[
-            [
-              box.position[0],
-              box.position[1],
-              box.level * distanceBetweenLevels,
-            ],
-            [
-              box.position[0],
-              box.position[1],
-              box.level * distanceBetweenLevels - distanceBetweenLevels,
-            ],
-          ]}
-          color={'black'}
-          raycast={() => {}}
-        />
-      )}
-      {(hovered || clicked || box.isSubtreeRoot) && (
-        <Html
-          position={[
-            box.position[0],
-            box.position[1] + box.size[1] / 2 + box.htmlWithText.length * 0.25,
-            box.level * distanceBetweenLevels + 0.2,
-          ]}
-          occlude={'blending'}
-          transform
-          raycast={() => {}}
-        >
-          <div
-            style={{
-              background: 'white',
-              padding: '10px',
-              border: '1px solid black',
-              whiteSpace: 'pre-wrap',
-              fontSize: '10rem',
-              pointerEvents: 'none',
-            }}
-          >
-            {/* {box.htmlWithText} */}
-            <code style={{ pointerEvents: 'none' }}>{box.htmlWithText}</code>
-          </div>
-        </Html>
-      )}
     </group>
   );
 }
@@ -649,7 +519,7 @@ function hashElementToColor(element: HTMLElement) {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-type BoxData = {
+export type BoxData = {
   id: number;
   position: [number, number, number];
   size: [number, number, number];

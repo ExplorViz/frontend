@@ -9,8 +9,6 @@ import { useShallow } from 'zustand/react/shallow';
 
 export default function EmbeddedBrowser() {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
-  const localHtmlContent = useRef<string>('');
-  const isWatching = useRef(false);
   const [html, setHtml] = useState<HTMLElement | undefined>(undefined);
   const defaultUrl = 'http://localhost:4200';
   const [url, setUrl] = useState<string>(defaultUrl);
@@ -37,64 +35,6 @@ export default function EmbeddedBrowser() {
 
     updateHtml();
   }, [html]);
-
-  const watchHtmlFile = (fileUrl: string, interval = 500) => {
-    async function checkForChanges() {
-      console.log('Start watching', fileUrl);
-
-      isWatching.current = true;
-      try {
-        const response = await fetch(fileUrl, {
-          cache: 'no-cache', // Prevents browser caching, ensuring we get the latest version
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-          return;
-        }
-
-        const currentContent = await response.text();
-
-        if (localHtmlContent.current === '') {
-          // First run: initialize cached content
-          localHtmlContent.current = currentContent;
-          console.log(`Watching ${fileUrl} for changes...`);
-        } else if (currentContent !== localHtmlContent.current) {
-          // File has changed
-          console.log(`${fileUrl} has changed!`);
-          iFrameRef.current?.contentWindow.location.reload();
-          // Perform your actions here (e.g., update UI, reload data)
-          localHtmlContent.current = currentContent; // Update cached content
-        } else {
-          updateHtml();
-          // File has not changed
-          //console.log(`${fileUrl} is unchanged.`); //Optional logging
-        }
-      } catch (error) {
-        console.error(`Error checking for changes in ${fileUrl}:`, error);
-      }
-
-      if (fileUrl === url) {
-        setTimeout(() => {
-          checkForChanges();
-        }, interval);
-      } else {
-        console.log('URLs do not match');
-
-        isWatching.current = false;
-      }
-    }
-
-    if (!isWatching.current) {
-      checkForChanges();
-    }
-  };
-
-  // useEffect(() => {
-  //   if (url.includes('.html')) {
-  //     watchHtmlFile(url);
-  //   }
-  // }, [url]);
 
   const updateHtml = useCallback(() => {
     let iFrameHtml: HTMLElement | undefined;
@@ -147,9 +87,11 @@ export default function EmbeddedBrowser() {
             width={navbarHeight}
             height={navbarHeight}
             padding={0}
-            onClick={(event) => {
-              triggerHtmlVisualizer();
-            }}
+            onClick={
+              (/*event*/) => {
+                triggerHtmlVisualizer();
+              }
+            }
           >
             {html ? <ChevronLeft /> : <Table />}
           </Button>
