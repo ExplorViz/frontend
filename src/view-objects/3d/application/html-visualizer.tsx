@@ -6,7 +6,7 @@ import * as htmlToImage from 'html-to-image';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-export default function BabiaHtml({
+export default function HtmlVisualizer({
   html,
   updateHtml,
 }: {
@@ -103,7 +103,7 @@ export default function BabiaHtml({
     let maxLevel = 0;
 
     const processNode = async (
-      node: HTMLElement,
+      node: HTMLElement | Element,
       level: number,
       insideClickedSubtree = false
     ) => {
@@ -506,7 +506,7 @@ function getTextureForRect(rect: DOMRect, img: HTMLImageElement) {
   }
 }
 
-function hashElementToColor(element: HTMLElement) {
+function hashElementToColor(element: Element) {
   const tagHash = stringToHash(element.tagName.toLowerCase() || '');
   const classHash = stringToHash(element.className || '');
   const innerHash = stringToHash(element.innerText || '');
@@ -523,7 +523,7 @@ export type BoxData = {
   id: number;
   position: [number, number, number];
   size: [number, number, number];
-  htmlNode: HTMLElement;
+  htmlNode: HTMLElement | Element;
   isSubtreeRoot: boolean;
   level: number;
   renderHtml: boolean;
