@@ -132,9 +132,11 @@ export default function BabiaHtml({
       const offset = getOffset(rect, firstOffset);
 
       if (clickedNode && !insideClickedSubtree) {
-        Array.from(node.children).forEach((child) =>
-          processNode(child, level + 1)
-        );
+        Array.from(node.children).forEach((child) => {
+          if (child instanceof HTMLElement) {
+            processNode(child, level + 1);
+          }
+        });
         return;
       }
 
@@ -176,12 +178,18 @@ export default function BabiaHtml({
         boxData.texture = getTextureForRect(clampedRect, img);
       }
 
-      Array.from(node.children).forEach((child) =>
-        processNode(child, level + 1, insideClickedSubtree)
-      );
+      Array.from(node.children).forEach((child) => {
+        if (child instanceof HTMLElement) {
+          processNode(child, level + 1, insideClickedSubtree);
+        }
+      });
     };
 
-    rootChildren.forEach((node) => processNode(node, 0));
+    rootChildren.forEach((node) => {
+      if (node instanceof HTMLElement) {
+        processNode(node, 0);
+      }
+    });
 
     maxLayer.current = maxLevel;
     setBoxes(tempBoxes);
