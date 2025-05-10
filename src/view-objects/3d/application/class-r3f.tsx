@@ -37,8 +37,6 @@ export default function ClassR3F({
   );
 
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
-    console.log('Add popup', meshRef.current);
-
     addPopup({
       mesh: meshRef.current,
       position: {

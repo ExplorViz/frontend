@@ -6,6 +6,7 @@ import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handle
 import { BoxData } from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import * as THREE from 'three';
 
 export default function HtmlBoxR3F({
   box,
@@ -24,6 +25,9 @@ export default function HtmlBoxR3F({
   const [clicked, setClicked] = useState(box.isSubtreeRoot);
 
   const meshRef = useRef<THREE.Group | null>(null);
+  if (meshRef.current instanceof THREE.Group) {
+    meshRef.current.dataModel = box;
+  }
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -32,8 +36,6 @@ export default function HtmlBoxR3F({
   );
 
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
-    console.log('Add popup');
-
     addPopup({
       mesh: meshRef.current,
       position: {
@@ -43,7 +45,7 @@ export default function HtmlBoxR3F({
     });
   };
 
-  const pointerStopHandlers = usePointerStop(handlePointerStop, 100);
+  const pointerStopHandlers = usePointerStop(handlePointerStop, 50);
 
   const handleClick = () => {
     setClicked(!clicked);
@@ -80,6 +82,7 @@ export default function HtmlBoxR3F({
       }}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
+      ref={meshRef}
       {...pointerStopHandlers}
     >
       <Box position={[135, -63, -1]} args={[290, 200, 1]} />
@@ -129,7 +132,7 @@ export default function HtmlBoxR3F({
           raycast={() => {}}
         />
       )}
-      {(hovered || clicked || box.isSubtreeRoot) && (
+      {(clicked || box.isSubtreeRoot) && (
         <Html
           position={[
             box.position[0],

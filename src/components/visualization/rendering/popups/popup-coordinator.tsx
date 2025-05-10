@@ -35,6 +35,8 @@ import MethodPopup from 'explorviz-frontend/src/components/visualization/renderi
 import CommunicationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup.tsx';
 import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
+import HtmlPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/html-popup';
+import { BoxData } from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -366,6 +368,7 @@ export default function PopupCoordinator({
         />
       )}
       {entityType == 'k8s' && <K8sPopup data={popupData} />}
+      {entityType == 'html' && <HtmlPopup data={popupData} />}
     </div>
   );
 }
@@ -394,6 +397,9 @@ function getEntityType(popupData?: PopupData): string {
   }
   if (popupData.mesh instanceof K8sMesh) {
     return 'k8s';
+  }
+  if ('htmlNode' in popupData.entity) {
+    return 'html';
   }
   return '';
 }

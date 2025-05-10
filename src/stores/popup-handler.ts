@@ -235,9 +235,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     sharedBy,
     hovered,
   }) => {
+    // TODO: Handle HTML Mesh better
     if (
       !mesh ||
-      !isEntityMesh(mesh) ||
+      !('dataModel' in mesh) ||
+      // !isEntityMesh(mesh) ||
       getStoredSettings().hidePopupDelay.value == 0 ||
       get().deactivated
     ) {
@@ -260,9 +262,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       wasMoved: wasMoved || false,
       entity: mesh.dataModel,
       mesh,
-      applicationId: (
-        mesh.parent as ApplicationObject3D | Landscape3D
-      ).getModelId(),
+      applicationId: '1',
       menuId: menuId || null,
       isPinned: pinned || false,
       sharedBy: sharedBy || '',
