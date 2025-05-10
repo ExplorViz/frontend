@@ -2,14 +2,13 @@ import { create } from 'zustand';
 
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
   getTypeOfEntity,
   isEntityMesh,
@@ -31,10 +30,10 @@ import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
-import * as THREE from 'three';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import * as THREE from 'three';
 
 type Position2D = {
   x: number;
@@ -239,11 +238,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     if (
       !mesh ||
       !isEntityMesh(mesh) ||
-      getStoredSettings().hidePopupDelay.value == 0
+      getStoredSettings().hidePopupDelay.value == 0 ||
+      get().deactivated
     ) {
       return;
     }
-    if (get().deactivated) return;
 
     let popupPosition = position;
 
