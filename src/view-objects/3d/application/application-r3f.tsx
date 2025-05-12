@@ -130,7 +130,9 @@ export default function ApplicationR3F({
               </Button>
             </Container>
           </Root>
-          {isBrowserActive && <EmbeddedBrowser />}
+          {isBrowserActive && (
+            <EmbeddedBrowser application={applicationData.application} />
+          )}
           <FoundationR3F
             application={applicationData.application}
             boxLayout={app3D.layout}

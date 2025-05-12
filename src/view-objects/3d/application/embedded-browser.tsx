@@ -3,14 +3,17 @@ import { Container, Root } from '@react-three/uikit';
 import { Button, Input } from '@react-three/uikit-default';
 import { ChevronLeft, SkipBack, Table } from '@react-three/uikit-lucide';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import HtmlVisualizer from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
+import BabiaHtml from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 import { useCallback, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function EmbeddedBrowser() {
+export default function EmbeddedBrowser({ application }: any) {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
   const [html, setHtml] = useState<HTMLElement | undefined>(undefined);
-  const defaultUrl = 'http://localhost:4200';
+
+  const defaultUrl = application.name.includes('petclinic')
+    ? 'http://localhost:18080'
+    : 'http://localhost:4200';
   const [url, setUrl] = useState<string>(defaultUrl);
 
   const sizeX = 1000;
@@ -118,7 +121,7 @@ export default function EmbeddedBrowser() {
           />
         )}
       </Html>
-      {<HtmlVisualizer html={html} updateHtml={updateHtml} />}
+      {<BabiaHtml html={html} updateHtml={updateHtml} />}
     </>
   );
 }
