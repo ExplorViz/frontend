@@ -11,9 +11,9 @@ export default function EmbeddedBrowser({ application }: any) {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
   const [html, setHtml] = useState<HTMLElement | undefined>(undefined);
 
-  const defaultUrl = application.name.includes('petclinic')
+  const defaultUrl = application.name.includes('PetClinic')
     ? 'http://localhost:18080'
-    : 'http://localhost:4200';
+    : 'http://localhost:8080';
   const [url, setUrl] = useState<string>(defaultUrl);
 
   const sizeX = 1000;
