@@ -464,7 +464,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Debug Settings
   showExtendedSettings: {
     level: SettingLevel.DEFAULT,
-    value: false,
+    value: true,
     group: 'Debugging',
     displayName: 'Show Extended Settings',
     description: 'Shows/hides additional settings',
