@@ -98,6 +98,7 @@ interface ApplicationRendererState {
   updateApplicationObject3DAfterUpdate: (
     applicationObject3D: ApplicationObject3D
   ) => void;
+  closeAllComponentsOfAllApplications: () => void;
   openAllComponentsOfAllApplications: () => void;
   toggleCommunicationRendering: () => void;
   openParents: (
@@ -443,6 +444,10 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       useLinkRendererStore.getState().updateLinkPositions();
       // Update highlighting
       useHighlightingStore.getState().updateHighlighting(); // needs to be after update links
+    },
+
+    closeAllComponentsOfAllApplications: () => {
+      get().forEachOpenApplication(get().closeAllComponentsLocally);
     },
 
     openAllComponentsOfAllApplications: () => {
