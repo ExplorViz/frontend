@@ -38,9 +38,9 @@ export class MethodGroup extends THREE.Group {
 
       // Compute geometry with width and height
       const box = new THREE.BoxGeometry(
-        parentLayout.width / 4,
+        parentLayout.width / 8,
         functionHeight,
-        parentLayout.depth / 4
+        parentLayout.depth / 8
       );
 
       // Compute material and colors for method mesh
@@ -63,7 +63,7 @@ export class MethodGroup extends THREE.Group {
         boxMaterial,
         this.dataModel.methods[index]
       );
-      methodHeightMesh.position.setX(methodHeightMesh.position.x - 0.7);
+      methodHeightMesh.position.setX(methodHeightMesh.position.x + 0.85);
       methodHeightMesh.position.setY(
         -parentGeo.parameters.height / 2 + functionHeight / 2 + yPos
       );
