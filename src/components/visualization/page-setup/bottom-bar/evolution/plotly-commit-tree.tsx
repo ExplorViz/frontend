@@ -96,7 +96,7 @@ export default function PlotlyCommitTree({
   // #region Plot Setup
 
   const setupPlotlyCommitTreeChart = () => {
-    // deep copy attributes (Map and Object is passed via reference, therefor changes in this component would actually be executed on the original element) -> nasty bugs
+    // deep copy attributes (Map and Object is passed via reference, therefore changes in this component would actually be executed on the original element) -> nasty bugs
     setAppNameCommitTreeMap(structuredClone(appNameCommitTreeMap));
     _selectedCommits = structuredClone(selectedCommits);
 
