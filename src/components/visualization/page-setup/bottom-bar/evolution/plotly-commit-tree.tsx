@@ -387,8 +387,6 @@ export default function PlotlyCommitTree({
         layout,
         getPlotlyOptionsObject()
       );
-    } else {
-      console.log('No commits found for selected application!');
     }
   };
 

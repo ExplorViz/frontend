@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import {
   useCommitTreeStateStore,
   SelectedCommit,
@@ -32,6 +32,7 @@ export default function EvolutionRenderingButtons(args: IArgs) {
 
   const visService = useVisibilityServiceStore(
     useShallow((state) => ({
+      configuration: state._evolutionModeRenderingConfiguration,
       applyEvolutionModeRenderingConfiguration:
         state.applyEvolutionModeRenderingConfiguration,
       getCloneOfEvolutionModeRenderingConfiguration:
@@ -122,12 +123,14 @@ export default function EvolutionRenderingButtons(args: IArgs) {
           {args.selectedCommits.get(args.selectedAppName)?.length === 2 && (
             <div className="col-md-auto">
               <div className="d-flex">
-                <div className="mr-2">Only show differences</div>
+                <div style={{ 'margin-right': '4rem' }}>
+                  Only show differences
+                </div>
                 <div className="d-flex">
                   <label className="wide-checkbox-container">
                     <input
                       type="checkbox"
-                      checked={checkboxValues.current.renderOnlyDifferences}
+                      checked={visService.configuration.renderOnlyDifferences}
                       onChange={() => changeAnalysisMode('difference')}
                     />
                     <span className="wide-checkbox"></span>
