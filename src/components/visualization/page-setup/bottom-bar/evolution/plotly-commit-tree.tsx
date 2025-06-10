@@ -63,17 +63,18 @@ export default function PlotlyCommitTree({
 
   useEffect(() => {
     if (plotlyCommitDivRef.current) {
-      setupPlotlyCommitTreeChart(plotlyCommitDivRef);
+      setupPlotlyCommitTreeChart();
     } else if (plotlyDivNoTimestampsRef.current) {
-      setupPlotlyCommitTreeChart(plotlyDivNoTimestampsRef);
+      setupPlotlyCommitTreeChart();
     }
   }, []);
 
   useEffect(() => {
     if (plotlyCommitDivRef.current) {
       updatePlotlyCommitTree();
+      setupPlotlyListener();
     }
-  }, [_selectedAppName, _selectedCommits]);
+  }, [plotlyCommitDivRef.current, selectedAppName]);
 
   // #endregion useEffect & useRef
 
