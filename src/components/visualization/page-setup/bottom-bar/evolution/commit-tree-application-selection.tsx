@@ -1,6 +1,6 @@
-import React from 'react';
 import { AppNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import Dropdown from 'react-bootstrap/Dropdown';
 
 export default function CommitTreeApplicationSelection({
   appNameCommitTreeMap,
@@ -9,16 +9,11 @@ export default function CommitTreeApplicationSelection({
   appNameCommitTreeMap: AppNameCommitTreeMap;
   selectedAppName: string;
 }) {
-  // console.log(appNameCommitTreeMap!.size)
   if (appNameCommitTreeMap!.size > 0) {
-    const selAppName = selectedAppName
-      ? selectedAppName != undefined
-      : 'Applications';
     let obj = { array: Array.from(appNameCommitTreeMap.keys()) };
     let dropdownMenu = obj.array.map((item) => (
-      <div
+      <Dropdown.Item
         key={item}
-        className="dropdown-item pointer-cursor"
         onClick={() =>
           useCommitTreeStateStore
             .getState()
@@ -26,28 +21,17 @@ export default function CommitTreeApplicationSelection({
         }
       >
         {item}
-      </div>
+      </Dropdown.Item>
     ));
 
     return (
       <div className="col-md-auto">
-        <div
-          id="application-selection"
-          className="dropdown"
-          style={{ zIndex: 500 }}
-        >
-          <button
-            className="btn btn-outline-dark dropdown-toggle"
-            type="button"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            {selAppName}
-          </button>
-
-          <div className="dropdown-menu">{dropdownMenu}</div>
-        </div>
+        <Dropdown id="application-selection">
+          <Dropdown.Toggle id="dropdown-basic" variant="secondary">
+            {selectedAppName || 'Applications'}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>{dropdownMenu}</Dropdown.Menu>
+        </Dropdown>
       </div>
     );
   } else {
