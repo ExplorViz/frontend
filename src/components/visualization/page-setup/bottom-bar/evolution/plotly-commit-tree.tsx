@@ -1,13 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { SelectedCommit } from '../../../../../stores/commit-tree-state';
+import { useEffect, useRef, useState } from 'react';
+import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   AppNameCommitTreeMap,
   Branch,
   Commit,
   CROSS_COMMIT_IDENTIFIER,
-} from '../../../../../utils/evolution-schemes/evolution-data';
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import Plotly from 'plotly.js-dist';
-import { Console } from 'console';
 
 interface PlotlyCommitTreeArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
@@ -37,8 +36,6 @@ export default function PlotlyCommitTree({
   // TODO: Use this property, only set and never read as of now
   let userSlidingWindow = null;
 
-  let commitTreeDiv: any;
-
   let usedColors: Set<number[]> = new Set();
   let branchNameToLineColor: Map<string, string> = new Map();
   let branchToY: Map<string, number> = new Map();
@@ -51,7 +48,8 @@ export default function PlotlyCommitTree({
   })();
 
   let _selectedCommits: Map<string, Commit[]> = new Map();
-  let _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
+  let [_appNameCommitTreeMap, setAppNameCommitTreeMap] =
+    useState<AppNameCommitTreeMap>(new Map());
 
   const _selectedAppName = (() => {
     return selectedAppName;
@@ -96,12 +94,9 @@ export default function PlotlyCommitTree({
 
   // #region Plot Setup
 
-  const setupPlotlyCommitTreeChart = (plotlyDiv: any) => {
-    commitTreeDiv = plotlyDiv;
-
+  const setupPlotlyCommitTreeChart = () => {
     // deep copy attributes (Map and Object is passed via reference, therefor changes in this component would actually be executed on the original element) -> nasty bugs
-
-    _appNameCommitTreeMap = structuredClone(appNameCommitTreeMap);
+    setAppNameCommitTreeMap(structuredClone(appNameCommitTreeMap));
     _selectedCommits = structuredClone(selectedCommits);
 
     usedColors.add([255, 255, 255]); // initialize with white so it won't be used as color for branches on a white background
@@ -114,7 +109,7 @@ export default function PlotlyCommitTree({
 
   const setupPlotlyListener = () => {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
-    const plotlyDiv = commitTreeDiv;
+    const plotlyDiv: any = plotlyCommitDivRef.current;
 
     if (plotlyDiv && plotlyDiv.layout) {
       plotlyDiv.on('plotly_hover', () => {
@@ -299,6 +294,7 @@ export default function PlotlyCommitTree({
 
     if (
       commitTreeForSelectedAppName &&
+      commitTreeForSelectedAppName.branches &&
       commitTreeForSelectedAppName.branches.find(
         (branch) => branch.commits.length > 0
       )
@@ -385,13 +381,13 @@ export default function PlotlyCommitTree({
       });
 
       Plotly.react(
-        commitTreeDiv,
+        plotlyCommitDivRef.current,
         plotlyBranches,
         layout,
         getPlotlyOptionsObject()
       );
     } else {
-      console.log("No commits found for selected application!");
+      console.log('No commits found for selected application!');
     }
   };
 
@@ -592,7 +588,9 @@ export default function PlotlyCommitTree({
 
   return (
     <>
-      {appNameCommitTreeMap && selectedAppName ? (
+      {appNameCommitTreeMap &&
+      selectedAppName &&
+      appNameCommitTreeMap.get(selectedAppName)?.branches ? (
         <div
           ref={plotlyCommitDivRef}
           className="plotlyCommitDiv"
