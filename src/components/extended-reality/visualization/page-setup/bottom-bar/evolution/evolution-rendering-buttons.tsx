@@ -79,7 +79,7 @@ export default function EvolutionRenderingButtons(args: IArgs) {
                 <button
                   type="button"
                   className="btn btn-outline-dark"
-                  onChange={unselectAllSelectedCommits}
+                  onClick={() => unselectAllSelectedCommits()}
                 >
                   Unselect all commits
                 </button>

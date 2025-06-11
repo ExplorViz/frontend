@@ -47,13 +47,8 @@ export default function PlotlyCommitTree({
     return 'red';
   })();
 
-  let _selectedCommits: Map<string, Commit[]> = new Map();
   let [_appNameCommitTreeMap, setAppNameCommitTreeMap] =
     useState<AppNameCommitTreeMap>(new Map());
-
-  const _selectedAppName = (() => {
-    return selectedAppName;
-  })();
 
   // #endregion template-argument getters
 
@@ -62,19 +57,14 @@ export default function PlotlyCommitTree({
   const plotlyDivNoTimestampsRef = useRef(null);
 
   useEffect(() => {
-    if (plotlyCommitDivRef.current) {
-      setupPlotlyCommitTreeChart();
-    } else if (plotlyDivNoTimestampsRef.current) {
-      setupPlotlyCommitTreeChart();
-    }
+    setupPlotlyCommitTreeChart();
   }, []);
 
   useEffect(() => {
     if (plotlyCommitDivRef.current) {
       updatePlotlyCommitTree();
-      setupPlotlyListener();
     }
-  }, [plotlyCommitDivRef.current, selectedAppName]);
+  }, [selectedAppName, _appNameCommitTreeMap]);
 
   // #endregion useEffect & useRef
 
@@ -98,13 +88,11 @@ export default function PlotlyCommitTree({
   const setupPlotlyCommitTreeChart = () => {
     // deep copy attributes (Map and Object is passed via reference, therefore changes in this component would actually be executed on the original element) -> nasty bugs
     setAppNameCommitTreeMap(structuredClone(appNameCommitTreeMap));
-    _selectedCommits = structuredClone(selectedCommits);
 
     usedColors.add([255, 255, 255]); // initialize with white so it won't be used as color for branches on a white background
 
-    if (_appNameCommitTreeMap && _selectedAppName && _selectedCommits) {
+    if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
       updatePlotlyCommitTree();
-      setupPlotlyListener();
     }
   };
 
@@ -140,8 +128,8 @@ export default function PlotlyCommitTree({
         const commitId = getCommitId(branchName, pn);
         const selectedCommit: Commit = { commitId, branchName };
 
-        let selectedCommitsForApp =
-          _selectedCommits.get(_selectedAppName) || [];
+        let selectedCommitsForApp = selectedCommits.get(selectedAppName) || [];
+        selectedCommits.set(selectedAppName, selectedCommitsForApp);
 
         if (
           isCommitAlreadySelected(
@@ -159,18 +147,18 @@ export default function PlotlyCommitTree({
         }
 
         // Filter out empty selections and remove empty applications
-        for (const [app, commits] of _selectedCommits.entries()) {
+        for (const [app, commits] of selectedCommits.entries()) {
           if (commits.length === 0) {
-            _selectedCommits.delete(app);
+            selectedCommits.delete(app);
           }
         }
 
-        setSelectedCommits(_selectedCommits);
+        setSelectedCommits(selectedCommits);
         triggerVizRenderingForSelectedCommits();
 
         function getCommitId(branchName: string, pointNumber: number): string {
           const commitTreeForSelectedAppName =
-            appNameCommitTreeMap.get(_selectedAppName);
+            appNameCommitTreeMap.get(selectedAppName);
 
           if (commitTreeForSelectedAppName) {
             for (const branch of commitTreeForSelectedAppName.branches) {
@@ -190,10 +178,10 @@ export default function PlotlyCommitTree({
         }
 
         function unselectAllCommits() {
-          _selectedCommits.set(_selectedAppName, []);
+          selectedCommits.set(selectedAppName, []);
 
           const commitTreeForSelectedAppName =
-            _appNameCommitTreeMap.get(_selectedAppName);
+            _appNameCommitTreeMap.get(selectedAppName);
 
           if (commitTreeForSelectedAppName) {
             for (const branch of commitTreeForSelectedAppName.branches) {
@@ -209,14 +197,13 @@ export default function PlotlyCommitTree({
         }
 
         function selectCommit(commit: Commit, pointNumber: number) {
+          selectedCommitsForApp.push(commit);
+
           colors[pointNumber] = highlightedMarkerColor;
           sizes[pointNumber] = COMMIT_SELECTED_SIZE;
           const update = { marker: { color: colors, size: sizes } };
           const tn = data.points[0].curveNumber;
           Plotly.restyle(plotlyDiv, update, [tn]);
-
-          selectedCommitsForApp.push(commit);
-          _selectedCommits.set(_selectedAppName, selectedCommitsForApp);
         }
 
         function unselectCommit(commit: Commit, pointNumber: number) {
@@ -226,9 +213,9 @@ export default function PlotlyCommitTree({
           colors[pointNumber] = data.points[0].fullData.line.color;
           sizes[pointNumber] = COMMIT_UNSELECTED_SIZE;
           if (selectedCommitsForApp.length === 0) {
-            _selectedCommits.delete(_selectedAppName);
+            selectedCommits.delete(selectedAppName);
           } else {
-            _selectedCommits.set(_selectedAppName, selectedCommitsForApp);
+            selectedCommits.set(selectedAppName, selectedCommitsForApp);
           }
           const update = { marker: { color: colors, size: sizes } };
           const tn = data.points[0].curveNumber;
@@ -245,11 +232,11 @@ export default function PlotlyCommitTree({
   // #region Plot Update
 
   const updatePlotlyCommitTree = () => {
-    if (_appNameCommitTreeMap && _selectedAppName && _selectedCommits) {
+    if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
       createPlotlyCommitTreeChart(
         _appNameCommitTreeMap,
-        _selectedAppName,
-        _selectedCommits
+        selectedAppName,
+        selectedCommits
       );
     }
   };
@@ -387,6 +374,7 @@ export default function PlotlyCommitTree({
         layout,
         getPlotlyOptionsObject()
       );
+      setupPlotlyListener();
     }
   };
 
@@ -394,11 +382,11 @@ export default function PlotlyCommitTree({
     const cloneColorMap = getCloneOfAppNameAndBranchNameToColorMap();
 
     let color: string | undefined = cloneColorMap.get(
-      _selectedAppName + branchName
+      selectedAppName + branchName
     );
     if (!color) {
       color = randomRGBA();
-      cloneColorMap.set(_selectedAppName + branchName, color);
+      cloneColorMap.set(selectedAppName + branchName, color);
       setAppNameAndBranchNameToColorMap(cloneColorMap);
     }
     return color;
