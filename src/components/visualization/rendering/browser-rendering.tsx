@@ -1133,22 +1133,23 @@ export default function BrowserRendering({
             </div>
           )} */}
 
-          {popupHandlerState.popupData.map((data) => (
-            <PopupCoordinator
-              key={data.entity.id}
-              addAnnotationForPopup={addAnnotationForPopup}
-              openParents={applicationRendererActions.openParents}
-              pinPopup={popupHandlerActions.pinPopup}
-              popupData={data}
-              updatePopup={popupHandlerActions.updatePopup}
-              removePopup={removePopup}
-              sharePopup={popupHandlerActions.sharePopup}
-              showApplication={showApplication}
-              structureData={landscapeData!.structureLandscapeData}
-              toggleHighlightById={highlightingActions.toggleHighlightById}
-              updateMeshReference={popupHandlerActions.updateMeshReference}
-            />
-          ))}
+          {landscapeData &&
+            popupHandlerState.popupData.map((data) => (
+              <PopupCoordinator
+                key={data.entity.id}
+                addAnnotationForPopup={addAnnotationForPopup}
+                openParents={applicationRendererActions.openParents}
+                pinPopup={popupHandlerActions.pinPopup}
+                popupData={data}
+                updatePopup={popupHandlerActions.updatePopup}
+                removePopup={removePopup}
+                sharePopup={popupHandlerActions.sharePopup}
+                showApplication={showApplication}
+                structureData={landscapeData.structureLandscapeData}
+                toggleHighlightById={highlightingActions.toggleHighlightById}
+                updateMeshReference={popupHandlerActions.updateMeshReference}
+              />
+            ))}
 
           {annotationHandlerState.annotationData.map((data) => (
             <AnnotationCoordinator
