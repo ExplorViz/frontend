@@ -123,9 +123,7 @@ export default function EvolutionRenderingButtons(args: IArgs) {
           {args.selectedCommits.get(args.selectedAppName)?.length === 2 && (
             <div className="col-md-auto">
               <div className="d-flex">
-                <div style={{ 'margin-right': '4rem' }}>
-                  Only show differences
-                </div>
+                <div style={{ marginRight: '4rem' }}>Only show differences</div>
                 <div className="d-flex">
                   <label className="wide-checkbox-container">
                     <input
