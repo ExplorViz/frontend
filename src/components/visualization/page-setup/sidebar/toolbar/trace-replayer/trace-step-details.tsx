@@ -54,11 +54,11 @@ export default function TraceStepDetails({
             </tr>
             <tr className="d-flex">
               <th className="col-3">Source Class</th>
-              <td className="col-9 container-word-wrap">{sourceClass?.name}</td>
+              <td className="col-9 container-word-wrap">{sourceClass}</td>
             </tr>
             <tr className="d-flex">
               <th className="col-3">Target Class</th>
-              <td className="col-9 container-word-wrap">{targetClass?.name}</td>
+              <td className="col-9 container-word-wrap">{targetClass}</td>
             </tr>
             <tr className="d-flex">
               <th className="col-3">Source Application</th>
