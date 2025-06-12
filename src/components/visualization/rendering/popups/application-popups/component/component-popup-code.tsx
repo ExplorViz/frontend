@@ -18,11 +18,11 @@ export default function ComponentPopupCode({
     <table className="w-100">
       <tbody>
         <tr>
-          <td>Contained Classes:</td>
+          <td>Classes / Files:</td>
           <td className="text-right text-break pl-1">{clazzCount}</td>
         </tr>
         <tr>
-          <td>Contained Packages:</td>
+          <td>Packages / Folders:</td>
           <td className="text-right text-break pl-1">{packageCount}</td>
         </tr>
       </tbody>
