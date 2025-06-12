@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   Package,
   TypeOfAnalysis,
@@ -9,27 +7,27 @@ interface ComponentPopupCodeProps {
   component: Package;
 }
 
-export default function ComponentPopupCode({component}: ComponentPopupCodeProps) {
+export default function ComponentPopupCode({
+  component,
+}: ComponentPopupCodeProps) {
   const name = component.name;
   const clazzCount = getClazzesCount(component);
   const packageCount = getPackagesCount(component);
 
-  return <table className='w-100'>
-    <tbody>
-      <tr>
-        <td>Contained Classes:</td>
-        <td className='text-right text-break pl-1'>
-          {clazzCount}
-        </td>
-      </tr>
-      <tr>
-        <td>Contained Packages:</td>
-        <td className='text-right text-break pl-1'>
-          {packageCount}
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  return (
+    <table className="w-100">
+      <tbody>
+        <tr>
+          <td>Contained Classes:</td>
+          <td className="text-right text-break pl-1">{clazzCount}</td>
+        </tr>
+        <tr>
+          <td>Contained Packages:</td>
+          <td className="text-right text-break pl-1">{packageCount}</td>
+        </tr>
+      </tbody>
+    </table>
+  );
 }
 
 function getClazzesCount(component: Package): number {
@@ -49,7 +47,7 @@ function getPackagesCount(component: Package): number {
   ).length;
   const children = component.subPackages;
   children.forEach((child) => {
-    result += this.getPackagesCount(child);
+    result += getPackagesCount(child);
   });
   return result;
 }
