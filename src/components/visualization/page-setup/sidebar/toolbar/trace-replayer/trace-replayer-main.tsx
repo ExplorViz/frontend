@@ -190,9 +190,14 @@ export default function TraceReplayerMain({
       return;
     }
 
+    const min = Math.min(...timeline.map((node) => node.start));
+    const max = Math.max(...timeline.map((node) => node.end));
+    const duration = max - min;
+
     turnTransparent(opacity);
 
-    cursor.current = cursor.current + delta * speed.current;
+    // So we have an even speed for all traces, we consider the duration of the trace
+    cursor.current = cursor.current + delta * speed.current * (duration / 1e2);
 
     observer.forEach((notify) => {
       notify(cursor.current);
@@ -409,8 +414,11 @@ export default function TraceReplayerMain({
         <div className="mb-3">
           <Button
             className="th-btn mx-2"
-            title="Next"
-            onClick={stop}
+            title="Stop"
+            onClick={() => {
+              setStopped(true);
+              setPaused(false);
+            }}
             type="button"
           >
             <SquareCircleIcon size="small" />

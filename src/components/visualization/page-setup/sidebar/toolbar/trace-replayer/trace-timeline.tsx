@@ -28,7 +28,8 @@ export default function TraceTimeline({
     scrollZoom: false,
   };
 
-  const max = Math.max(...timeline.map((node) => node.end));
+  const max =
+    timeline.length === 0 ? 0 : Math.max(...timeline.map((node) => node.end));
 
   const data = [
     {

@@ -15,6 +15,7 @@ import {
 } from 'explorviz-frontend/src/utils/trace-helpers';
 import { Button } from 'react-bootstrap'; // Assuming you're using react-bootstrap for buttons
 import { TimeUnit } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
+import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
 
 interface TraceSelectionProps {
   selectTrace: (trace: Trace) => void;
@@ -226,7 +227,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
                 <th title={trace.traceId}>{trace.traceId.substring(0, 30)}</th>
                 <td>{requestCounts[index]}</td>
                 <td>
-                  {traceDurations[index].toFixed(2)} {unit}
+                  {formatNumber(traceDurations[index], unit)} {unit}
                 </td>
               </tr>
             ))}

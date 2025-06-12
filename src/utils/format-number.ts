@@ -4,7 +4,7 @@
  * @param unit time unit
  */
 export function formatNumber(inputNumber: number, unit: string) {
-  if (unit === 'μs') {
+  if (unit === 'µs') {
     return (inputNumber / 1000.0).toFixed(4).toString();
   }
   if (unit === 'ms') {
