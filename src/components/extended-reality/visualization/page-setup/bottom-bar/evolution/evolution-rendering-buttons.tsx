@@ -6,6 +6,8 @@ import {
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useShallow } from 'zustand/react/shallow';
+import Dropdown from 'react-bootstrap/Dropdown';
+import { DropdownButton } from 'react-bootstrap';
 
 interface IArgs {
   selectedAppName: string;
@@ -13,10 +15,6 @@ interface IArgs {
 }
 
 export default function EvolutionRenderingButtons(args: IArgs) {
-  const showSelectionButton = useRenderingServiceStore(
-    (state) => state._userInitiatedStaticDynamicCombination
-  );
-
   const commitTreeState = useCommitTreeStateStore(
     useShallow((state) => ({
       resetSelectedCommits: state.resetSelectedCommits,
@@ -50,22 +48,26 @@ export default function EvolutionRenderingButtons(args: IArgs) {
   };
 
   const changeAnalysisMode = (x: any) => {
-    const newEvolutionModeRenderingConfiguration =
+    const evolutionMode =
       visService.getCloneOfEvolutionModeRenderingConfiguration();
 
     if (x === 'dynamic') {
-      newEvolutionModeRenderingConfiguration.renderDynamic =
-        !newEvolutionModeRenderingConfiguration.renderDynamic;
+      evolutionMode.renderDynamic = true;
+      evolutionMode.renderStatic = false;
+      evolutionMode.renderOnlyDifferences = false;
     } else if (x === 'static') {
-      newEvolutionModeRenderingConfiguration.renderStatic =
-        !newEvolutionModeRenderingConfiguration.renderStatic;
+      evolutionMode.renderDynamic = false;
+      evolutionMode.renderStatic = true;
+      evolutionMode.renderOnlyDifferences = false;
+    } else if (x === 'static+dynamic') {
+      evolutionMode.renderDynamic = true;
+      evolutionMode.renderStatic = true;
+      evolutionMode.renderOnlyDifferences = false;
     } else if (x === 'difference') {
-      newEvolutionModeRenderingConfiguration.renderOnlyDifferences =
-        !newEvolutionModeRenderingConfiguration.renderOnlyDifferences;
+      evolutionMode.renderStatic = true;
+      evolutionMode.renderOnlyDifferences = true;
     }
-    visService.applyEvolutionModeRenderingConfiguration(
-      newEvolutionModeRenderingConfiguration
-    );
+    visService.applyEvolutionModeRenderingConfiguration(evolutionMode);
   };
 
   return (
@@ -86,38 +88,39 @@ export default function EvolutionRenderingButtons(args: IArgs) {
               </div>
             </div>
           )}
-          {showSelectionButton && (
+          {args.selectedCommits.size > 0 && (
             <div className="col-md-auto">
-              <div className="d-flex">
-                <div style={{ marginRight: '4rem' }}>Show Runtime</div>
-                <div className="d-flex">
-                  <label className="wide-checkbox-container">
-                    <input
-                      type="checkbox"
-                      checked={checkboxValues.current.renderDynamic}
-                      onChange={() => changeAnalysisMode('dynamic')}
-                    />
-                    <span className="wide-checkbox"></span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-          {showSelectionButton && (
-            <div className="col-md-auto">
-              <div className="d-flex">
-                <div style={{ marginRight: '4rem' }}>Show Code</div>
-                <div className="d-flex">
-                  <label className="wide-checkbox-container">
-                    <input
-                      type="checkbox"
-                      checked={checkboxValues.current.renderStatic}
-                      onChange={() => changeAnalysisMode('static')}
-                    />
-                    <span className="wide-checkbox"></span>
-                  </label>
-                </div>
-              </div>
+              <DropdownButton
+                id="dropdown-basic-button"
+                title="Dropdown button"
+                variant="secondary"
+                drop="end"
+              >
+                <Dropdown.Item
+                  key="Show Runtime Only"
+                  onClick={() => changeAnalysisMode('dynamic')}
+                >
+                  Show Runtime Only
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="Show Evolution Only"
+                  onClick={() => changeAnalysisMode('static')}
+                >
+                  Show Evolution Only
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="Show Runtime + Evolution"
+                  onClick={() => changeAnalysisMode('static+dynamic')}
+                >
+                  Show Runtime + Evolution
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="Evolution (Differences Only)"
+                  onClick={() => changeAnalysisMode('difference')}
+                >
+                  Evolution (Differences Only)
+                </Dropdown.Item>
+              </DropdownButton>
             </div>
           )}
           {args.selectedCommits.get(args.selectedAppName)?.length === 2 && (
