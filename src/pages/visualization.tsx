@@ -893,10 +893,7 @@ export default function Visualization() {
                         selectedAppName={currentSelectedApplicationName}
                       />
                     </div>
-                    <EvolutionRenderingButtons
-                      selectedAppName={currentSelectedApplicationName}
-                      selectedCommits={getSelectedCommits()}
-                    />
+                    <EvolutionRenderingButtons />
                   </div>
                   <PlotlyCommitTree
                     appNameCommitTreeMap={

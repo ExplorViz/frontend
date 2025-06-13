@@ -1,21 +1,12 @@
-import {
-  useCommitTreeStateStore,
-  SelectedCommit,
-} from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { useShallow } from 'zustand/react/shallow';
-import Dropdown from 'react-bootstrap/Dropdown';
-import { DropdownButton } from 'react-bootstrap';
 import { useState } from 'react';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { DropdownButton } from 'react-bootstrap';
+import Dropdown from 'react-bootstrap/Dropdown';
+import { useShallow } from 'zustand/react/shallow';
 
-interface IArgs {
-  selectedAppName: string;
-  selectedCommits: Map<string, SelectedCommit[]>;
-}
-
-export default function EvolutionRenderingButtons(args: IArgs) {
+export default function EvolutionRenderingButtons() {
   const commitTreeState = useCommitTreeStateStore(
     useShallow((state) => ({
       resetSelectedCommits: state.resetSelectedCommits,
@@ -31,8 +22,14 @@ export default function EvolutionRenderingButtons(args: IArgs) {
     }))
   );
 
-  const showErrorToastMessage = useToastHandlerStore(
-    (state) => state.showErrorToastMessage
+  const getCurrentSelectedApplicationName = useCommitTreeStateStore(
+    (state) => state.getCurrentSelectedApplicationName
+  );
+
+  const { getSelectedCommits } = useCommitTreeStateStore(
+    useShallow((state) => ({
+      getSelectedCommits: state.getSelectedCommits,
+    }))
   );
 
   const visService = useVisibilityServiceStore(
@@ -67,11 +64,6 @@ export default function EvolutionRenderingButtons(args: IArgs) {
       evolutionMode.renderStatic = true;
       evolutionMode.renderOnlyDifferences = false;
     } else if (x === 'difference') {
-      if (args.selectedCommits.size < 2) {
-        showErrorToastMessage(
-          'Cannot show differences, less than 2 commits selected'
-        );
-      }
       evolutionMode.renderStatic = true;
       evolutionMode.renderOnlyDifferences = true;
     }
@@ -80,10 +72,12 @@ export default function EvolutionRenderingButtons(args: IArgs) {
 
   return (
     <div className="col-md-auto">
-      {args.selectedAppName && (
+      {getCurrentSelectedApplicationName() && (
         <div className="row justify-content-md-center">
-          {(args.selectedCommits.get(args.selectedAppName)?.length === 1 ||
-            args.selectedCommits.get(args.selectedAppName)?.length === 2) && (
+          {(getSelectedCommits().get(getCurrentSelectedApplicationName())
+            ?.length === 1 ||
+            getSelectedCommits().get(getCurrentSelectedApplicationName())
+              ?.length === 2) && (
             <div className="col-md-auto">
               <div className="d-flex">
                 <button
@@ -96,7 +90,7 @@ export default function EvolutionRenderingButtons(args: IArgs) {
               </div>
             </div>
           )}
-          {args.selectedCommits.size > 0 && (
+          {getSelectedCommits().size > 0 && (
             <div className="col-md-auto">
               <DropdownButton
                 id="dropdown-basic-button"
