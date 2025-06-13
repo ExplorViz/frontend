@@ -1,5 +1,3 @@
-import React from 'react';
-
 import Tooltip from 'react-bootstrap/Tooltip';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { CopyIcon } from '@primer/octicons-react';
@@ -24,7 +22,11 @@ export default function CopyButton({
   };
 
   return (
-    <button className="copy-btn button-svg-with-hover" onClick={onCopy}>
+    <button
+      type="button"
+      className="copy-btn button-svg-with-hover"
+      onClick={onCopy}
+    >
       <OverlayTrigger
         placement={'right'}
         trigger={['hover', 'focus']}

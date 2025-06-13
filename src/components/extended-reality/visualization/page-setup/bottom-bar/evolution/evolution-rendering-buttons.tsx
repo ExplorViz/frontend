@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import {
   useCommitTreeStateStore,
   SelectedCommit,
@@ -8,6 +7,8 @@ import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibil
 import { useShallow } from 'zustand/react/shallow';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { DropdownButton } from 'react-bootstrap';
+import { useState } from 'react';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 interface IArgs {
   selectedAppName: string;
@@ -21,11 +22,17 @@ export default function EvolutionRenderingButtons(args: IArgs) {
     }))
   );
 
+  const [modeLabel, setModeLabel] = useState<string>('Show Evolution Only');
+
   const renderingService = useRenderingServiceStore(
     useShallow((state) => ({
       triggerRenderingForSelectedCommits:
         state.triggerRenderingForSelectedCommits,
     }))
+  );
+
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
   );
 
   const visService = useVisibilityServiceStore(
@@ -36,10 +43,6 @@ export default function EvolutionRenderingButtons(args: IArgs) {
       getCloneOfEvolutionModeRenderingConfiguration:
         state.getCloneOfEvolutionModeRenderingConfiguration,
     }))
-  );
-
-  const checkboxValues = useRef(
-    visService.getCloneOfEvolutionModeRenderingConfiguration()
   );
 
   const unselectAllSelectedCommits = () => {
@@ -64,6 +67,11 @@ export default function EvolutionRenderingButtons(args: IArgs) {
       evolutionMode.renderStatic = true;
       evolutionMode.renderOnlyDifferences = false;
     } else if (x === 'difference') {
+      if (args.selectedCommits.size < 2) {
+        showErrorToastMessage(
+          'Cannot show differences, less than 2 commits selected'
+        );
+      }
       evolutionMode.renderStatic = true;
       evolutionMode.renderOnlyDifferences = true;
     }
@@ -92,52 +100,47 @@ export default function EvolutionRenderingButtons(args: IArgs) {
             <div className="col-md-auto">
               <DropdownButton
                 id="dropdown-basic-button"
-                title="Dropdown button"
+                title={modeLabel}
                 variant="secondary"
                 drop="end"
               >
                 <Dropdown.Item
-                  key="Show Runtime Only"
-                  onClick={() => changeAnalysisMode('dynamic')}
-                >
-                  Show Runtime Only
-                </Dropdown.Item>
-                <Dropdown.Item
                   key="Show Evolution Only"
-                  onClick={() => changeAnalysisMode('static')}
+                  onClick={() => {
+                    changeAnalysisMode('static');
+                    setModeLabel('Show Evolution Only');
+                  }}
                 >
                   Show Evolution Only
                 </Dropdown.Item>
                 <Dropdown.Item
+                  key="Show Runtime Only"
+                  onClick={() => {
+                    changeAnalysisMode('dynamic');
+                    setModeLabel('Show Runtime Only');
+                  }}
+                >
+                  Show Runtime Only
+                </Dropdown.Item>
+                <Dropdown.Item
                   key="Show Runtime + Evolution"
-                  onClick={() => changeAnalysisMode('static+dynamic')}
+                  onClick={() => {
+                    changeAnalysisMode('static+dynamic');
+                    setModeLabel('Show Runtime + Evolution');
+                  }}
                 >
                   Show Runtime + Evolution
                 </Dropdown.Item>
                 <Dropdown.Item
                   key="Evolution (Differences Only)"
-                  onClick={() => changeAnalysisMode('difference')}
+                  onClick={() => {
+                    changeAnalysisMode('difference');
+                    setModeLabel('Evolution (Differences Only)');
+                  }}
                 >
                   Evolution (Differences Only)
                 </Dropdown.Item>
               </DropdownButton>
-            </div>
-          )}
-          {args.selectedCommits.get(args.selectedAppName)?.length === 2 && (
-            <div className="col-md-auto">
-              <div className="d-flex">
-                <div style={{ marginRight: '4rem' }}>Only show differences</div>
-                <div className="d-flex">
-                  <label className="wide-checkbox-container">
-                    <input
-                      type="checkbox"
-                      checked={visService.configuration.renderOnlyDifferences}
-                      onChange={() => changeAnalysisMode('difference')}
-                    />
-                    <span className="wide-checkbox"></span>
-                  </label>
-                </div>
-              </div>
             </div>
           )}
         </div>
