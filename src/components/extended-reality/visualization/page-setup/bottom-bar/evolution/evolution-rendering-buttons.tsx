@@ -89,7 +89,7 @@ export default function EvolutionRenderingButtons(args: IArgs) {
           {showSelectionButton && (
             <div className="col-md-auto">
               <div className="d-flex">
-                <div className="mr-2">Show Runtime</div>
+                <div style={{ marginRight: '4rem' }}>Show Runtime</div>
                 <div className="d-flex">
                   <label className="wide-checkbox-container">
                     <input
@@ -106,7 +106,7 @@ export default function EvolutionRenderingButtons(args: IArgs) {
           {showSelectionButton && (
             <div className="col-md-auto">
               <div className="d-flex">
-                <div className="mr-2">Show Code</div>
+                <div style={{ marginRight: '4rem' }}>Show Code</div>
                 <div className="d-flex">
                   <label className="wide-checkbox-container">
                     <input
