@@ -40,7 +40,8 @@ export default function CommitTreeApplicationSelection({
     ));
 
     return (
-      <div className="col-md-auto">
+      <div className="col-md-auto d-flex align-items-center">
+        <span className="h5 p-2">Application:</span>
         <Dropdown id="application-selection">
           <Dropdown.Toggle id="dropdown-basic" variant="secondary">
             {selectedAppName || 'Applications'}
