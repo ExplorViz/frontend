@@ -1,38 +1,38 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
-import {
-  VisualizationSettingId,
-  VisualizationSettings,
-  SettingLevel,
-  SettingGroup,
-  RangeSetting as RangeSettingSchema,
-  ColorSettingId,
-  isFlagSetting,
-  isRangeSetting,
-  isColorSetting,
-} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
+import ColorSchemeSelector from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector';
+import ButtonSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting';
+import FlagSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
+import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
+import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
-import { Mesh } from 'three';
-import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
-import ColorSchemeSelector from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector';
-import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
-import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
-import FlagSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
-import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
-import ButtonSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting';
+import {
+  ColorSettingId,
+  isColorSetting,
+  isFlagSetting,
+  isRangeSetting,
+  RangeSetting as RangeSettingSchema,
+  SettingGroup,
+  SettingLevel,
+  VisualizationSettingId,
+  VisualizationSettings,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import { Mesh } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsProps {
@@ -90,7 +90,6 @@ export default function Settings({
     (state) => state.addCommunicationForAllApplications
   );
   const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
-  const setDefaultCamera = useLocalUserStore((state) => state.setDefaultCamera);
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
   const updateMinimapSphereRadius = useMinimapStore(
     (state) => state.updateSphereRadius
@@ -106,13 +105,19 @@ export default function Settings({
   const setSemanticZoomEnabled = useConfigurationStore(
     (state) => state.setSemanticZoomEnabled
   );
-  const setColorScheme = useUserSettingsStore((state) => state.setColorScheme);
-  const applyDefaultSettingsForGroup = useUserSettingsStore(
-    (state) => state.applyDefaultSettingsForGroup
+
+  const {
+    applyDefaultSettingsForGroup,
+    setColorScheme,
+    updateUserSettingsColors,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
+      setColorScheme: state.setColorScheme,
+      updateUserSettingsColors: state.updateColors,
+    }))
   );
-  const updateUserSettingsColors = useUserSettingsStore(
-    (state) => state.updateColors
-  );
+
   const updateHighlightingInStore = useHighlightingStore(
     (state) => state.updateHighlighting
   );
@@ -122,7 +127,6 @@ export default function Settings({
       SettingGroup,
       VisualizationSettingId[]
     > = {
-      Annotations: [],
       Camera: [],
       Colors: [],
       Communication: [],
@@ -142,7 +146,7 @@ export default function Settings({
     // eslint-disable-next-line guard-for-in, no-restricted-syntax
     for (settingId in visualizationSettings) {
       const setting = visualizationSettings[settingId];
-      // Filter Settings level
+      // Filter settings level
       if (
         setting.level <=
         (visualizationSettings.showExtendedSettings
@@ -236,7 +240,7 @@ export default function Settings({
     const settingId = name as VisualizationSettingId;
     try {
       updateUserSetting(settingId, value);
-    } catch (e) {
+    } catch (e: any) {
       showErrorToastMessage(e.message);
     }
     const semZoomLevels = [
@@ -280,22 +284,16 @@ export default function Settings({
         }
         break;
       case 'cameraNear':
-        // Update is not immutable since camera is embeded in scene hierarchy, could potentially break stuff
-        defaultCamera.near = visualizationSettings.cameraNear.value;
+        defaultCamera.near = value;
         defaultCamera.updateProjectionMatrix();
-        setDefaultCamera(defaultCamera);
         break;
       case 'cameraFar':
-        // Update is not immutable since camera is embeded in scene hierarchy, could potentially break stuff
-        defaultCamera.far = visualizationSettings.cameraFar.value;
+        defaultCamera.far = value;
         defaultCamera.updateProjectionMatrix();
-        setDefaultCamera(defaultCamera);
         break;
       case 'cameraFov':
-        // Update is not immutable since camera is embeded in scene hierarchy, could potentially break stuff
-        defaultCamera.fov = visualizationSettings.cameraFov.value;
+        defaultCamera.fov = value;
         defaultCamera.updateProjectionMatrix();
-        setDefaultCamera(defaultCamera);
         break;
       case 'distancePreSet':
         semanticZoomPreSetSetter(value!, semZoomLevels);
@@ -368,7 +366,7 @@ export default function Settings({
   ) => {
     try {
       updateUserSetting(settingId, value);
-    } catch (e) {
+    } catch (e: any) {
       showErrorToastMessage(e.message);
     }
 
@@ -468,15 +466,6 @@ export default function Settings({
     }
   };
 
-  const updateColorSetting = (name: VisualizationSettingId, value: string) => {
-    const settingId = name as VisualizationSettingId;
-    try {
-      updateUserSetting(settingId, value);
-    } catch (e) {
-      showErrorToastMessage(e.message);
-    }
-  };
-
   const applyColorScheme = (colorScheme: ColorSchemeId) => {
     setColorScheme(colorScheme);
     updateColors?.();
@@ -486,10 +475,10 @@ export default function Settings({
   const updateVisualizationState = () => {
     updateUserSettingsColors();
     updateHighlightingInStore();
-    // Update is not immutable since camera is embeded in scene hierarchy, could potentially break stuff
+    defaultCamera.near = visualizationSettings.cameraNear.value;
+    defaultCamera.far = visualizationSettings.cameraFar.value;
     defaultCamera.fov = visualizationSettings.cameraFov.value;
     defaultCamera.updateProjectionMatrix();
-    setDefaultCamera(defaultCamera);
     updateApplicationLayout();
     updateLabels();
     addCommunicationForAllApplications();
@@ -504,6 +493,7 @@ export default function Settings({
   const resetSettingsAndUpdate = async () => {
     if (resetSettings) {
       resetSettings(true);
+      setResetState(!resetState);
       updateVisualizationState();
     }
   };

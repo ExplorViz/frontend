@@ -1,14 +1,29 @@
-import React, { useEffect, useState } from 'react';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
+import {
+  RangeSetting as RangeSettingData,
+  VisualizationSettingId,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { useEffect } from 'react';
+import { useState } from 'react';
 
-export default function RangeSetting({ setting, onChange, settingId, resetState }: any) {
+export default function RangeSetting({
+  setting,
+  onChange,
+  settingId,
+  resetState,
+}: {
+  setting: RangeSettingData;
+  onChange: (settingId: VisualizationSettingId, value: number) => void;
+  settingId: VisualizationSettingId;
+  resetState: boolean;
+}) {
   const [value, setValue]: any = useState(setting.value);
-  const [singleResetState, setSingleResetState] = useState<boolean>(false);
 
   useEffect(() => {
-    setValue(setting.value);
-  }, [resetState, singleResetState]);
+    setValue(defaultVizSettings[settingId].value);
+  }, [resetState]);
 
   const handleInput = (newValue: number) => {
     onChange(settingId, newValue);
@@ -18,13 +33,13 @@ export default function RangeSetting({ setting, onChange, settingId, resetState 
   return (
     <div className="setting-container">
       <HelpTooltip title={setting.description} />
-      <label className="m-0" htmlFor={setting.name}>
+      <label className="m-0" htmlFor={setting.displayName}>
         {setting.displayName}
       </label>
       <div className="range-slider--container">
         <div style={{ width: '100%' }}>
           <input
-            id={setting.name}
+            id={setting.displayName}
             value={value}
             min={setting.range.min}
             max={setting.range.max}
@@ -40,7 +55,14 @@ export default function RangeSetting({ setting, onChange, settingId, resetState 
             <span>{setting.range.max}</span>
           </div>
         </div>
-        <ResetButton onClick={() => {onChange(settingId); setSingleResetState(!singleResetState);}} />
+        <ResetButton
+          onClick={() => {
+            const defaultValue = defaultVizSettings[settingId].value;
+            if (typeof defaultValue === 'number') {
+              handleInput(defaultValue);
+            }
+          }}
+        />
       </div>
     </div>
   );
