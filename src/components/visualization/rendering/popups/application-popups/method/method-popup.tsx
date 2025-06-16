@@ -42,12 +42,13 @@ export default function MethodPopup({
                 <th>Type</th>
               </thead>
               <tbody>
-                {method.parameters.map((params) => (
-                  <tr key={params.name}>
-                    <td>{params.name}</td>
-                    <td>{params.type}</td>
-                  </tr>
-                ))}
+                {method.parameters &&
+                  method.parameters.map((params) => (
+                    <tr key={params.name}>
+                      <td>{params.name}</td>
+                      <td>{params.type}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </>

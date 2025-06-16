@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   Application,
   TypeOfAnalysis,
@@ -17,12 +15,12 @@ export default function FoundationPopupCode({
   application,
 }: FoundationPopupCodeProps) {
   const clazzCount = getAllClassesInApplicationForGivenOrigin(
-    this.args.application,
+    application,
     TypeOfAnalysis.Static
   ).length;
 
   const packageCount = getAllPackagesInApplicationForGivenOrigin(
-    this.args.application,
+    application,
     TypeOfAnalysis.Static
   ).length;
 
@@ -40,11 +38,11 @@ export default function FoundationPopupCode({
           <td className="text-right text-break pl-1">{application.language}</td>
         </tr>
         <tr>
-          <td>Contained Classes:</td>
+          <td>Classes/Files:</td>
           <td className="text-right text-break pl-1">{clazzCount}</td>
         </tr>
         <tr>
-          <td>Contained Packages:</td>
+          <td>Packages/Folders:</td>
           <td className="text-right text-break pl-1">{packageCount}</td>
         </tr>
       </tbody>

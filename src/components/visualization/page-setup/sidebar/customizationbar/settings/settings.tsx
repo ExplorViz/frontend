@@ -33,6 +33,7 @@ import ResetButton from 'explorviz-frontend/src/components/visualization/page-se
 import FlagSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import ButtonSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting';
+import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsProps {
   enterFullscreen(): void;
@@ -69,8 +70,18 @@ export default function Settings({
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
-  const updateApplicationLayout = useApplicationRendererStore(
-    (state) => state.updateApplicationLayout
+  const {
+    closeAllComponentsOfAllApplications,
+    openAllComponentsOfAllApplications,
+    updateApplicationLayout,
+  } = useApplicationRendererStore(
+    useShallow((state) => ({
+      closeAllComponentsOfAllApplications:
+        state.closeAllComponentsOfAllApplications,
+      openAllComponentsOfAllApplications:
+        state.openAllComponentsOfAllApplications,
+      updateApplicationLayout: state.updateApplicationLayout,
+    }))
   );
   const updateLabels = useApplicationRendererStore(
     (state) => state.updateLabels
@@ -440,6 +451,9 @@ export default function Settings({
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       case 'autoOpenCloseFeature':
+        value
+          ? closeAllComponentsOfAllApplications()
+          : openAllComponentsOfAllApplications();
         SemanticZoomManager.instance.toggleAutoOpenClose(value);
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;

@@ -6,10 +6,6 @@ default:
   tags:
     - exec-docker
   image: explorviz/build-images:frontend-node-22-alpine
-  cache: # Cache modules in between jobs
-    key: $CI_COMMIT_REF_SLUG
-    paths:
-      - .npm/
 
 stages:
   - code-analysis

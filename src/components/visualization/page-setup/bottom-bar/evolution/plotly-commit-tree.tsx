@@ -1,13 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { SelectedCommit } from '../../../../../stores/commit-tree-state';
+import { useEffect, useRef, useState } from 'react';
+import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   AppNameCommitTreeMap,
   Branch,
   Commit,
   CROSS_COMMIT_IDENTIFIER,
-} from '../../../../../utils/evolution-schemes/evolution-data';
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import Plotly from 'plotly.js-dist';
-import { Console } from 'console';
 
 interface PlotlyCommitTreeArgs {
   appNameCommitTreeMap: AppNameCommitTreeMap;
@@ -37,8 +36,6 @@ export default function PlotlyCommitTree({
   // TODO: Use this property, only set and never read as of now
   let userSlidingWindow = null;
 
-  let commitTreeDiv: any;
-
   let usedColors: Set<number[]> = new Set();
   let branchNameToLineColor: Map<string, string> = new Map();
   let branchToY: Map<string, number> = new Map();
@@ -50,12 +47,8 @@ export default function PlotlyCommitTree({
     return 'red';
   })();
 
-  let _selectedCommits: Map<string, Commit[]> = new Map();
-  let _appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
-
-  const _selectedAppName = (() => {
-    return selectedAppName;
-  })();
+  let [_appNameCommitTreeMap, setAppNameCommitTreeMap] =
+    useState<AppNameCommitTreeMap>(new Map());
 
   // #endregion template-argument getters
 
@@ -64,18 +57,14 @@ export default function PlotlyCommitTree({
   const plotlyDivNoTimestampsRef = useRef(null);
 
   useEffect(() => {
-    if (plotlyCommitDivRef.current) {
-      setupPlotlyCommitTreeChart(plotlyCommitDivRef);
-    } else if (plotlyDivNoTimestampsRef.current) {
-      setupPlotlyCommitTreeChart(plotlyDivNoTimestampsRef);
-    }
+    setupPlotlyCommitTreeChart();
   }, []);
 
   useEffect(() => {
     if (plotlyCommitDivRef.current) {
       updatePlotlyCommitTree();
     }
-  }, [_selectedAppName, _selectedCommits]);
+  }, [selectedAppName, _appNameCommitTreeMap]);
 
   // #endregion useEffect & useRef
 
@@ -96,25 +85,20 @@ export default function PlotlyCommitTree({
 
   // #region Plot Setup
 
-  const setupPlotlyCommitTreeChart = (plotlyDiv: any) => {
-    commitTreeDiv = plotlyDiv;
-
-    // deep copy attributes (Map and Object is passed via reference, therefor changes in this component would actually be executed on the original element) -> nasty bugs
-
-    _appNameCommitTreeMap = structuredClone(appNameCommitTreeMap);
-    _selectedCommits = structuredClone(selectedCommits);
+  const setupPlotlyCommitTreeChart = () => {
+    // deep copy attributes (Map and Object is passed via reference, therefore changes in this component would actually be executed on the original element) -> nasty bugs
+    setAppNameCommitTreeMap(structuredClone(appNameCommitTreeMap));
 
     usedColors.add([255, 255, 255]); // initialize with white so it won't be used as color for branches on a white background
 
-    if (_appNameCommitTreeMap && _selectedAppName && _selectedCommits) {
+    if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
       updatePlotlyCommitTree();
-      setupPlotlyListener();
     }
   };
 
   const setupPlotlyListener = () => {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
-    const plotlyDiv = commitTreeDiv;
+    const plotlyDiv: any = plotlyCommitDivRef.current;
 
     if (plotlyDiv && plotlyDiv.layout) {
       plotlyDiv.on('plotly_hover', () => {
@@ -144,8 +128,8 @@ export default function PlotlyCommitTree({
         const commitId = getCommitId(branchName, pn);
         const selectedCommit: Commit = { commitId, branchName };
 
-        let selectedCommitsForApp =
-          _selectedCommits.get(_selectedAppName) || [];
+        let selectedCommitsForApp = selectedCommits.get(selectedAppName) || [];
+        selectedCommits.set(selectedAppName, selectedCommitsForApp);
 
         if (
           isCommitAlreadySelected(
@@ -163,18 +147,18 @@ export default function PlotlyCommitTree({
         }
 
         // Filter out empty selections and remove empty applications
-        for (const [app, commits] of _selectedCommits.entries()) {
+        for (const [app, commits] of selectedCommits.entries()) {
           if (commits.length === 0) {
-            _selectedCommits.delete(app);
+            selectedCommits.delete(app);
           }
         }
 
-        setSelectedCommits(_selectedCommits);
+        setSelectedCommits(selectedCommits);
         triggerVizRenderingForSelectedCommits();
 
         function getCommitId(branchName: string, pointNumber: number): string {
           const commitTreeForSelectedAppName =
-            appNameCommitTreeMap.get(_selectedAppName);
+            appNameCommitTreeMap.get(selectedAppName);
 
           if (commitTreeForSelectedAppName) {
             for (const branch of commitTreeForSelectedAppName.branches) {
@@ -194,10 +178,10 @@ export default function PlotlyCommitTree({
         }
 
         function unselectAllCommits() {
-          _selectedCommits.set(_selectedAppName, []);
+          selectedCommits.set(selectedAppName, []);
 
           const commitTreeForSelectedAppName =
-            _appNameCommitTreeMap.get(_selectedAppName);
+            _appNameCommitTreeMap.get(selectedAppName);
 
           if (commitTreeForSelectedAppName) {
             for (const branch of commitTreeForSelectedAppName.branches) {
@@ -213,14 +197,13 @@ export default function PlotlyCommitTree({
         }
 
         function selectCommit(commit: Commit, pointNumber: number) {
+          selectedCommitsForApp.push(commit);
+
           colors[pointNumber] = highlightedMarkerColor;
           sizes[pointNumber] = COMMIT_SELECTED_SIZE;
           const update = { marker: { color: colors, size: sizes } };
           const tn = data.points[0].curveNumber;
           Plotly.restyle(plotlyDiv, update, [tn]);
-
-          selectedCommitsForApp.push(commit);
-          _selectedCommits.set(_selectedAppName, selectedCommitsForApp);
         }
 
         function unselectCommit(commit: Commit, pointNumber: number) {
@@ -230,9 +213,9 @@ export default function PlotlyCommitTree({
           colors[pointNumber] = data.points[0].fullData.line.color;
           sizes[pointNumber] = COMMIT_UNSELECTED_SIZE;
           if (selectedCommitsForApp.length === 0) {
-            _selectedCommits.delete(_selectedAppName);
+            selectedCommits.delete(selectedAppName);
           } else {
-            _selectedCommits.set(_selectedAppName, selectedCommitsForApp);
+            selectedCommits.set(selectedAppName, selectedCommitsForApp);
           }
           const update = { marker: { color: colors, size: sizes } };
           const tn = data.points[0].curveNumber;
@@ -249,11 +232,11 @@ export default function PlotlyCommitTree({
   // #region Plot Update
 
   const updatePlotlyCommitTree = () => {
-    if (_appNameCommitTreeMap && _selectedAppName && _selectedCommits) {
+    if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
       createPlotlyCommitTreeChart(
         _appNameCommitTreeMap,
-        _selectedAppName,
-        _selectedCommits
+        selectedAppName,
+        selectedCommits
       );
     }
   };
@@ -299,6 +282,7 @@ export default function PlotlyCommitTree({
 
     if (
       commitTreeForSelectedAppName &&
+      commitTreeForSelectedAppName.branches &&
       commitTreeForSelectedAppName.branches.find(
         (branch) => branch.commits.length > 0
       )
@@ -385,13 +369,12 @@ export default function PlotlyCommitTree({
       });
 
       Plotly.react(
-        commitTreeDiv,
+        plotlyCommitDivRef.current,
         plotlyBranches,
         layout,
         getPlotlyOptionsObject()
       );
-    } else {
-      console.log("No commits found for selected application!");
+      setupPlotlyListener();
     }
   };
 
@@ -399,11 +382,11 @@ export default function PlotlyCommitTree({
     const cloneColorMap = getCloneOfAppNameAndBranchNameToColorMap();
 
     let color: string | undefined = cloneColorMap.get(
-      _selectedAppName + branchName
+      selectedAppName + branchName
     );
     if (!color) {
       color = randomRGBA();
-      cloneColorMap.set(_selectedAppName + branchName, color);
+      cloneColorMap.set(selectedAppName + branchName, color);
       setAppNameAndBranchNameToColorMap(cloneColorMap);
     }
     return color;
@@ -592,7 +575,9 @@ export default function PlotlyCommitTree({
 
   return (
     <>
-      {appNameCommitTreeMap && selectedAppName ? (
+      {appNameCommitTreeMap &&
+      selectedAppName &&
+      appNameCommitTreeMap.get(selectedAppName)?.branches ? (
         <div
           ref={plotlyCommitDivRef}
           className="plotlyCommitDiv"

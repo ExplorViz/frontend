@@ -2,7 +2,7 @@
 
 ExplorViz is a software visualization as a service approach that researches how to facilitate program comprehension via collaboration, device-heterogenity, and different integration concepts.
 
-Our [website](https://explorviz.dev) contains additional information such as a quickstart guide and a demo.
+Our [website](https://explorviz.uni-kiel.de) contains additional information such as a quickstart guide and a demo.
 
 ## About this repository
 

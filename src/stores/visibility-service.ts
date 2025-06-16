@@ -107,8 +107,9 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
         useRenderingServiceStore.getState()._landscapeData
           ?.structureLandscapeData;
 
-      for (const applicationObject3D of useApplicationRendererStore.getState()
-        .openApplications) {
+      for (const applicationObject3D of useApplicationRendererStore
+        .getState()
+        .openApplicationsMap.values()) {
         const hideVis = (
           type: TypeOfAnalysis,
           keepMeshesNecessaryForDifference: boolean = false
@@ -189,7 +190,7 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
     ) => {
       structure?.nodes.forEach((node) => {
         const app = node.applications.find(
-          (a) => a.id === applicationObject3D.data.application.id
+          (a) => a.id === applicationObject3D.getModelId()
         );
 
         if (app) {
@@ -311,7 +312,7 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
     ) => {
       structure?.nodes.forEach((node) => {
         const app = node.applications.find(
-          (a) => a.id === applicationObject3D.data.application.id
+          (a) => a.id === applicationObject3D.getModelId()
         );
 
         if (app) {

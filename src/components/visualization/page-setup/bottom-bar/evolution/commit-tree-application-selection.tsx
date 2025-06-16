@@ -1,6 +1,7 @@
-import React from 'react';
 import { AppNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import Dropdown from 'react-bootstrap/Dropdown';
+import { useEffect } from 'react';
 
 export default function CommitTreeApplicationSelection({
   appNameCommitTreeMap,
@@ -9,16 +10,25 @@ export default function CommitTreeApplicationSelection({
   appNameCommitTreeMap: AppNameCommitTreeMap;
   selectedAppName: string;
 }) {
-  // console.log(appNameCommitTreeMap!.size)
+  useEffect(() => {
+    const appNames = Array.from(appNameCommitTreeMap.keys());
+    if (
+      !selectedAppName ||
+      (appNames.includes(selectedAppName) && appNameCommitTreeMap!.size > 0)
+    ) {
+      useCommitTreeStateStore
+        .getState()
+        .setCurrentSelectedApplicationName(
+          Array.from(appNameCommitTreeMap.keys())[0]
+        );
+    }
+  }, []);
+
   if (appNameCommitTreeMap!.size > 0) {
-    const selAppName = selectedAppName
-      ? selectedAppName != undefined
-      : 'Applications';
     let obj = { array: Array.from(appNameCommitTreeMap.keys()) };
     let dropdownMenu = obj.array.map((item) => (
-      <div
+      <Dropdown.Item
         key={item}
-        className="dropdown-item pointer-cursor"
         onClick={() =>
           useCommitTreeStateStore
             .getState()
@@ -26,28 +36,18 @@ export default function CommitTreeApplicationSelection({
         }
       >
         {item}
-      </div>
+      </Dropdown.Item>
     ));
 
     return (
-      <div className="col-md-auto">
-        <div
-          id="application-selection"
-          className="dropdown"
-          style={{ zIndex: 500 }}
-        >
-          <button
-            className="btn btn-outline-dark dropdown-toggle"
-            type="button"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            {selAppName}
-          </button>
-
-          <div className="dropdown-menu">{dropdownMenu}</div>
-        </div>
+      <div className="col-md-auto d-flex align-items-center">
+        <span className="h5 p-2">Application:</span>
+        <Dropdown id="application-selection">
+          <Dropdown.Toggle id="dropdown-basic" variant="secondary">
+            {selectedAppName || 'Applications'}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>{dropdownMenu}</Dropdown.Menu>
+        </Dropdown>
       </div>
     );
   } else {

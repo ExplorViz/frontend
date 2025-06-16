@@ -38,7 +38,7 @@ export default function StatusIcons() {
           placement="bottom"
           overlay={<Tooltip>Semantic Zoom enabled</Tooltip>}
         >
-          <SearchIcon size={24} />
+          <SearchIcon color="green" size={24} />
         </OverlayTrigger>
       )}
 
@@ -46,7 +46,9 @@ export default function StatusIcons() {
         <OverlayTrigger
           placement="bottom"
           overlay={
-            <Tooltip>Connected to a room with {idToRemoteUser.size + 1} users.</Tooltip>
+            <Tooltip>
+              Connected to a room with {idToRemoteUser.size + 1} users.
+            </Tooltip>
           }
         >
           <div className="navbar-success-icon">

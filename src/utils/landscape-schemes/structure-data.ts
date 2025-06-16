@@ -186,22 +186,26 @@ export function preProcessAndEnhanceStructureLandscape(
   }
 
   function createApplicationId(app: Application, parent: Node | K8sPod) {
-    app.id = `${parent.id}#${app.name}`;
+    app.id = `${parent.id}#application-${app.name}`;
     entitiesForIdHashing.add(app);
   }
 
   function createPackageIds(component: Package, parentId: string) {
-    component.id = `${parentId}.${component.name}`;
+    component.id = `${parentId}.component-${component.name}`;
     entitiesForIdHashing.add(component);
-    component.subPackages.forEach((subComponent) => {
-      createPackageIds(subComponent, component.id);
-    });
+    if (component.subPackages) {
+      component.subPackages.forEach((subComponent) => {
+        createPackageIds(subComponent, component.id);
+      });
+    } else {
+      component.subPackages = [];
+    }
   }
 
   function createClassIds(components: Package[]) {
     components.forEach((component) => {
       component.classes.forEach((clazz) => {
-        clazz.id = `${component.id}.${clazz.name}`;
+        clazz.id = `${component.id}.class-${clazz.name}`;
         entitiesForIdHashing.add(clazz);
       });
       createClassIds(component.subPackages);
