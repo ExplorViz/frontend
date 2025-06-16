@@ -51,7 +51,12 @@ export default function RangeSetting({
           />
           <div className="range-slider--values">
             <span>{setting.range.min}</span>
-            <span style={{ fontWeight: 'bold' }}>{value}</span>
+            <input
+              style={{ fontWeight: 'bold', textAlign: 'center', width: '5rem' }}
+              type="number"
+              value={value}
+              onChange={(event) => handleInput(Number(event.target.value))}
+            />
             <span>{setting.range.max}</span>
           </div>
         </div>

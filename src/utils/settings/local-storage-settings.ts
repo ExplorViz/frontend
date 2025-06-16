@@ -51,11 +51,8 @@ export function validateRangeSetting(
   rangeSetting: RangeSetting,
   value: number
 ) {
-  const { range } = rangeSetting;
   if (Number.isNaN(value)) {
     throw new Error('Value is not a number');
-  } else if (value < range.min || value > range.max) {
-    throw new Error(`Value must be between ${range.min} and ${range.max}`);
   }
 }
 
