@@ -405,16 +405,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines how many seconds popups stay on screen',
     isRangeSetting: true,
   },
-  // Annotation Settings
-  enableCustomAnnotationPosition: {
-    level: SettingLevel.EXTENDED,
-    value: true,
-    group: 'Annotations',
-    displayName: 'Enable Custom Annotation Positioning',
-    description:
-      'If enabled, annotations can be dragged to a prefered, fixed position',
-    isFlagSetting: true,
-  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.EXTENDED,

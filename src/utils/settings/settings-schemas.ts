@@ -1,5 +1,4 @@
 export type SettingGroup =
-  | 'Annotations'
   | 'Camera'
   | 'Colors'
   | 'Communication'
@@ -15,10 +14,6 @@ export type SettingGroup =
   | 'Semantic Zoom'
   | 'Debugging'
   | 'Virtual Reality';
-
-export type AnnotationSettingId = 'enableCustomAnnotationPosition';
-
-export type AnnotationSettings = Record<AnnotationSettingId, FlagSetting>;
 
 export type CameraSettingId = 'cameraNear' | 'cameraFar' | 'cameraFov';
 
@@ -192,7 +187,6 @@ export type XrSettingId = 'showVrButton' | 'showVrOnClick';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type VisualizationSettingId =
-  | AnnotationSettingId
   | CameraSettingId
   | ColorSettingId
   | CommunicationSettingId
@@ -207,8 +201,7 @@ export type VisualizationSettingId =
   | SemanticZoomSettingId
   | XrSettingId;
 
-export type VisualizationSettings = AnnotationSettings &
-  CameraSettings &
+export type VisualizationSettings = CameraSettings &
   CommunicationSettings &
   ControlSettings &
   DebugSettings &
