@@ -62,10 +62,6 @@ export default async function layoutLandscape(
     'packageLayoutAlgorithm'
   ) as string;
 
-  console.log('Using ELK layout with the following settings:');
-  console.log('  Application algorithm:', APPLICATION_ALGORITHM);
-  console.log('  Package algorithm:', PACKAGE_ALGORITHM);
-
   // Initialize landscape graph
   const landscapeGraph: any = {
     id: LANDSCAPE_PREFIX + 'landscape',

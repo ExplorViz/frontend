@@ -348,7 +348,6 @@ export default function Settings({
       case 'applicationLayoutAlgorithm':
       case 'packageLayoutAlgorithm':
         updateApplicationLayout();
-        console.log(`Updated setting ${settingId} to ${value}`);
         break;
     }
   };
