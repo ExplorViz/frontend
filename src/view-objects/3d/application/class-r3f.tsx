@@ -8,6 +8,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { useEffect } from 'react';
 import { useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -57,14 +58,22 @@ export default function ClassR3F({
     maxLabelLength,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      classColor: state.colors?.clazzColor,
-      classTextColor: state.colors?.clazzTextColor,
+      classColor: state.colors?.classColor,
+      classTextColor: state.colors?.classTextColor,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       maxLabelLength: state.visualizationSettings.classLabelLength.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       labelOffset: state.visualizationSettings.classLabelOffset.value,
     }))
   );
+
+  // TODO: Why is this necessary?
+  useEffect(() => {
+    if (meshRef.current && classColor && highlightedEntityColor) {
+      meshRef.current.defaultColor = classColor;
+      meshRef.current.highlightingColor = highlightedEntityColor;
+    }
+  }, [classColor, highlightedEntityColor]);
 
   const constructorArgs = useMemo<ThreeElements['clazzMesh']['args'][0]>(() => {
     return {
