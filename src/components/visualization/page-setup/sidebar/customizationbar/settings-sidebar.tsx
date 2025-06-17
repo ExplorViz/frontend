@@ -1,5 +1,5 @@
 import { XIcon } from '@primer/octicons-react';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import SidebarResizer from '../sidebar-resizer';
 import UndoRestructure from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/undo-restructure';
 
@@ -14,7 +14,7 @@ export default function SettingsSidebar({
 }: SettingsSidebarProps) {
   return (
     <>
-      <div id="sidebarButtonContainer" className="foreground">
+      <div id="sidebarButtonContainer">
         <button
           type="button"
           className="btn btn-light btn-outline-dark sidebar-button"
