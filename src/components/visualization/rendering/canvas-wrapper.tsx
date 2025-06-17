@@ -23,10 +23,19 @@ export default function CanvasWrapper({
   landscapeData: LandscapeData;
   landscape3D: Landscape3D;
 }) {
-  const { castShadows, sceneBackgroundColor } = useUserSettingsStore(
+  const {
+    cameraNear,
+    cameraFar,
+    cameraFov,
+    castShadows,
+    sceneBackgroundColor,
+  } = useUserSettingsStore(
     useShallow((state) => ({
       sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
       castShadows: state.visualizationSettings.castShadows.value,
+      cameraNear: state.visualizationSettings.cameraNear.value,
+      cameraFar: state.visualizationSettings.cameraFar.value,
+      cameraFov: state.visualizationSettings.cameraFov.value,
     }))
   );
 
@@ -152,7 +161,13 @@ export default function CanvasWrapper({
         }}
         smoothTime={0.5}
       />
-      <PerspectiveCamera position={[10, 10, 10]} makeDefault />
+      <PerspectiveCamera
+        position={[10, 10, 10]}
+        fov={cameraFov}
+        near={cameraNear}
+        far={cameraFar}
+        makeDefault
+      />
       <LandscapeR3F>
         {applicationModels.map((appModel) => (
           <ApplicationR3F
@@ -160,12 +175,12 @@ export default function CanvasWrapper({
             applicationData={appModel}
           />
         ))}
-        {interAppCommunications.map((communication) => (
+        {/* {interAppCommunications.map((communication) => (
           <CommunicationR3F
             key={communication.id}
             communicationModel={communication}
           />
-        ))}
+        ))} */}
       </LandscapeR3F>
       <ambientLight />
       <spotLight

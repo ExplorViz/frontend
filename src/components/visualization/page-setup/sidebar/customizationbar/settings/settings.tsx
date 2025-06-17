@@ -286,18 +286,6 @@ export default function Settings({
           updateHighlighting();
         }
         break;
-      case 'cameraNear':
-        defaultCamera.near = value;
-        defaultCamera.updateProjectionMatrix();
-        break;
-      case 'cameraFar':
-        defaultCamera.far = value;
-        defaultCamera.updateProjectionMatrix();
-        break;
-      case 'cameraFov':
-        defaultCamera.fov = value;
-        defaultCamera.updateProjectionMatrix();
-        break;
       case 'distancePreSet':
         semanticZoomPreSetSetter(value!, semZoomLevels);
         updateUserSetting('usePredefinedSet', true);
@@ -495,10 +483,6 @@ export default function Settings({
   const updateVisualizationState = () => {
     updateUserSettingsColors();
     updateHighlightingInStore();
-    defaultCamera.near = visualizationSettings.cameraNear.value;
-    defaultCamera.far = visualizationSettings.cameraFar.value;
-    defaultCamera.fov = visualizationSettings.cameraFov.value;
-    defaultCamera.updateProjectionMatrix();
     updateApplicationLayout();
     updateLabels();
     addCommunicationForAllApplications();
