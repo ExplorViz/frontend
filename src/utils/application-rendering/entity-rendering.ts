@@ -109,7 +109,7 @@ export function addComponentAndChildrenToScene(
   const {
     componentOddColor,
     componentEvenColor,
-    clazzColor,
+    classColor,
     highlightedEntityColor,
   } = colors;
 
@@ -189,7 +189,7 @@ export function addComponentAndChildrenToScene(
     const clazzMesh = new ClazzMesh(
       clazzLayout,
       clazz,
-      clazzColor,
+      classColor,
       highlightedEntityColor
     );
 

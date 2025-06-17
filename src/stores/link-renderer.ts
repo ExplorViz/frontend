@@ -70,7 +70,10 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     const classCommunication = line.dataModel.communication;
 
     line.visible = useConfigurationStore.getState().isCommRendered;
-    const landscapeGroup = sourceApp.parent!;
+    const landscapeGroup = sourceApp.parent;
+    if (!landscapeGroup) {
+      return;
+    }
 
     let sourceClass, targetClass;
 

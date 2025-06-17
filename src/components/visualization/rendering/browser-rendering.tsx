@@ -1154,10 +1154,6 @@ export default function BrowserRendering({
           {annotationHandlerState.annotationData.map((data) => (
             <AnnotationCoordinator
               key={data.annotationId}
-              isMovable={
-                userSettingsState.visualizationSettings
-                  .enableCustomAnnotationPosition.value
-              }
               annotationData={data}
               removeAnnotation={removeAnnotation}
               toggleHighlightById={highlightingActions.toggleHighlightById}

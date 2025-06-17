@@ -3,8 +3,8 @@ export type ColorScheme = typeof defaultColors;
 
 export const defaultColors = {
   backgroundColor: '#ffffff', // white
-  clazzColor: '#a7cffb', // light pastel blue
-  clazzTextColor: '#ffffff', // white
+  classColor: '#a7cffb', // light pastel blue
+  classTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
   communicationColor: '#d6d48b', // dark grey
   componentEvenColor: '#3c8db0', // desaturated cyan
@@ -22,8 +22,8 @@ export const defaultColors = {
 
 export const classicColors = {
   backgroundColor: '#ffffff', // white
-  clazzColor: '#3e14a0', // purple-blue
-  clazzTextColor: '#ffffff', // white
+  classColor: '#3e14a0', // purple-blue
+  classTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
   communicationColor: '#f49100', // orange
   componentEvenColor: '#00bb41', // light green
@@ -41,8 +41,8 @@ export const classicColors = {
 
 export const blueColors = {
   backgroundColor: '#ffffff', // white
-  clazzColor: '#f300cb', // magenta
-  clazzTextColor: '#ffffff', // white
+  classColor: '#f300cb', // magenta
+  classTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
   communicationColor: '#f49100', // orange
   componentEvenColor: '#0096be', // light blue
@@ -60,8 +60,8 @@ export const blueColors = {
 
 export const darkColors = {
   backgroundColor: '#acacac', // stone grey
-  clazzColor: '#4073b6', // blue
-  clazzTextColor: '#ffffff', // white
+  classColor: '#4073b6', // blue
+  classTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
   communicationColor: '#e3e3e3', // light grey
   componentEvenColor: '#5B7B88', // blue-grey

@@ -14,17 +14,17 @@ export const defaultVizSettings: VisualizationSettings = {
     description: '',
     isColorSetting: true,
   },
-  clazzColor: {
+  classColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.clazzColor,
+    value: defaultColors.classColor,
     group: 'Colors',
     displayName: 'Class',
     description: '',
     isColorSetting: true,
   },
-  clazzTextColor: {
+  classTextColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.clazzTextColor,
+    value: defaultColors.classTextColor,
     group: 'Colors',
     displayName: 'Class Label',
     description: '',
@@ -264,6 +264,42 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   // Layout settings
+  applicationLayoutAlgorithm: {
+    level: SettingLevel.DEFAULT,
+    value: 'stress',
+    options: [
+      'box',
+      'disco',
+      'force',
+      'layered',
+      'random',
+      'rectpacking',
+      'sporeOverlap',
+      'stress',
+    ],
+    group: 'Layout',
+    displayName: 'Application Layout Algorithm',
+    description: 'Determines the layout algorithm for applications',
+    isSelectSetting: true,
+  },
+  packageLayoutAlgorithm: {
+    level: SettingLevel.DEFAULT,
+    value: 'rectpacking',
+    options: [
+      'box',
+      'disco',
+      'force',
+      'layered',
+      'random',
+      'rectpacking',
+      'sporeOverlap',
+      'stress',
+    ],
+    group: 'Layout',
+    displayName: 'Package Layout Algorithm',
+    description: 'Determines the layout algorithm for packages',
+    isSelectSetting: true,
+  },
   applicationDistance: {
     level: SettingLevel.DEFAULT,
     value: 500.0,
@@ -405,16 +441,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines how many seconds popups stay on screen',
     isRangeSetting: true,
   },
-  // Annotation Settings
-  enableCustomAnnotationPosition: {
-    level: SettingLevel.EXTENDED,
-    value: true,
-    group: 'Annotations',
-    displayName: 'Enable Custom Annotation Positioning',
-    description:
-      'If enabled, annotations can be dragged to a prefered, fixed position',
-    isFlagSetting: true,
-  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.EXTENDED,
@@ -554,7 +580,7 @@ export const defaultVizSettings: VisualizationSettings = {
       "Enable or disable the feature to open/close components automatically. Only applies if 'Semantic Zoom' feature is enabled via context menu.",
     isFlagSetting: true,
   },
-  useKmeansInsteadOfMeanShift: {
+  useKMeansInsteadOfMeanShift: {
     level: SettingLevel.DEFAULT,
     value: true,
     group: 'Semantic Zoom',

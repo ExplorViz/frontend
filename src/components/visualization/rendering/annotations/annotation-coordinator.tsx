@@ -28,7 +28,6 @@ import { useToastHandlerStore } from '../../../../stores/toast-handler';
 import { useApplicationRendererStore } from '../../../../stores/application-renderer';
 
 interface AnnotationCoordinatorProps {
-  isMovable: boolean;
   annotationData: AnnotationData;
   removeAnnotation(annotationId: number): void;
   toggleHighlightById(modelId: string): void;
@@ -39,7 +38,6 @@ interface AnnotationCoordinatorProps {
 }
 
 export default function AnnotationCoordinator({
-  isMovable,
   annotationData,
   removeAnnotation,
   toggleHighlightById,
@@ -51,7 +49,9 @@ export default function AnnotationCoordinator({
     (state) => state.toggleHighlight
   );
   const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
-  const showErrorToastMessage = useToastHandlerStore((state) => state.showErrorToastMessage);
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
+  );
 
   const annotationHandler = useAnnotationHandlerStore(
     useShallow((state) => ({
@@ -65,10 +65,14 @@ export default function AnnotationCoordinator({
       minimizedAnnotations: state.minimizedAnnotations,
       setMinimizedAnnotationData: state.setMinimizedAnnotationData,
     }))
-  )
+  );
 
-  const [annotationTitle, setAnnotationTitle] = useState<string>(annotationData.annotationTitle);
-  const [annotationText, setAnnotationText] = useState<string>(annotationData.annotationText);
+  const [annotationTitle, setAnnotationTitle] = useState<string>(
+    annotationData.annotationTitle
+  );
+  const [annotationText, setAnnotationText] = useState<string>(
+    annotationData.annotationText
+  );
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
@@ -83,8 +87,10 @@ export default function AnnotationCoordinator({
     }
 
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
-      {...annotationData, hovered: true}
+      ...annotationHandler.annotationData.filter(
+        (an) => an.annotationId !== annotationData.annotationId
+      ),
+      { ...annotationData, hovered: true },
     ]);
   };
 
@@ -94,8 +100,10 @@ export default function AnnotationCoordinator({
     }
 
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
-      {...annotationData, hovered: false}
+      ...annotationHandler.annotationData.filter(
+        (an) => an.annotationId !== annotationData.annotationId
+      ),
+      { ...annotationData, hovered: false },
     ]);
   };
 
@@ -116,10 +124,6 @@ export default function AnnotationCoordinator({
   };
 
   const dragMouseDown = (event: React.MouseEvent) => {
-    if (!isMovable) {
-      return;
-    }
-
     lastMousePosition.current.x = event.clientX;
     lastMousePosition.current.y = event.clientY;
     document.onpointerup = closeDragElement;
@@ -255,8 +259,10 @@ export default function AnnotationCoordinator({
     // setAnnotation(newAnnotation);
 
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
-      {...annotationData, hidden: !annotationData.hidden}
+      ...annotationHandler.annotationData.filter(
+        (an) => an.annotationId !== annotationData.annotationId
+      ),
+      { ...annotationData, hidden: !annotationData.hidden },
     ]);
   };
 
@@ -277,481 +283,505 @@ export default function AnnotationCoordinator({
         mesh.resetHoverEffect();
       }
     }
-    
+
     // const newAnnotation = {...annotation, wasMoved: false}
     annotationHandler.setMinimizedAnnotationData([
       ...annotationHandler.minimizedAnnotations,
-      {...annotationData, wasMoved: false}
+      { ...annotationData, wasMoved: false },
     ]);
     annotationHandler.setAnnotationData([
-      ...annotationHandler.annotationData.filter((an) => an.annotationId !== annotationData.annotationId)
+      ...annotationHandler.annotationData.filter(
+        (an) => an.annotationId !== annotationData.annotationId
+      ),
     ]);
   };
 
   return (
     <div
-      className={`annotation ${annotationData.hovered ? "hovered" : ""}`}
+      className={`annotation ${annotationData.hovered ? 'hovered' : ''}`}
       onPointerDown={dragMouseDown}
       onPointerOver={onPointerOver}
       onPointerOut={onPointerOut}
       ref={element}
     >
-      {isMovable && (
-        <>
-          {annotationData.isAssociated ? (
-            <>
-              {annotationData.wasMoved ? (
-                <>
-                  <div className="d-flex justify-content-between">
-                    <label
-                      style={{
-                        fontWeight: 'bold',
-                        marginLeft: '3px',
-                        marginBottom: 0,
-                      }}
-                    >
-                      Associated with '{annotationData.entity!.name}'
-                    </label>
-                    <div>
-                      <label
-                        style={{
-                          fontWeight: 'bold',
-                          marginRight: '3px',
-                          marginBottom: 0,
-                        }}
-                      >
-                        Creator: {annotationData.owner}
-                      </label>
-                    </div>
-                  </div>
-                  <div className="d-flex justify-content-between">
-                    <div></div>
-                    <label
-                      style={{
-                        fontWeight: 'bold',
-                        fontSize: 'smaller',
-                        marginRight: '3px',
-                        color: '#6c757d',
-                      }}
-                    >
-                      Last change by {annotationData.lastEditor}
-                    </label>
-                  </div>
-                  <div className="d-flex justify-content-between">
-                    {annotationData.inEdit ? (
-                      <input
-                        id="annotationTitle"
-                        style={{ fontWeight: 'bold', width: '279px', height: '38px' }}
-                        className="form-control mr-2"
-                        placeholder="Annotation Title"
-                        type="text"
-                        value={annotationTitle}
-                        onChange={(e) => setAnnotationTitle(e.target.value)}
-                      />
-                    ) : (
-                      <label
-                        style={{
-                          fontWeight: 'bold',
-                          fontSize: 'x-large',
-                          marginLeft: '3px',
-                          marginBottom: 0,
-                          width: '276px',
-                          height: '38px',
-                          overflow: 'scroll',
-                          whiteSpace: 'nowrap',
-                        }}
-                        className="mr-2"
-                      >
-                        {annotationTitle}
-                      </label>
-                    )}
-
-                    <OverlayTrigger
-                      placement="top"
-                      trigger={['hover', 'focus']}
-                      overlay={<Tooltip>Ping</Tooltip>}
-                    >
-                      <Button variant="primary" onClick={ping}>
-                        <LocationIcon size="small" className="align-middle" />
-                      </Button>
-                    </OverlayTrigger>
-
-                    {!isOnline() ? (
-                      <OverlayTrigger
-                        placement="top"
-                        trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>This is not an online session.</Tooltip>
-                        }
-                      >
-                        <Button
-                          className="annotation-share-button"
-                          variant="outline-secondary"
-                          disabled
-                        >
-                          <ShareAndroidIcon
-                            size="small"
-                            className="align-right"
-                          />
-                        </Button>
-                      </OverlayTrigger>
-                    ) : annotationData.shared ? (
-                      <OverlayTrigger
-                        placement="top"
-                        trigger={['hover', 'focus']}
-                        overlay={<Tooltip>Annotation is shared</Tooltip>}
-                      >
-                        <Button
-                          className="annotation-share-button"
-                          variant="outline-secondary"
-                          disabled
-                        >
-                          <ShareAndroidIcon
-                            size="small"
-                            className="align-right"
-                          />
-                        </Button>
-                      </OverlayTrigger>
-                    ) : (
-                      <OverlayTrigger
-                        placement="top"
-                        trigger={['hover', 'focus']}
-                        overlay={
-                          <Tooltip>Share annotation with other users.</Tooltip>
-                        }
-                      >
-                        <Button
-                          className="annotation-share-button"
-                          variant="primary"
-                          onClick={() => annotationHandler.shareAnnotation(annotationData)}
-                        >
-                          <ShareAndroidIcon
-                            size="small"
-                            className="align-right"
-                          />
-                        </Button>
-                      </OverlayTrigger>
-                    )}
-
-                    <OverlayTrigger
-                      placement="top"
-                      trigger={['hover', 'focus']}
-                      overlay={<Tooltip>Minimize annotation.</Tooltip>}
-                    >
-                      <Button
-                        className="annotation-minimize-button"
-                        variant="outline-secondary"
-                        onClick={() =>
-                          minimizeAnnotation()
-                        }
-                      >
-                        _
-                      </Button>
-                    </OverlayTrigger>
-
-                    <OverlayTrigger
-                      placement="top"
-                      trigger={['hover', 'focus']}
-                      overlay={<Tooltip>Close annotation.</Tooltip>}
-                    >
-                      <Button
-                        className="annotation-close-button"
-                        variant="outline-secondary"
-                        onClick={() =>
-                          removeAnnotation(annotationData.annotationId)
-                        }
-                      >
-                        <TrashIcon size="small" className="align-right" />
-                      </Button>
-                    </OverlayTrigger>
-                  </div>
-                  {!annotationData.hidden && (
-                    <>
-                      {annotationData.inEdit ? (
-                        <>
-                          <div
-                            className="annotation-text"
-                            style={{ marginTop: '5px' }}
-                          >
-                            <textarea
-                              id="annotationtext"
-                              value={annotationText}
-                              rows={4}
-                              cols={50}
-                              style={{ resize: 'none' }}
-                              onChange={(e) => setAnnotationText(e.target.value)}
-                            />
-                          </div>
-                          <Button
-                            title="Update"
-                            style={{
-                              width: '98.8%',
-                              backgroundColor: '#28a745',
-                              color: 'white',
-                              fontWeight: 'bold',
-                              fontSize: 'large',
-                              border: 'none',
-                            }}
-                            variant="outline-secondary"
-                            onClick={() => annotationHandler.updateAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
-                          >
-                            Update Annotation
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <div
-                            className="annotation-text"
-                            style={{ marginTop: '5px' }}
-                          >
-                            <textarea
-                              id="annotationtext"
-                              value={annotationText}
-                              rows={4}
-                              cols={50}
-                              style={{ resize: 'none' }}
-                              readOnly
-                            />
-                          </div>
-                          <Button
-                            title="Update"
-                            style={{
-                              width: '98.8%',
-                              backgroundColor: '#007bff',
-                              color: 'white',
-                              fontWeight: 'bold',
-                              fontSize: 'large',
-                              border: 'none',
-                            }}
-                            variant="outline-secondary"
-                            onClick={() => {annotationHandler.editAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
-                            }
-                          >
-                            Edit Annotation
-                          </Button>
-                        </>
-                      )}
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="d-flex justify-content-between">
-                    <label style={{ fontWeight: 'bold', marginLeft: '3px' }}>
-                      Annotation
-                    </label>
-                  </div>
-                  <label
-                    style={{ backgroundColor: 'lightgray', fontWeight: 'bold' }}
-                    className="form-control mr-2"
-                  >
-                    {annotationTitle}
-                  </label>
-                  <label style={{ marginLeft: '3px' }}>
-                    Associated to '{annotationData.entity!.name}'
-                  </label>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="d-flex justify-content-between">
-                <label style={{ fontWeight: 'bold', marginLeft: '3px' }}>
-                  Creator:
-                  {annotationData.owner}
-                </label>
-                <label
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: 'smaller',
-                    marginRight: '3px',
-                    marginTop: '2px',
-                    color: '#6c757d',
-                  }}
-                >
-                  Last change by {annotationData.lastEditor}
-                </label>
-              </div>
-              <div className="d-flex justify-content-between">
-                {annotationData.inEdit ? (
-                  <input
-                    id="annotationTitle"
-                    style={{ fontWeight: 'bold' }}
-                    className="form-control mr-2"
-                    placeholder="Annotation Title"
-                    type="text"
-                    value={annotationTitle}
-                    onChange={(e) => setAnnotationTitle(e.target.value)}
-                  />
-                ) : (
+      <>
+        {annotationData.isAssociated ? (
+          <>
+            {annotationData.wasMoved ? (
+              <>
+                <div className="d-flex justify-content-between">
                   <label
                     style={{
                       fontWeight: 'bold',
-                      fontSize: 'x-large',
                       marginLeft: '3px',
                       marginBottom: 0,
-                      minWidth: '273px',
-                      maxWidth: '273px',
-                      minHeight: '38px',
-                      maxHeight: '38px',
-                      overflow: 'scroll',
-                      whiteSpace: 'nowrap',
                     }}
-                    className="mr-2"
                   >
-                    {annotationTitle}
+                    Associated with '{annotationData.entity!.name}'
                   </label>
-                )}
-
-                {!isOnline() ? (
-                  <OverlayTrigger
-                    placement="top"
-                    trigger={['hover', 'focus']}
-                    overlay={<Tooltip>This is not an online session.</Tooltip>}
-                  >
-                    <Button
-                      className="annotation-share-button"
-                      variant="outline-secondary"
-                      disabled
+                  <div>
+                    <label
+                      style={{
+                        fontWeight: 'bold',
+                        marginRight: '3px',
+                        marginBottom: 0,
+                      }}
                     >
-                      <ShareAndroidIcon size="small" className="align-right" />
-                    </Button>
-                  </OverlayTrigger>
-                ) : annotationData.shared ? (
-                  <OverlayTrigger
-                    placement="top"
-                    trigger={['hover', 'focus']}
-                    overlay={<Tooltip>Annotation is shared</Tooltip>}
+                      Creator: {annotationData.owner}
+                    </label>
+                  </div>
+                </div>
+                <div className="d-flex justify-content-between">
+                  <div></div>
+                  <label
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: 'smaller',
+                      marginRight: '3px',
+                      color: '#6c757d',
+                    }}
                   >
-                    <Button
-                      className="annotation-share-button"
-                      variant="outline-secondary"
-                      disabled
-                    >
-                      <ShareAndroidIcon size="small" className="align-right" />
-                    </Button>
-                  </OverlayTrigger>
-                ) : (
-                  <OverlayTrigger
-                    placement="top"
-                    trigger={['hover', 'focus']}
-                    overlay={
-                      <Tooltip>Share annotation with other users.</Tooltip>
-                    }
-                  >
-                    <Button
-                      className="annotation-share-button"
-                      variant="primary"
-                      onClick={() => annotationHandler.shareAnnotation(annotationData)}
-                    >
-                      <ShareAndroidIcon size="small" className="align-right" />
-                    </Button>
-                  </OverlayTrigger>
-                )}
-
-                <OverlayTrigger
-                  placement="top"
-                  trigger={['hover', 'focus']}
-                  overlay={<Tooltip>Hide annotation.</Tooltip>}
-                >
-                  <Button
-                    className="annotation-minimize-button"
-                    variant="outline-secondary"
-                    onClick={() =>
-                      hideAnnotation()
-                    }
-                  >
-                    _
-                  </Button>
-                </OverlayTrigger>
-
-                <OverlayTrigger
-                  placement="top"
-                  trigger={['hover', 'focus']}
-                  overlay={<Tooltip>Close annotation.</Tooltip>}
-                >
-                  <Button
-                    className="annotation-close-button"
-                    variant="outline-secondary"
-                    onClick={() =>
-                      removeAnnotation(annotationData.annotationId)
-                    }
-                  >
-                    <TrashIcon size="small" className="align-right" />
-                  </Button>
-                </OverlayTrigger>
-              </div>
-              {!annotationData.hidden && (
-                <>
+                    Last change by {annotationData.lastEditor}
+                  </label>
+                </div>
+                <div className="d-flex justify-content-between">
                   {annotationData.inEdit ? (
-                    <>
-                      <div
-                        className="annotation-text"
-                        style={{ marginTop: '5px' }}
-                      >
-                        <textarea
-                          id="annotationtext"
-                          value={annotationText}
-                          rows={4}
-                          cols={45}
-                          style={{ resize: 'none' }}
-                        />
-                      </div>
-                      <Button
-                        title="Update"
-                        style={{
-                          width: '98.5%',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: 'large',
-                          border: 'none',
-                        }}
-                        variant="outline-secondary"
-                        onClick={() => annotationHandler.updateAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
-                      >
-                        Update Annotation
-                      </Button>
-                    </>
+                    <input
+                      id="annotationTitle"
+                      style={{
+                        fontWeight: 'bold',
+                        width: '279px',
+                        height: '38px',
+                      }}
+                      className="form-control mr-2"
+                      placeholder="Annotation Title"
+                      type="text"
+                      value={annotationTitle}
+                      onChange={(e) => setAnnotationTitle(e.target.value)}
+                    />
                   ) : (
-                    <>
-                      <div
-                        className="annotation-text"
-                        style={{ marginTop: '5px' }}
-                      >
-                        <textarea
-                          id="annotationtext"
-                          value={annotationText}
-                          rows={4}
-                          cols={45}
-                          style={{ resize: 'none' }}
-                          readOnly
-                        />
-                      </div>
+                    <label
+                      style={{
+                        fontWeight: 'bold',
+                        fontSize: 'x-large',
+                        marginLeft: '3px',
+                        marginBottom: 0,
+                        width: '276px',
+                        height: '38px',
+                        overflow: 'scroll',
+                        whiteSpace: 'nowrap',
+                      }}
+                      className="mr-2"
+                    >
+                      {annotationTitle}
+                    </label>
+                  )}
+
+                  <OverlayTrigger
+                    placement="top"
+                    trigger={['hover', 'focus']}
+                    overlay={<Tooltip>Ping</Tooltip>}
+                  >
+                    <Button variant="primary" onClick={ping}>
+                      <LocationIcon size="small" className="align-middle" />
+                    </Button>
+                  </OverlayTrigger>
+
+                  {!isOnline() ? (
+                    <OverlayTrigger
+                      placement="top"
+                      trigger={['hover', 'focus']}
+                      overlay={
+                        <Tooltip>This is not an online session.</Tooltip>
+                      }
+                    >
                       <Button
-                        title="Update"
-                        style={{
-                          width: '98.5%',
-                          backgroundColor: '#007bff',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: 'large',
-                          border: 'none',
-                        }}
+                        className="annotation-share-button"
                         variant="outline-secondary"
-                        onClick={() => {annotationHandler.editAnnotation({...annotationData, annotationText: annotationText, annotationTitle: annotationTitle})}
+                        disabled
+                      >
+                        <ShareAndroidIcon
+                          size="small"
+                          className="align-right"
+                        />
+                      </Button>
+                    </OverlayTrigger>
+                  ) : annotationData.shared ? (
+                    <OverlayTrigger
+                      placement="top"
+                      trigger={['hover', 'focus']}
+                      overlay={<Tooltip>Annotation is shared</Tooltip>}
+                    >
+                      <Button
+                        className="annotation-share-button"
+                        variant="outline-secondary"
+                        disabled
+                      >
+                        <ShareAndroidIcon
+                          size="small"
+                          className="align-right"
+                        />
+                      </Button>
+                    </OverlayTrigger>
+                  ) : (
+                    <OverlayTrigger
+                      placement="top"
+                      trigger={['hover', 'focus']}
+                      overlay={
+                        <Tooltip>Share annotation with other users.</Tooltip>
+                      }
+                    >
+                      <Button
+                        className="annotation-share-button"
+                        variant="primary"
+                        onClick={() =>
+                          annotationHandler.shareAnnotation(annotationData)
                         }
                       >
-                        Edit Annotation
+                        <ShareAndroidIcon
+                          size="small"
+                          className="align-right"
+                        />
                       </Button>
-                    </>
+                    </OverlayTrigger>
                   )}
-                </>
+
+                  <OverlayTrigger
+                    placement="top"
+                    trigger={['hover', 'focus']}
+                    overlay={<Tooltip>Minimize annotation.</Tooltip>}
+                  >
+                    <Button
+                      className="annotation-minimize-button"
+                      variant="outline-secondary"
+                      onClick={() => minimizeAnnotation()}
+                    >
+                      _
+                    </Button>
+                  </OverlayTrigger>
+
+                  <OverlayTrigger
+                    placement="top"
+                    trigger={['hover', 'focus']}
+                    overlay={<Tooltip>Close annotation.</Tooltip>}
+                  >
+                    <Button
+                      className="annotation-close-button"
+                      variant="outline-secondary"
+                      onClick={() =>
+                        removeAnnotation(annotationData.annotationId)
+                      }
+                    >
+                      <TrashIcon size="small" className="align-right" />
+                    </Button>
+                  </OverlayTrigger>
+                </div>
+                {!annotationData.hidden && (
+                  <>
+                    {annotationData.inEdit ? (
+                      <>
+                        <div
+                          className="annotation-text"
+                          style={{ marginTop: '5px' }}
+                        >
+                          <textarea
+                            id="annotationtext"
+                            value={annotationText}
+                            rows={4}
+                            cols={50}
+                            style={{ resize: 'none' }}
+                            onChange={(e) => setAnnotationText(e.target.value)}
+                          />
+                        </div>
+                        <Button
+                          title="Update"
+                          style={{
+                            width: '98.8%',
+                            backgroundColor: '#28a745',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: 'large',
+                            border: 'none',
+                          }}
+                          variant="outline-secondary"
+                          onClick={() =>
+                            annotationHandler.updateAnnotation({
+                              ...annotationData,
+                              annotationText: annotationText,
+                              annotationTitle: annotationTitle,
+                            })
+                          }
+                        >
+                          Update Annotation
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <div
+                          className="annotation-text"
+                          style={{ marginTop: '5px' }}
+                        >
+                          <textarea
+                            id="annotationtext"
+                            value={annotationText}
+                            rows={4}
+                            cols={50}
+                            style={{ resize: 'none' }}
+                            readOnly
+                          />
+                        </div>
+                        <Button
+                          title="Update"
+                          style={{
+                            width: '98.8%',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: 'large',
+                            border: 'none',
+                          }}
+                          variant="outline-secondary"
+                          onClick={() => {
+                            annotationHandler.editAnnotation({
+                              ...annotationData,
+                              annotationText: annotationText,
+                              annotationTitle: annotationTitle,
+                            });
+                          }}
+                        >
+                          Edit Annotation
+                        </Button>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="d-flex justify-content-between">
+                  <label style={{ fontWeight: 'bold', marginLeft: '3px' }}>
+                    Annotation
+                  </label>
+                </div>
+                <label
+                  style={{ backgroundColor: 'lightgray', fontWeight: 'bold' }}
+                  className="form-control mr-2"
+                >
+                  {annotationTitle}
+                </label>
+                <label style={{ marginLeft: '3px' }}>
+                  Associated to '{annotationData.entity!.name}'
+                </label>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="d-flex justify-content-between">
+              <label style={{ fontWeight: 'bold', marginLeft: '3px' }}>
+                Creator:
+                {annotationData.owner}
+              </label>
+              <label
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: 'smaller',
+                  marginRight: '3px',
+                  marginTop: '2px',
+                  color: '#6c757d',
+                }}
+              >
+                Last change by {annotationData.lastEditor}
+              </label>
+            </div>
+            <div className="d-flex justify-content-between">
+              {annotationData.inEdit ? (
+                <input
+                  id="annotationTitle"
+                  style={{ fontWeight: 'bold' }}
+                  className="form-control mr-2"
+                  placeholder="Annotation Title"
+                  type="text"
+                  value={annotationTitle}
+                  onChange={(e) => setAnnotationTitle(e.target.value)}
+                />
+              ) : (
+                <label
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: 'x-large',
+                    marginLeft: '3px',
+                    marginBottom: 0,
+                    minWidth: '273px',
+                    maxWidth: '273px',
+                    minHeight: '38px',
+                    maxHeight: '38px',
+                    overflow: 'scroll',
+                    whiteSpace: 'nowrap',
+                  }}
+                  className="mr-2"
+                >
+                  {annotationTitle}
+                </label>
               )}
-            </>
-          )}
-        </>
-      )}
+
+              {!isOnline() ? (
+                <OverlayTrigger
+                  placement="top"
+                  trigger={['hover', 'focus']}
+                  overlay={<Tooltip>This is not an online session.</Tooltip>}
+                >
+                  <Button
+                    className="annotation-share-button"
+                    variant="outline-secondary"
+                    disabled
+                  >
+                    <ShareAndroidIcon size="small" className="align-right" />
+                  </Button>
+                </OverlayTrigger>
+              ) : annotationData.shared ? (
+                <OverlayTrigger
+                  placement="top"
+                  trigger={['hover', 'focus']}
+                  overlay={<Tooltip>Annotation is shared</Tooltip>}
+                >
+                  <Button
+                    className="annotation-share-button"
+                    variant="outline-secondary"
+                    disabled
+                  >
+                    <ShareAndroidIcon size="small" className="align-right" />
+                  </Button>
+                </OverlayTrigger>
+              ) : (
+                <OverlayTrigger
+                  placement="top"
+                  trigger={['hover', 'focus']}
+                  overlay={
+                    <Tooltip>Share annotation with other users.</Tooltip>
+                  }
+                >
+                  <Button
+                    className="annotation-share-button"
+                    variant="primary"
+                    onClick={() =>
+                      annotationHandler.shareAnnotation(annotationData)
+                    }
+                  >
+                    <ShareAndroidIcon size="small" className="align-right" />
+                  </Button>
+                </OverlayTrigger>
+              )}
+
+              <OverlayTrigger
+                placement="top"
+                trigger={['hover', 'focus']}
+                overlay={<Tooltip>Hide annotation.</Tooltip>}
+              >
+                <Button
+                  className="annotation-minimize-button"
+                  variant="outline-secondary"
+                  onClick={() => hideAnnotation()}
+                >
+                  _
+                </Button>
+              </OverlayTrigger>
+
+              <OverlayTrigger
+                placement="top"
+                trigger={['hover', 'focus']}
+                overlay={<Tooltip>Close annotation.</Tooltip>}
+              >
+                <Button
+                  className="annotation-close-button"
+                  variant="outline-secondary"
+                  onClick={() => removeAnnotation(annotationData.annotationId)}
+                >
+                  <TrashIcon size="small" className="align-right" />
+                </Button>
+              </OverlayTrigger>
+            </div>
+            {!annotationData.hidden && (
+              <>
+                {annotationData.inEdit ? (
+                  <>
+                    <div
+                      className="annotation-text"
+                      style={{ marginTop: '5px' }}
+                    >
+                      <textarea
+                        id="annotationtext"
+                        value={annotationText}
+                        rows={4}
+                        cols={45}
+                        style={{ resize: 'none' }}
+                      />
+                    </div>
+                    <Button
+                      title="Update"
+                      style={{
+                        width: '98.5%',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: 'large',
+                        border: 'none',
+                      }}
+                      variant="outline-secondary"
+                      onClick={() =>
+                        annotationHandler.updateAnnotation({
+                          ...annotationData,
+                          annotationText: annotationText,
+                          annotationTitle: annotationTitle,
+                        })
+                      }
+                    >
+                      Update Annotation
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      className="annotation-text"
+                      style={{ marginTop: '5px' }}
+                    >
+                      <textarea
+                        id="annotationtext"
+                        value={annotationText}
+                        rows={4}
+                        cols={45}
+                        style={{ resize: 'none' }}
+                        readOnly
+                      />
+                    </div>
+                    <Button
+                      title="Update"
+                      style={{
+                        width: '98.5%',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: 'large',
+                        border: 'none',
+                      }}
+                      variant="outline-secondary"
+                      onClick={() => {
+                        annotationHandler.editAnnotation({
+                          ...annotationData,
+                          annotationText: annotationText,
+                          annotationTitle: annotationTitle,
+                        });
+                      }}
+                    >
+                      Edit Annotation
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </>
     </div>
   );
 }
