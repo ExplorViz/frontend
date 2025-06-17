@@ -40,8 +40,8 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
       .value
   );
 
-  const [clazzColor, setClazzColor] = useState<string>(
-    useUserSettingsStore.getState().visualizationSettings.clazzColor.value
+  const [classColor, setclassColor] = useState<string>(
+    useUserSettingsStore.getState().visualizationSettings.classColor.value
   );
 
   const isEntityApplication = isApplication(entity);
@@ -153,8 +153,8 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
             >
               <Button
                 style={{
-                  backgroundColor: clazzColor,
-                  borderColor: clazzColor,
+                  backgroundColor: classColor,
+                  borderColor: classColor,
                 }}
                 onClick={addClass}
               >
@@ -311,9 +311,8 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
             </OverlayTrigger>
           </>
         ) : (
-        <></>
-        )
-      }  
+          <></>
+        )}
       </>
     );
   }

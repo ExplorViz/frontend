@@ -7,6 +7,7 @@ import {
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
+  isSelectSetting,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import {
   getStoredSettings,
@@ -108,7 +109,7 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
   },
 
   updateSetting: (name: VisualizationSettingId, value?: unknown) => {
-    const setting = {...get().visualizationSettings[name]};
+    const setting = { ...get().visualizationSettings[name] };
 
     const newValue = value ?? defaultVizSettings[name].value;
 
@@ -129,9 +130,16 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
       });
     } else if (isColorSetting(setting) && typeof newValue === 'string') {
       setting.value = newValue;
-      let newVisualizationSettings = {...get().visualizationSettings};
+      let newVisualizationSettings = { ...get().visualizationSettings };
       newVisualizationSettings[name].value = newValue;
       set({ visualizationSettings: newVisualizationSettings });
+    } else if (isSelectSetting(setting) && newValue) {
+      set({
+        visualizationSettings: {
+          ...get().visualizationSettings,
+          [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
+        },
+      });
     }
 
     saveSettings(get().visualizationSettings);
@@ -156,7 +164,7 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
 
     let settingId: keyof ColorSettings;
     for (settingId in get().colors) {
-      let newVisualizationSettings = {...get().visualizationSettings};
+      let newVisualizationSettings = { ...get().visualizationSettings };
       newVisualizationSettings[settingId].value = scheme[settingId];
       set({ visualizationSettings: newVisualizationSettings });
     }
@@ -177,11 +185,11 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
     let settingId: keyof ColorSettings;
     for (settingId in get().colors) {
       if (updatedColors) {
-        let newApplicationColors = {...get().colors!};
+        let newApplicationColors = { ...get().colors! };
         newApplicationColors[settingId].set(updatedColors[settingId]);
         set({ colors: newApplicationColors });
       } else {
-        let newApplicationColors = {...get().colors!};
+        let newApplicationColors = { ...get().colors! };
         newApplicationColors[settingId].set(
           get().visualizationSettings[settingId].value
         );
@@ -209,15 +217,15 @@ export const useUserSettingsStore = create<UserSettingsState>((set, get) => ({
         componentEvenColor: new THREE.Color(
           visualizationSettings.componentEvenColor.value
         ),
-        clazzColor: new THREE.Color(visualizationSettings.clazzColor.value),
+        classColor: new THREE.Color(visualizationSettings.classColor.value),
         highlightedEntityColor: new THREE.Color(
           visualizationSettings.highlightedEntityColor.value
         ),
         componentTextColor: new THREE.Color(
           visualizationSettings.componentTextColor.value
         ),
-        clazzTextColor: new THREE.Color(
-          visualizationSettings.clazzTextColor.value
+        classTextColor: new THREE.Color(
+          visualizationSettings.classTextColor.value
         ),
         foundationTextColor: new THREE.Color(
           visualizationSettings.foundationTextColor.value

@@ -353,7 +353,7 @@ export default class SemanticZoomManager {
     this.lastReclustering = new Date();
     this.lastAddToCluster = new Date();
     const appSettings: VisualizationSettings = getStoredSettings();
-    const useKmeans: boolean = appSettings.useKmeansInsteadOfMeanShift.value;
+    const useKmeans: boolean = appSettings.useKMeansInsteadOfMeanShift.value;
     // k-Means Clustering
     if (useKmeans) {
       this.clusterManager = new KMeansClusteringAlg();
@@ -1182,7 +1182,9 @@ class KMeansClusteringAlg implements ClusteringAlgInterface {
       if (closestCentroidIndex == -1) continue;
       // add point to centroid labels:
       labels.get(closestCentroidIndex)['points'].push(a);
-      labels.get(closestCentroidIndex)['assignedObjects'].push(aassignedToObjects);
+      labels
+        .get(closestCentroidIndex)
+        ['assignedObjects'].push(aassignedToObjects);
     }
     return labels;
   }

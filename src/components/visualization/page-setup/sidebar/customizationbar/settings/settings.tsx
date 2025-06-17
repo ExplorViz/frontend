@@ -22,9 +22,11 @@ import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schem
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   ColorSettingId,
+  isButtonSetting,
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
+  isSelectSetting,
   RangeSetting as RangeSettingSchema,
   SettingGroup,
   SettingLevel,
@@ -34,6 +36,7 @@ import {
 import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { Mesh } from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
 
 interface SettingsProps {
   enterFullscreen(): void;
@@ -332,6 +335,24 @@ export default function Settings({
     }
   };
 
+  const updateSelectSetting = (
+    settingId: VisualizationSettingId,
+    value: unknown
+  ) => {
+    try {
+      updateUserSetting(settingId, value);
+    } catch (e: any) {
+      showErrorToastMessage(e.message);
+    }
+    switch (settingId) {
+      case 'applicationLayoutAlgorithm':
+      case 'packageLayoutAlgorithm':
+        updateApplicationLayout();
+        console.log(`Updated setting ${settingId} to ${value}`);
+        break;
+    }
+  };
+
   const updateButtonSetting = (settingId: VisualizationSettingId) => {
     switch (settingId) {
       case 'syncRoomState':
@@ -455,7 +476,7 @@ export default function Settings({
         SemanticZoomManager.instance.toggleAutoOpenClose(value);
         SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
-      case 'useKmeansInsteadOfMeanShift':
+      case 'useKMeansInsteadOfMeanShift':
         SemanticZoomManager.instance.cluster(
           visualizationSettings.clusterBasedOnMembers.value
         );
@@ -552,13 +573,23 @@ export default function Settings({
                     resetState={resetState}
                   />
                 );
-              } else if (setting.isButtonSetting) {
+              } else if (isButtonSetting(setting)) {
                 return (
                   <ButtonSetting
                     key={settingId}
                     setting={setting}
                     settingId={settingId}
                     onClick={updateButtonSetting}
+                    resetState={resetState}
+                  />
+                );
+              } else if (isSelectSetting(setting)) {
+                return (
+                  <SelectSetting
+                    key={settingId}
+                    setting={setting}
+                    settingId={settingId}
+                    onChange={updateSelectSetting}
                     resetState={resetState}
                   />
                 );

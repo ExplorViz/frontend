@@ -25,8 +25,8 @@ export type CameraSettings = {
 
 export type ColorSettingId =
   | 'backgroundColor'
-  | 'clazzColor'
-  | 'clazzTextColor'
+  | 'classColor'
+  | 'classTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
   | 'componentEvenColor'
@@ -109,6 +109,8 @@ export type HoveringSettingId =
 export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 
 export type LayoutSettingId =
+  | 'applicationLayoutAlgorithm'
+  | 'packageLayoutAlgorithm'
   | 'applicationDistance'
   | 'applicationAspectRatio'
   | 'classFootprint'
@@ -124,7 +126,24 @@ export type LayoutSettingId =
   | 'openedComponentHeight'
   | 'closedComponentHeight';
 
-export type LayoutSettings = Record<LayoutSettingId, RangeSetting>;
+export type LayoutSettings = {
+  applicationLayoutAlgorithm: SelectSetting<string>;
+  packageLayoutAlgorithm: SelectSetting<string>;
+  applicationDistance: RangeSetting;
+  applicationAspectRatio: RangeSetting;
+  classFootprint: RangeSetting;
+  classMargin: RangeSetting;
+  classLabelFontSize: RangeSetting;
+  classLabelLength: RangeSetting;
+  classLabelOffset: RangeSetting;
+  classLabelOrientation: RangeSetting;
+  appLabelMargin: RangeSetting;
+  appMargin: RangeSetting;
+  packageLabelMargin: RangeSetting;
+  packageMargin: RangeSetting;
+  openedComponentHeight: RangeSetting;
+  closedComponentHeight: RangeSetting;
+};
 
 export type MinimapSettingId =
   | 'minimap'
@@ -165,7 +184,7 @@ export type SemanticZoomSettingId =
   | 'distanceLevel4'
   | 'distanceLevel5'
   | 'autoOpenCloseFeature'
-  | 'useKmeansInsteadOfMeanShift'
+  | 'useKMeansInsteadOfMeanShift'
   | 'clusterBasedOnMembers';
 
 export type SemanticZoomSettings = {
@@ -179,7 +198,7 @@ export type SemanticZoomSettings = {
   distanceLevel5: RangeSetting;
   clusterBasedOnMembers: RangeSetting;
   autoOpenCloseFeature: FlagSetting;
-  useKmeansInsteadOfMeanShift: FlagSetting;
+  useKMeansInsteadOfMeanShift: FlagSetting;
 };
 
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
@@ -261,17 +280,27 @@ export interface RangeSetting extends Setting<number> {
   readonly isRangeSetting: true;
 }
 
-// eslint-disable-next-line class-methods-use-this
+export interface SelectSetting<T> extends Setting<T> {
+  options: T[];
+  readonly isSelectSetting: true;
+}
+
 export function isRangeSetting(x: unknown): x is RangeSetting {
   return {}.hasOwnProperty.call(x, 'isRangeSetting');
 }
 
-// eslint-disable-next-line class-methods-use-this
 export function isColorSetting(x: unknown): x is ColorSetting {
   return {}.hasOwnProperty.call(x, 'isColorSetting');
 }
 
-// eslint-disable-next-line class-methods-use-this
 export function isFlagSetting(x: unknown): x is FlagSetting {
   return {}.hasOwnProperty.call(x, 'isFlagSetting');
+}
+
+export function isButtonSetting(x: unknown): x is ButtonSetting {
+  return {}.hasOwnProperty.call(x, 'isButtonSetting');
+}
+
+export function isSelectSetting<T>(x: unknown): x is SelectSetting<T> {
+  return {}.hasOwnProperty.call(x, 'isSelectSetting');
 }

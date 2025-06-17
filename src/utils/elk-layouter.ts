@@ -7,7 +7,10 @@ import {
   K8sPod,
   Package,
 } from './landscape-schemes/structure-data';
-import { getStoredNumberSetting } from './settings/local-storage-settings';
+import {
+  getStoredNumberSetting,
+  getStoredSettingValueById,
+} from './settings/local-storage-settings';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 
@@ -24,6 +27,8 @@ const PACKAGE_PREFIX = 'pack-';
 const CLASS_PREFIX = 'clss-';
 const DUMMY_PREFIX = 'dumy-';
 
+let APPLICATION_ALGORITHM: string;
+let PACKAGE_ALGORITHM: string;
 let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
@@ -50,13 +55,24 @@ export default async function layoutLandscape(
   PACKAGE_MARGIN = getStoredNumberSetting('packageMargin');
   COMPONENT_HEIGHT = getStoredNumberSetting('openedComponentHeight');
 
+  APPLICATION_ALGORITHM = getStoredSettingValueById(
+    'applicationLayoutAlgorithm'
+  ) as string;
+  PACKAGE_ALGORITHM = getStoredSettingValueById(
+    'packageLayoutAlgorithm'
+  ) as string;
+
+  console.log('Using ELK layout with the following settings:');
+  console.log('  Application algorithm:', APPLICATION_ALGORITHM);
+  console.log('  Package algorithm:', PACKAGE_ALGORITHM);
+
   // Initialize landscape graph
   const landscapeGraph: any = {
     id: LANDSCAPE_PREFIX + 'landscape',
     children: [],
     edges: [],
     layoutOptions: {
-      algorithm: 'stress',
+      algorithm: APPLICATION_ALGORITHM,
       desiredEdgeLength: DESIRED_EDGE_LENGTH,
       'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
     },
@@ -87,7 +103,7 @@ function createK8sNodeGraph(k8sNode: K8sNode) {
     children: [],
     layoutOptions: {
       aspectRatio: ASPECT_RATIO.toString(),
-      algorithm: 'rectpacking',
+      algorithm: PACKAGE_ALGORITHM,
       'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
     },
   };
@@ -104,7 +120,7 @@ function populateK8sNodeGraph(nodeGraph: any, namespaces: K8sNamespace[]) {
       children: [],
       layoutOptions: {
         aspectRatio: ASPECT_RATIO.toString(),
-        algorithm: 'rectpacking',
+        algorithm: PACKAGE_ALGORITHM,
         'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
       },
     };
@@ -125,7 +141,7 @@ function populateNamespaceGraph(
       children: [],
       layoutOptions: {
         aspectRatio: ASPECT_RATIO.toString(),
-        algorithm: 'rectpacking',
+        algorithm: PACKAGE_ALGORITHM,
         'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
       },
     };
@@ -143,7 +159,7 @@ function populateDeployment(deploymentGraph: any, pods: K8sPod[]) {
       children: [],
       layoutOptions: {
         aspectRatio: ASPECT_RATIO.toString(),
-        algorithm: 'rectpacking',
+        algorithm: PACKAGE_ALGORITHM,
         'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
       },
     };
@@ -168,7 +184,7 @@ function createApplicationGraph(application: Application) {
     children: [],
     layoutOptions: {
       aspectRatio: ASPECT_RATIO,
-      algorithm: 'rectpacking',
+      algorithm: PACKAGE_ALGORITHM,
       'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
     },
   };
@@ -183,7 +199,7 @@ function populateAppGraph(appGraph: any, application: Application) {
       id: PACKAGE_PREFIX + component.id,
       children: [],
       layoutOptions: {
-        algorithm: 'rectpacking',
+        algorithm: PACKAGE_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
@@ -211,7 +227,7 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
       id: PACKAGE_PREFIX + subPackage.id,
       children: [],
       layoutOptions: {
-        algorithm: 'rectpacking',
+        algorithm: PACKAGE_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
         'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
