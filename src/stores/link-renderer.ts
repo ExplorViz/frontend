@@ -68,16 +68,19 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     const classCommunication = line.dataModel.communication;
 
     line.visible = useConfigurationStore.getState().isCommRendered;
-    const landscapeGroup = sourceApp.parent!;
+    const landscapeGroup = sourceApp.parent;
+    if (!landscapeGroup) {
+      return;
+    }
 
     let sourceClass, targetClass;
 
     if (classCommunication instanceof ClassCommunication) {
       sourceClass = findFirstOpen(sourceApp, classCommunication.sourceClass);
-      targetClass = findFirstOpen(sourceApp, classCommunication.targetClass);
+      targetClass = findFirstOpen(targetApp, classCommunication.targetClass);
     } else {
       sourceClass = findFirstOpen(sourceApp, classCommunication.sourceEntity);
-      targetClass = findFirstOpen(sourceApp, classCommunication.targetEntity);
+      targetClass = findFirstOpen(targetApp, classCommunication.targetEntity);
     }
 
     const sourceMesh = sourceApp.getBoxMeshByModelId(sourceClass.id);

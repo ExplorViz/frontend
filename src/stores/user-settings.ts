@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   ColorSettingId,
   ColorSettings,
@@ -8,10 +8,9 @@ import {
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
+  isSelectSetting,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import {
-  validateRangeSetting,
-} from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { validateRangeSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   classicColors,
@@ -50,8 +49,8 @@ interface UserSettingsState {
 export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
 
 export const useUserSettingsStore = create<UserSettingsState>()(
-  persist(
-    (set, get) => ({
+  // persist(
+  (set, get) => ({
     visualizationSettings: defaultVizSettings,
     colors: undefined,
 
@@ -95,7 +94,9 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       set({ visualizationSettings: settings });
 
       get().updateColors();
-      useApplicationRendererStore.getState().addCommunicationForAllApplications();
+      useApplicationRendererStore
+        .getState()
+        .addCommunicationForAllApplications();
       useHighlightingStore.getState().updateHighlighting();
       let tmpDefaultCamera = useLocalUserStore.getState().defaultCamera;
       tmpDefaultCamera.fov = get().visualizationSettings.cameraFov.value;
@@ -104,7 +105,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
     },
 
     updateSetting: (name: VisualizationSettingId, value?: unknown) => {
-      const setting = {...get().visualizationSettings[name]};
+      const setting = { ...get().visualizationSettings[name] };
 
       const newValue = value ?? defaultVizSettings[name].value;
 
@@ -113,19 +114,30 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         set({
           visualizationSettings: {
             ...get().visualizationSettings,
-            [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
+            [name]: {
+              ...JSON.parse(JSON.stringify(setting)),
+              value: newValue,
+            },
           },
         });
       } else if (isFlagSetting(setting) && typeof newValue === 'boolean') {
         set({
           visualizationSettings: {
             ...get().visualizationSettings,
-            [name]: { ...JSON.parse(JSON.stringify(setting)), value: newValue },
+            [name]: {
+              ...JSON.parse(JSON.stringify(setting)),
+              value: newValue,
+            },
           },
         });
       } else if (isColorSetting(setting) && typeof newValue === 'string') {
         setting.value = newValue;
-        let newVisualizationSettings = {...get().visualizationSettings};
+        let newVisualizationSettings = { ...get().visualizationSettings };
+        newVisualizationSettings[name].value = newValue;
+        set({ visualizationSettings: newVisualizationSettings });
+      } else if (isSelectSetting(setting) && typeof newValue === 'string') {
+        setting.value = newValue;
+        let newVisualizationSettings = { ...get().visualizationSettings };
         newVisualizationSettings[name].value = newValue;
         set({ visualizationSettings: newVisualizationSettings });
       }
@@ -150,7 +162,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
       let settingId: keyof ColorSettings;
       for (settingId in get().colors) {
-        let newVisualizationSettings = {...get().visualizationSettings};
+        let newVisualizationSettings = { ...get().visualizationSettings };
         newVisualizationSettings[settingId].value = scheme[settingId];
         set({ visualizationSettings: newVisualizationSettings });
       }
@@ -167,11 +179,11 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       let settingId: keyof ColorSettings;
       for (settingId in get().colors) {
         if (updatedColors) {
-          let newApplicationColors = {...get().colors!};
+          let newApplicationColors = { ...get().colors! };
           newApplicationColors[settingId].set(updatedColors[settingId]);
           set({ colors: newApplicationColors });
         } else {
-          let newApplicationColors = {...get().colors!};
+          let newApplicationColors = { ...get().colors! };
           newApplicationColors[settingId].set(
             get().visualizationSettings[settingId].value
           );
@@ -199,15 +211,15 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           componentEvenColor: new THREE.Color(
             visualizationSettings.componentEvenColor.value
           ),
-          clazzColor: new THREE.Color(visualizationSettings.clazzColor.value),
+          classColor: new THREE.Color(visualizationSettings.classColor.value),
           highlightedEntityColor: new THREE.Color(
             visualizationSettings.highlightedEntityColor.value
           ),
           componentTextColor: new THREE.Color(
             visualizationSettings.componentTextColor.value
           ),
-          clazzTextColor: new THREE.Color(
-            visualizationSettings.clazzTextColor.value
+          classTextColor: new THREE.Color(
+            visualizationSettings.classTextColor.value
           ),
           foundationTextColor: new THREE.Color(
             visualizationSettings.foundationTextColor.value
@@ -221,7 +233,9 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           backgroundColor: new THREE.Color(
             visualizationSettings.backgroundColor.value
           ),
-          k8sNodeColor: new THREE.Color(visualizationSettings.k8sNodeColor.value),
+          k8sNodeColor: new THREE.Color(
+            visualizationSettings.k8sNodeColor.value
+          ),
           k8sNamespaceColor: new THREE.Color(
             visualizationSettings.k8sNamespaceColor.value
           ),
@@ -229,18 +243,25 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             visualizationSettings.k8sDeploymentColor.value
           ),
           k8sPodColor: new THREE.Color(visualizationSettings.k8sPodColor.value),
-          k8sTextColor: new THREE.Color(visualizationSettings.k8sTextColor.value),
+          k8sTextColor: new THREE.Color(
+            visualizationSettings.k8sTextColor.value
+          ),
         },
       });
     },
-  }),
-  {
-    name: 'ExplorVizSettings', // name of the item in the storage (must be unique)
-    version: 0,
-    partialize: (state) => Object.fromEntries(
-      Object.entries(state).filter(([key]) => key === 'visualizationSettings'),
-    ),
-  }
-));
+  })
+  //,
+  // {
+  //   name: 'ExplorVizSettings', // name of the item in the storage (must be unique)
+  //   version: 1,
+  //   partialize: (state) =>
+  //     Object.fromEntries(
+  //       Object.entries(state).filter(
+  //         ([key]) => key === 'visualizationSettings'
+  //       )
+  //     ),
+  // }
+  // )
+);
 
 useUserSettingsStore.getState()._constructApplicationColors();

@@ -2,20 +2,21 @@ import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
-  RangeSetting as RangeSettingData,
+  SelectSetting as SelectSettingData,
   VisualizationSettingId,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useEffect } from 'react';
 import { useState } from 'react';
+import { Dropdown, DropdownButton } from 'react-bootstrap';
 
-export default function RangeSetting({
+export default function SelectSetting({
   setting,
   onChange,
   settingId,
   resetState,
 }: {
-  setting: RangeSettingData;
-  onChange: (settingId: VisualizationSettingId, value: number) => void;
+  setting: SelectSettingData<unknown>;
+  onChange: (settingId: VisualizationSettingId, value: unknown) => void;
   settingId: VisualizationSettingId;
   resetState: boolean;
 }) {
@@ -25,40 +26,35 @@ export default function RangeSetting({
     setValue(defaultVizSettings[settingId].value);
   }, [resetState]);
 
-  const handleInput = (newValue: number) => {
+  const handleInput = (newValue: unknown) => {
     onChange(settingId, newValue);
     setValue(newValue);
   };
 
   return (
-    <div className="setting-container">
+    <div className="setting-container mb-3">
       <HelpTooltip title={setting.description} />
       <label className="m-0" htmlFor={setting.displayName}>
         {setting.displayName}
       </label>
-      <div className="range-slider--container">
-        <div style={{ width: '100%' }}>
-          <input
-            id={setting.displayName}
-            value={value}
-            min={setting.range.min}
-            max={setting.range.max}
-            type="range"
-            step={setting.range.step}
-            className="form-control mr-2"
-            style={{ height: '1rem' }}
-            onChange={(event) => handleInput(Number(event.target.value))}
-          />
-          <div className="range-slider--values">
-            <span>{setting.range.min}</span>
-            <input
-              style={{ fontWeight: 'bold', textAlign: 'center', width: '5rem' }}
-              type="number"
-              value={value}
-              onChange={(event) => handleInput(Number(event.target.value))}
-            />
-            <span>{setting.range.max}</span>
-          </div>
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <DropdownButton
+            id="dropdown-basic-button"
+            title={value as string}
+            variant="primary"
+          >
+            {setting.options.map((option) => (
+              <Dropdown.Item
+                key={option as string}
+                onClick={() => {
+                  handleInput(option);
+                }}
+              >
+                {option as string}
+              </Dropdown.Item>
+            ))}
+          </DropdownButton>
         </div>
         <ResetButton
           onClick={() => {
