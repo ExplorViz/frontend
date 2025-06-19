@@ -1,30 +1,27 @@
-import * as THREE from 'three';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
-import { Font } from 'three-stdlib'; // import { Font } from 'three/examples/jsm/loaders/FontLoader';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import gsap from 'gsap';
-import MinimapLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/minimap-label-mesh';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import LabelMesh from 'explorviz-frontend/src/view-objects/3d/label-mesh';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import {
   ExplorVizColors,
   useUserSettingsStore,
 } from 'explorviz-frontend/src/stores/user-settings';
-import K8sMesh, {
-  K8sDataModel,
-} from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
-import ClazzLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-label-mesh';
-import SemanticZoomManager from '../../view-objects/3d/application/utils/semantic-zoom-manager';
 import {
   Application,
   isApplication,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
+import MinimapLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/minimap-label-mesh';
+import K8sMesh, {
+  K8sDataModel,
+} from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import LabelMesh from 'explorviz-frontend/src/view-objects/3d/label-mesh';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import gsap from 'gsap';
+import * as THREE from 'three';
+import { Font } from 'three-stdlib'; // import { Font } from 'three/examples/jsm/loaders/FontLoader';
 
 /**
  * Positions label of a given component mesh. This function is standalone and not part
@@ -138,22 +135,17 @@ export function addApplicationLabels(
   application: ApplicationObject3D,
   font: Font,
   colors: ExplorVizColors,
-  labelAll: boolean = false,
-  replace = false
+  labelAll: boolean = false
 ) {
   /**
    * Adds labels to all box meshes of a given application
    */
-  const { componentTextColor, foundationTextColor, classTextColor } = colors;
+  const { foundationTextColor } = colors;
   application.getBoxMeshes().forEach((mesh) => {
     // Labeling is time-consuming. Thus, label only visible meshes incrementally
     // as opposed to labeling all meshes up front (as done in application-rendering).
     if (labelAll || mesh.visible) {
-      if (mesh instanceof ClazzMesh) {
-        addClazzTextLabel(mesh, font, classTextColor, replace);
-      } else if (mesh instanceof ComponentMesh) {
-        addBoxTextLabel(mesh, font, componentTextColor);
-      } else if (mesh instanceof FoundationMesh) {
+      if (mesh instanceof FoundationMesh) {
         addBoxTextLabel(mesh, font, foundationTextColor);
         addMinimapTextLabel(mesh, font, foundationTextColor);
       }
@@ -241,44 +233,6 @@ export function getBoxLabelWithData(
   return labelMesh;
 }
 
-/**
- * Creates a label and adds it at a calculated position to the given clazz mesh
- *
- * @param clazzMesh The mesh which shall be labeled
- * @param font Desired font of the text
- * @param color Desired color of the text
- * @param size Size of text
- */
-export function addClazzTextLabel(
-  clazzMesh: ClazzMesh,
-  font: Font,
-  color: THREE.Color,
-  replace = false
-) {
-  if (clazzMesh.labelMesh && !replace) return;
-  if (clazzMesh.labelMesh && replace) {
-    clazzMesh.remove(clazzMesh.labelMesh);
-    clazzMesh.labelMesh.disposeRecursively(SemanticZoomManager);
-  }
-
-  const size =
-    useUserSettingsStore.getState().visualizationSettings.classLabelFontSize
-      .value;
-  const letterLimit =
-    useUserSettingsStore.getState().visualizationSettings.classLabelLength
-      .value;
-  if (size <= 0 || letterLimit <= 0) return;
-
-  const text = clazzMesh.dataModel.name;
-
-  const labelMesh = new ClazzLabelMesh(font, text, color, size, letterLimit);
-  clazzMesh.labelMesh = labelMesh;
-  //Rotate text and position
-  positionClassLabel(labelMesh, clazzMesh);
-  clazzMesh.add(labelMesh);
-  clazzMesh.saveOriginalAppearence();
-}
-
 export function positionClassLabel(
   labelMesh: LabelMesh,
   parentMesh: THREE.Mesh
@@ -301,40 +255,6 @@ export function positionClassLabel(
     useUserSettingsStore.getState().visualizationSettings.classLabelOrientation
       .value;
   labelMesh.rotation.z = rotation;
-}
-
-export function createClazzTextLabelForZoomLevel(
-  clazzMesh: ClazzMesh,
-  font: Font,
-  color: THREE.Color,
-  size = 0.75,
-  maxletters = -1,
-  replace = false
-) {
-  if (clazzMesh.labelMesh && !replace) return;
-  if (!(clazzMesh.geometry instanceof THREE.BoxGeometry)) return;
-
-  const text = clazzMesh.dataModel.name;
-
-  const labelMesh = new ClazzLabelMesh(
-    font,
-    text,
-    color,
-    size,
-    maxletters > -1 ? maxletters : undefined
-  );
-  //clazzMesh.labelMesh = labelMesh;
-
-  // Set label origin to center of clazz mesh
-  labelMesh.geometry.center();
-  // Set y-position just above the clazz mesh
-  labelMesh.position.y = clazzMesh.geometry.parameters.height / 2 + 0.01;
-
-  // Rotate text
-  labelMesh.rotation.x = -(Math.PI / 2);
-  labelMesh.rotation.z = -(Math.PI / 3);
-
-  return labelMesh;
 }
 
 /**

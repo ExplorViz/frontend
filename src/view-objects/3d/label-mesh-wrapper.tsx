@@ -7,12 +7,20 @@ import { useShallow } from 'zustand/react/shallow';
 import ComponentMesh from './application/component-mesh';
 import K8sMesh from './k8s/k8s-mesh';
 import * as THREE from 'three';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 export default function LabelMeshWrapper({ color }: { color: string }) {
   const ref = useRef<LabelMesh>(null);
   const fontStore = useFontRepositoryStore(
     useShallow((state) => ({
       font: state.font,
+    }))
+  );
+
+  const { appLabelMargin, packageLabelMargin } = useUserSettingsStore(
+    useShallow((state) => ({
+      appLabelMargin: state.visualizationSettings.appLabelMargin.value,
+      packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
     }))
   );
 
@@ -47,7 +55,7 @@ export default function LabelMeshWrapper({ color }: { color: string }) {
       throw new Error('LabelMeshWrapper: parent is not a valid mesh');
     }
     computeLabel(parent);
-  }, [ref]);
+  }, [appLabelMargin, packageLabelMargin, ref]);
 
   // TODO: substitute with react-three-fiber compatible labelMesh component
   return labelMesh ? (

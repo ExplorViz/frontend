@@ -126,7 +126,7 @@ export default function ClassR3F({
         <Text
           color={classTextColor}
           outlineColor={'black'}
-          outlineWidth={0.0001}
+          outlineWidth={classLabelFontSize * 0.05}
           position={[0, 0.5 + labelOffset, 0]}
           rotation={[1.5 * Math.PI, 0, labelRotation]}
           fontSize={classLabelFontSize}

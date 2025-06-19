@@ -65,8 +65,10 @@ export default function ComponentR3F({
     enableAnimations,
     highlightedEntityColor,
     openedComponentHeight,
+    packageLabelMargin,
   } = useUserSettingsStore(
     useShallow((state) => ({
+      packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
       highlightedEntityColor:
         state.visualizationSettings.highlightedEntityColor.value,
       componentEvenColor: state.visualizationSettings.componentEvenColor.value,
@@ -213,7 +215,9 @@ export default function ComponentR3F({
       onPointerOut={handleOnPointerOut}
       ref={meshRef}
     >
-      <LabelMeshWrapper color={componentTextColor} />
+      {packageLabelMargin > 1.5 && (
+        <LabelMeshWrapper color={componentTextColor} />
+      )}
     </componentMesh>
   );
 }
