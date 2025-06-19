@@ -51,6 +51,8 @@ export default function ClassR3F({
 
   const {
     classColor,
+    classLabelFontSize,
+    classLabelLength,
     classTextColor,
     highlightedEntityColor,
     labelOffset,
@@ -59,11 +61,13 @@ export default function ClassR3F({
   } = useUserSettingsStore(
     useShallow((state) => ({
       classColor: state.colors?.classColor,
+      classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
+      classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.colors?.classTextColor,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
-      maxLabelLength: state.visualizationSettings.classLabelLength.value,
-      labelRotation: state.visualizationSettings.classLabelOrientation.value,
       labelOffset: state.visualizationSettings.classLabelOffset.value,
+      labelRotation: state.visualizationSettings.classLabelOrientation.value,
+      maxLabelLength: state.visualizationSettings.classLabelLength.value,
     }))
   );
 
@@ -118,19 +122,21 @@ export default function ClassR3F({
       {...pointerStopHandlers}
       args={[constructorArgs]}
     >
-      <Text
-        color={classTextColor}
-        outlineColor={'black'}
-        outlineWidth={0.0001}
-        position={[0, 0.5 + labelOffset, 0]}
-        rotation={[1.5 * Math.PI, 0, labelRotation]}
-        fontSize={1.2}
-        raycast={() => null}
-      >
-        {dataModel.name.length <= maxLabelLength
-          ? dataModel.name
-          : dataModel.name.substring(0, maxLabelLength) + '...'}
-      </Text>
+      {classLabelFontSize > 0 && classLabelLength > 0 && (
+        <Text
+          color={classTextColor}
+          outlineColor={'black'}
+          outlineWidth={0.0001}
+          position={[0, 0.5 + labelOffset, 0]}
+          rotation={[1.5 * Math.PI, 0, labelRotation]}
+          fontSize={classLabelFontSize}
+          raycast={() => null}
+        >
+          {dataModel.name.length <= maxLabelLength
+            ? dataModel.name
+            : dataModel.name.substring(0, maxLabelLength) + '...'}
+        </Text>
+      )}
     </clazzMesh>
   );
 }
