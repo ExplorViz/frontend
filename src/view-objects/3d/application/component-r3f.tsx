@@ -4,7 +4,6 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -13,6 +12,7 @@ import { gsap } from 'gsap';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import { Text } from '@react-three/drei';
 
 export default function ComponentR3F({
   component,
@@ -216,7 +216,16 @@ export default function ComponentR3F({
       ref={meshRef}
     >
       {packageLabelMargin > 1.5 && (
-        <LabelMeshWrapper color={componentTextColor} />
+        <Text
+          color={componentTextColor}
+          outlineColor={'white'}
+          position={[0, 0.51, 0.5 - packageLabelMargin / layout.depth / 2]}
+          rotation={[1.5 * Math.PI, 0, 0]}
+          fontSize={(packageLabelMargin * 0.9) / layout.depth}
+          raycast={() => null}
+        >
+          {component.name}
+        </Text>
       )}
     </componentMesh>
   );

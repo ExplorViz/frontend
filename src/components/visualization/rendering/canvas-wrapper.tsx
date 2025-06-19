@@ -1,4 +1,4 @@
-import { CameraControls, PerspectiveCamera } from '@react-three/drei';
+import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
@@ -30,6 +30,7 @@ export default function CanvasWrapper({
     cameraFov,
     castShadows,
     sceneBackgroundColor,
+    showFpsCounter,
   } = useUserSettingsStore(
     useShallow((state) => ({
       sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
@@ -37,6 +38,7 @@ export default function CanvasWrapper({
       cameraNear: state.visualizationSettings.cameraNear.value,
       cameraFar: state.visualizationSettings.cameraFar.value,
       cameraFov: state.visualizationSettings.cameraFov.value,
+      showFpsCounter: state.visualizationSettings.showFpsCounter.value,
     }))
   );
 
@@ -205,6 +207,7 @@ export default function CanvasWrapper({
         position={[-5, 5, 5]}
         castShadow={castShadows}
       />
+      {showFpsCounter && <Stats className="stats" />}
     </Canvas>
   );
 }
