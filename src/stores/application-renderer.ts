@@ -126,7 +126,6 @@ interface ApplicationRendererState {
   ) => void;
   restoreFromSerialization: (room: SerializedRoom) => void;
   updateApplicationLayout: () => Promise<void>;
-  updateLabels: () => void;
   _visualizeCommitComparisonPackagesAndClasses: (
     applicationData: ApplicationData,
     commitComparison: CommitComparison
@@ -295,13 +294,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
           applicationState.transparentComponents,
           useHighlightingStore.getState().opacity()
         );
-
-        // Add labels to application
-        // Labeler.addApplicationLabels(
-        //   app3D,
-        //   useFontRepositoryStore.getState().font!,
-        //   useUserSettingsStore.getState().colors!
-        // );
       } else {
         // Layout may have been changed in settings
         app3D.updateLayout();
@@ -426,20 +418,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     updateApplicationObject3DAfterUpdate: (
       applicationObject3D: ApplicationObject3D
     ) => {
-      // Render communication
-      // if (
-      //   useLocalUserStore.getState().visualizationMode !== 'ar' ||
-      //   useARSettingsStore.getState().renderCommunication
-      // ) {
-      //   get().addCommunication(applicationObject3D);
-      // }
-
-      // Update labels
-      // Labeler.addApplicationLabels(
-      //   applicationObject3D,
-      //   useFontRepositoryStore.getState().font!,
-      //   useUserSettingsStore.getState().colors!
-      // );
       // Update links
       useLinkRendererStore.getState().updateLinkPositions();
       // Update highlighting
@@ -665,20 +643,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
 
       // Update communication since position of classes may have changed
       get().addCommunicationForAllApplications();
-    },
-
-    updateLabels: () => {
-      get()
-        .getOpenApplications()
-        .forEach((app3D) => {
-          // Labeler.addApplicationLabels(
-          //   app3D,
-          //   useFontRepositoryStore.getState().font!,
-          //   useUserSettingsStore.getState().colors!,
-          //   false,
-          //   true
-          // );
-        });
     },
 
     _visualizeCommitComparisonPackagesAndClasses: (

@@ -1,10 +1,10 @@
+import { Text } from '@react-three/drei';
 import { ThreeElements } from '@react-three/fiber';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { openAllComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import LabelMeshWrapper from 'explorviz-frontend/src/view-objects/3d/label-mesh-wrapper';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
@@ -32,16 +32,21 @@ export default function FoundationR3F({
     }))
   );
 
-  const { foundationColor, foundationTextColor, highlightedEntityColor } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        foundationColor: state.visualizationSettings.foundationColor.value,
-        highlightedEntityColor:
-          state.visualizationSettings.highlightedEntityColor.value,
-        foundationTextColor:
-          state.visualizationSettings.foundationTextColor.value,
-      }))
-    );
+  const {
+    appLabelMargin,
+    foundationColor,
+    foundationTextColor,
+    highlightedEntityColor,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      appLabelMargin: state.visualizationSettings.appLabelMargin.value,
+      foundationColor: state.visualizationSettings.foundationColor.value,
+      highlightedEntityColor:
+        state.visualizationSettings.highlightedEntityColor.value,
+      foundationTextColor:
+        state.visualizationSettings.foundationTextColor.value,
+    }))
+  );
 
   const constructorArgs = useMemo<
     ThreeElements['foundationMesh']['args'][0]
@@ -96,7 +101,18 @@ export default function FoundationR3F({
       onPointerOut={handleOnPointerOut}
       args={[constructorArgs]}
     >
-      <LabelMeshWrapper color={foundationTextColor} />
+      {appLabelMargin > 1.5 && (
+        <Text
+          color={foundationTextColor}
+          outlineColor={'white'}
+          position={[0, 0.51, 0.5 - appLabelMargin / boxLayout.depth / 2]}
+          rotation={[1.5 * Math.PI, 0, 0]}
+          fontSize={(appLabelMargin * 0.9) / boxLayout.depth}
+          raycast={() => null}
+        >
+          {application.name}
+        </Text>
+      )}
     </foundationMesh>
   );
 }

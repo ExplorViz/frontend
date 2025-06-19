@@ -10,6 +10,7 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/appl
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
 import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import * as THREE from 'three';
 
 export default function CommunicationR3F({
   communicationModel,
@@ -30,10 +31,10 @@ export default function CommunicationR3F({
     highlightedEntityColor,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      arrowColor: state.colors?.communicationArrowColor,
+      arrowColor: state.visualizationSettings.communicationArrowColor.value,
       arrowOffset: state.visualizationSettings.commArrowOffset.value,
       arrowWidth: state.visualizationSettings.commArrowSize.value,
-      communicationColor: state.colors?.communicationColor,
+      communicationColor: state.visualizationSettings.communicationColor.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       curveHeight: state.visualizationSettings.curvyCommHeight.value,
     }))
@@ -116,7 +117,7 @@ export default function CommunicationR3F({
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       args={constructorArgs}
-      arrowColor={arrowColor}
+      arrowColor={new THREE.Color(arrowColor)}
       arrowOffset={arrowOffset}
       layout={communicationLayout}
       arrowWidth={arrowWidth}

@@ -14,10 +14,7 @@ import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/land
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
-import {
-  moveCameraTo,
-  updateColors,
-} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { moveCameraTo } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import {
   Span,
   Trace,
@@ -742,10 +739,6 @@ export default function BrowserRendering({
     );
   };
 
-  const updateSceneColors = () => {
-    updateColors(scene, userSettingsState.colors!);
-  };
-
   const setGamepadSupport = (enabled: boolean) => {
     if (gamepadControls.current) {
       gamepadControls.current.setGamepadSupport(enabled);
@@ -1242,7 +1235,6 @@ export default function BrowserRendering({
                       showSemanticZoomClusterCenters={
                         showSemanticZoomClusterCenters
                       }
-                      updateColors={updateSceneColors}
                       updateHighlighting={
                         highlightingActions.updateHighlighting
                       }

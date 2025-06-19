@@ -1,32 +1,29 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import {
-  ColorSettingId,
-  ColorSettings,
-  VisualizationSettingId,
-  VisualizationSettings,
-  isColorSetting,
-  isFlagSetting,
-  isRangeSetting,
-  isSelectSetting,
-} from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { validateRangeSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
-import {
+  blueColors,
   classicColors,
   ColorSchemeId,
   darkColors,
   defaultColors,
-  blueColors,
-  ColorScheme,
 } from 'explorviz-frontend/src/utils/settings/color-schemes';
-import { updateColors as EMUpdateColors } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { validateRangeSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import {
+  ColorSettingId,
+  ColorSettings,
+  isColorSetting,
+  isFlagSetting,
+  isRangeSetting,
+  isSelectSetting,
+  VisualizationSettingId,
+  VisualizationSettings,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
-import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface UserSettingsState {
   visualizationSettings: VisualizationSettings; // tracked
@@ -41,7 +38,6 @@ interface UserSettingsState {
     schemeId: ColorSchemeId,
     saveToLocalStorage?: boolean
   ) => void;
-  updateColors: (updatedColors?: ColorScheme) => void;
   setColorsFromSettings: () => void;
   setVisualizationSettings: (value: VisualizationSettings) => void;
 }
@@ -58,7 +54,6 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       // Used as constructor for applicationColors
       _constructApplicationColors: () => {
         get().setColorsFromSettings();
-        get().updateColors();
       },
 
       setVisualizationSettings: (value: VisualizationSettings) => {
@@ -81,8 +76,6 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         set({
           visualizationSettings: JSON.parse(JSON.stringify(defaultVizSettings)),
         });
-
-        get().updateColors();
       },
 
       shareVisualizationSettings: () => {
@@ -94,7 +87,6 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       updateSettings: (settings: VisualizationSettings) => {
         set({ visualizationSettings: settings });
 
-        get().updateColors();
         useApplicationRendererStore
           .getState()
           .addCommunicationForAllApplications();
@@ -167,35 +159,6 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           newVisualizationSettings[settingId].value = scheme[settingId];
           set({ visualizationSettings: newVisualizationSettings });
         }
-
-        get().updateColors(scheme);
-      },
-
-      updateColors: (updatedColors?: ColorScheme) => {
-        if (!get().colors) {
-          get().setColorsFromSettings();
-          return;
-        }
-
-        let settingId: keyof ColorSettings;
-        for (settingId in get().colors) {
-          if (updatedColors) {
-            let newApplicationColors = { ...get().colors! };
-            newApplicationColors[settingId].set(updatedColors[settingId]);
-            set({ colors: newApplicationColors });
-          } else {
-            let newApplicationColors = { ...get().colors! };
-            newApplicationColors[settingId].set(
-              get().visualizationSettings[settingId].value
-            );
-            set({ colors: newApplicationColors });
-          }
-        }
-
-        EMUpdateColors(
-          useSceneRepositoryStore.getState().getScene('browser', false),
-          get().colors!
-        );
       },
 
       setColorsFromSettings: () => {

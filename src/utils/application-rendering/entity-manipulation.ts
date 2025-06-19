@@ -1,21 +1,19 @@
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import {
-  Application,
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
 import {
   DynamicLandscapeData,
   isSpan,
   Span,
 } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import {
+  Application,
+  Class,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { spanIdToClass } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
-import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
-import { ExplorVizColors } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 
 /**
  * Given a package or class, returns a list of all ancestor components.
@@ -352,16 +350,4 @@ export function moveCameraTo(
       cameraControls.focusCameraOn(0.6, clazzMesh);
     }
   }
-}
-
-export function updateColors(
-  scene: THREE.Scene,
-  applicationColors: ExplorVizColors
-) {
-  scene.traverse((object3D) => {
-    if (object3D instanceof BaseMesh) {
-      object3D.updateColor();
-    }
-  });
-  scene.background = applicationColors.backgroundColor;
 }

@@ -12,7 +12,6 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import {
   closeAllComponents,
   moveCameraTo,
-  updateColors,
 } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'explorviz-frontend/src/utils/application-rendering/spheres';
 import hitTest from 'explorviz-frontend/src/utils/hit-test';
@@ -709,10 +708,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const removeUnpinnedPopups = popupHandlerActions.removeUnpinnedPopups;
 
-  const updateSceneColors = () => {
-    updateColors(scene, userSettingsState.colors!);
-  };
-
   const addAnnotationForPopup = (popup: PopupData) => {
     const mesh = applicationRendererActions.getMeshById(popup.entity.id);
     if (!mesh) return;
@@ -1072,7 +1067,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
                       }
                       resetSettings={userSettingsActions.applyDefaultSettings}
                       setGamepadSupport={() => {}}
-                      updateColors={updateSceneColors}
                       updateHighlighting={
                         highlightingActions.updateHighlighting
                       }

@@ -44,7 +44,6 @@ interface SettingsProps {
   resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
   showSemanticZoomClusterCenters(): void;
-  updateColors(): void;
   updateHighlighting(): void;
 }
 
@@ -54,7 +53,6 @@ export default function Settings({
   resetSettings,
   setGamepadSupport,
   showSemanticZoomClusterCenters,
-  updateColors,
   updateHighlighting,
 }: SettingsProps) {
   const [resetState, setResetState] = useState<boolean>(true);
@@ -84,9 +82,6 @@ export default function Settings({
       updateApplicationLayout: state.updateApplicationLayout,
     }))
   );
-  const updateLabels = useApplicationRendererStore(
-    (state) => state.updateLabels
-  );
   const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
   const updateMinimapSphereRadius = useMinimapStore(
@@ -104,15 +99,10 @@ export default function Settings({
     (state) => state.setSemanticZoomEnabled
   );
 
-  const {
-    applyDefaultSettingsForGroup,
-    setColorScheme,
-    updateUserSettingsColors,
-  } = useUserSettingsStore(
+  const { applyDefaultSettingsForGroup, setColorScheme } = useUserSettingsStore(
     useShallow((state) => ({
       applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
       setColorScheme: state.setColorScheme,
-      updateUserSettingsColors: state.updateColors,
     }))
   );
 
@@ -260,12 +250,6 @@ export default function Settings({
       case 'openedComponentHeight':
       case 'closedComponentHeight':
         updateApplicationLayout();
-        break;
-      case 'classLabelFontSize':
-      case 'classLabelLength':
-      case 'classLabelOffset':
-      case 'classLabelOrientation':
-        updateLabels();
         break;
       case 'transparencyIntensity':
         if (updateHighlighting) {
@@ -462,15 +446,12 @@ export default function Settings({
 
   const applyColorScheme = (colorScheme: ColorSchemeId) => {
     setColorScheme(colorScheme);
-    updateColors?.();
     setResetState(!resetState);
   };
 
   const updateVisualizationState = () => {
-    updateUserSettingsColors();
     updateHighlightingInStore();
     updateApplicationLayout();
-    updateLabels();
   };
 
   const resetGroup = (groupId: string) => {
@@ -537,7 +518,6 @@ export default function Settings({
                     key={settingId}
                     id={settingId as ColorSettingId}
                     setting={setting}
-                    updateColors={updateColors}
                     resetState={resetState}
                   />
                 );

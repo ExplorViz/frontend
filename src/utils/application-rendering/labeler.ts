@@ -131,28 +131,6 @@ export function positionBoxLabelWithData(
   }
 }
 
-export function addApplicationLabels(
-  application: ApplicationObject3D,
-  font: Font,
-  colors: ExplorVizColors,
-  labelAll: boolean = false
-) {
-  /**
-   * Adds labels to all box meshes of a given application
-   */
-  const { foundationTextColor } = colors;
-  application.getBoxMeshes().forEach((mesh) => {
-    // Labeling is time-consuming. Thus, label only visible meshes incrementally
-    // as opposed to labeling all meshes up front (as done in application-rendering).
-    if (labelAll || mesh.visible) {
-      if (mesh instanceof FoundationMesh) {
-        addBoxTextLabel(mesh, font, foundationTextColor);
-        addMinimapTextLabel(mesh, font, foundationTextColor);
-      }
-    }
-  });
-}
-
 /**
  * Creates a label and adds it at a calculated position to the given
  * component or foundation mesh

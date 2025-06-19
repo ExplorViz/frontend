@@ -299,13 +299,5 @@ export function updateApplicationObject3DAfterUpdate(
       useUserSettingsStore.getState().visualizationSettings
     );
   }
-
-  // Update labels
-  // Labeler.addApplicationLabels(
-  //   applicationObject3D,
-  //   font,
-  //   useUserSettingsStore.getState().colors!
-  // );
-  // Update links
   linkUpdater?.();
 }
