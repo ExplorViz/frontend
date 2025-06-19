@@ -22,9 +22,9 @@ export default function ClassR3F({
   const { isHighlighted, isHovered, isVisible, updateClassState } =
     useVisualizationStore(
       useShallow((state) => ({
-        isHighlighted: state.classData[dataModel.id].isHighlighted,
-        isHovered: state.classData[dataModel.id].isHovered,
-        isVisible: state.classData[dataModel.id].isVisible,
+        isHighlighted: state.classData[dataModel.id]?.isHighlighted,
+        isHovered: state.classData[dataModel.id]?.isHovered,
+        isVisible: state.classData[dataModel.id]?.isVisible,
         updateClassState: state.actions.updateClassState,
       }))
     );

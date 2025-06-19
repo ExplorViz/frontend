@@ -49,10 +49,10 @@ export default function ComponentR3F({
   const { isOpen, isHighlighted, isHovered, isVisible, updateComponentState } =
     useVisualizationStore(
       useShallow((state) => ({
-        isOpen: state.componentData[component.id].isOpen,
-        isHighlighted: state.componentData[component.id].isHighlighted,
-        isHovered: state.componentData[component.id].isHovered,
-        isVisible: state.componentData[component.id].isVisible,
+        isOpen: state.componentData[component.id]?.isOpen,
+        isHighlighted: state.componentData[component.id]?.isHighlighted,
+        isHovered: state.componentData[component.id]?.isHovered,
+        isVisible: state.componentData[component.id]?.isVisible,
         updateComponentState: state.actions.updateComponentState,
       }))
     );
