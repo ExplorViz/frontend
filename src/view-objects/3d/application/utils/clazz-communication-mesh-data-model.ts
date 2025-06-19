@@ -12,18 +12,14 @@ export default class ClazzCommuMeshDataModel {
 
   name: string;
 
-  application: Application;
-
   originOfData: TypeOfAnalysis = TypeOfAnalysis.Dynamic;
 
   targetApplication?: Application;
 
   constructor(
-    application: Application,
     communication: ClassCommunication | ComponentCommunication,
     id: string
   ) {
-    this.application = application;
     this.communication = communication;
 
     this.id = id;

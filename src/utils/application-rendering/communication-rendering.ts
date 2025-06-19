@@ -35,17 +35,11 @@ export default class CommunicationRendering {
 
   // Add arrow indicators for class communication
   private addArrows(pipe: ClazzCommunicationMesh, curveHeight: number) {
-    const arrowOffset =
-      useUserSettingsStore.getState().visualizationSettings.commArrowOffset
-        .value;
-    const arrowHeight = curveHeight / 2 + arrowOffset;
     const arrowThickness =
       useUserSettingsStore.getState().visualizationSettings.commArrowSize.value;
-    const arrowColor =
-      useUserSettingsStore.getState().colors!.communicationArrowColor;
 
     if (arrowThickness > 0.0) {
-      pipe.addArrows(arrowThickness, arrowHeight, arrowColor);
+      pipe.addArrows();
     }
   }
 

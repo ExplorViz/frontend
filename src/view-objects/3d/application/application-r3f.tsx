@@ -154,7 +154,6 @@ export default function ApplicationR3F({
           {communications.map((communication) => (
             <CommunicationR3F
               key={communication.id}
-              application={applicationData.application}
               communicationModel={communication.communicationModel}
               communicationLayout={communication.layout}
             />

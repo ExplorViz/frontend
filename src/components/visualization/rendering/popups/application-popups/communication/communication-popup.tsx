@@ -1,7 +1,4 @@
-import React from 'react';
-
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs';
 import CommunicationPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-runtime.tsx';
 import CommunicationPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup-code.tsx';

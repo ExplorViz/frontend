@@ -5,7 +5,6 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
@@ -13,11 +12,9 @@ import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CommunicationR3F({
-  application,
   communicationModel,
   communicationLayout,
 }: {
-  application: Application;
   communicationModel: ClassCommunication;
   communicationLayout: CommunicationLayout | undefined;
 }) {
@@ -105,7 +102,6 @@ export default function CommunicationR3F({
     ThreeElements['clazzCommunicationMesh']['args']
   >(() => {
     const dataModel = new ClazzCommuMeshDataModel(
-      application,
       communicationModel,
       communicationModel.id
     );

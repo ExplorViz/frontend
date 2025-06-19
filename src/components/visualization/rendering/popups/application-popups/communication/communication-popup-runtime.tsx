@@ -28,7 +28,6 @@ export default function CommunicationPopupRuntime({
   toggleHighlightById,
   openParents,
 }: CommunicationPopupRuntimeProps) {
-  const application = communication.application;
   const aggregatedRequestCount = communication.communication.totalRequests;
 
   const highlightEntity = (entity: Package | Class, applicationId: string) => {

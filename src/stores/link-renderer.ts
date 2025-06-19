@@ -15,6 +15,7 @@ import { VisualizationSettings } from '../utils/settings/settings-schemas';
 import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
 
 interface LinkRendererState {
   linkIdToMesh: Map<string, ClazzCommunicationMesh>;
@@ -23,6 +24,9 @@ interface LinkRendererState {
   appSettings: () => VisualizationSettings;
   getAllLinks: () => ClazzCommunicationMesh[];
   updateLinkPosition: (line: ClazzCommunicationMesh) => true | undefined;
+  computeCommunicationLayout: (
+    communication: ClassCommunication | ComponentCommunication
+  ) => CommunicationLayout | undefined;
   updateLinkPositions: () => void;
   createMeshFromCommunication: (
     classCommunication: ClassCommunication
@@ -51,6 +55,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
   },
 
   updateLinkPosition: (line: ClazzCommunicationMesh) => {
+    return;
     const sourceApp = useApplicationRendererStore
       .getState()
       .getApplicationById(line.dataModel.communication.sourceApp.id);
@@ -132,6 +137,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
   },
 
   updateLinkPositions: () => {
+    return;
     get().linkIdToMesh.forEach((link) => {
       get().updateLinkPosition(link);
     });
@@ -147,7 +153,6 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     const { id } = classCommunication;
 
     const clazzCommuMeshData = new ClazzCommuMeshDataModel(
-      applicationObject3D.dataModel.application,
       classCommunication,
       id
     );
@@ -163,16 +168,84 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     }
     const newMesh = new ClazzCommunicationMesh(
       // Note: Parameter layout is not used here
-      new CommunicationLayout(clazzCommuMeshData.communication),
-      clazzCommuMeshData,
-      communicationColor,
-      highlightedEntityColor
+      clazzCommuMeshData
     );
     newLinkIdToMesh = get().linkIdToMesh;
     newLinkIdToMesh.set(id, newMesh);
     get().addLinkIdToMesh(id, newMesh);
 
     return newMesh;
+  },
+
+  computeCommunicationLayout(
+    communication: ClassCommunication | ComponentCommunication
+  ) {
+    const sourceApp = useApplicationRendererStore
+      .getState()
+      .getApplicationById(communication.sourceApp.id);
+    const targetApp = useApplicationRendererStore
+      .getState()
+      .getApplicationById(communication.targetApp.id);
+
+    if (
+      !(sourceApp instanceof ApplicationObject3D) ||
+      !(targetApp instanceof ApplicationObject3D)
+    ) {
+      return;
+    }
+
+    const landscapeGroup = sourceApp.parent;
+    if (!landscapeGroup) {
+      return;
+    }
+
+    let sourceClass, targetClass;
+
+    if (communication instanceof ClassCommunication) {
+      sourceClass = findFirstOpen(sourceApp, communication.sourceClass);
+      targetClass = findFirstOpen(targetApp, communication.targetClass);
+    } else {
+      sourceClass = findFirstOpen(sourceApp, communication.sourceEntity);
+      targetClass = findFirstOpen(targetApp, communication.targetEntity);
+    }
+
+    const sourceMesh = sourceApp.getBoxMeshByModelId(sourceClass.id);
+    if (
+      !(sourceMesh instanceof ClazzMesh || sourceMesh instanceof ComponentMesh)
+    ) {
+      console.error(
+        `Cannot find source mesh for ${sourceClass.id} in ${sourceApp.id}`
+      );
+      return;
+    }
+
+    let start = new THREE.Vector3()
+      .copy(sourceApp.layout.position)
+      .add(sourceMesh.layout.position);
+
+    const targetMesh = targetApp.getBoxMeshByModelId(targetClass.id);
+    if (
+      !(targetMesh instanceof ClazzMesh || targetMesh instanceof ComponentMesh)
+    ) {
+      console.error(
+        `Cannot find source mesh for ${sourceClass.id} in ${sourceApp.id}`
+      );
+      return;
+    }
+    let end = new THREE.Vector3()
+      .copy(targetApp.layout.position)
+      .add(targetMesh.layout.position);
+
+    // Add arrow
+    const commLayout = new CommunicationLayout(communication);
+    commLayout.startPoint = start;
+    commLayout.endPoint = end;
+    commLayout.lineThickness = calculateLineThickness(
+      communication,
+      useUserSettingsStore.getState().visualizationSettings.commThickness.value
+    );
+
+    return commLayout;
   },
 
   getLinkById: (linkId: string) => {
@@ -208,7 +281,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
       useUserSettingsStore.getState().colors!.communicationArrowColor;
 
     if (arrowThickness > 0.0) {
-      pipe.addArrows(arrowThickness, arrowHeight, arrowColor);
+      pipe.addArrows();
     }
 
     if (pipe.material.opacity !== 1) {

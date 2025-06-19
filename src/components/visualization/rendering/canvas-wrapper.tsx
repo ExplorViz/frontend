@@ -1,6 +1,7 @@
 import { CameraControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
@@ -68,6 +69,10 @@ export default function CanvasWrapper({
       classData: state.classData,
       removeAllComponentStates: state.actions.removeAllComponentStates,
     }))
+  );
+
+  const computeCommunicationLayout = useLinkRendererStore(
+    (state) => state.computeCommunicationLayout
   );
 
   useEffect(() => {
@@ -175,12 +180,13 @@ export default function CanvasWrapper({
             applicationData={appModel}
           />
         ))}
-        {/* {interAppCommunications.map((communication) => (
+        {interAppCommunications.map((communication) => (
           <CommunicationR3F
             key={communication.id}
             communicationModel={communication}
+            communicationLayout={computeCommunicationLayout(communication)}
           />
-        ))} */}
+        ))}
       </LandscapeR3F>
       <ambientLight />
       <spotLight

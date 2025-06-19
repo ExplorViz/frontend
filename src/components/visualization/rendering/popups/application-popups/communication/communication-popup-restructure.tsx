@@ -36,7 +36,6 @@ export default function CommunicationPopupRestructure({
     (state) => state.restructureMode
   );
 
-  const application = communication.application;
   const aggregatedRequestCount = communication.communication.totalRequests;
 
   const highlightEntity = (entity: Package | Class, applicationId: string) => {
@@ -132,7 +131,11 @@ export default function CommunicationPopupRestructure({
                 </tr>
                 {/* Name */}
                 <tr>
-                  <EditOperationName communication={classCommunication as unknown as ClassCommunication} />
+                  <EditOperationName
+                    communication={
+                      classCommunication as unknown as ClassCommunication
+                    }
+                  />
 
                   <td className="text-nowrap align-top">
                     <CommentIcon verticalAlign="middle" size="small" />
@@ -167,10 +170,15 @@ export default function CommunicationPopupRestructure({
                     %
                   </td>
                 </tr>
-                {communication.communication instanceof ComponentCommunication && (
+                {communication.communication instanceof
+                  ComponentCommunication && (
                   <>
                     {restructureMode && (
-                      <EditCommMesh classCommunication={classCommunication as unknown as ClassCommunication} />
+                      <EditCommMesh
+                        classCommunication={
+                          classCommunication as unknown as ClassCommunication
+                        }
+                      />
                     )}
                     {index <
                       (communication.communication as ComponentCommunication)

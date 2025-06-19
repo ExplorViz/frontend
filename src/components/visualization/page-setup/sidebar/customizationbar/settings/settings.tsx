@@ -41,7 +41,6 @@ import SelectSetting from 'explorviz-frontend/src/components/visualization/page-
 interface SettingsProps {
   enterFullscreen(): void;
   popups: PopupData[];
-  redrawCommunication(): void;
   resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
   showSemanticZoomClusterCenters(): void;
@@ -52,7 +51,6 @@ interface SettingsProps {
 export default function Settings({
   enterFullscreen,
   popups,
-  redrawCommunication,
   resetSettings,
   setGamepadSupport,
   showSemanticZoomClusterCenters,
@@ -88,9 +86,6 @@ export default function Settings({
   );
   const updateLabels = useApplicationRendererStore(
     (state) => state.updateLabels
-  );
-  const addCommunicationForAllApplications = useApplicationRendererStore(
-    (state) => state.addCommunicationForAllApplications
   );
   const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
@@ -274,15 +269,6 @@ export default function Settings({
         break;
       case 'transparencyIntensity':
         if (updateHighlighting) {
-          updateHighlighting();
-        }
-        break;
-      case 'commThickness':
-      case 'commArrowSize':
-      case 'commArrowOffset':
-      case 'curvyCommHeight':
-        if (redrawCommunication && updateHighlighting) {
-          redrawCommunication();
           updateHighlighting();
         }
         break;
@@ -485,7 +471,6 @@ export default function Settings({
     updateHighlightingInStore();
     updateApplicationLayout();
     updateLabels();
-    addCommunicationForAllApplications();
   };
 
   const resetGroup = (groupId: string) => {

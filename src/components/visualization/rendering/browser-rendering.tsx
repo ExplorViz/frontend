@@ -689,14 +689,7 @@ export default function BrowserRendering({
   };
 
   const removeAnnotation = (annotationId: number) => {
-    if (
-      !userSettingsState.visualizationSettings.enableCustomAnnotationPosition
-        .value
-    ) {
-      annotationHandlerActions.clearAnnotations();
-    } else {
-      annotationHandlerActions.removeAnnotation(annotationId);
-    }
+    annotationHandlerActions.removeAnnotation(annotationId);
   };
 
   const handleMouseOut = (/*event: React.PointerEvent*/) => {
@@ -1245,9 +1238,6 @@ export default function BrowserRendering({
                     <Settings
                       enterFullscreen={enterFullscreen}
                       popups={popupHandlerState.popupData}
-                      redrawCommunication={
-                        applicationRendererActions.addCommunicationForAllApplications
-                      }
                       resetSettings={userSettingsActions.applyDefaultSettings}
                       showSemanticZoomClusterCenters={
                         showSemanticZoomClusterCenters
