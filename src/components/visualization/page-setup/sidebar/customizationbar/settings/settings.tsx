@@ -509,7 +509,6 @@ export default function Settings({
                     setting={setting}
                     settingId={settingId}
                     onChange={updateRangeSetting}
-                    resetState={resetState}
                   />
                 );
               } else if (isColorSetting(setting)) {
@@ -528,7 +527,6 @@ export default function Settings({
                     setting={setting}
                     settingId={settingId}
                     onClick={updateButtonSetting}
-                    resetState={resetState}
                   />
                 );
               } else if (isSelectSetting(setting)) {
@@ -538,7 +536,6 @@ export default function Settings({
                     setting={setting}
                     settingId={settingId}
                     onChange={updateSelectSetting}
-                    resetState={resetState}
                   />
                 );
               }

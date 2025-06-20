@@ -1,5 +1,6 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   RangeSetting as RangeSettingData,
@@ -7,23 +8,28 @@ import {
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useEffect } from 'react';
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function RangeSetting({
   setting,
   onChange,
   settingId,
-  resetState,
 }: {
   setting: RangeSettingData;
   onChange: (settingId: VisualizationSettingId, value: number) => void;
   settingId: VisualizationSettingId;
-  resetState: boolean;
 }) {
   const [value, setValue]: any = useState(setting.value);
 
+  const { visualizationSettings } = useUserSettingsStore(
+    useShallow((state) => ({
+      visualizationSettings: state.visualizationSettings,
+    }))
+  );
+
   useEffect(() => {
-    setValue(defaultVizSettings[settingId].value);
-  }, [resetState]);
+    setValue(visualizationSettings[settingId].value);
+  }, [visualizationSettings[settingId], settingId]);
 
   const handleInput = (newValue: number) => {
     onChange(settingId, newValue);

@@ -1,5 +1,6 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   SelectSetting as SelectSettingData,
@@ -8,23 +9,28 @@ import {
 import { useEffect } from 'react';
 import { useState } from 'react';
 import { Dropdown, DropdownButton } from 'react-bootstrap';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function SelectSetting({
   setting,
   onChange,
   settingId,
-  resetState,
 }: {
   setting: SelectSettingData<unknown>;
   onChange: (settingId: VisualizationSettingId, value: unknown) => void;
   settingId: VisualizationSettingId;
-  resetState: boolean;
 }) {
   const [value, setValue]: any = useState(setting.value);
 
+  const { visualizationSettings } = useUserSettingsStore(
+    useShallow((state) => ({
+      visualizationSettings: state.visualizationSettings,
+    }))
+  );
+
   useEffect(() => {
-    setValue(defaultVizSettings[settingId].value);
-  }, [resetState]);
+    setValue(visualizationSettings[settingId].value);
+  }, [visualizationSettings[settingId], settingId]);
 
   const handleInput = (newValue: unknown) => {
     onChange(settingId, newValue);
