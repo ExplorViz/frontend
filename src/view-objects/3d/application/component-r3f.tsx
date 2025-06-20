@@ -219,6 +219,7 @@ export default function ComponentR3F({
         <Text
           color={componentTextColor}
           outlineColor={'white'}
+          visible={isVisible}
           position={[0, 0.51, 0.5 - packageLabelMargin / layout.depth / 2]}
           rotation={[1.5 * Math.PI, 0, 0]}
           fontSize={(packageLabelMargin * 0.9) / layout.depth}

@@ -145,12 +145,13 @@ export default function CanvasWrapper({
       id="threejs-canvas"
       className={'webgl'}
       gl={{ preserveDrawingBuffer: true }}
-      // onCreated={(state) => {
-      //   state.setEvents({
-      //     filter: (intersections) =>
-      //       intersections.filter((i) => i.object.visible),
-      //   });
-      // }}
+      // ToDo: This can cause issues with the embedded web view
+      onCreated={(state) => {
+        state.setEvents({
+          filter: (intersections) =>
+            intersections.filter((i) => i.object.visible),
+        });
+      }}
       style={{ background: sceneBackgroundColor }}
     >
       <CameraControls

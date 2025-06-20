@@ -121,6 +121,7 @@ export default function ClassR3F({
           position={[0, 0.5 + labelOffset, 0]}
           rotation={[1.5 * Math.PI, 0, labelRotation]}
           fontSize={classLabelFontSize}
+          visible={isVisible}
           raycast={() => null}
         >
           {dataModel.name.length <= maxLabelLength
