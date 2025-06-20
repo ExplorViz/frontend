@@ -358,7 +358,7 @@ export const defaultVizSettings: VisualizationSettings = {
   classLabelOffset: {
     level: SettingLevel.EXTENDED,
     value: 0.01,
-    range: { min: 0.01, max: 5.0, step: 0.01 },
+    range: { min: 0, max: 100, step: 0.1 },
     group: 'Layout',
     displayName: 'Class Label Offset',
     description: 'Determines distance between class and its label',

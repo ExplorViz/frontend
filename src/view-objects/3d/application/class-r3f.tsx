@@ -118,7 +118,7 @@ export default function ClassR3F({
           color={classTextColor}
           outlineColor={'black'}
           outlineWidth={classLabelFontSize * 0.05}
-          position={[0, 0.5 + labelOffset, 0]}
+          position={[0, 0.51 + labelOffset / layout.height, 0]}
           rotation={[1.5 * Math.PI, 0, labelRotation]}
           fontSize={classLabelFontSize}
           visible={isVisible}
