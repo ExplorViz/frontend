@@ -1,3 +1,4 @@
+import { Instances } from '@react-three/drei';
 import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
@@ -137,32 +138,36 @@ export default function ApplicationR3F({
             application={applicationData.application}
             boxLayout={app3D.layout}
           />
-          {applicationData
-            .getPackages()
-            .map((packageData) =>
-              app3D.getBoxLayout(packageData.id) ? (
-                <ComponentR3F
-                  key={packageData.id}
-                  component={packageData}
-                  layout={app3D.getBoxLayout(packageData.id)!}
-                />
-              ) : (
-                <Fragment key={packageData.id} />
-              )
-            )}
-          {applicationData
-            .getClasses()
-            .map((classData) =>
-              app3D.getBoxLayout(classData.id) ? (
-                <ClassR3F
-                  key={classData.id}
-                  dataModel={classData}
-                  layout={app3D.getBoxLayout(classData.id)!}
-                />
-              ) : (
-                <Fragment key={classData.id} />
-              )
-            )}
+          <Instances limit={100000} frustumCulled={false}>
+            <boxGeometry />
+            <meshStandardMaterial />
+            {applicationData
+              .getClasses()
+              .map((classData) =>
+                app3D.getBoxLayout(classData.id) ? (
+                  <ClassR3F
+                    key={classData.id}
+                    dataModel={classData}
+                    layout={app3D.getBoxLayout(classData.id)!}
+                  />
+                ) : (
+                  <Fragment key={classData.id} />
+                )
+              )}
+            {applicationData
+              .getPackages()
+              .map((packageData) =>
+                app3D.getBoxLayout(packageData.id) ? (
+                  <ComponentR3F
+                    key={packageData.id}
+                    component={packageData}
+                    layout={app3D.getBoxLayout(packageData.id)!}
+                  />
+                ) : (
+                  <Fragment key={packageData.id} />
+                )
+              )}
+          </Instances>
           {communications.map((communication) => (
             <CommunicationR3F
               key={communication.id}

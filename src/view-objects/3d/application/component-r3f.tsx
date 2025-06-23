@@ -12,7 +12,7 @@ import { gsap } from 'gsap';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import { Text } from '@react-three/drei';
+import { Instance, Text } from '@react-three/drei';
 
 export default function ComponentR3F({
   component,
@@ -203,6 +203,17 @@ export default function ComponentR3F({
   };
 
   return (
+    // <Instance
+    //   color={layout.level % 2 === 0 ? componentEvenColor : componentOddColor}
+    //   scale={[layout.width, layout.height, layout.depth]}
+    //   position={layout.position}
+    //   rotation={[0, 0, 0]}
+    // onClick={handleClickWithPrevent}
+    // onDoubleClick={handleDoubleClickWithPrevent}
+    // onPointerOver={handleOnPointerOver}
+    // onPointerOut={handleOnPointerOut}
+    // {...pointerStopHandlers}
+    // ></Instance>
     <componentMesh
       {...pointerStopHandlers}
       args={[constructorArgs]}

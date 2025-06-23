@@ -33,6 +33,7 @@ import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { useLinkRendererStore } from '../stores/link-renderer';
 import { useUserSettingsStore } from '../stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
@@ -57,6 +58,12 @@ export default function useLandscapeDataWatcher(
       restoreFromSerialization: state.restoreFromSerialization,
       getOpenApplicationIds: state.getOpenApplicationIds,
       removeApplicationLocallyById: state.removeApplicationLocallyById,
+    }))
+  );
+
+  const { renderDynamic } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      renderDynamic: state._evolutionModeRenderingConfiguration.renderDynamic,
     }))
   );
 
@@ -210,13 +217,12 @@ export default function useLandscapeDataWatcher(
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
-    let classCommunications = computeClassCommunication(
-      structureLandscapeData,
-      dynamicLandscapeData
-    );
+    let classCommunications = renderDynamic
+      ? computeClassCommunication(structureLandscapeData, dynamicLandscapeData)
+      : [];
     log('Computed class communication');
 
-    if (landscapeRestructureState.restructureMode) {
+    if (renderDynamic && landscapeRestructureState.restructureMode) {
       console.log('Computing restructured communication ...');
       classCommunications = computeRestructuredClassCommunication(
         classCommunications,

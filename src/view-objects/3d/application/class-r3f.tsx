@@ -1,4 +1,4 @@
-import { Text } from '@react-three/drei';
+import { Instance, Text } from '@react-three/drei';
 import { ThreeElements, ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
@@ -103,6 +103,34 @@ export default function ClassR3F({
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
   return (
+    // <Instance
+    //   color={isHighlighted ? highlightedEntityColor : classColor}
+    //   scale={[layout.width, layout.height, layout.depth]}
+    //   position={layout.position}
+    //   rotation={[0, 0, 0]}
+    //   onClick={handleClickWithPrevent}
+    //   onDoubleClick={handleDoubleClickWithPrevent}
+    //   onPointerOver={handleOnPointerOver}
+    //   onPointerOut={handleOnPointerOut}
+    //   {...pointerStopHandlers}
+    // >
+    //   {classLabelFontSize > 0 && classLabelLength > 0 && (
+    //     <Text
+    //       color={classTextColor}
+    //       outlineColor={'black'}
+    //       outlineWidth={classLabelFontSize * 0.05}
+    //       position={[0, 0.51 + labelOffset / layout.height, 0]}
+    //       rotation={[1.5 * Math.PI, 0, labelRotation]}
+    //       fontSize={classLabelFontSize}
+    //       visible={isVisible}
+    //       raycast={() => null}
+    //     >
+    //       {dataModel.name.length <= maxLabelLength
+    //         ? dataModel.name
+    //         : dataModel.name.substring(0, maxLabelLength) + '...'}
+    //     </Text>
+    //   )}
+    // </Instance>
     <clazzMesh
       position={layout.position}
       defaultColor={classColor}
@@ -115,8 +143,8 @@ export default function ClassR3F({
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
-      ref={meshRef}
       {...pointerStopHandlers}
+      ref={meshRef}
       args={[constructorArgs]}
     >
       {classLabelFontSize > 0 && classLabelLength > 0 && (
