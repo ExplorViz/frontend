@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import debug from 'debug';
 import { CommunicationLink } from 'explorviz-frontend/src/ide/ide-cross-communication';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
@@ -41,6 +42,7 @@ export default function useLandscapeDataWatcher(
   interAppCommunications: ClassCommunication[];
 } {
   // MARK: Stores
+  const log = debug('app:hooks:useLandscapeWatcher');
 
   const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
     []
@@ -172,6 +174,7 @@ export default function useLandscapeDataWatcher(
   };
 
   const handleUpdatedLandscapeData = async () => {
+    log('handleUpdateLandscape');
     await Promise.resolve();
     if (!structureLandscapeData || !dynamicLandscapeData || !landscape3D) {
       return;
@@ -180,15 +183,20 @@ export default function useLandscapeDataWatcher(
     const { nodes } = structureLandscapeData;
     let { k8sNodes } = structureLandscapeData;
     k8sNodes = k8sNodes || [];
+    log('Get applications from nodes');
     const applications = getApplicationsFromNodes(nodes);
+    log('Get K8s from nodes');
     const k8sAppData = getK8sAppsFromNodes(k8sNodes);
 
     // Applications might be removed in evolution mode
     if (applications.length !== applicationRepositoryState.applications.size) {
+      console.log('Remove all applications from landscape3D');
       landscape3D.removeAll();
     }
 
+    log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
+    log('Layouted landscape.');
 
     // Set data model for landscape
     const landscapeLayout = boxLayoutMap.get('landscape');
@@ -201,12 +209,15 @@ export default function useLandscapeDataWatcher(
     }
 
     // ToDo: This can take quite some time. Optimize.
+    log('Compute class communication');
     let classCommunications = computeClassCommunication(
       structureLandscapeData,
       dynamicLandscapeData
     );
+    log('Computed class communication');
 
     if (landscapeRestructureState.restructureMode) {
+      console.log('Computing restructured communication ...');
       classCommunications = computeRestructuredClassCommunication(
         classCommunications,
         landscapeRestructureState.createdClassCommunication,
@@ -214,6 +225,7 @@ export default function useLandscapeDataWatcher(
         landscapeRestructureState.updatedClassCommunications,
         landscapeRestructureState.completelyDeletedClassCommunications
       );
+      console.log('Computed restructured communication.');
     }
     landscapeRestructureState.setAllClassCommunications(classCommunications);
 
