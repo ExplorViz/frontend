@@ -6,7 +6,9 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import ApplicationData, { K8sData } from 'explorviz-frontend/src/utils/application-data';
+import ApplicationData, {
+  K8sData,
+} from 'explorviz-frontend/src/utils/application-data';
 import computeClassCommunication, {
   computeRestructuredClassCommunication,
 } from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
@@ -35,12 +37,14 @@ import LandscapeModel from 'explorviz-frontend/src/view-objects/3d/landscape/lan
 import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { useShallow } from 'zustand/react/shallow';
 import { updateHighlighting } from '../utils/application-rendering/highlighting';
+import debug from 'debug';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
   landscape3D: Landscape3D
 ) {
   // MARK: Stores
+  const log = debug('app:hooks:useLandscapeWatcher');
 
   const applicationRendererState = useApplicationRendererStore(
     useShallow((state) => ({
@@ -143,6 +147,7 @@ export default function useLandscapeDataWatcher(
   };
 
   const handleUpdatedLandscapeData = async () => {
+    log('handleUpdateLandscape');
     await Promise.resolve();
     if (!structureLandscapeData || !dynamicLandscapeData || !landscape3D) {
       return;
@@ -156,10 +161,13 @@ export default function useLandscapeDataWatcher(
 
     // Applications might be removed in evolution mode
     if (applications.length !== applicationRepositoryState.applications.size) {
+      console.log('Remove all applications from landscape3D');
       landscape3D.removeAll();
     }
 
+    log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
+    log('Layouted landscape.');
 
     // Set data model for landscape
     const landscapeLayout = boxLayoutMap.get('landscape');
@@ -172,12 +180,15 @@ export default function useLandscapeDataWatcher(
     }
 
     // ToDo: This can take quite some time. Optimize.
+    log('Compute class communication');
     let classCommunications = computeClassCommunication(
       structureLandscapeData,
       dynamicLandscapeData
     );
+    log('Computed class communication');
 
     if (landscapeRestructureState.restructureMode) {
+      console.log('Computing restructured communication ...');
       classCommunications = computeRestructuredClassCommunication(
         classCommunications,
         landscapeRestructureState.createdClassCommunication,
@@ -185,6 +196,7 @@ export default function useLandscapeDataWatcher(
         landscapeRestructureState.updatedClassCommunications,
         landscapeRestructureState.completelyDeletedClassCommunications
       );
+      console.log('Computed restructured communication.');
     }
     landscapeRestructureState.setAllClassCommunications(classCommunications);
 
@@ -208,7 +220,7 @@ export default function useLandscapeDataWatcher(
     const k8sApp3Ds: ApplicationObject3D[] = [];
 
     // Add k8sApps
-    for(const k8sData of k8sAppData) {
+    for (const k8sData of k8sAppData) {
       const applicationData = await updateApplicationData(
         k8sData.app,
         {
