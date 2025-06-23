@@ -48,11 +48,7 @@ export default function CanvasWrapper({
   );
 
   const {
-    setClassState,
-    getClassState,
     removeAllClassStates,
-    setComponentState,
-    getComponentState,
     componentData,
     classData,
     removeClassState,
@@ -91,20 +87,6 @@ export default function CanvasWrapper({
           removeComponentState(componentId);
         }
       });
-      allPackages.forEach((pkg) => {
-        // Set default state for all packages, if not already set
-        try {
-          getComponentState(pkg.id);
-        } catch (e) {
-          setComponentState(pkg.id, {
-            id: pkg.id,
-            isOpen: true,
-            isVisible: true,
-            isHighlighted: false,
-            isHovered: false,
-          });
-        }
-      });
       const allClasses = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
@@ -115,19 +97,6 @@ export default function CanvasWrapper({
       Object.keys(classData).forEach((classId) => {
         if (!classIds.has(classId)) {
           removeClassState(classId);
-        }
-      });
-      allClasses.forEach((clazz) => {
-        // Set default state for all classes, if not already set
-        try {
-          getClassState(clazz.id);
-        } catch (e) {
-          setClassState(clazz.id, {
-            id: clazz.id,
-            isVisible: true,
-            isHighlighted: false,
-            isHovered: false,
-          });
         }
       });
     }

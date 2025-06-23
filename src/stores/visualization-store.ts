@@ -43,15 +43,16 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       getClassState: (id: string) => {
         const state = get().classData[id];
         if (!state) {
-          throw new Error(`Component with id ${id} not found`);
+          return {
+            id,
+            isVisible: true,
+            isHighlighted: false,
+            isHovered: false,
+          };
         }
         return get().classData[id];
       },
       setClassState: (id: string, state: Omit<ClassState, 'id'>) => {
-        const existingState = get().classData[id];
-        if (existingState) {
-          throw new Error(`Component with id ${id} already exists`);
-        }
         set((prevState) => ({
           classData: {
             ...prevState.classData,
@@ -64,9 +65,6 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         state: Partial<Omit<ClassState, 'id'>>
       ) => {
         const currentState = get().actions.getClassState(id);
-        if (!currentState) {
-          throw new Error(`Component with id ${id} not found`);
-        }
         set((prevState) => ({
           classData: {
             ...prevState.classData,
@@ -89,15 +87,17 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       getComponentState: (id: string) => {
         const state = get().componentData[id];
         if (!state) {
-          throw new Error(`Component with id ${id} not found`);
+          return {
+            id,
+            isVisible: true,
+            isHighlighted: false,
+            isHovered: false,
+            isOpen: true,
+          };
         }
         return state;
       },
       setComponentState: (id: string, state: Omit<ComponentState, 'id'>) => {
-        const existingState = get().componentData[id];
-        if (existingState) {
-          throw new Error(`Component with id ${id} already exists`);
-        }
         set((prevState) => ({
           componentData: {
             ...prevState.componentData,
@@ -110,9 +110,6 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         state: Partial<Omit<ComponentState, 'id'>>
       ) => {
         const currentState = get().actions.getComponentState(id);
-        if (!currentState) {
-          throw new Error(`Component with id ${id} not found`);
-        }
         set((prevState) => ({
           componentData: {
             ...prevState.componentData,
