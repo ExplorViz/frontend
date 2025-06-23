@@ -2,6 +2,7 @@
 @use '_sidebar';
 @use '_settings';
 @use '_chat';
+@use '_chatbot';
 @use '_timeline';
 @use '_toast';
 @use '_navbar';
@@ -19,13 +20,17 @@
 @use '_collaboration.scss';
 
 .disable-select {
-  user-select: none; /* supported by most browsers */
-  -webkit-user-select: none; /* Safari */
+  user-select: none;
+  /* supported by most browsers */
+  -webkit-user-select: none;
+  /* Safari */
 }
 
 button {
-  user-select: none; /* supported by most browsers */
-  -webkit-user-select: none; /* Safari */
+  user-select: none;
+  /* supported by most browsers */
+  -webkit-user-select: none;
+  /* Safari */
 }
 
 h1,
@@ -43,6 +48,6 @@ h6,
   font-weight: 400;
 }
 
-#ember-right-click-menu-wormhole > ul {
+#ember-right-click-menu-wormhole>ul {
   z-index: 100000;
 }

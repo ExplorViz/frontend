@@ -92,6 +92,8 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
+import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -1163,6 +1165,12 @@ export default function BrowserRendering({
                       toggleSettingsSidebarComponent
                     }
                   />
+                  <ChatbotOpener
+                    openedComponent={openedSettingComponent}
+                    toggleSettingsSidebarComponent={
+                      toggleSettingsSidebarComponent
+                    }
+                  />
                   <VscodeExtensionOpener
                     openedComponent={openedSettingComponent}
                     toggleSettingsSidebarComponent={
@@ -1195,6 +1203,11 @@ export default function BrowserRendering({
                     <>
                       <CollaborationControls />
                       <ChatBox />
+                    </>
+                  )}
+                  {openedSettingComponent === 'Chatbot' && (
+                    <>
+                      <ChatbotBox />
                     </>
                   )}
                   {openedSettingComponent === 'VSCode-Extension-Settings' && (
