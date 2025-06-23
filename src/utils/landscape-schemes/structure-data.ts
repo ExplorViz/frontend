@@ -32,8 +32,6 @@ export enum TypeOfAnalysis {
 export type BaseModel = {
   id: string;
   name: string;
-  methods: Method[];
-  parent: Package;
   variables?: Variable[];
   extends?: Class[];
   implements?: Interface[];
@@ -79,6 +77,7 @@ export type Node = BaseModel &
 export interface K8sPod {
   id: string;
   name: string;
+  originOfData: TypeOfAnalysis.Dynamic;
   applications: Application[];
 }
 

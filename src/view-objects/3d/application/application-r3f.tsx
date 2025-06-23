@@ -13,7 +13,7 @@ import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/com
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ApplicationR3F({
@@ -137,20 +137,32 @@ export default function ApplicationR3F({
             application={applicationData.application}
             boxLayout={app3D.layout}
           />
-          {applicationData.getPackages().map((packageData) => (
-            <ComponentR3F
-              key={packageData.id}
-              component={packageData}
-              layout={app3D.getBoxLayout(packageData.id)!}
-            />
-          ))}
-          {applicationData.getClasses().map((classData) => (
-            <ClassR3F
-              key={classData.id}
-              dataModel={classData}
-              layout={app3D.getBoxLayout(classData.id)!}
-            />
-          ))}
+          {applicationData
+            .getPackages()
+            .map((packageData) =>
+              app3D.getBoxLayout(packageData.id) ? (
+                <ComponentR3F
+                  key={packageData.id}
+                  component={packageData}
+                  layout={app3D.getBoxLayout(packageData.id)!}
+                />
+              ) : (
+                <Fragment key={packageData.id} />
+              )
+            )}
+          {applicationData
+            .getClasses()
+            .map((classData) =>
+              app3D.getBoxLayout(classData.id) ? (
+                <ClassR3F
+                  key={classData.id}
+                  dataModel={classData}
+                  layout={app3D.getBoxLayout(classData.id)!}
+                />
+              ) : (
+                <Fragment key={classData.id} />
+              )
+            )}
           {communications.map((communication) => (
             <CommunicationR3F
               key={communication.id}

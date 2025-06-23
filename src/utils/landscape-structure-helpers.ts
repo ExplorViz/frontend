@@ -12,6 +12,7 @@ import {
   StructureLandscapeData,
   Method,
   Package,
+  TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAncestorPackages,
@@ -237,20 +238,21 @@ export function combineStructureLandscapeData(
   for (const nodeA of structureA.nodes) {
     const nodeB = findCommonNode(nodeA, structureB.nodes);
     if (nodeB) {
-      const node: Node = {
+      const combinedNode: Node = {
         id: nodeB.id,
+        name: nodeB.name,
         ipAddress: nodeB.ipAddress,
         hostName: nodeB.hostName,
-        originOfData: 'static+dynamic',
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
         applications: [],
       };
       const applications: Application[] = combineApplications(
         nodeA.applications,
         nodeB.applications
       );
-      node.applications = applications;
-      applications.forEach((app) => (app.parentId = node.id));
-      structure.nodes.push(node);
+      combinedNode.applications = applications;
+      applications.forEach((app) => (app.parentId = combinedNode.id));
+      structure.nodes.push(combinedNode);
     } else {
       // node of structureA that is not in structureB
       structure.nodes.push(nodeA);
@@ -340,7 +342,8 @@ function combineClasses(classesA: Class[], classesB: Class[]): Class[] {
     if (classB) {
       const clazz: Class = {
         id: classB.id,
-        originOfData: 'static+dynamic',
+        level: classB.level,
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
         name: classB.name,
         methods: [],
         parent: classB.parent,
@@ -371,9 +374,10 @@ function combinePackages(
   for (const packageA of packagesA) {
     const packageB = findCommonPackage(packageA, packagesB);
     if (packageB) {
-      const pckg: Package = {
+      const combinedPackage: Package = {
         id: packageB.id,
-        originOfData: 'static+dynamic',
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
+        level: packageB.level,
         name: packageB.name,
         subPackages: [],
         classes: [],
@@ -385,11 +389,11 @@ function combinePackages(
         packageB.subPackages
       );
       const classes = combineClasses(packageA.classes, packageB.classes);
-      classes.forEach((clazz) => (clazz.parent = pckg));
-      pckg.subPackages = subPackages;
-      subPackages.forEach((subPckg) => (subPckg.parent = pckg));
-      pckg.classes = classes;
-      packages.push(pckg);
+      classes.forEach((clazz) => (clazz.parent = combinedPackage));
+      combinedPackage.subPackages = subPackages;
+      subPackages.forEach((subPckg) => (subPckg.parent = combinedPackage));
+      combinedPackage.classes = classes;
+      packages.push(combinedPackage);
     } else {
       packages.push(packageA);
     }
@@ -415,7 +419,7 @@ function combineApplications(
     if (applicationB) {
       const application: Application = {
         id: applicationB.id,
-        originOfData: 'static+dynamic',
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
         name: applicationB.name,
         language: applicationB.language,
         instanceId: applicationB.instanceId,
