@@ -31,7 +31,6 @@ import { useDetachedMenuRendererStore } from '../stores/extended-reality/detache
 import { useHighlightingStore } from '../stores/highlighting';
 import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useLinkRendererStore } from '../stores/link-renderer';
 import { useUserSettingsStore } from '../stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 
@@ -85,13 +84,6 @@ export default function useLandscapeDataWatcher(
       setAllClassCommunications: state.setAllClassCommunications,
       applyTextureMappings: state.applyTextureMappings,
       applyColorMappings: state.applyColorMappings,
-    }))
-  );
-
-  const linkRendererState = useLinkRendererStore(
-    useShallow((state) => ({
-      createMeshFromCommunication: state.createMeshFromCommunication,
-      updateLinkPosition: state.updateLinkPosition,
     }))
   );
 
@@ -298,19 +290,10 @@ export default function useLandscapeDataWatcher(
 
     // Apply restructure textures in restructure mode
     landscapeRestructureState.applyTextureMappings();
-
     // Add inter-app communication
     const interAppCommunications = classCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
-    interAppCommunications.forEach((communication) => {
-      const commMesh =
-        linkRendererState.createMeshFromCommunication(communication);
-      if (commMesh) {
-        landscape3D.addCommunication(commMesh);
-        linkRendererState.updateLinkPosition(commMesh);
-      }
-    });
 
     const serializedRoom = roomSerializerState.serializedRoom;
 

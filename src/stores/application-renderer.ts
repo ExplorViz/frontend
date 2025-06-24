@@ -406,10 +406,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       set({ appCommRendering: newAppCommRendering });
     },
 
-    addCommunicationForAllApplications: () => {
-      get().forEachOpenApplication(get().addCommunication);
-      useLinkRendererStore.getState().updateLinkPositions();
-    },
+    addCommunicationForAllApplications: () => {},
 
     removeCommunicationForAllApplications: () => {
       get().forEachOpenApplication(get().removeCommunication);
@@ -417,12 +414,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
 
     updateApplicationObject3DAfterUpdate: (
       applicationObject3D: ApplicationObject3D
-    ) => {
-      // Update links
-      useLinkRendererStore.getState().updateLinkPositions();
-      // Update highlighting
-      useHighlightingStore.getState().updateHighlighting(); // needs to be after update links
-    },
+    ) => {},
 
     openAllComponentsOfAllApplications: () => {
       get().forEachOpenApplication(get().openAllComponents);
@@ -444,7 +436,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       } else {
         get().removeCommunicationForAllApplications();
       }
-      useLinkRendererStore.getState().updateLinkPositions();
     },
 
     /**

@@ -156,7 +156,10 @@ export default function CanvasWrapper({
           <CommunicationR3F
             key={communication.id}
             communicationModel={communication}
-            communicationLayout={computeCommunicationLayout(communication)}
+            communicationLayout={computeCommunicationLayout(
+              communication,
+              applicationModels
+            )}
           />
         ))}
       </LandscapeR3F>
