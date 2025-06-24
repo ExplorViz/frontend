@@ -74,6 +74,7 @@ export default function ToastMessage() {
     <ToastContainer
       position="bottom-end"
       className={'p-3 toast-stack-container position-fixed'}
+      style={{ zIndex: 10000003 }}
     >
       <div className="toast-card-stack">
         {toastMessages.map(({ htmlId, header, message, cssClasses }) => (
