@@ -361,7 +361,9 @@ export default function useLandscapeDataWatcher(
       dynamic: dynamicLandscapeData,
     };
 
+    log('Beginn to process flat data.');
     const flatData = await sendMessageToWorker(flatDataWorker, workerPayload);
+    log('Finished flat data.');
 
     let applicationData = applicationRepositoryState.getById(application.id);
     if (applicationData) {

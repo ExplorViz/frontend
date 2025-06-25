@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { ToastContainer, Toast } from 'react-bootstrap';

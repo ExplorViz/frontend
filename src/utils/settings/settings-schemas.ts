@@ -15,12 +15,23 @@ export type SettingGroup =
   | 'Debugging'
   | 'Virtual Reality';
 
-export type CameraSettingId = 'cameraNear' | 'cameraFar' | 'cameraFov';
+export type CameraSettingId =
+  | 'cameraNear'
+  | 'cameraFar'
+  | 'cameraFov'
+  | 'raycastEnabled'
+  | 'raycastFirstHit'
+  | 'raycastNear'
+  | 'raycastFar';
 
 export type CameraSettings = {
   cameraNear: RangeSetting;
   cameraFar: RangeSetting;
   cameraFov: RangeSetting;
+  raycastEnabled: FlagSetting;
+  raycastFirstHit: FlagSetting;
+  raycastNear: RangeSetting;
+  raycastFar: RangeSetting;
 };
 
 export type ColorSettingId =

@@ -469,6 +469,41 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Set field of view for the perspective camera',
     isRangeSetting: true,
   },
+  raycastEnabled: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Camera',
+    displayName: 'Raycast Enabled',
+    description: 'Enables / disables raycasting for interaction.',
+    isFlagSetting: true,
+  },
+  raycastFirstHit: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Camera',
+    displayName: 'Raycast First Hit',
+    description: 'Only hit the first object with raycaster.',
+    isFlagSetting: true,
+  },
+  raycastNear: {
+    level: SettingLevel.EXTENDED,
+    value: 0.1,
+    range: { min: 0.01, max: 100, step: 0.01 },
+    group: 'Camera',
+    displayName: 'Raycast Near',
+    description:
+      'Set near plane for raycasting. Must be smaller than far plane.',
+    isRangeSetting: true,
+  },
+  raycastFar: {
+    level: SettingLevel.EXTENDED,
+    value: 100,
+    range: { min: 0.1, max: 500.0, step: 0.1 },
+    group: 'Camera',
+    displayName: 'Raycast Far',
+    description: 'Far plane for raycasting. Must be larger than near plane.',
+    isRangeSetting: true,
+  },
   // VR Settings
   showVrButton: {
     level: SettingLevel.DEFAULT,
