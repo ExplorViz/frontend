@@ -81,23 +81,35 @@ export default function PopupCoordinator({
 
   const onPointerOver = () => {
     updatePopup({ ...popupData, hovered: true });
-    vizStore.actions.updateClassState(popupData.entity.id, { isHovered: true });
+
+    const entity = popupData.entity;
+    if (isClass(entity)) {
+      vizStore.actions.updateClassState(entity.id, { isHovered: true });
+    }
   };
 
   const onPointerOut = () => {
     updatePopup({ ...popupData, hovered: false });
-    vizStore.actions.updateClassState(popupData.entity.id, {
-      isHovered: false,
-    });
+
+    const entity = popupData.entity;
+    if (isClass(entity)) {
+      vizStore.actions.updateClassState(entity.id, {
+        isHovered: false,
+      });
+    }
   };
 
   const highlight = () => {
-    const wasHighlighted = vizStore.classData[popupData.entity.id]
-      ? vizStore.classData[popupData.entity.id].isHighlighted
-      : false;
-    vizStore.actions.updateClassState(popupData.entity.id, {
-      isHighlighted: !wasHighlighted,
-    });
+    const entity = popupData.entity;
+
+    if (isClass(entity)) {
+      const wasHighlighted = vizStore.classData[entity.id]
+        ? vizStore.classData[popupData.entity.id].isHighlighted
+        : false;
+      vizStore.actions.updateClassState(entity.id, {
+        isHighlighted: !wasHighlighted,
+      });
+    }
   };
 
   const elementDrag = (event: MouseEvent) => {
@@ -332,7 +344,7 @@ export default function PopupCoordinator({
             <Button
               variant="outline-secondary"
               className="popup-close-button"
-              onClick={() => removePopup(popupData.entity.id)}
+              onClick={() => removePopup(popupData.entity.id as string)}
             >
               <XIcon className="align-middle" />
             </Button>

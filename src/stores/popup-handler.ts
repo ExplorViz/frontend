@@ -30,9 +30,13 @@ import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  Class,
+  isClass,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import * as THREE from 'three';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 
 type Position2D = {
   x: number;
@@ -192,6 +196,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       set({
         popupData: get().popupData.filter((pd) => pd.entity.id !== entityId),
       });
+      if (isClass(popup.entity)) {
+        useVisualizationStore.getState().actions.updateClassState(entityId, {
+          isHovered: false,
+        });
+      }
     } else {
       useToastHandlerStore
         .getState()
@@ -315,8 +324,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
         (pd) => pd.entity.id === popup.entity.id
       );
 
-      console.log('Maybe popup:', maybePopup);
-
       // Popup no longer available
       if (!maybePopup || maybePopup.wasMoved || popup.isPinned) {
         return;
@@ -334,7 +341,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
       // Popup did not move (was not updated)
       if (maybePopup.mouseX == mouseX && maybePopup.mouseY == mouseY) {
-        console.log('Remove popup');
         get().removePopup(popup.entity.id);
         return;
       }
