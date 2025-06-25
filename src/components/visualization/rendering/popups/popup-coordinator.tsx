@@ -19,6 +19,7 @@ import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   Class,
   isApplication,
@@ -76,20 +77,26 @@ export default function PopupCoordinator({
   const sharedByColor = popupData.sharedBy ? getColor(popupData.sharedBy) : '';
   const entityType = getEntityType(popupData);
 
+  const vizStore = useVisualizationStore();
+
   const onPointerOver = () => {
-    popupData.mesh.applyHoverEffect();
     updatePopup({ ...popupData, hovered: true });
+    vizStore.actions.updateClassState(popupData.entity.id, { isHovered: true });
   };
 
   const onPointerOut = () => {
-    popupData.mesh.resetHoverEffect();
     updatePopup({ ...popupData, hovered: false });
+    vizStore.actions.updateClassState(popupData.entity.id, {
+      isHovered: false,
+    });
   };
 
   const highlight = () => {
-    updateMeshReference(popupData);
-    toggleHighlight(popupData.mesh, {
-      sendMessage: true,
+    const wasHighlighted = vizStore.classData[popupData.entity.id]
+      ? vizStore.classData[popupData.entity.id].isHighlighted
+      : false;
+    vizStore.actions.updateClassState(popupData.entity.id, {
+      isHighlighted: !wasHighlighted,
     });
   };
 

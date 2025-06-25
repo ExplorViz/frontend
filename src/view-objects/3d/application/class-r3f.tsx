@@ -1,14 +1,14 @@
 import { Instance, Text } from '@react-three/drei';
-import { ThreeElements, ThreeEvent } from '@react-three/fiber';
+import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useMemo, useRef } from 'react';
+import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ClassR3F({
@@ -34,8 +34,6 @@ export default function ClassR3F({
       }))
     );
 
-  const meshRef = useRef<ClazzMesh | null>(null);
-
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
@@ -44,11 +42,11 @@ export default function ClassR3F({
 
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
     addPopup({
-      mesh: meshRef.current,
       position: {
         x: event.clientX,
         y: event.clientY,
       },
+      model: dataModel,
     });
   };
 
@@ -76,11 +74,17 @@ export default function ClassR3F({
     }))
   );
 
-  const constructorArgs = useMemo<ThreeElements['clazzMesh']['args'][0]>(() => {
-    return {
-      dataModel: dataModel,
-    };
-  }, []);
+  const computeColor = () => {
+    const baseColor = isHighlighted
+      ? new THREE.Color(highlightedEntityColor)
+      : new THREE.Color(classColor);
+
+    if (isHovered) {
+      return calculateColorBrightness(baseColor, 1.1);
+    } else {
+      return baseColor;
+    }
+  };
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
@@ -103,55 +107,22 @@ export default function ClassR3F({
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
   return (
-    // <Instance
-    //   color={isHighlighted ? highlightedEntityColor : classColor}
-    //   scale={[layout.width, layout.height, layout.depth]}
-    //   position={layout.position}
-    //   rotation={[0, 0, 0]}
-    //   onClick={handleClickWithPrevent}
-    //   onDoubleClick={handleDoubleClickWithPrevent}
-    //   onPointerOver={handleOnPointerOver}
-    //   onPointerOut={handleOnPointerOut}
-    //   {...pointerStopHandlers}
-    // >
-    //   {classLabelFontSize > 0 && classLabelLength > 0 && (
-    //     <Text
-    //       color={classTextColor}
-    //       outlineColor={'black'}
-    //       outlineWidth={classLabelFontSize * 0.05}
-    //       position={[0, 0.51 + labelOffset / layout.height, 0]}
-    //       rotation={[1.5 * Math.PI, 0, labelRotation]}
-    //       fontSize={classLabelFontSize}
-    //       visible={isVisible}
-    //       raycast={() => null}
-    //     >
-    //       {dataModel.name.length <= maxLabelLength
-    //         ? dataModel.name
-    //         : dataModel.name.substring(0, maxLabelLength) + '...'}
-    //     </Text>
-    //   )}
-    // </Instance>
-    <clazzMesh
+    <Instance
+      color={computeColor()}
+      scale={[layout.width, layout.height, layout.depth]}
       position={layout.position}
-      defaultColor={classColor}
-      highlightingColor={highlightedEntityColor}
-      layout={layout}
-      visible={isVisible}
-      isHovered={isHovered}
-      highlighted={isHighlighted}
+      rotation={[0, 0, 0]}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
       {...pointerStopHandlers}
-      ref={meshRef}
-      args={[constructorArgs]}
     >
-      {classLabelFontSize > 0 && classLabelLength > 0 && (
+      {classLabelFontSize > 0 && classLabelLength > 0 && isHovered && (
         <Text
           color={classTextColor}
-          outlineColor={'black'}
-          outlineWidth={classLabelFontSize * 0.05}
+          // outlineColor={'black'}
+          // outlineWidth={classLabelFontSize * 0.05}
           position={[0, 0.51 + labelOffset / layout.height, 0]}
           rotation={[1.5 * Math.PI, 0, labelRotation]}
           fontSize={classLabelFontSize}
@@ -163,6 +134,6 @@ export default function ClassR3F({
             : dataModel.name.substring(0, maxLabelLength) + '...'}
         </Text>
       )}
-    </clazzMesh>
+    </Instance>
   );
 }

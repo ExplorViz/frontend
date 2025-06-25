@@ -30,9 +30,8 @@ import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import * as THREE from 'three';
 
 type Position2D = {
@@ -53,7 +52,7 @@ interface PopupHandlerState {
   sharePopup: (popup: PopupData) => void;
   pinPopup: (popup: PopupData) => void;
   removePopup: (entityId: string) => Promise<void>;
-  handleMouseMove: (event: MouseEvent) => void;
+  handleMouseMove: (event: any) => void;
   handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addPopup: ({
     mesh,
@@ -63,14 +62,16 @@ interface PopupHandlerState {
     menuId,
     sharedBy,
     hovered,
+    model,
   }: {
-    mesh: THREE.Object3D | null;
+    mesh?: THREE.Object3D;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
     menuId?: string | null;
     sharedBy?: string | null;
     hovered?: boolean;
+    model?: Class;
   }) => void;
   _removePopupAfterTimeout: (popup: PopupData) => void;
   updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;
@@ -200,7 +201,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
   },
 
-  handleMouseMove: (event: MouseEvent) => {
+  handleMouseMove: (event: any) => {
     set({
       latestMousePosition: {
         timestamp: Date.now(),
@@ -234,12 +235,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     menuId,
     sharedBy,
     hovered,
+    model,
   }) => {
     // TODO: Handle HTML Mesh better
     if (
-      !mesh ||
-      !('dataModel' in mesh) ||
-      // !isEntityMesh(mesh) ||
+      !model ||
       getStoredSettings().hidePopupDelay.value == 0 ||
       get().deactivated
     ) {
@@ -260,7 +260,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       mouseX: popupPosition.x,
       mouseY: popupPosition.y,
       wasMoved: wasMoved || false,
-      entity: mesh.dataModel,
+      entity: model,
       mesh,
       applicationId: '1',
       menuId: menuId || null,
@@ -315,6 +315,8 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
         (pd) => pd.entity.id === popup.entity.id
       );
 
+      console.log('Maybe popup:', maybePopup);
+
       // Popup no longer available
       if (!maybePopup || maybePopup.wasMoved || popup.isPinned) {
         return;
@@ -332,6 +334,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
       // Popup did not move (was not updated)
       if (maybePopup.mouseX == mouseX && maybePopup.mouseY == mouseY) {
+        console.log('Remove popup');
         get().removePopup(popup.entity.id);
         return;
       }

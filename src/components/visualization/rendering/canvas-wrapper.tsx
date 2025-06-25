@@ -1,7 +1,15 @@
-import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
+import {
+  AdaptiveDpr,
+  AdaptiveEvents,
+  Bvh,
+  CameraControls,
+  PerspectiveCamera,
+  Stats,
+} from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
@@ -45,6 +53,12 @@ export default function CanvasWrapper({
   const { applicationModels, interAppCommunications } = useLandscapeDataWatcher(
     landscapeData,
     landscape3D
+  );
+
+  const popupHandlerActions = usePopupHandlerStore(
+    useShallow((state) => ({
+      handleMouseMove: state.handleMouseMove,
+    }))
   );
 
   const {
@@ -122,65 +136,70 @@ export default function CanvasWrapper({
         });
       }}
       style={{ background: sceneBackgroundColor }}
+      onMouseMove={popupHandlerActions.handleMouseMove}
     >
-      <CameraControls
-        dollySpeed={0.3}
-        draggingSmoothTime={0.05}
-        maxDistance={100}
-        maxPolarAngle={0.5 * Math.PI}
-        makeDefault
-        minDistance={1}
-        mouseButtons={{
-          left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
-          middle: 0, // None
-          wheel: 16, // Dolly
-          right: 1, // Rotate
-        }}
-        smoothTime={0.5}
-      />
-      <PerspectiveCamera
-        position={[10, 10, 10]}
-        fov={cameraFov}
-        near={cameraNear}
-        far={cameraFar}
-        makeDefault
-      />
-      <LandscapeR3F>
-        {applicationModels.map((appModel) => (
-          <ApplicationR3F
-            key={appModel.application.id}
-            applicationData={appModel}
-          />
-        ))}
-        {interAppCommunications.map((communication) => (
-          <CommunicationR3F
-            key={communication.id}
-            communicationModel={communication}
-            communicationLayout={computeCommunicationLayout(
-              communication,
-              applicationModels
-            )}
-          />
-        ))}
-      </LandscapeR3F>
-      <ambientLight />
-      <spotLight
-        name="SpotLight"
-        intensity={0.5}
-        distance={2000}
-        position={[-200, 100, 100]}
-        castShadow={castShadows}
-        angle={0.3}
-        penumbra={0.2}
-        decay={2}
-      />
-      <directionalLight
-        name="DirectionalLight"
-        intensity={0.55 * Math.PI}
-        position={[-5, 5, 5]}
-        castShadow={castShadows}
-      />
-      {showFpsCounter && <Stats className="stats" />}
+      <Bvh firstHitOnly>
+        <AdaptiveDpr pixelated />
+        <AdaptiveEvents />
+        <CameraControls
+          dollySpeed={0.3}
+          draggingSmoothTime={0.05}
+          maxDistance={250}
+          maxPolarAngle={0.5 * Math.PI}
+          makeDefault
+          minDistance={1}
+          mouseButtons={{
+            left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
+            middle: 0, // None
+            wheel: 16, // Dolly
+            right: 1, // Rotate
+          }}
+          smoothTime={0.5}
+        />
+        <PerspectiveCamera
+          position={[10, 10, 10]}
+          fov={cameraFov}
+          near={cameraNear}
+          far={cameraFar}
+          makeDefault
+        />
+        <LandscapeR3F>
+          {applicationModels.map((appModel) => (
+            <ApplicationR3F
+              key={appModel.application.id}
+              applicationData={appModel}
+            />
+          ))}
+          {interAppCommunications.map((communication) => (
+            <CommunicationR3F
+              key={communication.id}
+              communicationModel={communication}
+              communicationLayout={computeCommunicationLayout(
+                communication,
+                applicationModels
+              )}
+            />
+          ))}
+        </LandscapeR3F>
+        <ambientLight />
+        <spotLight
+          name="SpotLight"
+          intensity={0.5}
+          distance={2000}
+          position={[-200, 100, 100]}
+          castShadow={castShadows}
+          angle={0.3}
+          penumbra={0.2}
+          decay={2}
+        />
+        <directionalLight
+          name="DirectionalLight"
+          intensity={0.55 * Math.PI}
+          position={[-5, 5, 5]}
+          castShadow={castShadows}
+        />
+        {showFpsCounter && <Stats className="stats" />}
+      </Bvh>
     </Canvas>
   );
 }

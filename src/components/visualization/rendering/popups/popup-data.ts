@@ -7,7 +7,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
-import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { BoxData } from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 
 export interface PopupDataArgs {
@@ -21,7 +20,7 @@ export interface PopupDataArgs {
     | Package
     | Class
     | ClazzCommuMeshDataModel;
-  mesh: EntityMesh;
+  mesh: THREE.Mesh | undefined;
   applicationId: string;
   isPinned: boolean;
   sharedBy: string;
@@ -49,7 +48,7 @@ export default class PopupData {
     | Method
     | BoxData;
 
-  mesh: EntityMesh;
+  mesh: THREE.Mesh | undefined;
 
   applicationId: string;
 
