@@ -73,24 +73,7 @@ export default function ApplicationR3F({
             application={applicationData.application}
             boxLayout={app3D.layout}
           />
-          <Instances limit={100000} frustumCulled={false}>
-            <boxGeometry />
-            <meshStandardMaterial />
-            {applicationData
-              .getClasses()
-              .map((classData) =>
-                app3D.getBoxLayout(classData.id) ? (
-                  <ClassR3F
-                    key={classData.id}
-                    dataModel={classData}
-                    layout={app3D.getBoxLayout(classData.id)!}
-                  />
-                ) : (
-                  <Fragment key={classData.id} />
-                )
-              )}
-          </Instances>
-          <Instances limit={100000} frustumCulled={false}>
+          <Instances limit={2500} frustumCulled={false}>
             <boxGeometry />
             <meshStandardMaterial />
             {applicationData
@@ -104,6 +87,23 @@ export default function ApplicationR3F({
                   />
                 ) : (
                   <Fragment key={packageData.id} />
+                )
+              )}
+          </Instances>
+          <Instances limit={25000} frustumCulled={false}>
+            <boxGeometry />
+            <meshStandardMaterial />
+            {applicationData
+              .getClasses()
+              .map((classData) =>
+                app3D.getBoxLayout(classData.id) ? (
+                  <ClassR3F
+                    key={classData.id}
+                    dataModel={classData}
+                    layout={app3D.getBoxLayout(classData.id)!}
+                  />
+                ) : (
+                  <Fragment key={classData.id} />
                 )
               )}
           </Instances>

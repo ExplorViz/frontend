@@ -224,6 +224,14 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Enable casting shadows from light (can be expensive)',
     isFlagSetting: true,
   },
+  showOutlines: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Effects',
+    displayName: 'Show outlines',
+    description: 'Shows black outlines of class meshes',
+    isFlagSetting: true,
+  },
   // Communication Settings
   commThickness: {
     level: SettingLevel.DEFAULT,

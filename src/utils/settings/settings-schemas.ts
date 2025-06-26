@@ -115,7 +115,8 @@ export type HighlightingSettings = {
 export type HoveringSettingId =
   | 'enableHoverEffects'
   | 'enableAnimations'
-  | 'castShadows';
+  | 'castShadows'
+  | 'showOutlines';
 
 export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 

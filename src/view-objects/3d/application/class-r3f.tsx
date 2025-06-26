@@ -1,4 +1,4 @@
-import { Instance, Text } from '@react-three/drei';
+import { Helper, Instance, Text } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
@@ -61,6 +61,7 @@ export default function ClassR3F({
     labelOffset,
     labelRotation,
     maxLabelLength,
+    showOutlines,
   } = useUserSettingsStore(
     useShallow((state) => ({
       classColor: state.visualizationSettings.classColor.value,
@@ -71,6 +72,7 @@ export default function ClassR3F({
       labelOffset: state.visualizationSettings.classLabelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       maxLabelLength: state.visualizationSettings.classLabelLength.value,
+      showOutlines: state.visualizationSettings.showOutlines.value,
     }))
   );
 
@@ -136,6 +138,7 @@ export default function ClassR3F({
                 : dataModel.name.substring(0, maxLabelLength) + '...'}
             </Text>
           )}
+          {showOutlines && <Helper type={THREE.BoxHelper} args={['black']} />}
         </Instance>
       )}
     </>
