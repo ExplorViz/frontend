@@ -31,8 +31,10 @@ import {
   MenuDetachedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import {
+  Application,
   Class,
   isClass,
+  Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import * as THREE from 'three';
@@ -75,7 +77,7 @@ interface PopupHandlerState {
     menuId?: string | null;
     sharedBy?: string | null;
     hovered?: boolean;
-    model?: Class;
+    model?: Application | Package | Class;
   }) => void;
   _removePopupAfterTimeout: (popup: PopupData) => void;
   updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;

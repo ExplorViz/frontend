@@ -1,7 +1,9 @@
 import { Text } from '@react-three/drei';
-import { ThreeElements } from '@react-three/fiber';
+import { ThreeElements, ThreeEvent } from '@react-three/fiber';
+import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { openAllComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -24,6 +26,24 @@ export default function FoundationR3F({
       boxLayout.depth / 2
     )
   );
+
+  const { addPopup } = usePopupHandlerStore(
+    useShallow((state) => ({
+      addPopup: state.addPopup,
+    }))
+  );
+
+  const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
+    addPopup({
+      model: application,
+      position: {
+        x: event.clientX,
+        y: event.clientY,
+      },
+    });
+  };
+
+  const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const highlightingActions = useHighlightingStore(
     useShallow((state) => ({
@@ -99,6 +119,7 @@ export default function FoundationR3F({
       onDoubleClick={handleDoubleClickWithPrevent}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
+      {...pointerStopHandlers}
       args={[constructorArgs]}
     >
       {appLabelMargin > 1.5 && (
