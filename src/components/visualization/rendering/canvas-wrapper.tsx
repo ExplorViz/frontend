@@ -127,79 +127,70 @@ export default function CanvasWrapper({
     <Canvas
       id="threejs-canvas"
       className={'webgl'}
-      gl={{ preserveDrawingBuffer: true }}
-      // ToDo: This can cause issues with the embedded web view
-      onCreated={(state) => {
-        state.setEvents({
-          filter: (intersections) =>
-            intersections.filter((i) => i.object.visible),
-        });
-      }}
+      gl={{ powerPreference: 'high-performance' }}
       style={{ background: sceneBackgroundColor }}
       onMouseMove={popupHandlerActions.handleMouseMove}
     >
-      <Bvh firstHitOnly>
-        <AdaptiveDpr pixelated />
-        <AdaptiveEvents />
-        <CameraControls
-          dollySpeed={0.3}
-          draggingSmoothTime={0.05}
-          maxDistance={250}
-          maxPolarAngle={0.5 * Math.PI}
-          makeDefault
-          minDistance={1}
-          mouseButtons={{
-            left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
-            middle: 0, // None
-            wheel: 16, // Dolly
-            right: 1, // Rotate
-          }}
-          smoothTime={0.5}
-        />
-        <PerspectiveCamera
-          position={[10, 10, 10]}
-          fov={cameraFov}
-          near={cameraNear}
-          far={cameraFar}
-          makeDefault
-        />
-        <LandscapeR3F>
-          {applicationModels.map((appModel) => (
-            <ApplicationR3F
-              key={appModel.application.id}
-              applicationData={appModel}
-            />
-          ))}
-          {interAppCommunications.map((communication) => (
-            <CommunicationR3F
-              key={communication.id}
-              communicationModel={communication}
-              communicationLayout={computeCommunicationLayout(
-                communication,
-                applicationModels
-              )}
-            />
-          ))}
-        </LandscapeR3F>
-        <ambientLight />
-        <spotLight
-          name="SpotLight"
-          intensity={0.5}
-          distance={2000}
-          position={[-200, 100, 100]}
-          castShadow={castShadows}
-          angle={0.3}
-          penumbra={0.2}
-          decay={2}
-        />
-        <directionalLight
-          name="DirectionalLight"
-          intensity={0.55 * Math.PI}
-          position={[-5, 5, 5]}
-          castShadow={castShadows}
-        />
-        {showFpsCounter && <Stats className="stats" />}
-      </Bvh>
+      <AdaptiveDpr pixelated />
+      <AdaptiveEvents />
+      <CameraControls
+        dollySpeed={0.3}
+        draggingSmoothTime={0.05}
+        maxDistance={250}
+        maxPolarAngle={0.5 * Math.PI}
+        makeDefault
+        minDistance={1}
+        mouseButtons={{
+          left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
+          middle: 0, // None
+          wheel: 16, // Dolly
+          right: 1, // Rotate
+        }}
+        smoothTime={0.5}
+      />
+      <PerspectiveCamera
+        position={[10, 10, 10]}
+        fov={cameraFov}
+        near={cameraNear}
+        far={cameraFar}
+        makeDefault
+      />
+      <LandscapeR3F>
+        {applicationModels.map((appModel) => (
+          <ApplicationR3F
+            key={appModel.application.id}
+            applicationData={appModel}
+          />
+        ))}
+        {interAppCommunications.map((communication) => (
+          <CommunicationR3F
+            key={communication.id}
+            communicationModel={communication}
+            communicationLayout={computeCommunicationLayout(
+              communication,
+              applicationModels
+            )}
+          />
+        ))}
+      </LandscapeR3F>
+      <ambientLight />
+      <spotLight
+        name="SpotLight"
+        intensity={0.5}
+        distance={2000}
+        position={[-200, 100, 100]}
+        castShadow={castShadows}
+        angle={0.3}
+        penumbra={0.2}
+        decay={2}
+      />
+      <directionalLight
+        name="DirectionalLight"
+        intensity={0.55 * Math.PI}
+        position={[-5, 5, 5]}
+        castShadow={castShadows}
+      />
+      {showFpsCounter && <Stats className="stats" />}
     </Canvas>
   );
 }
