@@ -195,6 +195,15 @@ export default function useLandscapeDataWatcher(
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
+    // Fix position of foundation meshes
+    applications.forEach((application) => {
+      const foundationLayout = boxLayoutMap.get(application.id);
+      if (foundationLayout) {
+        foundationLayout.positionX = foundationLayout.width / 2;
+        foundationLayout.positionZ = foundationLayout.depth / 2;
+        boxLayoutMap.set(application.id, foundationLayout);
+      }
+    });
     log('Layouted landscape.');
 
     // Set data model for landscape

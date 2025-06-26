@@ -8,8 +8,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { openAllComponents } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useMemo, useState } from 'react';
-import * as THREE from 'three';
+import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function FoundationR3F({
@@ -19,14 +18,6 @@ export default function FoundationR3F({
   application: Application;
   boxLayout: BoxLayout;
 }) {
-  const [foundationPosition, setFoundationPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3(
-      boxLayout.width / 2,
-      boxLayout.positionY,
-      boxLayout.depth / 2
-    )
-  );
-
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
@@ -76,16 +67,6 @@ export default function FoundationR3F({
     };
   }, []);
 
-  useEffect(() => {
-    setFoundationPosition(
-      new THREE.Vector3(
-        boxLayout.width / 2,
-        boxLayout.positionY,
-        boxLayout.depth / 2
-      )
-    );
-  }, [application, boxLayout]);
-
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
     event.object.applyHoverEffect();
@@ -111,7 +92,7 @@ export default function FoundationR3F({
 
   return (
     <foundationMesh
-      position={foundationPosition}
+      position={boxLayout.position}
       defaultColor={foundationColor}
       highlightingColor={highlightedEntityColor}
       layout={boxLayout}
