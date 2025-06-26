@@ -89,6 +89,10 @@ export default function ApplicationR3F({
                   <Fragment key={classData.id} />
                 )
               )}
+          </Instances>
+          <Instances limit={100000} frustumCulled={false}>
+            <boxGeometry />
+            <meshStandardMaterial />
             {applicationData
               .getPackages()
               .map((packageData) =>
@@ -102,16 +106,16 @@ export default function ApplicationR3F({
                   <Fragment key={packageData.id} />
                 )
               )}
-            {applicationData.classCommunications.map((communication) => (
-              <CommunicationR3F
-                key={communication.id}
-                communicationModel={communication}
-                communicationLayout={computeCommunicationLayout(communication, [
-                  applicationData,
-                ])}
-              />
-            ))}
           </Instances>
+          {applicationData.classCommunications.map((communication) => (
+            <CommunicationR3F
+              key={communication.id}
+              communicationModel={communication}
+              communicationLayout={computeCommunicationLayout(communication, [
+                applicationData,
+              ])}
+            />
+          ))}
         </primitive>
       )}
     </>

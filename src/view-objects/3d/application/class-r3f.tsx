@@ -107,33 +107,37 @@ export default function ClassR3F({
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
   return (
-    <Instance
-      color={computeColor()}
-      scale={[layout.width, layout.height, layout.depth]}
-      position={layout.position}
-      rotation={[0, 0, 0]}
-      onClick={handleClickWithPrevent}
-      onDoubleClick={handleDoubleClickWithPrevent}
-      onPointerOver={handleOnPointerOver}
-      onPointerOut={handleOnPointerOut}
-      {...pointerStopHandlers}
-    >
-      {classLabelFontSize > 0 && classLabelLength > 0 && isHovered && (
-        <Text
-          color={classTextColor}
-          // outlineColor={'black'}
-          // outlineWidth={classLabelFontSize * 0.05}
-          position={[0, 0.51 + labelOffset / layout.height, 0]}
-          rotation={[1.5 * Math.PI, 0, labelRotation]}
-          fontSize={classLabelFontSize}
+    <>
+      {isVisible && (
+        <Instance
+          color={computeColor()}
+          scale={[layout.width, layout.height, layout.depth]}
+          position={layout.position}
+          rotation={[0, 0, 0]}
+          onClick={handleClickWithPrevent}
+          onDoubleClick={handleDoubleClickWithPrevent}
+          onPointerOver={handleOnPointerOver}
+          onPointerOut={handleOnPointerOut}
+          {...pointerStopHandlers}
           visible={isVisible}
-          raycast={() => null}
         >
-          {dataModel.name.length <= maxLabelLength
-            ? dataModel.name
-            : dataModel.name.substring(0, maxLabelLength) + '...'}
-        </Text>
+          {classLabelFontSize > 0 && classLabelLength > 0 && (
+            <Text
+              color={classTextColor}
+              // outlineColor={'black'}
+              // outlineWidth={classLabelFontSize * 0.05}
+              position={[0, 0.51 + labelOffset / layout.height, 0]}
+              rotation={[1.5 * Math.PI, 0, labelRotation]}
+              fontSize={classLabelFontSize}
+              raycast={() => null}
+            >
+              {dataModel.name.length <= maxLabelLength
+                ? dataModel.name
+                : dataModel.name.substring(0, maxLabelLength) + '...'}
+            </Text>
+          )}
+        </Instance>
       )}
-    </Instance>
+    </>
   );
 }
