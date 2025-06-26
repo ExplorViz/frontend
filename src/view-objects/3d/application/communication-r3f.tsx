@@ -29,6 +29,7 @@ export default function CommunicationR3F({
     communicationColor,
     curveHeight,
     highlightedEntityColor,
+    enableHoverEffects,
   } = useUserSettingsStore(
     useShallow((state) => ({
       arrowColor: state.visualizationSettings.communicationArrowColor.value,
@@ -37,6 +38,7 @@ export default function CommunicationR3F({
       communicationColor: state.visualizationSettings.communicationColor.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       curveHeight: state.visualizationSettings.curvyCommHeight.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
     }))
   );
 
@@ -125,7 +127,7 @@ export default function CommunicationR3F({
       defaultColor={communicationColor}
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}
-      isHovered={isHovered}
+      isHovered={enableHoverEffects && isHovered}
       visible={isVisible}
       ref={meshRef}
     ></clazzCommunicationMesh>

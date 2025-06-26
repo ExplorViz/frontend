@@ -53,10 +53,12 @@ export default function ClassR3F({
   const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const {
+    castShadows,
     classColor,
     classLabelFontSize,
     classLabelLength,
     classTextColor,
+    enableHoverEffects,
     highlightedEntityColor,
     labelOffset,
     labelRotation,
@@ -64,10 +66,12 @@ export default function ClassR3F({
     showOutlines,
   } = useUserSettingsStore(
     useShallow((state) => ({
+      castShadows: state.visualizationSettings.castShadows.value,
       classColor: state.visualizationSettings.classColor.value,
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       labelOffset: state.visualizationSettings.classLabelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
@@ -81,7 +85,7 @@ export default function ClassR3F({
       ? new THREE.Color(highlightedEntityColor)
       : new THREE.Color(classColor);
 
-    if (isHovered) {
+    if (enableHoverEffects && isHovered) {
       return calculateColorBrightness(baseColor, 1.1);
     } else {
       return baseColor;
@@ -113,6 +117,7 @@ export default function ClassR3F({
       {isVisible && (
         <Instance
           color={computeColor()}
+          castShadow={castShadows}
           scale={[layout.width, layout.height, layout.depth]}
           position={layout.position}
           rotation={[0, 0, 0]}

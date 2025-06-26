@@ -64,16 +64,19 @@ export default function ComponentR3F({
     );
 
   const {
+    castShadows,
     closedComponentHeight,
     componentEvenColor,
     componentOddColor,
     componentTextColor,
     enableAnimations,
+    enableHoverEffects,
     highlightedEntityColor,
     openedComponentHeight,
     packageLabelMargin,
   } = useUserSettingsStore(
     useShallow((state) => ({
+      castShadows: state.visualizationSettings.castShadows.value,
       packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
       highlightedEntityColor:
         state.visualizationSettings.highlightedEntityColor.value,
@@ -84,6 +87,7 @@ export default function ComponentR3F({
       openedComponentHeight:
         state.visualizationSettings.openedComponentHeight.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       componentTextColor: state.visualizationSettings.componentTextColor.value,
     }))
   );
@@ -216,7 +220,7 @@ export default function ComponentR3F({
           layout.level % 2 === 0 ? componentEvenColor : componentOddColor
         );
 
-    if (isHovered) {
+    if (enableHoverEffects && isHovered) {
       return calculateColorBrightness(baseColor, 1.1);
     } else {
       return baseColor;
@@ -227,6 +231,7 @@ export default function ComponentR3F({
     <>
       {isVisible && (
         <Instance
+          castShadow={castShadows}
           color={computeColor()}
           scale={[layout.width, componentHeight, layout.depth]}
           position={componentPosition}

@@ -45,6 +45,7 @@ export default function FoundationR3F({
 
   const {
     appLabelMargin,
+    enableHoverEffects,
     foundationColor,
     foundationTextColor,
     highlightedEntityColor,
@@ -54,6 +55,7 @@ export default function FoundationR3F({
       foundationColor: state.visualizationSettings.foundationColor.value,
       highlightedEntityColor:
         state.visualizationSettings.highlightedEntityColor.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,
     }))
@@ -69,7 +71,9 @@ export default function FoundationR3F({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    event.object.applyHoverEffect();
+    if (enableHoverEffects) {
+      event.object.applyHoverEffect();
+    }
   };
 
   const handleOnPointerOut = (event: any) => {
