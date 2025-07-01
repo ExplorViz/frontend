@@ -2,17 +2,14 @@ import { Instances } from '@react-three/drei';
 import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ClassR3F from 'explorviz-frontend/src/view-objects/3d/application/class-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/component-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
-import { Fragment, useCallback, useEffect, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
+import { Fragment, useEffect, useState } from 'react';
 
 export default function ApplicationR3F({
   applicationData,
@@ -20,38 +17,25 @@ export default function ApplicationR3F({
   applicationData: ApplicationData;
 }) {
   const [isBrowserActive, setIsBrowserActive] = useState(false);
-
-  const applicationRendererState = useApplicationRendererStore(
-    useShallow((state) => ({
-      addApplicationTask: state.addApplicationTask,
-    }))
-  );
+  const [applicationPosition, setApplicationPosition] = useState<
+    THREE.Vector3 | undefined
+  >(applicationData.boxLayoutMap.get(applicationData.getId())?.position);
 
   const computeCommunicationLayout = useLinkRendererStore(
     (state) => state.computeCommunicationLayout
   );
 
-  const [app3D, setApp3D] = useState<ApplicationObject3D | null>(null);
-
-  const computeApp = useCallback(async () => {
-    const application3D =
-      await applicationRendererState.addApplicationTask(applicationData);
-    setApp3D(application3D);
-  }, [applicationData, applicationRendererState]);
-
   useEffect(() => {
-    computeApp();
-  }, [applicationData, computeApp]);
+    setApplicationPosition(
+      applicationData.boxLayoutMap.get(applicationData.getId())?.position
+    );
+  }, [applicationData, applicationData.boxLayoutMap]);
 
   return (
     <>
-      {app3D && (
-        <primitive object={app3D}>
-          <Root
-            positionBottom={15}
-            positionLeft={app3D.layout.width / 2 - 5}
-            pixelSize={1}
-          >
+      {applicationPosition && (
+        <group position={applicationPosition}>
+          <Root positionBottom={15} positionLeft={0} pixelSize={1}>
             <Container>
               <Button
                 width={25}
@@ -69,38 +53,43 @@ export default function ApplicationR3F({
           {isBrowserActive && (
             <EmbeddedBrowser application={applicationData.application} />
           )}
-          <FoundationR3F
-            application={applicationData.application}
-            boxLayout={app3D.layout}
-          />
-          <Instances limit={2500} frustumCulled={false}>
+          {applicationData.boxLayoutMap.get(applicationData.getId()) && (
+            <FoundationR3F
+              application={applicationData.application}
+              layout={
+                applicationData.boxLayoutMap.get(applicationData.getId())!
+              }
+            />
+          )}
+
+          <Instances limit={5000} frustumCulled={false}>
             <boxGeometry />
-            <meshStandardMaterial />
+            <meshLambertMaterial />
             {applicationData
               .getPackages()
               .map((packageData) =>
-                app3D.getBoxLayout(packageData.id) ? (
+                applicationData.boxLayoutMap.get(packageData.id) ? (
                   <ComponentR3F
                     key={packageData.id}
                     component={packageData}
-                    layout={app3D.getBoxLayout(packageData.id)!}
+                    layout={applicationData.boxLayoutMap.get(packageData.id)!}
                   />
                 ) : (
                   <Fragment key={packageData.id} />
                 )
               )}
           </Instances>
-          <Instances limit={25000} frustumCulled={false}>
+          <Instances limit={50000} frustumCulled={false}>
             <boxGeometry />
-            <meshStandardMaterial />
+            <meshLambertMaterial />
             {applicationData
               .getClasses()
               .map((classData) =>
-                app3D.getBoxLayout(classData.id) ? (
+                applicationData.boxLayoutMap.get(classData.id) ? (
                   <ClassR3F
                     key={classData.id}
                     dataModel={classData}
-                    layout={app3D.getBoxLayout(classData.id)!}
+                    layout={applicationData.boxLayoutMap.get(classData.id)!}
                   />
                 ) : (
                   <Fragment key={classData.id} />
@@ -116,7 +105,7 @@ export default function ApplicationR3F({
               ])}
             />
           ))}
-        </primitive>
+        </group>
       )}
     </>
   );

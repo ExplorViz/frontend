@@ -235,7 +235,6 @@ export default function ComponentR3F({
           color={computeColor()}
           scale={[layout.width, componentHeight, layout.depth]}
           position={componentPosition}
-          rotation={[0, 0, 0]}
           onClick={handleClickWithPrevent}
           onDoubleClick={handleDoubleClickWithPrevent}
           onPointerOver={handleOnPointerOver}
@@ -248,7 +247,14 @@ export default function ComponentR3F({
               outlineColor={'white'}
               position={labelPosition}
               rotation={[1.5 * Math.PI, 0, 0]}
-              fontSize={(packageLabelMargin * 0.9) / layout.depth}
+              fontSize={
+                isOpen
+                  ? (packageLabelMargin * 0.9) / layout.depth
+                  : Math.max(
+                      layout.width * 0.0003,
+                      (packageLabelMargin * 0.9) / layout.depth
+                    )
+              }
               raycast={() => null}
             >
               {component.name}
