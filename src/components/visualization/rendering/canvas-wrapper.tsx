@@ -1,7 +1,6 @@
 import {
   AdaptiveDpr,
   AdaptiveEvents,
-  Bvh,
   CameraControls,
   PerspectiveCamera,
   Stats,
@@ -190,7 +189,13 @@ export default function CanvasWrapper({
         position={[-5, 5, 5]}
         castShadow={castShadows}
       />
-      {showFpsCounter && <Stats className="stats" />}
+      {showFpsCounter && (
+        <>
+          <Stats showPanel={0} className="stats0" />
+          <Stats showPanel={1} className="stats1" />
+          <Stats showPanel={2} className="stats2" />
+        </>
+      )}
     </Canvas>
   );
 }
