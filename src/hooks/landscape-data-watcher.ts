@@ -107,32 +107,10 @@ export default function useLandscapeDataWatcher(
     }))
   );
 
-  const {
-    visualizationSettings,
-    colors,
-    applicationAspectRatio,
-    classFootprint,
-    classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
-    closedComponentHeight,
-  } = useUserSettingsStore(
+  const { visualizationSettings, colors } = useUserSettingsStore(
     useShallow((state) => ({
       visualizationSettings: state.visualizationSettings,
       colors: state.colors,
-      applicationAspectRatio:
-        state.visualizationSettings.applicationAspectRatio,
-      classFootprint: state.visualizationSettings.classFootprint,
-      classMargin: state.visualizationSettings.classMargin,
-      appLabelMargin: state.visualizationSettings.appLabelMargin,
-      appMargin: state.visualizationSettings.appMargin,
-      packageLabelMargin: state.visualizationSettings.packageLabelMargin,
-      packageMargin: state.visualizationSettings.packageMargin,
-      openedComponentHeight: state.visualizationSettings.openedComponentHeight,
-      closedComponentHeight: state.visualizationSettings.closedComponentHeight,
     }))
   );
 
@@ -195,15 +173,6 @@ export default function useLandscapeDataWatcher(
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
-    // Fix position of foundation meshes
-    applications.forEach((application) => {
-      const foundationLayout = boxLayoutMap.get(application.id);
-      if (foundationLayout) {
-        foundationLayout.positionX = foundationLayout.width / 2;
-        foundationLayout.positionZ = foundationLayout.depth / 2;
-        boxLayoutMap.set(application.id, foundationLayout);
-      }
-    });
     log('Layouted landscape.');
 
     // Set data model for landscape
@@ -416,20 +385,7 @@ export default function useLandscapeDataWatcher(
 
   useEffect(() => {
     handleUpdatedLandscapeData();
-  }, [
-    landscapeData,
-    landscape3D,
-    // TODO: Outsource layout options to own effect for performance
-    applicationAspectRatio,
-    classFootprint,
-    classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
-    closedComponentHeight,
-  ]);
+  }, [landscapeData, landscape3D]);
 
   useEffect(() => {
     return function cleanup() {

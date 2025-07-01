@@ -239,18 +239,6 @@ export default function Settings({
       visualizationSettings.distanceLevel5,
     ];
     switch (settingId) {
-      case 'applicationDistance':
-      case 'applicationAspectRatio':
-      case 'classFootprint':
-      case 'classMargin':
-      case 'appLabelMargin':
-      case 'appMargin':
-      case 'packageLabelMargin':
-      case 'packageMargin':
-      case 'openedComponentHeight':
-      case 'closedComponentHeight':
-        updateApplicationLayout();
-        break;
       case 'transparencyIntensity':
         if (updateHighlighting) {
           updateHighlighting();
@@ -301,12 +289,6 @@ export default function Settings({
       updateUserSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
-    }
-    switch (settingId) {
-      case 'applicationLayoutAlgorithm':
-      case 'packageLayoutAlgorithm':
-        updateApplicationLayout();
-        break;
     }
   };
 

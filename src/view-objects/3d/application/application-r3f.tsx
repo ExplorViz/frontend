@@ -10,32 +10,33 @@ import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application
 import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/component-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { Fragment, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ApplicationR3F({
   applicationData,
+  layoutMap,
 }: {
   applicationData: ApplicationData;
+  layoutMap: Map<string, BoxLayout>;
 }) {
   const [isBrowserActive, setIsBrowserActive] = useState(false);
   const [applicationPosition, setApplicationPosition] = useState<
     THREE.Vector3 | undefined
-  >(applicationData.boxLayoutMap.get(applicationData.getId())?.position);
+  >(layoutMap.get(applicationData.getId())?.position);
 
   const computeCommunicationLayout = useLinkRendererStore(
     (state) => state.computeCommunicationLayout
   );
 
   useEffect(() => {
-    setApplicationPosition(
-      applicationData.boxLayoutMap.get(applicationData.getId())?.position
-    );
-  }, [applicationData, applicationData.boxLayoutMap]);
+    setApplicationPosition(layoutMap.get(applicationData.getId())?.position);
+  }, [applicationData, layoutMap]);
 
-  const { isCommunicationVisible } = useConfigurationStore(
+  const { isCommRendered } = useConfigurationStore(
     useShallow((state) => ({
-      isCommunicationVisible: state.isCommRendered,
+      isCommRendered: state.isCommRendered,
     }))
   );
 
@@ -61,12 +62,10 @@ export default function ApplicationR3F({
           {isBrowserActive && (
             <EmbeddedBrowser application={applicationData.application} />
           )}
-          {applicationData.boxLayoutMap.get(applicationData.getId()) && (
+          {layoutMap.get(applicationData.getId()) && (
             <FoundationR3F
               application={applicationData.application}
-              layout={
-                applicationData.boxLayoutMap.get(applicationData.getId())!
-              }
+              layout={layoutMap.get(applicationData.getId())!}
             />
           )}
 
@@ -76,11 +75,11 @@ export default function ApplicationR3F({
             {applicationData
               .getPackages()
               .map((packageData) =>
-                applicationData.boxLayoutMap.get(packageData.id) ? (
+                layoutMap.get(packageData.id) ? (
                   <ComponentR3F
                     key={packageData.id}
                     component={packageData}
-                    layout={applicationData.boxLayoutMap.get(packageData.id)!}
+                    layout={layoutMap.get(packageData.id)!}
                   />
                 ) : (
                   <Fragment key={packageData.id} />
@@ -93,25 +92,27 @@ export default function ApplicationR3F({
             {applicationData
               .getClasses()
               .map((classData) =>
-                applicationData.boxLayoutMap.get(classData.id) ? (
+                layoutMap.get(classData.id) ? (
                   <ClassR3F
                     key={classData.id}
                     dataModel={classData}
-                    layout={applicationData.boxLayoutMap.get(classData.id)!}
+                    layout={layoutMap.get(classData.id)!}
                   />
                 ) : (
                   <Fragment key={classData.id} />
                 )
               )}
           </Instances>
-          {isCommunicationVisible &&
+          {isCommRendered &&
             applicationData.classCommunications.map((communication) => (
               <CommunicationR3F
                 key={communication.id}
                 communicationModel={communication}
-                communicationLayout={computeCommunicationLayout(communication, [
-                  applicationData,
-                ])}
+                communicationLayout={computeCommunicationLayout(
+                  communication,
+                  [applicationData],
+                  layoutMap
+                )}
               />
             ))}
         </group>

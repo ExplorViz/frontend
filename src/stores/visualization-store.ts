@@ -41,6 +41,7 @@ interface VisualizationStoreState {
       id: string,
       state: Partial<FoundationState>
     ) => void;
+    removeAllFoundationStates: () => void;
     // Components
     getComponentState: (id: string) => ComponentState;
     setComponentState: (id: string, state: ComponentState) => void;
@@ -87,6 +88,9 @@ export const useVisualizationStore = create<VisualizationStoreState>(
             [id]: { ...currentState, ...state },
           },
         }));
+      },
+      removeAllFoundationStates: () => {
+        set({ foundationData: {} });
       },
       // Components
       getComponentState: (id: string) => {

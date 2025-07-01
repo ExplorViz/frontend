@@ -7,6 +7,7 @@ import {
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -15,37 +16,79 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import { useEffect } from 'react';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
   landscapeData,
   landscape3D,
 }: {
-  landscapeData: LandscapeData;
+  landscapeData: LandscapeData | null;
   landscape3D: Landscape3D;
 }) {
+  const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
+    null
+  );
+
   const {
-    cameraNear,
+    applicationLayoutAlgorithm,
+    packageLayoutAlgorithm,
+    appLabelMargin,
+    applicationAspectRatio,
+    applicationDistance,
+    appMargin,
     cameraFar,
     cameraFov,
+    cameraNear,
     castShadows,
+    classFootprint,
+    classMargin,
+    closedComponentHeight,
+    openedComponentHeight,
+    packageLabelMargin,
+    packageMargin,
     sceneBackgroundColor,
     showFpsCounter,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
-      castShadows: state.visualizationSettings.castShadows.value,
-      cameraNear: state.visualizationSettings.cameraNear.value,
+      applicationLayoutAlgorithm:
+        state.visualizationSettings.applicationLayoutAlgorithm.value,
+      packageLayoutAlgorithm:
+        state.visualizationSettings.packageLayoutAlgorithm.value,
+      appLabelMargin: state.visualizationSettings.appLabelMargin,
+      applicationAspectRatio:
+        state.visualizationSettings.applicationAspectRatio,
+      applicationDistance: state.visualizationSettings.applicationDistance,
+      appMargin: state.visualizationSettings.appMargin,
       cameraFar: state.visualizationSettings.cameraFar.value,
       cameraFov: state.visualizationSettings.cameraFov.value,
+      cameraNear: state.visualizationSettings.cameraNear.value,
+      castShadows: state.visualizationSettings.castShadows.value,
+      classFootprint: state.visualizationSettings.classFootprint,
+      classMargin: state.visualizationSettings.classMargin,
+      closedComponentHeight: state.visualizationSettings.closedComponentHeight,
+      colors: state.colors,
+      openedComponentHeight: state.visualizationSettings.openedComponentHeight,
+      packageLabelMargin: state.visualizationSettings.packageLabelMargin,
+      packageMargin: state.visualizationSettings.packageMargin,
+      sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
       showFpsCounter: state.visualizationSettings.showFpsCounter.value,
+      visualizationSettings: state.visualizationSettings,
+    }))
+  );
+
+  const { isCommRendered } = useConfigurationStore(
+    useShallow((state) => ({
+      isCommRendered: state.isCommRendered,
     }))
   );
 
@@ -88,6 +131,8 @@ export default function CanvasWrapper({
 
   useEffect(() => {
     if (landscapeData) {
+      // Use layout of landscape data watcher
+      setLayoutMap(null);
       const allPackages = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
@@ -114,6 +159,33 @@ export default function CanvasWrapper({
       });
     }
   }, [landscapeData]);
+
+  const updateLayout = async () => {
+    if (!landscapeData) return;
+
+    const layoutMap = await layoutLandscape(
+      landscapeData.structureLandscapeData.k8sNodes!,
+      getApplicationsFromNodes(landscapeData.structureLandscapeData.nodes)
+    );
+    setLayoutMap(layoutMap);
+  };
+
+  useEffect(() => {
+    updateLayout();
+  }, [
+    applicationLayoutAlgorithm,
+    packageLayoutAlgorithm,
+    applicationDistance,
+    applicationAspectRatio,
+    classFootprint,
+    classMargin,
+    appLabelMargin,
+    appMargin,
+    packageLabelMargin,
+    packageMargin,
+    openedComponentHeight,
+    closedComponentHeight,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -159,18 +231,21 @@ export default function CanvasWrapper({
           <ApplicationR3F
             key={appModel.application.id}
             applicationData={appModel}
+            layoutMap={layoutMap || appModel.boxLayoutMap}
           />
         ))}
-        {interAppCommunications.map((communication) => (
-          <CommunicationR3F
-            key={communication.id}
-            communicationModel={communication}
-            communicationLayout={computeCommunicationLayout(
-              communication,
-              applicationModels
-            )}
-          />
-        ))}
+        {isCommRendered &&
+          interAppCommunications.map((communication) => (
+            <CommunicationR3F
+              key={communication.id}
+              communicationModel={communication}
+              communicationLayout={computeCommunicationLayout(
+                communication,
+                applicationModels,
+                layoutMap || applicationModels[0].boxLayoutMap
+              )}
+            />
+          ))}
       </LandscapeR3F>
       <ambientLight />
       <spotLight
