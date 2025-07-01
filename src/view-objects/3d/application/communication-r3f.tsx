@@ -42,10 +42,9 @@ export default function CommunicationR3F({
     }))
   );
 
-  const { commCurveHeightDependsOnDistance, isVisible } = useConfigurationStore(
+  const { commCurveHeightDependsOnDistance } = useConfigurationStore(
     useShallow((state) => ({
       commCurveHeightDependsOnDistance: state.commCurveHeightDependsOnDistance,
-      isVisible: state.isCommRendered,
     }))
   );
 
@@ -128,7 +127,6 @@ export default function CommunicationR3F({
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}
       isHovered={enableHoverEffects && isHovered}
-      visible={isVisible}
       ref={meshRef}
     ></clazzCommunicationMesh>
   );
