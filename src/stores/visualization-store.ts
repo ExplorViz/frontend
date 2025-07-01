@@ -1,3 +1,11 @@
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import {
+  getAllClassIdsInApplication,
+  getAllClassIdsInApplications,
+  getAllPackageIdsInApplications,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/src/utils/application-helpers';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { create } from 'zustand';
 
 interface ClassState {
@@ -29,6 +37,8 @@ interface VisualizationStoreState {
     getComponentState: (id: string) => ComponentState;
     setComponentState: (id: string, state: ComponentState) => void;
     updateComponentState: (id: string, state: Partial<ComponentState>) => void;
+    openAllComponents: () => void;
+    closeAllComponents: () => void;
     removeComponentState: (id: string) => void;
     removeAllComponentStates: () => void;
   };
@@ -116,6 +126,57 @@ export const useVisualizationStore = create<VisualizationStoreState>(
             [id]: { ...currentState, ...state },
           },
         }));
+      },
+      openAllComponents: () => {
+        const applications = Array.from(
+          useApplicationRepositoryStore.getState().getAll()
+        ).map((app) => app.application);
+        getAllPackageIdsInApplications(applications).forEach((packageId) => {
+          get().actions.updateComponentState(packageId, {
+            isVisible: true,
+            isOpen: true,
+          });
+        });
+        getAllClassIdsInApplications(applications).forEach((classId) => {
+          get().actions.updateClassState(classId, {
+            isVisible: true,
+          });
+        });
+      },
+      closeAllComponents: () => {
+        const applications = Array.from(
+          useApplicationRepositoryStore.getState().getAll()
+        );
+        let packages: Package[] = [];
+        let classIds: string[] = [];
+        applications.forEach((application) => {
+          packages = packages.concat(
+            getAllPackagesInApplication(application.application)
+          );
+          classIds = classIds.concat(
+            getAllClassIdsInApplication(application.application)
+          );
+        });
+        const closedComponentStates: ComponentState[] = packages.map((pckg) => {
+          return {
+            id: pckg.id,
+            isVisible: !pckg.parent,
+            isHighlighted: false,
+            isHovered: false,
+            isOpen: false,
+          };
+        });
+        closedComponentStates.forEach((component) => {
+          get().actions.setComponentState(component.id, component);
+        });
+        classIds.forEach((classId) => {
+          get().actions.updateClassState(classId, {
+            id: classId,
+            isVisible: false,
+            isHighlighted: false,
+            isHovered: false,
+          });
+        });
       },
       removeComponentState: (id: string) => {
         set((prevState) => {
