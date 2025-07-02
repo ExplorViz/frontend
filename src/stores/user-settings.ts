@@ -141,13 +141,13 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
         switch (schemeId) {
           case 'classic':
-            scheme = classicColors;
+            scheme = { ...defaultColors, ...classicColors };
             break;
           case 'blue':
-            scheme = blueColors;
+            scheme = { ...defaultColors, ...blueColors };
             break;
           case 'dark':
-            scheme = darkColors;
+            scheme = { ...defaultColors, ...darkColors };
             break;
           default:
             break;
