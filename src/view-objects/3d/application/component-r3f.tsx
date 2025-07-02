@@ -233,13 +233,11 @@ export default function ComponentR3F({
 
   const computeColor = () => {
     if (evoConfig.renderOnlyDifferences && commitComparison && component.fqn) {
-      if (commitComparison.addedPackages.includes(component.fqn)) {
+      if (commitComparison.addedPackageFqns.includes(component.fqn)) {
         return new THREE.Color('green');
-      } else if (commitComparison.deletedPackages.includes(component.fqn)) {
+      } else if (commitComparison.deletedPackageFqns.includes(component.fqn)) {
         return new THREE.Color('red');
       } else {
-        console.log(commitComparison.addedPackages);
-
         return new THREE.Color('white');
       }
     }

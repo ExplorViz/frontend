@@ -102,7 +102,7 @@ export default function ClassR3F({
     if (evoConfig.renderOnlyDifferences && commitComparison && dataModel.fqn) {
       if (commitComparison.added.includes(dataModel.fqn)) {
         return new THREE.Color('green');
-      } else if (commitComparison.deletedPackages.includes(dataModel.fqn)) {
+      } else if (commitComparison.deleted.includes(dataModel.fqn)) {
         return new THREE.Color('red');
       } else if (commitComparison.modified.includes(dataModel.fqn)) {
         return new THREE.Color('blue');
