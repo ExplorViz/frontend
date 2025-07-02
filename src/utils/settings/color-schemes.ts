@@ -13,6 +13,13 @@ export const defaultColors = {
   foundationColor: '#c7c7c7', // grey
   foundationTextColor: '#000000', // black
   highlightedEntityColor: '#ff5151', // pastel red
+  addedComponentColor: '#9ACD32', // light green
+  removedComponentColor: '#CD5C5C', // red
+  unchangedComponentColor: '#ffffff', // white
+  addedClassColor: '#3CB371', // green
+  modifiedClassColor: '#87CEFA', // pastel blue
+  removedClassColor: '#B03060', // pastel red
+  unchangedClassColor: '#000000', // black
   k8sNodeColor: '#000f6c', // midnight blue
   k8sNamespaceColor: '#0023a3', // dark blue
   k8sDeploymentColor: '#002dea', // blue

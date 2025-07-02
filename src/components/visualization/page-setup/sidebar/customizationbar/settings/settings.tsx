@@ -521,7 +521,7 @@ export default function Settings({
                   />
                 );
               }
-              return <React.Fragment key={settingId}></React.Fragment>;
+              return null;
             })}
           </div>
         </React.Fragment>

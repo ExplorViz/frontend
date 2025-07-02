@@ -92,6 +92,9 @@ export default function ComponentR3F({
     highlightedEntityColor,
     openedComponentHeight,
     packageLabelMargin,
+    addedComponentColor,
+    removedComponentColor,
+    unChangedComponentColor,
   } = useUserSettingsStore(
     useShallow((state) => ({
       castShadows: state.visualizationSettings.castShadows.value,
@@ -107,6 +110,12 @@ export default function ComponentR3F({
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       componentTextColor: state.visualizationSettings.componentTextColor.value,
+      addedComponentColor:
+        state.visualizationSettings.addedComponentColor.value,
+      removedComponentColor:
+        state.visualizationSettings.removedComponentColor.value,
+      unChangedComponentColor:
+        state.visualizationSettings.unchangedComponentColor.value,
     }))
   );
 
@@ -234,11 +243,11 @@ export default function ComponentR3F({
   const computeColor = () => {
     if (evoConfig.renderOnlyDifferences && commitComparison && component.fqn) {
       if (commitComparison.addedPackageFqns.includes(component.fqn)) {
-        return new THREE.Color('green');
+        return new THREE.Color(addedComponentColor);
       } else if (commitComparison.deletedPackageFqns.includes(component.fqn)) {
-        return new THREE.Color('red');
+        return new THREE.Color(removedComponentColor);
       } else {
-        return new THREE.Color('white');
+        return new THREE.Color(unChangedComponentColor);
       }
     }
 

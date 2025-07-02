@@ -73,6 +73,10 @@ export default function ClassR3F({
   const {
     castShadows,
     classColor,
+    addedClassColor,
+    modifiedClassColor,
+    removedClassColor,
+    unchangedClassColor,
     classLabelFontSize,
     classLabelLength,
     classTextColor,
@@ -86,6 +90,11 @@ export default function ClassR3F({
     useShallow((state) => ({
       castShadows: state.visualizationSettings.castShadows.value,
       classColor: state.visualizationSettings.classColor.value,
+      addedClassColor: state.visualizationSettings.addedClassColor.value,
+      modifiedClassColor: state.visualizationSettings.modifiedClassColor.value,
+      removedClassColor: state.visualizationSettings.removedClassColor.value,
+      unchangedClassColor:
+        state.visualizationSettings.unchangedClassColor.value,
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
@@ -101,13 +110,13 @@ export default function ClassR3F({
   const computeColor = () => {
     if (evoConfig.renderOnlyDifferences && commitComparison && dataModel.fqn) {
       if (commitComparison.added.includes(dataModel.fqn)) {
-        return new THREE.Color('green');
+        return new THREE.Color(addedClassColor);
       } else if (commitComparison.deleted.includes(dataModel.fqn)) {
-        return new THREE.Color('red');
+        return new THREE.Color(removedClassColor);
       } else if (commitComparison.modified.includes(dataModel.fqn)) {
-        return new THREE.Color('blue');
+        return new THREE.Color(modifiedClassColor);
       } else {
-        return new THREE.Color('white');
+        return new THREE.Color(unchangedClassColor);
       }
     }
 
