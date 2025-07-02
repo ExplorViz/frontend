@@ -11,6 +11,7 @@ import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-mode
 import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 
 export default function CommunicationR3F({
   communicationModel,
@@ -45,6 +46,12 @@ export default function CommunicationR3F({
   const { commCurveHeightDependsOnDistance } = useConfigurationStore(
     useShallow((state) => ({
       commCurveHeightDependsOnDistance: state.commCurveHeightDependsOnDistance,
+    }))
+  );
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
     }))
   );
 
@@ -109,6 +116,11 @@ export default function CommunicationR3F({
     );
     return [dataModel];
   }, []);
+
+  // Check if component should be displayed
+  if (!evoConfig.renderDynamic) {
+    return null;
+  }
 
   return (
     <clazzCommunicationMesh

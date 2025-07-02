@@ -4,9 +4,13 @@ import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  Class,
+  TypeOfAnalysis,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
@@ -33,6 +37,12 @@ export default function ClassR3F({
         updateClassState: state.actions.updateClassState,
       }))
     );
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
+    }))
+  );
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -111,6 +121,16 @@ export default function ClassR3F({
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
+
+  // Check if class should be displayed
+  if (
+    (dataModel.originOfData === TypeOfAnalysis.Static &&
+      !evoConfig.renderStatic) ||
+    (dataModel.originOfData === TypeOfAnalysis.Dynamic &&
+      !evoConfig.renderDynamic)
+  ) {
+    return null;
+  }
 
   return (
     <>

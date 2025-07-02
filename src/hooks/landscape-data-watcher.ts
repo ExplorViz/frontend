@@ -60,12 +60,6 @@ export default function useLandscapeDataWatcher(
     }))
   );
 
-  const { renderDynamic } = useVisibilityServiceStore(
-    useShallow((state) => ({
-      renderDynamic: state._evolutionModeRenderingConfiguration.renderDynamic,
-    }))
-  );
-
   const applicationRepositoryState = useApplicationRepositoryStore(
     useShallow((state) => ({
       applications: state.applications,
@@ -187,13 +181,11 @@ export default function useLandscapeDataWatcher(
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
-    let classCommunications = renderDynamic
-      ? computeClassCommunication(structureLandscapeData, dynamicLandscapeData)
-      : [];
-    log('Computed class communication');
-
-    if (renderDynamic && landscapeRestructureState.restructureMode) {
-      console.log('Computing restructured communication ...');
+    let classCommunications = computeClassCommunication(
+      structureLandscapeData,
+      dynamicLandscapeData
+    );
+    if (landscapeRestructureState.restructureMode) {
       classCommunications = computeRestructuredClassCommunication(
         classCommunications,
         landscapeRestructureState.createdClassCommunication,
@@ -201,7 +193,6 @@ export default function useLandscapeDataWatcher(
         landscapeRestructureState.updatedClassCommunications,
         landscapeRestructureState.completelyDeletedClassCommunications
       );
-      console.log('Computed restructured communication.');
     }
     landscapeRestructureState.setAllClassCommunications(classCommunications);
 

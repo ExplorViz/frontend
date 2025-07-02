@@ -4,10 +4,14 @@ import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  Package,
+  TypeOfAnalysis,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { gsap } from 'gsap';
 import { useCallback, useEffect, useState } from 'react';
@@ -29,6 +33,12 @@ export default function ComponentR3F({
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
+    }))
+  );
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
     }))
   );
 
@@ -226,6 +236,16 @@ export default function ComponentR3F({
       return baseColor;
     }
   };
+
+  // Check if component should be displayed
+  if (
+    (component.originOfData === TypeOfAnalysis.Static &&
+      !evoConfig.renderStatic) ||
+    (component.originOfData === TypeOfAnalysis.Dynamic &&
+      !evoConfig.renderDynamic)
+  ) {
+    return null;
+  }
 
   return (
     <>

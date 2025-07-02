@@ -4,6 +4,7 @@ import {
   Commit,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { findAppNameAndBranchNameForCommit } from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 
 export type SelectedCommit = Commit;
 
@@ -101,6 +102,13 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     resetSelectedCommits: () => {
       set({ _selectedCommits: new Map() });
+      useVisibilityServiceStore
+        .getState()
+        .applyEvolutionModeRenderingConfiguration({
+          renderDynamic: true,
+          renderStatic: true,
+          renderOnlyDifferences: false,
+        });
     },
 
     getCloneOfAppNameAndBranchNameToColorMap: () => {
