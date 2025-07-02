@@ -3,11 +3,13 @@ import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import {
+  Application,
   Class,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -18,9 +20,11 @@ import { useShallow } from 'zustand/react/shallow';
 export default function ClassR3F({
   dataModel,
   layout,
+  application,
 }: {
   dataModel: Class;
   layout: BoxLayout;
+  application: Application;
 }) {
   const { isHighlighted, isHovered, isVisible, updateClassState } =
     useVisualizationStore(
@@ -43,6 +47,10 @@ export default function ClassR3F({
       evoConfig: state._evolutionModeRenderingConfiguration,
     }))
   );
+
+  const commitComparison = useEvolutionDataRepositoryStore
+    .getState()
+    .getCommitComparisonByAppName(application.name);
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -91,6 +99,18 @@ export default function ClassR3F({
   );
 
   const computeColor = () => {
+    if (evoConfig.renderOnlyDifferences && commitComparison && dataModel.fqn) {
+      if (commitComparison.added.includes(dataModel.fqn)) {
+        return new THREE.Color('green');
+      } else if (commitComparison.deletedPackages.includes(dataModel.fqn)) {
+        return new THREE.Color('red');
+      } else if (commitComparison.modified.includes(dataModel.fqn)) {
+        return new THREE.Color('blue');
+      } else {
+        return new THREE.Color('white');
+      }
+    }
+
     const baseColor = isHighlighted
       ? new THREE.Color(highlightedEntityColor)
       : new THREE.Color(classColor);

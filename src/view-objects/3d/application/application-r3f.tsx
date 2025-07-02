@@ -70,6 +70,7 @@ export default function ApplicationR3F({
                 key={packageData.id}
                 component={packageData}
                 layout={layoutMap.get(packageData.id)!}
+                application={applicationData.application}
               />
             ) : (
               <Fragment key={packageData.id} />
@@ -87,6 +88,7 @@ export default function ApplicationR3F({
                 key={classData.id}
                 dataModel={classData}
                 layout={layoutMap.get(classData.id)!}
+                application={applicationData.application}
               />
             ) : (
               <Fragment key={classData.id} />

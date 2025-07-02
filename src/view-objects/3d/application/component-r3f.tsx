@@ -3,12 +3,14 @@ import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import {
+  Application,
   Package,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -21,9 +23,11 @@ import { useShallow } from 'zustand/react/shallow';
 export default function ComponentR3F({
   component,
   layout,
+  application,
 }: {
   component: Package;
   layout: BoxLayout;
+  application: Application;
 }) {
   const [componentPosition, setComponentPosition] = useState<THREE.Vector3>(
     layout.position.clone()
@@ -35,6 +39,10 @@ export default function ComponentR3F({
       addPopup: state.addPopup,
     }))
   );
+
+  const commitComparison = useEvolutionDataRepositoryStore
+    .getState()
+    .getCommitComparisonByAppName(application.name);
 
   const { evoConfig } = useVisibilityServiceStore(
     useShallow((state) => ({
@@ -224,6 +232,18 @@ export default function ComponentR3F({
   };
 
   const computeColor = () => {
+    if (evoConfig.renderOnlyDifferences && commitComparison && component.fqn) {
+      if (commitComparison.addedPackages.includes(component.fqn)) {
+        return new THREE.Color('green');
+      } else if (commitComparison.deletedPackages.includes(component.fqn)) {
+        return new THREE.Color('red');
+      } else {
+        console.log(commitComparison.addedPackages);
+
+        return new THREE.Color('white');
+      }
+    }
+
     const baseColor = isHighlighted
       ? new THREE.Color(highlightedEntityColor)
       : new THREE.Color(
