@@ -232,7 +232,7 @@ export default function CanvasWrapper({
         far={cameraFar}
         makeDefault
       />
-      <LandscapeR3F>
+      <LandscapeR3F layout={layoutMap?.get('landscape') || new BoxLayout()}>
         {applicationModels.map((appModel) => (
           <ApplicationR3F
             key={appModel.application.id}
