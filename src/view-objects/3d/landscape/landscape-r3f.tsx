@@ -5,16 +5,17 @@ import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landsc
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import * as THREE from 'three';
 
 export default function LandscapeR3F({
   layout,
   children,
 }: {
-  layout: BoxLayout;
+  layout: BoxLayout | undefined;
   children: React.ReactNode;
 }) {
   const [landscape3D] = useState<Landscape3D>(new Landscape3D());
-
+  const [position, setPosition] = useState<THREE.Vector3>(new THREE.Vector3());
   const { scalar, raycastEnabled, raycastFirstHit, raycastNear, raycastFar } =
     useUserSettingsStore(
       useShallow((state) => ({
@@ -25,6 +26,18 @@ export default function LandscapeR3F({
         raycastFar: state.visualizationSettings.raycastFar.value,
       }))
     );
+
+  useEffect(() => {
+    if (layout) {
+      setPosition(
+        new THREE.Vector3(
+          (-layout.width * scalar) / 2,
+          0,
+          (-layout.depth * scalar) / 2
+        )
+      );
+    }
+  }, [layout, scalar]);
 
   const raycaster = useThree((state) => state.raycaster);
 
@@ -44,10 +57,7 @@ export default function LandscapeR3F({
   }, []);
 
   return (
-    <group
-      position={[(-layout.width * scalar) / 2, 0, (-layout.depth * scalar) / 2]}
-      scale={scalar}
-    >
+    <group position={position} scale={scalar}>
       {children}
     </group>
   );
