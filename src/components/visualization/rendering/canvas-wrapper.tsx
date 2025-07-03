@@ -25,7 +25,7 @@ import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
@@ -38,6 +38,8 @@ export default function CanvasWrapper({
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+
+  const directionalLightRef = useRef(null);
 
   const {
     applicationLayoutAlgorithm,
@@ -57,7 +59,9 @@ export default function CanvasWrapper({
     packageLabelMargin,
     packageMargin,
     sceneBackgroundColor,
+    showAxesHelper,
     showFpsCounter,
+    showLightHelper,
   } = useUserSettingsStore(
     useShallow((state) => ({
       applicationLayoutAlgorithm:
@@ -81,7 +85,9 @@ export default function CanvasWrapper({
       packageLabelMargin: state.visualizationSettings.packageLabelMargin,
       packageMargin: state.visualizationSettings.packageMargin,
       sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
+      showAxesHelper: state.visualizationSettings.showAxesHelper.value,
       showFpsCounter: state.visualizationSettings.showFpsCounter.value,
+      showLightHelper: state.visualizationSettings.showLightHelper.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
@@ -248,22 +254,18 @@ export default function CanvasWrapper({
           ))}
       </LandscapeR3F>
       <ambientLight />
-      <spotLight
-        name="SpotLight"
-        intensity={0.5}
-        distance={2000}
-        position={[-200, 100, 100]}
-        castShadow={castShadows}
-        angle={0.3}
-        penumbra={0.2}
-        decay={2}
-      />
       <directionalLight
         name="DirectionalLight"
-        intensity={0.55 * Math.PI}
-        position={[-5, 5, 5]}
+        ref={directionalLightRef}
+        intensity={2}
+        position={[5, 10, -20]}
         castShadow={castShadows}
       />
+      {showLightHelper && directionalLightRef.current && (
+        <directionalLightHelper
+          args={[directionalLightRef.current, 2, 0x0000ff]}
+        />
+      )}
       {showFpsCounter && (
         <>
           <Stats showPanel={0} className="stats0" />
@@ -271,6 +273,7 @@ export default function CanvasWrapper({
           <Stats showPanel={2} className="stats2" />
         </>
       )}
+      {showAxesHelper && <axesHelper args={[5]} />}
     </Canvas>
   );
 }
