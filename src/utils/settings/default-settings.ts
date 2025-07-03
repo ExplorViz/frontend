@@ -364,6 +364,15 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines the layout algorithm for packages',
     isSelectSetting: true,
   },
+  landscapeScalar: {
+    level: SettingLevel.EXTENDED,
+    value: 0.01,
+    range: { min: 0.001, max: 1, step: 0.001 },
+    group: 'Layout',
+    displayName: 'Landscape Scalar',
+    description: 'Scales the whole software landscape.',
+    isRangeSetting: true,
+  },
   applicationDistance: {
     level: SettingLevel.DEFAULT,
     value: 500.0,

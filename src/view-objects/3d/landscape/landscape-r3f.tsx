@@ -4,7 +4,6 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import * as THREE from 'three';
 
 export default function LandscapeR3F({
   children,
@@ -13,12 +12,10 @@ export default function LandscapeR3F({
 }) {
   const [landscape3D] = useState<Landscape3D>(new Landscape3D());
 
-  const scalar = 0.01;
-  const scale = new THREE.Vector3(scalar, scalar, scalar);
-
-  const { raycastEnabled, raycastFirstHit, raycastNear, raycastFar } =
+  const { scalar, raycastEnabled, raycastFirstHit, raycastNear, raycastFar } =
     useUserSettingsStore(
       useShallow((state) => ({
+        scalar: state.visualizationSettings.landscapeScalar.value,
         raycastEnabled: state.visualizationSettings.raycastEnabled.value,
         raycastFirstHit: state.visualizationSettings.raycastFirstHit.value,
         raycastNear: state.visualizationSettings.raycastNear.value,
@@ -43,5 +40,5 @@ export default function LandscapeR3F({
     useApplicationRendererStore.getState().setLandscape3D(landscape3D);
   }, []);
 
-  return <group scale={scale}>{children}</group>;
+  return <group scale={scalar}>{children}</group>;
 }

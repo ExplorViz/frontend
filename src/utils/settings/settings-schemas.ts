@@ -130,6 +130,7 @@ export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 export type LayoutSettingId =
   | 'applicationLayoutAlgorithm'
   | 'packageLayoutAlgorithm'
+  | 'landscapeScalar'
   | 'applicationDistance'
   | 'applicationAspectRatio'
   | 'classFootprint'
@@ -148,6 +149,7 @@ export type LayoutSettingId =
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
+  landscapeScalar: RangeSetting;
   applicationDistance: RangeSetting;
   applicationAspectRatio: RangeSetting;
   classFootprint: RangeSetting;
