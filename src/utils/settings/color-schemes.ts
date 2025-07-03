@@ -1,4 +1,4 @@
-export type ColorSchemeId = 'default' | 'classic' | 'blue' | 'dark';
+export type ColorSchemeId = 'default' | 'classic' | 'blue' | 'dark' | 'desert';
 export type ColorScheme = typeof defaultColors;
 
 export const defaultColors = {
@@ -48,4 +48,12 @@ export const darkColors = {
   communicationColor: '#e3e3e3', // light grey
   componentEvenColor: '#5B7B88', // blue-grey
   componentOddColor: '#2f3d3b', // dark grey
+};
+
+export const desertCity = {
+  foundationColor: '#ffffff', // white
+  classColor: '#e0e0e0', // light grey
+  communicationColor: '#e3e3e3', // light grey
+  componentEvenColor: '#fff995', // blue-grey
+  componentOddColor: '#f2ed59', // dark grey
 };

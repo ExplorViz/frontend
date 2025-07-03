@@ -8,6 +8,7 @@ import {
   ColorSchemeId,
   darkColors,
   defaultColors,
+  desertCity,
 } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { validateRangeSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
@@ -148,6 +149,9 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             break;
           case 'dark':
             scheme = { ...defaultColors, ...darkColors };
+            break;
+          case 'desert':
+            scheme = { ...defaultColors, ...desertCity };
             break;
           default:
             scheme = { ...defaultColors };

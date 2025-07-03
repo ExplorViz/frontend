@@ -533,6 +533,7 @@ export default function Settings({
 const colorSchemes: { name: string; id: ColorSchemeId }[] = [
   { name: 'Default', id: 'default' },
   { name: 'Classic (Initial)', id: 'classic' },
+  { name: 'Desert City', id: 'desert' },
   { name: 'Blue', id: 'blue' },
   { name: 'Dark', id: 'dark' },
 ];
