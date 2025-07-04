@@ -1,4 +1,4 @@
-import { Instance, Text } from '@react-three/drei';
+import { Helper, Instance, Text } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
@@ -19,6 +19,8 @@ import { gsap } from 'gsap';
 import { useCallback, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import { useRef } from 'react';
 
 export default function ComponentR3F({
   component,
@@ -29,6 +31,7 @@ export default function ComponentR3F({
   layout: BoxLayout;
   application: Application;
 }) {
+  const meshRef = useRef<ComponentMesh>(null!);
   const [componentPosition, setComponentPosition] = useState<THREE.Vector3>(
     layout.position.clone()
   );
@@ -286,8 +289,10 @@ export default function ComponentR3F({
           onDoubleClick={handleDoubleClickWithPrevent}
           onPointerOver={handleOnPointerOver}
           onPointerOut={handleOnPointerOut}
+          ref={meshRef}
           {...pointerStopHandlers}
         >
+          <Helper type={THREE.BoxHelper} args={['black']} />
           {packageLabelMargin > 1.5 && (
             <Text
               color={componentTextColor}

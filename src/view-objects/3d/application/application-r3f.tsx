@@ -5,14 +5,15 @@ import { AppWindow } from '@react-three/uikit-lucide';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import ClassR3F from 'explorviz-frontend/src/view-objects/3d/application/class-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/component-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
+import { Fragment, useRef, useState } from 'react';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { Fragment, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import InstancedClassR3F from './instanced-class-r3f';
+import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 
 export default function ApplicationR3F({
   applicationData,
@@ -31,6 +32,8 @@ export default function ApplicationR3F({
       isCommRendered: state.isCommRendered,
     }))
   );
+
+  const instanceMeshRef = useRef<InstancedMesh2>(null);
 
   return (
     <group position={layoutMap.get(applicationData.getId())?.position}>
@@ -77,7 +80,7 @@ export default function ApplicationR3F({
             )
           )}
       </Instances>
-      <Instances limit={50000} frustumCulled={false}>
+      {/*       <Instances limit={50000} frustumCulled={false}>
         <boxGeometry />
         <meshLambertMaterial />
         {applicationData
@@ -94,7 +97,12 @@ export default function ApplicationR3F({
               <Fragment key={classData.id} />
             )
           )}
-      </Instances>
+      </Instances> */}
+      <InstancedClassR3F
+        classes={applicationData.getClasses()}
+        layoutMap={layoutMap}
+        ref={instanceMeshRef}
+      />
       {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
           <CommunicationR3F
