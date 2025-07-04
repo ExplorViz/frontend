@@ -10,6 +10,7 @@ import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { useRef } from 'react';
 
 export default function ClassR3F({
   dataModel,
@@ -18,6 +19,7 @@ export default function ClassR3F({
   dataModel: Class;
   layout: BoxLayout;
 }) {
+  const meshRef = useRef<THREE.PositionMesh>(null!);
   const { isHighlighted, isHovered, isVisible, updateClassState } =
     useVisualizationStore(
       useShallow((state) => ({
@@ -118,28 +120,11 @@ export default function ClassR3F({
           rotation={[0, 0, 0]}
           onClick={handleClickWithPrevent}
           onDoubleClick={handleDoubleClickWithPrevent}
-          onPointerOver={handleOnPointerOver}
           onPointerOut={handleOnPointerOut}
           {...pointerStopHandlers}
           visible={isVisible}
-        >
-          {classLabelFontSize > 0 && classLabelLength > 0 && (
-            <Text
-              color={classTextColor}
-              // outlineColor={'black'}
-              // outlineWidth={classLabelFontSize * 0.05}
-              position={[0, 0.51 + labelOffset / layout.height, 0]}
-              rotation={[1.5 * Math.PI, 0, labelRotation]}
-              fontSize={classLabelFontSize}
-              raycast={() => null}
-            >
-              {dataModel.name.length <= maxLabelLength
-                ? dataModel.name
-                : dataModel.name.substring(0, maxLabelLength) + '...'}
-            </Text>
-          )}
-          {showOutlines && <Helper type={THREE.BoxHelper} args={['black']} />}
-        </Instance>
+          ref={meshRef}
+        ></Instance>
       )}
     </>
   );

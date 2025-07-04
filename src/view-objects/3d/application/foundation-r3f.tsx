@@ -1,4 +1,4 @@
-import { Text } from '@react-three/drei';
+import { Helper, Text } from '@react-three/drei';
 import { ThreeElements, ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
@@ -10,6 +10,9 @@ import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/stru
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import FoundationMesh from './foundation-mesh';
+import { useRef } from 'react';
+import { BoxHelper } from 'three';
 
 export default function FoundationR3F({
   application,
@@ -18,6 +21,7 @@ export default function FoundationR3F({
   application: Application;
   boxLayout: BoxLayout;
 }) {
+  const meshRef = useRef<FoundationMesh>(null!);
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
@@ -68,12 +72,13 @@ export default function FoundationR3F({
   }, []);
 
   const handleOnPointerOver = (event: any) => {
-    event.stopPropagation();
+    // event.stopPropagation();
     event.object.applyHoverEffect();
+    console.log('hovering foundation', event);
   };
 
   const handleOnPointerOut = (event: any) => {
-    event.stopPropagation();
+    // event.stopPropagation();
     event.object.resetHoverEffect();
   };
 
@@ -102,7 +107,9 @@ export default function FoundationR3F({
       onPointerOut={handleOnPointerOut}
       {...pointerStopHandlers}
       args={[constructorArgs]}
+      ref={meshRef}
     >
+      <Helper type={BoxHelper} args={['black']} />
       {appLabelMargin > 1.5 && (
         <Text
           color={foundationTextColor}

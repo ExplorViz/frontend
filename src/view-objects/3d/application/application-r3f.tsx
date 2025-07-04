@@ -6,13 +6,15 @@ import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/appli
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import ClassR3F from 'explorviz-frontend/src/view-objects/3d/application/class-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/component-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import InstancedClassR3F from './instanced-class-r3f';
+import ClassesR3F from './classes-r3f';
+import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 
 export default function ApplicationR3F({
   applicationData,
@@ -42,6 +44,8 @@ export default function ApplicationR3F({
   useEffect(() => {
     computeApp();
   }, [applicationData, computeApp]);
+
+  const instanceMeshRef = useRef<InstancedMesh2>(null);
 
   return (
     <>
@@ -90,7 +94,7 @@ export default function ApplicationR3F({
                 )
               )}
           </Instances>
-          <Instances limit={25000} frustumCulled={false}>
+          {/*           <Instances limit={25000} frustumCulled={false}>
             <boxGeometry />
             <meshStandardMaterial />
             {applicationData
@@ -106,7 +110,12 @@ export default function ApplicationR3F({
                   <Fragment key={classData.id} />
                 )
               )}
-          </Instances>
+          </Instances> */}
+          <InstancedClassR3F
+            classes={applicationData.getClasses()}
+            app3D={app3D}
+            ref={instanceMeshRef}
+          />
           {applicationData.classCommunications.map((communication) => (
             <CommunicationR3F
               key={communication.id}
