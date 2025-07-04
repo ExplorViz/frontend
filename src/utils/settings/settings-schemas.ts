@@ -134,6 +134,9 @@ export type LayoutSettingId =
   | 'applicationDistance'
   | 'applicationAspectRatio'
   | 'classFootprint'
+  | 'classWidthMetric'
+  | 'classDepthMetric'
+  | 'classHeightMetric'
   | 'classMargin'
   | 'classLabelFontSize'
   | 'classLabelLength'
@@ -153,6 +156,9 @@ export type LayoutSettings = {
   applicationDistance: RangeSetting;
   applicationAspectRatio: RangeSetting;
   classFootprint: RangeSetting;
+  classWidthMetric: SelectSetting<string>;
+  classDepthMetric: SelectSetting<string>;
+  classHeightMetric: SelectSetting<string>;
   classMargin: RangeSetting;
   classLabelFontSize: RangeSetting;
   classLabelLength: RangeSetting;
@@ -282,6 +288,12 @@ export interface ButtonSetting extends Setting<boolean> {
     | 'link';
   buttonText: string;
   readonly isButtonSetting: true;
+}
+
+export enum SelectedClassMetric {
+  None = 'None',
+  Method = 'Method Count',
+  LoC = 'Lines of Code',
 }
 
 export interface FlagSetting extends Setting<boolean> {
