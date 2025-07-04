@@ -33,6 +33,7 @@ interface ClassState {
 interface VisualizationStoreState {
   componentData: { [id: string]: ComponentState };
   classData: { [id: string]: ClassState };
+  hoveredEntityId: string | null;
   foundationData: { [id: string]: FoundationState };
   actions: {
     // Foundations
@@ -51,6 +52,7 @@ interface VisualizationStoreState {
     removeComponentState: (id: string) => void;
     removeAllComponentStates: () => void;
     // Classes
+    setHoveredEntityId: (id: string | null) => void;
     getClassState: (id: string) => ClassState;
     setClassState: (id: string, state: ClassState) => void;
     updateClassState: (id: string, state: Partial<ClassState>) => void;
@@ -64,6 +66,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     foundationData: {},
     componentData: {},
     classData: {},
+    hoveredEntityId: null,
     actions: {
       // Foundations
       getFoundationState: (id: string) => {
@@ -188,6 +191,9 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         set({ componentData: {} });
       },
       // Classes
+      setHoveredEntityId: (id: string | null) => {
+        set({ hoveredEntityId: id });
+      },
       getClassState: (id: string) => {
         const state = get().classData[id];
         if (!state) {

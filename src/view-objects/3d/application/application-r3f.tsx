@@ -55,14 +55,14 @@ export default function ApplicationR3F({
       {isBrowserActive && (
         <EmbeddedBrowser application={applicationData.application} />
       )}
-      {layoutMap.get(applicationData.getId()) && (
+      {/* {layoutMap.get(applicationData.getId()) && (
         <FoundationR3F
           application={applicationData.application}
           layout={layoutMap.get(applicationData.getId())!}
         />
-      )}
+      )} */}
 
-      <Instances limit={5000} frustumCulled={false}>
+      {/* <Instances limit={5000} frustumCulled={false}>
         <boxGeometry />
         <meshLambertMaterial />
         {applicationData
@@ -79,7 +79,7 @@ export default function ApplicationR3F({
               <Fragment key={packageData.id} />
             )
           )}
-      </Instances>
+      </Instances> */}
       {/*       <Instances limit={50000} frustumCulled={false}>
         <boxGeometry />
         <meshLambertMaterial />
