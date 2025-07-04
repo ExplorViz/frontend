@@ -239,18 +239,6 @@ export default function Settings({
       visualizationSettings.distanceLevel5,
     ];
     switch (settingId) {
-      case 'applicationDistance':
-      case 'applicationAspectRatio':
-      case 'classFootprint':
-      case 'classMargin':
-      case 'appLabelMargin':
-      case 'appMargin':
-      case 'packageLabelMargin':
-      case 'packageMargin':
-      case 'openedComponentHeight':
-      case 'closedComponentHeight':
-        updateApplicationLayout();
-        break;
       case 'transparencyIntensity':
         if (updateHighlighting) {
           updateHighlighting();
@@ -301,12 +289,6 @@ export default function Settings({
       updateUserSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
-    }
-    switch (settingId) {
-      case 'applicationLayoutAlgorithm':
-      case 'packageLayoutAlgorithm':
-        updateApplicationLayout();
-        break;
     }
   };
 
@@ -539,7 +521,7 @@ export default function Settings({
                   />
                 );
               }
-              return <React.Fragment key={settingId}></React.Fragment>;
+              return null;
             })}
           </div>
         </React.Fragment>
@@ -551,6 +533,7 @@ export default function Settings({
 const colorSchemes: { name: string; id: ColorSchemeId }[] = [
   { name: 'Default', id: 'default' },
   { name: 'Classic (Initial)', id: 'classic' },
+  { name: 'Desert City', id: 'desert' },
   { name: 'Blue', id: 'blue' },
   { name: 'Dark', id: 'dark' },
 ];

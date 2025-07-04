@@ -87,7 +87,39 @@ export const useEvolutionDataRepositoryStore =
       const [firstCommit, secondCommit] = selectedCommits;
       const mapKey = `${firstCommit.commitId}-${secondCommit.commitId}`;
 
-      return get()._commitsToCommitComparisonMap.get(mapKey);
+      const commitComparison = get()._commitsToCommitComparisonMap.get(mapKey);
+
+      if (!commitComparison || commitComparison.addedPackageFqns) {
+        return commitComparison;
+      }
+
+      // ToDo: This should be refactored in code service such that this is not necessary
+      const addedPackagesWithFqn: string[] = [];
+      commitComparison.addedPackages.forEach((addedPackage, index) => {
+        const classFqn = commitComparison.added[index];
+        if (!classFqn) return;
+        const packageSuffixesNo = addedPackage.split('.').length - 1;
+        for (let index = 0; index < packageSuffixesNo; index++) {
+          const endIndex = classFqn.lastIndexOf('.');
+          addedPackagesWithFqn.push(classFqn.substring(0, endIndex));
+        }
+      });
+      commitComparison.addedPackageFqns = addedPackagesWithFqn;
+
+      // ToDo: This should be refactored in code service such that this is not necessary
+      const deletedPackagesWithFqn: string[] = [];
+      commitComparison.deletedPackages.forEach((deletedPackage, index) => {
+        const classFqn = commitComparison.deleted[index];
+        if (!classFqn) return;
+        const packageSuffixesNo = deletedPackage.split('.').length - 1;
+        for (let index = 0; index < packageSuffixesNo; index++) {
+          const endIndex = classFqn.lastIndexOf('.');
+          deletedPackagesWithFqn.push(classFqn.substring(0, endIndex));
+        }
+      });
+      commitComparison.deletedPackageFqns = deletedPackagesWithFqn;
+
+      return commitComparison;
     },
 
     fetchAndStoreApplicationCommitTrees: async (): Promise<void> => {

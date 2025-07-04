@@ -49,6 +49,7 @@ import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-rendere
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 // #endregion imports
 
 export type LayoutData = {
@@ -417,11 +418,13 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     ) => {},
 
     openAllComponentsOfAllApplications: () => {
-      get().forEachOpenApplication(get().openAllComponents);
+      useVisualizationStore.getState().actions.openAllComponents();
+      // get().forEachOpenApplication(get().openAllComponents);
     },
 
     closeAllComponentsOfAllApplications: () => {
-      get().forEachOpenApplication(get().closeAllComponents);
+      useVisualizationStore.getState().actions.closeAllComponents();
+      // get().forEachOpenApplication(get().closeAllComponents);
     },
 
     /**

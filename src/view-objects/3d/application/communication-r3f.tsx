@@ -11,6 +11,7 @@ import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-mode
 import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 
 export default function CommunicationR3F({
   communicationModel,
@@ -29,6 +30,7 @@ export default function CommunicationR3F({
     communicationColor,
     curveHeight,
     highlightedEntityColor,
+    enableHoverEffects,
   } = useUserSettingsStore(
     useShallow((state) => ({
       arrowColor: state.visualizationSettings.communicationArrowColor.value,
@@ -37,13 +39,19 @@ export default function CommunicationR3F({
       communicationColor: state.visualizationSettings.communicationColor.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       curveHeight: state.visualizationSettings.curvyCommHeight.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
     }))
   );
 
-  const { commCurveHeightDependsOnDistance, isVisible } = useConfigurationStore(
+  const { commCurveHeightDependsOnDistance } = useConfigurationStore(
     useShallow((state) => ({
       commCurveHeightDependsOnDistance: state.commCurveHeightDependsOnDistance,
-      isVisible: state.isCommRendered,
+    }))
+  );
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
     }))
   );
 
@@ -109,6 +117,11 @@ export default function CommunicationR3F({
     return [dataModel];
   }, []);
 
+  // Check if component should be displayed
+  if (!evoConfig.renderDynamic) {
+    return null;
+  }
+
   return (
     <clazzCommunicationMesh
       {...pointerStopHandlers}
@@ -125,8 +138,7 @@ export default function CommunicationR3F({
       defaultColor={communicationColor}
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}
-      isHovered={isHovered}
-      visible={isVisible}
+      isHovered={enableHoverEffects && isHovered}
       ref={meshRef}
     ></clazzCommunicationMesh>
   );

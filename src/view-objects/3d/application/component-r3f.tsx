@@ -3,11 +3,17 @@ import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  Package,
+  TypeOfAnalysis,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { gsap } from 'gsap';
 import { useCallback, useEffect, useState } from 'react';
@@ -19,9 +25,11 @@ import { useRef } from 'react';
 export default function ComponentR3F({
   component,
   layout,
+  application,
 }: {
   component: Package;
   layout: BoxLayout;
+  application: Application;
 }) {
   const meshRef = useRef<ComponentMesh>(null!);
   const [componentPosition, setComponentPosition] = useState<THREE.Vector3>(
@@ -32,6 +40,16 @@ export default function ComponentR3F({
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
+    }))
+  );
+
+  const commitComparison = useEvolutionDataRepositoryStore
+    .getState()
+    .getCommitComparisonByAppName(application.name);
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
     }))
   );
 
@@ -67,16 +85,22 @@ export default function ComponentR3F({
     );
 
   const {
+    castShadows,
     closedComponentHeight,
     componentEvenColor,
     componentOddColor,
     componentTextColor,
     enableAnimations,
+    enableHoverEffects,
     highlightedEntityColor,
     openedComponentHeight,
     packageLabelMargin,
+    addedComponentColor,
+    removedComponentColor,
+    unChangedComponentColor,
   } = useUserSettingsStore(
     useShallow((state) => ({
+      castShadows: state.visualizationSettings.castShadows.value,
       packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
       highlightedEntityColor:
         state.visualizationSettings.highlightedEntityColor.value,
@@ -87,7 +111,14 @@ export default function ComponentR3F({
       openedComponentHeight:
         state.visualizationSettings.openedComponentHeight.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       componentTextColor: state.visualizationSettings.componentTextColor.value,
+      addedComponentColor:
+        state.visualizationSettings.addedComponentColor.value,
+      removedComponentColor:
+        state.visualizationSettings.removedComponentColor.value,
+      unChangedComponentColor:
+        state.visualizationSettings.unchangedComponentColor.value,
     }))
   );
 
@@ -213,27 +244,47 @@ export default function ComponentR3F({
   };
 
   const computeColor = () => {
+    if (evoConfig.renderOnlyDifferences && commitComparison && component.fqn) {
+      if (commitComparison.addedPackageFqns.includes(component.fqn)) {
+        return new THREE.Color(addedComponentColor);
+      } else if (commitComparison.deletedPackageFqns.includes(component.fqn)) {
+        return new THREE.Color(removedComponentColor);
+      } else {
+        return new THREE.Color(unChangedComponentColor);
+      }
+    }
+
     const baseColor = isHighlighted
       ? new THREE.Color(highlightedEntityColor)
       : new THREE.Color(
           layout.level % 2 === 0 ? componentEvenColor : componentOddColor
         );
 
-    if (isHovered) {
+    if (enableHoverEffects && isHovered) {
       return calculateColorBrightness(baseColor, 1.1);
     } else {
       return baseColor;
     }
   };
 
+  // Check if component should be displayed
+  if (
+    (component.originOfData === TypeOfAnalysis.Static &&
+      !evoConfig.renderStatic) ||
+    (component.originOfData === TypeOfAnalysis.Dynamic &&
+      !evoConfig.renderDynamic)
+  ) {
+    return null;
+  }
+
   return (
     <>
       {isVisible && (
         <Instance
+          castShadow={castShadows}
           color={computeColor()}
           scale={[layout.width, componentHeight, layout.depth]}
           position={componentPosition}
-          rotation={[0, 0, 0]}
           onClick={handleClickWithPrevent}
           onDoubleClick={handleDoubleClickWithPrevent}
           onPointerOver={handleOnPointerOver}
@@ -248,7 +299,14 @@ export default function ComponentR3F({
               outlineColor={'white'}
               position={labelPosition}
               rotation={[1.5 * Math.PI, 0, 0]}
-              fontSize={(packageLabelMargin * 0.9) / layout.depth}
+              fontSize={
+                isOpen
+                  ? (packageLabelMargin * 0.9) / layout.depth
+                  : Math.max(
+                      layout.width * 0.0003,
+                      (packageLabelMargin * 0.9) / layout.depth
+                    )
+              }
               raycast={() => null}
             >
               {component.name}

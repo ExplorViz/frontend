@@ -13,13 +13,15 @@ import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-mode
 import * as THREE from 'three';
 import { create } from 'zustand';
 import { useUserSettingsStore } from './user-settings';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 
 interface LinkRendererState {
   linkIdToMesh: Map<string, ClazzCommunicationMesh>;
   findFirstOpen(app: Application, entity: Package | Class): Package | Class;
   computeCommunicationLayout: (
     communication: ClassCommunication | ComponentCommunication,
-    applicationModels: ApplicationData[]
+    applicationModels: ApplicationData[],
+    layoutMap: Map<string, BoxLayout>
   ) => CommunicationLayout | undefined;
   getLinkById: (linkId: string) => ClazzCommunicationMesh | undefined;
 }
@@ -50,7 +52,8 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
 
   computeCommunicationLayout(
     communication: ClassCommunication | ComponentCommunication,
-    applicationModels: ApplicationData[]
+    applicationModels: ApplicationData[],
+    layoutMap: Map<string, BoxLayout>
   ) {
     const sourceApp = applicationModels.find(
       (app) => app.application.id === communication.sourceApp.id
@@ -59,12 +62,7 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
       (app) => app.application.id === communication.targetApp.id
     );
 
-    if (
-      !sourceApp ||
-      !sourceApp.boxLayoutMap ||
-      !targetApp ||
-      !targetApp.boxLayoutMap
-    ) {
+    if (!sourceApp || !layoutMap || !targetApp) {
       return;
     }
 
@@ -97,16 +95,16 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
       );
     }
 
-    const sourceAppLayout = sourceApp.boxLayoutMap.get(sourceApp.getId());
-    const sourceClassLayout = sourceApp.boxLayoutMap.get(sourceClass.id);
+    const sourceAppLayout = layoutMap.get(sourceApp.getId());
+    const sourceClassLayout = layoutMap.get(sourceClass.id);
     if (!sourceAppLayout || !sourceClassLayout) return;
 
     let start = new THREE.Vector3()
       .copy(sourceAppLayout.position)
       .add(sourceClassLayout.position);
 
-    const targetAppLayout = targetApp.boxLayoutMap.get(targetApp.getId());
-    const targetClassLayout = targetApp.boxLayoutMap.get(targetClass.id);
+    const targetAppLayout = layoutMap.get(targetApp.getId());
+    const targetClassLayout = layoutMap.get(targetClass.id);
     if (!targetAppLayout || !targetClassLayout) return;
     let end = new THREE.Vector3()
       .copy(targetAppLayout.position)

@@ -89,6 +89,12 @@ export const useVisibilityServiceStore = create<VisibilityServiceState>(
     applyEvolutionModeRenderingConfiguration: (
       newEvolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration
     ) => {
+      set({
+        _evolutionModeRenderingConfiguration:
+          newEvolutionModeRenderingConfiguration,
+      });
+      return;
+
       const { renderDynamic, renderStatic, renderOnlyDifferences } =
         newEvolutionModeRenderingConfiguration;
 

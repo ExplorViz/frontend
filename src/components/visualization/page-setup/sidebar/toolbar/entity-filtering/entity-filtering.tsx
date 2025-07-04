@@ -1,17 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-import Button from 'react-bootstrap/Button';
-import TraceFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-filtering';
 import StructureFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/structure-filtering';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import TraceFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-filtering';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
   NEW_SELECTED_TIMESTAMP_EVENT,
   useTimestampStore,
 } from 'explorviz-frontend/src/stores/timestamp';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import Button from 'react-bootstrap/Button';
 
 interface EntityFilteringProps {
   readonly landscapeData: LandscapeData;
@@ -40,7 +38,7 @@ export default function EntityFiltering({
   };
 
   const resetState = () => {
-    // reset state, since new timestamp has been loaded
+    // Reset state, since new timestamp has been loaded
     initialLandscapeData.current = landscapeData;
   };
 

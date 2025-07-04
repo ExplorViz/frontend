@@ -60,12 +60,6 @@ export default function useLandscapeDataWatcher(
     }))
   );
 
-  const { renderDynamic } = useVisibilityServiceStore(
-    useShallow((state) => ({
-      renderDynamic: state._evolutionModeRenderingConfiguration.renderDynamic,
-    }))
-  );
-
   const applicationRepositoryState = useApplicationRepositoryStore(
     useShallow((state) => ({
       applications: state.applications,
@@ -107,32 +101,10 @@ export default function useLandscapeDataWatcher(
     }))
   );
 
-  const {
-    visualizationSettings,
-    colors,
-    applicationAspectRatio,
-    classFootprint,
-    classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
-    closedComponentHeight,
-  } = useUserSettingsStore(
+  const { visualizationSettings, colors } = useUserSettingsStore(
     useShallow((state) => ({
       visualizationSettings: state.visualizationSettings,
       colors: state.colors,
-      applicationAspectRatio:
-        state.visualizationSettings.applicationAspectRatio,
-      classFootprint: state.visualizationSettings.classFootprint,
-      classMargin: state.visualizationSettings.classMargin,
-      appLabelMargin: state.visualizationSettings.appLabelMargin,
-      appMargin: state.visualizationSettings.appMargin,
-      packageLabelMargin: state.visualizationSettings.packageLabelMargin,
-      packageMargin: state.visualizationSettings.packageMargin,
-      openedComponentHeight: state.visualizationSettings.openedComponentHeight,
-      closedComponentHeight: state.visualizationSettings.closedComponentHeight,
     }))
   );
 
@@ -195,15 +167,6 @@ export default function useLandscapeDataWatcher(
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(k8sNodes, applications);
-    // Fix position of foundation meshes
-    applications.forEach((application) => {
-      const foundationLayout = boxLayoutMap.get(application.id);
-      if (foundationLayout) {
-        foundationLayout.positionX = foundationLayout.width / 2;
-        foundationLayout.positionZ = foundationLayout.depth / 2;
-        boxLayoutMap.set(application.id, foundationLayout);
-      }
-    });
     log('Layouted landscape.');
 
     // Set data model for landscape
@@ -218,13 +181,11 @@ export default function useLandscapeDataWatcher(
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
-    let classCommunications = renderDynamic
-      ? computeClassCommunication(structureLandscapeData, dynamicLandscapeData)
-      : [];
-    log('Computed class communication');
-
-    if (renderDynamic && landscapeRestructureState.restructureMode) {
-      console.log('Computing restructured communication ...');
+    let classCommunications = computeClassCommunication(
+      structureLandscapeData,
+      dynamicLandscapeData
+    );
+    if (landscapeRestructureState.restructureMode) {
       classCommunications = computeRestructuredClassCommunication(
         classCommunications,
         landscapeRestructureState.createdClassCommunication,
@@ -232,7 +193,6 @@ export default function useLandscapeDataWatcher(
         landscapeRestructureState.updatedClassCommunications,
         landscapeRestructureState.completelyDeletedClassCommunications
       );
-      console.log('Computed restructured communication.');
     }
     landscapeRestructureState.setAllClassCommunications(classCommunications);
 
@@ -416,20 +376,7 @@ export default function useLandscapeDataWatcher(
 
   useEffect(() => {
     handleUpdatedLandscapeData();
-  }, [
-    landscapeData,
-    landscape3D,
-    // TODO: Outsource layout options to own effect for performance
-    applicationAspectRatio,
-    classFootprint,
-    classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
-    closedComponentHeight,
-  ]);
+  }, [landscapeData, landscape3D]);
 
   useEffect(() => {
     return function cleanup() {

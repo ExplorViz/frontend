@@ -1,13 +1,13 @@
 import {
   AdaptiveDpr,
   AdaptiveEvents,
-  Bvh,
   CameraControls,
   PerspectiveCamera,
   Stats,
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -16,37 +16,85 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import { useEffect } from 'react';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
   landscapeData,
   landscape3D,
 }: {
-  landscapeData: LandscapeData;
+  landscapeData: LandscapeData | null;
   landscape3D: Landscape3D;
 }) {
+  const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
+    null
+  );
+
+  const directionalLightRef = useRef(null);
+
   const {
-    cameraNear,
+    applicationLayoutAlgorithm,
+    packageLayoutAlgorithm,
+    appLabelMargin,
+    applicationAspectRatio,
+    applicationDistance,
+    appMargin,
     cameraFar,
     cameraFov,
+    cameraNear,
     castShadows,
+    classFootprint,
+    classMargin,
+    closedComponentHeight,
+    openedComponentHeight,
+    packageLabelMargin,
+    packageMargin,
     sceneBackgroundColor,
+    showAxesHelper,
     showFpsCounter,
+    showLightHelper,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
-      castShadows: state.visualizationSettings.castShadows.value,
-      cameraNear: state.visualizationSettings.cameraNear.value,
+      applicationLayoutAlgorithm:
+        state.visualizationSettings.applicationLayoutAlgorithm.value,
+      packageLayoutAlgorithm:
+        state.visualizationSettings.packageLayoutAlgorithm.value,
+      appLabelMargin: state.visualizationSettings.appLabelMargin,
+      applicationAspectRatio:
+        state.visualizationSettings.applicationAspectRatio,
+      applicationDistance: state.visualizationSettings.applicationDistance,
+      appMargin: state.visualizationSettings.appMargin,
       cameraFar: state.visualizationSettings.cameraFar.value,
       cameraFov: state.visualizationSettings.cameraFov.value,
+      cameraNear: state.visualizationSettings.cameraNear.value,
+      castShadows: state.visualizationSettings.castShadows.value,
+      classFootprint: state.visualizationSettings.classFootprint,
+      classMargin: state.visualizationSettings.classMargin,
+      closedComponentHeight: state.visualizationSettings.closedComponentHeight,
+      colors: state.colors,
+      openedComponentHeight: state.visualizationSettings.openedComponentHeight,
+      packageLabelMargin: state.visualizationSettings.packageLabelMargin,
+      packageMargin: state.visualizationSettings.packageMargin,
+      sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
+      showAxesHelper: state.visualizationSettings.showAxesHelper.value,
       showFpsCounter: state.visualizationSettings.showFpsCounter.value,
+      showLightHelper: state.visualizationSettings.showLightHelper.value,
+      visualizationSettings: state.visualizationSettings,
+    }))
+  );
+
+  const { isCommRendered } = useConfigurationStore(
+    useShallow((state) => ({
+      isCommRendered: state.isCommRendered,
     }))
   );
 
@@ -89,6 +137,8 @@ export default function CanvasWrapper({
 
   useEffect(() => {
     if (landscapeData) {
+      // Use layout of landscape data watcher
+      setLayoutMap(null);
       const allPackages = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
@@ -116,6 +166,33 @@ export default function CanvasWrapper({
     }
   }, [landscapeData]);
 
+  const updateLayout = async () => {
+    if (!landscapeData) return;
+
+    const layoutMap = await layoutLandscape(
+      landscapeData.structureLandscapeData.k8sNodes!,
+      getApplicationsFromNodes(landscapeData.structureLandscapeData.nodes)
+    );
+    setLayoutMap(layoutMap);
+  };
+
+  useEffect(() => {
+    updateLayout();
+  }, [
+    applicationLayoutAlgorithm,
+    packageLayoutAlgorithm,
+    applicationDistance,
+    applicationAspectRatio,
+    classFootprint,
+    classMargin,
+    appLabelMargin,
+    appMargin,
+    packageLabelMargin,
+    packageMargin,
+    openedComponentHeight,
+    closedComponentHeight,
+  ]);
+
   useEffect(() => {
     return () => {
       removeAllComponentStates();
@@ -127,79 +204,78 @@ export default function CanvasWrapper({
     <Canvas
       id="threejs-canvas"
       className={'webgl'}
-      gl={{ preserveDrawingBuffer: true }}
-      // ToDo: This can cause issues with the embedded web view
-      onCreated={(state) => {
-        state.setEvents({
-          filter: (intersections) =>
-            intersections.filter((i) => i.object.visible),
-        });
-      }}
+      gl={{ powerPreference: 'high-performance' }}
       style={{ background: sceneBackgroundColor }}
       onMouseMove={popupHandlerActions.handleMouseMove}
     >
-      <Bvh firstHitOnly>
-        <AdaptiveDpr pixelated />
-        <AdaptiveEvents />
-        <CameraControls
-          dollySpeed={0.3}
-          draggingSmoothTime={0.05}
-          maxDistance={250}
-          maxPolarAngle={0.5 * Math.PI}
-          makeDefault
-          minDistance={1}
-          mouseButtons={{
-            left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
-            middle: 0, // None
-            wheel: 16, // Dolly
-            right: 1, // Rotate
-          }}
-          smoothTime={0.5}
-        />
-        <PerspectiveCamera
-          position={[10, 10, 10]}
-          fov={cameraFov}
-          near={cameraNear}
-          far={cameraFar}
-          makeDefault
-        />
-        <LandscapeR3F>
-          {applicationModels.map((appModel) => (
-            <ApplicationR3F
-              key={appModel.application.id}
-              applicationData={appModel}
-            />
-          ))}
-          {interAppCommunications.map((communication) => (
+      <AdaptiveDpr pixelated />
+      <AdaptiveEvents />
+      <CameraControls
+        dollySpeed={0.3}
+        draggingSmoothTime={0.05}
+        maxDistance={250}
+        maxPolarAngle={0.5 * Math.PI}
+        makeDefault
+        minDistance={1}
+        mouseButtons={{
+          left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
+          middle: 0, // None
+          wheel: 16, // Dolly
+          right: 1, // Rotate
+        }}
+        smoothTime={0.5}
+      />
+      <PerspectiveCamera
+        position={[10, 10, 10]}
+        fov={cameraFov}
+        near={cameraNear}
+        far={cameraFar}
+        makeDefault
+      />
+      <LandscapeR3F
+        layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
+      >
+        {applicationModels.map((appModel) => (
+          <ApplicationR3F
+            key={appModel.application.id}
+            applicationData={appModel}
+            layoutMap={layoutMap || appModel.boxLayoutMap}
+          />
+        ))}
+        {isCommRendered &&
+          interAppCommunications.map((communication) => (
             <CommunicationR3F
               key={communication.id}
               communicationModel={communication}
               communicationLayout={computeCommunicationLayout(
                 communication,
-                applicationModels
+                applicationModels,
+                layoutMap || applicationModels[0].boxLayoutMap
               )}
             />
           ))}
-        </LandscapeR3F>
-        <ambientLight />
-        <spotLight
-          name="SpotLight"
-          intensity={0.5}
-          distance={2000}
-          position={[-200, 100, 100]}
-          castShadow={castShadows}
-          angle={0.3}
-          penumbra={0.2}
-          decay={2}
+      </LandscapeR3F>
+      <ambientLight />
+      <directionalLight
+        name="DirectionalLight"
+        ref={directionalLightRef}
+        intensity={2}
+        position={[5, 10, -20]}
+        castShadow={castShadows}
+      />
+      {showLightHelper && directionalLightRef.current && (
+        <directionalLightHelper
+          args={[directionalLightRef.current, 2, 0x0000ff]}
         />
-        <directionalLight
-          name="DirectionalLight"
-          intensity={0.55 * Math.PI}
-          position={[-5, 5, 5]}
-          castShadow={castShadows}
-        />
-        {showFpsCounter && <Stats className="stats" />}
-      </Bvh>
+      )}
+      {showFpsCounter && (
+        <>
+          <Stats showPanel={0} className="stats0" />
+          <Stats showPanel={1} className="stats1" />
+          <Stats showPanel={2} className="stats2" />
+        </>
+      )}
+      {showAxesHelper && <axesHelper args={[5]} />}
     </Canvas>
   );
 }

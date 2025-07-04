@@ -3,10 +3,16 @@ import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  Application,
+  Class,
+  TypeOfAnalysis,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
@@ -15,9 +21,11 @@ import { useRef } from 'react';
 export default function ClassR3F({
   dataModel,
   layout,
+  application,
 }: {
   dataModel: Class;
   layout: BoxLayout;
+  application: Application;
 }) {
   const meshRef = useRef<THREE.PositionMesh>(null!);
   const { isHighlighted, isHovered, isVisible, updateClassState } =
@@ -35,6 +43,16 @@ export default function ClassR3F({
         updateClassState: state.actions.updateClassState,
       }))
     );
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
+    }))
+  );
+
+  const commitComparison = useEvolutionDataRepositoryStore
+    .getState()
+    .getCommitComparisonByAppName(application.name);
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -55,10 +73,16 @@ export default function ClassR3F({
   const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const {
+    castShadows,
     classColor,
+    addedClassColor,
+    modifiedClassColor,
+    removedClassColor,
+    unchangedClassColor,
     classLabelFontSize,
     classLabelLength,
     classTextColor,
+    enableHoverEffects,
     highlightedEntityColor,
     labelOffset,
     labelRotation,
@@ -66,10 +90,17 @@ export default function ClassR3F({
     showOutlines,
   } = useUserSettingsStore(
     useShallow((state) => ({
+      castShadows: state.visualizationSettings.castShadows.value,
       classColor: state.visualizationSettings.classColor.value,
+      addedClassColor: state.visualizationSettings.addedClassColor.value,
+      modifiedClassColor: state.visualizationSettings.modifiedClassColor.value,
+      removedClassColor: state.visualizationSettings.removedClassColor.value,
+      unchangedClassColor:
+        state.visualizationSettings.unchangedClassColor.value,
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       labelOffset: state.visualizationSettings.classLabelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
@@ -79,11 +110,23 @@ export default function ClassR3F({
   );
 
   const computeColor = () => {
+    if (evoConfig.renderOnlyDifferences && commitComparison && dataModel.fqn) {
+      if (commitComparison.added.includes(dataModel.fqn)) {
+        return new THREE.Color(addedClassColor);
+      } else if (commitComparison.deleted.includes(dataModel.fqn)) {
+        return new THREE.Color(removedClassColor);
+      } else if (commitComparison.modified.includes(dataModel.fqn)) {
+        return new THREE.Color(modifiedClassColor);
+      } else {
+        return new THREE.Color(unchangedClassColor);
+      }
+    }
+
     const baseColor = isHighlighted
       ? new THREE.Color(highlightedEntityColor)
       : new THREE.Color(classColor);
 
-    if (isHovered) {
+    if (enableHoverEffects && isHovered) {
       return calculateColorBrightness(baseColor, 1.1);
     } else {
       return baseColor;
@@ -110,11 +153,22 @@ export default function ClassR3F({
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
+  // Check if class should be displayed
+  if (
+    (dataModel.originOfData === TypeOfAnalysis.Static &&
+      !evoConfig.renderStatic) ||
+    (dataModel.originOfData === TypeOfAnalysis.Dynamic &&
+      !evoConfig.renderDynamic)
+  ) {
+    return null;
+  }
+
   return (
     <>
       {isVisible && (
         <Instance
           color={computeColor()}
+          castShadow={castShadows}
           scale={[layout.width, layout.height, layout.depth]}
           position={layout.position}
           rotation={[0, 0, 0]}
