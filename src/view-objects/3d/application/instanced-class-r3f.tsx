@@ -9,6 +9,7 @@ import { useVisualizationStore } from '../../../stores/visualization-store';
 import { useShallow } from 'zustand/react/shallow';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import { useUserSettingsStore } from '../../../stores/user-settings';
+import BoxLayout from '../../layout-models/box-layout';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -21,11 +22,11 @@ declare module '@react-three/fiber' {
 
 interface Args {
   classes: Class[];
-  app3D: ApplicationObject3D; // Replace with the actual type of app3D if available
+  layoutMap: Map<string, BoxLayout>;
 }
 
 const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
-  ({ classes, app3D }, ref) => {
+  ({ classes, layoutMap }, ref) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
 
     const material = useMemo(() => new MeshBasicMaterial(), []);
@@ -74,7 +75,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       let i = 0;
       // add 100 instances every frame
       ref.current.addInstances(classes.length, (obj) => {
-        const layout = app3D.getBoxLayout(classes[i].id);
+        const layout = layoutMap.get(classes[i].id);
         obj.position.set(
           layout!.position.x,
           layout!.position.y,
@@ -93,7 +94,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         ref.current?.clearInstances();
         instanceIdToClassId.clear();
       };
-    }, [classes, app3D]);
+    }, [classes, layoutMap]);
 
     const computeColor = (classInfo: any) => {
       const baseColor = classInfo.isHighlighted
