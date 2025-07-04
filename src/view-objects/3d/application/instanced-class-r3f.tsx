@@ -3,7 +3,6 @@ import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { forwardRef, useEffect, useMemo } from 'react';
-import * as THREE from 'three';
 import { BoxGeometry, Color, MeshLambertMaterial } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useUserSettingsStore } from '../../../stores/user-settings';
@@ -35,15 +34,23 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     const instanceIdToClassId = useMemo(() => new Map<number, string>(), []);
     const classIdToInstanceId = useMemo(() => new Map<string, number>(), []);
 
-    const { classData, updateClassState, hoveredEntityId, setHoveredEntityId } =
-      useVisualizationStore(
-        useShallow((state) => ({
-          classData: state.classData,
-          hoveredEntityId: state.hoveredEntityId,
-          updateClassState: state.actions.updateClassState,
-          setHoveredEntityId: state.actions.setHoveredEntityId,
-        }))
-      );
+    const {
+      classData,
+      updateClassState,
+      hoveredEntityId,
+      setHoveredEntity,
+      highlightedEntityIds,
+      setHighlightedEntity,
+    } = useVisualizationStore(
+      useShallow((state) => ({
+        classData: state.classData,
+        updateClassState: state.actions.updateClassState,
+        hoveredEntityId: state.hoveredEntity,
+        setHoveredEntity: state.actions.setHoveredEntity,
+        highlightedEntityIds: state.highlightedEntityIds,
+        setHighlightedEntity: state.actions.setHighlightedEntity,
+      }))
+    );
 
     const {
       classColor,
@@ -87,9 +94,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
           layout!.position.z
         );
         obj.scale.set(layout!.width, layout!.height, layout!.depth);
-        obj.color = computeColor({
-          isHovered: classes[i].id === hoveredEntityId,
-        });
+        obj.color = computeColor(classes[i].id);
         instanceIdToClassId.set(obj.id, classes[i].id);
         classIdToInstanceId.set(classes[i].id, obj.id);
         obj.updateMatrix();
@@ -105,7 +110,9 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       };
     }, [classes, layoutMap]);
 
-    const computeColor = ({ isHighlighted = false, isHovered = false }) => {
+    const computeColor = (classId: string) => {
+      const isHovered = hoveredEntityId === classId;
+      const isHighlighted = highlightedEntityIds.includes(classId);
       const baseColor = isHighlighted
         ? new Color(highlightedEntityColor)
         : new Color(classColor);
@@ -129,10 +136,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         if (classInfo) {
           // Set visibility based on classData
           ref.current?.setVisibilityAt(instanceId, classInfo.isVisible);
-          ref.current?.setColorAt(
-            instanceId,
-            computeColor({ isHovered: classInfo.id === hoveredEntityId })
-          );
+          ref.current?.setColorAt(instanceId, computeColor(classId));
         }
       });
     }, [classData]);
@@ -158,9 +162,21 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       e.stopPropagation();
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
-      const classInfo = classData[classId];
-      updateClassState(classId, { isHighlighted: !classInfo?.isHighlighted });
+      // Toggle highlighting
+      setHighlightedEntity(classId, !highlightedEntityIds.includes(classId));
+
+      // const classInfo = classData[classId];
+      // updateClassState(classId, { isHighlighted: !classInfo?.isHighlighted });
     };
+
+    useEffect(() => {
+      if (ref === null || typeof ref === 'function' || !ref.current) {
+        return;
+      }
+      classIdToInstanceId.forEach((instanceId, classId) => {
+        ref.current?.setColorAt(instanceId, computeColor(classId));
+      });
+    }, [highlightedEntityIds, hoveredEntityId]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
       if (ref === null || typeof ref === 'function') {
@@ -174,8 +190,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
 
-      setHoveredEntityId(classId);
-      ref.current.setColorAt(instanceId, computeColor({ isHovered: true }));
+      setHoveredEntity(classId);
     };
 
     const handleOnPointerOut = (e: ThreeEvent<MouseEvent>) => {
@@ -189,10 +204,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
 
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
-      ref.current.setColorAt(instanceId, new THREE.Color('red'));
-
-      setHoveredEntityId(null);
-      ref.current.setColorAt(instanceId, computeColor({}));
+      setHoveredEntity(null);
     };
 
     const handleDoubleClick = (/*event: any*/) => {};

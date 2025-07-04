@@ -33,7 +33,8 @@ interface ClassState {
 interface VisualizationStoreState {
   componentData: { [id: string]: ComponentState };
   classData: { [id: string]: ClassState };
-  hoveredEntityId: string | null;
+  hoveredEntity: string | null;
+  highlightedEntityIds: string[];
   foundationData: { [id: string]: FoundationState };
   actions: {
     // Foundations
@@ -52,7 +53,8 @@ interface VisualizationStoreState {
     removeComponentState: (id: string) => void;
     removeAllComponentStates: () => void;
     // Classes
-    setHoveredEntityId: (id: string | null) => void;
+    setHoveredEntity: (id: string | null) => void;
+    setHighlightedEntity: (id: string, isHighlighted: boolean) => void;
     getClassState: (id: string) => ClassState;
     setClassState: (id: string, state: ClassState) => void;
     updateClassState: (id: string, state: Partial<ClassState>) => void;
@@ -66,7 +68,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     foundationData: {},
     componentData: {},
     classData: {},
-    hoveredEntityId: null,
+    hoveredEntity: null,
+    highlightedEntityIds: [],
     actions: {
       // Foundations
       getFoundationState: (id: string) => {
@@ -191,8 +194,31 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         set({ componentData: {} });
       },
       // Classes
-      setHoveredEntityId: (id: string | null) => {
-        set({ hoveredEntityId: id });
+      setHoveredEntity: (id: string | null) => {
+        set({ hoveredEntity: id });
+      },
+      setHighlightedEntity: (id: string, isHighlighted: boolean) => {
+        if (isHighlighted) {
+          set((prevState) => {
+            const updatedHighlightedEntityIds = structuredClone(
+              prevState.highlightedEntityIds
+            );
+            updatedHighlightedEntityIds.push(id);
+            return {
+              highlightedEntityIds: updatedHighlightedEntityIds,
+            };
+          });
+        } else {
+          set((prevState) => {
+            const updatedHighlightedEntityIds =
+              prevState.highlightedEntityIds.filter(
+                (existingId) => existingId != id
+              );
+            return {
+              highlightedEntityIds: updatedHighlightedEntityIds,
+            };
+          });
+        }
       },
       getClassState: (id: string) => {
         const state = get().classData[id];
