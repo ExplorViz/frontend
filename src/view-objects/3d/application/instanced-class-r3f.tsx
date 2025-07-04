@@ -1,14 +1,13 @@
-import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
-import { forwardRef, useCallback, useEffect, useMemo } from 'react';
-import { BoxGeometry, Color, MeshBasicMaterial } from 'three';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from './application-object-3d';
+import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { useVisualizationStore } from '../../../stores/visualization-store';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { forwardRef, useCallback, useEffect, useMemo } from 'react';
+import { BoxGeometry, Color, MeshLambertMaterial } from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import { useUserSettingsStore } from '../../../stores/user-settings';
+import { useVisualizationStore } from '../../../stores/visualization-store';
+import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
@@ -29,7 +28,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
   ({ classes, layoutMap }, ref) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
 
-    const material = useMemo(() => new MeshBasicMaterial(), []);
+    const material = useMemo(() => new MeshLambertMaterial(), []);
 
     const instanceIdToClassId = useMemo(() => new Map<number, string>(), []);
 
@@ -203,7 +202,8 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         onPointerOver={handleOnPointerOver}
         onPointerOut={handleOnPointerOut}
         onDoubleClick={handleDoubleClickWithPrevent}
-      />
+        frustumCulled={false}
+      ></instancedMesh2>
     );
   }
 );

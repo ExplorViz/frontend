@@ -292,7 +292,6 @@ export default function ComponentR3F({
           ref={meshRef}
           {...pointerStopHandlers}
         >
-          <Helper type={THREE.BoxHelper} args={['black']} />
           {packageLabelMargin > 1.5 && (
             <Text
               color={componentTextColor}

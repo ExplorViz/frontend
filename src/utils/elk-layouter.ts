@@ -55,8 +55,6 @@ export default async function layoutLandscape(
     'None') as string;
   DEPTH_METRIC = (getStoredSettings().classDepthMetric.value ||
     'None') as string;
-  HEIGHT_METRIC = (getStoredSettings().classHeightMetric.value ||
-    'None') as string;
   CLASS_MARGIN = getStoredNumberSetting('classMargin');
   APP_LABEL_MARGIN = getStoredNumberSetting('appLabelMargin');
   APP_MARGIN = getStoredNumberSetting('appMargin');
