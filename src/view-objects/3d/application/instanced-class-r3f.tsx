@@ -36,6 +36,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
 
     const {
       classData,
+      getClassState,
       updateClassState,
       hoveredEntityId,
       setHoveredEntity,
@@ -44,6 +45,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     } = useVisualizationStore(
       useShallow((state) => ({
         classData: state.classData,
+        getClassState: state.actions.getClassState,
         updateClassState: state.actions.updateClassState,
         hoveredEntityId: state.hoveredEntity,
         setHoveredEntity: state.actions.setHoveredEntity,
@@ -93,6 +95,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
           layout!.position.y,
           layout!.position.z
         );
+        obj.visible = getClassState(classes[i].id).isVisible;
         obj.scale.set(layout!.width, layout!.height, layout!.depth);
         obj.color = computeColor(classes[i].id);
         instanceIdToClassId.set(obj.id, classes[i].id);
@@ -132,12 +135,10 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
 
       // update the visibility of the instances based on classData
       instanceIdToClassId.forEach((classId, instanceId) => {
-        const classInfo = classData[classId];
-        if (classInfo) {
-          // Set visibility based on classData
-          ref.current?.setVisibilityAt(instanceId, classInfo.isVisible);
-          ref.current?.setColorAt(instanceId, computeColor(classId));
-        }
+        const classInfo = getClassState(classId);
+        // Set visibility based on classData
+        ref.current?.setVisibilityAt(instanceId, classInfo.isVisible);
+        ref.current?.setColorAt(instanceId, computeColor(classId));
       });
     }, [classData]);
 
@@ -157,8 +158,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
       if (!ref.current) return;
       const { instanceId } = e;
-
-      if (!instanceId) return;
+      if (instanceId === undefined) return;
       e.stopPropagation();
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
@@ -184,7 +184,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
       if (!ref.current) return;
       const { instanceId } = e;
-      if (!instanceId) return;
+      if (instanceId === undefined) return;
       e.stopPropagation();
 
       const classId = instanceIdToClassId.get(instanceId);
@@ -199,7 +199,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
       if (!ref.current) return;
       const { instanceId } = e;
-      if (!instanceId) return;
+      if (instanceId === undefined) return;
       e.stopPropagation();
 
       const classId = instanceIdToClassId.get(instanceId);

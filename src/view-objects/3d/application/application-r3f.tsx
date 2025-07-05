@@ -14,6 +14,7 @@ import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-lay
 import { useShallow } from 'zustand/react/shallow';
 import InstancedClassR3F from './instanced-class-r3f';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
+import InstancedComponentR3F from './instanced-component-r3f';
 
 export default function ApplicationR3F({
   applicationData,
@@ -33,7 +34,8 @@ export default function ApplicationR3F({
     }))
   );
 
-  const instanceMeshRef = useRef<InstancedMesh2>(null);
+  const classInstanceMeshRef = useRef<InstancedMesh2>(null);
+  const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
   return (
     <group position={layoutMap.get(applicationData.getId())?.position}>
@@ -101,7 +103,13 @@ export default function ApplicationR3F({
       <InstancedClassR3F
         classes={applicationData.getClasses()}
         layoutMap={layoutMap}
-        ref={instanceMeshRef}
+        ref={classInstanceMeshRef}
+      />
+      <InstancedComponentR3F
+        packages={applicationData.getPackages()}
+        layoutMap={layoutMap}
+        ref={componentInstanceMeshRef}
+        application={applicationData.application}
       />
       {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
