@@ -35,13 +35,33 @@ export default function ComponentR3F({
   const [componentPosition, setComponentPosition] = useState<THREE.Vector3>(
     layout.position.clone()
   );
+  const [componentWidth, setComponentWidth] = useState<number>(layout.width);
   const [componentHeight, setComponentHeight] = useState<number>(layout.height);
+  const [componentDepth, setComponentDepth] = useState<number>(layout.depth);
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
     }))
   );
+
+  useEffect(() => {
+    if (enableAnimations) {
+      const gsapValues = { width: componentWidth, depth: componentDepth };
+      gsap.to(gsapValues, {
+        width: layout.width,
+        depth: layout.depth,
+        duration: 0.25,
+        onUpdate: () => {
+          setComponentWidth(gsapValues.width);
+          setComponentDepth(gsapValues.depth);
+        },
+      });
+    } else {
+      setComponentWidth(layout.width);
+      setComponentDepth(layout.depth);
+    }
+  }, [layout.width, layout.depth]);
 
   const commitComparison = useEvolutionDataRepositoryStore
     .getState()
@@ -130,18 +150,26 @@ export default function ComponentR3F({
   const openWithAnimation = useCallback(() => {
     const gsapValues = {
       height: componentHeight,
+      positionX: componentPosition.x,
       positionY: componentPosition.y,
+      positionZ: componentPosition.z,
       labelPosZ: labelPosition.z,
     };
     gsap.to(gsapValues, {
       height: openedComponentHeight,
+      positionX: layout.positionX,
       positionY: layout.positionY,
+      positionZ: layout.positionZ,
       duration: 0.25,
       labelPosZ: 0.5 - packageLabelMargin / layout.depth / 2,
       onUpdate: () => {
         setComponentHeight(gsapValues.height);
         setComponentPosition(
-          layout.position.clone().setY(gsapValues.positionY)
+          new THREE.Vector3(
+            gsapValues.positionX,
+            gsapValues.positionY,
+            gsapValues.positionZ
+          )
         );
         setLabelPosition(labelPosition.clone().setZ(gsapValues.labelPosZ));
       },
@@ -152,19 +180,27 @@ export default function ComponentR3F({
   const closeWithAnimation = useCallback(() => {
     const gsapValues = {
       height: componentHeight,
+      positionX: componentPosition.x,
       positionY: componentPosition.y,
+      positionZ: componentPosition.z,
       labelPosZ: labelPosition.z,
     };
     gsap.to(gsapValues, {
       height: closedComponentHeight,
+      positionX: layout.positionX,
       positionY:
         layout.positionY + (closedComponentHeight - openedComponentHeight) / 2,
+      positionZ: layout.positionZ,
       duration: 0.25,
       labelPosZ: 0,
       onUpdate: () => {
         setComponentHeight(gsapValues.height);
         setComponentPosition(
-          layout.position.clone().setY(gsapValues.positionY)
+          new THREE.Vector3(
+            gsapValues.positionX,
+            gsapValues.positionY,
+            gsapValues.positionZ
+          )
         );
         setLabelPosition(labelPosition.clone().setZ(gsapValues.labelPosZ));
       },
@@ -283,7 +319,7 @@ export default function ComponentR3F({
         <Instance
           castShadow={castShadows}
           color={computeColor()}
-          scale={[layout.width, componentHeight, layout.depth]}
+          scale={[componentWidth, componentHeight, componentDepth]}
           position={componentPosition}
           onClick={handleClickWithPrevent}
           onDoubleClick={handleDoubleClickWithPrevent}
