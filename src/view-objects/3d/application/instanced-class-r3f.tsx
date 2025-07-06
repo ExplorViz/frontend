@@ -9,6 +9,8 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -33,6 +35,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
 
     const instanceIdToClassId = useMemo(() => new Map<number, string>(), []);
     const classIdToInstanceId = useMemo(() => new Map<string, number>(), []);
+    const classIdToClass = useMemo(() => new Map<string, Class>(), []);
 
     const {
       classData,
@@ -79,6 +82,12 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
+    const { addPopup } = usePopupHandlerStore(
+      useShallow((state) => ({
+        addPopup: state.addPopup,
+      }))
+    );
+
     useEffect(() => {
       // early return
       if (ref === null || typeof ref === 'function') {
@@ -89,6 +98,9 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       let i = 0;
       // add 100 instances every frame
       ref.current.addInstances(classes.length, (obj) => {
+        instanceIdToClassId.set(obj.id, classes[i].id);
+        classIdToInstanceId.set(classes[i].id, obj.id);
+        classIdToClass.set(classes[i].id, classes[i]);
         const layout = layoutMap.get(classes[i].id);
         obj.position.set(
           layout!.position.x,
@@ -98,8 +110,6 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         obj.visible = getClassState(classes[i].id).isVisible;
         obj.scale.set(layout!.width, layout!.height, layout!.depth);
         obj.color = computeColor(classes[i].id);
-        instanceIdToClassId.set(obj.id, classes[i].id);
-        classIdToInstanceId.set(classes[i].id, obj.id);
         obj.updateMatrix();
         i++;
       });
@@ -110,6 +120,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         ref.current?.clearInstances();
         instanceIdToClassId.clear();
         classIdToInstanceId.clear();
+        classIdToClass.clear();
       };
     }, [classes, layoutMap]);
 
@@ -209,6 +220,29 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
 
     const handleDoubleClick = (/*event: any*/) => {};
 
+    const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!ref.current) return;
+      const { instanceId } = e;
+      if (instanceId === undefined) return;
+      e.stopPropagation();
+
+      const classId = instanceIdToClassId.get(instanceId);
+      if (!classId) return;
+      const clazz = classIdToClass.get(classId);
+      addPopup({
+        model: clazz,
+        position: {
+          x: e.clientX,
+          y: e.clientY,
+        },
+      });
+    };
+
+    const pointerStopHandlers = usePointerStop(handlePointerStop);
+
     const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
       useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
@@ -220,6 +254,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         onPointerOver={handleOnPointerOver}
         onPointerOut={handleOnPointerOut}
         onDoubleClick={handleDoubleClickWithPrevent}
+        {...pointerStopHandlers}
         frustumCulled={false}
       ></instancedMesh2>
     );

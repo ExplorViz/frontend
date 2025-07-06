@@ -15,6 +15,8 @@ import BoxLayout from '../../layout-models/box-layout';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
 
@@ -116,6 +118,12 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
     const { evoConfig } = useVisibilityServiceStore(
       useShallow((state) => ({
         evoConfig: state._evolutionModeRenderingConfiguration,
+      }))
+    );
+
+    const { addPopup } = usePopupHandlerStore(
+      useShallow((state) => ({
+        addPopup: state.addPopup,
       }))
     );
 
@@ -313,6 +321,30 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       setHoveredEntity(null);
     };
 
+    const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!ref.current) return;
+      const { instanceId } = e;
+      if (instanceId === undefined) return;
+      e.stopPropagation();
+
+      const componentId = instanceIdToComponentId.get(instanceId);
+      if (!componentId) return;
+      const component = componentIdToPackage.get(componentId);
+      console.log('Pointer stop event triggered', event);
+      addPopup({
+        model: component,
+        position: {
+          x: e.clientX,
+          y: e.clientY,
+        },
+      });
+    };
+
+    const pointerStopHandlers = usePointerStop(handlePointerStop);
+
     const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
       useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
@@ -324,6 +356,7 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
         onPointerOver={handleOnPointerOver}
         onPointerOut={handleOnPointerOut}
         onDoubleClick={handleDoubleClickWithPrevent}
+        {...pointerStopHandlers}
         frustumCulled={false}
       ></instancedMesh2>
     );

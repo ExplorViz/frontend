@@ -22,39 +22,20 @@ export default function Popups({ landscapeData, cameraControls }: Args) {
     useShallow((state) => ({
       getMeshById: state.getMeshById,
       getApplicationById: state.getApplicationById,
-      getOpenApplications: state.getOpenApplications,
-      openAllComponentsOfAllApplications:
-        state.openAllComponentsOfAllApplications,
-      toggleCommunicationRendering: state.toggleCommunicationRendering,
-      toggleComponent: state.toggleComponent,
-      closeAllComponents: state.closeAllComponents,
-      addCommunicationForAllApplications:
-        state.addCommunicationForAllApplications,
       openParents: state.openParents,
-      cleanup: state.cleanup,
     }))
   );
   const popupHandlerActions = usePopupHandlerStore(
     useShallow((state) => ({
-      addPopup: state.addPopup,
       removePopup: state.removePopup,
       updatePopup: state.updatePopup,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
-      handleMouseMove: state.handleMouseMove,
-      handleHoverOnMesh: state.handleHoverOnMesh,
       updateMeshReference: state.updateMeshReference,
-      cleanup: state.cleanup,
     }))
   );
   const highlightingActions = useHighlightingStore(
     useShallow((state) => ({
-      highlightTrace: state.highlightTrace,
-      removeHighlightingForAllApplications:
-        state.removeHighlightingForAllApplications,
-      updateHighlighting: state.updateHighlighting,
-      updateHighlightingOnHover: state.updateHighlightingOnHover,
-      toggleHighlight: state.toggleHighlight,
       toggleHighlightById: state.toggleHighlightById,
     }))
   );
@@ -64,21 +45,9 @@ export default function Popups({ landscapeData, cameraControls }: Args) {
     }))
   );
 
-  const annotationHandlerState = useAnnotationHandlerStore(
-    useShallow((state) => ({
-      annotationData: state.annotationData,
-      minimizedAnnotations: state.minimizedAnnotations,
-    }))
-  );
   const annotationHandlerActions = useAnnotationHandlerStore(
     useShallow((state) => ({
       addAnnotation: state.addAnnotation,
-      removeAnnotation: state.removeAnnotation,
-      clearAnnotations: state.clearAnnotations,
-      handleMouseMove: state.handleMouseMove,
-      handleHoverOnMesh: state.handleHoverOnMesh,
-      updateMeshReference: state.updateMeshReference,
-      cleanup: state.cleanup,
     }))
   );
 
