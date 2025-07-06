@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   useSnapshotTokenStore,
@@ -13,10 +12,11 @@ import AnnotationData from 'explorviz-frontend/src/components/visualization/rend
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useShallow } from 'zustand/react/shallow';
 
 interface SnapshotProps {
   landscapeData: LandscapeData;
-  popUpData: PopupData[];
   landscapeToken: LandscapeToken;
   annotationData: AnnotationData[];
   minimizedAnnotations: AnnotationData[];
@@ -24,7 +24,6 @@ interface SnapshotProps {
 
 export default function Snapshot({
   landscapeData,
-  popUpData,
   landscapeToken,
   annotationData,
   minimizedAnnotations,
@@ -39,6 +38,11 @@ export default function Snapshot({
     (state) => state.saveSnapshot
   );
   const exportFile = useSnapshotTokenStore((state) => state.exportFile);
+  const popupHandlerState = usePopupHandlerStore(
+    useShallow((state) => ({
+      popupData: state.popupData,
+    }))
+  );
 
   const [saveSnaphotBtnDisabled, setSaveSnaphotBtnDisabled] =
     useState<boolean>(true);
@@ -60,7 +64,11 @@ export default function Snapshot({
     const allAnnotations = annotationData.concat(minimizedAnnotations);
 
     const createdAt: number = new Date().getTime();
-    const saveRoom = serializeRoom(popUpData, allAnnotations, true);
+    const saveRoom = serializeRoom(
+      popupHandlerState.popupData,
+      allAnnotations,
+      true
+    );
 
     const timestamps = getTimestampsForCommitId('cross-commit');
     const localUserCamera = getLocalUserCamera();
@@ -94,7 +102,11 @@ export default function Snapshot({
     const allAnnotations = annotationData.concat(minimizedAnnotations);
 
     const createdAt: number = new Date().getTime();
-    const saveRoom = serializeRoom(popUpData, allAnnotations, true);
+    const saveRoom = serializeRoom(
+      popupHandlerState.popupData,
+      allAnnotations,
+      true
+    );
 
     const timestamps = getTimestampsForCommitId('cross-commit');
     const localUserCamera = getLocalUserCamera();

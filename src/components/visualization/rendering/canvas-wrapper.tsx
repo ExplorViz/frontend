@@ -1,10 +1,4 @@
-import {
-  AdaptiveDpr,
-  AdaptiveEvents,
-  CameraControls,
-  PerspectiveCamera,
-  Stats,
-} from '@react-three/drei';
+import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
@@ -214,8 +208,6 @@ export default function CanvasWrapper({
       style={{ background: sceneBackgroundColor }}
       onMouseMove={popupHandlerActions.handleMouseMove}
     >
-      <AdaptiveDpr pixelated />
-      <AdaptiveEvents />
       <CameraControls
         dollySpeed={0.3}
         draggingSmoothTime={0.05}

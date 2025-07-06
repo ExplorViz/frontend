@@ -6,7 +6,6 @@ import ButtonSetting from 'explorviz-frontend/src/components/visualization/page-
 import FlagSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
-import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
@@ -37,10 +36,10 @@ import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/applicat
 import { Mesh } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 
 interface SettingsProps {
   enterFullscreen(): void;
-  popups: PopupData[];
   resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
   showSemanticZoomClusterCenters(): void;
@@ -49,7 +48,6 @@ interface SettingsProps {
 
 export default function Settings({
   enterFullscreen,
-  popups,
   resetSettings,
   setGamepadSupport,
   showSemanticZoomClusterCenters,
@@ -108,6 +106,12 @@ export default function Settings({
 
   const updateHighlightingInStore = useHighlightingStore(
     (state) => state.updateHighlighting
+  );
+
+  const popupHandlerState = usePopupHandlerStore(
+    useShallow((state) => ({
+      popupData: state.popupData,
+    }))
   );
 
   const filteredSettingsByGroup = (() => {
@@ -300,7 +304,7 @@ export default function Settings({
             'Synchronize room state: This may lead to loading times for other users. Continue?'
           )
         ) {
-          sendSyncRoomState(serializeRoom(popups));
+          sendSyncRoomState(serializeRoom(popupHandlerState.popupData));
         }
         break;
       case 'showSemanticZoomCenterPoints':

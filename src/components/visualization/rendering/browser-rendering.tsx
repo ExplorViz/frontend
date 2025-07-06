@@ -92,6 +92,7 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import Popups from './popups/popups';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -232,11 +233,6 @@ export default function BrowserRendering({
     }))
   );
 
-  const popupHandlerState = usePopupHandlerStore(
-    useShallow((state) => ({
-      popupData: state.popupData,
-    }))
-  );
   const popupHandlerActions = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
@@ -602,7 +598,7 @@ export default function BrowserRendering({
     }
   };
 
-  const handleMouseMove = (
+  /*   const handleMouseMove = (
     intersection: THREE.Intersection | null,
     event: MouseEvent
   ) => {
@@ -628,18 +624,9 @@ export default function BrowserRendering({
         isEntityMesh(intersection?.object) && intersection.object.highlighted
       );
     }
-  };
+  }; */
 
-  const showApplication = (appId: string) => {
-    removePopup(appId);
-    const applicationObject3D =
-      applicationRendererActions.getApplicationById(appId);
-    if (applicationObject3D) {
-      cameraControls.current!.focusCameraOn(0.8, applicationObject3D);
-    }
-  };
-
-  const handleMouseMoveOnMesh = (mesh: THREE.Object3D | undefined) => {
+  /*   const handleMouseMoveOnMesh = (mesh: THREE.Object3D | undefined) => {
     const { value: enableAppHoverEffects } =
       userSettingsState.visualizationSettings.enableHoverEffects;
 
@@ -653,48 +640,18 @@ export default function BrowserRendering({
       hoveredObject.current = mesh;
       mesh.applyHoverEffect();
     }
-  };
-
-  const addAnnotationForPopup = (popup: PopupData) => {
-    const mesh = applicationRendererActions.getMeshById(popup.entity.id);
-    if (!mesh) return;
-
-    annotationHandlerActions.addAnnotation({
-      annotationId: undefined,
-      mesh: mesh,
-      position: { x: popup.mouseX + 400, y: popup.mouseY },
-      hovered: true,
-      annotationTitle: '',
-      annotationText: '',
-      sharedBy: '',
-      owner: authState.user!.name.toString(),
-      shared: false,
-      inEdit: true,
-      lastEditor: undefined,
-      wasMoved: true,
-    });
-  };
-
-  const removePopup = (entityId: string) => {
-    popupHandlerActions.removePopup(entityId);
-
-    // remove potential toggle effect
-    const mesh = applicationRendererActions.getMeshById(entityId);
-    if (mesh?.isHovered) {
-      mesh.resetHoverEffect();
-    }
-  };
+  }; */
 
   const removeAnnotation = (annotationId: number) => {
     annotationHandlerActions.removeAnnotation(annotationId);
   };
 
-  const handleMouseOut = (/*event: React.PointerEvent*/) => {
+  /*   const handleMouseOut = (event: React.PointerEvent) => {
     popupHandlerActions.handleHoverOnMesh();
     annotationHandlerActions.handleHoverOnMesh();
-  };
+  }; */
 
-  const handleMouseStop = (
+  /*   const handleMouseStop = (
     intersection: THREE.Intersection | null,
     mouseOnCanvas: Position2D
   ) => {
@@ -719,7 +676,7 @@ export default function BrowserRendering({
         lastEditor: undefined,
       });
     }
-  };
+  }; */
 
   /**
    * Moves camera such that a specified clazz or clazz communication is in focus.
@@ -753,7 +710,7 @@ export default function BrowserRendering({
     canvas.current.requestFullscreen();
   };
 
-  const handleResize = () => {
+  /*   const handleResize = () => {
     if (!outerDiv.current || !landscape3D) {
       console.error('Outer div ref was not assigned');
       return;
@@ -782,7 +739,7 @@ export default function BrowserRendering({
         ping: localUserActions.ping,
       }
     );
-  };
+  }; */
 
   const toggleToolsSidebarComponent = (component: string): boolean => {
     const newOpenedToolComponent =
@@ -1066,23 +1023,12 @@ export default function BrowserRendering({
             </div>
           )} */}
 
-          {landscapeData &&
-            popupHandlerState.popupData.map((data) => (
-              <PopupCoordinator
-                key={data.entity.id}
-                addAnnotationForPopup={addAnnotationForPopup}
-                openParents={applicationRendererActions.openParents}
-                pinPopup={popupHandlerActions.pinPopup}
-                popupData={data}
-                updatePopup={popupHandlerActions.updatePopup}
-                removePopup={removePopup}
-                sharePopup={popupHandlerActions.sharePopup}
-                showApplication={showApplication}
-                structureData={landscapeData.structureLandscapeData}
-                toggleHighlightById={highlightingActions.toggleHighlightById}
-                updateMeshReference={popupHandlerActions.updateMeshReference}
-              />
-            ))}
+          {landscapeData && (
+            <Popups
+              landscapeData={landscapeData}
+              cameraControls={cameraControls}
+            />
+          )}
 
           {annotationHandlerState.annotationData.map((data) => (
             <AnnotationCoordinator
@@ -1208,7 +1154,6 @@ export default function BrowserRendering({
                       toggleVisualizationUpdating={toggleVisualizationUpdating}
                       removeTimestampListener={removeTimestampListener}
                       userApiTokens={userApiTokens}
-                      popUpData={popupHandlerState.popupData}
                       annotationData={annotationHandlerState.annotationData}
                       minimizedAnnotations={
                         annotationHandlerState.minimizedAnnotations
@@ -1219,7 +1164,6 @@ export default function BrowserRendering({
                   {openedSettingComponent === 'Persist-Landscape' && (
                     <Snapshot
                       landscapeData={landscapeData!}
-                      popUpData={popupHandlerState.popupData}
                       annotationData={annotationHandlerState.annotationData}
                       minimizedAnnotations={
                         annotationHandlerState.minimizedAnnotations
@@ -1230,7 +1174,6 @@ export default function BrowserRendering({
                   {openedSettingComponent === 'Settings' && (
                     <Settings
                       enterFullscreen={enterFullscreen}
-                      popups={popupHandlerState.popupData}
                       resetSettings={userSettingsActions.applyDefaultSettings}
                       showSemanticZoomClusterCenters={
                         showSemanticZoomClusterCenters
