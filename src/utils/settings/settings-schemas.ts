@@ -123,6 +123,7 @@ export type HoveringSettingId =
   | 'enableHoverEffects'
   | 'enableAnimations'
   | 'castShadows'
+  | 'showAllClassLabels'
   | 'showOutlines';
 
 export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;

@@ -280,6 +280,14 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Enable casting shadows from light (can be expensive)',
     isFlagSetting: true,
   },
+  showAllClassLabels: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Effects',
+    displayName: 'Show All Class Labels',
+    description: 'Shows labels all the time or only when hovered.',
+    isFlagSetting: true,
+  },
   showOutlines: {
     level: SettingLevel.DEFAULT,
     value: false,
@@ -439,7 +447,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   classLabelFontSize: {
     level: SettingLevel.EXTENDED,
-    value: 0.75,
+    value: 2.0,
     range: { min: 0.0, max: 5.0, step: 0.01 },
     group: 'Layout',
     displayName: 'Class Label Font Size',

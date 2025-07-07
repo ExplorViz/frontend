@@ -1,4 +1,4 @@
-import { Box, Detailed, Plane, Text } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -13,11 +13,9 @@ export default function ClassLabelR3F({
   dataModel: Class;
   layout: BoxLayout;
 }) {
-  const { isVisible } = useVisualizationStore(
+  const { hoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
-      isVisible: state.classData[dataModel.id]
-        ? state.classData[dataModel.id].isVisible
-        : true,
+      hoveredEntity: state.hoveredEntity,
     }))
   );
 
@@ -29,6 +27,7 @@ export default function ClassLabelR3F({
     classTextColor,
     labelOffset,
     labelRotation,
+    showAllClassLabels,
   } = useUserSettingsStore(
     useShallow((state) => ({
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
@@ -37,10 +36,13 @@ export default function ClassLabelR3F({
       labelOffset: state.visualizationSettings.classLabelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       maxLabelLength: state.visualizationSettings.classLabelLength.value,
+      showAllClassLabels: state.visualizationSettings.showAllClassLabels.value,
     }))
   );
 
-  return (
+  return showAllClassLabels ||
+    hoveredEntity == dataModel.id ||
+    hoveredEntity == dataModel.parent.id ? (
     <Text
       key={dataModel.id + '-label'}
       position={[
@@ -49,17 +51,17 @@ export default function ClassLabelR3F({
         layout.positionZ,
       ]}
       color={classTextColor}
-      visible={isVisible}
+      visible={true}
       ref={labelRef}
       // outlineColor={'black'}
       // outlineWidth={classLabelFontSize * 0.05}
       rotation={[1.5 * Math.PI, 0, labelRotation]}
-      fontSize={classLabelFontSize}
+      fontSize={classLabelFontSize * Math.min(layout.width, layout.depth) * 0.5}
       raycast={() => null}
     >
       {dataModel.name.length <= classLabelLength
         ? dataModel.name
         : dataModel.name.substring(0, classLabelLength) + '...'}
     </Text>
-  );
+  ) : null;
 }
