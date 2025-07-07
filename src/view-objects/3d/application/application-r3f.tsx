@@ -1,4 +1,4 @@
-import { Instances } from '@react-three/drei';
+import { Instances, Text } from '@react-three/drei';
 import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import InstancedClassR3F from './instanced-class-r3f';
 import InstancedComponentR3F from './instanced-component-r3f';
+import ClassLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/class-label-r3f';
 
 export default function ApplicationR3F({
   applicationData,
@@ -44,9 +45,23 @@ export default function ApplicationR3F({
   const classInstanceMeshRef = useRef<InstancedMesh2>(null);
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
-  const { enableAnimations } = useUserSettingsStore(
+  const {
+    enableAnimations,
+    classLabelFontSize,
+    classLabelLength,
+    classTextColor,
+    labelOffset,
+    labelRotation,
+  } = useUserSettingsStore(
     useShallow((state) => ({
       enableAnimations: state.visualizationSettings.enableAnimations.value,
+      unchangedClassColor:
+        state.visualizationSettings.unchangedClassColor.value,
+      classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
+      classLabelLength: state.visualizationSettings.classLabelLength.value,
+      classTextColor: state.visualizationSettings.classTextColor.value,
+      labelOffset: state.visualizationSettings.classLabelOffset.value,
+      labelRotation: state.visualizationSettings.classLabelOrientation.value,
     }))
   );
 
@@ -105,7 +120,7 @@ export default function ApplicationR3F({
         />
       )}
 
-      <Instances limit={5000} frustumCulled={false}>
+      {/* <Instances limit={5000} frustumCulled={false}>
         <boxGeometry />
         <meshLambertMaterial />
         {applicationData
@@ -140,18 +155,29 @@ export default function ApplicationR3F({
               <Fragment key={classData.id} />
             )
           )}
-      </Instances>
-      {/* <InstancedClassR3F
+      </Instances> */}
+      <InstancedClassR3F
         classes={applicationData.getClasses()}
         layoutMap={layoutMap}
         ref={classInstanceMeshRef}
       />
+      {applicationData
+        .getClasses()
+        .map((classData) =>
+          layoutMap.get(classData.id) && classInstanceMeshRef.current ? (
+            <ClassLabelR3F
+              key={classData.id + '-label'}
+              dataModel={classData}
+              layout={layoutMap.get(classData.id)!}
+            />
+          ) : null
+        )}
       <InstancedComponentR3F
         packages={applicationData.getPackages()}
         layoutMap={layoutMap}
         ref={componentInstanceMeshRef}
         application={applicationData.application}
-      /> */}
+      />
       {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
           <CommunicationR3F
