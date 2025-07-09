@@ -40,6 +40,14 @@ export default function ClassLabelR3F({
     }))
   );
 
+  const { isVisible } = useVisualizationStore(
+    useShallow((state) => ({
+      isVisible: state.classData[dataModel.id]
+        ? state.classData[dataModel.id].isVisible
+        : true,
+    }))
+  );
+
   return showAllClassLabels ||
     hoveredEntity == dataModel.id ||
     hoveredEntity == dataModel.parent.id ? (
@@ -51,7 +59,7 @@ export default function ClassLabelR3F({
         layout.positionZ,
       ]}
       color={classTextColor}
-      visible={true}
+      visible={isVisible}
       ref={labelRef}
       // outlineColor={'black'}
       // outlineWidth={classLabelFontSize * 0.05}
