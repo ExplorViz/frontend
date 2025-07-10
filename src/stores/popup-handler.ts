@@ -78,6 +78,7 @@ interface PopupHandlerState {
     sharedBy?: string | null;
     hovered?: boolean;
     model?: Application | Package | Class;
+    applicationId?: string;
   }) => void;
   _removePopupAfterTimeout: (popup: PopupData) => void;
   updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;
@@ -247,6 +248,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     sharedBy,
     hovered,
     model,
+    applicationId
   }) => {
     // TODO: Handle HTML Mesh better
     if (
@@ -273,7 +275,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       wasMoved: wasMoved || false,
       entity: model,
       mesh,
-      applicationId: '1',
+      applicationId: applicationId || '',
       menuId: menuId || null,
       isPinned: pinned || false,
       sharedBy: sharedBy || '',

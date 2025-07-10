@@ -159,6 +159,7 @@ export default function ApplicationR3F({
       </Instances> */}
       <InstancedClassR3F
         classes={applicationData.getClasses()}
+        appId={applicationData.application.id}
         layoutMap={layoutMap}
         application={applicationData.application}
         ref={classInstanceMeshRef}
