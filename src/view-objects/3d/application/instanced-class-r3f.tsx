@@ -156,7 +156,11 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       };
     }, [classes, heightMetric, layoutMap]);
 
-    const computeColor = (dataModel: Class) => {
+    const computeColor = (classId: string) => {
+      const dataModel = classIdToClass.get(classId);
+      if (!dataModel) {
+        return new THREE.Color(classColor);
+      }
       if (
         evoConfig.renderOnlyDifferences &&
         commitComparison &&
@@ -235,10 +239,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
 
       classIdToInstanceId.forEach((instanceId, classId) => {
-        ref.current?.setColorAt(
-          instanceId,
-          computeColor(classIdToClass.get(classId)!)
-        );
+        ref.current?.setColorAt(instanceId, computeColor(classId));
       });
     }, [highlightedEntityIds, hoveredEntityId]);
 
