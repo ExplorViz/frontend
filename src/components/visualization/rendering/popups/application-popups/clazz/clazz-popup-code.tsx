@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
@@ -157,7 +155,10 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {commitAndClassMetricsObject.classMetric.loc}
                           </th>
                         );
@@ -169,7 +170,10 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {commitAndClassMetricsObject.classMetric.LCOM4}
                           </th>
                         );
@@ -181,7 +185,10 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {
                               commitAndClassMetricsObject.classMetric
                                 .cyclomatic_complexity
@@ -196,7 +203,10 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {
                               commitAndClassMetricsObject.classMetric
                                 .cyclomatic_complexity_weighted

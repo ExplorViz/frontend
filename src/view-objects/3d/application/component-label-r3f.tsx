@@ -20,8 +20,6 @@ export default function ComponentLabelR3F({
     }))
   );
 
-  console.log(layout);
-
   const { componentTextColor, packageLabelMargin } = useUserSettingsStore(
     useShallow((state) => ({
       componentTextColor: state.visualizationSettings.componentTextColor.value,
