@@ -333,8 +333,9 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
         return;
       }
 
-      // Do not remove popup when mouse stayed (recently) on target entity or shift is pressed
+      // Do not remove popup when mouse is on the popup, stayed (recently) on target entity or shift is pressed
       if (
+        maybePopup.hovered ||
         get().isShiftPressed ||
         (latestMousePosition.x == get().latestMousePosition.x &&
           latestMousePosition.y == get().latestMousePosition.y)
