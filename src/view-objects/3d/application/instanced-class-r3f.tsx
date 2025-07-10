@@ -1,17 +1,23 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
+import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import {
+  Application,
+  Class,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { forwardRef, useEffect, useMemo } from 'react';
-import { BoxGeometry, Color, MeshLambertMaterial } from 'three';
+import * as THREE from 'three';
+import { BoxGeometry, MeshLambertMaterial } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -26,13 +32,13 @@ interface Args {
   appId: string;
   classes: Class[];
   layoutMap: Map<string, BoxLayout>;
+  application: Application;
 }
 
 // eslint-disable-next-line
 const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
-  ({ classes, layoutMap, appId }, ref) => {
+  ({ classes, layoutMap, appId, application }, ref) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
-
     const material = useMemo(() => new MeshLambertMaterial(), []);
 
     const instanceIdToClassId = useMemo(() => new Map<number, string>(), []);
@@ -42,7 +48,6 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     const {
       classData,
       getClassState,
-      updateClassState,
       hoveredEntityId,
       setHoveredEntity,
       highlightedEntityIds,
@@ -51,7 +56,6 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       useShallow((state) => ({
         classData: state.classData,
         getClassState: state.actions.getClassState,
-        updateClassState: state.actions.updateClassState,
         hoveredEntityId: state.hoveredEntity,
         setHoveredEntity: state.actions.setHoveredEntity,
         highlightedEntityIds: state.highlightedEntityIds,
@@ -59,16 +63,43 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const { classColor, classFootprint, heightMetric, highlightedEntityColor } =
-      useUserSettingsStore(
-        useShallow((state) => ({
-          classColor: state.visualizationSettings.classColor.value,
-          classFootprint: state.visualizationSettings.classFootprint.value,
-          highlightedEntityColor: state.colors?.highlightedEntityColor,
-          showOutlines: state.visualizationSettings.showOutlines.value,
-          heightMetric: state.visualizationSettings.classHeightMetric.value,
-        }))
-      );
+    const commitComparison = useEvolutionDataRepositoryStore
+      .getState()
+      .getCommitComparisonByAppName(application.name);
+
+    const { evoConfig } = useVisibilityServiceStore(
+      useShallow((state) => ({
+        evoConfig: state._evolutionModeRenderingConfiguration,
+      }))
+    );
+
+    const {
+      classColor,
+      addedClassColor,
+      modifiedClassColor,
+      removedClassColor,
+      unchangedClassColor,
+      classFootprint,
+      enableHoverEffects,
+      heightMetric,
+      highlightedEntityColor,
+    } = useUserSettingsStore(
+      useShallow((state) => ({
+        classColor: state.visualizationSettings.classColor.value,
+        addedClassColor: state.visualizationSettings.addedClassColor.value,
+        modifiedClassColor:
+          state.visualizationSettings.modifiedClassColor.value,
+        removedClassColor: state.visualizationSettings.removedClassColor.value,
+        unchangedClassColor:
+          state.visualizationSettings.unchangedClassColor.value,
+        classFootprint: state.visualizationSettings.classFootprint.value,
+        enableHoverEffects:
+          state.visualizationSettings.enableHoverEffects.value,
+        highlightedEntityColor: state.colors?.highlightedEntityColor,
+        showOutlines: state.visualizationSettings.showOutlines.value,
+        heightMetric: state.visualizationSettings.classHeightMetric.value,
+      }))
+    );
 
     const { addPopup } = usePopupHandlerStore(
       useShallow((state) => ({
@@ -110,7 +141,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         );
         obj.visible = getClassState(classes[i].id).isVisible;
         obj.scale.set(layout!.width, getClassHeight(classes[i]), layout!.depth);
-        obj.color = computeColor(classes[i].id);
+        obj.color = computeColor(classes[i]);
         obj.updateMatrix();
         i++;
       });
@@ -125,14 +156,31 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       };
     }, [classes, heightMetric, layoutMap]);
 
-    const computeColor = (classId: string) => {
-      const isHovered = hoveredEntityId === classId;
-      const isHighlighted = highlightedEntityIds.includes(classId);
-      const baseColor = isHighlighted
-        ? new Color(highlightedEntityColor)
-        : new Color(classColor);
+    const computeColor = (dataModel: Class) => {
+      if (
+        evoConfig.renderOnlyDifferences &&
+        commitComparison &&
+        dataModel.fqn
+      ) {
+        if (commitComparison.added.includes(dataModel.fqn)) {
+          return new THREE.Color(addedClassColor);
+        } else if (commitComparison.deleted.includes(dataModel.fqn)) {
+          return new THREE.Color(removedClassColor);
+        } else if (commitComparison.modified.includes(dataModel.fqn)) {
+          return new THREE.Color(modifiedClassColor);
+        } else {
+          return new THREE.Color(unchangedClassColor);
+        }
+      }
 
-      if (isHovered) {
+      const isHovered = hoveredEntityId === dataModel.id;
+      const isHighlighted = highlightedEntityIds.includes(dataModel.id);
+
+      const baseColor = isHighlighted
+        ? new THREE.Color(highlightedEntityColor)
+        : new THREE.Color(classColor);
+
+      if (enableHoverEffects && isHovered) {
         return calculateColorBrightness(baseColor, 1.1);
       } else {
         return baseColor;
@@ -185,8 +233,12 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       if (ref === null || typeof ref === 'function' || !ref.current) {
         return;
       }
+
       classIdToInstanceId.forEach((instanceId, classId) => {
-        ref.current?.setColorAt(instanceId, computeColor(classId));
+        ref.current?.setColorAt(
+          instanceId,
+          computeColor(classIdToClass.get(classId)!)
+        );
       });
     }, [highlightedEntityIds, hoveredEntityId]);
 
