@@ -11,7 +11,7 @@ export default function HtmlPopup({ data }: HtmlPopupProps) {
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break font-weight-bold pl-1">
+        <div className="text-center text-break fw-bold pl-1">
           {'<' + boxData.htmlNode.tagName.toLowerCase() + '>'}
         </div>
       </h3>

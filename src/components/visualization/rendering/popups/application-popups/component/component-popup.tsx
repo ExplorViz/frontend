@@ -21,7 +21,7 @@ export default function ComponentPopup({
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break font-weight-bold pl-1">
+        <div className="text-center text-break fw-bold pl-1">
           {component.name}
         </div>
       </h3>

@@ -4,7 +4,7 @@ export default function K8sPopup({ data }: any) {
   return (
     <div>
       <h3 className="popover-header">
-        <div className="text-center text-break font-weight-bold pl-1">
+        <div className="text-center text-break fw-bold pl-1">
           K8s {data.type}
         </div>
       </h3>
