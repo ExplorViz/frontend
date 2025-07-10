@@ -13,9 +13,23 @@ export default function ClassLabelR3F({
   dataModel: Class;
   layout: BoxLayout;
 }) {
-  const { hoveredEntity } = useVisualizationStore(
+  const {
+    isClassHovered,
+    isParentHovered,
+    isClassHighlighted,
+    isParentHighlighted,
+    isClassVisible,
+  } = useVisualizationStore(
     useShallow((state) => ({
-      hoveredEntity: state.hoveredEntity,
+      isClassHovered: state.hoveredEntity === dataModel.id,
+      isClassVisible: state.classData[dataModel.id]
+        ? state.classData[dataModel.id].isVisible
+        : true,
+      isParentHovered: state.hoveredEntity === dataModel.parent.id,
+      isClassHighlighted: state.highlightedEntityIds.includes(dataModel.id),
+      isParentHighlighted: state.highlightedEntityIds.includes(
+        dataModel.parent.id
+      ),
     }))
   );
 
@@ -40,17 +54,11 @@ export default function ClassLabelR3F({
     }))
   );
 
-  const { isVisible } = useVisualizationStore(
-    useShallow((state) => ({
-      isVisible: state.classData[dataModel.id]
-        ? state.classData[dataModel.id].isVisible
-        : true,
-    }))
-  );
-
   return showAllClassLabels ||
-    hoveredEntity == dataModel.id ||
-    hoveredEntity == dataModel.parent.id ? (
+    isClassHovered ||
+    isParentHovered ||
+    isClassHighlighted ||
+    isParentHighlighted ? (
     <Text
       key={dataModel.id + '-label'}
       position={[
@@ -59,7 +67,7 @@ export default function ClassLabelR3F({
         layout.positionZ,
       ]}
       color={classTextColor}
-      visible={isVisible}
+      visible={isClassVisible}
       ref={labelRef}
       // outlineColor={'black'}
       // outlineWidth={classLabelFontSize * 0.05}
