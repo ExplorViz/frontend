@@ -64,8 +64,13 @@ export default function CommunicationR3F({
   );
 
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
     addPopup({
       mesh: meshRef.current,
+      model: new ClazzCommuMeshDataModel(
+        communicationModel,
+        communicationModel.id
+      ),
       position: {
         x: event.clientX,
         y: event.clientY,

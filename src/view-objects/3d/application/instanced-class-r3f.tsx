@@ -23,13 +23,14 @@ declare module '@react-three/fiber' {
 }
 
 interface Args {
+  appId: string;
   classes: Class[];
   layoutMap: Map<string, BoxLayout>;
 }
 
 // eslint-disable-next-line
 const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
-  ({ classes, layoutMap }, ref) => {
+  ({ classes, layoutMap, appId }, ref) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
 
     const material = useMemo(() => new MeshLambertMaterial(), []);
@@ -234,6 +235,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       const clazz = classIdToClass.get(classId);
       addPopup({
         model: clazz,
+        applicationId: appId,
         position: {
           x: e.clientX,
           y: e.clientY,

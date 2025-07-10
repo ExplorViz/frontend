@@ -73,8 +73,10 @@ export default function FoundationR3F({
   );
 
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
     addPopup({
       model: application,
+      applicationId: application.id,
       position: {
         x: event.clientX,
         y: event.clientY,
