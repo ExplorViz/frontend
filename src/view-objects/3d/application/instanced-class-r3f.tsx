@@ -11,6 +11,7 @@ import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -57,30 +58,16 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const {
-      classColor,
-      classLabelFontSize,
-      classLabelLength,
-      classTextColor,
-      highlightedEntityColor,
-      labelOffset,
-      labelRotation,
-      maxLabelLength,
-      showOutlines,
-    } = useUserSettingsStore(
-      useShallow((state) => ({
-        classColor: state.visualizationSettings.classColor.value,
-        classLabelFontSize:
-          state.visualizationSettings.classLabelFontSize.value,
-        classLabelLength: state.visualizationSettings.classLabelLength.value,
-        classTextColor: state.visualizationSettings.classTextColor.value,
-        highlightedEntityColor: state.colors?.highlightedEntityColor,
-        labelOffset: state.visualizationSettings.classLabelOffset.value,
-        labelRotation: state.visualizationSettings.classLabelOrientation.value,
-        maxLabelLength: state.visualizationSettings.classLabelLength.value,
-        showOutlines: state.visualizationSettings.showOutlines.value,
-      }))
-    );
+    const { classColor, classFootprint, heightMetric, highlightedEntityColor } =
+      useUserSettingsStore(
+        useShallow((state) => ({
+          classColor: state.visualizationSettings.classColor.value,
+          classFootprint: state.visualizationSettings.classFootprint.value,
+          highlightedEntityColor: state.colors?.highlightedEntityColor,
+          showOutlines: state.visualizationSettings.showOutlines.value,
+          heightMetric: state.visualizationSettings.classHeightMetric.value,
+        }))
+      );
 
     const { addPopup } = usePopupHandlerStore(
       useShallow((state) => ({
@@ -88,15 +75,26 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
+    const getClassHeight = (dataModel: Class) => {
+      let height = layoutMap.get(dataModel.id)?.height || classFootprint;
+      if (heightMetric === SelectedClassMetric.Method) {
+        height += classFootprint * 0.5 * dataModel.methods.length;
+      }
+      return height;
+    };
+
     useEffect(() => {
       // early return
-      if (ref === null || typeof ref === 'function') {
+      if (
+        ref === null ||
+        typeof ref === 'function' ||
+        !ref.current ||
+        ref.current.instancesCount >= 200000
+      ) {
         return;
       }
-      if (!ref.current || ref.current.instancesCount >= 200000) return;
 
       let i = 0;
-      // add 100 instances every frame
       ref.current.addInstances(classes.length, (obj) => {
         instanceIdToClassId.set(obj.id, classes[i].id);
         classIdToInstanceId.set(classes[i].id, obj.id);
@@ -104,11 +102,13 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         const layout = layoutMap.get(classes[i].id);
         obj.position.set(
           layout!.position.x,
-          layout!.position.y,
+          layout!.position.y -
+            layout!.height / 2 +
+            getClassHeight(classes[i]) / 2,
           layout!.position.z
         );
         obj.visible = getClassState(classes[i].id).isVisible;
-        obj.scale.set(layout!.width, layout!.height, layout!.depth);
+        obj.scale.set(layout!.width, getClassHeight(classes[i]), layout!.depth);
         obj.color = computeColor(classes[i].id);
         obj.updateMatrix();
         i++;
@@ -122,7 +122,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         classIdToInstanceId.clear();
         classIdToClass.clear();
       };
-    }, [classes, layoutMap]);
+    }, [classes, heightMetric, layoutMap]);
 
     const computeColor = (classId: string) => {
       const isHovered = hoveredEntityId === classId;

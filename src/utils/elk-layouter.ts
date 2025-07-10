@@ -214,9 +214,9 @@ function populateAppGraph(appGraph: any, application: Application) {
 
 function populatePackage(packageGraphChildren: any[], component: Package) {
   component.classes.forEach((clazz) => {
-    let withByMetric = 0;
+    let widthByMetric = 0;
     if (WIDTH_METRIC === SelectedClassMetric.Method) {
-      withByMetric = CLASS_FOOTPRINT * 0.5 * clazz.methods.length;
+      widthByMetric = CLASS_FOOTPRINT * 0.5 * clazz.methods.length;
     }
 
     let heightByMetric = 0;
@@ -227,7 +227,7 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
     const classNode = {
       id: CLASS_PREFIX + clazz.id,
       children: [],
-      width: CLASS_FOOTPRINT + withByMetric,
+      width: CLASS_FOOTPRINT + widthByMetric,
       height: CLASS_FOOTPRINT + heightByMetric,
     };
     packageGraphChildren.push(classNode);
@@ -286,7 +286,7 @@ export function convertElkToBoxLayout(
 ): Map<string, BoxLayout> {
   let height = COMPONENT_HEIGHT;
   if (elkGraph.id.startsWith(CLASS_PREFIX)) {
-    height = 10;
+    height = CLASS_FOOTPRINT;
   }
 
   const boxLayout = new BoxLayout();

@@ -20,6 +20,7 @@ import { useShallow } from 'zustand/react/shallow';
 import InstancedClassR3F from './instanced-class-r3f';
 import InstancedComponentR3F from './instanced-component-r3f';
 import ClassLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/class-label-r3f';
+import ComponentLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/component-label-r3f';
 
 export default function ApplicationR3F({
   applicationData,
@@ -178,6 +179,17 @@ export default function ApplicationR3F({
         ref={componentInstanceMeshRef}
         application={applicationData.application}
       />
+      {applicationData
+        .getPackages()
+        .map((packageData) =>
+          layoutMap.get(packageData.id) && componentInstanceMeshRef.current ? (
+            <ComponentLabelR3F
+              key={packageData.id + '-label'}
+              component={packageData}
+              layout={layoutMap.get(packageData.id)!}
+            />
+          ) : null
+        )}
       {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
           <CommunicationR3F
