@@ -96,7 +96,7 @@ export default function ApplicationR3F({
 
   return (
     <group position={appPosition}>
-      <Root positionBottom={15} positionLeft={0} pixelSize={1}>
+      {/* <Root positionBottom={15} positionLeft={0} pixelSize={1}>
         <Container>
           <Button
             width={25}
@@ -113,7 +113,7 @@ export default function ApplicationR3F({
       </Root>
       {isBrowserActive && (
         <EmbeddedBrowser application={applicationData.application} />
-      )}
+      )} */}
       {layoutMap.get(applicationData.getId()) && (
         <FoundationR3F
           application={applicationData.application}
