@@ -63,6 +63,38 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
+    const selectedCommitToApplicationMetricsCodeMap =
+      useEvolutionDataRepositoryStore((state) =>
+        state._appNameToCommitIdToApplicationMetricsCodeMap.get(
+          application.name
+        )
+      );
+
+    const getLoC = (dataModel: Class) => {
+      if (dataModel.loc) return dataModel.loc;
+
+      if (!selectedCommitToApplicationMetricsCodeMap) return null;
+
+      for (const [
+        commitId,
+        appMetricsCode,
+      ] of selectedCommitToApplicationMetricsCodeMap) {
+        const classMetric = appMetricsCode.classMetrics.find((obj) =>
+          obj.hasOwnProperty(dataModel.fqn)
+        );
+
+        if (!classMetric) {
+          //return commitIdToClassMetricsMap;
+          continue;
+        }
+
+        dataModel.loc = classMetric[dataModel.fqn].loc;
+        return dataModel.loc;
+      }
+    };
+
+    // console.log(getLoC());
+
     const commitComparison = useEvolutionDataRepositoryStore
       .getState()
       .getCommitComparisonByAppName(application.name);
@@ -111,6 +143,9 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       let height = layoutMap.get(dataModel.id)?.height || classFootprint;
       if (heightMetric === SelectedClassMetric.Method) {
         height += classFootprint * 0.5 * dataModel.methods.length;
+      }
+      if (heightMetric === SelectedClassMetric.LoC) {
+        height += classFootprint * 0.5 * (getLoC(dataModel) / 10); // scale down LoC to fit the height
       }
       return height;
     };
@@ -226,6 +261,8 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       e.stopPropagation();
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
+
+      getLoC(classIdToClass.get(classId)!);
       // Toggle highlighting
       setHighlightedEntity(classId, !highlightedEntityIds.includes(classId));
 
@@ -241,7 +278,11 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       classIdToInstanceId.forEach((instanceId, classId) => {
         ref.current?.setColorAt(instanceId, computeColor(classId));
       });
-    }, [highlightedEntityIds, hoveredEntityId]);
+    }, [
+      highlightedEntityIds,
+      hoveredEntityId,
+      evoConfig.renderOnlyDifferences,
+    ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
       if (ref === null || typeof ref === 'function') {

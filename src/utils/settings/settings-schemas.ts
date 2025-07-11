@@ -294,7 +294,7 @@ export interface ButtonSetting extends Setting<boolean> {
 export enum SelectedClassMetric {
   None = 'None',
   Method = 'Method Count',
-  LoC = 'Lines of Code',
+  LoC = 'LoC',
 }
 
 export interface FlagSetting extends Setting<boolean> {

@@ -2,6 +2,7 @@ import { Text } from '@react-three/drei';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -36,23 +37,38 @@ export default function ClassLabelR3F({
   const labelRef = useRef(null);
 
   const {
+    classFootprint,
     classLabelFontSize,
     classLabelLength,
     classTextColor,
     labelOffset,
     labelRotation,
+    heightMetric,
     showAllClassLabels,
   } = useUserSettingsStore(
     useShallow((state) => ({
+      classFootprint: state.visualizationSettings.classFootprint.value,
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
       labelOffset: state.visualizationSettings.classLabelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       maxLabelLength: state.visualizationSettings.classLabelLength.value,
+      heightMetric: state.visualizationSettings.classHeightMetric.value,
       showAllClassLabels: state.visualizationSettings.showAllClassLabels.value,
     }))
   );
+
+  const getPositionY = () => {
+    let classHeight = layout.height;
+    if (heightMetric === SelectedClassMetric.Method) {
+      classHeight += classFootprint * 0.5 * dataModel.methods.length;
+    }
+    if (heightMetric === SelectedClassMetric.LoC) {
+      classHeight += classFootprint * 0.05 * dataModel.loc; // scale down LoC to fit the height
+    }
+    return layout.positionY - layout.height / 2 + classHeight + labelOffset;
+  };
 
   return showAllClassLabels ||
     isClassHovered ||
@@ -61,11 +77,7 @@ export default function ClassLabelR3F({
     isParentHighlighted ? (
     <Text
       key={dataModel.id + '-label'}
-      position={[
-        layout.positionX,
-        layout.positionY + layout.height / 2 + labelOffset,
-        layout.positionZ,
-      ]}
+      position={[layout.positionX, getPositionY(), layout.positionZ]}
       color={classTextColor}
       visible={isClassVisible}
       ref={labelRef}
