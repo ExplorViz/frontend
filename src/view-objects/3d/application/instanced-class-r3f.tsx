@@ -75,6 +75,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
 
       if (!selectedCommitToApplicationMetricsCodeMap) return null;
 
+      let loc = -1;
       for (const [
         commitId,
         appMetricsCode,
@@ -87,10 +88,14 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
           //return commitIdToClassMetricsMap;
           continue;
         }
-
-        dataModel.loc = classMetric[dataModel.fqn].loc;
-        return dataModel.loc;
+        if (loc === -1) {
+          loc = classMetric[dataModel.fqn].loc;
+        } else if (evoConfig.renderOnlyDifferences) {
+          loc = Math.abs(loc - classMetric[dataModel.fqn].loc);
+        }
       }
+      dataModel.loc = loc;
+      return dataModel.loc;
     };
 
     // console.log(getLoC());
@@ -176,14 +181,13 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         );
         obj.visible = getClassState(classes[i].id).isVisible;
         obj.scale.set(layout!.width, getClassHeight(classes[i]), layout!.depth);
-        obj.color = computeColor(classes[i]);
+        obj.color = computeColor(classes[i].id);
         obj.updateMatrix();
         i++;
       });
       ref.current.computeBVH();
 
       return () => {
-        // cleanup function to remove instances if necessary
         ref.current?.clearInstances();
         instanceIdToClassId.clear();
         classIdToInstanceId.clear();
@@ -194,7 +198,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     const computeColor = (classId: string) => {
       const dataModel = classIdToClass.get(classId);
       if (!dataModel) {
-        return new THREE.Color(classColor);
+        return new THREE.Color('red');
       }
       if (
         evoConfig.renderOnlyDifferences &&
@@ -237,7 +241,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         const classInfo = getClassState(classId);
         // Set visibility based on classData
         ref.current?.setVisibilityAt(instanceId, classInfo.isVisible);
-        ref.current?.setColorAt(instanceId, computeColor(classId));
+        // ref.current?.setColorAt(instanceId, computeColor(classId));
       });
     }, [classData]);
 
