@@ -1,84 +1,83 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import {
-  AnalysisMode,
-  useRenderingServiceStore,
-} from 'explorviz-frontend/src/stores/rendering-service';
-import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
-import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
-import { Timestamp } from '../utils/landscape-schemes/timestamp';
-import TimelineDataObjectHandler from '../utils/timeline/timeline-data-object-handler';
-import { useSpectateConfigurationStore } from '../stores/spectate-configuration';
 import {
   useLocalUserStore,
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
-import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import {
+  AnalysisMode,
+  useRenderingServiceStore,
+} from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
+import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
+import { useApplicationRendererStore } from '../stores/application-renderer';
+import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
 import { useCommitTreeStateStore } from '../stores/commit-tree-state';
-import eventEmitter from '../utils/event-emitter';
+import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
+import { useHighlightingStore } from '../stores/highlighting';
+import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
+import { useLinkRendererStore } from '../stores/link-renderer';
+import { useReloadHandlerStore } from '../stores/reload-handler';
+import { useSpectateConfigurationStore } from '../stores/spectate-configuration';
+import { useToastHandlerStore } from '../stores/toast-handler';
+import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
+import { ForwardedMessage } from '../utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
 } from '../utils/collaboration/web-socket-messages/receivable/landscape';
 import {
-  TIMESTAMP_UPDATE_EVENT,
-  TimestampUpdateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/timestamp-update';
+  TIMESTAMP_UPDATE_TIMER_EVENT,
+  TimestampUpdateTimerMessage,
+} from '../utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
 } from '../utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
 import {
-  TIMESTAMP_UPDATE_TIMER_EVENT,
-  TimestampUpdateTimerMessage,
-} from '../utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
-import { useLinkRendererStore } from '../stores/link-renderer';
-import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
+  TIMESTAMP_UPDATE_EVENT,
+  TimestampUpdateMessage,
+} from '../utils/collaboration/web-socket-messages/sendable/timestamp-update';
+import {
+  VISUALIZATION_MODE_UPDATE_EVENT,
+  VisualizationModeUpdateMessage,
+} from '../utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
 } from '../utils/collaboration/web-socket-messages/types/serialized-room';
-import { useHighlightingStore } from '../stores/highlighting';
-import { ForwardedMessage } from '../utils/collaboration/web-socket-messages/receivable/forwarded';
-import { useReloadHandlerStore } from '../stores/reload-handler';
-import { useApplicationRendererStore } from '../stores/application-renderer';
-import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
-import { useToastHandlerStore } from '../stores/toast-handler';
-import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import {
-  VISUALIZATION_MODE_UPDATE_EVENT,
-  VisualizationModeUpdateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
-import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
-import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
+import eventEmitter from '../utils/event-emitter';
 import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
+import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
+import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
+import { Timestamp } from '../utils/landscape-schemes/timestamp';
+import TimelineDataObjectHandler from '../utils/timeline/timeline-data-object-handler';
+import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
 // import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
-import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
-import { useUserSettingsStore } from '../stores/user-settings';
-import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
-import { useLandscapeTokenStore } from '../stores/landscape-token';
-import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useFontRepositoryStore } from '../stores/repos/font-repository';
-import { Button } from 'react-bootstrap';
-import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
-import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
-import EvolutionRenderingButtons from '../components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import { ChevronUpIcon } from '@primer/octicons-react';
-import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
-import useSyncState from '../hooks/sync-state';
+import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
+import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
+import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
+import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
+import { Button } from 'react-bootstrap';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { ImmersiveView } from '../rendering/application/immersive-view';
-import { useTimestampStore } from '../stores/timestamp';
 import ArRendering from '../components/extended-reality/ar-rendering';
+import EvolutionRenderingButtons from '../components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
+import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
+import useSyncState from '../hooks/sync-state';
+import { ImmersiveView } from '../rendering/application/immersive-view';
+import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
+import { useLandscapeTokenStore } from '../stores/landscape-token';
+import { useFontRepositoryStore } from '../stores/repos/font-repository';
+import { useUserSettingsStore } from '../stores/user-settings';
 
 const queryParams = [
   'roomId',
@@ -405,7 +404,6 @@ export default function Visualization() {
 
   const shouldDisplayBottomBar = () => {
     return (
-      renderingServiceLandscapeData &&
       !showAR &&
       !showVR &&
       !isSingleLandscapeMode &&
@@ -762,9 +760,9 @@ export default function Visualization() {
           <div className="container-fluid mt-6">
             <div className="jumbotron">
               {isLandscapeExistentAndEmpty ? (
-                <h2>Empty Landscape received.</h2>
+                <h2>Empty Landscape from Span Service received.</h2>
               ) : (
-                <h2>Loading Landscape ...</h2>
+                <h2>Loading Dynamic Landscape Data ...</h2>
               )}
               <p>A new landscape will be fetched every 10 seconds.</p>
             </div>
@@ -798,7 +796,7 @@ export default function Visualization() {
             components={components}
             componentsToolsSidebar={componentsToolsSidebar}
             id="browser-rendering"
-            isDisplayed={allLandscapeDataExistsAndNotEmpty}
+            isDisplayed={allLandscapeDataExistsAndNotEmpty || false}
             landscapeData={renderingServiceLandscapeData}
             landscapeToken={landscapeTokenServiceToken}
             removeTimestampListener={removeTimestampListener}
