@@ -1,18 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import Button from 'react-bootstrap/Button';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import * as THREE from 'three';
-import {
-  DownloadIcon,
-  GearIcon,
-  LogIcon,
-  TrashIcon,
-} from '@primer/octicons-react';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 
 const llms = [
   { id: 'chatgpt', name: 'ChatGPT' },
@@ -27,13 +20,11 @@ interface ChatUser {
   name: string;
 }
 
-interface ChatbotBoxProps { }
+interface ChatbotBoxProps {
+  landscapeData: LandscapeData | null
+}
 
-export default function ChatbotBox({ }: ChatbotBoxProps) {
-  const connectionStatus = useCollaborationSessionStore(
-    (state) => state.connectionStatus
-  );
-  const userId = useLocalUserStore((state) => state.userId);
+export default function ChatbotBox({ landscapeData }: ChatbotBoxProps) {
   const userIsHost = useLocalUserStore((state) => state.isHost);
   const pingReplay = useLocalUserStore((state) => state.pingReplay);
   const highlightReplay = useHighlightingStore(
@@ -282,8 +273,8 @@ export default function ChatbotBox({ }: ChatbotBoxProps) {
 
   // Close dropdown on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = ({ target }: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsOpen(false);
       }
     };

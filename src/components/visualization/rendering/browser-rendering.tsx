@@ -1207,7 +1207,7 @@ export default function BrowserRendering({
                   )}
                   {openedSettingComponent === 'Chatbot' && (
                     <>
-                      <ChatbotBox />
+                      <ChatbotBox landscapeData={landscapeData} />
                     </>
                   )}
                   {openedSettingComponent === 'VSCode-Extension-Settings' && (
