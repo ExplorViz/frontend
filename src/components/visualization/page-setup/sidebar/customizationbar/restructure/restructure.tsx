@@ -34,6 +34,7 @@ import {
   XIcon,
 } from '@primer/octicons-react';
 import { useShallow } from 'zustand/react/shallow';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 
 const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
 const gitlabApi = import.meta.env.VITE_GIT_FACADE_SERV_URL;
@@ -48,7 +49,6 @@ interface RestructureProps {
     dynamicData: DynamicLandscapeData
   ) => void;
   visualizationPaused: boolean;
-  popUpData: PopupData[];
   landscapeToken: LandscapeToken;
   annotationData: AnnotationData[];
   minimizedAnnotations: AnnotationData[];
@@ -61,7 +61,6 @@ export default function Restructure({
   landscapeData,
   restructureLandscape,
   visualizationPaused,
-  popUpData,
   landscapeToken,
   annotationData,
   minimizedAnnotations,
@@ -118,6 +117,12 @@ export default function Restructure({
     showSuccessToastMessage,
     showErrorToastMessage,
   } = useToastHandlerStore();
+
+  const popupHandlerState = usePopupHandlerStore(
+    useShallow((state) => ({
+      popupData: state.popupData,
+    }))
+  );
 
   // MARK: Constants
 
@@ -506,7 +511,11 @@ export default function Restructure({
     const allAnnotations = annotationData.concat(minimizedAnnotations);
 
     const createdAt: number = new Date().getTime();
-    const saveRoom = serializeRoom(popUpData, allAnnotations, true);
+    const saveRoom = serializeRoom(
+      popupHandlerState.popupData,
+      allAnnotations,
+      true
+    );
 
     const timestamps = getTimestampsForCommitId(landscapeToken.value);
     const localUserCamera = getLocalUserCamera();

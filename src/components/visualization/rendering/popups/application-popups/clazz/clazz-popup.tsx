@@ -21,9 +21,7 @@ export default function ClazzPopup({
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break font-weight-bold pl-1">
-          {clazz.name}
-        </div>
+        <div className="text-center text-break fw-bold pl-1">{clazz.name}</div>
       </h3>
       <PopupTabs
         restructureMode={restructureMode}

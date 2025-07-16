@@ -8,6 +8,7 @@ import {
   ColorSchemeId,
   darkColors,
   defaultColors,
+  desertCity,
 } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { validateRangeSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
@@ -141,15 +142,19 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
         switch (schemeId) {
           case 'classic':
-            scheme = classicColors;
+            scheme = { ...defaultColors, ...classicColors };
             break;
           case 'blue':
-            scheme = blueColors;
+            scheme = { ...defaultColors, ...blueColors };
             break;
           case 'dark':
-            scheme = darkColors;
+            scheme = { ...defaultColors, ...darkColors };
+            break;
+          case 'desert':
+            scheme = { ...defaultColors, ...desertCity };
             break;
           default:
+            scheme = { ...defaultColors };
             break;
         }
 
@@ -196,6 +201,27 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             ),
             backgroundColor: new THREE.Color(
               visualizationSettings.backgroundColor.value
+            ),
+            addedComponentColor: new THREE.Color(
+              visualizationSettings.addedComponentColor.value
+            ),
+            removedComponentColor: new THREE.Color(
+              visualizationSettings.removedComponentColor.value
+            ),
+            unchangedComponentColor: new THREE.Color(
+              visualizationSettings.unchangedComponentColor.value
+            ),
+            addedClassColor: new THREE.Color(
+              visualizationSettings.addedClassColor.value
+            ),
+            modifiedClassColor: new THREE.Color(
+              visualizationSettings.modifiedClassColor.value
+            ),
+            removedClassColor: new THREE.Color(
+              visualizationSettings.removedClassColor.value
+            ),
+            unchangedClassColor: new THREE.Color(
+              visualizationSettings.unchangedClassColor.value
             ),
             k8sNodeColor: new THREE.Color(
               visualizationSettings.k8sNodeColor.value

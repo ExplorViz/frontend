@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
-import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
-import Button from 'react-bootstrap/Button';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
+import Button from 'react-bootstrap/Button';
+import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
 
 interface ApplicationSearchEntity {
   fqn: string;
   applicationName: string;
   modelId: string;
   applicationModelId: string;
+  type: string;
 }
-
-interface ApplicationSearchProps {}
 
 export default function ApplicationSearch() {
   useApplicationRepositoryStore((state) => state.applications);
@@ -32,7 +31,7 @@ export default function ApplicationSearch() {
       return fqnStr;
     }
 
-    // Highlight all occurences of the search string in the suggested options
+    // Highlight all occurrences of the search string in the suggested options
     const parts = fqnStr.split(new RegExp(`(${searchString})`, 'gi'));
 
     return parts.map((part, index) =>
@@ -43,8 +42,6 @@ export default function ApplicationSearch() {
   const onChange = (
     newSelectedOptions: MultiValue<ApplicationSearchEntity>
   ) => {
-    // Highlight all newly selected items
-
     const newlySelectedItems = newSelectedOptions.filter(
       (newItem) =>
         !selected.some(
@@ -54,6 +51,7 @@ export default function ApplicationSearch() {
         )
     );
 
+    // Ping all newly selected items
     newlySelectedItems.forEach((item) => {
       pingByModelId(item.modelId, item.applicationModelId, {
         durationInMs: 3500,
@@ -105,7 +103,11 @@ export default function ApplicationSearch() {
         >
           Hightlight All
         </Button>
-        <Button variant="outline-secondary" onClick={pingAllSelectedEntities}>
+        <Button
+          className="mx-2"
+          variant="outline-secondary"
+          onClick={pingAllSelectedEntities}
+        >
           Ping All
         </Button>
       </div>

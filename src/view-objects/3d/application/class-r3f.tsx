@@ -1,22 +1,30 @@
-import { Text } from '@react-three/drei';
-import { ThreeElements, ThreeEvent } from '@react-three/fiber';
+import { Helper, Instance, Text } from '@react-three/drei';
+import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
+import {
+  Application,
+  Class,
+  TypeOfAnalysis,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useMemo, useRef } from 'react';
+import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ClassR3F({
   dataModel,
   layout,
+  application,
 }: {
   dataModel: Class;
   layout: BoxLayout;
+  application: Application;
 }) {
   const { isHighlighted, isHovered, isVisible, updateClassState } =
     useVisualizationStore(
@@ -34,7 +42,15 @@ export default function ClassR3F({
       }))
     );
 
-  const meshRef = useRef<ClazzMesh | null>(null);
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
+    }))
+  );
+
+  const commitComparison = useEvolutionDataRepositoryStore
+    .getState()
+    .getCommitComparisonByAppName(application.name);
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -44,43 +60,76 @@ export default function ClassR3F({
 
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
     addPopup({
-      mesh: meshRef.current,
       position: {
         x: event.clientX,
         y: event.clientY,
       },
+      model: dataModel,
     });
   };
 
   const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const {
+    castShadows,
     classColor,
+    addedClassColor,
+    modifiedClassColor,
+    removedClassColor,
+    unchangedClassColor,
     classLabelFontSize,
     classLabelLength,
     classTextColor,
+    enableHoverEffects,
     highlightedEntityColor,
     labelOffset,
     labelRotation,
     maxLabelLength,
+    showOutlines,
   } = useUserSettingsStore(
     useShallow((state) => ({
+      castShadows: state.visualizationSettings.castShadows.value,
       classColor: state.visualizationSettings.classColor.value,
+      addedClassColor: state.visualizationSettings.addedClassColor.value,
+      modifiedClassColor: state.visualizationSettings.modifiedClassColor.value,
+      removedClassColor: state.visualizationSettings.removedClassColor.value,
+      unchangedClassColor:
+        state.visualizationSettings.unchangedClassColor.value,
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       labelOffset: state.visualizationSettings.classLabelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       maxLabelLength: state.visualizationSettings.classLabelLength.value,
+      showOutlines: state.visualizationSettings.showOutlines.value,
     }))
   );
 
-  const constructorArgs = useMemo<ThreeElements['clazzMesh']['args'][0]>(() => {
-    return {
-      dataModel: dataModel,
-    };
-  }, []);
+  const computeColor = () => {
+    if (evoConfig.renderOnlyDifferences && commitComparison && dataModel.fqn) {
+      if (commitComparison.added.includes(dataModel.fqn)) {
+        return new THREE.Color(addedClassColor);
+      } else if (commitComparison.deleted.includes(dataModel.fqn)) {
+        return new THREE.Color(removedClassColor);
+      } else if (commitComparison.modified.includes(dataModel.fqn)) {
+        return new THREE.Color(modifiedClassColor);
+      } else {
+        return new THREE.Color(unchangedClassColor);
+      }
+    }
+
+    const baseColor = isHighlighted
+      ? new THREE.Color(highlightedEntityColor)
+      : new THREE.Color(classColor);
+
+    if (enableHoverEffects && isHovered) {
+      return calculateColorBrightness(baseColor, 1.1);
+    } else {
+      return baseColor;
+    }
+  };
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
@@ -102,39 +151,50 @@ export default function ClassR3F({
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
+  // Check if class should be displayed
+  if (
+    (dataModel.originOfData === TypeOfAnalysis.Static &&
+      !evoConfig.renderStatic) ||
+    (dataModel.originOfData === TypeOfAnalysis.Dynamic &&
+      !evoConfig.renderDynamic)
+  ) {
+    return null;
+  }
+
   return (
-    <clazzMesh
-      position={layout.position}
-      defaultColor={classColor}
-      highlightingColor={highlightedEntityColor}
-      layout={layout}
-      visible={isVisible}
-      isHovered={isHovered}
-      highlighted={isHighlighted}
-      onClick={handleClickWithPrevent}
-      onDoubleClick={handleDoubleClickWithPrevent}
-      onPointerOver={handleOnPointerOver}
-      onPointerOut={handleOnPointerOut}
-      ref={meshRef}
-      {...pointerStopHandlers}
-      args={[constructorArgs]}
-    >
-      {classLabelFontSize > 0 && classLabelLength > 0 && (
-        <Text
-          color={classTextColor}
-          outlineColor={'black'}
-          outlineWidth={classLabelFontSize * 0.05}
-          position={[0, 0.51 + labelOffset / layout.height, 0]}
-          rotation={[1.5 * Math.PI, 0, labelRotation]}
-          fontSize={classLabelFontSize}
+    <>
+      {isVisible && (
+        <Instance
+          color={computeColor()}
+          castShadow={castShadows}
+          scale={[layout.width, layout.height, layout.depth]}
+          position={layout.position}
+          rotation={[0, 0, 0]}
+          onClick={handleClickWithPrevent}
+          onDoubleClick={handleDoubleClickWithPrevent}
+          onPointerOver={handleOnPointerOver}
+          onPointerOut={handleOnPointerOut}
+          {...pointerStopHandlers}
           visible={isVisible}
-          raycast={() => null}
         >
-          {dataModel.name.length <= maxLabelLength
-            ? dataModel.name
-            : dataModel.name.substring(0, maxLabelLength) + '...'}
-        </Text>
+          {classLabelFontSize > 0 && classLabelLength > 0 && (
+            <Text
+              color={classTextColor}
+              // outlineColor={'black'}
+              // outlineWidth={classLabelFontSize * 0.05}
+              position={[0, 0.51 + labelOffset / layout.height, 0]}
+              rotation={[1.5 * Math.PI, 0, labelRotation]}
+              fontSize={classLabelFontSize}
+              raycast={() => null}
+            >
+              {dataModel.name.length <= maxLabelLength
+                ? dataModel.name
+                : dataModel.name.substring(0, maxLabelLength) + '...'}
+            </Text>
+          )}
+          {showOutlines && <Helper type={THREE.BoxHelper} args={['black']} />}
+        </Instance>
       )}
-    </clazzMesh>
+    </>
   );
 }

@@ -11,7 +11,7 @@ export const delay = (n: number) =>
 const useClickPreventionOnDoubleClick = (
   onClick: (...args: any[]) => void,
   onDoubleClick: (...args: any[]) => void,
-  delayInMs: number = 150,
+  delayInMs: number = 250,
   allowedDelta: number = 5
 ) => {
   const api = useCancelablePromises();

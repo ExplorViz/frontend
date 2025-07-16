@@ -1,7 +1,7 @@
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DropdownButton } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useShallow } from 'zustand/react/shallow';
@@ -13,7 +13,25 @@ export default function EvolutionRenderingButtons() {
     }))
   );
 
-  const [modeLabel, setModeLabel] = useState<string>('Show Evolution Only');
+  const [modeLabel, setModeLabel] = useState<string>('');
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
+    }))
+  );
+
+  useEffect(() => {
+    if (evoConfig.renderOnlyDifferences) {
+      setModeLabel('Evolution (Differences Only)');
+    } else if (evoConfig.renderDynamic && evoConfig.renderStatic) {
+      setModeLabel('Show Runtime + Evolution');
+    } else if (evoConfig.renderDynamic) {
+      setModeLabel('Show Runtime Only');
+    } else {
+      setModeLabel('Show Evolution Only');
+    }
+  }, [evoConfig]);
 
   const renderingService = useRenderingServiceStore(
     useShallow((state) => ({
@@ -65,6 +83,7 @@ export default function EvolutionRenderingButtons() {
       evolutionMode.renderOnlyDifferences = false;
     } else if (x === 'difference') {
       evolutionMode.renderStatic = true;
+      evolutionMode.renderDynamic = false;
       evolutionMode.renderOnlyDifferences = true;
     }
     visService.applyEvolutionModeRenderingConfiguration(evolutionMode);
@@ -102,7 +121,6 @@ export default function EvolutionRenderingButtons() {
                   key="Show Evolution Only"
                   onClick={() => {
                     changeAnalysisMode('static');
-                    setModeLabel('Show Evolution Only');
                   }}
                 >
                   Show Evolution Only
@@ -111,7 +129,6 @@ export default function EvolutionRenderingButtons() {
                   key="Show Runtime Only"
                   onClick={() => {
                     changeAnalysisMode('dynamic');
-                    setModeLabel('Show Runtime Only');
                   }}
                 >
                   Show Runtime Only
@@ -120,7 +137,6 @@ export default function EvolutionRenderingButtons() {
                   key="Show Runtime + Evolution"
                   onClick={() => {
                     changeAnalysisMode('static+dynamic');
-                    setModeLabel('Show Runtime + Evolution');
                   }}
                 >
                   Show Runtime + Evolution
@@ -129,7 +145,6 @@ export default function EvolutionRenderingButtons() {
                   key="Evolution (Differences Only)"
                   onClick={() => {
                     changeAnalysisMode('difference');
-                    setModeLabel('Evolution (Differences Only)');
                   }}
                 >
                   Evolution (Differences Only)

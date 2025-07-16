@@ -31,8 +31,8 @@ import { useDetachedMenuRendererStore } from '../stores/extended-reality/detache
 import { useHighlightingStore } from '../stores/highlighting';
 import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useLinkRendererStore } from '../stores/link-renderer';
 import { useUserSettingsStore } from '../stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
@@ -81,13 +81,6 @@ export default function useLandscapeDataWatcher(
     }))
   );
 
-  const linkRendererState = useLinkRendererStore(
-    useShallow((state) => ({
-      createMeshFromCommunication: state.createMeshFromCommunication,
-      updateLinkPosition: state.updateLinkPosition,
-    }))
-  );
-
   const roomSerializerState = useRoomSerializerStore(
     useShallow((state) => ({
       serializedRoom: state.serializedRoom,
@@ -108,32 +101,10 @@ export default function useLandscapeDataWatcher(
     }))
   );
 
-  const {
-    visualizationSettings,
-    colors,
-    applicationAspectRatio,
-    classFootprint,
-    classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
-    closedComponentHeight,
-  } = useUserSettingsStore(
+  const { visualizationSettings, colors } = useUserSettingsStore(
     useShallow((state) => ({
       visualizationSettings: state.visualizationSettings,
       colors: state.colors,
-      applicationAspectRatio:
-        state.visualizationSettings.applicationAspectRatio,
-      classFootprint: state.visualizationSettings.classFootprint,
-      classMargin: state.visualizationSettings.classMargin,
-      appLabelMargin: state.visualizationSettings.appLabelMargin,
-      appMargin: state.visualizationSettings.appMargin,
-      packageLabelMargin: state.visualizationSettings.packageLabelMargin,
-      packageMargin: state.visualizationSettings.packageMargin,
-      openedComponentHeight: state.visualizationSettings.openedComponentHeight,
-      closedComponentHeight: state.visualizationSettings.closedComponentHeight,
     }))
   );
 
@@ -214,10 +185,7 @@ export default function useLandscapeDataWatcher(
       structureLandscapeData,
       dynamicLandscapeData
     );
-    log('Computed class communication');
-
     if (landscapeRestructureState.restructureMode) {
-      console.log('Computing restructured communication ...');
       classCommunications = computeRestructuredClassCommunication(
         classCommunications,
         landscapeRestructureState.createdClassCommunication,
@@ -225,7 +193,6 @@ export default function useLandscapeDataWatcher(
         landscapeRestructureState.updatedClassCommunications,
         landscapeRestructureState.completelyDeletedClassCommunications
       );
-      console.log('Computed restructured communication.');
     }
     landscapeRestructureState.setAllClassCommunications(classCommunications);
 
@@ -292,19 +259,10 @@ export default function useLandscapeDataWatcher(
 
     // Apply restructure textures in restructure mode
     landscapeRestructureState.applyTextureMappings();
-
     // Add inter-app communication
     const interAppCommunications = classCommunications.filter(
       (x) => x.sourceApp !== x.targetApp
     );
-    interAppCommunications.forEach((communication) => {
-      const commMesh =
-        linkRendererState.createMeshFromCommunication(communication);
-      if (commMesh) {
-        landscape3D.addCommunication(commMesh);
-        linkRendererState.updateLinkPosition(commMesh);
-      }
-    });
 
     const serializedRoom = roomSerializerState.serializedRoom;
 
@@ -372,7 +330,9 @@ export default function useLandscapeDataWatcher(
       dynamic: dynamicLandscapeData,
     };
 
+    log('Beginn to process flat data.');
     const flatData = await sendMessageToWorker(flatDataWorker, workerPayload);
+    log('Finished flat data.');
 
     let applicationData = applicationRepositoryState.getById(application.id);
     if (applicationData) {
@@ -416,20 +376,7 @@ export default function useLandscapeDataWatcher(
 
   useEffect(() => {
     handleUpdatedLandscapeData();
-  }, [
-    landscapeData,
-    landscape3D,
-    // TODO: Outsource layout options to own effect for performance
-    applicationAspectRatio,
-    classFootprint,
-    classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
-    closedComponentHeight,
-  ]);
+  }, [landscapeData, landscape3D]);
 
   useEffect(() => {
     return function cleanup() {

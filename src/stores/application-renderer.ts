@@ -49,6 +49,7 @@ import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-rendere
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 // #endregion imports
 
 export type LayoutData = {
@@ -406,10 +407,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       set({ appCommRendering: newAppCommRendering });
     },
 
-    addCommunicationForAllApplications: () => {
-      get().forEachOpenApplication(get().addCommunication);
-      useLinkRendererStore.getState().updateLinkPositions();
-    },
+    addCommunicationForAllApplications: () => {},
 
     removeCommunicationForAllApplications: () => {
       get().forEachOpenApplication(get().removeCommunication);
@@ -417,19 +415,16 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
 
     updateApplicationObject3DAfterUpdate: (
       applicationObject3D: ApplicationObject3D
-    ) => {
-      // Update links
-      useLinkRendererStore.getState().updateLinkPositions();
-      // Update highlighting
-      useHighlightingStore.getState().updateHighlighting(); // needs to be after update links
-    },
+    ) => {},
 
     openAllComponentsOfAllApplications: () => {
-      get().forEachOpenApplication(get().openAllComponents);
+      useVisualizationStore.getState().actions.openAllComponents();
+      // get().forEachOpenApplication(get().openAllComponents);
     },
 
     closeAllComponentsOfAllApplications: () => {
-      get().forEachOpenApplication(get().closeAllComponents);
+      useVisualizationStore.getState().actions.closeAllComponents();
+      // get().forEachOpenApplication(get().closeAllComponents);
     },
 
     /**
@@ -444,7 +439,6 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       } else {
         get().removeCommunicationForAllApplications();
       }
-      useLinkRendererStore.getState().updateLinkPositions();
     },
 
     /**

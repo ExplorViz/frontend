@@ -15,12 +15,23 @@ export type SettingGroup =
   | 'Debugging'
   | 'Virtual Reality';
 
-export type CameraSettingId = 'cameraNear' | 'cameraFar' | 'cameraFov';
+export type CameraSettingId =
+  | 'cameraNear'
+  | 'cameraFar'
+  | 'cameraFov'
+  | 'raycastEnabled'
+  | 'raycastFirstHit'
+  | 'raycastNear'
+  | 'raycastFar';
 
 export type CameraSettings = {
   cameraNear: RangeSetting;
   cameraFar: RangeSetting;
   cameraFov: RangeSetting;
+  raycastEnabled: FlagSetting;
+  raycastFirstHit: FlagSetting;
+  raycastNear: RangeSetting;
+  raycastFar: RangeSetting;
 };
 
 export type ColorSettingId =
@@ -35,6 +46,13 @@ export type ColorSettingId =
   | 'foundationColor'
   | 'foundationTextColor'
   | 'highlightedEntityColor'
+  | 'addedComponentColor'
+  | 'removedComponentColor'
+  | 'unchangedComponentColor'
+  | 'addedClassColor'
+  | 'modifiedClassColor'
+  | 'removedClassColor'
+  | 'unchangedClassColor'
   | 'k8sNodeColor'
   | 'k8sNamespaceColor'
   | 'k8sDeploymentColor'
@@ -104,16 +122,22 @@ export type HighlightingSettings = {
 export type HoveringSettingId =
   | 'enableHoverEffects'
   | 'enableAnimations'
-  | 'castShadows';
+  | 'castShadows'
+  | 'showAllClassLabels'
+  | 'showOutlines';
 
 export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 
 export type LayoutSettingId =
   | 'applicationLayoutAlgorithm'
   | 'packageLayoutAlgorithm'
+  | 'landscapeScalar'
   | 'applicationDistance'
   | 'applicationAspectRatio'
   | 'classFootprint'
+  | 'classWidthMetric'
+  | 'classDepthMetric'
+  | 'classHeightMetric'
   | 'classMargin'
   | 'classLabelFontSize'
   | 'classLabelLength'
@@ -129,9 +153,13 @@ export type LayoutSettingId =
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
+  landscapeScalar: RangeSetting;
   applicationDistance: RangeSetting;
   applicationAspectRatio: RangeSetting;
   classFootprint: RangeSetting;
+  classWidthMetric: SelectSetting<string>;
+  classDepthMetric: SelectSetting<string>;
+  classHeightMetric: SelectSetting<string>;
   classMargin: RangeSetting;
   classLabelFontSize: RangeSetting;
   classLabelLength: RangeSetting;
@@ -261,6 +289,12 @@ export interface ButtonSetting extends Setting<boolean> {
     | 'link';
   buttonText: string;
   readonly isButtonSetting: true;
+}
+
+export enum SelectedClassMetric {
+  None = 'None',
+  Method = 'Method Count',
+  LoC = 'LoC',
 }
 
 export interface FlagSetting extends Setting<boolean> {

@@ -7,6 +7,7 @@ import Settings from './pages/settings.tsx';
 import Visualization from './pages/visualization.tsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'explorviz-frontend/src/scss/app.scss';
+import 'explorviz-frontend/src/utils/prototype-extensions/instancedmesh2.js';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>

@@ -1,16 +1,12 @@
-import React from 'react';
-
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   ApplicationMetricsCode,
   ClassMetricCode,
 } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
-import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { calculateFqn } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 
 interface ClazzPopupCodeProps {
   popupData: PopupData;
@@ -22,11 +18,6 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
     useEvolutionDataRepositoryStore(
       (state) => state._appNameToCommitIdToApplicationMetricsCodeMap
     );
-  const getSelectedCommits = useCommitTreeStateStore(
-    (state) => state.getSelectedCommits
-  );
-
-  const fileName = (popupData.entity as Class).name;
 
   const appName: string | undefined = (() => {
     const { applicationId: appId } = popupData;
@@ -60,16 +51,6 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
       return selectedCommitToApplicationMetricsCodeMap;
     })();
 
-  const getNumOfCurrentSelectedCommits = (() => {
-    if (!appName) {
-      return [];
-    }
-
-    const selectedCommits = getSelectedCommits().get(appName) ?? [];
-
-    return selectedCommits.length;
-  })();
-
   const classnameToCommitAndClassMetricsArray = (() => {
     const classnameToCommitAndClassMetricsArray: Map<
       string,
@@ -81,19 +62,17 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
       Map<string, ClassMetricCode>
     > = new Map();
 
-    const fqnForClass = calculateFqn(popupData.entity as Class, '/');
+    const fqnForClass = (popupData.entity as Class).fqn!;
 
     for (const [commitId, appMetricsCode] of commitToAppMetricsCodeMap) {
-      const indexOfFileName = appMetricsCode.files.findIndex((file) =>
-        file.includes(fqnForClass)
+      const classMetric = appMetricsCode.classMetrics.find((obj) =>
+        obj.hasOwnProperty(fqnForClass)
       );
 
-      if (indexOfFileName === -1) {
+      if (!classMetric) {
         //return commitIdToClassMetricsMap;
         continue;
       }
-
-      const classMetric = appMetricsCode.classMetrics[indexOfFileName];
 
       for (const [classFqn, metricsData] of Object.entries(classMetric)) {
         const fqnDelimited = classFqn.split('.');
@@ -129,7 +108,7 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
         return (
           <div className="card mb-4" key={classname}>
             <div className="card-header">
-              <strong>Class Name:</strong>
+              <strong>Name:</strong>
               {classname}
             </div>
             <div className="card-body">
@@ -157,19 +136,25 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {commitAndClassMetricsObject.classMetric.loc}
                           </th>
                         );
                       }
                     )}
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <th>LCOM4:</th>
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {commitAndClassMetricsObject.classMetric.LCOM4}
                           </th>
                         );
@@ -181,7 +166,10 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {
                               commitAndClassMetricsObject.classMetric
                                 .cyclomatic_complexity
@@ -196,7 +184,10 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                     {commitAndClassMetricsArray.map(
                       (commitAndClassMetricsObject) => {
                         return (
-                          <th className="text-left" key={commitAndClassMetricsObject.commitId}>
+                          <th
+                            className="text-left"
+                            key={commitAndClassMetricsObject.commitId}
+                          >
                             {
                               commitAndClassMetricsObject.classMetric
                                 .cyclomatic_complexity_weighted
@@ -205,7 +196,7 @@ export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
                         );
                       }
                     )}
-                  </tr>
+                  </tr> */}
                 </tbody>
               </table>
             </div>

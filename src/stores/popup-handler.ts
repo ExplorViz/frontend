@@ -30,10 +30,15 @@ import {
   MENU_DETACHED_EVENT,
   MenuDetachedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import {
+  Application,
+  Class,
+  isClass,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import * as THREE from 'three';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 
 type Position2D = {
   x: number;
@@ -53,7 +58,7 @@ interface PopupHandlerState {
   sharePopup: (popup: PopupData) => void;
   pinPopup: (popup: PopupData) => void;
   removePopup: (entityId: string) => Promise<void>;
-  handleMouseMove: (event: MouseEvent) => void;
+  handleMouseMove: (event: any) => void;
   handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addPopup: ({
     mesh,
@@ -63,14 +68,17 @@ interface PopupHandlerState {
     menuId,
     sharedBy,
     hovered,
+    model,
   }: {
-    mesh: THREE.Object3D | null;
+    mesh?: THREE.Object3D;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
     menuId?: string | null;
     sharedBy?: string | null;
     hovered?: boolean;
+    model?: Application | Package | Class;
+    applicationId?: string;
   }) => void;
   _removePopupAfterTimeout: (popup: PopupData) => void;
   updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;
@@ -191,6 +199,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       set({
         popupData: get().popupData.filter((pd) => pd.entity.id !== entityId),
       });
+      if (isClass(popup.entity)) {
+        useVisualizationStore.getState().actions.updateClassState(entityId, {
+          isHovered: false,
+        });
+      }
     } else {
       useToastHandlerStore
         .getState()
@@ -200,7 +213,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
   },
 
-  handleMouseMove: (event: MouseEvent) => {
+  handleMouseMove: (event: any) => {
     set({
       latestMousePosition: {
         timestamp: Date.now(),
@@ -234,12 +247,12 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     menuId,
     sharedBy,
     hovered,
+    model,
+    applicationId
   }) => {
     // TODO: Handle HTML Mesh better
     if (
-      !mesh ||
-      !('dataModel' in mesh) ||
-      // !isEntityMesh(mesh) ||
+      !model ||
       getStoredSettings().hidePopupDelay.value == 0 ||
       get().deactivated
     ) {
@@ -260,9 +273,9 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       mouseX: popupPosition.x,
       mouseY: popupPosition.y,
       wasMoved: wasMoved || false,
-      entity: mesh.dataModel,
+      entity: model,
       mesh,
-      applicationId: '1',
+      applicationId: applicationId || '',
       menuId: menuId || null,
       isPinned: pinned || false,
       sharedBy: sharedBy || '',
@@ -320,8 +333,9 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
         return;
       }
 
-      // Do not remove popup when mouse stayed (recently) on target entity or shift is pressed
+      // Do not remove popup when mouse is on the popup, stayed (recently) on target entity or shift is pressed
       if (
+        maybePopup.hovered ||
         get().isShiftPressed ||
         (latestMousePosition.x == get().latestMousePosition.x &&
           latestMousePosition.y == get().latestMousePosition.y)

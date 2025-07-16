@@ -1,5 +1,3 @@
-import React from 'react';
-
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { Placement } from 'react-bootstrap/types';
@@ -22,7 +20,11 @@ export default function HelpTooltip({
     >
       <div
         className="inline"
-        style={{ marginLeft: '0.25rem', marginRight: '0.25rem' }}
+        style={{
+          marginLeft: '0.25rem',
+          marginRight: '0.25rem',
+          zIndex: 10000000000000,
+        }}
       >
         <InfoIcon className="align-middle" size="small" fill="#777" />
       </div>
