@@ -14,15 +14,17 @@ export default function ComponentLabelR3F({
   component: Package;
   layout: BoxLayout;
 }) {
-  const { hoveredEntity } = useVisualizationStore(
+  const {
+    labelOffset,
+    componentTextColor,
+    closedComponentHeight,
+    packageLabelMargin,
+  } = useUserSettingsStore(
     useShallow((state) => ({
-      hoveredEntity: state.hoveredEntity,
-    }))
-  );
-
-  const { componentTextColor, packageLabelMargin } = useUserSettingsStore(
-    useShallow((state) => ({
+      labelOffset: state.visualizationSettings.labelOffset.value,
       componentTextColor: state.visualizationSettings.componentTextColor.value,
+      closedComponentHeight:
+        state.visualizationSettings.closedComponentHeight.value,
       packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
     }))
   );
@@ -39,20 +41,35 @@ export default function ComponentLabelR3F({
   );
 
   const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3(
-      layout.positionX,
-      layout.positionY + layout.height / 2 + 0.1,
-      layout.positionZ
-    )
+    new THREE.Vector3()
   );
 
   useEffect(() => {
+    console.log(`Updating label position for component ${component.name}`);
+
     if (isOpen) {
-      setLabelPosition(labelPosition.clone().setZ(layout.positionZ));
+      setLabelPosition(
+        labelPosition
+          .clone()
+          .setX(layout.positionX)
+          .setY(layout.positionY + layout.height / 2 + labelOffset + 0.01)
+          .setZ(layout.positionZ + layout.depth / 2 - packageLabelMargin / 2)
+      );
     } else {
-      setLabelPosition(new THREE.Vector3(0, 0.51, 0));
+      setLabelPosition(
+        labelPosition
+          .clone()
+          .setY(
+            layout.positionY -
+              layout.height / 2 +
+              closedComponentHeight +
+              labelOffset +
+              0.01
+          )
+          .setZ(layout.positionZ)
+      );
     }
-  }, [layout, isOpen]);
+  }, [layout, isOpen, labelOffset]);
 
   return (
     <Text
@@ -61,14 +78,7 @@ export default function ComponentLabelR3F({
       visible={isVisible}
       position={labelPosition}
       rotation={[1.5 * Math.PI, 0, 0]}
-      fontSize={
-        isOpen
-          ? (packageLabelMargin * 10) / layout.depth
-          : Math.max(
-              layout.width * 0.0003,
-              (packageLabelMargin * 0.9) / layout.depth
-            )
-      }
+      fontSize={(packageLabelMargin * 10) / 20}
       raycast={() => null}
     >
       {component.name}

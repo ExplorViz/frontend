@@ -504,13 +504,13 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines how many letters are shown at maximum',
     isRangeSetting: true,
   },
-  classLabelOffset: {
+  labelOffset: {
     level: SettingLevel.EXTENDED,
     value: 0.01,
     range: { min: 0, max: 100, step: 0.1 },
     group: 'Layout',
-    displayName: 'Class Label Offset',
-    description: 'Determines distance between class and its label',
+    displayName: 'Label Offset',
+    description: 'Determines distance between class/component and its label',
     isRangeSetting: true,
   },
   classLabelOrientation: {

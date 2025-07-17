@@ -120,7 +120,7 @@ export type LayoutSettings = {
   classMargin: RangeSetting;
   classLabelFontSize: RangeSetting;
   classLabelLength: RangeSetting;
-  classLabelOffset: RangeSetting;
+  labelOffset: RangeSetting;
   classLabelOrientation: RangeSetting;
   appLabelMargin: RangeSetting;
   appMargin: RangeSetting;

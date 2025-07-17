@@ -61,7 +61,7 @@ export default function ApplicationR3F({
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
-      labelOffset: state.visualizationSettings.classLabelOffset.value,
+      labelOffset: state.visualizationSettings.labelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
     }))
   );

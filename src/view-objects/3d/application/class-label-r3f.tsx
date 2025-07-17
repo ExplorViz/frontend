@@ -75,7 +75,7 @@ export default function ClassLabelR3F({
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
       heightMetric: state.visualizationSettings.classHeightMetric.value,
-      labelOffset: state.visualizationSettings.classLabelOffset.value,
+      labelOffset: state.visualizationSettings.labelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       showAllClassLabels: state.visualizationSettings.showAllClassLabels.value,
     }))
