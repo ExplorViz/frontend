@@ -33,16 +33,13 @@ export type FileMetricCode = {
 };
 
 export type ApplicationMetricsCode = {
-  // fileMetrics, classMetrics and methodMetrics should have
-  // the size of the files list to provide a mapping logic
-  files: string[];
-  fileMetrics: FileMetricCode[];
+  fileMetrics: { [filePath: string]: FileMetricCode };
   classMetrics: {
     [fullQualifiedClassName: string]: ClassMetricCode;
-  }[];
+  };
   methodMetrics: {
     [fullQualifiedClassName: string]: MethodMetricCode;
-  }[];
+  };
 };
 
 export type CommitComparisonMetric = {
