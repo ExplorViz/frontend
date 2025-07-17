@@ -58,23 +58,25 @@ export default function ClassLabelR3F({
 
   const {
     classFootprint,
+    classHeightMultiplier,
     classLabelFontSize,
     classLabelLength,
     classTextColor,
+    heightMetric,
     labelOffset,
     labelRotation,
-    heightMetric,
     showAllClassLabels,
   } = useUserSettingsStore(
     useShallow((state) => ({
       classFootprint: state.visualizationSettings.classFootprint.value,
+      classHeightMultiplier:
+        state.visualizationSettings.classHeightMultiplier.value,
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
+      heightMetric: state.visualizationSettings.classHeightMetric.value,
       labelOffset: state.visualizationSettings.classLabelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
-      maxLabelLength: state.visualizationSettings.classLabelLength.value,
-      heightMetric: state.visualizationSettings.classHeightMetric.value,
       showAllClassLabels: state.visualizationSettings.showAllClassLabels.value,
     }))
   );
@@ -83,6 +85,7 @@ export default function ClassLabelR3F({
     return (
       classFootprint +
       metricMappingMultipliers[heightMetric as MetricKey] *
+        classHeightMultiplier *
         getMetricForClass(
           dataModel,
           application.name,

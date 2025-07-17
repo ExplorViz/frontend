@@ -9,7 +9,10 @@ import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  MetricKey,
+  metricMappingMultipliers,
+} from 'explorviz-frontend/src/utils/settings/default-settings';
 import { forwardRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { BoxGeometry, MeshLambertMaterial } from 'three';
@@ -18,10 +21,6 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
-import {
-  MetricKey,
-  metricMappingMultipliers,
-} from 'explorviz-frontend/src/utils/settings/default-settings';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -82,30 +81,32 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     );
 
     const {
-      classColor,
       addedClassColor,
-      modifiedClassColor,
-      removedClassColor,
-      unchangedClassColor,
+      classColor,
       classFootprint,
+      classHeightMultiplier,
       enableHoverEffects,
       heightMetric,
       highlightedEntityColor,
+      modifiedClassColor,
+      removedClassColor,
+      unchangedClassColor,
     } = useUserSettingsStore(
       useShallow((state) => ({
-        classColor: state.visualizationSettings.classColor.value,
         addedClassColor: state.visualizationSettings.addedClassColor.value,
+        classColor: state.visualizationSettings.classColor.value,
+        classFootprint: state.visualizationSettings.classFootprint.value,
+        classHeightMultiplier:
+          state.visualizationSettings.classHeightMultiplier.value,
+        enableHoverEffects:
+          state.visualizationSettings.enableHoverEffects.value,
+        heightMetric: state.visualizationSettings.classHeightMetric.value,
+        highlightedEntityColor: state.colors?.highlightedEntityColor,
         modifiedClassColor:
           state.visualizationSettings.modifiedClassColor.value,
         removedClassColor: state.visualizationSettings.removedClassColor.value,
         unchangedClassColor:
           state.visualizationSettings.unchangedClassColor.value,
-        classFootprint: state.visualizationSettings.classFootprint.value,
-        enableHoverEffects:
-          state.visualizationSettings.enableHoverEffects.value,
-        highlightedEntityColor: state.colors?.highlightedEntityColor,
-        showOutlines: state.visualizationSettings.showOutlines.value,
-        heightMetric: state.visualizationSettings.classHeightMetric.value,
       }))
     );
 
@@ -119,6 +120,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       return (
         classFootprint +
         metricMappingMultipliers[heightMetric as MetricKey] *
+          classHeightMultiplier *
           getMetricForClass(
             dataModel,
             application.name,
