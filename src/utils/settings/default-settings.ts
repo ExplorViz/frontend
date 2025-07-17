@@ -4,6 +4,26 @@ import {
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
+export const metricKeys = [
+  'None',
+  'Method Count',
+  'loc',
+  'LCOM4',
+  'cyclomatic_complexity',
+  'cyclomatic_complexity_weighted',
+] as const;
+
+export type MetricKey = (typeof metricKeys)[number];
+
+export const metricMappingMultipliers: Record<MetricKey, number> = {
+  None: 1,
+  'Method Count': 10,
+  loc: 1,
+  LCOM4: 10,
+  cyclomatic_complexity: 10,
+  cyclomatic_complexity_weighted: 10,
+};
+
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   backgroundColor: {
@@ -282,7 +302,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   showAllClassLabels: {
     level: SettingLevel.DEFAULT,
-    value: false,
+    value: true,
     group: 'Effects',
     displayName: 'Show All Class Labels',
     description: 'Shows labels all the time or only when hovered.',
@@ -402,7 +422,7 @@ export const defaultVizSettings: VisualizationSettings = {
   classWidthMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
-    options: ['None', 'LoC', 'Method Count'],
+    options: metricKeys,
     group: 'Layout',
     displayName: 'Width Metric',
     description: 'Metric that is mapped to the width of a class.',
@@ -411,7 +431,7 @@ export const defaultVizSettings: VisualizationSettings = {
   classDepthMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
-    options: ['None', 'LoC', 'Method Count'],
+    options: metricKeys,
     group: 'Layout',
     displayName: 'Depth Metric',
     description: 'Metric that is mapped to the depth of a class.',
@@ -420,7 +440,7 @@ export const defaultVizSettings: VisualizationSettings = {
   classHeightMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
-    options: ['None', 'LoC', 'Method Count'],
+    options: metricKeys,
     group: 'Layout',
     displayName: 'Height Metric',
     description: 'Metric that is mapped to the height of a class.',

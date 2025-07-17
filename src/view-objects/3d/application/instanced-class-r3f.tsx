@@ -18,6 +18,10 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
+import {
+  MetricKey,
+  metricMappingMultipliers,
+} from 'explorviz-frontend/src/utils/settings/default-settings';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -63,42 +67,9 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const selectedCommitToApplicationMetricsCodeMap =
-      useEvolutionDataRepositoryStore((state) =>
-        state._appNameToCommitIdToApplicationMetricsCodeMap.get(
-          application.name
-        )
-      );
-
-    const getLoC = (dataModel: Class) => {
-      if (dataModel.loc) return dataModel.loc;
-
-      if (!selectedCommitToApplicationMetricsCodeMap) return null;
-
-      let loc = -1;
-      for (const [
-        commitId,
-        appMetricsCode,
-      ] of selectedCommitToApplicationMetricsCodeMap) {
-        const classMetric = appMetricsCode.classMetrics.find((obj) =>
-          obj.hasOwnProperty(dataModel.fqn)
-        );
-
-        if (!classMetric) {
-          //return commitIdToClassMetricsMap;
-          continue;
-        }
-        if (loc === -1) {
-          loc = classMetric[dataModel.fqn].loc;
-        } else if (evoConfig.renderOnlyDifferences) {
-          loc = Math.abs(loc - classMetric[dataModel.fqn].loc);
-        }
-      }
-      dataModel.loc = loc;
-      return dataModel.loc;
-    };
-
-    // console.log(getLoC());
+    const getMetricForClass = useEvolutionDataRepositoryStore(
+      (state) => state.getMetricForClass
+    );
 
     const commitComparison = useEvolutionDataRepositoryStore
       .getState()
@@ -145,14 +116,16 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     );
 
     const getClassHeight = (dataModel: Class) => {
-      let height = layoutMap.get(dataModel.id)?.height || classFootprint;
-      if (heightMetric === SelectedClassMetric.Method) {
-        height += classFootprint * 0.5 * dataModel.methods.length;
-      }
-      if (heightMetric === SelectedClassMetric.LoC) {
-        height += classFootprint * 0.5 * (getLoC(dataModel) / 10); // scale down LoC to fit the height
-      }
-      return height;
+      return (
+        classFootprint +
+        metricMappingMultipliers[heightMetric as MetricKey] *
+          getMetricForClass(
+            dataModel,
+            application.name,
+            heightMetric,
+            evoConfig.renderOnlyDifferences
+          )
+      );
     };
 
     useEffect(() => {
@@ -266,7 +239,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
 
-      getLoC(classIdToClass.get(classId)!);
+      // getLoC(classIdToClass.get(classId)!);
       // Toggle highlighting
       setHighlightedEntity(classId, !highlightedEntityIds.includes(classId));
 

@@ -171,6 +171,7 @@ export default function ApplicationR3F({
             <ClassLabelR3F
               key={classData.id + '-label'}
               dataModel={classData}
+              application={applicationData.application}
               layout={layoutMap.get(classData.id)!}
             />
           ) : null
