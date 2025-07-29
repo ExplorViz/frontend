@@ -14,6 +14,7 @@ import {
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -34,7 +35,9 @@ let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
 let WIDTH_METRIC: string;
+let WIDTH_METRIC_MULTIPLIER: number;
 let DEPTH_METRIC: string;
+let DEPTH_METRIC_MULTIPLIER: number;
 let CLASS_MARGIN: number;
 let APP_LABEL_MARGIN: number;
 let APP_MARGIN: number;
@@ -53,8 +56,10 @@ export default async function layoutLandscape(
   CLASS_FOOTPRINT = getStoredNumberSetting('classFootprint');
   WIDTH_METRIC = (getStoredSettings().classWidthMetric.value ||
     'None') as string;
+  WIDTH_METRIC_MULTIPLIER = getStoredNumberSetting('classWidthMultiplier');
   DEPTH_METRIC = (getStoredSettings().classDepthMetric.value ||
     'None') as string;
+  DEPTH_METRIC_MULTIPLIER = getStoredNumberSetting('classDepthMultiplier');
   CLASS_MARGIN = getStoredNumberSetting('classMargin');
   APP_LABEL_MARGIN = getStoredNumberSetting('appLabelMargin');
   APP_MARGIN = getStoredNumberSetting('appMargin');
@@ -216,19 +221,25 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
   component.classes.forEach((clazz) => {
     let widthByMetric = 0;
     if (WIDTH_METRIC === SelectedClassMetric.Method) {
-      widthByMetric = CLASS_FOOTPRINT * 0.5 * clazz.methods.length;
+      widthByMetric =
+        WIDTH_METRIC_MULTIPLIER *
+        metricMappingMultipliers['Method Count'] *
+        clazz.methods.length;
     }
 
-    let heightByMetric = 0;
+    let depthByMetric = 0;
     if (DEPTH_METRIC === SelectedClassMetric.Method) {
-      heightByMetric = CLASS_FOOTPRINT * 0.5 * clazz.methods.length;
+      depthByMetric =
+        DEPTH_METRIC_MULTIPLIER *
+        metricMappingMultipliers['Method Count'] *
+        clazz.methods.length;
     }
 
     const classNode = {
       id: CLASS_PREFIX + clazz.id,
       children: [],
       width: CLASS_FOOTPRINT + widthByMetric,
-      height: CLASS_FOOTPRINT + heightByMetric,
+      height: CLASS_FOOTPRINT + depthByMetric,
     };
     packageGraphChildren.push(classNode);
   });

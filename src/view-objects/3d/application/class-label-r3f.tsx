@@ -1,8 +1,16 @@
 import { Text } from '@react-three/drei';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  Application,
+  Class,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  MetricKey,
+  metricMappingMultipliers,
+} from 'explorviz-frontend/src/utils/settings/default-settings';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -10,9 +18,11 @@ import { useShallow } from 'zustand/react/shallow';
 export default function ClassLabelR3F({
   dataModel,
   layout,
+  application,
 }: {
   dataModel: Class;
   layout: BoxLayout;
+  application: Application;
 }) {
   const {
     isClassHovered,
@@ -36,38 +46,57 @@ export default function ClassLabelR3F({
 
   const labelRef = useRef(null);
 
+  const getMetricForClass = useEvolutionDataRepositoryStore(
+    (state) => state.getMetricForClass
+  );
+
+  const { evoConfig } = useVisibilityServiceStore(
+    useShallow((state) => ({
+      evoConfig: state._evolutionModeRenderingConfiguration,
+    }))
+  );
+
   const {
     classFootprint,
+    classHeightMultiplier,
     classLabelFontSize,
     classLabelLength,
     classTextColor,
+    heightMetric,
     labelOffset,
     labelRotation,
-    heightMetric,
     showAllClassLabels,
   } = useUserSettingsStore(
     useShallow((state) => ({
       classFootprint: state.visualizationSettings.classFootprint.value,
+      classHeightMultiplier:
+        state.visualizationSettings.classHeightMultiplier.value,
       classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
       classLabelLength: state.visualizationSettings.classLabelLength.value,
       classTextColor: state.visualizationSettings.classTextColor.value,
-      labelOffset: state.visualizationSettings.classLabelOffset.value,
-      labelRotation: state.visualizationSettings.classLabelOrientation.value,
-      maxLabelLength: state.visualizationSettings.classLabelLength.value,
       heightMetric: state.visualizationSettings.classHeightMetric.value,
+      labelOffset: state.visualizationSettings.labelOffset.value,
+      labelRotation: state.visualizationSettings.classLabelOrientation.value,
       showAllClassLabels: state.visualizationSettings.showAllClassLabels.value,
     }))
   );
 
+  const getClassHeight = () => {
+    return (
+      classFootprint +
+      metricMappingMultipliers[heightMetric as MetricKey] *
+        classHeightMultiplier *
+        getMetricForClass(
+          dataModel,
+          application.name,
+          heightMetric,
+          evoConfig.renderOnlyDifferences
+        )
+    );
+  };
+
   const getPositionY = () => {
-    let classHeight = layout.height;
-    if (heightMetric === SelectedClassMetric.Method) {
-      classHeight += classFootprint * 0.5 * dataModel.methods.length;
-    }
-    if (heightMetric === SelectedClassMetric.LoC) {
-      classHeight += classFootprint * 0.05 * dataModel.loc; // scale down LoC to fit the height
-    }
-    return layout.positionY - layout.height / 2 + classHeight + labelOffset;
+    return layout.positionY + getClassHeight() + labelOffset;
   };
 
   return showAllClassLabels ||

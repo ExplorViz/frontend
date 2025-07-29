@@ -9,7 +9,10 @@ import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  MetricKey,
+  metricMappingMultipliers,
+} from 'explorviz-frontend/src/utils/settings/default-settings';
 import { forwardRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { BoxGeometry, MeshLambertMaterial } from 'three';
@@ -63,42 +66,9 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const selectedCommitToApplicationMetricsCodeMap =
-      useEvolutionDataRepositoryStore((state) =>
-        state._appNameToCommitIdToApplicationMetricsCodeMap.get(
-          application.name
-        )
-      );
-
-    const getLoC = (dataModel: Class) => {
-      if (dataModel.loc) return dataModel.loc;
-
-      if (!selectedCommitToApplicationMetricsCodeMap) return null;
-
-      let loc = -1;
-      for (const [
-        commitId,
-        appMetricsCode,
-      ] of selectedCommitToApplicationMetricsCodeMap) {
-        const classMetric = appMetricsCode.classMetrics.find((obj) =>
-          obj.hasOwnProperty(dataModel.fqn)
-        );
-
-        if (!classMetric) {
-          //return commitIdToClassMetricsMap;
-          continue;
-        }
-        if (loc === -1) {
-          loc = classMetric[dataModel.fqn].loc;
-        } else if (evoConfig.renderOnlyDifferences) {
-          loc = Math.abs(loc - classMetric[dataModel.fqn].loc);
-        }
-      }
-      dataModel.loc = loc;
-      return dataModel.loc;
-    };
-
-    // console.log(getLoC());
+    const getMetricForClass = useEvolutionDataRepositoryStore(
+      (state) => state.getMetricForClass
+    );
 
     const commitComparison = useEvolutionDataRepositoryStore
       .getState()
@@ -111,30 +81,32 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     );
 
     const {
-      classColor,
       addedClassColor,
-      modifiedClassColor,
-      removedClassColor,
-      unchangedClassColor,
+      classColor,
       classFootprint,
+      classHeightMultiplier,
       enableHoverEffects,
       heightMetric,
       highlightedEntityColor,
+      modifiedClassColor,
+      removedClassColor,
+      unchangedClassColor,
     } = useUserSettingsStore(
       useShallow((state) => ({
-        classColor: state.visualizationSettings.classColor.value,
         addedClassColor: state.visualizationSettings.addedClassColor.value,
+        classColor: state.visualizationSettings.classColor.value,
+        classFootprint: state.visualizationSettings.classFootprint.value,
+        classHeightMultiplier:
+          state.visualizationSettings.classHeightMultiplier.value,
+        enableHoverEffects:
+          state.visualizationSettings.enableHoverEffects.value,
+        heightMetric: state.visualizationSettings.classHeightMetric.value,
+        highlightedEntityColor: state.colors?.highlightedEntityColor,
         modifiedClassColor:
           state.visualizationSettings.modifiedClassColor.value,
         removedClassColor: state.visualizationSettings.removedClassColor.value,
         unchangedClassColor:
           state.visualizationSettings.unchangedClassColor.value,
-        classFootprint: state.visualizationSettings.classFootprint.value,
-        enableHoverEffects:
-          state.visualizationSettings.enableHoverEffects.value,
-        highlightedEntityColor: state.colors?.highlightedEntityColor,
-        showOutlines: state.visualizationSettings.showOutlines.value,
-        heightMetric: state.visualizationSettings.classHeightMetric.value,
       }))
     );
 
@@ -145,14 +117,17 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     );
 
     const getClassHeight = (dataModel: Class) => {
-      let height = layoutMap.get(dataModel.id)?.height || classFootprint;
-      if (heightMetric === SelectedClassMetric.Method) {
-        height += classFootprint * 0.5 * dataModel.methods.length;
-      }
-      if (heightMetric === SelectedClassMetric.LoC) {
-        height += classFootprint * 0.5 * (getLoC(dataModel) / 10); // scale down LoC to fit the height
-      }
-      return height;
+      return (
+        classFootprint +
+        metricMappingMultipliers[heightMetric as MetricKey] *
+          classHeightMultiplier *
+          getMetricForClass(
+            dataModel,
+            application.name,
+            heightMetric,
+            evoConfig.renderOnlyDifferences
+          )
+      );
     };
 
     useEffect(() => {
@@ -266,7 +241,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
 
-      getLoC(classIdToClass.get(classId)!);
+      // getLoC(classIdToClass.get(classId)!);
       // Toggle highlighting
       setHighlightedEntity(classId, !highlightedEntityIds.includes(classId));
 

@@ -220,8 +220,7 @@ export function positionClassLabel(
   labelMesh.geometry.center();
 
   const offset =
-    useUserSettingsStore.getState().visualizationSettings.classLabelOffset
-      .value;
+    useUserSettingsStore.getState().visualizationSettings.labelOffset.value;
 
   // Set y-position just above the clazz mesh
   labelMesh.position.y = parentMesh.geometry.parameters.height / 2 + offset;

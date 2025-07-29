@@ -100,7 +100,7 @@ export default function ClassR3F({
       classTextColor: state.visualizationSettings.classTextColor.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
-      labelOffset: state.visualizationSettings.classLabelOffset.value,
+      labelOffset: state.visualizationSettings.labelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       maxLabelLength: state.visualizationSettings.classLabelLength.value,
       showOutlines: state.visualizationSettings.showOutlines.value,

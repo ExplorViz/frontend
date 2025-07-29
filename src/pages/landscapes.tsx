@@ -1,4 +1,11 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import RoomList from 'explorviz-frontend/src/components/collaboration/room-list';
+import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
+import TokenCreationModal from 'explorviz-frontend/src/components/token-creation-modal';
+import TokenSelection from 'explorviz-frontend/src/components/token-selection';
+import React, { useEffect, useState } from 'react';
+import { Tab, Tabs } from 'react-bootstrap';
+import { createSearchParams, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../stores/auth';
 import {
   LandscapeToken,
   useLandscapeTokenStore,
@@ -8,14 +15,7 @@ import {
   TinySnapshot,
   useSnapshotTokenStore,
 } from '../stores/snapshot-token';
-import { useNavigate, createSearchParams, useParams } from 'react-router-dom';
 import { useToastHandlerStore } from '../stores/toast-handler';
-import { useAuthStore } from '../stores/auth';
-import { Tabs, Tab, Button } from 'react-bootstrap';
-import TokenSelection from 'explorviz-frontend/src/components/token-selection';
-import RoomList from 'explorviz-frontend/src/components/collaboration/room-list';
-import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
-import TokenCreationModal from 'explorviz-frontend/src/components/token-creation-modal';
 import LandscapeLoader from './landscapes-loading';
 
 export default function Landscapes() {

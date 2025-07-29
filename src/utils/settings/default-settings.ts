@@ -4,6 +4,17 @@ import {
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
+export const metricMappingMultipliers = {
+  None: 1,
+  'Method Count': 10,
+  loc: 1,
+  LCOM4: 10,
+  cyclomatic_complexity: 10,
+  cyclomatic_complexity_weighted: 10,
+} as const;
+export type MetricKey = keyof typeof metricMappingMultipliers;
+export const metricKeys = Object.keys(metricMappingMultipliers) as MetricKey[];
+
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   backgroundColor: {
@@ -282,7 +293,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   showAllClassLabels: {
     level: SettingLevel.DEFAULT,
-    value: false,
+    value: true,
     group: 'Effects',
     displayName: 'Show All Class Labels',
     description: 'Shows labels all the time or only when hovered.',
@@ -402,29 +413,59 @@ export const defaultVizSettings: VisualizationSettings = {
   classWidthMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
-    options: ['None', 'LoC', 'Method Count'],
+    options: metricKeys,
     group: 'Layout',
     displayName: 'Width Metric',
     description: 'Metric that is mapped to the width of a class.',
     isSelectSetting: true,
   },
+  classWidthMultiplier: {
+    level: SettingLevel.EXTENDED,
+    value: 1.0,
+    range: { min: 0, max: 10, step: 0.1 },
+    group: 'Layout',
+    displayName: 'Width Multiplier',
+    description:
+      'Multiplier for metric that is mapped to the width of a class.',
+    isRangeSetting: true,
+  },
   classDepthMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
-    options: ['None', 'LoC', 'Method Count'],
+    options: metricKeys,
     group: 'Layout',
     displayName: 'Depth Metric',
     description: 'Metric that is mapped to the depth of a class.',
     isSelectSetting: true,
   },
+  classDepthMultiplier: {
+    level: SettingLevel.EXTENDED,
+    value: 1.0,
+    range: { min: 0, max: 10, step: 0.1 },
+    group: 'Layout',
+    displayName: 'Depth Multiplier',
+    description:
+      'Multiplier for metric that is mapped to the depth of a class.',
+    isRangeSetting: true,
+  },
   classHeightMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
-    options: ['None', 'LoC', 'Method Count'],
+    options: metricKeys,
     group: 'Layout',
     displayName: 'Height Metric',
     description: 'Metric that is mapped to the height of a class.',
     isSelectSetting: true,
+  },
+  classHeightMultiplier: {
+    level: SettingLevel.EXTENDED,
+    value: 1.0,
+    range: { min: 0, max: 10, step: 0.1 },
+    group: 'Layout',
+    displayName: 'Height Multiplier',
+    description:
+      'Multiplier for metric that is mapped to the height of a class.',
+    isRangeSetting: true,
   },
   classFootprint: {
     level: SettingLevel.DEFAULT,
@@ -463,13 +504,13 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines how many letters are shown at maximum',
     isRangeSetting: true,
   },
-  classLabelOffset: {
+  labelOffset: {
     level: SettingLevel.EXTENDED,
     value: 0.01,
     range: { min: 0, max: 100, step: 0.1 },
     group: 'Layout',
-    displayName: 'Class Label Offset',
-    description: 'Determines distance between class and its label',
+    displayName: 'Label Offset',
+    description: 'Determines distance between class/component and its label',
     isRangeSetting: true,
   },
   classLabelOrientation: {
@@ -887,4 +928,4 @@ export const defaultVizSettings: VisualizationSettings = {
       'Toggle the different users position markers visibility for the minimap',
     isFlagSetting: true,
   },
-};
+} as const;

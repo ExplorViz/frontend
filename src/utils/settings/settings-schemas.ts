@@ -15,15 +15,6 @@ export type SettingGroup =
   | 'Debugging'
   | 'Virtual Reality';
 
-export type CameraSettingId =
-  | 'cameraNear'
-  | 'cameraFar'
-  | 'cameraFov'
-  | 'raycastEnabled'
-  | 'raycastFirstHit'
-  | 'raycastNear'
-  | 'raycastFar';
-
 export type CameraSettings = {
   cameraNear: RangeSetting;
   cameraFar: RangeSetting;
@@ -33,6 +24,7 @@ export type CameraSettings = {
   raycastNear: RangeSetting;
   raycastFar: RangeSetting;
 };
+export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
@@ -61,12 +53,11 @@ export type ColorSettingId =
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
-export type ControlSettingId = 'enableGamepadControls' | 'selectedGamepadIndex';
-
 export type ControlSettings = {
   enableGamepadControls: FlagSetting;
   selectedGamepadIndex: RangeSetting;
 };
+export type ControlSettingId = keyof ControlSettings;
 
 export type CommunicationSettingId =
   | 'commThickness'
@@ -79,16 +70,6 @@ export type CommunicationSettings = Record<
   RangeSetting
 >;
 
-export type DebugSettingId =
-  | 'showExtendedSettings'
-  | 'showFpsCounter'
-  | 'showAxesHelper'
-  | 'showLightHelper'
-  | 'showSemanticZoomCenterPoints'
-  | 'fullscreen'
-  | 'syncRoomState'
-  | 'resetToDefaults';
-
 export type DebugSettings = {
   showExtendedSettings: FlagSetting;
   showFpsCounter: FlagSetting;
@@ -99,18 +80,12 @@ export type DebugSettings = {
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
 };
-
-export type HeatmapSettingId = 'heatmapEnabled';
+export type DebugSettingId = keyof DebugSettings;
 
 export type HeatmapSettings = {
   heatmapEnabled: FlagSetting;
 };
-
-export type HighlightingSettingId =
-  | 'applyHighlightingOnHover'
-  | 'keepHighlightingOnOpenOrClose'
-  | 'transparencyIntensity'
-  | 'enableMultipleHighlighting';
+export type HeatmapSettingId = keyof HeatmapSettings;
 
 export type HighlightingSettings = {
   applyHighlightingOnHover: FlagSetting;
@@ -118,6 +93,7 @@ export type HighlightingSettings = {
   transparencyIntensity: RangeSetting;
   enableMultipleHighlighting: FlagSetting;
 };
+export type HighlightingSettingId = keyof HighlightingSettings;
 
 export type HoveringSettingId =
   | 'enableHoverEffects'
@@ -128,28 +104,6 @@ export type HoveringSettingId =
 
 export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 
-export type LayoutSettingId =
-  | 'applicationLayoutAlgorithm'
-  | 'packageLayoutAlgorithm'
-  | 'landscapeScalar'
-  | 'applicationDistance'
-  | 'applicationAspectRatio'
-  | 'classFootprint'
-  | 'classWidthMetric'
-  | 'classDepthMetric'
-  | 'classHeightMetric'
-  | 'classMargin'
-  | 'classLabelFontSize'
-  | 'classLabelLength'
-  | 'classLabelOffset'
-  | 'classLabelOrientation'
-  | 'appLabelMargin'
-  | 'appMargin'
-  | 'packageLabelMargin'
-  | 'packageMargin'
-  | 'openedComponentHeight'
-  | 'closedComponentHeight';
-
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
@@ -158,12 +112,15 @@ export type LayoutSettings = {
   applicationAspectRatio: RangeSetting;
   classFootprint: RangeSetting;
   classWidthMetric: SelectSetting<string>;
+  classWidthMultiplier: RangeSetting;
   classDepthMetric: SelectSetting<string>;
+  classDepthMultiplier: RangeSetting;
   classHeightMetric: SelectSetting<string>;
+  classHeightMultiplier: RangeSetting;
   classMargin: RangeSetting;
   classLabelFontSize: RangeSetting;
   classLabelLength: RangeSetting;
-  classLabelOffset: RangeSetting;
+  labelOffset: RangeSetting;
   classLabelOrientation: RangeSetting;
   appLabelMargin: RangeSetting;
   appMargin: RangeSetting;
@@ -172,17 +129,7 @@ export type LayoutSettings = {
   openedComponentHeight: RangeSetting;
   closedComponentHeight: RangeSetting;
 };
-
-export type MinimapSettingId =
-  | 'minimap'
-  | 'zoom'
-  | 'useCameraPosition'
-  | 'layer1'
-  | 'layer2'
-  | 'layer3'
-  | 'layer4'
-  | 'layer6'
-  | 'layer7';
+export type LayoutSettingId = keyof LayoutSettings;
 
 export type MinimapSettings = {
   minimap: FlagSetting;
@@ -195,25 +142,12 @@ export type MinimapSettings = {
   layer6: FlagSetting;
   layer7: FlagSetting;
 };
-
-export type PopupSettingId = 'hidePopupDelay';
+export type MinimapSettingId = keyof MinimapSettings;
 
 export type PopupSettings = {
   hidePopupDelay: RangeSetting;
 };
-
-export type SemanticZoomSettingId =
-  | 'semanticZoomState'
-  | 'usePredefinedSet'
-  | 'distancePreSet'
-  | 'distanceLevel1'
-  | 'distanceLevel2'
-  | 'distanceLevel3'
-  | 'distanceLevel4'
-  | 'distanceLevel5'
-  | 'autoOpenCloseFeature'
-  | 'useKMeansInsteadOfMeanShift'
-  | 'clusterBasedOnMembers';
+export type PopupSettingId = keyof PopupSettings;
 
 export type SemanticZoomSettings = {
   usePredefinedSet: FlagSetting;
@@ -228,9 +162,9 @@ export type SemanticZoomSettings = {
   autoOpenCloseFeature: FlagSetting;
   useKMeansInsteadOfMeanShift: FlagSetting;
 };
+export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
-
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type VisualizationSettingId =
