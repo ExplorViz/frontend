@@ -1,15 +1,11 @@
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
-import {
-  ExplorVizColors,
-  useUserSettingsStore,
-} from 'explorviz-frontend/src/stores/user-settings';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   Application,
   isApplication,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';

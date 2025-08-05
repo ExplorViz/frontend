@@ -96,14 +96,15 @@ export type HighlightingSettings = {
 };
 export type HighlightingSettingId = keyof HighlightingSettings;
 
-export type HoveringSettingId =
-  | 'enableHoverEffects'
-  | 'enableAnimations'
-  | 'castShadows'
-  | 'showAllClassLabels'
-  | 'showOutlines';
-
-export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
+export type EffectSettings = {
+  animationDuration: RangeSetting;
+  castShadows: FlagSetting;
+  enableAnimations: FlagSetting;
+  enableHoverEffects: FlagSetting;
+  showAllClassLabels: FlagSetting;
+  showOutlines: FlagSetting;
+};
+export type EffectSettingId = keyof EffectSettings;
 
 export type LabelSettings = {
   appLabelMargin: RangeSetting;
@@ -181,7 +182,7 @@ export type VisualizationSettingId =
   | DebugSettingId
   | HeatmapSettingId
   | HighlightingSettingId
-  | HoveringSettingId
+  | EffectSettingId
   | LayoutSettingId
   | LabelSettingId
   | MinimapSettingId
@@ -195,7 +196,7 @@ export type VisualizationSettings = CameraSettings &
   DebugSettings &
   HeatmapSettings &
   HighlightingSettings &
-  HoveringSettings &
+  EffectSettings &
   LayoutSettings &
   LabelSettings &
   MinimapSettings &

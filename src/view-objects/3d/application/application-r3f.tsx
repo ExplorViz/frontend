@@ -31,12 +31,14 @@ export default function ApplicationR3F({
   const [isCameraZoomedIn, setIsCameraZoomedIn] = useState(false);
   const { camera } = useThree();
 
-  const { enableAnimations, zoomDistance } = useUserSettingsStore(
-    useShallow((state) => ({
-      enableAnimations: state.visualizationSettings.enableAnimations.value,
-      zoomDistance: state.visualizationSettings.maxCamHeightForCamera.value,
-    }))
-  );
+  const { animationDuration, enableAnimations, zoomDistance } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        animationDuration: state.visualizationSettings.animationDuration.value,
+        enableAnimations: state.visualizationSettings.enableAnimations.value,
+        zoomDistance: state.visualizationSettings.maxCamHeightForCamera.value,
+      }))
+    );
 
   useFrame(() => {
     setIsCameraZoomedIn(camera.position.y < zoomDistance);
@@ -77,7 +79,7 @@ export default function ApplicationR3F({
         positionX: newPosition.x,
         positionY: newPosition.y,
         positionZ: newPosition.z,
-        duration: 0.25,
+        duration: animationDuration,
         onUpdate: () => {
           setAppPosition(
             new THREE.Vector3(
@@ -129,7 +131,7 @@ export default function ApplicationR3F({
       {applicationData
         .getClasses()
         .map((classData) =>
-          layoutMap.get(classData.id) && classInstanceMeshRef.current ? (
+          layoutMap.get(classData.id) ? (
             <ClassLabelR3F
               key={classData.id + '-label'}
               dataModel={classData}
@@ -148,7 +150,7 @@ export default function ApplicationR3F({
       {applicationData
         .getPackages()
         .map((packageData) =>
-          layoutMap.get(packageData.id) && componentInstanceMeshRef.current ? (
+          layoutMap.get(packageData.id) ? (
             <ComponentLabelR3F
               key={packageData.id + '-label'}
               component={packageData}

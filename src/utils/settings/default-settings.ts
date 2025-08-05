@@ -267,6 +267,16 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   // Effect Settings
+  animationDuration: {
+    level: SettingLevel.DEFAULT,
+    value: 0.25,
+    range: { min: 0.05, max: 1.0, step: 0.05 },
+    group: 'Effects',
+    displayName: 'Animation Duration',
+    description:
+      'Duration of animations in seconds (e.g. opening and closing of components)',
+    isRangeSetting: true,
+  },
   enableHoverEffects: {
     level: SettingLevel.DEFAULT,
     value: true,
