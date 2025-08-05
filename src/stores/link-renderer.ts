@@ -39,10 +39,10 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     if (!parentComponent) return entity;
 
     // Check open status in corresponding component mesh
-    const parentState = useVisualizationStore
+    const isParentOpen = !useVisualizationStore
       .getState()
-      .actions.getComponentState(parentComponent.id);
-    if (parentState.isOpen) {
+      .closedComponentIds.has(parentComponent.id);
+    if (isParentOpen) {
       return entity;
     }
 

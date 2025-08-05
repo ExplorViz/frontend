@@ -31,12 +31,8 @@ export default function ComponentLabelR3F({
 
   const { isOpen, isVisible } = useVisualizationStore(
     useShallow((state) => ({
-      isOpen: state.componentData[component.id]
-        ? state.componentData[component.id].isOpen
-        : true,
-      isVisible: state.componentData[component.id]
-        ? state.componentData[component.id].isVisible
-        : true,
+      isOpen: !state.closedComponentIds.has(component.id),
+      isVisible: !state.hiddenComponentIds.has(component.id),
     }))
   );
 
@@ -45,8 +41,6 @@ export default function ComponentLabelR3F({
   );
 
   useEffect(() => {
-    console.log(`Updating label position for component ${component.name}`);
-
     if (isOpen) {
       setLabelPosition(
         labelPosition

@@ -50,22 +50,20 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
     const componentIdToPackage = useMemo(() => new Map<string, Package>(), []);
 
     const {
-      componentData,
-      updateComponentState,
-      getComponentState,
-      hoveredEntityId,
-      setHoveredEntity,
+      closedComponentIds,
+      hiddenComponentIds,
       highlightedEntityIds,
+      hoveredEntityId,
       setHighlightedEntity,
+      setHoveredEntity,
     } = useVisualizationStore(
       useShallow((state) => ({
-        componentData: state.componentData,
-        updateComponentState: state.actions.updateComponentState,
-        getComponentState: state.actions.getComponentState,
-        hoveredEntityId: state.hoveredEntity,
-        setHoveredEntity: state.actions.setHoveredEntity,
+        closedComponentIds: state.closedComponentIds,
+        hiddenComponentIds: state.hiddenComponentIds,
         highlightedEntityIds: state.highlightedEntityIds,
+        hoveredEntityId: state.hoveredEntity,
         setHighlightedEntity: state.actions.setHighlightedEntity,
+        setHoveredEntity: state.actions.setHoveredEntity,
       }))
     );
 
@@ -74,20 +72,16 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       closedComponentHeight,
       componentEvenColor,
       componentOddColor,
-      componentTextColor,
       enableAnimations,
       enableHoverEffects,
       highlightedEntityColor,
       openedComponentHeight,
-      packageLabelMargin,
       addedComponentColor,
       removedComponentColor,
       unChangedComponentColor,
     } = useUserSettingsStore(
       useShallow((state) => ({
         castShadows: state.visualizationSettings.castShadows.value,
-        packageLabelMargin:
-          state.visualizationSettings.packageLabelMargin.value,
         highlightedEntityColor:
           state.visualizationSettings.highlightedEntityColor.value,
         componentEvenColor:
@@ -100,8 +94,6 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
         enableAnimations: state.visualizationSettings.enableAnimations.value,
         enableHoverEffects:
           state.visualizationSettings.enableHoverEffects.value,
-        componentTextColor:
-          state.visualizationSettings.componentTextColor.value,
         addedComponentColor:
           state.visualizationSettings.addedComponentColor.value,
         removedComponentColor:
@@ -137,12 +129,12 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       const mesh = ref.current.addInstances(packages.length, (obj, index) => {
         const i = index;
         if (!packages[i]) {
-          console.warn(`No package found at index ${i}`);
+          console.log(`No package found at index ${i}`);
           return;
         }
         const layout = layoutMap.get(packages[i].id);
         if (!layout) {
-          console.warn(
+          console.log(
             `No layout found for component with id ${packages[i].id}`
           );
           return;
@@ -150,7 +142,8 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
         instanceIdToComponentId.set(obj.id, packages[i].id);
         componentIdToInstanceId.set(packages[i].id, obj.id);
         componentIdToPackage.set(packages[i].id, packages[i]);
-        const { isOpen, isVisible } = getComponentState(packages[i].id);
+        const isOpen = !closedComponentIds.has(packages[i].id);
+        const isVisible = !hiddenComponentIds.has(packages[i].id);
         const closedPosition = layout.position.clone();
         // Y-Position of layout is center of opened component
         closedPosition.y =
@@ -187,7 +180,19 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
         componentIdToInstanceId.clear();
         componentIdToPackage.clear();
       };
-    }, [packages, layoutMap]);
+    }, [closedComponentIds, packages, layoutMap]);
+
+    useEffect(() => {
+      if (ref === null || typeof ref === 'function' || !ref.current) {
+        return;
+      }
+      componentIdToInstanceId.forEach((instanceId, componentId) => {
+        ref.current?.setVisibilityAt(
+          instanceId,
+          !hiddenComponentIds.has(componentId)
+        );
+      });
+    }, [hiddenComponentIds]);
 
     useEffect(() => {
       if (ref === null || typeof ref === 'function') {
@@ -252,34 +257,36 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
         componentId,
         !highlightedEntityIds.includes(componentId)
       );
-
-      // const classInfo = classData[classId];
-      // updateClassState(classId, { isHighlighted: !classInfo?.isHighlighted });
     };
 
     const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!ref.current) {
+        return;
+      }
       const { instanceId } = e;
 
-      if (instanceId === undefined) return;
+      if (instanceId === undefined) {
+        return;
+      }
       e.stopPropagation();
       const componentId = instanceIdToComponentId.get(instanceId);
-      if (!componentId) return;
-      const componentInfo = getComponentState(componentId);
-      const isOpen = componentInfo?.isOpen;
+      if (!componentId) {
+        return;
+      }
       const component = componentIdToPackage.get(componentId);
-      if (!component) return;
-      if (!isOpen) {
+      if (!component) {
+        return;
+      }
+
+      // Toggle open/close state
+      if (closedComponentIds.has(componentId)) {
         EntityManipulation.openComponent(component);
       } else {
         EntityManipulation.closeComponent(component);
       }
-
-      // const classInfo = classData[classId];
-      // updateClassState(classId, { isHighlighted: !classInfo?.isHighlighted });
     };
 
     useEffect(() => {
@@ -306,18 +313,8 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       setHoveredEntity(componentId);
     };
 
-    const handleOnPointerOut = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!ref.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      e.stopPropagation();
-
-      const componentId = instanceIdToComponentId.get(instanceId);
-      if (!componentId) return;
-
+    const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
+      event.stopPropagation();
       setHoveredEntity(null);
     };
 
@@ -352,6 +349,7 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
     return (
       <instancedMesh2
         ref={ref}
+        castShadow={castShadows}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
         onPointerOver={handleOnPointerOver}

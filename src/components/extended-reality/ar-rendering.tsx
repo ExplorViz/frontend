@@ -10,7 +10,7 @@ import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting
 import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
-  closeAllComponents,
+  closeAllComponentsInApplication,
   moveCameraTo,
 } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'explorviz-frontend/src/utils/application-rendering/spheres';

@@ -11,6 +11,7 @@ import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-lay
 import { gsap } from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function FoundationR3F({
@@ -125,7 +126,7 @@ export default function FoundationR3F({
   };
 
   const handleDoubleClick = (/*event: any*/) => {
-    useVisualizationStore.getState().actions.closeAllComponents([application]);
+    EntityManipulation.closeAllComponentsInApplication(application);
   };
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =

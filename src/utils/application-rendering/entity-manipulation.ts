@@ -1,4 +1,9 @@
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import {
+  getAllClassIdsInApplication,
+  getAllPackageIdsInApplications,
+} from 'explorviz-frontend/src/utils/application-helpers';
 import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
 import {
   DynamicLandscapeData,
@@ -34,9 +39,15 @@ export function getAllAncestorComponents(entity: Package | Class): Package[] {
  * @param components List of components which shall be opened
  */
 export function openComponentsByList(components: Package[]) {
+  const componentIds = components.map((component) => component.id);
+  useVisualizationStore.getState().actions.openComponents(componentIds);
+  const containedClassIds: string[] = [];
   components.forEach((component) => {
-    openComponent(component);
+    containedClassIds.push(
+      ...component.classes.map((classModel) => classModel.id)
+    );
   });
+  useVisualizationStore.getState().actions.showClasses(containedClassIds);
 }
 
 /**
@@ -46,9 +57,18 @@ export function openComponentsByList(components: Package[]) {
  */
 export function openComponentAndAncestor(component: Package | Class) {
   const ancestors = getAllAncestorComponents(component);
-  ancestors.forEach((ancestorComponent) => {
-    openComponent(ancestorComponent);
+  const componentIds = ancestors.map(
+    (ancestorComponent) => ancestorComponent.id
+  );
+  useVisualizationStore.getState().actions.openComponents(componentIds);
+
+  const containedClassIds: string[] = [];
+  ancestors.forEach((component) => {
+    containedClassIds.push(
+      ...component.classes.map((classModel) => classModel.id)
+    );
   });
+  useVisualizationStore.getState().actions.showClasses(containedClassIds);
 }
 
 /**
@@ -58,30 +78,20 @@ export function openComponentAndAncestor(component: Package | Class) {
  */
 export function openComponent(component: Package) {
   const visualizationStore = useVisualizationStore.getState();
-  const visualizationState = visualizationStore.actions.getComponentState(
-    component.id
-  );
-  if (visualizationState.isOpen) {
+  const isOpen = !visualizationStore.closedComponentIds.has(component.id);
+  if (isOpen) {
     return;
   }
 
-  visualizationStore.actions.updateComponentState(component.id, {
-    isOpen: true,
-    isVisible: true,
-  });
+  visualizationStore.actions.openComponents([component.id]);
 
-  component.classes.forEach((classModel) => {
-    visualizationStore.actions.updateClassState(classModel.id, {
-      isVisible: true,
-    });
-    // mesh.saveOriginalAppearence();
-  });
+  visualizationStore.actions.showClasses(
+    component.classes.map((classModel) => classModel.id)
+  );
 
   const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
-    visualizationStore.actions.updateComponentState(childComponent.id, {
-      isVisible: true,
-    });
+    visualizationStore.actions.showComponents([childComponent.id]);
   });
 }
 
@@ -92,28 +102,20 @@ export function openComponent(component: Package) {
  */
 export function closeComponent(component: Package, hide = false) {
   const visualizationStore = useVisualizationStore.getState();
-  const visualizationState = visualizationStore.actions.getComponentState(
-    component.id
-  );
+  const isOpen = !visualizationStore.closedComponentIds.has(component.id);
   if (hide) {
-    visualizationStore.actions.updateComponentState(component.id, {
-      isVisible: false,
-    });
+    visualizationStore.actions.hideComponents([component.id]);
   }
 
-  if (!visualizationState.isOpen) {
+  if (!isOpen) {
     return;
   }
 
-  visualizationStore.actions.updateComponentState(component.id, {
-    isOpen: false,
-  });
+  visualizationStore.actions.closeComponents([component.id]);
 
-  component.classes.forEach((classModel) => {
-    visualizationStore.actions.updateClassState(classModel.id, {
-      isVisible: false,
-    });
-  });
+  visualizationStore.actions.hideClasses(
+    component.classes.map((classModel) => classModel.id)
+  );
 
   const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
@@ -126,58 +128,44 @@ export function closeComponent(component: Package, hide = false) {
  *
  * @param application Application object which contains the components
  */
-export function closeAllComponents(application: Application) {
-  // Close each component
-  application.packages.forEach((component) => {
-    closeComponent(component);
-  });
+export function closeAllComponentsInApplication(application: Application) {
+  const packageIds = getAllPackageIdsInApplications(application);
+  const topLevelPackageIds = application.packages.map((pkg) => pkg.id);
+  const packageIdsToClose = packageIds.filter(
+    (id) => !topLevelPackageIds.includes(id)
+  );
+  useVisualizationStore.getState().actions.closeComponents(packageIdsToClose);
+  useVisualizationStore.getState().actions.hideComponents(packageIdsToClose);
+  useVisualizationStore
+    .getState()
+    .actions.hideClasses(getAllClassIdsInApplication(application));
 }
 
-/**
- * Takes a component and open all children component meshes recursively
- *
- * @param component Component of which the children shall be opened
- */
-export function openComponentsRecursively(component: Package) {
-  openComponent(component);
-
-  const subComponents = component.subPackages;
-  subComponents.forEach((subComponent) => {
-    openComponent(component);
-    // TODO:Fix message sender
-    // useMessageSenderStore
-    //   .getState()
-    //   .sendComponentUpdate(
-    //     applicationObject3D.getModelId(),
-    //     mesh.getModelId(),
-    //     mesh.opened,
-    //     mesh instanceof FoundationMesh
-    //   );
-    openComponentsRecursively(subComponent);
+export function closeAllComponentsInLandscape() {
+  const applications = Array.from(
+    useApplicationRepositoryStore.getState().getAll()
+  ).map((app) => app.application);
+  const packageIds: string[] = [];
+  let topLevelComponentIds: string[] = [];
+  applications.forEach((app) => {
+    packageIds.push(...getAllPackageIdsInApplications(app));
+    topLevelComponentIds = topLevelComponentIds.concat(
+      app.packages.map((pkg) => pkg.id)
+    );
   });
-}
 
-/**
- * Takes a component and closes all its children components recursively
- *
- * @param component Component of which the children components shall be closed
- */
-export function closeComponentsRecursively(component: Package) {
-  const components = component.subPackages;
-  components.forEach((subComponent) => {
-    closeComponent(subComponent);
-    // TODO: Fix message sender
-    //   useMessageSenderStore
-    //     .getState()
-    //     .sendComponentUpdate(
-    //       applicationObject3D.getModelId(),
-    //       mesh.getModelId(),
-    //       mesh.opened,
-    //       mesh instanceof FoundationMesh
-    //     );
-    // }
-    closeComponentsRecursively(subComponent);
+  useVisualizationStore.getState().actions.closeComponents(packageIds);
+  useVisualizationStore
+    .getState()
+    .actions.hideComponents(
+      Array.from(new Set(packageIds).difference(new Set(topLevelComponentIds)))
+    );
+
+  const allClassIds: string[] = [];
+  applications.forEach((app) => {
+    allClassIds.push(...getAllClassIdsInApplication(app));
   });
+  useVisualizationStore.getState().actions.hideClasses(allClassIds);
 }
 
 /**
@@ -185,20 +173,31 @@ export function closeComponentsRecursively(component: Package) {
  *
  * @param application Application object which contains the components
  */
-export function openAllComponents(application: Application) {
-  application.packages.forEach((childComponent) => {
-    openComponent(childComponent);
-    // ToDo: Fix message sender
-    // useMessageSenderStore
-    //   .getState()
-    //   .sendComponentUpdate(
-    //     applicationObject3D.getModelId(),
-    //     mesh.getModelId(),
-    //     mesh.opened,
-    //     mesh instanceof FoundationMesh
-    //   );
-    openComponentsRecursively(childComponent);
+export function openAllComponentsInApplication(application: Application) {
+  const packageIds = getAllPackageIdsInApplications(application);
+  useVisualizationStore.getState().actions.openComponents(packageIds);
+  useVisualizationStore
+    .getState()
+    .actions.showClasses(getAllClassIdsInApplication(application));
+}
+
+export function openAllComponentsInLandscape() {
+  const applications = Array.from(
+    useApplicationRepositoryStore.getState().getAll()
+  ).map((app) => app.application);
+  const packageIds: string[] = [];
+  applications.forEach((app) => {
+    packageIds.push(...getAllPackageIdsInApplications(app));
   });
+
+  useVisualizationStore.getState().actions.openComponents(packageIds);
+  useVisualizationStore.getState().actions.showComponents(packageIds);
+
+  const allClassIds: string[] = [];
+  applications.forEach((app) => {
+    allClassIds.push(...getAllClassIdsInApplication(app));
+  });
+  useVisualizationStore.getState().actions.showClasses(allClassIds);
 }
 
 /**

@@ -33,9 +33,7 @@ export default function ClassLabelR3F({
   } = useVisualizationStore(
     useShallow((state) => ({
       isClassHovered: state.hoveredEntity === dataModel.id,
-      isClassVisible: state.classData[dataModel.id]
-        ? state.classData[dataModel.id].isVisible
-        : true,
+      isClassVisible: !state.hiddenClassIds.has(dataModel.id),
       isParentHovered: state.hoveredEntity === dataModel.parent.id,
       isClassHighlighted: state.highlightedEntityIds.includes(dataModel.id),
       isParentHighlighted: state.highlightedEntityIds.includes(
@@ -96,7 +94,9 @@ export default function ClassLabelR3F({
   };
 
   const getPositionY = () => {
-    return layout.positionY + getClassHeight() + labelOffset;
+    return (
+      layout!.position.y - layout!.height / 2 + getClassHeight() + labelOffset
+    );
   };
 
   return showAllClassLabels ||

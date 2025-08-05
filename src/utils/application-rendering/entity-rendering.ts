@@ -1,28 +1,25 @@
-import * as THREE from 'three';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
-import AnimationMesh from 'explorviz-frontend/src/view-objects/3d/animation-mesh.ts';
-import {
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   ExplorVizColors,
   useUserSettingsStore,
 } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  Class,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import AnimationMesh from 'explorviz-frontend/src/view-objects/3d/animation-mesh.ts';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
+import * as THREE from 'three';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import {
   closeComponent,
-  closeComponentsRecursively,
-  openComponentAndAncestor,
   openComponent,
-  openComponentsRecursively,
+  openComponentAndAncestor,
 } from './entity-manipulation';
 
-import * as Labeler from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import CommunicationRendering from 'explorviz-frontend/src/utils/application-rendering/communication-rendering';
 
 /**
