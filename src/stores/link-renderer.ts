@@ -21,7 +21,8 @@ interface LinkRendererState {
   computeCommunicationLayout: (
     communication: ClassCommunication | ComponentCommunication,
     applicationModels: ApplicationData[],
-    layoutMap: Map<string, BoxLayout>
+    layoutMap: Map<string, BoxLayout>,
+    closedComponentIds?: Set<string> // Not used, but argument that triggers re-computation of function
   ) => CommunicationLayout | undefined;
   getLinkById: (linkId: string) => ClazzCommunicationMesh | undefined;
 }

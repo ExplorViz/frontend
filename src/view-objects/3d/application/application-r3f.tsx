@@ -1,4 +1,3 @@
-import { Instances, Text } from '@react-three/drei';
 import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
@@ -6,21 +5,20 @@ import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import ClassR3F from 'explorviz-frontend/src/view-objects/3d/application/class-r3f';
+import ClassLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/class-label-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
-import ComponentR3F from 'explorviz-frontend/src/view-objects/3d/application/component-r3f';
+import ComponentLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/component-label-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import InstancedClassR3F from './instanced-class-r3f';
 import InstancedComponentR3F from './instanced-component-r3f';
-import ClassLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/class-label-r3f';
-import ComponentLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/component-label-r3f';
 
 export default function ApplicationR3F({
   applicationData,
@@ -46,23 +44,15 @@ export default function ApplicationR3F({
   const classInstanceMeshRef = useRef<InstancedMesh2>(null);
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
-  const {
-    enableAnimations,
-    classLabelFontSize,
-    classLabelLength,
-    classTextColor,
-    labelOffset,
-    labelRotation,
-  } = useUserSettingsStore(
+  const { enableAnimations } = useUserSettingsStore(
     useShallow((state) => ({
       enableAnimations: state.visualizationSettings.enableAnimations.value,
-      unchangedClassColor:
-        state.visualizationSettings.unchangedClassColor.value,
-      classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
-      classLabelLength: state.visualizationSettings.classLabelLength.value,
-      classTextColor: state.visualizationSettings.classTextColor.value,
-      labelOffset: state.visualizationSettings.labelOffset.value,
-      labelRotation: state.visualizationSettings.classLabelOrientation.value,
+    }))
+  );
+
+  const { closedComponentIds } = useVisualizationStore(
+    useShallow((state) => ({
+      closedComponentIds: state.closedComponentIds,
     }))
   );
 
@@ -96,7 +86,7 @@ export default function ApplicationR3F({
 
   return (
     <group position={appPosition}>
-      {/* <Root positionBottom={15} positionLeft={0} pixelSize={1}>
+      <Root positionBottom={15} positionLeft={0} pixelSize={1}>
         <Container>
           <Button
             width={25}
@@ -113,50 +103,13 @@ export default function ApplicationR3F({
       </Root>
       {isBrowserActive && (
         <EmbeddedBrowser application={applicationData.application} />
-      )} */}
+      )}
       {layoutMap.get(applicationData.getId()) && (
         <FoundationR3F
           application={applicationData.application}
           layout={layoutMap.get(applicationData.getId())!}
         />
       )}
-
-      {/* <Instances limit={5000} frustumCulled={false}>
-        <boxGeometry />
-        <meshLambertMaterial />
-        {applicationData
-          .getPackages()
-          .map((packageData) =>
-            layoutMap.get(packageData.id) ? (
-              <ComponentR3F
-                key={packageData.id}
-                component={packageData}
-                layout={layoutMap.get(packageData.id)!}
-                application={applicationData.application}
-              />
-            ) : (
-              <Fragment key={packageData.id} />
-            )
-          )}
-      </Instances>
-      <Instances limit={50000} frustumCulled={false}>
-        <boxGeometry />
-        <meshLambertMaterial />
-        {applicationData
-          .getClasses()
-          .map((classData) =>
-            layoutMap.get(classData.id) ? (
-              <ClassR3F
-                key={classData.id}
-                dataModel={classData}
-                layout={layoutMap.get(classData.id)!}
-                application={applicationData.application}
-              />
-            ) : (
-              <Fragment key={classData.id} />
-            )
-          )}
-      </Instances> */}
       <InstancedClassR3F
         classes={applicationData.getClasses()}
         appId={applicationData.application.id}
@@ -201,7 +154,8 @@ export default function ApplicationR3F({
             communicationLayout={computeCommunicationLayout(
               communication,
               [applicationData],
-              layoutMap
+              layoutMap,
+              closedComponentIds
             )}
           />
         ))}

@@ -113,8 +113,9 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { resetVisualizationState } = useVisualizationStore(
+  const { closedComponentIds, resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
+      closedComponentIds: state.closedComponentIds,
       resetVisualizationState: state.actions.resetVisualizationState,
     }))
   );
@@ -160,22 +161,22 @@ export default function CanvasWrapper({
   useEffect(() => {
     updateLayout();
   }, [
-    applicationLayoutAlgorithm,
-    packageLayoutAlgorithm,
-    applicationDistance,
+    appLabelMargin,
     applicationAspectRatio,
-    classFootprint,
-    classWidthMetric,
-    classWidthMetricMultiplier,
+    applicationDistance,
+    applicationLayoutAlgorithm,
+    appMargin,
     classDepthMetric,
     classDepthMetricMultiplier,
+    classFootprint,
     classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
+    classWidthMetric,
+    classWidthMetricMultiplier,
     closedComponentHeight,
+    openedComponentHeight,
+    packageLabelMargin,
+    packageLayoutAlgorithm,
+    packageMargin,
   ]);
 
   useEffect(() => {
@@ -232,7 +233,8 @@ export default function CanvasWrapper({
               communicationLayout={computeCommunicationLayout(
                 communication,
                 applicationModels,
-                layoutMap || applicationModels[0].boxLayoutMap
+                layoutMap || applicationModels[0].boxLayoutMap,
+                closedComponentIds
               )}
             />
           ))}
