@@ -31,8 +31,15 @@ export default function ApplicationR3F({
   const [isCameraZoomedIn, setIsCameraZoomedIn] = useState(false);
   const { camera } = useThree();
 
+  const { enableAnimations, zoomDistance } = useUserSettingsStore(
+    useShallow((state) => ({
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
+      zoomDistance: state.visualizationSettings.maxCamHeightForCamera.value,
+    }))
+  );
+
   useFrame(() => {
-    setIsCameraZoomedIn(camera.position.y < 5);
+    setIsCameraZoomedIn(camera.position.y < zoomDistance);
   });
 
   const [appPosition, setAppPosition] = useState<THREE.Vector3>(
@@ -51,12 +58,6 @@ export default function ApplicationR3F({
 
   const classInstanceMeshRef = useRef<InstancedMesh2>(null);
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
-
-  const { enableAnimations } = useUserSettingsStore(
-    useShallow((state) => ({
-      enableAnimations: state.visualizationSettings.enableAnimations.value,
-    }))
-  );
 
   const { closedComponentIds } = useVisualizationStore(
     useShallow((state) => ({

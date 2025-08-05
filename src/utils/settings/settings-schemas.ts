@@ -8,6 +8,7 @@ export type SettingGroup =
   | 'Heatmap'
   | 'Highlighting'
   | 'Layout'
+  | 'Label'
   | 'Minimap'
   | 'Popups'
   | 'Virtual Reality'
@@ -104,12 +105,25 @@ export type HoveringSettingId =
 
 export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
 
+export type LabelSettings = {
+  appLabelMargin: RangeSetting;
+  classLabelFontSize: RangeSetting;
+  classLabelLength: RangeSetting;
+  classLabelOrientation: RangeSetting;
+  labelOffset: RangeSetting;
+  maxCamHeightForCamera: RangeSetting;
+  packageLabelMargin: RangeSetting;
+};
+export type LabelSettingId = keyof LabelSettings;
+
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
   applicationDistance: RangeSetting;
   applicationAspectRatio: RangeSetting;
+  appMargin: RangeSetting;
+  packageMargin: RangeSetting;
   classFootprint: RangeSetting;
   classWidthMetric: SelectSetting<string>;
   classWidthMultiplier: RangeSetting;
@@ -118,14 +132,6 @@ export type LayoutSettings = {
   classHeightMetric: SelectSetting<string>;
   classHeightMultiplier: RangeSetting;
   classMargin: RangeSetting;
-  classLabelFontSize: RangeSetting;
-  classLabelLength: RangeSetting;
-  labelOffset: RangeSetting;
-  classLabelOrientation: RangeSetting;
-  appLabelMargin: RangeSetting;
-  appMargin: RangeSetting;
-  packageLabelMargin: RangeSetting;
-  packageMargin: RangeSetting;
   openedComponentHeight: RangeSetting;
   closedComponentHeight: RangeSetting;
 };
@@ -177,6 +183,7 @@ export type VisualizationSettingId =
   | HighlightingSettingId
   | HoveringSettingId
   | LayoutSettingId
+  | LabelSettingId
   | MinimapSettingId
   | PopupSettingId
   | SemanticZoomSettingId
@@ -190,6 +197,7 @@ export type VisualizationSettings = CameraSettings &
   HighlightingSettings &
   HoveringSettings &
   LayoutSettings &
+  LabelSettings &
   MinimapSettings &
   PopupSettings &
   SemanticZoomSettings &

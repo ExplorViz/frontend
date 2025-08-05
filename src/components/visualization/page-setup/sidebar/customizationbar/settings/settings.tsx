@@ -126,6 +126,7 @@ export default function Settings({
       Effects: [],
       Heatmap: [],
       Highlighting: [],
+      Label: [],
       Layout: [],
       Minimap: [],
       Popups: [],
