@@ -68,11 +68,14 @@ export default function ComponentLabelR3F({
   return (
     <Text
       color={componentTextColor}
-      outlineColor={'white'}
       visible={isVisible}
       position={labelPosition}
       rotation={[1.5 * Math.PI, 0, 0]}
-      fontSize={(packageLabelMargin * 10) / 20}
+      fontSize={
+        isOpen
+          ? packageLabelMargin * 0.5
+          : Math.max(layout.width * 0.1, packageLabelMargin * 0.5)
+      }
       raycast={() => null}
     >
       {component.name}
