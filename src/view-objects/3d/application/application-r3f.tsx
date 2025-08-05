@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import InstancedClassR3F from './instanced-class-r3f';
 import InstancedComponentR3F from './instanced-component-r3f';
+import { useFrame, useThree } from '@react-three/fiber';
 
 export default function ApplicationR3F({
   applicationData,
@@ -27,6 +28,13 @@ export default function ApplicationR3F({
   applicationData: ApplicationData;
   layoutMap: Map<string, BoxLayout>;
 }) {
+  const [isCameraZoomedIn, setIsCameraZoomedIn] = useState(false);
+  const { camera } = useThree();
+
+  useFrame(() => {
+    setIsCameraZoomedIn(camera.position.y < 5);
+  });
+
   const [appPosition, setAppPosition] = useState<THREE.Vector3>(
     layoutMap.get(applicationData.getId())?.position!
   );
@@ -126,6 +134,7 @@ export default function ApplicationR3F({
               dataModel={classData}
               application={applicationData.application}
               layout={layoutMap.get(classData.id)!}
+              isCameraZoomedIn={isCameraZoomedIn}
             />
           ) : null
         )}
@@ -143,6 +152,7 @@ export default function ApplicationR3F({
               key={packageData.id + '-label'}
               component={packageData}
               layout={layoutMap.get(packageData.id)!}
+              isCameraZoomedIn={isCameraZoomedIn}
             />
           ) : null
         )}

@@ -330,7 +330,6 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       const componentId = instanceIdToComponentId.get(instanceId);
       if (!componentId) return;
       const component = componentIdToPackage.get(componentId);
-      console.log('Pointer stop event triggered', event);
       addPopup({
         model: component,
         applicationId: application.id,

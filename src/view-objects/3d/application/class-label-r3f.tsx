@@ -12,17 +12,18 @@ import {
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function ClassLabelR3F({
   dataModel,
   layout,
   application,
+  isCameraZoomedIn,
 }: {
   dataModel: Class;
   layout: BoxLayout;
   application: Application;
+  isCameraZoomedIn: boolean;
 }) {
   const {
     isClassHovered,
@@ -41,8 +42,6 @@ export default function ClassLabelR3F({
       ),
     }))
   );
-
-  const labelRef = useRef(null);
 
   const getMetricForClass = useEvolutionDataRepositoryStore(
     (state) => state.getMetricForClass
@@ -108,8 +107,8 @@ export default function ClassLabelR3F({
       key={dataModel.id + '-label'}
       position={[layout.positionX, getPositionY(), layout.positionZ]}
       color={classTextColor}
-      visible={isClassVisible}
-      ref={labelRef}
+      visible={isClassVisible && isCameraZoomedIn}
+      sdfGlyphSize={16}
       // outlineColor={'black'}
       // outlineWidth={classLabelFontSize * 0.05}
       rotation={[1.5 * Math.PI, 0, labelRotation]}

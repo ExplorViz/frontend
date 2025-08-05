@@ -10,9 +10,11 @@ import { useShallow } from 'zustand/react/shallow';
 export default function ComponentLabelR3F({
   component,
   layout,
+  isCameraZoomedIn,
 }: {
   component: Package;
   layout: BoxLayout;
+  isCameraZoomedIn: boolean;
 }) {
   const {
     labelOffset,
@@ -68,9 +70,10 @@ export default function ComponentLabelR3F({
   return (
     <Text
       color={componentTextColor}
-      visible={isVisible}
+      visible={isVisible && (isCameraZoomedIn || !isOpen)}
       position={labelPosition}
       rotation={[1.5 * Math.PI, 0, 0]}
+      sdfGlyphSize={16}
       fontSize={
         isOpen
           ? packageLabelMargin * 0.5
