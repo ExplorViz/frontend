@@ -20,6 +20,15 @@ import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/applicat
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 
+const {
+  closeComponents,
+  hideClasses,
+  hideComponents,
+  openComponents,
+  showClasses,
+  showComponents,
+} = useVisualizationStore.getState().actions;
+
 /**
  * Given a package or class, returns a list of all ancestor components.
  *
@@ -40,14 +49,15 @@ export function getAllAncestorComponents(entity: Package | Class): Package[] {
  */
 export function openComponentsByList(components: Package[]) {
   const componentIds = components.map((component) => component.id);
-  useVisualizationStore.getState().actions.openComponents(componentIds);
+  openComponents(componentIds);
+
   const containedClassIds: string[] = [];
   components.forEach((component) => {
     containedClassIds.push(
       ...component.classes.map((classModel) => classModel.id)
     );
   });
-  useVisualizationStore.getState().actions.showClasses(containedClassIds);
+  showClasses(containedClassIds);
 }
 
 /**
@@ -60,7 +70,7 @@ export function openComponentAndAncestor(component: Package | Class) {
   const componentIds = ancestors.map(
     (ancestorComponent) => ancestorComponent.id
   );
-  useVisualizationStore.getState().actions.openComponents(componentIds);
+  openComponents(componentIds);
 
   const containedClassIds: string[] = [];
   ancestors.forEach((component) => {
@@ -68,7 +78,7 @@ export function openComponentAndAncestor(component: Package | Class) {
       ...component.classes.map((classModel) => classModel.id)
     );
   });
-  useVisualizationStore.getState().actions.showClasses(containedClassIds);
+  showClasses(containedClassIds);
 }
 
 /**
@@ -77,22 +87,17 @@ export function openComponentAndAncestor(component: Package | Class) {
  * @param component Component which shall be opened
  */
 export function openComponent(component: Package) {
-  const visualizationStore = useVisualizationStore.getState();
-  const isOpen = !visualizationStore.closedComponentIds.has(component.id);
+  const isOpen = !useVisualizationStore
+    .getState()
+    .closedComponentIds.has(component.id);
   if (isOpen) {
+    console.log('Component not open');
     return;
   }
 
-  visualizationStore.actions.openComponents([component.id]);
-
-  visualizationStore.actions.showClasses(
-    component.classes.map((classModel) => classModel.id)
-  );
-
-  const childComponents = component.subPackages;
-  childComponents.forEach((childComponent) => {
-    visualizationStore.actions.showComponents([childComponent.id]);
-  });
+  openComponents([component.id]);
+  showComponents(component.subPackages.map((pckg) => pckg.id));
+  showClasses(component.classes.map((classModel) => classModel.id));
 }
 
 /**
@@ -101,21 +106,20 @@ export function openComponent(component: Package) {
  * @param component Component which shall be closed
  */
 export function closeComponent(component: Package, hide = false) {
-  const visualizationStore = useVisualizationStore.getState();
-  const isOpen = !visualizationStore.closedComponentIds.has(component.id);
+  const isOpen = !useVisualizationStore
+    .getState()
+    .closedComponentIds.has(component.id);
   if (hide) {
-    visualizationStore.actions.hideComponents([component.id]);
+    hideComponents([component.id]);
   }
 
   if (!isOpen) {
     return;
   }
 
-  visualizationStore.actions.closeComponents([component.id]);
+  closeComponents([component.id]);
 
-  visualizationStore.actions.hideClasses(
-    component.classes.map((classModel) => classModel.id)
-  );
+  hideClasses(component.classes.map((classModel) => classModel.id));
 
   const childComponents = component.subPackages;
   childComponents.forEach((childComponent) => {
@@ -131,14 +135,12 @@ export function closeComponent(component: Package, hide = false) {
 export function closeAllComponentsInApplication(application: Application) {
   const packageIds = getAllPackageIdsInApplications(application);
   const topLevelPackageIds = application.packages.map((pkg) => pkg.id);
-  const packageIdsToClose = packageIds.filter(
+  const packageIdsToHide = packageIds.filter(
     (id) => !topLevelPackageIds.includes(id)
   );
-  useVisualizationStore.getState().actions.closeComponents(packageIdsToClose);
-  useVisualizationStore.getState().actions.hideComponents(packageIdsToClose);
-  useVisualizationStore
-    .getState()
-    .actions.hideClasses(getAllClassIdsInApplication(application));
+  closeComponents(packageIds);
+  hideComponents(packageIdsToHide);
+  hideClasses(getAllClassIdsInApplication(application));
 }
 
 export function closeAllComponentsInLandscape() {
@@ -154,18 +156,16 @@ export function closeAllComponentsInLandscape() {
     );
   });
 
-  useVisualizationStore.getState().actions.closeComponents(packageIds);
-  useVisualizationStore
-    .getState()
-    .actions.hideComponents(
-      Array.from(new Set(packageIds).difference(new Set(topLevelComponentIds)))
-    );
+  closeComponents(packageIds);
+  hideComponents(
+    Array.from(new Set(packageIds).difference(new Set(topLevelComponentIds)))
+  );
 
   const allClassIds: string[] = [];
   applications.forEach((app) => {
     allClassIds.push(...getAllClassIdsInApplication(app));
   });
-  useVisualizationStore.getState().actions.hideClasses(allClassIds);
+  hideClasses(allClassIds);
 }
 
 /**
@@ -174,11 +174,8 @@ export function closeAllComponentsInLandscape() {
  * @param application Application object which contains the components
  */
 export function openAllComponentsInApplication(application: Application) {
-  const packageIds = getAllPackageIdsInApplications(application);
-  useVisualizationStore.getState().actions.openComponents(packageIds);
-  useVisualizationStore
-    .getState()
-    .actions.showClasses(getAllClassIdsInApplication(application));
+  openComponents(getAllPackageIdsInApplications(application));
+  showClasses(getAllClassIdsInApplication(application));
 }
 
 export function openAllComponentsInLandscape() {
@@ -190,14 +187,14 @@ export function openAllComponentsInLandscape() {
     packageIds.push(...getAllPackageIdsInApplications(app));
   });
 
-  useVisualizationStore.getState().actions.openComponents(packageIds);
-  useVisualizationStore.getState().actions.showComponents(packageIds);
+  openComponents(packageIds);
+  showComponents(packageIds);
 
   const allClassIds: string[] = [];
   applications.forEach((app) => {
     allClassIds.push(...getAllClassIdsInApplication(app));
   });
-  useVisualizationStore.getState().actions.showClasses(allClassIds);
+  showClasses(allClassIds);
 }
 
 /**
