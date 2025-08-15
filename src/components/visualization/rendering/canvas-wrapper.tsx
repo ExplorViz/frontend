@@ -113,25 +113,10 @@ export default function CanvasWrapper({
     }))
   );
 
-  const {
-    removeAllClassStates,
-    componentData,
-    classData,
-    removeClassState,
-    removeComponentState,
-    removeAllComponentStates,
-  } = useVisualizationStore(
+  const { closedComponentIds, resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
-      setClassState: state.actions.setClassState,
-      getClassState: state.actions.getClassState,
-      removeAllClassStates: state.actions.removeAllClassStates,
-      setComponentState: state.actions.setComponentState,
-      getComponentState: state.actions.getComponentState,
-      removeComponentState: state.actions.removeComponentState,
-      removeClassState: state.actions.removeClassState,
-      componentData: state.componentData,
-      classData: state.classData,
-      removeAllComponentStates: state.actions.removeAllComponentStates,
+      closedComponentIds: state.closedComponentIds,
+      resetVisualizationState: state.actions.resetVisualizationState,
     }))
   );
 
@@ -150,23 +135,16 @@ export default function CanvasWrapper({
         .flat();
       const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
       // Remove all component states that are not in the current landscape
-      Object.keys(componentData).forEach((componentId) => {
-        if (!packagesIds.has(componentId)) {
-          removeComponentState(componentId);
-        }
-      });
+      // TODO: Remove outdated component ids from visualization store
+
       const allClasses = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
         .map((app) => getAllClassesInApplication(app))
         .flat();
       const classIds = new Set(allClasses.map((clazz) => clazz.id));
-      // Remove all component states that are not in the current landscape
-      Object.keys(classData).forEach((classId) => {
-        if (!classIds.has(classId)) {
-          removeClassState(classId);
-        }
-      });
+      // Remove all class states that are not in the current landscape
+      // TODO: Remove outdated class ids from visualization store
     }
   }, [landscapeData]);
 
@@ -183,28 +161,27 @@ export default function CanvasWrapper({
   useEffect(() => {
     updateLayout();
   }, [
-    applicationLayoutAlgorithm,
-    packageLayoutAlgorithm,
-    applicationDistance,
+    appLabelMargin,
     applicationAspectRatio,
-    classFootprint,
-    classWidthMetric,
-    classWidthMetricMultiplier,
+    applicationDistance,
+    applicationLayoutAlgorithm,
+    appMargin,
     classDepthMetric,
     classDepthMetricMultiplier,
+    classFootprint,
     classMargin,
-    appLabelMargin,
-    appMargin,
-    packageLabelMargin,
-    packageMargin,
-    openedComponentHeight,
+    classWidthMetric,
+    classWidthMetricMultiplier,
     closedComponentHeight,
+    openedComponentHeight,
+    packageLabelMargin,
+    packageLayoutAlgorithm,
+    packageMargin,
   ]);
 
   useEffect(() => {
     return () => {
-      removeAllComponentStates();
-      removeAllClassStates();
+      resetVisualizationState();
     };
   }, []);
 
@@ -256,7 +233,8 @@ export default function CanvasWrapper({
               communicationLayout={computeCommunicationLayout(
                 communication,
                 applicationModels,
-                layoutMap || applicationModels[0].boxLayoutMap
+                layoutMap || applicationModels[0].boxLayoutMap,
+                closedComponentIds
               )}
             />
           ))}

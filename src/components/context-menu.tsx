@@ -6,6 +6,7 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useShallow } from 'zustand/react/shallow';
 import { Position2D } from '../hooks/interaction-modifier';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 
 export type ContextMenuItem = {
   title: string;
@@ -32,10 +33,6 @@ export default function ContextMenu({
 
   const applicationRendererActions = useApplicationRendererStore(
     useShallow((state) => ({
-      openAllComponentsOfAllApplications:
-        state.openAllComponentsOfAllApplications,
-      closeAllComponentsOfAllApplications:
-        state.closeAllComponentsOfAllApplications,
       toggleCommunicationRendering: state.toggleCommunicationRendering,
     }))
   );
@@ -83,7 +80,7 @@ export default function ContextMenu({
           );
           return;
         }
-        applicationRendererActions.openAllComponentsOfAllApplications();
+        EntityManipulation.openAllComponentsInLandscape();
       },
     },
     {
@@ -98,7 +95,7 @@ export default function ContextMenu({
           );
           return;
         }
-        applicationRendererActions.closeAllComponentsOfAllApplications();
+        EntityManipulation.closeAllComponentsInLandscape();
       },
     },
     {

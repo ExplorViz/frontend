@@ -521,7 +521,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     },
 
     openAllComponentsLocally: (applicationObject3D: ApplicationObject3D) => {
-      EntityManipulation.openAllComponents(
+      EntityManipulation.openAllComponentsInApplication(
         applicationObject3D.dataModel.application
       );
 
@@ -529,7 +529,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     },
 
     closeAllComponentsLocally: (applicationObject3D: ApplicationObject3D) => {
-      EntityManipulation.closeAllComponents(
+      EntityManipulation.closeAllComponentsInApplication(
         applicationObject3D.dataModel.application
       );
       get().updateApplicationObject3DAfterUpdate(applicationObject3D);

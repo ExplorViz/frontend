@@ -1,14 +1,3 @@
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import {
-  getAllClassIdsInApplication,
-  getAllClassIdsInApplications,
-  getAllPackageIdsInApplications,
-  getAllPackagesInApplication,
-} from 'explorviz-frontend/src/utils/application-helpers';
-import {
-  Application,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { create } from 'zustand';
 
 interface FoundationState {
@@ -16,27 +5,23 @@ interface FoundationState {
   isHighlighted: boolean;
   isHovered: boolean;
 }
-interface ComponentState {
-  id: string;
-  isVisible: boolean;
-  isHighlighted: boolean;
-  isHovered: boolean;
-  isOpen: boolean;
-}
-interface ClassState {
-  id: string;
-  isVisible: boolean;
-  isHighlighted: boolean;
-  isHovered: boolean;
-}
 
 interface VisualizationStoreState {
-  componentData: { [id: string]: ComponentState };
-  classData: { [id: string]: ClassState };
-  hoveredEntity: string | null;
+  // State for all entities
   highlightedEntityIds: string[];
+  hoveredEntity: string | null;
+  // State for foundation
   foundationData: { [id: string]: FoundationState };
+  // State for components (store ids of components that have no default state)
+  closedComponentIds: Set<string>;
+  hiddenComponentIds: Set<string>;
+  // State for classes
+  hiddenClassIds: Set<string>;
   actions: {
+    // Actions for all entities
+    setHoveredEntity: (id: string | null) => void;
+    setHighlightedEntity: (id: string, isHighlighted: boolean) => void;
+    resetVisualizationState: () => void;
     // Foundations
     getFoundationState: (id: string) => FoundationState;
     updateFoundationState: (
@@ -45,32 +30,67 @@ interface VisualizationStoreState {
     ) => void;
     removeAllFoundationStates: () => void;
     // Components
-    getComponentState: (id: string) => ComponentState;
-    setComponentState: (id: string, state: ComponentState) => void;
-    updateComponentState: (id: string, state: Partial<ComponentState>) => void;
-    openAllComponents: (applications?: Application[]) => void;
-    closeAllComponents: (applications?: Application[]) => void;
-    removeComponentState: (id: string) => void;
-    removeAllComponentStates: () => void;
+    openComponents: (ids: string[]) => void;
+    closeComponents: (ids: string[]) => void;
+    showComponents: (ids: string[]) => void;
+    hideComponents: (ids: string[]) => void;
+    resetComponentStates: () => void;
     // Classes
-    setHoveredEntity: (id: string | null) => void;
-    setHighlightedEntity: (id: string, isHighlighted: boolean) => void;
-    getClassState: (id: string) => ClassState;
-    setClassState: (id: string, state: ClassState) => void;
-    updateClassState: (id: string, state: Partial<ClassState>) => void;
-    removeClassState: (id: string) => void;
-    removeAllClassStates: () => void;
+    showClasses: (ids: string[]) => void;
+    hideClasses: (ids: string[]) => void;
+    resetClassStates: () => void;
   };
 }
 
 export const useVisualizationStore = create<VisualizationStoreState>(
   (set, get) => ({
-    foundationData: {},
-    componentData: {},
-    classData: {},
+    // Shared entity states
     hoveredEntity: null,
     highlightedEntityIds: [],
+    // Foundation state
+    foundationData: {},
+    // Component state
+    closedComponentIds: new Set(),
+    hiddenComponentIds: new Set(),
+    // Class state
+    hiddenClassIds: new Set(),
     actions: {
+      // Shared entity states
+      setHoveredEntity: (id: string | null) => {
+        set({ hoveredEntity: id });
+      },
+      setHighlightedEntity: (id: string, isHighlighted: boolean) => {
+        if (isHighlighted) {
+          set((prevState) => {
+            const updatedHighlightedEntityIds = structuredClone(
+              prevState.highlightedEntityIds
+            );
+            updatedHighlightedEntityIds.push(id);
+            return {
+              highlightedEntityIds: updatedHighlightedEntityIds,
+            };
+          });
+        } else {
+          set((prevState) => {
+            const updatedHighlightedEntityIds =
+              prevState.highlightedEntityIds.filter(
+                (existingId) => existingId != id
+              );
+            return {
+              highlightedEntityIds: updatedHighlightedEntityIds,
+            };
+          });
+        }
+      },
+      resetVisualizationState: () => {
+        set({
+          hoveredEntity: null,
+          highlightedEntityIds: [],
+          closedComponentIds: new Set(),
+          hiddenComponentIds: new Set(),
+          hiddenClassIds: new Set(),
+        });
+      },
       // Foundations
       getFoundationState: (id: string) => {
         const state = get().foundationData[id];
@@ -99,168 +119,48 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         set({ foundationData: {} });
       },
       // Components
-      getComponentState: (id: string) => {
-        const state = get().componentData[id];
-        if (!state) {
-          return {
-            id,
-            isVisible: true,
-            isHighlighted: false,
-            isHovered: false,
-            isOpen: true,
-          };
-        }
-        return state;
-      },
-      setComponentState: (id: string, state: Omit<ComponentState, 'id'>) => {
-        set((prevState) => ({
-          componentData: {
-            ...prevState.componentData,
-            [id]: { ...state, id },
-          },
-        }));
-      },
-      updateComponentState: (
-        id: string,
-        state: Partial<Omit<ComponentState, 'id'>>
-      ) => {
-        const currentState = get().actions.getComponentState(id);
-        set((prevState) => ({
-          componentData: {
-            ...prevState.componentData,
-            [id]: { ...currentState, ...state },
-          },
-        }));
-      },
-      openAllComponents: (applicationsArg?: Application[]) => {
-        const applications = applicationsArg
-          ? applicationsArg
-          : Array.from(useApplicationRepositoryStore.getState().getAll()).map(
-              (app) => app.application
-            );
-        getAllPackageIdsInApplications(applications).forEach((packageId) => {
-          get().actions.updateComponentState(packageId, {
-            isVisible: true,
-            isOpen: true,
-          });
-        });
-        getAllClassIdsInApplications(applications).forEach((classId) => {
-          get().actions.updateClassState(classId, {
-            isVisible: true,
-          });
+      openComponents: (ids: string[]) => {
+        const newSet = get().closedComponentIds.difference(new Set(ids));
+        set({
+          closedComponentIds: newSet,
         });
       },
-      closeAllComponents: (applicationsArg?: Application[]) => {
-        const applications = applicationsArg
-          ? applicationsArg
-          : Array.from(useApplicationRepositoryStore.getState().getAll()).map(
-              (app) => app.application
-            );
-        let packages: Package[] = [];
-        let classIds: string[] = [];
-        applications.forEach((application) => {
-          packages = packages.concat(getAllPackagesInApplication(application));
-          classIds = classIds.concat(getAllClassIdsInApplication(application));
-        });
-        const closedComponentStates: ComponentState[] = packages.map((pckg) => {
-          return {
-            id: pckg.id,
-            isVisible: !pckg.parent,
-            isHighlighted: false,
-            isHovered: false,
-            isOpen: false,
-          };
-        });
-        closedComponentStates.forEach((component) => {
-          get().actions.setComponentState(component.id, component);
-        });
-        classIds.forEach((classId) => {
-          get().actions.updateClassState(classId, {
-            id: classId,
-            isVisible: false,
-            isHighlighted: false,
-            isHovered: false,
-          });
+      closeComponents: (ids: string[]) => {
+        set({
+          closedComponentIds: get().closedComponentIds.union(new Set(ids)),
         });
       },
-      removeComponentState: (id: string) => {
-        set((prevState) => {
-          const newComponentData = { ...prevState.componentData };
-          delete newComponentData[id];
-          return { componentData: newComponentData };
+      showComponents: (ids: string[]) => {
+        const newSet = get().hiddenComponentIds.difference(new Set(ids));
+        set({
+          hiddenComponentIds: newSet,
         });
       },
-      removeAllComponentStates: () => {
-        set({ componentData: {} });
+      hideComponents: (ids: string[]) => {
+        set({
+          hiddenComponentIds: get().hiddenComponentIds.union(new Set(ids)),
+        });
+      },
+      resetComponentStates: () => {
+        set({
+          closedComponentIds: new Set(),
+          hiddenComponentIds: new Set(),
+        });
       },
       // Classes
-      setHoveredEntity: (id: string | null) => {
-        set({ hoveredEntity: id });
-      },
-      setHighlightedEntity: (id: string, isHighlighted: boolean) => {
-        if (isHighlighted) {
-          set((prevState) => {
-            const updatedHighlightedEntityIds = structuredClone(
-              prevState.highlightedEntityIds
-            );
-            updatedHighlightedEntityIds.push(id);
-            return {
-              highlightedEntityIds: updatedHighlightedEntityIds,
-            };
-          });
-        } else {
-          set((prevState) => {
-            const updatedHighlightedEntityIds =
-              prevState.highlightedEntityIds.filter(
-                (existingId) => existingId != id
-              );
-            return {
-              highlightedEntityIds: updatedHighlightedEntityIds,
-            };
-          });
-        }
-      },
-      getClassState: (id: string) => {
-        const state = get().classData[id];
-        if (!state) {
-          return {
-            id,
-            isVisible: true,
-            isHighlighted: false,
-            isHovered: false,
-          };
-        }
-        return get().classData[id];
-      },
-      setClassState: (id: string, state: Omit<ClassState, 'id'>) => {
-        set((prevState) => ({
-          classData: {
-            ...prevState.classData,
-            [id]: { ...state, id },
-          },
-        }));
-      },
-      updateClassState: (
-        id: string,
-        state: Partial<Omit<ClassState, 'id'>>
-      ) => {
-        const currentState = get().actions.getClassState(id);
-        set((prevState) => ({
-          classData: {
-            ...prevState.classData,
-            [id]: { ...currentState, ...state },
-          },
-        }));
-      },
-      removeClassState: (id: string) => {
-        set((prevState) => {
-          const newComponentData = { ...prevState.classData };
-          delete newComponentData[id];
-          return { classData: newComponentData };
+      showClasses: (ids: string[]) => {
+        const newSet = get().hiddenClassIds.difference(new Set(ids));
+        set({
+          hiddenClassIds: newSet,
         });
       },
-      removeAllClassStates: () => {
-        set({ classData: {} });
+      hideClasses: (ids: string[]) => {
+        set({
+          hiddenClassIds: get().hiddenClassIds.union(new Set(ids)),
+        });
+      },
+      resetClassStates: () => {
+        set({ hiddenClassIds: new Set() });
       },
     },
   })

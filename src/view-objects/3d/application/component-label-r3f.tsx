@@ -10,9 +10,11 @@ import { useShallow } from 'zustand/react/shallow';
 export default function ComponentLabelR3F({
   component,
   layout,
+  isCameraZoomedIn,
 }: {
   component: Package;
   layout: BoxLayout;
+  isCameraZoomedIn: boolean;
 }) {
   const {
     labelOffset,
@@ -31,12 +33,8 @@ export default function ComponentLabelR3F({
 
   const { isOpen, isVisible } = useVisualizationStore(
     useShallow((state) => ({
-      isOpen: state.componentData[component.id]
-        ? state.componentData[component.id].isOpen
-        : true,
-      isVisible: state.componentData[component.id]
-        ? state.componentData[component.id].isVisible
-        : true,
+      isOpen: !state.closedComponentIds.has(component.id),
+      isVisible: !state.hiddenComponentIds.has(component.id),
     }))
   );
 
@@ -45,8 +43,6 @@ export default function ComponentLabelR3F({
   );
 
   useEffect(() => {
-    console.log(`Updating label position for component ${component.name}`);
-
     if (isOpen) {
       setLabelPosition(
         labelPosition
@@ -74,11 +70,15 @@ export default function ComponentLabelR3F({
   return (
     <Text
       color={componentTextColor}
-      outlineColor={'white'}
-      visible={isVisible}
+      visible={isVisible && (isCameraZoomedIn || !isOpen)}
       position={labelPosition}
       rotation={[1.5 * Math.PI, 0, 0]}
-      fontSize={(packageLabelMargin * 10) / 20}
+      sdfGlyphSize={16}
+      fontSize={
+        isOpen
+          ? packageLabelMargin * 0.5
+          : Math.max(layout.width * 0.1, packageLabelMargin * 0.5)
+      }
       raycast={() => null}
     >
       {component.name}

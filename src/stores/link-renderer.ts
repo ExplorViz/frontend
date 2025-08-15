@@ -21,7 +21,8 @@ interface LinkRendererState {
   computeCommunicationLayout: (
     communication: ClassCommunication | ComponentCommunication,
     applicationModels: ApplicationData[],
-    layoutMap: Map<string, BoxLayout>
+    layoutMap: Map<string, BoxLayout>,
+    closedComponentIds?: Set<string> // Not used, but argument that triggers re-computation of function
   ) => CommunicationLayout | undefined;
   getLinkById: (linkId: string) => ClazzCommunicationMesh | undefined;
 }
@@ -39,10 +40,10 @@ export const useLinkRendererStore = create<LinkRendererState>((set, get) => ({
     if (!parentComponent) return entity;
 
     // Check open status in corresponding component mesh
-    const parentState = useVisualizationStore
+    const isParentOpen = !useVisualizationStore
       .getState()
-      .actions.getComponentState(parentComponent.id);
-    if (parentState.isOpen) {
+      .closedComponentIds.has(parentComponent.id);
+    if (isParentOpen) {
       return entity;
     }
 

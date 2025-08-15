@@ -49,16 +49,14 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     const classIdToClass = useMemo(() => new Map<string, Class>(), []);
 
     const {
-      classData,
-      getClassState,
+      hiddenClassIds,
       hoveredEntityId,
       setHoveredEntity,
       highlightedEntityIds,
       setHighlightedEntity,
     } = useVisualizationStore(
       useShallow((state) => ({
-        classData: state.classData,
-        getClassState: state.actions.getClassState,
+        hiddenClassIds: state.hiddenClassIds,
         hoveredEntityId: state.hoveredEntity,
         setHoveredEntity: state.actions.setHoveredEntity,
         highlightedEntityIds: state.highlightedEntityIds,
@@ -154,7 +152,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
             getClassHeight(classes[i]) / 2,
           layout!.position.z
         );
-        obj.visible = getClassState(classes[i].id).isVisible;
+        obj.visible = !hiddenClassIds.has(classes[i].id);
         obj.scale.set(layout!.width, getClassHeight(classes[i]), layout!.depth);
         obj.color = computeColor(classes[i].id);
         obj.updateMatrix();
@@ -211,14 +209,13 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
       if (!ref.current) return;
 
-      // update the visibility of the instances based on classData
+      // Update the visibility of the instances based on classData
       instanceIdToClassId.forEach((classId, instanceId) => {
-        const classInfo = getClassState(classId);
         // Set visibility based on classData
-        ref.current?.setVisibilityAt(instanceId, classInfo.isVisible);
+        ref.current?.setVisibilityAt(instanceId, !hiddenClassIds.has(classId));
         // ref.current?.setColorAt(instanceId, computeColor(classId));
       });
-    }, [classData]);
+    }, [hiddenClassIds]);
 
     useEffect(() => {
       if (ref === null || typeof ref === 'function') {
