@@ -5,7 +5,6 @@ import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-lay
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import SemanticZoomManager from '../application/utils/semantic-zoom-manager';
 
 export default class Landscape3D
   extends THREE.Group
@@ -78,7 +77,6 @@ export default class Landscape3D
 
   removeK8sMesh(k8sMesh: K8sMesh) {
     this.remove(k8sMesh);
-    k8sMesh.disposeRecursively(SemanticZoomManager);
     this.k8sMeshes.delete(k8sMesh.getModelId());
   }
 
@@ -98,7 +96,6 @@ export default class Landscape3D
   removeCommunication(commMesh: ClazzCommunicationMesh) {
     this.remove(commMesh);
     this.interAppComms.delete(commMesh.getModelId());
-    commMesh.disposeRecursively(SemanticZoomManager);
   }
 
   removeAll() {

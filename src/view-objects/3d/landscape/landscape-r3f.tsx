@@ -6,6 +6,9 @@ import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-lay
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
+import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
+
+const MOUSE_MIDDLE_BUTTON = 1;
 
 export default function LandscapeR3F({
   layout,
@@ -57,7 +60,22 @@ export default function LandscapeR3F({
   }, []);
 
   return (
-    <group position={position} scale={scalar}>
+    <group
+      position={position}
+      scale={scalar}
+      onPointerDown={(e) => {
+        if (e.button == MOUSE_MIDDLE_BUTTON) {
+          e.stopPropagation();
+          usePingStore.getState().push({
+            pingedObject: e.object,
+            position: e.point,
+            durationMs: 1000,
+            replay: true,
+            restartable: false,
+          });
+        }
+      }}
+    >
       {children}
     </group>
   );

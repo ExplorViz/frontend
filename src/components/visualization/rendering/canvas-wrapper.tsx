@@ -16,6 +16,7 @@ import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
+import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
@@ -239,6 +240,7 @@ export default function CanvasWrapper({
             />
           ))}
       </LandscapeR3F>
+      <AnimatedPing color="#00e5ff" />
       <ambientLight />
       <directionalLight
         name="DirectionalLight"
