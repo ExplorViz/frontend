@@ -1,5 +1,6 @@
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
+  SelectedClassHeatmapMetric,
   SettingLevel,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
@@ -227,6 +228,15 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Show Heatmap',
     description: 'Toggle visibility of the heatmap',
     isFlagSetting: true,
+  },
+  classHeatmapMetric: {
+    level: SettingLevel.DEFAULT,
+    value: SelectedClassHeatmapMetric.None,
+    options: Object.values(SelectedClassHeatmapMetric),
+    group: 'Heatmap',
+    displayName: 'Class Heatmap',
+    description: 'Determines which metric is used for the class heatmap',
+    isSelectSetting: true,
   },
   // Highlighting Settings
   applyHighlightingOnHover: {

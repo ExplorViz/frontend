@@ -85,6 +85,7 @@ export type DebugSettingId = keyof DebugSettings;
 
 export type HeatmapSettings = {
   heatmapEnabled: FlagSetting;
+  classHeatmapMetric: SelectSetting<SelectedClassHeatmapMetric>;
 };
 export type HeatmapSettingId = keyof HeatmapSettings;
 
@@ -238,6 +239,14 @@ export enum SelectedClassMetric {
   None = 'None',
   Method = 'Method Count',
   LoC = 'LoC',
+}
+
+export enum SelectedClassHeatmapMetric {
+  None = 'None',
+  Methods = 'Method Count',
+  LoC = 'Lines of Code',
+  DynamicMethods = 'Dynamic Method Quota',
+  StaticMethods = 'Static Method Quota',
 }
 
 export interface FlagSetting extends Setting<boolean> {

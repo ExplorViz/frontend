@@ -21,6 +21,8 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
+import { getHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
+import { SelectedClassHeatmapMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -82,6 +84,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       addedClassColor,
       classColor,
       classFootprint,
+      classHeatmapMetric,
       classHeightMultiplier,
       enableHoverEffects,
       heightMetric,
@@ -94,6 +97,8 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         addedClassColor: state.visualizationSettings.addedClassColor.value,
         classColor: state.visualizationSettings.classColor.value,
         classFootprint: state.visualizationSettings.classFootprint.value,
+        classHeatmapMetric:
+          state.visualizationSettings.classHeatmapMetric.value,
         classHeightMultiplier:
           state.visualizationSettings.classHeightMultiplier.value,
         enableHoverEffects:
@@ -172,6 +177,17 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       const dataModel = classIdToClass.get(classId);
       if (!dataModel) {
         return new THREE.Color('red');
+      }
+      if (classHeatmapMetric !== SelectedClassHeatmapMetric.None) {
+        return new THREE.Color(
+          getHeatmapColor(
+            dataModel,
+            classHeatmapMetric,
+            '#0000ff', // Blue for min
+            '#ffff00', // Yellow for avg
+            '#ff0000' // Red for max
+          )
+        );
       }
       if (
         evoConfig.renderOnlyDifferences &&
@@ -258,6 +274,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       highlightedEntityIds,
       hoveredEntityId,
       evoConfig.renderOnlyDifferences,
+      SelectedClassHeatmapMetric,
     ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {

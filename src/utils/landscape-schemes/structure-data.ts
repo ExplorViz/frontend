@@ -217,6 +217,9 @@ export function preProcessAndEnhanceStructureLandscape(
         clazz.id = `${component.id}.class-${clazz.name}`;
         clazz.fqn = `${component.fqn}.${clazz.name}`;
         entitiesForIdHashing.add(clazz);
+        clazz.methods.forEach((method) => {
+          method.originOfData = typeOfAnalysis;
+        });
       });
       createClassIds(component.subPackages);
     });
