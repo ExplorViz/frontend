@@ -12,6 +12,10 @@ import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import {
+  ClassMetricIds,
+  useHeatmapStore,
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 
 export default function CommunicationR3F({
   communicationModel,
@@ -40,6 +44,13 @@ export default function CommunicationR3F({
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       curveHeight: state.visualizationSettings.curvyCommHeight.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
+    }))
+  );
+
+  const { heatmapActive, selectedClassMetric } = useHeatmapStore(
+    useShallow((state) => ({
+      heatmapActive: state.heatmapActive,
+      selectedClassMetric: state.getSelectedClassMetric(),
     }))
   );
 
@@ -140,7 +151,11 @@ export default function CommunicationR3F({
       layout={communicationLayout}
       arrowWidth={arrowWidth}
       curveHeight={computeCurveHeight()}
-      defaultColor={communicationColor}
+      defaultColor={
+        heatmapActive && selectedClassMetric?.name != ClassMetricIds.None
+          ? '#ffffff'
+          : communicationColor
+      }
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}
       isHovered={enableHoverEffects && isHovered}

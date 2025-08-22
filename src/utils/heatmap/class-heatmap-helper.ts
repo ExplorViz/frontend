@@ -1,3 +1,4 @@
+import { ClassMetric } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import {
   Class,
   TypeOfAnalysis,
@@ -30,18 +31,18 @@ export function interpolateColor(c1: RGB, c2: RGB, t: number): RGB {
 
 export function getMetricValues(
   dataModel: Class,
-  classHeatmapMetric: SelectedClassHeatmapMetric
+  classHeatmapMetric: ClassMetric
 ): { min: number; max: number; current: number } {
-  switch (classHeatmapMetric) {
+  switch (classHeatmapMetric.name) {
     case SelectedClassHeatmapMetric.Methods:
       return {
-        min: 0,
-        max: 10,
+        min: classHeatmapMetric.min,
+        max: classHeatmapMetric.max,
         current: dataModel.methods.length,
       };
     case SelectedClassHeatmapMetric.DynamicMethods:
       return {
-        min: 0,
+        min: classHeatmapMetric.min,
         max: dataModel.methods.length,
         current: dataModel.methods.filter(
           (m) =>
@@ -51,7 +52,7 @@ export function getMetricValues(
       };
     case SelectedClassHeatmapMetric.StaticMethods:
       return {
-        min: 0,
+        min: classHeatmapMetric.min,
         max: dataModel.methods.length,
         current: dataModel.methods.filter(
           (m) =>
@@ -70,7 +71,7 @@ export function getMetricValues(
 
 export function getHeatmapColor(
   dataModel: Class,
-  classHeatmapMetric: SelectedClassHeatmapMetric,
+  classHeatmapMetric: ClassMetric,
   minColor: string,
   avgColor: string,
   maxColor: string

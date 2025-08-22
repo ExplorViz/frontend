@@ -23,6 +23,7 @@ import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
 import { getHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
 import { SelectedClassHeatmapMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -84,7 +85,6 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       addedClassColor,
       classColor,
       classFootprint,
-      classHeatmapMetric,
       classHeightMultiplier,
       enableHoverEffects,
       heightMetric,
@@ -97,8 +97,6 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         addedClassColor: state.visualizationSettings.addedClassColor.value,
         classColor: state.visualizationSettings.classColor.value,
         classFootprint: state.visualizationSettings.classFootprint.value,
-        classHeatmapMetric:
-          state.visualizationSettings.classHeatmapMetric.value,
         classHeightMultiplier:
           state.visualizationSettings.classHeightMultiplier.value,
         enableHoverEffects:
@@ -110,6 +108,13 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         removedClassColor: state.visualizationSettings.removedClassColor.value,
         unchangedClassColor:
           state.visualizationSettings.unchangedClassColor.value,
+      }))
+    );
+
+    const { heatmapActive, selectedClassMetric } = useHeatmapStore(
+      useShallow((state) => ({
+        heatmapActive: state.heatmapActive,
+        selectedClassMetric: state.getSelectedClassMetric(),
       }))
     );
 
@@ -178,11 +183,14 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       if (!dataModel) {
         return new THREE.Color('red');
       }
-      if (classHeatmapMetric !== SelectedClassHeatmapMetric.None) {
+      if (
+        heatmapActive &&
+        selectedClassMetric?.name !== SelectedClassHeatmapMetric.None
+      ) {
         return new THREE.Color(
           getHeatmapColor(
             dataModel,
-            classHeatmapMetric,
+            selectedClassMetric!,
             '#0000ff', // Blue for min
             '#ffff00', // Yellow for avg
             '#ff0000' // Red for max
@@ -274,7 +282,8 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       highlightedEntityIds,
       hoveredEntityId,
       evoConfig.renderOnlyDifferences,
-      SelectedClassHeatmapMetric,
+      selectedClassMetric,
+      heatmapActive,
     ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {

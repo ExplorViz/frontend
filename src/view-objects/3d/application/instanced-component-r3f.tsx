@@ -17,6 +17,10 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
+import {
+  ClassMetricIds,
+  useHeatmapStore,
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
 
@@ -100,6 +104,13 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
           state.visualizationSettings.removedComponentColor.value,
         unChangedComponentColor:
           state.visualizationSettings.unchangedComponentColor.value,
+      }))
+    );
+
+    const { heatmapActive, selectedClassMetric } = useHeatmapStore(
+      useShallow((state) => ({
+        heatmapActive: state.heatmapActive,
+        selectedClassMetric: state.getSelectedClassMetric(),
       }))
     );
 
@@ -207,6 +218,11 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
     const computeColor = (componentId: string) => {
       const component = componentIdToPackage.get(componentId);
       if (!component) return new Color('white');
+
+      if (heatmapActive && selectedClassMetric?.name != ClassMetricIds.None) {
+        return new Color('white');
+      }
+
       if (
         evoConfig.renderOnlyDifferences &&
         commitComparison &&
@@ -296,7 +312,12 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       componentIdToInstanceId.forEach((instanceId, componentId) => {
         ref.current?.setColorAt(instanceId, computeColor(componentId));
       });
-    }, [highlightedEntityIds, hoveredEntityId]);
+    }, [
+      highlightedEntityIds,
+      hoveredEntityId,
+      heatmapActive,
+      selectedClassMetric,
+    ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
       if (ref === null || typeof ref === 'function') {

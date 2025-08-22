@@ -93,6 +93,7 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import Popups from './popups/popups';
+import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -265,14 +266,9 @@ export default function BrowserRendering({
     }))
   );
 
-  const heatmapConfigurationState = useHeatmapConfigurationStore(
+  const heatmapState = useHeatmapStore(
     useShallow((state) => ({
       heatmapActive: state.heatmapActive,
-    }))
-  );
-  const heatmapConfigurationActions = useHeatmapConfigurationStore(
-    useShallow((state) => ({
-      setActiveApplication: state.setActiveApplication,
       cleanup: state.cleanup,
     }))
   );
@@ -498,7 +494,7 @@ export default function BrowserRendering({
       selectActiveApplication(mesh.parent);
     }
 
-    if (isEntityMesh(mesh) && !heatmapConfigurationState.heatmapActive) {
+    if (isEntityMesh(mesh) && !heatmapState.heatmapActive) {
       highlightingActions.toggleHighlight(mesh, { sendMessage: true });
     }
   };
@@ -553,8 +549,6 @@ export default function BrowserRendering({
     if (getSelectedApplicationObject3D() !== applicationObject3D) {
       setSelectedApplicationId(applicationObject3D.getModelId());
     }
-
-    heatmapConfigurationActions.setActiveApplication(applicationObject3D);
 
     applicationObject3D.updateMatrixWorld();
     // TODO: Update links (make them invisible?)
@@ -1009,7 +1003,7 @@ export default function BrowserRendering({
             </div>
           )}
 
-          {heatmapConfigurationState.heatmapActive && <HeatmapInfo />}
+          {heatmapState.heatmapActive && <HeatmapInfo />}
 
           <ContextMenu switchToAR={switchToAR}>
             <CanvasWrapper

@@ -15,6 +15,14 @@ export function getDefaultGradient() {
   };
 }
 
+// Needed to revert keys of default gradient for heatmap legend
+export function revertKey(gradient: Gradient) {
+  const replacedItems = Object.keys(gradient).map((key) => ({
+    [key.replace(/_/g, '.').replace(/\+/g, '')]: gradient[key],
+  }));
+  return Object.assign({}, ...replacedItems);
+}
+
 export default function simpleHeatmap(
   maximumValue: number,
   canvas: HTMLCanvasElement,
