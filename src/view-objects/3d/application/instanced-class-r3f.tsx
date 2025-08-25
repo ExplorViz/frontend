@@ -21,9 +21,13 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
-import { getHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
+import {
+  getHeatmapColor,
+  getMetricValues,
+} from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
 import { SelectedClassHeatmapMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -185,16 +189,12 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
       if (
         heatmapActive &&
+        selectedClassMetric &&
         selectedClassMetric?.name !== SelectedClassHeatmapMetric.None
       ) {
+        const metricValues = getMetricValues(dataModel, selectedClassMetric);
         return new THREE.Color(
-          getHeatmapColor(
-            dataModel,
-            selectedClassMetric!,
-            '#0000ff', // Blue for min
-            '#ffff00', // Yellow for avg
-            '#ff0000' // Red for max
-          )
+          getSimpleHeatmapColor(metricValues.current, metricValues.max)
         );
       }
       if (
