@@ -58,8 +58,6 @@ import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
 import { Timestamp } from '../utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from '../utils/timeline/timeline-data-object-handler';
-import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
-// import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
 import { ChevronUpIcon } from '@primer/octicons-react';
 import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
@@ -159,7 +157,6 @@ export default function Visualization() {
           // onLoad callback
           (font) => {
             setFont(font);
-            SemanticZoomManager.instance.font = font;
             ImmersiveView.instance.font = font;
             resolve(font);
           },
@@ -470,13 +467,10 @@ export default function Visualization() {
       }
     }
 
-    // start main loop
+    // Start main loop
     restartTimestampPollingAndVizUpdate([]);
 
-    // Delete all Semantic Zoom Objects and its tables
-    SemanticZoomManager.instance.reset();
-
-    // fetch applications for evolution mode
+    // Fetch applications for evolution mode
     await fetchAndStoreApplicationCommitTrees();
 
     let showEvolutionVisualization = false;

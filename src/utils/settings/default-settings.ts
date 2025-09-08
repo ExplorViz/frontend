@@ -735,16 +735,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Visualizes the Directional Light',
     isFlagSetting: true,
   },
-  showSemanticZoomCenterPoints: {
-    level: SettingLevel.EXTENDED,
-    value: false,
-    type: 'primary',
-    group: 'Debugging',
-    displayName: 'Semantic Zoom',
-    description: 'Show (or hide) center points of semantic zoom',
-    buttonText: 'Show Center Points',
-    isButtonSetting: true,
-  },
   fullscreen: {
     level: SettingLevel.DEFAULT,
     value: false,
@@ -775,113 +765,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Reset all settings to default values',
     buttonText: 'Reset',
     isButtonSetting: true,
-  },
-  // Semantic Zoom Settings
-  semanticZoomState: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Semantic Zoom',
-    displayName: 'Semantic Zoom',
-    description:
-      'This switch enables the semantic zoom feature, that hides/shows additional information based on the distance between the user and the object.',
-    isFlagSetting: true,
-  },
-  autoOpenCloseFeature: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Semantic Zoom',
-    displayName: 'Auto Open/Close of Components',
-    description:
-      "Enable or disable the feature to open/close components automatically. Only applies if 'Semantic Zoom' feature is enabled via context menu.",
-    isFlagSetting: true,
-  },
-  useKMeansInsteadOfMeanShift: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Semantic Zoom',
-    displayName: 'Use k-Means instead of Shift-Mean',
-    description:
-      "If on, it uses k-Means clustering with the provided k value below. It works better in combination with 'Auto Open/Close of Components' feature enabled.",
-    isFlagSetting: true,
-  },
-  clusterBasedOnMembers: {
-    level: SettingLevel.DEFAULT,
-    value: 40.0,
-    range: { min: 1.0, max: 100.0, step: 1.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Relative # of clusters',
-    description:
-      'It takes a percentage of the number of 3D Objects that are capable of semantic zoom in the scene. It is used as the k in the k-means clustering. If the clustering mode is not k-means, this value is ignored.',
-    isRangeSetting: true,
-  },
-  usePredefinedSet: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Semantic Zoom',
-    displayName: 'Use Predefined Set',
-    description:
-      'If enabled, uses the slider for the predefined sets. Else its customized',
-    isFlagSetting: true,
-  },
-  distancePreSet: {
-    level: SettingLevel.DEFAULT,
-    value: 1,
-    range: { min: 1.0, max: 6.0, step: 1.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Predefined Zoom Sets',
-    description:
-      'Use the slider to set predefined values for the 5 levels. 0: Costum. 1: Early/Far, 5: Late/Close',
-    isRangeSetting: true,
-  },
-  distanceLevel1: {
-    level: SettingLevel.EXTENDED,
-    value: 20,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 1',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel2: {
-    level: SettingLevel.EXTENDED,
-    value: 65,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 2',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel3: {
-    level: SettingLevel.EXTENDED,
-    value: 70,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 3',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel4: {
-    level: SettingLevel.EXTENDED,
-    value: 80,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 4',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel5: {
-    level: SettingLevel.EXTENDED,
-    value: 90,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 5',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
   },
   // Minimap Settings
   minimap: {

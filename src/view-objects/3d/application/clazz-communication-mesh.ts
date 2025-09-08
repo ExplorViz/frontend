@@ -83,31 +83,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       color: this.defaultColor,
     });
     this.material.transparent = true;
-
-    // SemanticZoomManager.instance.add(this);
-    // this.saveCurrentlyActiveLayout();
-    // // this.setCallBeforeAppearenceZero(() => {
-    // //   this.layout = this._layout_original;
-    // // });
-    // // this.setCallBeforeAppearenceAboveZero(() => {
-    // //   this.layout = this._layout_original;
-    // // });
-
-    // this.setAppearence(2, () => {
-    //   this.layout.lineThickness = this._layout_original.lineThickness / 2;
-    //   this.geometry.dispose();
-    //   this.render();
-    // });
-    // this.setAppearence(3, () => {
-    //   this.layout.lineThickness = this._layout_original.lineThickness / 3;
-    //   this.geometry.dispose();
-    //   this.render();
-    // });
-    // this.setAppearence(4, () => {
-    //   this.layout.lineThickness = this._layout_original.lineThickness / 4;
-    //   this.geometry.dispose();
-    //   this.render();
-    // });
   }
 
   /**
@@ -322,6 +297,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private addArrow(start: THREE.Vector3, end: THREE.Vector3) {
     const dir = new THREE.Vector3().subVectors(end, start);
     const len = dir.length();
+
     // Do not draw precisely in the middle to leave a
     // small gap in case of bidirectional communication
     const halfVector = dir.normalize().multiplyScalar(len * 0.51);
@@ -349,16 +325,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       headLength,
       headWidth
     );
-    this.add(arrow);
 
-    // arrow.saveTheParent();
-    // if (SemanticZoomManager.instance.isEnabled) {
-    //   arrow.layers.disableAll();
-    //this.remove(arrow);
-    // arrow.layers.disableAll();
-    // arrow.layers.set(2);
-    // }
-    // SemanticZoomManager.instance.add(arrow);
+    this.add(arrow);
   }
 
   private createArrowMesh(start: THREE.Vector3, end: THREE.Vector3) {

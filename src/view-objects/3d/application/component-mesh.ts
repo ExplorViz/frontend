@@ -3,7 +3,6 @@ import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-lay
 import * as THREE from 'three';
 import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
 import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
-import SemanticZoomManager from './utils/semantic-zoom-manager';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import { getStoredNumberSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import { positionBoxLabel } from 'explorviz-frontend/src/utils/application-rendering/labeler';
@@ -37,8 +36,7 @@ export default class ComponentMesh extends BoxMesh {
 
   public set labelMesh(value: ComponentLabelMesh | null) {
     if (this._labelMesh != null) {
-      SemanticZoomManager.instance.remove(this._labelMesh);
-      this._labelMesh.disposeRecursively(SemanticZoomManager);
+      this._labelMesh.disposeRecursively();
       this._labelMesh.deleteFromParent();
     }
     this._labelMesh = value;
@@ -54,10 +52,6 @@ export default class ComponentMesh extends BoxMesh {
     this.material.transparent = true;
     this.dataModel = component;
 
-    // Semantic Zoom preparations
-    this.useOrignalAppearence(false);
-    // Register multiple levels
-    this.setAppearence(1, () => {});
     this.layers.enable(SceneLayers.Component);
   }
 

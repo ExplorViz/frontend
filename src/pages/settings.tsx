@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useUserApiTokenStore, ApiToken } from '../stores/user-api-token';
 import ApiTokenSelection from 'explorviz-frontend/src/components/api-token-selection';
 

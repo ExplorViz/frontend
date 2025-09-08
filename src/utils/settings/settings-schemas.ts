@@ -12,7 +12,6 @@ export type SettingGroup =
   | 'Minimap'
   | 'Popups'
   | 'Virtual Reality'
-  | 'Semantic Zoom'
   | 'Debugging'
   | 'Virtual Reality';
 
@@ -76,7 +75,6 @@ export type DebugSettings = {
   showFpsCounter: FlagSetting;
   showAxesHelper: FlagSetting;
   showLightHelper: FlagSetting;
-  showSemanticZoomCenterPoints: ButtonSetting;
   fullscreen: ButtonSetting;
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
@@ -157,21 +155,6 @@ export type PopupSettings = {
 };
 export type PopupSettingId = keyof PopupSettings;
 
-export type SemanticZoomSettings = {
-  usePredefinedSet: FlagSetting;
-  semanticZoomState: FlagSetting;
-  distancePreSet: RangeSetting;
-  distanceLevel1: RangeSetting;
-  distanceLevel2: RangeSetting;
-  distanceLevel3: RangeSetting;
-  distanceLevel4: RangeSetting;
-  distanceLevel5: RangeSetting;
-  clusterBasedOnMembers: RangeSetting;
-  autoOpenCloseFeature: FlagSetting;
-  useKMeansInsteadOfMeanShift: FlagSetting;
-};
-export type SemanticZoomSettingId = keyof SemanticZoomSettings;
-
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
@@ -188,7 +171,6 @@ export type VisualizationSettingId =
   | LabelSettingId
   | MinimapSettingId
   | PopupSettingId
-  | SemanticZoomSettingId
   | XrSettingId;
 
 export type VisualizationSettings = CameraSettings &
@@ -202,7 +184,6 @@ export type VisualizationSettings = CameraSettings &
   LabelSettings &
   MinimapSettings &
   PopupSettings &
-  SemanticZoomSettings &
   XrSettings &
   ColorSettings;
 

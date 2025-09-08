@@ -88,15 +88,7 @@ export default abstract class BoxMesh<
   }
 
   private setterHelper(fn: () => void) {
-    // Semantic Zoom Injection
-    //if (this instanceof BaseMesh) this.restoreOriginalAppearence();
-
     fn();
-
-    // Save new Original
-    //if (this instanceof BaseMesh) {
-    //  this.saveOriginalAppearence();
-    //  this.restoreAppearence();
   }
 
   updateLayout(layout: BoxLayout) {

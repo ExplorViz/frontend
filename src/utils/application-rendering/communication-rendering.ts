@@ -8,7 +8,6 @@ import { findFirstOpen } from 'explorviz-frontend/src/utils/link-helper';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout.ts';
 import { MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
@@ -144,7 +143,6 @@ export default class CommunicationRendering {
             clazzCommuMeshData = mesh.dataModel;
             mesh.geometry.dispose();
             applicationObject3D.remove(mesh);
-            SemanticZoomManager.instance.remove(mesh);
 
             commLayout.lineThickness = calculateLineThickness(
               componentCommunication,

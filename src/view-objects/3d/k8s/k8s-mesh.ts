@@ -3,7 +3,6 @@ import { K8sEntity } from 'explorviz-frontend/src/utils/k8s-landscape-visualizat
 import * as THREE from 'three';
 import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh';
 import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { getStoredNumberSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 
@@ -23,8 +22,7 @@ export default class K8sMesh extends BoxMesh {
   }
   public set labelMesh(value: ComponentLabelMesh | null) {
     if (this._labelMesh != null) {
-      SemanticZoomManager.instance.remove(this._labelMesh);
-      this._labelMesh.disposeRecursively(SemanticZoomManager);
+      this._labelMesh.disposeRecursively();
       this._labelMesh.deleteFromParent();
     }
     this._labelMesh = value;
@@ -47,10 +45,6 @@ export default class K8sMesh extends BoxMesh {
     this.geometry = geometry;
     this.dataModel = dataModel;
 
-    // Semantic Zoom preparations
-    this.useOrignalAppearence(false);
-    // Register multiple levels
-    this.setAppearence(1, () => {});
     this.layers.enable(SceneLayers.Component);
   }
 

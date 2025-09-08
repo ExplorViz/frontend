@@ -11,7 +11,6 @@ import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/applicat
 import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import * as THREE from 'three';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import {
@@ -53,7 +52,6 @@ export function addMeshToApplication(
 
   mesh.saveOriginalAppearence();
   app3D.add(mesh);
-  SemanticZoomManager.instance.add(mesh);
 }
 
 /**
@@ -129,45 +127,7 @@ export function addComponentAndChildrenToScene(
   // Alter the prio to VIP, such that it gets triggered first and without a delay.
   componentMesh.prio = 1;
   // Define function
-  const triggerOpen = () => {
-    if (!SemanticZoomManager.instance.autoOpenCloseFeature) return;
-    //Open parents first
-    if (componentMesh.opened) return;
-    openComponentAndAncestor(component, applicationObject3D);
-    //Open itsself
-    openComponent(componentMesh, applicationObject3D);
-    //Open its childs
-    openComponentsRecursively(component, applicationObject3D);
-
-    // Rewritten update method
-    //updateApplicationObject3DAfterUpdate(applicationObject3D);
-    updateApplicationObject3DAfterUpdate(
-      applicationObject3D,
-      SemanticZoomManager.instance.appCommRendering!,
-      true,
-      SemanticZoomManager.instance.font!,
-      SemanticZoomManager.instance.updateLinks!
-    );
-  };
-  componentMesh.setAppearence(1, triggerOpen);
-  // mesh.setAppearence(2, triggerOpen);
-  // mesh.setAppearence(3, triggerOpen);
-  // mesh.setAppearence(4, triggerOpen);
-
-  componentMesh.setCallBeforeAppearenceZero(() => {
-    if (!SemanticZoomManager.instance.autoOpenCloseFeature) return;
-    if (!componentMesh.opened) return;
-
-    closeComponentsRecursively(component, applicationObject3D);
-    closeComponent(componentMesh, applicationObject3D, false);
-    updateApplicationObject3DAfterUpdate(
-      applicationObject3D,
-      SemanticZoomManager.instance.appCommRendering!,
-      true,
-      SemanticZoomManager.instance.font!,
-      SemanticZoomManager.instance.updateLinks!
-    );
-  });
+  const triggerOpen = () => {};
 
   addMeshToApplication(componentMesh, applicationObject3D);
   updateMeshVisiblity(componentMesh, applicationObject3D);

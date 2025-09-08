@@ -13,7 +13,6 @@ import {
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/wireframe';
 import MenuGroup from 'explorviz-frontend/src/utils/extended-reality/vr-menus/menu-group';
 import { ControllerId } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
-import SemanticZoomManager from '../../view-objects/3d/application/utils/semantic-zoom-manager';
 /**
  * Length of the controller's ray when there is no intersection point.
  */
@@ -275,7 +274,7 @@ export default class VRController extends BaseMesh {
     // Remove teleport area
     if (teleportArea) {
       teleportArea.deleteFromParent();
-      teleportArea.disposeRecursively(SemanticZoomManager);
+      teleportArea.disposeRecursively();
       this.teleportArea = null;
     }
   }

@@ -71,30 +71,12 @@ export default function ContextMenu({
     {
       title: 'Open All Components',
       action: () => {
-        if (
-          userSettingsState.visualizationSettings.autoOpenCloseFeature.value &&
-          userSettingsState.visualizationSettings.semanticZoomState.value
-        ) {
-          toastHandlerActions.showErrorToastMessage(
-            'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
-          );
-          return;
-        }
         EntityManipulation.openAllComponentsInLandscape();
       },
     },
     {
       title: 'Close All Components',
       action: () => {
-        if (
-          userSettingsState.visualizationSettings.autoOpenCloseFeature.value &&
-          userSettingsState.visualizationSettings.semanticZoomState.value
-        ) {
-          toastHandlerActions.showErrorToastMessage(
-            'Close All Components not useable when Semantic Zoom with auto open/close is enabled.'
-          );
-          return;
-        }
         EntityManipulation.closeAllComponentsInLandscape();
       },
     },

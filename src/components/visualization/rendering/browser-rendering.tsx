@@ -40,7 +40,6 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
@@ -194,7 +193,6 @@ export default function BrowserRendering({
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
       setIsCommRendered: state.setIsCommRendered,
-      setSemanticZoomEnabled: state.setSemanticZoomEnabled,
     }))
   );
 
@@ -297,62 +295,6 @@ export default function BrowserRendering({
     }
   };
 
-  const toggleSemanticZoom = () => {
-    if (!SemanticZoomManager.instance.isEnabled) {
-      SemanticZoomManager.instance.activate();
-    } else {
-      SemanticZoomManager.instance.deactivate();
-    }
-    userSettingsActions.updateSetting(
-      'semanticZoomState',
-      SemanticZoomManager.instance.isEnabled
-    );
-    configurationActions.setSemanticZoomEnabled(
-      SemanticZoomManager.instance.isEnabled
-    );
-  };
-
-  const showSemanticZoomClusterCenters = () => {
-    // Remove previous center points from scene
-    const prevCenterPointList = scene.children.filter(
-      (preCenterPoint) => preCenterPoint.name == 'centerPoints'
-    );
-    prevCenterPointList.forEach((preCenterPoint) => {
-      scene.remove(preCenterPoint);
-    });
-
-    if (!SemanticZoomManager.instance.isEnabled) {
-      return;
-    }
-
-    // Poll Center Vectors
-    SemanticZoomManager.instance
-      .getClusterCentroids()
-      .forEach((centerPoint) => {
-        // Create red material
-        const xGroup = new THREE.Group();
-        xGroup.name = 'centerPoints';
-        const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-
-        // Create the first part of the "X" (a thin rectangle)
-        const geometry = new THREE.BoxGeometry(0.1, 0.01, 0.01); // A long thin box
-        const part1 = new THREE.Mesh(geometry, redMaterial);
-        part1.rotation.z = Math.PI / 4; // Rotate 45 degrees
-
-        // Create the second part of the "X"
-        const part2 = new THREE.Mesh(geometry, redMaterial);
-        part2.rotation.z = -Math.PI / 4; // Rotate -45 degrees
-
-        // Add both parts to the scene
-        xGroup.add(part1);
-        xGroup.add(part2);
-
-        // Set Position of X Group
-        xGroup.position.copy(centerPoint);
-        scene.add(xGroup);
-      });
-  };
-
   const highlightTrace = (trace: Trace, traceStep: string) => {
     const selectedObject3D = getSelectedApplicationObject3D();
 
@@ -423,46 +365,6 @@ export default function BrowserRendering({
     minimapActions.setRaycaster(new Raycaster(localUserState.minimapCamera));
   };
 
-  /**
-   * Initiates a WebGLRenderer
-   */
-  const initRenderer = () => {
-    // ImmersiveView.instance.registerRenderingLoop(renderingLoop.current);
-    // document.addEventListener('Landscape initialized', () => {
-    //   if (!initDone.current && landscape3D.children.length > 0) {
-    //     setTimeout(() => {
-    //       cameraControls.current!.resetCameraFocusOn(1.2, [landscape3D]);
-    //       if (
-    //         SemanticZoomManager.instance.isEnabled ||
-    //         userSettingsState.visualizationSettings.semanticZoomState.value ==
-    //           true
-    //       ) {
-    //         SemanticZoomManager.instance.activate();
-    //         configurationActions.setSemanticZoomEnabled(
-    //           SemanticZoomManager.instance.isEnabled
-    //         );
-    //       }
-    //     }, 200);
-    //     initDone.current = true;
-    //   }
-    //   if (snapshot || snapshotReload) {
-    //     if (!initDone.current && landscape3D.children.length > 0) {
-    //       setTimeout(() => {
-    //         applicationRendererActions.getOpenApplications();
-    //       }, 200);
-    //       initDone.current = true;
-    //     }
-    //   } else {
-    //     if (!initDone.current && landscape3D.children.length > 0) {
-    //       setTimeout(() => {
-    //         cameraControls.current!.resetCameraFocusOn(1.2, [landscape3D]);
-    //       }, 200);
-    //       initDone.current = true;
-    //     }
-    //   }
-    // });
-  };
-
   const handleSingleClick = (intersection: THREE.Intersection | null) => {
     if (intersection) {
       // setMousePosition(intersection.point.clone());
@@ -506,7 +408,6 @@ export default function BrowserRendering({
   };
 
   const handleCtrlDown = () => {
-    SemanticZoomManager.instance.logCurrentState();
     // nothing to do atm
   };
 
@@ -794,7 +695,6 @@ export default function BrowserRendering({
   const gamepadControls = useRef<GamepadControls | null>(null);
   const initDone = useRef<boolean>(false);
   const toggleForceAppearenceLayer = useRef<boolean>(false);
-  const semanticZoomToggle = useRef<boolean>(false);
 
   // MARK: Effects and hooks
 
@@ -807,10 +707,6 @@ export default function BrowserRendering({
       useLocalUserStore
         .getState()
         .setDefaultCamera(new THREE.PerspectiveCamera());
-
-      configurationActions.setSemanticZoomEnabled(
-        SemanticZoomManager.instance.isEnabled
-      );
 
       // scene.add(landscape3D);
       tickCallbacks.current.push(
@@ -827,43 +723,6 @@ export default function BrowserRendering({
       ImmersiveView.instance.callbackOnExit = () => {
         usePopupHandlerStore.getState().setDeactivated(false);
       };
-
-      // Semantic Zoom Manager shows/removes all communication arrows due to high rendering time.
-      // If the Semantic Zoom feature is enabled, all previously generated arrows are hidden.
-      // After that, the manager decides on which level to show.
-      // If it gets disabled, all previous arrows are restored.
-      // All this is done by shifting layers.
-      SemanticZoomManager.instance.registerActivationCallback((onOff) => {
-        useLinkRendererStore
-          .getState()
-          .getAllLinks()
-          .forEach((currentCommunicationMesh: ClazzCommunicationMesh) => {
-            currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
-              if (onOff) {
-                arrow.layers.disableAll();
-              } else {
-                arrow.layers.set(0);
-              }
-            });
-          });
-        applicationRendererActions.getOpenApplications().forEach((ap) => {
-          ap.getCommMeshes().forEach((currentCommunicationMesh) => {
-            currentCommunicationMesh.getArrowMeshes().forEach((arrow) => {
-              if (onOff) {
-                arrow.layers.disableAll();
-              } else {
-                arrow.layers.set(0);
-              }
-            });
-          });
-        });
-      });
-      // Loads the AutoOpenClose activation state from the settings.
-      SemanticZoomManager.instance.toggleAutoOpenClose(
-        userSettingsState.visualizationSettings.autoOpenCloseFeature.value
-      );
-
-      // useApplicationRendererStore.getState().setLandscape3D(landscape3D);
 
       // Open sidebars automatically on certain restructure actions
 
@@ -895,7 +754,6 @@ export default function BrowserRendering({
 
         ideWebsocket.dispose();
 
-        heatmapConfigurationActions.cleanup();
         // renderingLoop.current?.stop();
         configurationActions.setIsCommRendered(true);
         popupHandlerActions.cleanup();
@@ -1169,9 +1027,6 @@ export default function BrowserRendering({
                     <Settings
                       enterFullscreen={enterFullscreen}
                       resetSettings={userSettingsActions.applyDefaultSettings}
-                      showSemanticZoomClusterCenters={
-                        showSemanticZoomClusterCenters
-                      }
                       updateHighlighting={
                         highlightingActions.updateHighlighting
                       }

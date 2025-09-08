@@ -10,7 +10,6 @@ import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/appli
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
@@ -18,7 +17,6 @@ import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/sce
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
-import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   ColorSettingId,
   isButtonSetting,
@@ -32,7 +30,6 @@ import {
   VisualizationSettingId,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { Mesh } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
@@ -42,7 +39,6 @@ interface SettingsProps {
   enterFullscreen(): void;
   resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
-  showSemanticZoomClusterCenters(): void;
   updateHighlighting(): void;
 }
 
@@ -50,7 +46,6 @@ export default function Settings({
   enterFullscreen,
   resetSettings,
   setGamepadSupport,
-  showSemanticZoomClusterCenters,
   updateHighlighting,
 }: SettingsProps) {
   const [resetState, setResetState] = useState<boolean>(true);
@@ -68,15 +63,9 @@ export default function Settings({
     (state) => state.showErrorToastMessage
   );
   const {
-    closeAllComponentsOfAllApplications,
-    openAllComponentsOfAllApplications,
     updateApplicationLayout,
   } = useApplicationRendererStore(
     useShallow((state) => ({
-      closeAllComponentsOfAllApplications:
-        state.closeAllComponentsOfAllApplications,
-      openAllComponentsOfAllApplications:
-        state.openAllComponentsOfAllApplications,
       updateApplicationLayout: state.updateApplicationLayout,
     }))
   );
@@ -92,9 +81,6 @@ export default function Settings({
   const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
   const setHeatmapActive = useHeatmapConfigurationStore(
     (state) => state.setActive
-  );
-  const setSemanticZoomEnabled = useConfigurationStore(
-    (state) => state.setSemanticZoomEnabled
   );
 
   const { applyDefaultSettingsForGroup, setColorScheme } = useUserSettingsStore(
@@ -130,7 +116,6 @@ export default function Settings({
       Layout: [],
       Minimap: [],
       Popups: [],
-      'Semantic Zoom': [],
       'Virtual Reality': [],
       Debugging: [],
     };
@@ -180,103 +165,18 @@ export default function Settings({
     }
   };
 
-  const semanticZoomPreSetSetter = (targetPreset: number, valueArray: any) => {
-    if (targetPreset == 1) {
-      valueArray[0].value = 5;
-      valueArray[1].value = 30;
-      valueArray[2].value = 40;
-      valueArray[3].value = 50;
-      valueArray[4].value = 60;
-    } else if (targetPreset == 2) {
-      valueArray[0].value = 10;
-      valueArray[1].value = 40;
-      valueArray[2].value = 50;
-      valueArray[3].value = 60;
-      valueArray[4].value = 70;
-    } else if (targetPreset == 3) {
-      valueArray[0].value = 20;
-      valueArray[1].value = 50;
-      valueArray[2].value = 60;
-      valueArray[3].value = 70;
-      valueArray[4].value = 80;
-    } else if (targetPreset == 4) {
-      valueArray[0].value = 40;
-      valueArray[1].value = 60;
-      valueArray[2].value = 70;
-      valueArray[3].value = 80;
-      valueArray[4].value = 90;
-    } else if (targetPreset == 5) {
-      valueArray[0].value = 65;
-      valueArray[1].value = 80;
-      valueArray[2].value = 85;
-      valueArray[3].value = 90;
-      valueArray[4].value = 95;
-    } else if (targetPreset == 6) {
-      valueArray[0].value = 75;
-      valueArray[1].value = 80;
-      valueArray[2].value = 85;
-      valueArray[3].value = 90;
-      valueArray[4].value = 95;
-    }
-    // Update all the values and save them to the storage
-    for (let index = 0; index < valueArray.length; index++) {
-      const targetValue = valueArray[index].value;
-      updateUserSetting(
-        ('distanceLevel' + (index + 1).toString()) as VisualizationSettingId,
-        targetValue
-      );
-    }
-  };
-
   const updateRangeSetting = (name: VisualizationSettingId, value: number) => {
-    const pre_input: string | number | boolean = defaultVizSettings[name].value;
     const settingId = name as VisualizationSettingId;
     try {
       updateUserSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
-    const semZoomLevels = [
-      visualizationSettings.distanceLevel1,
-      visualizationSettings.distanceLevel2,
-      visualizationSettings.distanceLevel3,
-      visualizationSettings.distanceLevel4,
-      visualizationSettings.distanceLevel5,
-    ];
     switch (settingId) {
       case 'transparencyIntensity':
         if (updateHighlighting) {
           updateHighlighting();
         }
-        break;
-      case 'distancePreSet':
-        semanticZoomPreSetSetter(value!, semZoomLevels);
-        updateUserSetting('usePredefinedSet', true);
-        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
-          defaultCamera
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'distanceLevel1':
-      case 'distanceLevel2':
-      case 'distanceLevel3':
-      case 'distanceLevel4':
-      case 'distanceLevel5':
-        if (pre_input != undefined && value != undefined) {
-          cleanArray(semZoomLevels, (pre_input as number) < value, false);
-          updateUserSetting('usePredefinedSet', false);
-        }
-        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
-          defaultCamera
-        );
-
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'clusterBasedOnMembers':
-        SemanticZoomManager.instance.cluster(
-          visualizationSettings.clusterBasedOnMembers.value
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       case 'zoom':
         updateMinimapSphereRadius();
@@ -307,9 +207,6 @@ export default function Settings({
         ) {
           sendSyncRoomState(serializeRoom(popupHandlerState.popupData));
         }
-        break;
-      case 'showSemanticZoomCenterPoints':
-        showSemanticZoomClusterCenters();
         break;
       case 'fullscreen':
         if (enterFullscreen) {
@@ -393,38 +290,6 @@ export default function Settings({
         break;
       case 'enableGamepadControls':
         setGamepadSupport(value);
-        break;
-      case 'semanticZoomState':
-        if (!SemanticZoomManager.instance.isEnabled && value) {
-          SemanticZoomManager.instance.activate();
-        } else if (SemanticZoomManager.instance.isEnabled && !value) {
-          SemanticZoomManager.instance.deactivate();
-        }
-        setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
-        break;
-      case 'usePredefinedSet':
-        // Set the value of the Slider distancePreSet to the same value again, to trigger the update routine!
-        semanticZoomPreSetSetter(
-          visualizationSettings.distancePreSet.value,
-          valueArray
-        );
-        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
-          defaultCamera
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'autoOpenCloseFeature':
-        value
-          ? closeAllComponentsOfAllApplications()
-          : openAllComponentsOfAllApplications();
-        SemanticZoomManager.instance.toggleAutoOpenClose(value);
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'useKMeansInsteadOfMeanShift':
-        SemanticZoomManager.instance.cluster(
-          visualizationSettings.clusterBasedOnMembers.value
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
         break;
       default:
         break;

@@ -7,8 +7,6 @@ interface ConfigurationState {
   commWidthMultiplier: number;
   isCommRendered: boolean;
   popupPosition: Position2D | undefined;
-  semanticZoomEnabled: boolean;
-  setSemanticZoomEnabled: (value: boolean) => void;
   setIsCommRendered: (value: boolean) => void;
 }
 
@@ -24,7 +22,5 @@ export const useConfigurationStore = create<ConfigurationState>((set) => ({
   commWidthMultiplier: 1,
   isCommRendered: true,
   popupPosition: undefined,
-  semanticZoomEnabled: false,
-  setSemanticZoomEnabled: (value) => set({ semanticZoomEnabled: value }),
   setIsCommRendered: (value: boolean) => set({ isCommRendered: value }),
 }));

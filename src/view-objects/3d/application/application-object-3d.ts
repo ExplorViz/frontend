@@ -13,7 +13,6 @@ import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/s
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ChildMesh } from 'explorviz-frontend/src/view-objects/3d/application/child-mesh-interface';
 import { extend, ThreeElement } from '@react-three/fiber';
 
@@ -486,9 +485,8 @@ export default class ApplicationObject3D
    */
   removeAllCommunication() {
     this.getCommMeshes().forEach((mesh) => {
-      SemanticZoomManager.instance.remove(mesh);
       mesh.deleteFromParent();
-      mesh.disposeRecursively(SemanticZoomManager);
+      mesh.disposeRecursively();
     });
     this.commIdToMesh.clear();
   }
@@ -498,9 +496,8 @@ export default class ApplicationObject3D
    */
   removeAll() {
     this.getAllMeshes().forEach((mesh) => {
-      SemanticZoomManager.instance.remove(mesh);
       mesh.deleteFromParent();
-      mesh.disposeRecursively(SemanticZoomManager);
+      mesh.disposeRecursively();
     });
     this.resetMeshReferences();
     this.highlightedEntity = null;
