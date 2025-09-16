@@ -8,7 +8,7 @@ import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
 
-export default function HtmlBoxR3F({
+export default function HtmlDomBox({
   box,
   color,
   distanceBetweenLevels,

@@ -37,7 +37,7 @@ interface Args {
 }
 
 // eslint-disable-next-line
-const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
+const CityDistricts = forwardRef<InstancedMesh2, Args>(
   ({ packages, layoutMap, application }, ref) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
 
@@ -382,4 +382,4 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
   }
 );
 
-export default InstancedComponentR3F;
+export default CityDistricts;

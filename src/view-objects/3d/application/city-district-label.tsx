@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function ComponentLabelR3F({
+export default function CityDistrictLabel({
   component,
   layout,
   isCameraZoomedIn,

@@ -1,7 +1,7 @@
 import { Container, Root, Text } from '@react-three/uikit';
 import { Button, Checkbox, Input, Label } from '@react-three/uikit-default';
 import { RefreshCcw } from '@react-three/uikit-lucide';
-import HtmlBoxR3F from 'explorviz-frontend/src/view-objects/3d/application/html-box-r3f';
+import HtmlDomBox from 'explorviz-frontend/src/view-objects/3d/application/html-dom-box';
 import * as htmlToImage from 'html-to-image';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -367,7 +367,7 @@ export default function HtmlVisualizer({
         </Root>
       )}
       {boxes.map((box, _) => (
-        <HtmlBoxR3F
+        <HtmlDomBox
           visible={isBoxVisible(box)}
           distanceBetweenLevels={distanceBetweenLevels}
           key={box.id}

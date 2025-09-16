@@ -151,11 +151,7 @@ export default function CommunicationR3F({
       layout={communicationLayout}
       arrowWidth={arrowWidth}
       curveHeight={computeCurveHeight()}
-      defaultColor={
-        heatmapActive && selectedClassMetric?.name != ClassMetricIds.None
-          ? '#ffffff'
-          : communicationColor
-      }
+      defaultColor={communicationColor}
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}
       isHovered={enableHoverEffects && isHovered}

@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function FoundationR3F({
+export default function CityFoundation({
   application,
   layout,
 }: {

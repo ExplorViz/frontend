@@ -14,7 +14,7 @@ import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
+import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
@@ -220,7 +220,7 @@ export default function CanvasWrapper({
         layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
       >
         {applicationModels.map((appModel) => (
-          <ApplicationR3F
+          <CodeCity
             key={appModel.application.id}
             applicationData={appModel}
             layoutMap={layoutMap || appModel.boxLayoutMap}

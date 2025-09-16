@@ -14,7 +14,7 @@ import {
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function ClassLabelR3F({
+export default function CodeBuildingLabel({
   dataModel,
   layout,
   application,

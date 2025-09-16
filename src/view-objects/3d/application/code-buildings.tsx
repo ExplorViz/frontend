@@ -46,7 +46,7 @@ interface Args {
 }
 
 // eslint-disable-next-line
-const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
+const CodeBuildings = forwardRef<InstancedMesh2, Args>(
   ({ classes, layoutMap, appId, application }, ref) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
     const material = useMemo(() => new MeshLambertMaterial(), []);
@@ -359,4 +359,4 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
   }
 );
 
-export default InstancedClassR3F;
+export default CodeBuildings;
