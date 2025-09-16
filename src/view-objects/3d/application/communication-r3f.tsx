@@ -4,18 +4,14 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
 import { useMemo, useRef, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import {
-  ClassMetricIds,
-  useHeatmapStore,
-} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function CommunicationR3F({
   communicationModel,
@@ -44,13 +40,6 @@ export default function CommunicationR3F({
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       curveHeight: state.visualizationSettings.curvyCommHeight.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
-    }))
-  );
-
-  const { heatmapActive, selectedClassMetric } = useHeatmapStore(
-    useShallow((state) => ({
-      heatmapActive: state.heatmapActive,
-      selectedClassMetric: state.getSelectedClassMetric(),
     }))
   );
 

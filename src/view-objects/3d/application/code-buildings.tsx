@@ -21,11 +21,7 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
-import {
-  getHeatmapColor,
-  getMetricValues,
-} from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
-import { SelectedClassHeatmapMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 
@@ -117,7 +113,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     const { heatmapActive, selectedClassMetric } = useHeatmapStore(
       useShallow((state) => ({
-        heatmapActive: state.heatmapActive,
+        heatmapActive: state.isActive(),
         selectedClassMetric: state.getSelectedClassMetric(),
       }))
     );
@@ -187,12 +183,8 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       if (!dataModel) {
         return new THREE.Color('red');
       }
-      if (
-        heatmapActive &&
-        selectedClassMetric &&
-        selectedClassMetric?.name !== SelectedClassHeatmapMetric.None
-      ) {
-        const metricValues = getMetricValues(dataModel, selectedClassMetric);
+      if (heatmapActive) {
+        const metricValues = getMetricValues(dataModel, selectedClassMetric!);
         return new THREE.Color(
           getSimpleHeatmapColor(metricValues.current, metricValues.max)
         );

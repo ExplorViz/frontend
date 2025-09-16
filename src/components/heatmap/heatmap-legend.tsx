@@ -11,25 +11,26 @@ import {
   revertKey,
 } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { CloseButton } from 'react-bootstrap';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 export default function HeatmapLegend() {
   const {
-    deactivate,
     heatmapShared,
     selectedClassMetric,
-    toggleShared,
-    showLegendValues,
     setShowLegendValues,
+    showLegendValues,
+    toggleShared,
   } = useHeatmapStore(
     useShallow((state) => ({
-      deactivate: state.deactivate,
       heatmapShared: state.heatmapShared,
       selectedClassMetric: state.getSelectedClassMetric(),
-      showLegendValues: state.showLegendValues,
       setShowLegendValues: state.setShowLegendValues,
+      showLegendValues: state.showLegendValues,
       toggleShared: state.toggleShared,
     }))
   );
+
+  const updateSetting = useUserSettingsStore((state) => state.updateSetting);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
@@ -67,7 +68,7 @@ export default function HeatmapLegend() {
         <CloseButton
           title="Close heatmap legend"
           onClick={() => {
-            deactivate;
+            updateSetting('heatmapEnabled', false);
           }}
         />
       </div>

@@ -1,7 +1,14 @@
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { getAllClassesInApplications } from 'explorviz-frontend/src/utils/application-helpers';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getMaxNumberOfMethodsPerClass } from 'explorviz-frontend/src/utils/heatmap/heatmap-helper';
 import { create } from 'zustand';
+
+export enum SelectedClassHeatmapMetric {
+  None = 'None',
+  Methods = 'Method Count',
+  LoC = 'Lines of Code',
+  DynamicMethods = 'Dynamic Method Quota',
+  StaticMethods = 'Static Method Quota',
+}
 
 export enum ClassMetricIds {
   None = 'None',
@@ -11,6 +18,13 @@ export enum ClassMetricIds {
   StaticMethods = 'Static Method Quota',
 }
 
+const NO_SELECTED_METRIC: ClassMetric = {
+  name: ClassMetricIds.None,
+  description: 'No metric selected',
+  min: 0,
+  max: 0,
+};
+
 export type ClassMetric = {
   name: string;
   description: string;
@@ -19,23 +33,19 @@ export type ClassMetric = {
 };
 
 interface HeatmapConfigurationState {
-  heatmapActive: boolean; // tracked
   heatmapShared: boolean; // tracked
   legendActive: boolean;
   selectedClassMetric: ClassMetric; //tracked
   opacityValue: number;
   showLegendValues: boolean;
   toggleShared: () => void;
-  setActive: (isActive: boolean) => void;
-  deactivate: () => void;
-  activate: () => void;
+  isActive: () => boolean;
   getSelectedClassMetric: () => ClassMetric | undefined;
   setSelectedClassMetric: (metricName: ClassMetricIds) => void;
   toggleLegend: () => void;
   cleanup: () => void;
   setShowLegendValues: (show: boolean) => void;
 }
-
 export const useHeatmapStore = create<HeatmapConfigurationState>(
   (set, get) => ({
     heatmapActive: true,
@@ -58,16 +68,11 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
       set({ heatmapShared: !get().heatmapShared });
     },
 
-    setActive: (isActive: boolean) => {
-      set({ heatmapActive: isActive });
-    },
-
-    deactivate: () => {
-      set({ heatmapActive: false });
-    },
-
-    activate: () => {
-      set({ heatmapActive: true });
+    isActive: () => {
+      return (
+        useUserSettingsStore.getState().visualizationSettings.heatmapEnabled
+          .value && get().selectedClassMetric.name !== ClassMetricIds.None
+      );
     },
 
     getSelectedClassMetric: () => {
@@ -122,12 +127,7 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
 
         default:
           set({
-            selectedClassMetric: {
-              name: ClassMetricIds.None,
-              description: 'No metric selected',
-              min: 0,
-              max: 0,
-            },
+            selectedClassMetric: NO_SELECTED_METRIC,
           });
           break;
       }
@@ -141,7 +141,11 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
      * Reset all class attribute values to null;
      */
     cleanup: () => {
-      set({ heatmapActive: false });
+      set({
+        selectedClassMetric: NO_SELECTED_METRIC,
+        legendActive: true,
+        heatmapShared: false,
+      });
     },
   })
 );

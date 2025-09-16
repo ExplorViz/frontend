@@ -1,9 +1,11 @@
-import { ClassMetric } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import {
+  ClassMetric,
+  SelectedClassHeatmapMetric,
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import {
   Class,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { SelectedClassHeatmapMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export type RGB = { r: number; g: number; b: number };
 

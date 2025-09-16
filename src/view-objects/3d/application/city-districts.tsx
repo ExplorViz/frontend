@@ -17,10 +17,7 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
-import {
-  ClassMetricIds,
-  useHeatmapStore,
-} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
 
@@ -109,7 +106,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const { heatmapActive, selectedClassMetric } = useHeatmapStore(
       useShallow((state) => ({
-        heatmapActive: state.heatmapActive,
+        heatmapActive: state.isActive(),
         selectedClassMetric: state.getSelectedClassMetric(),
       }))
     );
@@ -219,7 +216,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       const component = componentIdToPackage.get(componentId);
       if (!component) return new Color('white');
 
-      if (heatmapActive && selectedClassMetric?.name != ClassMetricIds.None) {
+      if (heatmapActive) {
         return new Color('white');
       }
 

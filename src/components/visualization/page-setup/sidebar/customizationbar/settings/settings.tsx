@@ -37,16 +37,12 @@ import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handle
 
 interface SettingsProps {
   enterFullscreen(): void;
-  resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
-  updateHighlighting(): void;
 }
 
 export default function Settings({
   enterFullscreen,
-  resetSettings,
   setGamepadSupport,
-  updateHighlighting,
 }: SettingsProps) {
   const [resetState, setResetState] = useState<boolean>(true);
 
@@ -62,14 +58,11 @@ export default function Settings({
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
-  const {
-    updateApplicationLayout,
-  } = useApplicationRendererStore(
+  const { updateApplicationLayout } = useApplicationRendererStore(
     useShallow((state) => ({
       updateApplicationLayout: state.updateApplicationLayout,
     }))
   );
-  const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
   const updateMinimapSphereRadius = useMinimapStore(
     (state) => state.updateSphereRadius
@@ -83,12 +76,14 @@ export default function Settings({
     (state) => state.setActive
   );
 
-  const { applyDefaultSettingsForGroup, setColorScheme } = useUserSettingsStore(
-    useShallow((state) => ({
-      applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
-      setColorScheme: state.setColorScheme,
-    }))
-  );
+  const { applyDefaultSettings, applyDefaultSettingsForGroup, setColorScheme } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        applyDefaultSettings: state.applyDefaultSettings,
+        applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
+        setColorScheme: state.setColorScheme,
+      }))
+    );
 
   const updateHighlightingInStore = useHighlightingStore(
     (state) => state.updateHighlighting
@@ -173,11 +168,6 @@ export default function Settings({
       showErrorToastMessage(e.message);
     }
     switch (settingId) {
-      case 'transparencyIntensity':
-        if (updateHighlighting) {
-          updateHighlighting();
-        }
-        break;
       case 'zoom':
         updateMinimapSphereRadius();
         break;
@@ -232,13 +222,6 @@ export default function Settings({
       showErrorToastMessage(e.message);
     }
 
-    const valueArray = [
-      visualizationSettings.distanceLevel1,
-      visualizationSettings.distanceLevel2,
-      visualizationSettings.distanceLevel3,
-      visualizationSettings.distanceLevel4,
-      visualizationSettings.distanceLevel5,
-    ];
     if (settingId.startsWith('layer')) {
       const layerNumber = parseInt(settingId.slice(5), 10); // Extract the layer number from settingId
       if (!isNaN(layerNumber)) {
@@ -251,11 +234,6 @@ export default function Settings({
       }
     } else {
       switch (settingId) {
-        case 'applyHighlightingOnHover':
-          if (updateHighlighting) {
-            updateHighlighting();
-          }
-          break;
         case 'enableGamepadControls':
           setGamepadSupport(value);
           break;
@@ -275,11 +253,6 @@ export default function Settings({
     const spotLight = scene.getObjectByName('SpotLight');
 
     switch (settingId) {
-      case 'applyHighlightingOnHover':
-        if (updateHighlighting) {
-          updateHighlighting();
-        }
-        break;
       case 'castShadows':
         if (directionalLight) directionalLight.castShadow = value;
         if (spotLight) spotLight.castShadow = value;
@@ -313,11 +286,9 @@ export default function Settings({
   };
 
   const resetSettingsAndUpdate = async () => {
-    if (resetSettings) {
-      resetSettings(true);
-      setResetState(!resetState);
-      updateVisualizationState();
-    }
+    applyDefaultSettings(true);
+    setResetState(!resetState);
+    updateVisualizationState();
   };
 
   return Object.entries(filteredSettingsByGroup).map(

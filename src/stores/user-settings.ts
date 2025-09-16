@@ -244,7 +244,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
     }),
     {
       name: 'ExplorVizSettings', // name of the item in the storage (must be unique)
-      version: 2,
+      version: 3,
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(

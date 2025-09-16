@@ -32,7 +32,6 @@ import { useHighlightingStore } from '../stores/highlighting';
 import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
 import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
 import { useUserSettingsStore } from '../stores/user-settings';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,
