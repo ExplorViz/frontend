@@ -70,6 +70,12 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           if (setting.group === groupId) {
             visualizationSettings[settingId] = defaultSettings[settingId];
           }
+          // Trigger zustand update
+          set({
+            visualizationSettings: JSON.parse(
+              JSON.stringify(visualizationSettings)
+            ),
+          });
         }
       },
 

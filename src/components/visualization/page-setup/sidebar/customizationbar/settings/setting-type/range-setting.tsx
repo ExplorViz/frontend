@@ -3,37 +3,23 @@ import ResetButton from 'explorviz-frontend/src/components/visualization/page-se
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
-  RangeSetting as RangeSettingData,
+  RangeSetting as RangeSettingSchema,
   VisualizationSettingId,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useEffect } from 'react';
-import { useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 
 export default function RangeSetting({
-  setting,
   onChange,
   settingId,
 }: {
-  setting: RangeSettingData;
   onChange: (settingId: VisualizationSettingId, value: number) => void;
   settingId: VisualizationSettingId;
 }) {
-  const [value, setValue]: any = useState(setting.value);
-
-  const { visualizationSettings } = useUserSettingsStore(
-    useShallow((state) => ({
-      visualizationSettings: state.visualizationSettings,
-    }))
-  );
-
-  useEffect(() => {
-    setValue(visualizationSettings[settingId].value);
-  }, [visualizationSettings[settingId], settingId]);
+  const setting = useUserSettingsStore.getState().visualizationSettings[
+    settingId
+  ]! as RangeSettingSchema;
 
   const handleInput = (newValue: number) => {
     onChange(settingId, newValue);
-    setValue(newValue);
   };
 
   return (
@@ -46,7 +32,7 @@ export default function RangeSetting({
         <div style={{ width: '100%' }}>
           <input
             id={setting.displayName}
-            value={value}
+            value={setting.value}
             min={setting.range.min}
             max={setting.range.max}
             type="range"
@@ -60,7 +46,7 @@ export default function RangeSetting({
             <input
               style={{ fontWeight: 'bold', textAlign: 'center', width: '5rem' }}
               type="number"
-              value={value}
+              value={setting.value}
               onChange={(event) => handleInput(Number(event.target.value))}
             />
             <span>{setting.range.max}</span>

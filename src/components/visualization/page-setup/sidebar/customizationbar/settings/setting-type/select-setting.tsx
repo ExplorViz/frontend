@@ -6,35 +6,21 @@ import {
   SelectSetting as SelectSettingData,
   VisualizationSettingId,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useEffect } from 'react';
-import { useState } from 'react';
 import { Dropdown, DropdownButton } from 'react-bootstrap';
-import { useShallow } from 'zustand/react/shallow';
 
 export default function SelectSetting({
-  setting,
   onChange,
   settingId,
 }: {
-  setting: SelectSettingData<unknown>;
   onChange: (settingId: VisualizationSettingId, value: unknown) => void;
   settingId: VisualizationSettingId;
 }) {
-  const [value, setValue]: any = useState(setting.value);
-
-  const { visualizationSettings } = useUserSettingsStore(
-    useShallow((state) => ({
-      visualizationSettings: state.visualizationSettings,
-    }))
-  );
-
-  useEffect(() => {
-    setValue(visualizationSettings[settingId].value);
-  }, [visualizationSettings[settingId], settingId]);
+  const setting = useUserSettingsStore.getState().visualizationSettings[
+    settingId
+  ] as SelectSettingData<unknown>;
 
   const handleInput = (newValue: unknown) => {
     onChange(settingId, newValue);
-    setValue(newValue);
   };
 
   return (
@@ -47,7 +33,7 @@ export default function SelectSetting({
         <div>
           <DropdownButton
             id="dropdown-basic-button"
-            title={value as string}
+            title={setting.value as string}
             variant="primary"
           >
             {setting.options.map((option) => (
@@ -64,10 +50,7 @@ export default function SelectSetting({
         </div>
         <ResetButton
           onClick={() => {
-            const defaultValue = defaultVizSettings[settingId].value;
-            if (typeof defaultValue === 'number') {
-              handleInput(defaultValue);
-            }
+            handleInput(defaultVizSettings[settingId].value);
           }}
         />
       </div>

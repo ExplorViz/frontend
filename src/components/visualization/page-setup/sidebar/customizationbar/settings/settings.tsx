@@ -44,8 +44,6 @@ export default function Settings({
   enterFullscreen,
   setGamepadSupport,
 }: SettingsProps) {
-  const [resetState, setResetState] = useState<boolean>(true);
-
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -214,19 +212,20 @@ export default function Settings({
 
   const updateFlagSetting = (
     settingId: VisualizationSettingId,
-    value: boolean
+    value?: boolean
   ) => {
     try {
       updateUserSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
+    if (value === undefined) return;
 
     if (settingId.startsWith('layer')) {
       const layerNumber = parseInt(settingId.slice(5), 10); // Extract the layer number from settingId
       if (!isNaN(layerNumber)) {
         // Ensure it's a valid number
-        if (value || value === undefined) {
+        if (value) {
           minimapCamera.layers.enable(layerNumber);
         } else {
           minimapCamera.layers.disable(layerNumber);
@@ -271,7 +270,6 @@ export default function Settings({
 
   const applyColorScheme = (colorScheme: ColorSchemeId) => {
     setColorScheme(colorScheme);
-    setResetState(!resetState);
   };
 
   const updateVisualizationState = () => {
@@ -282,12 +280,10 @@ export default function Settings({
   const resetGroup = (groupId: string) => {
     applyDefaultSettingsForGroup(groupId);
     updateVisualizationState();
-    setResetState(!resetState);
   };
 
   const resetSettingsAndUpdate = async () => {
     applyDefaultSettings(true);
-    setResetState(!resetState);
     updateVisualizationState();
   };
 
@@ -319,17 +315,14 @@ export default function Settings({
                 return (
                   <FlagSetting
                     key={settingId}
-                    setting={setting}
                     settingId={settingId}
                     onChange={updateFlagSetting}
-                    resetState={resetState}
                   />
                 );
               } else if (isRangeSetting(setting)) {
                 return (
                   <RangeSetting
                     key={settingId}
-                    setting={setting}
                     settingId={settingId}
                     onChange={updateRangeSetting}
                   />
@@ -339,8 +332,6 @@ export default function Settings({
                   <ColorPicker
                     key={settingId}
                     id={settingId as ColorSettingId}
-                    setting={setting}
-                    resetState={resetState}
                   />
                 );
               } else if (isButtonSetting(setting)) {
@@ -356,7 +347,6 @@ export default function Settings({
                 return (
                   <SelectSetting
                     key={settingId}
-                    setting={setting}
                     settingId={settingId}
                     onChange={updateSelectSetting}
                   />
