@@ -91,7 +91,6 @@ export function openComponent(component: Package) {
     .getState()
     .closedComponentIds.has(component.id);
   if (isOpen) {
-    console.log('Component not open');
     return;
   }
 
