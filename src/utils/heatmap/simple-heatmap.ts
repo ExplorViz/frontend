@@ -1,10 +1,23 @@
+import {
+  HeatmapGradient,
+  useHeatmapStore,
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import simpleheat from 'simpleheat';
 
-export function getDefaultGradient() {
-  return getColoredGradient();
+export function getColorGradient(): Gradient {
+  const gradientSetting = useHeatmapStore.getState().selectedGradient;
+
+  switch (gradientSetting) {
+    case HeatmapGradient.TEMPERATURE_GRADIENT:
+      return getTemperatureGradient();
+    case HeatmapGradient.MONOCHROME_GRADIENT:
+      return getMonochromeGradient();
+    default:
+      return getDefaultColorGradient();
+  }
 }
 
-export function getColoredGradient() {
+export function getDefaultColorGradient() {
   return {
     '0_00': 'rgb(0, 0, 255)',
     '0_10': 'rgb(0, 153, 255)',
@@ -28,8 +41,8 @@ export function getTemperatureGradient() {
 
 export function getMonochromeGradient() {
   return {
-    '0_00': 'rgb(0, 0, 0)',
-    '1_00': 'rgb(255, 255, 255)',
+    '0_00': 'rgb(255, 255, 255)',
+    '1_00': 'rgb(0, 0, 0)',
   };
 }
 
@@ -89,7 +102,7 @@ function stopsFromGradient(gradient: Gradient): { pos: number; color: RGB }[] {
 export function getSimpleHeatmapColor(
   value: number,
   max: number,
-  gradient: Gradient = getDefaultGradient()
+  gradient: Gradient = getColorGradient()
 ): string {
   const ratio =
     max > 0 && Number.isFinite(max) ? Math.min(1, Math.max(0, value / max)) : 0;

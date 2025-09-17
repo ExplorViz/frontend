@@ -111,12 +111,14 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const { heatmapActive, selectedClassMetric } = useHeatmapStore(
-      useShallow((state) => ({
-        heatmapActive: state.isActive(),
-        selectedClassMetric: state.getSelectedClassMetric(),
-      }))
-    );
+    const { heatmapActive, selectedClassMetric, selectedHeatmapGradient } =
+      useHeatmapStore(
+        useShallow((state) => ({
+          heatmapActive: state.isActive(),
+          selectedClassMetric: state.getSelectedClassMetric(),
+          selectedHeatmapGradient: state.getSelectedGradient(),
+        }))
+      );
 
     const { addPopup } = usePopupHandlerStore(
       useShallow((state) => ({
@@ -275,6 +277,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       hoveredEntityId,
       evoConfig.renderOnlyDifferences,
       selectedClassMetric,
+      selectedHeatmapGradient,
       heatmapActive,
     ]);
 

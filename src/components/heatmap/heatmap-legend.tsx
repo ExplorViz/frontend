@@ -1,13 +1,16 @@
 import { useEffect, useRef } from 'react';
 
 import { ShareAndroidIcon } from '@primer/octicons-react';
-import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import {
+  HeatmapGradient,
+  useHeatmapStore,
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
 import {
-  getDefaultGradient,
+  getColorGradient,
   revertKey,
 } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { CloseButton } from 'react-bootstrap';
@@ -17,6 +20,8 @@ export default function HeatmapLegend() {
   const {
     heatmapShared,
     selectedClassMetric,
+    selectedGradient,
+    setGradient,
     setShowLegendValues,
     showLegendValues,
     toggleShared,
@@ -24,6 +29,8 @@ export default function HeatmapLegend() {
     useShallow((state) => ({
       heatmapShared: state.heatmapShared,
       selectedClassMetric: state.getSelectedClassMetric(),
+      selectedGradient: state.getSelectedGradient(),
+      setGradient: state.setSelectedGradient,
       setShowLegendValues: state.setShowLegendValues,
       showLegendValues: state.showLegendValues,
       toggleShared: state.toggleShared,
@@ -49,7 +56,7 @@ export default function HeatmapLegend() {
     const ctx = canvas.getContext('2d')!;
     const grad = ctx.createLinearGradient(0, canvas.height, 0, 0);
 
-    const heatmapGradient = revertKey(getDefaultGradient());
+    const heatmapGradient = revertKey(getColorGradient());
 
     Object.keys(heatmapGradient).forEach((key) => {
       grad.addColorStop(Number(key), heatmapGradient[key]);
@@ -57,7 +64,7 @@ export default function HeatmapLegend() {
 
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  });
+  }, [[], selectedGradient]);
 
   return (
     <div id="heatmap-legend-container" className="d-flex flex-column p-2">
@@ -71,6 +78,21 @@ export default function HeatmapLegend() {
             updateSetting('heatmapEnabled', false);
           }}
         />
+      </div>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <div>Gradient:</div>
+        <select
+          onChange={(e) => setGradient(e.target.value as HeatmapGradient)}
+          value={selectedGradient}
+        >
+          <option value={HeatmapGradient.DEFAULT_GRADIENT}>Default</option>
+          <option value={HeatmapGradient.TEMPERATURE_GRADIENT}>
+            Temperature
+          </option>
+          <option value={HeatmapGradient.MONOCHROME_GRADIENT}>
+            Monochrome
+          </option>
+        </select>
       </div>
 
       <div

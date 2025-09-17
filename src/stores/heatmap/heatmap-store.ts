@@ -25,6 +25,12 @@ const NO_SELECTED_METRIC: ClassMetric = {
   max: 0,
 };
 
+export enum HeatmapGradient {
+  DEFAULT_GRADIENT = 'Default',
+  TEMPERATURE_GRADIENT = 'Temperature',
+  MONOCHROME_GRADIENT = 'Monochrome',
+}
+
 export type ClassMetric = {
   name: string;
   description: string;
@@ -36,12 +42,15 @@ interface HeatmapConfigurationState {
   heatmapShared: boolean; // tracked
   legendActive: boolean;
   selectedClassMetric: ClassMetric; //tracked
+  selectedGradient: HeatmapGradient;
   opacityValue: number;
   showLegendValues: boolean;
   toggleShared: () => void;
   isActive: () => boolean;
   getSelectedClassMetric: () => ClassMetric | undefined;
   setSelectedClassMetric: (metricName: ClassMetricIds) => void;
+  getSelectedGradient: () => HeatmapGradient;
+  setSelectedGradient: (gradient: HeatmapGradient) => void;
   toggleLegend: () => void;
   cleanup: () => void;
   setShowLegendValues: (show: boolean) => void;
@@ -57,6 +66,7 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
       min: 0,
       max: 0,
     },
+    selectedGradient: HeatmapGradient.DEFAULT_GRADIENT,
     opacityValue: 0.03,
     showLegendValues: true,
 
@@ -132,7 +142,12 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
           break;
       }
     },
-
+    getSelectedGradient: () => {
+      return get().selectedGradient;
+    },
+    setSelectedGradient: (gradient: HeatmapGradient) => {
+      set({ selectedGradient: gradient });
+    },
     toggleLegend: () => {
       set({ legendActive: !get().legendActive });
     },

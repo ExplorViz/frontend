@@ -7,7 +7,7 @@ import {
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import revertKey from 'explorviz-frontend/src/utils/heatmap/heatmap-generator';
 
-import { getDefaultGradient as getSimpleDefaultGradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import { getColorGradient as getSimpleDefaultGradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 export type HeatmapMode =
