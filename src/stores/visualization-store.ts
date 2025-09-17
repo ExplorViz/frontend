@@ -8,19 +8,19 @@ interface FoundationState {
 
 interface VisualizationStoreState {
   // State for all entities
-  highlightedEntityIds: string[];
-  hoveredEntity: string | null;
+  highlightedEntityIds: Set<string>;
+  hoveredEntityId: string | null;
   // State for foundation
   foundationData: { [id: string]: FoundationState };
   // State for components (store ids of components that have no default state)
   closedComponentIds: Set<string>;
-  hiddenComponentIds: Set<string>;
+  hiddenComponentIds: Set<string>; // Usually components in closed components
   // State for classes
-  hiddenClassIds: Set<string>;
+  hiddenClassIds: Set<string>; // Usually classes in hidden components
   actions: {
     // Actions for all entities
-    setHoveredEntity: (id: string | null) => void;
-    setHighlightedEntity: (id: string, isHighlighted: boolean) => void;
+    setHoveredEntityId: (id: string | null) => void;
+    setHighlightedEntityId: (id: string, isHighlighted: boolean) => void;
     resetVisualizationState: () => void;
     // Foundations
     getFoundationState: (id: string) => FoundationState;
@@ -45,8 +45,8 @@ interface VisualizationStoreState {
 export const useVisualizationStore = create<VisualizationStoreState>(
   (set, get) => ({
     // Shared entity states
-    hoveredEntity: null,
-    highlightedEntityIds: [],
+    hoveredEntityId: null,
+    highlightedEntityIds: new Set(),
     // Foundation state
     foundationData: {},
     // Component state
@@ -56,26 +56,26 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     hiddenClassIds: new Set(),
     actions: {
       // Shared entity states
-      setHoveredEntity: (id: string | null) => {
-        set({ hoveredEntity: id });
+      setHoveredEntityId: (id: string | null) => {
+        set({ hoveredEntityId: id });
       },
-      setHighlightedEntity: (id: string, isHighlighted: boolean) => {
+      setHighlightedEntityId: (id: string, isHighlighted: boolean) => {
         if (isHighlighted) {
           set((prevState) => {
-            const updatedHighlightedEntityIds = structuredClone(
+            const updatedHighlightedEntityIds = new Set(
               prevState.highlightedEntityIds
             );
-            updatedHighlightedEntityIds.push(id);
+            updatedHighlightedEntityIds.add(id);
             return {
               highlightedEntityIds: updatedHighlightedEntityIds,
             };
           });
         } else {
           set((prevState) => {
-            const updatedHighlightedEntityIds =
-              prevState.highlightedEntityIds.filter(
-                (existingId) => existingId != id
-              );
+            const updatedHighlightedEntityIds = new Set(
+              prevState.highlightedEntityIds
+            );
+            updatedHighlightedEntityIds.delete(id);
             return {
               highlightedEntityIds: updatedHighlightedEntityIds,
             };
@@ -84,8 +84,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       },
       resetVisualizationState: () => {
         set({
-          hoveredEntity: null,
-          highlightedEntityIds: [],
+          hoveredEntityId: null,
+          highlightedEntityIds: new Set(),
           closedComponentIds: new Set(),
           hiddenComponentIds: new Set(),
           hiddenClassIds: new Set(),

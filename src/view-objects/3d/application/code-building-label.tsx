@@ -33,13 +33,11 @@ export default function CodeBuildingLabel({
     isClassVisible,
   } = useVisualizationStore(
     useShallow((state) => ({
-      isClassHovered: state.hoveredEntity === dataModel.id,
+      isClassHovered: state.hoveredEntityId === dataModel.id,
       isClassVisible: !state.hiddenClassIds.has(dataModel.id),
-      isParentHovered: state.hoveredEntity === dataModel.parent.id,
-      isClassHighlighted: state.highlightedEntityIds.includes(dataModel.id),
-      isParentHighlighted: state.highlightedEntityIds.includes(
-        dataModel.parent.id
-      ),
+      isParentHovered: state.hoveredEntityId === dataModel.parent.id,
+      isClassHighlighted: state.highlightedEntityIds.has(dataModel.id),
+      isParentHighlighted: state.highlightedEntityIds.has(dataModel.parent.id),
     }))
   );
 

@@ -62,9 +62,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         closedComponentIds: state.closedComponentIds,
         hiddenComponentIds: state.hiddenComponentIds,
         highlightedEntityIds: state.highlightedEntityIds,
-        hoveredEntityId: state.hoveredEntity,
-        setHighlightedEntity: state.actions.setHighlightedEntity,
-        setHoveredEntity: state.actions.setHoveredEntity,
+        hoveredEntityId: state.hoveredEntityId,
+        setHighlightedEntity: state.actions.setHighlightedEntityId,
+        setHoveredEntity: state.actions.setHoveredEntityId,
       }))
     );
 
@@ -237,7 +237,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }
 
       const isHovered = hoveredEntityId === componentId;
-      const isHighlighted = highlightedEntityIds.includes(componentId);
+      const isHighlighted = highlightedEntityIds.has(componentId);
 
       const layout = layoutMap.get(componentId);
       if (!layout) return new Color('white');
@@ -266,10 +266,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       const componentId = instanceIdToComponentId.get(instanceId);
       if (!componentId) return;
       // Toggle highlighting
-      setHighlightedEntity(
-        componentId,
-        !highlightedEntityIds.includes(componentId)
-      );
+      setHighlightedEntity(componentId, !highlightedEntityIds.has(componentId));
     };
 
     const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {

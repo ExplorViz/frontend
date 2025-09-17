@@ -60,10 +60,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     } = useVisualizationStore(
       useShallow((state) => ({
         hiddenClassIds: state.hiddenClassIds,
-        hoveredEntityId: state.hoveredEntity,
-        setHoveredEntity: state.actions.setHoveredEntity,
+        hoveredEntityId: state.hoveredEntityId,
+        setHoveredEntity: state.actions.setHoveredEntityId,
         highlightedEntityIds: state.highlightedEntityIds,
-        setHighlightedEntity: state.actions.setHighlightedEntity,
+        setHighlightedEntity: state.actions.setHighlightedEntityId,
       }))
     );
 
@@ -208,7 +208,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }
 
       const isHovered = hoveredEntityId === dataModel.id;
-      const isHighlighted = highlightedEntityIds.includes(dataModel.id);
+      const isHighlighted = highlightedEntityIds.has(dataModel.id);
 
       const baseColor = isHighlighted
         ? new THREE.Color(highlightedEntityColor)
@@ -258,7 +258,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
       // getLoC(classIdToClass.get(classId)!);
       // Toggle highlighting
-      setHighlightedEntity(classId, !highlightedEntityIds.includes(classId));
+      setHighlightedEntity(classId, !highlightedEntityIds.has(classId));
 
       // const classInfo = classData[classId];
       // updateClassState(classId, { isHighlighted: !classInfo?.isHighlighted });
