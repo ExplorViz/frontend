@@ -6,6 +6,7 @@ import PopupData from 'explorviz-frontend/src/components/visualization/rendering
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
@@ -33,12 +34,10 @@ import {
 import {
   Application,
   Class,
-  isClass,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import * as THREE from 'three';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 
 type Position2D = {
   x: number;
@@ -199,11 +198,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       set({
         popupData: get().popupData.filter((pd) => pd.entity.id !== entityId),
       });
-      if (isClass(popup.entity)) {
-        useVisualizationStore.getState().actions.updateClassState(entityId, {
-          isHovered: false,
-        });
-      }
+      useVisualizationStore.getState().actions.setHoveredEntityId(null);
     } else {
       useToastHandlerStore
         .getState()
@@ -248,7 +243,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     sharedBy,
     hovered,
     model,
-    applicationId
+    applicationId,
   }) => {
     // TODO: Handle HTML Mesh better
     if (

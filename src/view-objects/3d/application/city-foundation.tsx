@@ -54,18 +54,19 @@ export default function CityFoundation({
     }
   }, [layout.width, layout.positionY, layout.depth]);
 
-  const { isHighlighted, isHovered, updateFoundationState } =
-    useVisualizationStore(
-      useShallow((state) => ({
-        isHighlighted: state.foundationData[application.id]
-          ? state.foundationData[application.id].isHighlighted
-          : false,
-        isHovered: state.foundationData[application.id]
-          ? state.foundationData[application.id].isHovered
-          : false,
-        updateFoundationState: state.actions.updateFoundationState,
-      }))
-    );
+  const {
+    isHighlighted,
+    isHovered,
+    setHighlightedEntityId,
+    setHoveredEntityId,
+  } = useVisualizationStore(
+    useShallow((state) => ({
+      isHighlighted: state.highlightedEntityIds.has(application.id),
+      isHovered: state.hoveredEntityId === application.id,
+      setHighlightedEntityId: state.actions.setHighlightedEntityId,
+      setHoveredEntityId: state.actions.setHoveredEntityId,
+    }))
+  );
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -112,17 +113,17 @@ export default function CityFoundation({
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
     if (enableHoverEffects) {
-      updateFoundationState(application.id, { isHovered: true });
+      setHoveredEntityId(application.id);
     }
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    updateFoundationState(application.id, { isHovered: false });
+    setHoveredEntityId(null);
   };
 
   const handleClick = (/*event: any*/) => {
-    updateFoundationState(application.id, { isHighlighted: !isHighlighted });
+    setHighlightedEntityId(application.id, !isHighlighted);
   };
 
   const handleDoubleClick = (/*event: any*/) => {

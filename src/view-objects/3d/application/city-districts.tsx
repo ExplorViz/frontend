@@ -144,7 +144,11 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!meshRef.current || meshRef.current.instancesCount >= 200000) return;
+      if (!meshRef.current) return;
+      meshRef.current?.clearInstances();
+      instanceIdToComponentId.clear();
+      componentIdToInstanceId.clear();
+      componentIdToPackage.clear();
 
       const mesh = meshRef.current.addInstances(
         packages.length,
@@ -196,29 +200,22 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       );
       mesh.computeBVH();
     };
-    useEffect(() => {
-      computeInstances();
-      return () => {
-        // cleanup function to remove instances if necessary
-        meshRef.current?.clearInstances();
-        instanceIdToComponentId.clear();
-        componentIdToInstanceId.clear();
-        componentIdToPackage.clear();
-      };
-    }, [packages.length]);
 
     useEffect(() => {
       if (ref === null || typeof ref === 'function' || !meshRef.current) {
         return;
       }
-      if (meshRef.current.instancesCount === 0) return;
 
-      if (enableAnimations) {
+      if (
+        componentIdToInstanceId.size > 0 &&
+        componentIdToInstanceId.size === packages.length &&
+        enableAnimations
+      ) {
         animateComponentChange();
       } else {
         computeInstances();
       }
-    }, [closedComponentIds, layoutMap]);
+    }, [[], closedComponentIds, layoutMap, packages]);
 
     useEffect(() => {
       if (ref === null || typeof ref === 'function' || !meshRef.current) {

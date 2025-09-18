@@ -1,17 +1,9 @@
 import { create } from 'zustand';
 
-interface FoundationState {
-  id: string;
-  isHighlighted: boolean;
-  isHovered: boolean;
-}
-
 interface VisualizationStoreState {
   // State for all entities
   highlightedEntityIds: Set<string>;
   hoveredEntityId: string | null;
-  // State for foundation
-  foundationData: { [id: string]: FoundationState };
   // State for components (store ids of components that have no default state)
   closedComponentIds: Set<string>;
   hiddenComponentIds: Set<string>; // Usually components in closed components
@@ -22,13 +14,6 @@ interface VisualizationStoreState {
     setHoveredEntityId: (id: string | null) => void;
     setHighlightedEntityId: (id: string, isHighlighted: boolean) => void;
     resetVisualizationState: () => void;
-    // Foundations
-    getFoundationState: (id: string) => FoundationState;
-    updateFoundationState: (
-      id: string,
-      state: Partial<FoundationState>
-    ) => void;
-    removeAllFoundationStates: () => void;
     // Components
     openComponents: (ids: string[]) => void;
     closeComponents: (ids: string[]) => void;
@@ -47,8 +32,6 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     // Shared entity states
     hoveredEntityId: null,
     highlightedEntityIds: new Set(),
-    // Foundation state
-    foundationData: {},
     // Component state
     closedComponentIds: new Set(),
     hiddenComponentIds: new Set(),
@@ -90,33 +73,6 @@ export const useVisualizationStore = create<VisualizationStoreState>(
           hiddenComponentIds: new Set(),
           hiddenClassIds: new Set(),
         });
-      },
-      // Foundations
-      getFoundationState: (id: string) => {
-        const state = get().foundationData[id];
-        if (!state) {
-          return {
-            id,
-            isHighlighted: false,
-            isHovered: false,
-          };
-        }
-        return state;
-      },
-      updateFoundationState: (
-        id: string,
-        state: Partial<Omit<FoundationState, 'id'>>
-      ) => {
-        const currentState = get().actions.getFoundationState(id);
-        set((prevState) => ({
-          foundationData: {
-            ...prevState.foundationData,
-            [id]: { ...currentState, ...state },
-          },
-        }));
-      },
-      removeAllFoundationStates: () => {
-        set({ foundationData: {} });
       },
       // Components
       openComponents: (ids: string[]) => {

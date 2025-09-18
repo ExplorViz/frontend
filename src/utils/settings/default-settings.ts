@@ -267,6 +267,14 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   // Effect Settings
+  enableAnimations: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Effects',
+    displayName: 'Enable Animations',
+    description: 'Toggle animations for opening and closing components',
+    isFlagSetting: true,
+  },
   animationDuration: {
     level: SettingLevel.DEFAULT,
     value: 0.25,
@@ -283,14 +291,6 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
-    isFlagSetting: true,
-  },
-  enableAnimations: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Effects',
-    displayName: 'Enable Animations',
-    description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
   castShadows: {

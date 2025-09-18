@@ -17,7 +17,6 @@ import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
@@ -64,9 +63,6 @@ export default function PopupCoordinator({
 }: PopupCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
-  const toggleHighlight = useHighlightingStore(
-    (state) => state.toggleHighlight
-  );
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode
   );
@@ -83,33 +79,26 @@ export default function PopupCoordinator({
     updatePopup({ ...popupData, hovered: true });
 
     const entity = popupData.entity;
-    if (isClass(entity)) {
-      vizStore.actions.updateClassState(entity.id, { isHovered: true });
-    }
+    vizStore.actions.setHoveredEntityId(entity.id);
   };
 
   const onPointerOut = () => {
     updatePopup({ ...popupData, hovered: false });
-
-    const entity = popupData.entity;
-    if (isClass(entity)) {
-      vizStore.actions.updateClassState(entity.id, {
-        isHovered: false,
-      });
-    }
+    vizStore.actions.setHoveredEntityId(null);
   };
+
+  useEffect(() => {
+    updatePopup({
+      ...popupData,
+      hovered: vizStore.hoveredEntityId === popupData.entity.id,
+    });
+  }, [vizStore.hoveredEntityId]);
 
   const highlight = () => {
     const entity = popupData.entity;
 
-    if (isClass(entity)) {
-      const wasHighlighted = vizStore.classData[entity.id]
-        ? vizStore.classData[popupData.entity.id].isHighlighted
-        : false;
-      vizStore.actions.updateClassState(entity.id, {
-        isHighlighted: !wasHighlighted,
-      });
-    }
+    const wasHighlighted = vizStore.highlightedEntityIds.has(entity.id);
+    vizStore.actions.setHighlightedEntityId(entity.id, !wasHighlighted);
   };
 
   const elementDrag = (event: MouseEvent) => {
@@ -118,7 +107,7 @@ export default function PopupCoordinator({
     const diffX = lastMousePosition.current.x - event.clientX;
     const diffY = lastMousePosition.current.y - event.clientY;
 
-    // Store latest mouse position for next delta calulation
+    // Store latest mouse position for next delta calculation
     lastMousePosition.current.x = event.clientX;
     lastMousePosition.current.y = event.clientY;
 

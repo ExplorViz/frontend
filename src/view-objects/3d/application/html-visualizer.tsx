@@ -145,7 +145,7 @@ export default function HtmlVisualizer({
       const htmlWithText = htmlString.replace('>', '>' + innerText);
 
       const boxData: BoxData = {
-        id: Math.random(),
+        id: 'dom-box-' + Math.random(),
         position: [offset.x, offset.y, level * distanceBetweenLevels],
         size: [
           Math.max(1, rect.width * NODE_SCALAR),
@@ -520,7 +520,7 @@ function hashElementToColor(element: Element) {
 }
 
 export type BoxData = {
-  id: number;
+  id: string;
   position: [number, number, number];
   size: [number, number, number];
   htmlNode: HTMLElement | Element;
