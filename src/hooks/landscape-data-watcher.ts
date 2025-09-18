@@ -25,13 +25,13 @@ import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/applicat
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeModel from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-model';
 import { useShallow } from 'zustand/react/shallow';
-import { useApplicationRendererStore } from '../stores/application-renderer';
-import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
-import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
-import { useHighlightingStore } from '../stores/highlighting';
-import { useIdeWebsocketFacadeStore } from '../stores/ide-websocket-facade';
-import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useUserSettingsStore } from '../stores/user-settings';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null,

@@ -1,34 +1,29 @@
-import { create } from 'zustand';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
-  addFoundationToLandscape,
-  addMethodToClass,
-  movePackage,
-  moveClass,
-  removeApplication,
-  removeClassFromPackage,
-  removePackageFromApplication,
-  getClassInApplicationById,
-  createPackage,
-  createClass,
-  changeID,
-  copyPackageContent,
-  copyClassContent,
-  restoreID,
-  removeAffectedCommunications,
-  canDeleteClass,
-  canDeletePackage,
-  pastePackage,
-  pasteClass,
-  duplicateApplication,
-} from 'explorviz-frontend/src/utils/restructure-helper';
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/src/utils/application-helpers';
+import {
+  AppChangeLogEntry,
+  BaseChangeLogEntry,
+  ClassChangeLogEntry,
+  CommunicationChangeLogEntry,
+  PackageChangeLogEntry,
+  SubPackageChangeLogEntry,
+} from 'explorviz-frontend/src/utils/changelog-entry';
+import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
   Class,
-  Package,
   isApplication,
   isClass,
   isPackage,
+  Package,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -43,35 +38,38 @@ import {
   getPackageById,
   getSubPackagesOfPackage,
 } from 'explorviz-frontend/src/utils/package-helpers';
-import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
-  RestructureAction,
+  addFoundationToLandscape,
+  addMethodToClass,
+  canDeleteClass,
+  canDeletePackage,
+  changeID,
+  copyClassContent,
+  copyPackageContent,
+  createClass,
+  createPackage,
+  duplicateApplication,
   EntityType,
+  getClassInApplicationById,
+  moveClass,
+  movePackage,
+  pasteClass,
+  pastePackage,
+  removeAffectedCommunications,
+  removeApplication,
+  removeClassFromPackage,
+  removePackageFromApplication,
+  restoreID,
+  RestructureAction,
 } from 'explorviz-frontend/src/utils/restructure-helper';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import * as THREE from 'three';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import {
-  getAllClassesInApplication,
-  getAllPackagesInApplication,
-} from 'explorviz-frontend/src/utils/application-helpers';
-import {
-  AppChangeLogEntry,
-  BaseChangeLogEntry,
-  ClassChangeLogEntry,
-  CommunicationChangeLogEntry,
-  PackageChangeLogEntry,
-  SubPackageChangeLogEntry,
-} from 'explorviz-frontend/src/utils/changelog-entry';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import eventEmitter from '../utils/event-emitter';
+import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
+import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
+import * as THREE from 'three';
+import { create } from 'zustand';
 import { useApplicationRendererStore } from './application-renderer';
 import { useChangelogStore } from './changelog';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from './user-settings';
 
 type MeshModelTextureMapping = {

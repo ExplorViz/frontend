@@ -2,7 +2,7 @@
 // Ceci García García
 
 import { ThreeEvent } from '@react-three/fiber';
-import { cancelablePromise } from '../utils/helpers/promise-helpers';
+import { cancelablePromise } from 'explorviz-frontend/src/utils/helpers/promise-helpers';
 import useCancelablePromises from './useCancelablePromises';
 
 export const delay = (n: number) =>

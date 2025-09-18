@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { LandscapeToken } from '../stores/landscape-token';
-import { useAuthStore } from '../stores/auth';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import {

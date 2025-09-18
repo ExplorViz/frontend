@@ -5,17 +5,17 @@ import TokenSelection from 'explorviz-frontend/src/components/token-selection';
 import React, { useEffect, useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import { createSearchParams, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/auth';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   LandscapeToken,
   useLandscapeTokenStore,
-} from '../stores/landscape-token';
+} from 'explorviz-frontend/src/stores/landscape-token';
 import {
   SnapshotInfo,
   TinySnapshot,
   useSnapshotTokenStore,
-} from '../stores/snapshot-token';
-import { useToastHandlerStore } from '../stores/toast-handler';
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import LandscapeLoader from './landscapes-loading';
 
 export default function Landscapes() {

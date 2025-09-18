@@ -1,18 +1,18 @@
-import { create } from 'zustand';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import {
   Commit,
   CommitComparison,
   CommitTree,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import { ApplicationMetricsCode } from '../utils/metric-schemes/metric-data';
-import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { ApplicationMetricsCode } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
+import { create } from 'zustand';
 
 interface EvolutionDataFetchState {
   fetchApplications: () => Promise<string[]>;

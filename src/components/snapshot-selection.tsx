@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import { FileAddedIcon, ShareAndroidIcon } from '@primer/octicons-react';
 import {
   SnapshotInfo,
   SnapshotToken,
   TinySnapshot,
   useSnapshotTokenStore,
-} from '../stores/snapshot-token';
-import { useToastHandlerStore } from '../stores/toast-handler';
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import React, { useState } from 'react';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FileAddedIcon, ShareAndroidIcon } from '@primer/octicons-react';
 import AdditionalSnapshotInfo from './additional-snapshot-info';
-import ShareSnapshot from './share-snapshot';
 import DeleteSnapshot from './delete-snapshot';
+import ShareSnapshot from './share-snapshot';
 
 interface SnapshotSelectionArgs {
   snapshotInfo: SnapshotInfo;

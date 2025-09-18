@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useUserApiTokenStore, ApiToken } from '../stores/user-api-token';
+import {
+  useUserApiTokenStore,
+  ApiToken,
+} from 'explorviz-frontend/src/stores/user-api-token';
 import ApiTokenSelection from 'explorviz-frontend/src/components/api-token-selection';
 
 export default function Settings() {

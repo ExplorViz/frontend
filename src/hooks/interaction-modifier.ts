@@ -1,12 +1,12 @@
-import React, { MutableRefObject, useEffect, useRef } from 'react';
+import { MutableRefObject, useEffect, useRef } from 'react';
 
-import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
-import { useLocalUserStore } from '../stores/collaboration/local-user';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
-import { useMinimapStore } from '../stores/minimap-service';
 import Raycaster from 'explorviz-frontend/src/utils/raycaster';
-import { Object3D, Vector2 } from 'three';
 import * as THREE from 'three';
+import { Object3D, Vector2 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 interface InteractionModifierEventCallbacks {
@@ -619,7 +619,6 @@ export default function useInteractionModifier(
       onPointerStop as EventListener
     );
 
-
     return function cleanup() {
       if (canvas.current) {
         canvas.current.removeEventListener('pointerdown', onPointerDown);
@@ -639,7 +638,6 @@ export default function useInteractionModifier(
     };
   }, [camera, objectsToRaycast, minimapCamera, makeFullsizeMinimap]);
 }
-
 
 // MARK: Types
 
