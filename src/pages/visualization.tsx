@@ -1,33 +1,44 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { ChevronUpIcon } from '@primer/octicons-react';
+import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
+import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
+import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
+import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
+import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
+import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
+import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import {
   useLocalUserStore,
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import {
   AnalysisMode,
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
-import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
-import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
+import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   ApiToken,
   useUserApiTokenStore,
 } from 'explorviz-frontend/src/stores/user-api-token';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
@@ -61,24 +72,12 @@ import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/la
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
-import { ChevronUpIcon } from '@primer/octicons-react';
-import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
-import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
-import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
-import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import { useShallow } from 'zustand/react/shallow';
-import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
-import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
-import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import useSyncState from '../hooks/sync-state';
 import { ImmersiveView } from '../rendering/application/immersive-view';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 const queryParams = [
   'roomId',
@@ -329,8 +328,6 @@ export default function Visualization() {
   const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.setAppNameAndBranchNameToColorMap
   );
-  const linkRendererFlag = useLinkRendererStore((state) => state._flag);
-  const setFlag = useLinkRendererStore((state) => state.setFlag);
   const updateHighlighting = useHighlightingStore(
     (state) => state.updateHighlighting
   );
@@ -545,16 +542,6 @@ export default function Visualization() {
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
     annotations,
   }: InitialLandscapeMessage): Promise<void> => {
-    setFlag(true);
-    while (linkRendererFlag) {
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(null);
-        }, 50);
-      });
-    }
-    // Now we can be sure our linkRenderer has all extern links
-
     // Serialized room is used in landscape-data-watcher
     roomSerializer.setSerializedRoom({
       landscape: landscape,
@@ -622,18 +609,6 @@ export default function Visualization() {
     if (snapshotToken === null) {
       return;
     }
-
-    // make sure our linkRenderer has all extern links
-    setFlag(true);
-    while (linkRendererFlag) {
-      // war mal 350?
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(null);
-        }, 50);
-      });
-    }
-
     /**
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.

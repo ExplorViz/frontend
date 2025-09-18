@@ -379,12 +379,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     },
 
     hostRoom: async (roomId = '') => {
-      if (
-        !get().isConnecting() &&
-        !get().isOnline() &&
-        useApplicationRendererStore.getState().getOpenApplications().length > 0
-      ) {
-        // this.connectionStatus = 'connecting';
+      if (!get().isConnecting() && !get().isOnline()) {
         try {
           const response = await useRoomServiceStore
             .getState()
