@@ -404,6 +404,7 @@ export default function Visualization() {
 
   const shouldDisplayBottomBar = () => {
     return (
+      renderingServiceLandscapeData &&
       !showAR &&
       !showVR &&
       !isSingleLandscapeMode &&
