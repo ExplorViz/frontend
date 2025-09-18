@@ -291,7 +291,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (instanceId === undefined) return;
       e.stopPropagation();
       const componentId = instanceIdToComponentId.get(instanceId);
-      animateComponentChange();
       if (!componentId) return;
       // Toggle highlighting
       setHighlightedEntity(componentId, !highlightedEntityIds.has(componentId));
@@ -339,6 +338,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       hoveredEntityId,
       heatmapActive,
       selectedClassMetric,
+      componentEvenColor,
+      componentOddColor,
     ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
