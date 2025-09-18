@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 import ColorSchemeSelector from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector';
+import SettingPresets from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-presets';
 import ButtonSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting';
 import FlagSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
+import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
@@ -13,6 +15,7 @@ import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaborat
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -32,8 +35,6 @@ import {
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { Mesh } from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 
 interface SettingsProps {
   enterFullscreen(): void;
@@ -287,7 +288,7 @@ export default function Settings({
     updateVisualizationState();
   };
 
-  return Object.entries(filteredSettingsByGroup).map(
+  const groupedSettings = Object.entries(filteredSettingsByGroup).map(
     ([groupId, settingIdArray]) => {
       if (settingIdArray.length === 0) {
         return <React.Fragment key={groupId}></React.Fragment>;
@@ -300,6 +301,7 @@ export default function Settings({
             </h6>
             <ResetButton onClick={resetGroup} args={groupId} />
           </div>
+
           {groupId === 'Colors' && (
             <div id="colorHeader" className="mb-2">
               <ColorSchemeSelector
@@ -308,6 +310,7 @@ export default function Settings({
               />
             </div>
           )}
+
           <div className="ml-3">
             {settingIdArray.map((settingId) => {
               const setting = visualizationSettings[settingId];
@@ -358,6 +361,13 @@ export default function Settings({
         </React.Fragment>
       );
     }
+  );
+
+  return (
+    <>
+      <SettingPresets />
+      {groupedSettings}
+    </>
   );
 }
 
