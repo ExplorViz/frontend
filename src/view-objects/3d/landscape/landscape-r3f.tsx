@@ -1,12 +1,10 @@
 import { useThree } from '@react-three/fiber';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
-import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
+import { useShallow } from 'zustand/react/shallow';
 
 const MOUSE_MIDDLE_BUTTON = 1;
 
@@ -17,7 +15,6 @@ export default function LandscapeR3F({
   layout: BoxLayout | undefined;
   children: React.ReactNode;
 }) {
-  const [landscape3D] = useState<Landscape3D>(new Landscape3D());
   const [position, setPosition] = useState<THREE.Vector3>(new THREE.Vector3());
   const { scalar, raycastEnabled, raycastFirstHit, raycastNear, raycastFar } =
     useUserSettingsStore(
@@ -54,10 +51,6 @@ export default function LandscapeR3F({
       raycaster.layers.disableAll();
     }
   }, [raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
-
-  useEffect(() => {
-    useApplicationRendererStore.getState().setLandscape3D(landscape3D);
-  }, []);
 
   return (
     <group

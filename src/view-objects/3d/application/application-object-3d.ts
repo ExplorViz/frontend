@@ -13,7 +13,6 @@ import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/s
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { ChildMesh } from 'explorviz-frontend/src/view-objects/3d/application/child-mesh-interface';
 import { extend, ThreeElement } from '@react-three/fiber';
 
 /**
@@ -22,10 +21,7 @@ import { extend, ThreeElement } from '@react-three/fiber';
  * some functionality to easily remove child meshes and dispose
  * all their THREE.Geometry's and THREE.Material's.
  */
-export default class ApplicationObject3D
-  extends THREE.Object3D
-  implements ChildMesh
-{
+export default class ApplicationObject3D extends THREE.Object3D {
   /**
    * The underlying application data model
    */
