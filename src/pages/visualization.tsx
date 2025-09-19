@@ -552,9 +552,13 @@ export default function Visualization() {
       annotations: annotations as SerializedAnnotation[],
     });
 
-    updateHighlighting();
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: landscape.timestamp, spanCount: 0 },
+    ]);
     await renderingServiceTriggerRenderingForGivenTimestamp(
-      landscape.timestamp
+      commitToSelectedTimestampMap
     );
     // Disable polling. It is now triggerd by the websocket.
   };
@@ -562,14 +566,28 @@ export default function Visualization() {
   const onTimestampUpdate = async ({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> => {
-    renderingServiceTriggerRenderingForGivenTimestamp(timestamp);
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: timestamp, spanCount: 0 },
+    ]);
+    renderingServiceTriggerRenderingForGivenTimestamp(
+      commitToSelectedTimestampMap
+    );
   };
 
   const onTimestampUpdateTimer = async ({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> => {
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: timestamp, spanCount: 0 },
+    ]);
     await loadLandscapeByTimestamp(timestamp);
-    renderingServiceTriggerRenderingForGivenTimestamp(timestamp);
+    renderingServiceTriggerRenderingForGivenTimestamp(
+      commitToSelectedTimestampMap
+    );
   };
 
   const onSyncRoomState = async (event: {
