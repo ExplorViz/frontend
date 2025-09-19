@@ -14,10 +14,9 @@ import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
-import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
@@ -25,10 +24,8 @@ import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
   landscapeData,
-  landscape3D,
 }: {
   landscapeData: LandscapeData | null;
-  landscape3D: Landscape3D;
 }) {
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
@@ -103,10 +100,8 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { applicationModels, interAppCommunications } = useLandscapeDataWatcher(
-    landscapeData,
-    landscape3D
-  );
+  const { applicationModels, interAppCommunications } =
+    useLandscapeDataWatcher(landscapeData);
 
   const popupHandlerActions = usePopupHandlerStore(
     useShallow((state) => ({
@@ -146,8 +141,20 @@ export default function CanvasWrapper({
       const classIds = new Set(allClasses.map((clazz) => clazz.id));
       // Remove all class states that are not in the current landscape
       // TODO: Remove outdated class ids from visualization store
+
+      const communicationIds = new Set(
+        interAppCommunications.map((comm) => comm.id)
+      );
+
+      const entityIds = new Set([
+        ...packagesIds,
+        ...classIds,
+        ...communicationIds,
+      ]);
+
+      useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
-  }, [landscapeData]);
+  }, [landscapeData, interAppCommunications]);
 
   const updateLayout = async () => {
     if (!landscapeData) return;

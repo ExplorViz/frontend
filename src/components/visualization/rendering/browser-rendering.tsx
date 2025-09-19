@@ -485,10 +485,7 @@ export default function BrowserRendering({
           {heatmapEnabled && <HeatmapInfo />}
 
           <ContextMenu switchToAR={switchToAR}>
-            <CanvasWrapper
-              landscapeData={landscapeData}
-              landscape3D={landscape3D}
-            />
+            <CanvasWrapper landscapeData={landscapeData} />
           </ContextMenu>
           {/* {loadNewLandscape.isRunning && (
             <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">

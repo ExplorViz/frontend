@@ -14,6 +14,7 @@ interface VisualizationStoreState {
     setHoveredEntityId: (id: string | null) => void;
     setHighlightedEntityId: (id: string, isHighlighted: boolean) => void;
     resetVisualizationState: () => void;
+    filterEntityIds: (validEntityIds: Set<string>) => void;
     // Components
     openComponents: (ids: string[]) => void;
     closeComponents: (ids: string[]) => void;
@@ -73,6 +74,33 @@ export const useVisualizationStore = create<VisualizationStoreState>(
           hiddenComponentIds: new Set(),
           hiddenClassIds: new Set(),
         });
+      },
+      filterEntityIds: (validEntityIds: Set<string>) => {
+        set((prevState) => ({
+          highlightedEntityIds: new Set(
+            [...prevState.highlightedEntityIds].filter((id) =>
+              validEntityIds.has(id)
+            )
+          ),
+          hoveredEntityId:
+            prevState.hoveredEntityId &&
+            validEntityIds.has(prevState.hoveredEntityId)
+              ? prevState.hoveredEntityId
+              : null,
+          closedComponentIds: new Set(
+            [...prevState.closedComponentIds].filter((id) =>
+              validEntityIds.has(id)
+            )
+          ),
+          hiddenComponentIds: new Set(
+            [...prevState.hiddenComponentIds].filter((id) =>
+              validEntityIds.has(id)
+            )
+          ),
+          hiddenClassIds: new Set(
+            [...prevState.hiddenClassIds].filter((id) => validEntityIds.has(id))
+          ),
+        }));
       },
       // Components
       openComponents: (ids: string[]) => {
