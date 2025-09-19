@@ -4,6 +4,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useState } from 'react';
+import gsap from 'gsap';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -21,6 +22,8 @@ export default function CityDistrictLabel({
     componentTextColor,
     closedComponentHeight,
     packageLabelMargin,
+    enableAnimations,
+    animationDuration,
   } = useUserSettingsStore(
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
@@ -28,6 +31,8 @@ export default function CityDistrictLabel({
       closedComponentHeight:
         state.visualizationSettings.closedComponentHeight.value,
       packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
+      animationDuration: state.visualizationSettings.animationDuration.value,
     }))
   );
 
@@ -43,29 +48,50 @@ export default function CityDistrictLabel({
   );
 
   useEffect(() => {
-    if (isOpen) {
-      setLabelPosition(
-        labelPosition
-          .clone()
-          .setX(layout.positionX)
-          .setY(layout.positionY + layout.height / 2 + labelOffset + 0.01)
-          .setZ(layout.positionZ + layout.depth / 2 - packageLabelMargin / 2)
-      );
+    const openPos = new THREE.Vector3()
+      .setX(layout.positionX)
+      .setY(layout.positionY + layout.height / 2 + labelOffset + 0.01)
+      .setZ(layout.positionZ + layout.depth / 2 - packageLabelMargin / 2);
+    const closedPos = new THREE.Vector3()
+      .setX(layout.positionX)
+      .setY(
+        layout.positionY -
+          layout.height / 2 +
+          closedComponentHeight +
+          labelOffset +
+          0.01
+      )
+      .setZ(layout.positionZ);
+
+    const target = isOpen ? openPos : closedPos;
+
+    if (enableAnimations) {
+      const values = {
+        x: labelPosition.x,
+        y: labelPosition.y,
+        z: labelPosition.z,
+      };
+      gsap.to(values, {
+        x: target.x,
+        y: target.y,
+        z: target.z,
+        duration: animationDuration,
+        onUpdate: () => {
+          setLabelPosition(new THREE.Vector3(values.x, values.y, values.z));
+        },
+      });
     } else {
-      setLabelPosition(
-        labelPosition
-          .clone()
-          .setY(
-            layout.positionY -
-              layout.height / 2 +
-              closedComponentHeight +
-              labelOffset +
-              0.01
-          )
-          .setZ(layout.positionZ)
-      );
+      setLabelPosition(target.clone());
     }
-  }, [layout, isOpen, labelOffset]);
+  }, [
+    layout,
+    isOpen,
+    labelOffset,
+    packageLabelMargin,
+    closedComponentHeight,
+    enableAnimations,
+    animationDuration,
+  ]);
 
   return (
     <Text
