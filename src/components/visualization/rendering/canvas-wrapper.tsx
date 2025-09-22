@@ -62,6 +62,10 @@ export default function CanvasWrapper({
     showAxesHelper,
     showFpsCounter,
     showLightHelper,
+    leftMouseButtonAction,
+    middleMouseButtonAction,
+    mouseWheelAction,
+    rightMouseButtonAction,
   } = useUserSettingsStore(
     useShallow((state) => ({
       applicationLayoutAlgorithm:
@@ -94,6 +98,13 @@ export default function CanvasWrapper({
       showAxesHelper: state.visualizationSettings.showAxesHelper.value,
       showFpsCounter: state.visualizationSettings.showFpsCounter.value,
       showLightHelper: state.visualizationSettings.showLightHelper.value,
+      leftMouseButtonAction:
+        state.visualizationSettings.leftMouseButtonAction.value,
+      mouseWheelAction: state.visualizationSettings.mouseWheelAction.value,
+      rightMouseButtonAction:
+        state.visualizationSettings.rightMouseButtonAction.value,
+      middleMouseButtonAction:
+        state.visualizationSettings.middleMouseButtonAction.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
@@ -102,6 +113,28 @@ export default function CanvasWrapper({
 
   // Initialize camera controls store
   useCameraControls(cameraControlsRef);
+
+  // Function to map setting values to camera controls mouse button constants
+  const getMouseMapping = (action: string): number => {
+    switch (action) {
+      case 'NONE':
+        return 0; // None
+      case 'ROTATE':
+        return 1; // ROTATE
+      case 'TRUCK':
+        return 2; // TRUCK
+      case 'SCREEN_PAN':
+        return 4; // SCREEN_PAN
+      case 'OFFSET':
+        return 8; // SCREEN_PAN
+      case 'DOLLY':
+        return 16; // DOLLY
+      case 'ZOOM':
+        return 32; // ZOOM
+      default:
+        return 0; // None
+    }
+  };
 
   const { isCommRendered } = useConfigurationStore(
     useShallow((state) => ({
@@ -216,10 +249,10 @@ export default function CanvasWrapper({
         makeDefault
         minDistance={1}
         mouseButtons={{
-          left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
-          middle: 0, // None
-          wheel: 16, // Dolly
-          right: 1, // Rotate
+          left: getMouseMapping(leftMouseButtonAction) as any,
+          middle: getMouseMapping(middleMouseButtonAction) as any,
+          wheel: getMouseMapping(mouseWheelAction) as any,
+          right: getMouseMapping(rightMouseButtonAction) as any,
         }}
         smoothTime={0.5}
       />

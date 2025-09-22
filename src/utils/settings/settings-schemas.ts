@@ -54,6 +54,10 @@ export type ColorSettingId =
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
 export type ControlSettings = {
+  leftMouseButtonAction: SelectSetting<string>;
+  middleMouseButtonAction: SelectSetting<string>;
+  mouseWheelAction: SelectSetting<string>;
+  rightMouseButtonAction: SelectSetting<string>;
   enableGamepadControls: FlagSetting;
   selectedGamepadIndex: RangeSetting;
 };

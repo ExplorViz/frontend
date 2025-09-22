@@ -14,6 +14,15 @@ export const metricMappingMultipliers = {
 } as const;
 export type MetricKey = keyof typeof metricMappingMultipliers;
 export const metricKeys = Object.keys(metricMappingMultipliers) as MetricKey[];
+export const MOUSE_ACTIONS = [
+  'NONE',
+  'ROTATE',
+  'TRUCK',
+  'SCREEN_PAN',
+  'OFFSET',
+  'DOLLY',
+  'ZOOM',
+];
 
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
@@ -202,6 +211,42 @@ export const defaultVizSettings: VisualizationSettings = {
     isColorSetting: true,
   },
   // Control Settings
+  leftMouseButtonAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'SCREEN_PAN',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Left Mouse Button',
+    description: 'Action assigned to the left mouse button',
+    isSelectSetting: true,
+  },
+  middleMouseButtonAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'NONE',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Middle Mouse Button',
+    description: 'Action assigned to the middle mouse button',
+    isSelectSetting: true,
+  },
+  mouseWheelAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'DOLLY',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Mouse Wheel',
+    description: 'Action assigned to the mouse wheel',
+    isSelectSetting: true,
+  },
+  rightMouseButtonAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'ROTATE',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Right Mouse Button',
+    description: 'Action assigned to the right mouse button',
+    isSelectSetting: true,
+  },
   enableGamepadControls: {
     level: SettingLevel.DEFAULT,
     value: true,
