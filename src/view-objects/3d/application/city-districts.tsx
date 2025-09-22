@@ -26,6 +26,8 @@ import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handle
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import gsap from 'gsap';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
 
@@ -115,6 +117,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         animationDuration: state.visualizationSettings.animationDuration.value,
       }))
     );
+
+    const isOnline = useCollaborationSessionStore.getState().isOnline();
 
     const { heatmapActive, selectedClassMetric } = useHeatmapStore(
       useShallow((state) => ({
@@ -270,7 +274,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (!layout) return new Color('white');
 
       const baseColor = isHighlighted
-        ? new Color(highlightedEntityColor)
+        ? useHighlightingStore.getState().highlightingColor()
         : new Color(
             layout.level % 2 === 0 ? componentEvenColor : componentOddColor
           );
@@ -335,6 +339,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       });
     }, [
       highlightedEntityIds,
+      highlightedEntityColor,
+      isOnline,
       hoveredEntityId,
       heatmapActive,
       selectedClassMetric,

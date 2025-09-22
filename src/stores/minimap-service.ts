@@ -77,8 +77,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
   makeFullsizeMinimap: false, // tracked
   minimapSize: 4, // tracked
   // tracked
-  minimapEnabled:
-    useUserSettingsStore.getState().visualizationSettings.minimap.value,
+  // TODO: This is part of settings
+  minimapEnabled: true,
   cameraControls: undefined, // is set by browser-rendering / vr-rendering
   landscape3D: new Landscape3D(), // is set by browser-rendering / vr-rendering
   minimapUserMarkers: new Map(),
