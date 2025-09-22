@@ -1,7 +1,10 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
-import { useCameraControls } from 'explorviz-frontend/src/stores/camera-controls-store';
+import {
+  INITIAL_CAMERA_POSITION,
+  useCameraControls,
+} from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -33,10 +36,6 @@ export default function CanvasWrapper({
   );
 
   const directionalLightRef = useRef(null);
-
-  const INITIAL_CAMERA_POSITION: [x: number, y: number, z: number] = [
-    10, 10, 10,
-  ];
 
   const {
     applicationLayoutAlgorithm,

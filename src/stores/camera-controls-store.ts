@@ -13,7 +13,9 @@ interface CameraControlsState {
   resetCamera: () => void;
 }
 
-const INITIAL_CAMERA_POSITION: [x: number, y: number, z: number] = [10, 10, 10];
+export const INITIAL_CAMERA_POSITION: [x: number, y: number, z: number] = [
+  10, 10, 10,
+];
 
 export const useCameraControlsStore = create<CameraControlsState>(
   (set, get) => ({
