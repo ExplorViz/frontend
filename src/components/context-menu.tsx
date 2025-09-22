@@ -2,12 +2,10 @@ import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { useShallow } from 'zustand/react/shallow';
 import { Position2D } from '../hooks/interaction-modifier';
-import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-
 export type ContextMenuItem = {
   title: string;
   action: () => void;
@@ -43,27 +41,8 @@ export default function ContextMenu({
     }))
   );
 
-  const userSettingsState = useUserSettingsStore(
-    useShallow((state) => ({
-      visualizationSettings: state.visualizationSettings,
-      colors: state.colors,
-    }))
-  );
-
-  const toastHandlerActions = useToastHandlerStore(
-    useShallow((state) => ({
-      showInfoToastMessage: state.showInfoToastMessage,
-      showSuccessToastMessage: state.showSuccessToastMessage,
-      showErrorToastMessage: state.showErrorToastMessage,
-    }))
-  );
-
   const resetView = async () => {
-    toastHandlerActions.showErrorToastMessage(
-      'Needs to be implemented',
-      'TODO'
-    );
-    // cameraControls.current!.resetCameraFocusOn();
+    eventEmitter.emit('reset_camera');
   };
 
   const menuItems: ContextMenuItem[] = [

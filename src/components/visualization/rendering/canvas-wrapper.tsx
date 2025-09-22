@@ -20,6 +20,8 @@ import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
@@ -32,6 +34,10 @@ export default function CanvasWrapper({
   );
 
   const directionalLightRef = useRef(null);
+
+  const INITIAL_CAMERA_POSITION: [x: number, y: number, z: number] = [
+    10, 10, 10,
+  ];
 
   const {
     applicationLayoutAlgorithm,
@@ -94,6 +100,56 @@ export default function CanvasWrapper({
     }))
   );
 
+  const resetCamera = () => {
+    moveCameraTo(INITIAL_CAMERA_POSITION, [0, 0, 0]);
+  };
+
+  const moveCameraTo = (
+    position: [x: number, y: number, z: number],
+    target: [x: number, y: number, z: number] = [0, 0, 0],
+    enableTransition = true
+  ) => {
+    if (cameraControlsRef.current) {
+      cameraControlsRef.current.moveTo(
+        position[0],
+        position[1],
+        position[2],
+        enableTransition
+      );
+      cameraControlsRef.current.setTarget(
+        target[0],
+        target[1],
+        target[2],
+        enableTransition
+      );
+    }
+  };
+
+  const cameraControlsRef = useRef<CameraControls>(null);
+
+  // Camera reset listener
+  useEffect(() => {
+    const handleMoveCamera = ({
+      position,
+      target,
+      enableTransition,
+    }: {
+      position: [x: number, y: number, z: number];
+      target?: [x: number, y: number, z: number];
+      enableTransition?: boolean;
+    }) => {
+      moveCameraTo(position, target, enableTransition);
+    };
+
+    eventEmitter.on('reset_camera', resetCamera);
+    eventEmitter.on('move_camera', handleMoveCamera);
+
+    return () => {
+      eventEmitter.off('reset_camera', resetCamera);
+      eventEmitter.off('move_camera', handleMoveCamera);
+    };
+  }, [cameraControlsRef.current]);
+
   const { isCommRendered } = useConfigurationStore(
     useShallow((state) => ({
       isCommRendered: state.isCommRendered,
@@ -130,8 +186,6 @@ export default function CanvasWrapper({
         .map((app) => getAllPackagesInApplication(app))
         .flat();
       const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
-      // Remove all component states that are not in the current landscape
-      // TODO: Remove outdated component ids from visualization store
 
       const allClasses = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
@@ -139,8 +193,6 @@ export default function CanvasWrapper({
         .map((app) => getAllClassesInApplication(app))
         .flat();
       const classIds = new Set(allClasses.map((clazz) => clazz.id));
-      // Remove all class states that are not in the current landscape
-      // TODO: Remove outdated class ids from visualization store
 
       const communicationIds = new Set(
         interAppCommunications.map((comm) => comm.id)
@@ -152,6 +204,7 @@ export default function CanvasWrapper({
         ...communicationIds,
       ]);
 
+      // Remove all ids that are no longer part of the landscape
       useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
   }, [landscapeData, interAppCommunications]);
@@ -202,6 +255,7 @@ export default function CanvasWrapper({
       onMouseMove={popupHandlerActions.handleMouseMove}
     >
       <CameraControls
+        ref={cameraControlsRef}
         dollySpeed={0.3}
         draggingSmoothTime={0.05}
         maxDistance={250}
@@ -217,7 +271,7 @@ export default function CanvasWrapper({
         smoothTime={0.5}
       />
       <PerspectiveCamera
-        position={[10, 10, 10]}
+        position={INITIAL_CAMERA_POSITION}
         fov={cameraFov}
         near={cameraNear}
         far={cameraFar}
