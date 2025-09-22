@@ -1,6 +1,7 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
+import { useCameraControls } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -20,8 +21,6 @@ import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
@@ -100,55 +99,10 @@ export default function CanvasWrapper({
     }))
   );
 
-  const resetCamera = () => {
-    moveCameraTo(INITIAL_CAMERA_POSITION, [0, 0, 0]);
-  };
-
-  const moveCameraTo = (
-    position: [x: number, y: number, z: number],
-    target: [x: number, y: number, z: number] = [0, 0, 0],
-    enableTransition = true
-  ) => {
-    if (cameraControlsRef.current) {
-      cameraControlsRef.current.moveTo(
-        position[0],
-        position[1],
-        position[2],
-        enableTransition
-      );
-      cameraControlsRef.current.setTarget(
-        target[0],
-        target[1],
-        target[2],
-        enableTransition
-      );
-    }
-  };
-
   const cameraControlsRef = useRef<CameraControls>(null);
 
-  // Camera reset listener
-  useEffect(() => {
-    const handleMoveCamera = ({
-      position,
-      target,
-      enableTransition,
-    }: {
-      position: [x: number, y: number, z: number];
-      target?: [x: number, y: number, z: number];
-      enableTransition?: boolean;
-    }) => {
-      moveCameraTo(position, target, enableTransition);
-    };
-
-    eventEmitter.on('reset_camera', resetCamera);
-    eventEmitter.on('move_camera', handleMoveCamera);
-
-    return () => {
-      eventEmitter.off('reset_camera', resetCamera);
-      eventEmitter.off('move_camera', handleMoveCamera);
-    };
-  }, [cameraControlsRef.current]);
+  // Initialize camera controls store
+  useCameraControls(cameraControlsRef);
 
   const { isCommRendered } = useConfigurationStore(
     useShallow((state) => ({

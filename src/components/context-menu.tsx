@@ -1,9 +1,9 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { useShallow } from 'zustand/react/shallow';
 import { Position2D } from '../hooks/interaction-modifier';
 export type ContextMenuItem = {
@@ -42,7 +42,7 @@ export default function ContextMenu({
   );
 
   const resetView = async () => {
-    eventEmitter.emit('reset_camera');
+    useCameraControlsStore.getState().resetCamera();
   };
 
   const menuItems: ContextMenuItem[] = [
