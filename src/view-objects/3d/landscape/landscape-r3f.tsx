@@ -1,6 +1,6 @@
 import { useThree } from '@react-three/fiber';
-import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { triggerRestartablePing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
@@ -59,13 +59,12 @@ export default function LandscapeR3F({
       onPointerDown={(e) => {
         if (e.button == MOUSE_MIDDLE_BUTTON) {
           e.stopPropagation();
-          usePingStore.getState().push({
-            pingedObject: e.object,
-            position: e.point,
-            durationMs: 1000,
-            replay: true,
-            restartable: false,
-          });
+          let pingedPoint = e.point.clone();
+          // Positioning of instanced meshes works differently
+          if (e.object.type === 'InstancedMesh2') {
+            pingedPoint = e.object.localToWorld(pingedPoint);
+          }
+          triggerRestartablePing(pingedPoint);
         }
       }}
     >

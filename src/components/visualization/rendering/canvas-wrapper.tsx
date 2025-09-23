@@ -287,7 +287,7 @@ export default function CanvasWrapper({
             />
           ))}
       </LandscapeR3F>
-      <AnimatedPing color="#00e5ff" />
+      <AnimatedPing />
       <ambientLight />
       <directionalLight
         name="DirectionalLight"
