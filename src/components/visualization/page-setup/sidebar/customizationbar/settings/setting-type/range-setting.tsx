@@ -32,7 +32,7 @@ export default function RangeSetting({
         <div style={{ width: '100%' }}>
           <input
             id={setting.displayName}
-            value={setting.value}
+            value={setting.value.toFixed(2)}
             min={setting.range.min}
             max={setting.range.max}
             type="range"
@@ -42,14 +42,14 @@ export default function RangeSetting({
             onChange={(event) => handleInput(Number(event.target.value))}
           />
           <div className="range-slider--values">
-            <span>{setting.range.min}</span>
+            <span>{setting.range.min.toFixed(2)}</span>
             <input
               style={{ fontWeight: 'bold', textAlign: 'center', width: '5rem' }}
               type="number"
-              value={setting.value}
+              value={Number(setting.value.toFixed(2))}
               onChange={(event) => handleInput(Number(event.target.value))}
             />
-            <span>{setting.range.max}</span>
+            <span>{setting.range.max.toFixed(2)}</span>
           </div>
         </div>
         <ResetButton

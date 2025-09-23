@@ -16,28 +16,45 @@ export default function LandscapeR3F({
   children: React.ReactNode;
 }) {
   const [position, setPosition] = useState<THREE.Vector3>(new THREE.Vector3());
-  const { scalar, raycastEnabled, raycastFirstHit, raycastNear, raycastFar } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        scalar: state.visualizationSettings.landscapeScalar.value,
-        raycastEnabled: state.visualizationSettings.raycastEnabled.value,
-        raycastFirstHit: state.visualizationSettings.raycastFirstHit.value,
-        raycastNear: state.visualizationSettings.raycastNear.value,
-        raycastFar: state.visualizationSettings.raycastFar.value,
-      }))
-    );
+  const {
+    scalar,
+    rotationX,
+    rotationY,
+    rotationZ,
+    positionX,
+    positionY,
+    positionZ,
+    raycastEnabled,
+    raycastFirstHit,
+    raycastNear,
+    raycastFar,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      scalar: state.visualizationSettings.landscapeScalar.value,
+      rotationX: state.visualizationSettings.landscapeRotationX.value,
+      rotationY: state.visualizationSettings.landscapeRotationY.value,
+      rotationZ: state.visualizationSettings.landscapeRotationZ.value,
+      positionX: state.visualizationSettings.landscapePositionX.value,
+      positionY: state.visualizationSettings.landscapePositionY.value,
+      positionZ: state.visualizationSettings.landscapePositionZ.value,
+      raycastEnabled: state.visualizationSettings.raycastEnabled.value,
+      raycastFirstHit: state.visualizationSettings.raycastFirstHit.value,
+      raycastNear: state.visualizationSettings.raycastNear.value,
+      raycastFar: state.visualizationSettings.raycastFar.value,
+    }))
+  );
 
   useEffect(() => {
     if (layout) {
       setPosition(
         new THREE.Vector3(
-          (-layout.width * scalar) / 2,
-          0,
-          (-layout.depth * scalar) / 2
+          (-layout.width * scalar) / 2 + positionX,
+          positionY,
+          (-layout.depth * scalar) / 2 + positionZ
         )
       );
     }
-  }, [layout, scalar]);
+  }, [layout, scalar, positionX, positionY, positionZ]);
 
   const raycaster = useThree((state) => state.raycaster);
 
@@ -56,6 +73,7 @@ export default function LandscapeR3F({
     <group
       position={position}
       scale={scalar}
+      rotation={[rotationX, rotationY, rotationZ]}
       onPointerDown={(e) => {
         if (e.button == MOUSE_MIDDLE_BUTTON) {
           e.stopPropagation();

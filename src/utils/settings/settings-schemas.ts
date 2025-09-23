@@ -123,6 +123,12 @@ export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
+  landscapePositionX: RangeSetting;
+  landscapePositionY: RangeSetting;
+  landscapePositionZ: RangeSetting;
+  landscapeRotationX: RangeSetting;
+  landscapeRotationY: RangeSetting;
+  landscapeRotationZ: RangeSetting;
   applicationDistance: RangeSetting;
   applicationAspectRatio: RangeSetting;
   appMargin: RangeSetting;
