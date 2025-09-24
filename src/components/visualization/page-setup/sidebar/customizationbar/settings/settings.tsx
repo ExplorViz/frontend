@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 import ColorSchemeSelector from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector';
@@ -45,6 +45,7 @@ export default function Settings({
   enterFullscreen,
   setGamepadSupport,
 }: SettingsProps) {
+  const stickyNavRef = useRef<HTMLDivElement>(null);
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -288,14 +289,35 @@ export default function Settings({
     updateVisualizationState();
   };
 
+  const scrollToSection = (groupId: string) => {
+    const htmlSettingGroup = document.getElementById(
+      `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`
+    );
+    if (htmlSettingGroup) {
+      const navHeight = stickyNavRef.current
+        ? stickyNavRef.current.offsetHeight
+        : 0;
+
+      htmlSettingGroup.style.scrollMarginTop = `${navHeight}px`;
+
+      htmlSettingGroup.scrollIntoView({
+        behavior: 'smooth',
+      });
+    }
+  };
+
   const groupedSettings = Object.entries(filteredSettingsByGroup).map(
     ([groupId, settingIdArray]) => {
       if (settingIdArray.length === 0) {
         return <React.Fragment key={groupId}></React.Fragment>;
       }
+      const sectionId = `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`;
       return (
         <React.Fragment key={groupId}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            id={sectionId}
+            style={{ display: 'flex', justifyContent: 'space-between' }}
+          >
             <h6 className="mt-3">
               <strong>{groupId}</strong>
             </h6>
@@ -363,8 +385,33 @@ export default function Settings({
     }
   );
 
+  // Get available setting groups for navigation
+  const availableGroups = Object.entries(filteredSettingsByGroup)
+    .filter(([, settingIdArray]) => settingIdArray.length > 0)
+    .map(([groupId]) => groupId);
+
   return (
     <>
+      {/* Navigation Links */}
+      {availableGroups.length > 1 && (
+        <div ref={stickyNavRef} className="mb-3 quick-navigation-container">
+          <h6 className="mb-2">
+            <strong>Quick Navigation</strong>
+          </h6>
+          <div className="d-flex flex-wrap gap-1">
+            {availableGroups.map((groupId) => (
+              <button
+                key={groupId}
+                type="button"
+                className="btn btn-outline-secondary btn-sm quick-navigation-button"
+                onClick={() => scrollToSection(groupId)}
+              >
+                {groupId}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <SettingPresets />
       {groupedSettings}
     </>
