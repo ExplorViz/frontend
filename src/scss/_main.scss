@@ -48,6 +48,60 @@ body {
   margin: auto;
 }
 
+.main-button {
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform:scale(1.02);
+  }
+
+  &:hover svg {
+    transform: scale(1.1);
+  }
+}
+
+.main-button--primary {
+  @extend .main-button;
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+
+  &:hover {
+    background: linear-gradient(135deg, var(--bs-primary-dark, #0056b3), var(--bs-primary));
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+  }
+
+  &:focus {
+    box-shadow:
+      0 0 0 0.2rem rgba(0, 123, 255, 0.25),
+      0 4px 15px rgba(0, 123, 255, 0.2);
+  }
+}
+
+.main-button--success {
+  @extend .main-button;
+  background: linear-gradient(135deg, var(--bs-success), var(--bs-success-dark, #198754));
+  box-shadow: 0 2px 8px rgba(25, 135, 84, 0.2);
+
+  &:hover {
+    background: linear-gradient(135deg, var(--bs-success-dark, #198754), var(--bs-success));
+    box-shadow: 0 6px 20px rgba(25, 135, 84, 0.3);
+  }
+
+  &:focus {
+    box-shadow:
+      0 0 0 0.2rem rgba(25, 135, 84, 0.25),
+      0 4px 15px rgba(25, 135, 84, 0.2);
+  }
+}
+
 .no-margin {
   margin: 0px;
 }

@@ -17,16 +17,75 @@
   font-size: large;
 }
 
-#tabnav .nav {
-  justify-content: center;
+#tabnav {
+    .nav-link {
+      border-radius: 0.5rem 0.5rem 0 0;
+      margin: 0 0.25rem;
+      padding: 0.75rem 1.5rem;
+      font-weight: 400;
+      font-size: 1rem;
+      color: #000;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: var(--bs-primary);
+        background-color: var(--bs-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      &.active {
+        color: var(--bs-white);
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
+        border-bottom: 3px solid var(--bs-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+      }
+    }
 }
+
 
 .tab-content {
   margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: var(--bs-body-bg);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  #tabnav {
+    .nav {
+      .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        margin: 0 0.1rem;
+      }
+    }
+  }
+
+  .tab-content {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
 }
 
 @media (min-width: 800px) {
   #landscape-container {
     margin-top: 1rem !important;
+  }
+
+  #tabnav {
+    .nav {
+      .nav-link {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+      }
+    }
   }
 }

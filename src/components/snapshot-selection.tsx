@@ -171,7 +171,7 @@ export default function SnapshotSelection({
         <h5 className="text-left mb-3">Personal Snapshots</h5>
         <div className="flex-row justify-content-center selection-table">
           <table
-            className="table table-striped"
+            className="table table-striped explorviz-table"
             id="personal-token-selection-table"
           >
             <thead>
@@ -301,7 +301,7 @@ export default function SnapshotSelection({
         <h5 className="text-left">Shared Snapshots</h5>
         <div className="d-flex flex-row justify-content-center selection-table">
           <table
-            className="table table-striped"
+            className="table table-striped explorviz-table"
             id="shared-token-selection-table"
           >
             <thead>

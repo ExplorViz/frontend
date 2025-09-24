@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import {
   DesktopDownloadIcon,
   EyeIcon,
   PlusIcon,
   TrashIcon,
 } from '@primer/octicons-react';
-import AdditionalTokenInfo from './additional-token-info';
 import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import JSZip from 'jszip';
+import React, { useState } from 'react';
+import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import AdditionalTokenInfo from './additional-token-info';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
@@ -129,13 +129,24 @@ export default function TokenSelection({
   };
 
   return (
-    <table id="token-selection-table" className="table table-striped">
+    <table
+      id="token-selection-table"
+      className="table table-striped explorviz-table"
+    >
       <thead>
         <tr className="token-header-row">
-          <th scope="col" onClick={() => sortBy('alias')}>
+          <th
+            style={{ cursor: 'ns-resize' }}
+            scope="col"
+            onClick={() => sortBy('alias')}
+          >
             Alias
           </th>
-          <th scope="col" onClick={() => sortBy('created')}>
+          <th
+            style={{ cursor: 'ns-resize' }}
+            scope="col"
+            onClick={() => sortBy('created')}
+          >
             Created
           </th>
           <th scope="col"></th>

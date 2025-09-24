@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  useLandscapeTokenStore,
-  LandscapeToken,
-} from 'explorviz-frontend/src/stores/landscape-token';
+import { SyncIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
-import { RoomListRecord } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
-import { SyncIcon } from '@primer/octicons-react';
+import { RoomListRecord } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
+import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 interface RoomListArgs {
   tokens: LandscapeToken[];
@@ -55,8 +52,11 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
   };
 
   return (
-    <div className="d-flex flex-row justify-content-center selection-table" style={{ maxHeight: '80vh', minWidth: '60vh'}}>
-      <table id="room-selection-table" className="table table-striped">
+    <div className="d-flex flex-row justify-content-center selection-table">
+      <table
+        id="room-selection-table"
+        className="table table-striped explorviz-table"
+      >
         <thead>
           <tr>
             <th scope="col">Name</th>
