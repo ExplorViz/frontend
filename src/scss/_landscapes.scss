@@ -29,6 +29,7 @@
 
       &:hover {
         color: var(--bs-primary);
+        font-weight: bold;
         background-color: var(--bs-light);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -52,8 +53,7 @@
 
 
 .tab-content {
-  margin-top: 2rem;
-  padding: 1.5rem;
+  padding: 0.5rem;
   background-color: var(--bs-body-bg);
   border-radius: 0.5rem;
 }

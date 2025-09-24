@@ -234,7 +234,9 @@ export default function SnapshotSelection({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3}>There are no saved snapshots.</td>
+                  <td colSpan={3} className="text-center">
+                    There are no saved snapshots.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -390,7 +392,7 @@ export default function SnapshotSelection({
         <h5 className="text-left">Subscribed Snapshots</h5>
         <div className="d-flex flex-row justify-content-center selection-table">
           <table
-            className="table table-striped"
+            className="table table-striped explorviz-table"
             id="subscribed-token-selection-table"
           >
             <thead>
