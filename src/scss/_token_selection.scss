@@ -89,41 +89,6 @@
   }
 }
 
-// Popover Styling
-.popover {
-  border: none;
-  border-radius: 1rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95);
-
-  .popover-header {
-    background: var(--bs-primary-dark, #0056b3);
-    color: var(--bs-white);
-    border: none;
-    border-radius: 0.5rem 0.5rem 0 0;
-    font-weight: 600;
-    padding: 0.5rem 0.5rem;
-    font-size: 1rem;
-  }
-
-  .popover-body {
-    padding: 1.25rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 0 0 1rem 1rem;
-  }
-
-  .popover-arrow {
-    &::before {
-      border-bottom-color: var(--bs-primary);
-    }
-
-    &::after {
-      border-bottom-color: var(--bs-primary);
-    }
-  }
-}
-
 .token-info-table {
   width: 100%;
   border-collapse: collapse;
