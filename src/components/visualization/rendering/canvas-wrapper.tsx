@@ -48,6 +48,7 @@ export default function CanvasWrapper({
     cameraFov,
     cameraNear,
     castShadows,
+    componentLabelPlacement,
     classFootprint,
     classWidthMetric,
     classWidthMetricMultiplier,
@@ -90,6 +91,8 @@ export default function CanvasWrapper({
       classDepthMetricMultiplier:
         state.visualizationSettings.classDepthMultiplier.value,
       closedComponentHeight: state.visualizationSettings.closedComponentHeight,
+      componentLabelPlacement:
+        state.visualizationSettings.componentLabelPlacement.value,
       colors: state.colors,
       openedComponentHeight: state.visualizationSettings.openedComponentHeight,
       packageLabelMargin: state.visualizationSettings.packageLabelMargin,
@@ -208,6 +211,7 @@ export default function CanvasWrapper({
   useEffect(() => {
     updateLayout();
   }, [
+    componentLabelPlacement,
     appLabelMargin,
     applicationAspectRatio,
     applicationDistance,

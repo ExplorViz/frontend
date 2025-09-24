@@ -468,6 +468,16 @@ export const defaultVizSettings: VisualizationSettings = {
       'Determines how much space (height) a package label may occupy',
     isRangeSetting: true,
   },
+  componentLabelPlacement: {
+    level: SettingLevel.DEFAULT,
+    value: 'bottom',
+    options: ['bottom', 'left', 'right', 'top'],
+    group: 'Label',
+    displayName: 'Component Label Placement',
+    description:
+      'Position of application and component labels relative to the application',
+    isSelectSetting: true,
+  },
   // Layout settings
   applicationLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
@@ -544,7 +554,7 @@ export const defaultVizSettings: VisualizationSettings = {
   landscapeRotationX: {
     level: SettingLevel.EXTENDED,
     value: 0,
-    range: { min: -Math.PI, max: Math.PI, step: 0.01 },
+    range: { min: -3.14, max: 3.14, step: 0.01 },
     group: 'Layout',
     displayName: 'Landscape Rotation X',
     description: 'Rotation of the landscape around the X-axis in radians.',
@@ -553,7 +563,7 @@ export const defaultVizSettings: VisualizationSettings = {
   landscapeRotationY: {
     level: SettingLevel.EXTENDED,
     value: 0,
-    range: { min: -Math.PI, max: Math.PI, step: 0.01 },
+    range: { min: -3.14, max: 3.14, step: 0.01 },
     group: 'Layout',
     displayName: 'Landscape Rotation Y',
     description: 'Rotation of the landscape around the Y-axis in radians.',
@@ -562,7 +572,7 @@ export const defaultVizSettings: VisualizationSettings = {
   landscapeRotationZ: {
     level: SettingLevel.EXTENDED,
     value: 0,
-    range: { min: -Math.PI, max: Math.PI, step: 0.01 },
+    range: { min: -3.14, max: 3.14, step: 0.01 },
     group: 'Layout',
     displayName: 'Landscape Rotation Z',
     description: 'Rotation of the landscape around the Z-axis in radians.',

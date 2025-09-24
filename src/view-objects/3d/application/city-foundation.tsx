@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useShallow } from 'zustand/react/shallow';
+import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 
 export default function CityFoundation({
   application,
@@ -96,6 +97,7 @@ export default function CityFoundation({
     foundationColor,
     foundationTextColor,
     highlightedEntityColor,
+    componentLabelPlacement,
   } = useUserSettingsStore(
     useShallow((state) => ({
       appLabelMargin: state.visualizationSettings.appLabelMargin.value,
@@ -107,6 +109,8 @@ export default function CityFoundation({
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,
+      componentLabelPlacement:
+        state.visualizationSettings.componentLabelPlacement.value,
     }))
   );
 
@@ -145,6 +149,23 @@ export default function CityFoundation({
     }
   };
 
+  const getLabelPosition = (): [number, number, number] => {
+    const margin = appLabelMargin / layout.depth / 2;
+    const yPos = 0.51; // Just above the foundation
+    switch (componentLabelPlacement) {
+      case 'top':
+        return [0, yPos, -0.5 + margin];
+      case 'bottom':
+        return [0, yPos, 0.5 - margin];
+      case 'left':
+        return [-0.5 + margin, yPos, 0];
+      case 'right':
+        return [0.5 - margin, yPos, 0];
+      default:
+        return [0, yPos, 0.5 - margin];
+    }
+  };
+
   return (
     <mesh
       castShadow={castShadows}
@@ -162,8 +183,8 @@ export default function CityFoundation({
         <Text
           color={foundationTextColor}
           outlineColor={'white'}
-          position={[0, 0.51, 0.5 - appLabelMargin / layout.depth / 2]}
-          rotation={[1.5 * Math.PI, 0, 0]}
+          position={getLabelPosition()}
+          rotation={getLabelRotation(componentLabelPlacement)}
           fontSize={(appLabelMargin * 0.9) / layout.depth}
           raycast={() => null}
         >

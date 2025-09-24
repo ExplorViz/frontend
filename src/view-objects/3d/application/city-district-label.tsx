@@ -3,8 +3,9 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useState } from 'react';
+import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -24,6 +25,7 @@ export default function CityDistrictLabel({
     packageLabelMargin,
     enableAnimations,
     animationDuration,
+    componentLabelPlacement,
   } = useUserSettingsStore(
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
@@ -33,6 +35,8 @@ export default function CityDistrictLabel({
       packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
+      componentLabelPlacement:
+        state.visualizationSettings.componentLabelPlacement.value,
     }))
   );
 
@@ -47,23 +51,62 @@ export default function CityDistrictLabel({
     new THREE.Vector3()
   );
 
-  useEffect(() => {
-    const openPos = new THREE.Vector3()
-      .setX(layout.positionX)
-      .setY(layout.positionY + layout.height / 2 + labelOffset + 0.01)
-      .setZ(layout.positionZ + layout.depth / 2 - packageLabelMargin / 2);
-    const closedPos = new THREE.Vector3()
-      .setX(layout.positionX)
-      .setY(
-        layout.positionY -
-          layout.height / 2 +
-          closedComponentHeight +
-          labelOffset +
-          0.01
-      )
-      .setZ(layout.positionZ);
+  const getLabelPositionForPlacement = (
+    placement: string,
+    isOpen: boolean
+  ): THREE.Vector3 => {
+    const margin = packageLabelMargin / 2;
+    const openedPosY =
+      layout.positionY + layout.height / 2 + labelOffset + 0.01;
+    const closedPosY =
+      layout.positionY -
+      layout.height / 2 +
+      closedComponentHeight +
+      labelOffset +
+      0.01;
+    switch (placement) {
+      case 'top':
+        return isOpen
+          ? new THREE.Vector3(
+              layout.positionX,
+              openedPosY,
+              layout.positionZ - layout.depth / 2 + margin
+            )
+          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+      case 'bottom':
+        return isOpen
+          ? new THREE.Vector3(
+              layout.positionX,
+              openedPosY,
+              layout.positionZ + layout.depth / 2 - margin
+            )
+          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+      case 'left':
+        return isOpen
+          ? new THREE.Vector3(
+              layout.positionX - layout.width / 2 + margin,
+              openedPosY,
+              layout.positionZ
+            )
+          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+      case 'right':
+        return isOpen
+          ? new THREE.Vector3(
+              layout.positionX + layout.width / 2 - margin,
+              openedPosY,
+              layout.positionZ
+            )
+          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+      default:
+        return new THREE.Vector3(0, 0, 0);
+    }
+  };
 
-    const target = isOpen ? openPos : closedPos;
+  useEffect(() => {
+    const target = getLabelPositionForPlacement(
+      componentLabelPlacement,
+      isOpen
+    );
 
     if (enableAnimations) {
       const values = {
@@ -91,6 +134,7 @@ export default function CityDistrictLabel({
     closedComponentHeight,
     enableAnimations,
     animationDuration,
+    componentLabelPlacement,
   ]);
 
   return (
@@ -98,7 +142,7 @@ export default function CityDistrictLabel({
       color={componentTextColor}
       visible={isVisible && (isCameraZoomedIn || !isOpen)}
       position={labelPosition}
-      rotation={[1.5 * Math.PI, 0, 0]}
+      rotation={getLabelRotation(componentLabelPlacement)}
       sdfGlyphSize={16}
       fontSize={
         isOpen
