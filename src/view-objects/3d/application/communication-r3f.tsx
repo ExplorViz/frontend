@@ -4,14 +4,15 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
-import { useMemo, useRef, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function CommunicationR3F({
   communicationModel,
@@ -20,9 +21,6 @@ export default function CommunicationR3F({
   communicationModel: ClassCommunication;
   communicationLayout: CommunicationLayout | undefined;
 }) {
-  const [isHovered, setIsHovered] = useState<boolean>(false);
-  const [isHighlighted, setIsHighlighted] = useState<boolean>(false);
-
   const {
     arrowColor,
     arrowOffset,
@@ -42,6 +40,16 @@ export default function CommunicationR3F({
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
     }))
   );
+
+  const { isHighlighted, isHovered, setHighlightedEntity, setHoveredEntity } =
+    useVisualizationStore(
+      useShallow((state) => ({
+        isHighlighted: state.highlightedEntityIds.has(communicationModel.id),
+        isHovered: state.hoveredEntityId === communicationModel.id,
+        setHighlightedEntity: state.actions.setHighlightedEntityId,
+        setHoveredEntity: state.actions.setHoveredEntityId,
+      }))
+    );
 
   const { commCurveHeightDependsOnDistance } = useConfigurationStore(
     useShallow((state) => ({
@@ -82,16 +90,16 @@ export default function CommunicationR3F({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    setIsHovered(true);
+    setHoveredEntity(communicationModel.id);
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    setIsHovered(false);
+    setHoveredEntity(null);
   };
 
   const handleClick = (/*event*/) => {
-    setIsHighlighted(!isHighlighted);
+    setHighlightedEntity(communicationModel.id, !isHighlighted);
   };
 
   const handleDoubleClick = (/*event*/) => {};

@@ -13,14 +13,24 @@ import {
   MetricKey,
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { forwardRef, useEffect, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { BoxGeometry, MeshLambertMaterial } from 'three';
+import {
+  BoxGeometry,
+  MeshLambertMaterial,
+  Matrix4,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
+import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
+import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import gsap from 'gsap';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -39,8 +49,8 @@ interface Args {
 }
 
 // eslint-disable-next-line
-const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
-  ({ classes, layoutMap, appId, application }, ref) => {
+const CodeBuildings = forwardRef<InstancedMesh2, Args>(
+  ({ classes, layoutMap, appId, application }, meshRef) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
     const material = useMemo(() => new MeshLambertMaterial(), []);
 
@@ -57,10 +67,10 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     } = useVisualizationStore(
       useShallow((state) => ({
         hiddenClassIds: state.hiddenClassIds,
-        hoveredEntityId: state.hoveredEntity,
-        setHoveredEntity: state.actions.setHoveredEntity,
+        hoveredEntityId: state.hoveredEntityId,
+        setHoveredEntity: state.actions.setHoveredEntityId,
         highlightedEntityIds: state.highlightedEntityIds,
-        setHighlightedEntity: state.actions.setHighlightedEntity,
+        setHighlightedEntity: state.actions.setHighlightedEntityId,
       }))
     );
 
@@ -89,6 +99,8 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       modifiedClassColor,
       removedClassColor,
       unchangedClassColor,
+      enableAnimations,
+      animationDuration,
     } = useUserSettingsStore(
       useShallow((state) => ({
         addedClassColor: state.visualizationSettings.addedClassColor.value,
@@ -105,8 +117,19 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
         removedClassColor: state.visualizationSettings.removedClassColor.value,
         unchangedClassColor:
           state.visualizationSettings.unchangedClassColor.value,
+        enableAnimations: state.visualizationSettings.enableAnimations.value,
+        animationDuration: state.visualizationSettings.animationDuration.value,
       }))
     );
+
+    const { heatmapActive, selectedClassMetric, selectedHeatmapGradient } =
+      useHeatmapStore(
+        useShallow((state) => ({
+          heatmapActive: state.isActive(),
+          selectedClassMetric: state.getSelectedClassMetric(),
+          selectedHeatmapGradient: state.getSelectedGradient(),
+        }))
+      );
 
     const { addPopup } = usePopupHandlerStore(
       useShallow((state) => ({
@@ -128,50 +151,51 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       );
     };
 
+    // Compute mesh instances or animate changes
     useEffect(() => {
-      // early return
       if (
-        ref === null ||
-        typeof ref === 'function' ||
-        !ref.current ||
-        ref.current.instancesCount >= 200000
+        meshRef === null ||
+        typeof meshRef === 'function' ||
+        !meshRef.current
       ) {
         return;
       }
 
-      let i = 0;
-      ref.current.addInstances(classes.length, (obj) => {
-        instanceIdToClassId.set(obj.id, classes[i].id);
-        classIdToInstanceId.set(classes[i].id, obj.id);
-        classIdToClass.set(classes[i].id, classes[i]);
-        const layout = layoutMap.get(classes[i].id);
-        obj.position.set(
-          layout!.position.x,
-          layout!.position.y -
-            layout!.height / 2 +
-            getClassHeight(classes[i]) / 2,
-          layout!.position.z
-        );
-        obj.visible = !hiddenClassIds.has(classes[i].id);
-        obj.scale.set(layout!.width, getClassHeight(classes[i]), layout!.depth);
-        obj.color = computeColor(classes[i].id);
-        obj.updateMatrix();
-        i++;
-      });
-      ref.current.computeBVH();
+      if (
+        classIdToInstanceId.size > 0 &&
+        classIdToClass.size === classes.length &&
+        enableAnimations
+      ) {
+        animateMeshInstanceChanges();
+      } else {
+        computeMeshInstances();
+      }
+    }, [[], classes, layoutMap, heightMetric]);
 
-      return () => {
-        ref.current?.clearInstances();
-        instanceIdToClassId.clear();
-        classIdToInstanceId.clear();
-        classIdToClass.clear();
-      };
-    }, [classes, heightMetric, layoutMap]);
+    // React on changes of color
+    useEffect(() => {
+      if (
+        meshRef === null ||
+        typeof meshRef === 'function' ||
+        !meshRef.current
+      ) {
+        return;
+      }
+      classIdToInstanceId.forEach((instanceId, classId) => {
+        meshRef.current?.setColorAt(instanceId, computeColor(classId));
+      });
+    }, [classColor, highlightedEntityColor]);
 
     const computeColor = (classId: string) => {
       const dataModel = classIdToClass.get(classId);
       if (!dataModel) {
         return new THREE.Color('red');
+      }
+      if (heatmapActive) {
+        const metricValues = getMetricValues(dataModel, selectedClassMetric!);
+        return new THREE.Color(
+          getSimpleHeatmapColor(metricValues.current, metricValues.max)
+        );
       }
       if (
         evoConfig.renderOnlyDifferences &&
@@ -190,7 +214,7 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
 
       const isHovered = hoveredEntityId === dataModel.id;
-      const isHighlighted = highlightedEntityIds.includes(dataModel.id);
+      const isHighlighted = highlightedEntityIds.has(dataModel.id);
 
       const baseColor = isHighlighted
         ? new THREE.Color(highlightedEntityColor)
@@ -203,35 +227,28 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
       }
     };
 
+    // React on changes of class visibility
     useEffect(() => {
-      if (ref === null || typeof ref === 'function') {
+      if (meshRef === null || typeof meshRef === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
 
       // Update the visibility of the instances based on classData
       instanceIdToClassId.forEach((classId, instanceId) => {
         // Set visibility based on classData
-        ref.current?.setVisibilityAt(instanceId, !hiddenClassIds.has(classId));
-        // ref.current?.setColorAt(instanceId, computeColor(classId));
+        meshRef.current?.setVisibilityAt(
+          instanceId,
+          !hiddenClassIds.has(classId)
+        );
       });
     }, [hiddenClassIds]);
 
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!ref.current) return;
-
-      // only compute the bvh on mount
-      ref.current.computeBVH();
-    }, []);
-
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
+      if (meshRef === null || typeof meshRef === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
@@ -240,31 +257,38 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
 
       // getLoC(classIdToClass.get(classId)!);
       // Toggle highlighting
-      setHighlightedEntity(classId, !highlightedEntityIds.includes(classId));
+      setHighlightedEntity(classId, !highlightedEntityIds.has(classId));
 
       // const classInfo = classData[classId];
       // updateClassState(classId, { isHighlighted: !classInfo?.isHighlighted });
     };
 
     useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !ref.current) {
+      if (
+        meshRef === null ||
+        typeof meshRef === 'function' ||
+        !meshRef.current
+      ) {
         return;
       }
 
       classIdToInstanceId.forEach((instanceId, classId) => {
-        ref.current?.setColorAt(instanceId, computeColor(classId));
+        meshRef.current?.setColorAt(instanceId, computeColor(classId));
       });
     }, [
       highlightedEntityIds,
       hoveredEntityId,
       evoConfig.renderOnlyDifferences,
+      selectedClassMetric,
+      selectedHeatmapGradient,
+      heatmapActive,
     ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
+      if (meshRef === null || typeof meshRef === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
@@ -276,10 +300,10 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     };
 
     const handleOnPointerOut = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
+      if (meshRef === null || typeof meshRef === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
@@ -292,10 +316,10 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     const handleDoubleClick = (/*event: any*/) => {};
 
     const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
-      if (ref === null || typeof ref === 'function') {
+      if (meshRef === null || typeof meshRef === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
@@ -318,9 +342,118 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
     const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
       useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
+    const computeMeshInstances = () => {
+      if (
+        meshRef === null ||
+        typeof meshRef === 'function' ||
+        !meshRef.current
+      ) {
+        return;
+      }
+
+      let i = 0;
+      meshRef.current.addInstances(classes.length, (obj) => {
+        instanceIdToClassId.set(obj.id, classes[i].id);
+        classIdToInstanceId.set(classes[i].id, obj.id);
+        classIdToClass.set(classes[i].id, classes[i]);
+        const layout = layoutMap.get(classes[i].id);
+        obj.position.set(
+          layout!.position.x,
+          layout!.position.y -
+            layout!.height / 2 +
+            getClassHeight(classes[i]) / 2,
+          layout!.position.z
+        );
+        obj.visible = !hiddenClassIds.has(classes[i].id);
+        obj.scale.set(layout!.width, getClassHeight(classes[i]), layout!.depth);
+        obj.color = computeColor(classes[i].id);
+        obj.updateMatrix();
+        i++;
+      });
+      meshRef.current.computeBVH();
+    };
+
+    const animateMeshInstanceChanges = () => {
+      if (
+        meshRef === null ||
+        typeof meshRef === 'function' ||
+        !meshRef.current
+      ) {
+        return;
+      }
+      const mesh = meshRef.current;
+
+      classIdToInstanceId.forEach((instanceId, classId) => {
+        const tempMatrix = new Matrix4();
+        const pos = new Vector3();
+        const quat = new Quaternion();
+        const scale = new Vector3();
+
+        const classModel = classIdToClass.get(classId);
+        const layout = layoutMap.get(classId);
+        if (!classModel || !layout) return;
+
+        const targetHeight = getClassHeight(classModel);
+        const targetPositionX = layout.position.x;
+        const targetPositionY =
+          layout.position.y - layout.height / 2 + targetHeight / 2;
+        const targetPositionZ = layout.position.z;
+        const targetWidth = layout.width;
+        const targetDepth = layout.depth;
+
+        try {
+          mesh.getMatrixAt(instanceId, tempMatrix);
+        } catch {
+          return;
+        }
+        tempMatrix.decompose(pos, quat, scale);
+
+        if (
+          pos.x === targetPositionX &&
+          pos.y === targetPositionY &&
+          pos.z === targetPositionZ &&
+          scale.x === targetWidth &&
+          scale.y === targetHeight &&
+          scale.z === targetDepth
+        ) {
+          return;
+        }
+
+        const values = {
+          width: scale.x,
+          depth: scale.z,
+          height: scale.y,
+          positionX: pos.x,
+          positionY: pos.y,
+          positionZ: pos.z,
+        };
+
+        gsap.to(values, {
+          duration: animationDuration,
+          width: targetWidth,
+          height: targetHeight,
+          depth: targetDepth,
+          positionX: targetPositionX,
+          positionY: targetPositionY,
+          positionZ: targetPositionZ,
+          onUpdate: () => {
+            scale.x = values.width;
+            scale.y = values.height;
+            scale.z = values.depth;
+            pos.x = values.positionX;
+            pos.y = values.positionY;
+            pos.z = values.positionZ;
+            tempMatrix.compose(pos, quat, scale);
+            if (!meshRef) return;
+            mesh.setMatrixAt(instanceId, tempMatrix);
+          },
+        });
+      });
+    };
+
     return (
       <instancedMesh2
-        ref={ref}
+        ref={meshRef}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
         onPointerOver={handleOnPointerOver}
@@ -333,4 +466,4 @@ const InstancedClassR3F = forwardRef<InstancedMesh2, Args>(
   }
 );
 
-export default InstancedClassR3F;
+export default CodeBuildings;

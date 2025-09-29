@@ -2,10 +2,9 @@ import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/l
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
-import { SemanticZoomableObjectBaseMixin } from './utils/semantic-zoom-manager';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
 
-class CommunicationArrowMeshPrivate extends BaseMesh {
+export default class CommunicationArrowMesh extends BaseMesh {
   dataModel: ClassCommunication | ComponentCommunication;
 
   _axis = new THREE.Vector3();
@@ -23,7 +22,7 @@ class CommunicationArrowMeshPrivate extends BaseMesh {
     headLength: number,
     headWidth: number
   ) {
-    super(color);
+    super();
     this.dataModel = dataModel;
 
     this.material = new THREE.MeshBasicMaterial({
@@ -130,50 +129,5 @@ class CommunicationArrowMeshPrivate extends BaseMesh {
    */
   turnOpaque() {
     this.changeOpacity(1);
-  }
-}
-
-// export const CommunicationArrowMesh = SemanticZoomableObjectBaseMixin(
-//   CommunicationArrowMeshPrivate
-// );
-// export type CommunicationArrowMesh = InstanceType<
-//   typeof CommunicationArrowMesh
-// >;
-
-export default class CommunicationArrowMesh extends SemanticZoomableObjectBaseMixin(
-  CommunicationArrowMeshPrivate
-) {
-  constructor(
-    dataModel: ClassCommunication | ComponentCommunication,
-    dir: THREE.Vector3,
-    origin: THREE.Vector3,
-    length: number,
-    color: THREE.Color,
-    headLength: number,
-    headWidth: number
-  ) {
-    super(dataModel, dir, origin, length, color, headLength, headWidth);
-    // this.saveTheParent = () => {
-    //   this.savedParent = this.parent;
-    // };
-    // this.originalLength = length;
-    // this.originalHeadLength = headLength;
-    // this.originalHeadWidth = headWidth;
-    //this.saveOriginalAppearence();
-    this.setCallBeforeAppearenceZero(() => {
-      // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
-      // .setLength (length : Number, headLength : Number, headWidth : Number)
-      this.setLength(length, headLength, headWidth);
-      //this.parent?.remove(this);
-      this.layers.disableAll();
-      //this.hideme();
-    });
-    this.setAppearence(2, () => {
-      // Src: https://threejs.org/docs/#api/en/helpers/ArrowHelper
-      // .setLength (length : Number, headLength : Number, headWidth : Number)
-      this.setLength(length / 2, headLength / 2, headWidth / 2);
-      //if (this.savedParent != undefined) this.savedParent.add(this);
-      this.layers.enable(0);
-    });
   }
 }

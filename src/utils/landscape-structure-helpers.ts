@@ -324,11 +324,13 @@ function findCommonPackage(
 }
 
 function combineMethods(methodsA: Method[], methodsB: Method[]): Method[] {
-  const methods: Method[] = [...methodsB];
-  for (const methodA of methodsA) {
-    const methodB = findCommonMethod(methodA, methodsB);
-    if (!methodB) {
-      methods.push(methodA);
+  let methods: Method[] = [...methodsA];
+  for (const methodB of methodsB) {
+    const commonMethod = findCommonMethod(methodB, methodsA);
+    if (!commonMethod) {
+      methods.push(methodB);
+    } else {
+      commonMethod.originOfData = TypeOfAnalysis.StaticAndDynamic;
     }
   }
 
@@ -337,20 +339,35 @@ function combineMethods(methodsA: Method[], methodsB: Method[]): Method[] {
 
 function combineClasses(classesA: Class[], classesB: Class[]): Class[] {
   const classes: Class[] = [];
+  // Set origin of data for methods in classesA
+  classesA.forEach((classA) => {
+    classA.methods = classA.methods.map((method) => {
+      method.originOfData = classA.originOfData;
+      return method;
+    });
+  });
+  // Set origin of data for methods in classesB
+  classesB.forEach((classB) => {
+    classB.methods = classB.methods.map((method) => {
+      method.originOfData = classB.originOfData;
+      return method;
+    });
+  });
   for (const classA of classesA) {
     const classB = findCommonClass(classA, classesB);
     if (classB) {
-      const clazz: Class = {
+      const classModel: Class = {
         id: classB.id,
         level: classB.level,
+        fqn: classB.fqn,
         originOfData: TypeOfAnalysis.StaticAndDynamic,
         name: classB.name,
         methods: [],
         parent: classB.parent,
       };
       const methods: Method[] = combineMethods(classA.methods, classB.methods);
-      clazz.methods = methods;
-      classes.push(clazz);
+      classModel.methods = methods;
+      classes.push(classModel);
     } else {
       classes.push(classA);
     }
@@ -377,6 +394,7 @@ function combinePackages(
       const combinedPackage: Package = {
         id: packageB.id,
         originOfData: TypeOfAnalysis.StaticAndDynamic,
+        fqn: packageB.fqn,
         level: packageB.level,
         name: packageB.name,
         subPackages: [],

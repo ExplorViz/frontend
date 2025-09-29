@@ -1,6 +1,10 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
+import {
+  INITIAL_CAMERA_POSITION,
+  useCameraControls,
+} from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -14,9 +18,9 @@ import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import ApplicationR3F from 'explorviz-frontend/src/view-objects/3d/application/application-r3f';
+import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
@@ -24,10 +28,8 @@ import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
   landscapeData,
-  landscape3D,
 }: {
   landscapeData: LandscapeData | null;
-  landscape3D: Landscape3D;
 }) {
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
@@ -46,6 +48,7 @@ export default function CanvasWrapper({
     cameraFov,
     cameraNear,
     castShadows,
+    componentLabelPlacement,
     classFootprint,
     classWidthMetric,
     classWidthMetricMultiplier,
@@ -60,6 +63,10 @@ export default function CanvasWrapper({
     showAxesHelper,
     showFpsCounter,
     showLightHelper,
+    leftMouseButtonAction,
+    middleMouseButtonAction,
+    mouseWheelAction,
+    rightMouseButtonAction,
   } = useUserSettingsStore(
     useShallow((state) => ({
       applicationLayoutAlgorithm:
@@ -84,6 +91,8 @@ export default function CanvasWrapper({
       classDepthMetricMultiplier:
         state.visualizationSettings.classDepthMultiplier.value,
       closedComponentHeight: state.visualizationSettings.closedComponentHeight,
+      componentLabelPlacement:
+        state.visualizationSettings.componentLabelPlacement.value,
       colors: state.colors,
       openedComponentHeight: state.visualizationSettings.openedComponentHeight,
       packageLabelMargin: state.visualizationSettings.packageLabelMargin,
@@ -92,9 +101,43 @@ export default function CanvasWrapper({
       showAxesHelper: state.visualizationSettings.showAxesHelper.value,
       showFpsCounter: state.visualizationSettings.showFpsCounter.value,
       showLightHelper: state.visualizationSettings.showLightHelper.value,
+      leftMouseButtonAction:
+        state.visualizationSettings.leftMouseButtonAction.value,
+      mouseWheelAction: state.visualizationSettings.mouseWheelAction.value,
+      rightMouseButtonAction:
+        state.visualizationSettings.rightMouseButtonAction.value,
+      middleMouseButtonAction:
+        state.visualizationSettings.middleMouseButtonAction.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
+
+  const cameraControlsRef = useRef<CameraControls>(null);
+
+  // Initialize camera controls store
+  useCameraControls(cameraControlsRef);
+
+  // Function to map setting values to camera controls mouse button constants
+  const getMouseMapping = (action: string): number => {
+    switch (action) {
+      case 'NONE':
+        return 0; // None
+      case 'ROTATE':
+        return 1; // ROTATE
+      case 'TRUCK':
+        return 2; // TRUCK
+      case 'SCREEN_PAN':
+        return 4; // SCREEN_PAN
+      case 'OFFSET':
+        return 8; // SCREEN_PAN
+      case 'DOLLY':
+        return 16; // DOLLY
+      case 'ZOOM':
+        return 32; // ZOOM
+      default:
+        return 0; // None
+    }
+  };
 
   const { isCommRendered } = useConfigurationStore(
     useShallow((state) => ({
@@ -102,10 +145,8 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { applicationModels, interAppCommunications } = useLandscapeDataWatcher(
-    landscapeData,
-    landscape3D
-  );
+  const { applicationModels, interAppCommunications } =
+    useLandscapeDataWatcher(landscapeData);
 
   const popupHandlerActions = usePopupHandlerStore(
     useShallow((state) => ({
@@ -134,8 +175,6 @@ export default function CanvasWrapper({
         .map((app) => getAllPackagesInApplication(app))
         .flat();
       const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
-      // Remove all component states that are not in the current landscape
-      // TODO: Remove outdated component ids from visualization store
 
       const allClasses = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
@@ -143,10 +182,21 @@ export default function CanvasWrapper({
         .map((app) => getAllClassesInApplication(app))
         .flat();
       const classIds = new Set(allClasses.map((clazz) => clazz.id));
-      // Remove all class states that are not in the current landscape
-      // TODO: Remove outdated class ids from visualization store
+
+      const communicationIds = new Set(
+        interAppCommunications.map((comm) => comm.id)
+      );
+
+      const entityIds = new Set([
+        ...packagesIds,
+        ...classIds,
+        ...communicationIds,
+      ]);
+
+      // Remove all ids that are no longer part of the landscape
+      useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
-  }, [landscapeData]);
+  }, [landscapeData, interAppCommunications]);
 
   const updateLayout = async () => {
     if (!landscapeData) return;
@@ -161,6 +211,7 @@ export default function CanvasWrapper({
   useEffect(() => {
     updateLayout();
   }, [
+    componentLabelPlacement,
     appLabelMargin,
     applicationAspectRatio,
     applicationDistance,
@@ -194,6 +245,7 @@ export default function CanvasWrapper({
       onMouseMove={popupHandlerActions.handleMouseMove}
     >
       <CameraControls
+        ref={cameraControlsRef}
         dollySpeed={0.3}
         draggingSmoothTime={0.05}
         maxDistance={250}
@@ -201,15 +253,15 @@ export default function CanvasWrapper({
         makeDefault
         minDistance={1}
         mouseButtons={{
-          left: 4, // SCREEN_PAN, see: https://github.com/yomotsu/camera-controls/blob/02e1e9b87a42d461e7142705e93861c81739bbd5/src/types.ts#L29
-          middle: 0, // None
-          wheel: 16, // Dolly
-          right: 1, // Rotate
+          left: getMouseMapping(leftMouseButtonAction) as any,
+          middle: getMouseMapping(middleMouseButtonAction) as any,
+          wheel: getMouseMapping(mouseWheelAction) as any,
+          right: getMouseMapping(rightMouseButtonAction) as any,
         }}
         smoothTime={0.5}
       />
       <PerspectiveCamera
-        position={[10, 10, 10]}
+        position={INITIAL_CAMERA_POSITION}
         fov={cameraFov}
         near={cameraNear}
         far={cameraFar}
@@ -219,7 +271,7 @@ export default function CanvasWrapper({
         layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
       >
         {applicationModels.map((appModel) => (
-          <ApplicationR3F
+          <CodeCity
             key={appModel.application.id}
             applicationData={appModel}
             layoutMap={layoutMap || appModel.boxLayoutMap}
@@ -239,6 +291,7 @@ export default function CanvasWrapper({
             />
           ))}
       </LandscapeR3F>
+      <AnimatedPing />
       <ambientLight />
       <directionalLight
         name="DirectionalLight"

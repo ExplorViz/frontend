@@ -55,6 +55,17 @@ export function getAllClassesInApplication(application: Application) {
     .flat();
 }
 
+export function getAllClassesInApplications(
+  applications: Application | Application[]
+): Class[] {
+  const apps = applications instanceof Array ? applications : [applications];
+  let classes: Class[] = [];
+  apps.forEach((app) => {
+    classes = classes.concat(getAllClassesInApplication(app));
+  });
+  return classes;
+}
+
 export function getAllClassesInApplicationForGivenOrigin(
   application: Application,
   originOfData: TypeOfAnalysis

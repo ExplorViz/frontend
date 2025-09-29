@@ -39,13 +39,6 @@ export default class ClazzMesh extends BoxMesh {
     this.geometry = geometry;
     this.dataModel = args.dataModel;
 
-    // Semantic Zoom preparations
-    this.saveOriginalAppearence();
-    this.currentMethodMesh = undefined;
-    // Register multiple levels
-    this.setAppearence(2, this.setHeightAccordingToClassSize);
-    this.setAppearence(3, this.showMethodMesh);
-
     // Immersive View
     this.layers.enable(SceneLayers.Clazz);
   }

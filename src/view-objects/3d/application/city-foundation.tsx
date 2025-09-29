@@ -13,8 +13,9 @@ import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useShallow } from 'zustand/react/shallow';
+import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 
-export default function FoundationR3F({
+export default function CityFoundation({
   application,
   layout,
 }: {
@@ -54,18 +55,19 @@ export default function FoundationR3F({
     }
   }, [layout.width, layout.positionY, layout.depth]);
 
-  const { isHighlighted, isHovered, updateFoundationState } =
-    useVisualizationStore(
-      useShallow((state) => ({
-        isHighlighted: state.foundationData[application.id]
-          ? state.foundationData[application.id].isHighlighted
-          : false,
-        isHovered: state.foundationData[application.id]
-          ? state.foundationData[application.id].isHovered
-          : false,
-        updateFoundationState: state.actions.updateFoundationState,
-      }))
-    );
+  const {
+    isHighlighted,
+    isHovered,
+    setHighlightedEntityId,
+    setHoveredEntityId,
+  } = useVisualizationStore(
+    useShallow((state) => ({
+      isHighlighted: state.highlightedEntityIds.has(application.id),
+      isHovered: state.hoveredEntityId === application.id,
+      setHighlightedEntityId: state.actions.setHighlightedEntityId,
+      setHoveredEntityId: state.actions.setHoveredEntityId,
+    }))
+  );
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -95,6 +97,7 @@ export default function FoundationR3F({
     foundationColor,
     foundationTextColor,
     highlightedEntityColor,
+    componentLabelPlacement,
   } = useUserSettingsStore(
     useShallow((state) => ({
       appLabelMargin: state.visualizationSettings.appLabelMargin.value,
@@ -106,23 +109,25 @@ export default function FoundationR3F({
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,
+      componentLabelPlacement:
+        state.visualizationSettings.componentLabelPlacement.value,
     }))
   );
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
     if (enableHoverEffects) {
-      updateFoundationState(application.id, { isHovered: true });
+      setHoveredEntityId(application.id);
     }
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    updateFoundationState(application.id, { isHovered: false });
+    setHoveredEntityId(null);
   };
 
   const handleClick = (/*event: any*/) => {
-    updateFoundationState(application.id, { isHighlighted: !isHighlighted });
+    setHighlightedEntityId(application.id, !isHighlighted);
   };
 
   const handleDoubleClick = (/*event: any*/) => {
@@ -144,6 +149,23 @@ export default function FoundationR3F({
     }
   };
 
+  const getLabelPosition = (): [number, number, number] => {
+    const margin = appLabelMargin / layout.depth / 2;
+    const yPos = 0.51; // Just above the foundation
+    switch (componentLabelPlacement) {
+      case 'top':
+        return [0, yPos, -0.5 + margin];
+      case 'bottom':
+        return [0, yPos, 0.5 - margin];
+      case 'left':
+        return [-0.5 + margin, yPos, 0];
+      case 'right':
+        return [0.5 - margin, yPos, 0];
+      default:
+        return [0, yPos, 0.5 - margin];
+    }
+  };
+
   return (
     <mesh
       castShadow={castShadows}
@@ -161,8 +183,8 @@ export default function FoundationR3F({
         <Text
           color={foundationTextColor}
           outlineColor={'white'}
-          position={[0, 0.51, 0.5 - appLabelMargin / layout.depth / 2]}
-          rotation={[1.5 * Math.PI, 0, 0]}
+          position={getLabelPosition()}
+          rotation={getLabelRotation(componentLabelPlacement)}
           fontSize={(appLabelMargin * 0.9) / layout.depth}
           raycast={() => null}
         >

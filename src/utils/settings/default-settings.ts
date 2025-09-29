@@ -14,6 +14,15 @@ export const metricMappingMultipliers = {
 } as const;
 export type MetricKey = keyof typeof metricMappingMultipliers;
 export const metricKeys = Object.keys(metricMappingMultipliers) as MetricKey[];
+export const MOUSE_ACTIONS = [
+  'NONE',
+  'ROTATE',
+  'TRUCK',
+  'SCREEN_PAN',
+  'OFFSET',
+  'DOLLY',
+  'ZOOM',
+];
 
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
@@ -202,6 +211,42 @@ export const defaultVizSettings: VisualizationSettings = {
     isColorSetting: true,
   },
   // Control Settings
+  leftMouseButtonAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'SCREEN_PAN',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Left Mouse Button',
+    description: 'Action assigned to the left mouse button',
+    isSelectSetting: true,
+  },
+  middleMouseButtonAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'NONE',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Middle Mouse Button',
+    description: 'Action assigned to the middle mouse button',
+    isSelectSetting: true,
+  },
+  mouseWheelAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'DOLLY',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Mouse Wheel',
+    description: 'Action assigned to the mouse wheel',
+    isSelectSetting: true,
+  },
+  rightMouseButtonAction: {
+    level: SettingLevel.DEFAULT,
+    value: 'ROTATE',
+    options: MOUSE_ACTIONS,
+    group: 'Controls',
+    displayName: 'Right Mouse Button',
+    description: 'Action assigned to the right mouse button',
+    isSelectSetting: true,
+  },
   enableGamepadControls: {
     level: SettingLevel.DEFAULT,
     value: true,
@@ -267,6 +312,14 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   // Effect Settings
+  enableAnimations: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Effects',
+    displayName: 'Enable Animations',
+    description: 'Toggle animations for opening and closing components',
+    isFlagSetting: true,
+  },
   animationDuration: {
     level: SettingLevel.DEFAULT,
     value: 0.25,
@@ -283,14 +336,6 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
-    isFlagSetting: true,
-  },
-  enableAnimations: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Effects',
-    displayName: 'Enable Animations',
-    description: 'Toggle animations for opening and closing components',
     isFlagSetting: true,
   },
   castShadows: {
@@ -423,6 +468,16 @@ export const defaultVizSettings: VisualizationSettings = {
       'Determines how much space (height) a package label may occupy',
     isRangeSetting: true,
   },
+  componentLabelPlacement: {
+    level: SettingLevel.DEFAULT,
+    value: 'bottom',
+    options: ['bottom', 'left', 'right', 'top'],
+    group: 'Label',
+    displayName: 'Component Label Placement',
+    description:
+      'Position of application and component labels relative to the application',
+    isSelectSetting: true,
+  },
   // Layout settings
   applicationLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
@@ -467,6 +522,60 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Layout',
     displayName: 'Landscape Scalar',
     description: 'Scales the whole software landscape.',
+    isRangeSetting: true,
+  },
+  landscapePositionX: {
+    level: SettingLevel.EXTENDED,
+    value: 0,
+    range: { min: -10, max: 10, step: 0.1 },
+    group: 'Layout',
+    displayName: 'Landscape Position X',
+    description: 'Position of the landscape along the X-axis.',
+    isRangeSetting: true,
+  },
+  landscapePositionY: {
+    level: SettingLevel.EXTENDED,
+    value: 0,
+    range: { min: -10, max: 10, step: 0.1 },
+    group: 'Layout',
+    displayName: 'Landscape Position Y',
+    description: 'Position of the landscape along the Y-axis.',
+    isRangeSetting: true,
+  },
+  landscapePositionZ: {
+    level: SettingLevel.EXTENDED,
+    value: 0,
+    range: { min: -10, max: 10, step: 0.1 },
+    group: 'Layout',
+    displayName: 'Landscape Position Z',
+    description: 'Position of the landscape along the Z-axis.',
+    isRangeSetting: true,
+  },
+  landscapeRotationX: {
+    level: SettingLevel.EXTENDED,
+    value: 0,
+    range: { min: -3.14, max: 3.14, step: 0.01 },
+    group: 'Layout',
+    displayName: 'Landscape Rotation X',
+    description: 'Rotation of the landscape around the X-axis in radians.',
+    isRangeSetting: true,
+  },
+  landscapeRotationY: {
+    level: SettingLevel.EXTENDED,
+    value: 0,
+    range: { min: -3.14, max: 3.14, step: 0.01 },
+    group: 'Layout',
+    displayName: 'Landscape Rotation Y',
+    description: 'Rotation of the landscape around the Y-axis in radians.',
+    isRangeSetting: true,
+  },
+  landscapeRotationZ: {
+    level: SettingLevel.EXTENDED,
+    value: 0,
+    range: { min: -3.14, max: 3.14, step: 0.01 },
+    group: 'Layout',
+    displayName: 'Landscape Rotation Z',
+    description: 'Rotation of the landscape around the Z-axis in radians.',
     isRangeSetting: true,
   },
   applicationDistance: {
@@ -725,16 +834,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Visualizes the Directional Light',
     isFlagSetting: true,
   },
-  showSemanticZoomCenterPoints: {
-    level: SettingLevel.EXTENDED,
-    value: false,
-    type: 'primary',
-    group: 'Debugging',
-    displayName: 'Semantic Zoom',
-    description: 'Show (or hide) center points of semantic zoom',
-    buttonText: 'Show Center Points',
-    isButtonSetting: true,
-  },
   fullscreen: {
     level: SettingLevel.DEFAULT,
     value: false,
@@ -765,113 +864,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Reset all settings to default values',
     buttonText: 'Reset',
     isButtonSetting: true,
-  },
-  // Semantic Zoom Settings
-  semanticZoomState: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Semantic Zoom',
-    displayName: 'Semantic Zoom',
-    description:
-      'This switch enables the semantic zoom feature, that hides/shows additional information based on the distance between the user and the object.',
-    isFlagSetting: true,
-  },
-  autoOpenCloseFeature: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Semantic Zoom',
-    displayName: 'Auto Open/Close of Components',
-    description:
-      "Enable or disable the feature to open/close components automatically. Only applies if 'Semantic Zoom' feature is enabled via context menu.",
-    isFlagSetting: true,
-  },
-  useKMeansInsteadOfMeanShift: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Semantic Zoom',
-    displayName: 'Use k-Means instead of Shift-Mean',
-    description:
-      "If on, it uses k-Means clustering with the provided k value below. It works better in combination with 'Auto Open/Close of Components' feature enabled.",
-    isFlagSetting: true,
-  },
-  clusterBasedOnMembers: {
-    level: SettingLevel.DEFAULT,
-    value: 40.0,
-    range: { min: 1.0, max: 100.0, step: 1.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Relative # of clusters',
-    description:
-      'It takes a percentage of the number of 3D Objects that are capable of semantic zoom in the scene. It is used as the k in the k-means clustering. If the clustering mode is not k-means, this value is ignored.',
-    isRangeSetting: true,
-  },
-  usePredefinedSet: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Semantic Zoom',
-    displayName: 'Use Predefined Set',
-    description:
-      'If enabled, uses the slider for the predefined sets. Else its customized',
-    isFlagSetting: true,
-  },
-  distancePreSet: {
-    level: SettingLevel.DEFAULT,
-    value: 1,
-    range: { min: 1.0, max: 6.0, step: 1.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Predefined Zoom Sets',
-    description:
-      'Use the slider to set predefined values for the 5 levels. 0: Costum. 1: Early/Far, 5: Late/Close',
-    isRangeSetting: true,
-  },
-  distanceLevel1: {
-    level: SettingLevel.EXTENDED,
-    value: 20,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 1',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel2: {
-    level: SettingLevel.EXTENDED,
-    value: 65,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 2',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel3: {
-    level: SettingLevel.EXTENDED,
-    value: 70,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 3',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel4: {
-    level: SettingLevel.EXTENDED,
-    value: 80,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 4',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
-  },
-  distanceLevel5: {
-    level: SettingLevel.EXTENDED,
-    value: 90,
-    range: { min: 1.0, max: 100.0, step: 2.0 },
-    group: 'Semantic Zoom',
-    displayName: 'Level 5',
-    description:
-      'Used to trigger different Zoom Levels. Lower value means an early appearence change, while a high value triggers a change if the camera is very close to the object. Should increase with every level towards 100%. An avg of Objects that cover x percent or more of the screen trigger this level.',
-    isRangeSetting: true,
   },
   // Minimap Settings
   minimap: {

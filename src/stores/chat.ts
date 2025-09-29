@@ -1,8 +1,7 @@
-import { create } from 'zustand';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import * as THREE from 'three';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
@@ -11,13 +10,14 @@ import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   MESSAGE_DELETE_EVENT,
   MessageDeleteEvent,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/delete-message';
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import eventEmitter from '../utils/event-emitter';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import * as THREE from 'three';
+import { create } from 'zustand';
 
 export interface ChatMessageInterface {
   msgId: number;

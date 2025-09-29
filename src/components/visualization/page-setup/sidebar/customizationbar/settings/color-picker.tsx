@@ -1,23 +1,22 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  ColorSetting,
+  ColorSettingId,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import React, { useEffect, useRef } from 'react';
 import { Color } from 'three';
 import Picker from 'vanilla-picker';
 
-export default function ColorPicker({
-  id,
-  setting,
-  resetState,
-}: {
-  id: ColorSettingId; // ColorSettingId
-  setting: any; // ColorSetting
-  resetState: boolean;
-}) {
+export default function ColorPicker({ id }: { id: ColorSettingId }) {
+  const colorSetting = useUserSettingsStore.getState().visualizationSettings[
+    id
+  ] as ColorSetting;
+
   const colorPickerRef: React.RefObject<any> = useRef(null);
 
   useEffect(() => {
     setupApplicationColorpicker(id, colorPickerRef);
-  }, [resetState]);
+  }, [colorSetting.value]);
 
   const setupApplicationColorpicker = (
     colorName: keyof ExplorVizColors,
@@ -85,7 +84,7 @@ export default function ColorPicker({
       className="setting-container input-group justify-content-between"
     >
       <span className="colorpicker-label">
-        {formatColorProperty(setting.displayName)}
+        {formatColorProperty(colorSetting.displayName)}
       </span>
       <span className="input-group-append colorpicker-input">
         <span

@@ -1,13 +1,11 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useShallow } from 'zustand/react/shallow';
 import { Position2D } from '../hooks/interaction-modifier';
-import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-
 export type ContextMenuItem = {
   title: string;
   action: () => void;
@@ -43,27 +41,8 @@ export default function ContextMenu({
     }))
   );
 
-  const userSettingsState = useUserSettingsStore(
-    useShallow((state) => ({
-      visualizationSettings: state.visualizationSettings,
-      colors: state.colors,
-    }))
-  );
-
-  const toastHandlerActions = useToastHandlerStore(
-    useShallow((state) => ({
-      showInfoToastMessage: state.showInfoToastMessage,
-      showSuccessToastMessage: state.showSuccessToastMessage,
-      showErrorToastMessage: state.showErrorToastMessage,
-    }))
-  );
-
   const resetView = async () => {
-    toastHandlerActions.showErrorToastMessage(
-      'Needs to be implemented',
-      'TODO'
-    );
-    // cameraControls.current!.resetCameraFocusOn();
+    useCameraControlsStore.getState().resetCamera();
   };
 
   const menuItems: ContextMenuItem[] = [
@@ -71,30 +50,12 @@ export default function ContextMenu({
     {
       title: 'Open All Components',
       action: () => {
-        if (
-          userSettingsState.visualizationSettings.autoOpenCloseFeature.value &&
-          userSettingsState.visualizationSettings.semanticZoomState.value
-        ) {
-          toastHandlerActions.showErrorToastMessage(
-            'Open All Components not useable when Semantic Zoom with auto open/close is enabled.'
-          );
-          return;
-        }
         EntityManipulation.openAllComponentsInLandscape();
       },
     },
     {
       title: 'Close All Components',
       action: () => {
-        if (
-          userSettingsState.visualizationSettings.autoOpenCloseFeature.value &&
-          userSettingsState.visualizationSettings.semanticZoomState.value
-        ) {
-          toastHandlerActions.showErrorToastMessage(
-            'Close All Components not useable when Semantic Zoom with auto open/close is enabled.'
-          );
-          return;
-        }
         EntityManipulation.closeAllComponentsInLandscape();
       },
     },

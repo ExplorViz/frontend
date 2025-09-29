@@ -5,18 +5,29 @@ import {
   Application,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { forwardRef, useEffect, useMemo } from 'react';
-import { BoxGeometry, Color, MeshLambertMaterial } from 'three';
+import { forwardRef, useEffect, useMemo, useRef } from 'react';
+import {
+  BoxGeometry,
+  Color,
+  MeshLambertMaterial,
+  Matrix4,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import { useUserSettingsStore } from '../../../stores/user-settings';
-import { useVisualizationStore } from '../../../stores/visualization-store';
-import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
-import BoxLayout from '../../layout-models/box-layout';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
+import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import gsap from 'gsap';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
 
@@ -33,7 +44,7 @@ interface Args {
 }
 
 // eslint-disable-next-line
-const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
+const CityDistricts = forwardRef<InstancedMesh2, Args>(
   ({ packages, layoutMap, application }, ref) => {
     const geometry = useMemo(() => new BoxGeometry(), []);
 
@@ -49,6 +60,8 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
     );
     const componentIdToPackage = useMemo(() => new Map<string, Package>(), []);
 
+    const meshRef = useRef<InstancedMesh2 | null>(null);
+
     const {
       closedComponentIds,
       hiddenComponentIds,
@@ -61,9 +74,9 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
         closedComponentIds: state.closedComponentIds,
         hiddenComponentIds: state.hiddenComponentIds,
         highlightedEntityIds: state.highlightedEntityIds,
-        hoveredEntityId: state.hoveredEntity,
-        setHighlightedEntity: state.actions.setHighlightedEntity,
-        setHoveredEntity: state.actions.setHoveredEntity,
+        hoveredEntityId: state.hoveredEntityId,
+        setHighlightedEntity: state.actions.setHighlightedEntityId,
+        setHoveredEntity: state.actions.setHoveredEntityId,
       }))
     );
 
@@ -79,6 +92,7 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       addedComponentColor,
       removedComponentColor,
       unChangedComponentColor,
+      animationDuration,
     } = useUserSettingsStore(
       useShallow((state) => ({
         castShadows: state.visualizationSettings.castShadows.value,
@@ -100,6 +114,16 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
           state.visualizationSettings.removedComponentColor.value,
         unChangedComponentColor:
           state.visualizationSettings.unchangedComponentColor.value,
+        animationDuration: state.visualizationSettings.animationDuration.value,
+      }))
+    );
+
+    const isOnline = useCollaborationSessionStore.getState().isOnline();
+
+    const { heatmapActive, selectedClassMetric } = useHeatmapStore(
+      useShallow((state) => ({
+        heatmapActive: state.isActive(),
+        selectedClassMetric: state.getSelectedClassMetric(),
       }))
     );
 
@@ -119,75 +143,90 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    useEffect(() => {
-      // early return
+    const computeInstances = () => {
+      // Early return
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!ref.current || ref.current.instancesCount >= 200000) return;
+      if (!meshRef.current) return;
+      meshRef.current?.clearInstances();
+      instanceIdToComponentId.clear();
+      componentIdToInstanceId.clear();
+      componentIdToPackage.clear();
 
-      const mesh = ref.current.addInstances(packages.length, (obj, index) => {
-        const i = index;
-        if (!packages[i]) {
-          console.log(`No package found at index ${i}`);
-          return;
-        }
-        const layout = layoutMap.get(packages[i].id);
-        if (!layout) {
-          console.log(
-            `No layout found for component with id ${packages[i].id}`
+      const mesh = meshRef.current.addInstances(
+        packages.length,
+        (obj, index) => {
+          const i = index;
+          if (!packages[i]) {
+            console.log(`No package found at index ${i}`);
+            return;
+          }
+          const layout = layoutMap.get(packages[i].id);
+          if (!layout) {
+            console.log(
+              `No layout found for component with id ${packages[i].id}`
+            );
+            return;
+          }
+          instanceIdToComponentId.set(obj.id, packages[i].id);
+          componentIdToInstanceId.set(packages[i].id, obj.id);
+          componentIdToPackage.set(packages[i].id, packages[i]);
+          const isOpen = !closedComponentIds.has(packages[i].id);
+          const isVisible = !hiddenComponentIds.has(packages[i].id);
+          const closedPosition = layout.position.clone();
+          // Y-Position of layout is center of opened component
+          closedPosition.y =
+            layout.positionY +
+            (closedComponentHeight - openedComponentHeight) / 2;
+          if (isOpen) {
+            obj.position.set(
+              layout!.position.x,
+              layout!.position.y,
+              layout!.position.z
+            );
+          } else {
+            obj.position.set(
+              closedPosition.x,
+              closedPosition.y,
+              closedPosition.z
+            );
+          }
+          obj.scale.set(
+            layout!.width,
+            isOpen ? openedComponentHeight : closedComponentHeight,
+            layout!.depth
           );
-          return;
+          obj.visible = isVisible;
+          obj.color = computeColor(packages[i].id);
+          obj.updateMatrix();
         }
-        instanceIdToComponentId.set(obj.id, packages[i].id);
-        componentIdToInstanceId.set(packages[i].id, obj.id);
-        componentIdToPackage.set(packages[i].id, packages[i]);
-        const isOpen = !closedComponentIds.has(packages[i].id);
-        const isVisible = !hiddenComponentIds.has(packages[i].id);
-        const closedPosition = layout.position.clone();
-        // Y-Position of layout is center of opened component
-        closedPosition.y =
-          layout.positionY +
-          (closedComponentHeight - openedComponentHeight) / 2;
-        if (isOpen) {
-          obj.position.set(
-            layout!.position.x,
-            layout!.position.y,
-            layout!.position.z
-          );
-        } else {
-          obj.position.set(
-            closedPosition.x,
-            closedPosition.y,
-            closedPosition.z
-          );
-        }
-        obj.scale.set(
-          layout!.width,
-          isOpen ? openedComponentHeight : closedComponentHeight,
-          layout!.depth
-        );
-        obj.visible = isVisible;
-        obj.color = computeColor(packages[i].id);
-        obj.updateMatrix();
-      });
+      );
       mesh.computeBVH();
-
-      return () => {
-        // cleanup function to remove instances if necessary
-        mesh.clearInstances();
-        instanceIdToComponentId.clear();
-        componentIdToInstanceId.clear();
-        componentIdToPackage.clear();
-      };
-    }, [closedComponentIds, packages, layoutMap]);
+    };
 
     useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !ref.current) {
+      if (ref === null || typeof ref === 'function' || !meshRef.current) {
+        return;
+      }
+
+      if (
+        componentIdToInstanceId.size > 0 &&
+        componentIdToInstanceId.size === packages.length &&
+        enableAnimations
+      ) {
+        animateComponentChange();
+      } else {
+        computeInstances();
+      }
+    }, [[], closedComponentIds, layoutMap, packages]);
+
+    useEffect(() => {
+      if (ref === null || typeof ref === 'function' || !meshRef.current) {
         return;
       }
       componentIdToInstanceId.forEach((instanceId, componentId) => {
-        ref.current?.setVisibilityAt(
+        meshRef.current?.setVisibilityAt(
           instanceId,
           !hiddenComponentIds.has(componentId)
         );
@@ -198,15 +237,20 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
 
       // only compute the bvh on mount
-      ref.current.computeBVH();
+      meshRef.current.computeBVH();
     }, []);
 
     const computeColor = (componentId: string) => {
       const component = componentIdToPackage.get(componentId);
       if (!component) return new Color('white');
+
+      if (heatmapActive) {
+        return new Color('white');
+      }
+
       if (
         evoConfig.renderOnlyDifferences &&
         commitComparison &&
@@ -224,13 +268,13 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       }
 
       const isHovered = hoveredEntityId === componentId;
-      const isHighlighted = highlightedEntityIds.includes(componentId);
+      const isHighlighted = highlightedEntityIds.has(componentId);
 
       const layout = layoutMap.get(componentId);
       if (!layout) return new Color('white');
 
       const baseColor = isHighlighted
-        ? new Color(highlightedEntityColor)
+        ? useHighlightingStore.getState().highlightingColor()
         : new Color(
             layout.level % 2 === 0 ? componentEvenColor : componentOddColor
           );
@@ -246,24 +290,21 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
       const componentId = instanceIdToComponentId.get(instanceId);
       if (!componentId) return;
       // Toggle highlighting
-      setHighlightedEntity(
-        componentId,
-        !highlightedEntityIds.includes(componentId)
-      );
+      setHighlightedEntity(componentId, !highlightedEntityIds.has(componentId));
     };
 
     const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!ref.current) {
+      if (!meshRef.current) {
         return;
       }
       const { instanceId } = e;
@@ -290,19 +331,28 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
     };
 
     useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !ref.current) {
+      if (ref === null || typeof ref === 'function' || !meshRef.current) {
         return;
       }
       componentIdToInstanceId.forEach((instanceId, componentId) => {
-        ref.current?.setColorAt(instanceId, computeColor(componentId));
+        meshRef.current?.setColorAt(instanceId, computeColor(componentId));
       });
-    }, [highlightedEntityIds, hoveredEntityId]);
+    }, [
+      highlightedEntityIds,
+      highlightedEntityColor,
+      isOnline,
+      hoveredEntityId,
+      heatmapActive,
+      selectedClassMetric,
+      componentEvenColor,
+      componentOddColor,
+    ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
@@ -322,7 +372,7 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
       if (ref === null || typeof ref === 'function') {
         return;
       }
-      if (!ref.current) return;
+      if (!meshRef.current) return;
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
@@ -345,9 +395,92 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
     const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
       useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
+    const animateComponentChange = () => {
+      const currentMeshRef = meshRef.current;
+      if (!currentMeshRef) return;
+
+      instanceIdToComponentId.forEach((componentId, instanceId) => {
+        const tempMatrix = new Matrix4();
+        const pos = new Vector3();
+        const quat = new Quaternion();
+        const scale = new Vector3();
+
+        const isOpen = !closedComponentIds.has(componentId);
+
+        // target values based on layout / component state
+        const layout = layoutMap.get(componentId);
+        if (!layout) return;
+
+        const targetPositionX = layout.position.x;
+        const targetPositionY = isOpen
+          ? layout.positionY
+          : layout.positionY +
+            (closedComponentHeight - openedComponentHeight) / 2;
+        const targetPositionZ = layout.position.z;
+        const targetWidth = layout.width;
+        const targetDepth = layout.depth;
+        const targetHeight = isOpen
+          ? openedComponentHeight
+          : closedComponentHeight;
+
+        try {
+          currentMeshRef.getMatrixAt(instanceId, tempMatrix);
+        } catch (err) {
+          console.error('Failed to get matrix at', instanceId, err);
+          return;
+        }
+        tempMatrix.decompose(pos, quat, scale);
+
+        // skip animation if nothing changed for the component instance
+        if (
+          pos.x === targetPositionX &&
+          pos.y === targetPositionY &&
+          pos.z === targetPositionZ &&
+          scale.x === targetWidth &&
+          scale.y === targetHeight &&
+          scale.z === targetDepth
+        ) {
+          return;
+        }
+
+        // current values for animation
+        const values = {
+          width: scale.x,
+          depth: scale.z,
+          height: scale.y,
+          positionX: pos.x,
+          positionY: pos.y,
+          positionZ: pos.z,
+        };
+
+        gsap.to(values, {
+          duration: animationDuration,
+          // animate to target
+          width: targetWidth,
+          height: targetHeight,
+          depth: targetDepth,
+          positionX: targetPositionX,
+          positionY: targetPositionY,
+          positionZ: targetPositionZ,
+          onUpdate: () => {
+            // update local pos/scale, compose matrix and write back
+            scale.x = values.width;
+            scale.y = values.height;
+            scale.z = values.depth;
+            pos.x = values.positionX;
+            pos.y = values.positionY;
+            pos.z = values.positionZ;
+            tempMatrix.compose(pos, quat, scale);
+            // use captured currentMeshRef to avoid stale ref issues
+            currentMeshRef.setMatrixAt(instanceId, tempMatrix);
+          },
+        });
+      });
+    };
+
     return (
       <instancedMesh2
-        ref={ref}
+        ref={meshRef}
         castShadow={castShadows}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
@@ -361,4 +494,4 @@ const InstancedComponentR3F = forwardRef<InstancedMesh2, Args>(
   }
 );
 
-export default InstancedComponentR3F;
+export default CityDistricts;

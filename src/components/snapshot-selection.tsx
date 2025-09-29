@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import { FileAddedIcon, ShareAndroidIcon } from '@primer/octicons-react';
 import {
   SnapshotInfo,
   SnapshotToken,
   TinySnapshot,
   useSnapshotTokenStore,
-} from '../stores/snapshot-token';
-import { useToastHandlerStore } from '../stores/toast-handler';
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import React, { useState } from 'react';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { FileAddedIcon, ShareAndroidIcon } from '@primer/octicons-react';
 import AdditionalSnapshotInfo from './additional-snapshot-info';
-import ShareSnapshot from './share-snapshot';
 import DeleteSnapshot from './delete-snapshot';
+import ShareSnapshot from './share-snapshot';
 
 interface SnapshotSelectionArgs {
   snapshotInfo: SnapshotInfo;
@@ -171,7 +171,7 @@ export default function SnapshotSelection({
         <h5 className="text-left mb-3">Personal Snapshots</h5>
         <div className="flex-row justify-content-center selection-table">
           <table
-            className="table table-striped"
+            className="table table-striped explorviz-table"
             id="personal-token-selection-table"
           >
             <thead>
@@ -234,7 +234,9 @@ export default function SnapshotSelection({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3}>There are no saved snapshots.</td>
+                  <td colSpan={3} className="text-center">
+                    There are no saved snapshots.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -301,7 +303,7 @@ export default function SnapshotSelection({
         <h5 className="text-left">Shared Snapshots</h5>
         <div className="d-flex flex-row justify-content-center selection-table">
           <table
-            className="table table-striped"
+            className="table table-striped explorviz-table"
             id="shared-token-selection-table"
           >
             <thead>
@@ -390,7 +392,7 @@ export default function SnapshotSelection({
         <h5 className="text-left">Subscribed Snapshots</h5>
         <div className="d-flex flex-row justify-content-center selection-table">
           <table
-            className="table table-striped"
+            className="table table-striped explorviz-table"
             id="subscribed-token-selection-table"
           >
             <thead>

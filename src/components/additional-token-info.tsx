@@ -31,40 +31,31 @@ export default function AdditionalTokenInfo({
     <Popover title={token.alias}>
       <Popover.Header>{token.alias}</Popover.Header>
       <Popover.Body>
-      <table className="table table-striped" style={{ width: '100%' }}>
-        <tbody>
-          <tr>
-            <td>
-              <b>Owner</b>
-            </td>
-            <td style={{ wordBreak: 'break-all' }}>
-              {token.ownerId === user?.sub ? 'You' : token.ownerId}
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td>
-              <b>ID</b>
-            </td>
-            <td>{token.value}</td>
-            <td>
-              <CopyButton text={token.value} />
-            </td>
-          </tr>
-          {token.secret && (
+        <table className="token-info-table">
+          <tbody>
             <tr>
+              <td>Owner</td>
+              <td>{token.ownerId === user?.sub ? 'You' : token.ownerId}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>ID</td>
+              <td>{token.value}</td>
               <td>
-                {' '}
-                <b>Secret</b>
-              </td>
-              <td style={{ wordBreak: 'break-all' }}>{token.secret}</td>
-              <td>
-                <CopyButton text={token.secret} />
+                <CopyButton text={token.value} />
               </td>
             </tr>
-          )}
-        </tbody>
-      </table>
+            {token.secret && (
+              <tr>
+                <td>Secret</td>
+                <td>{token.secret}</td>
+                <td>
+                  <CopyButton text={token.secret} />
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </Popover.Body>
     </Popover>
   );
@@ -76,9 +67,14 @@ export default function AdditionalTokenInfo({
         trigger={['hover', 'focus']}
         overlay={<Tooltip>Show Token Details</Tooltip>}
       >
-        <div>
-          <OverlayTrigger placement={'bottom'} trigger="click" overlay={popover} rootClose>
-            <InfoIcon verticalAlign="middle" size="small" fill="#777" />
+        <div className="additional-token-info">
+          <OverlayTrigger
+            placement={'bottom'}
+            trigger="click"
+            overlay={popover}
+            rootClose
+          >
+            <InfoIcon verticalAlign="middle" size="small" />
           </OverlayTrigger>
         </div>
       </OverlayTrigger>

@@ -1,53 +1,52 @@
-import { create } from 'zustand';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
-import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { SerializedAnnotation } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { AnnotationForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
+import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
-  ANNOTATION_OPENED_EVENT,
-  AnnotationOpenedMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-opened';
-import {
-  ANNOTATION_CLOSED_EVENT,
-  AnnotationClosedMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-closed';
-import { AnnotationForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
+  AnnotationEditResponse,
+  isAnnotationEditResponse,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
 import {
   AnnotationResponse,
   isAnnotationResponse,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
 import {
-  ObjectClosedResponse,
-  isObjectClosedResponse,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { useAuthStore } from './auth';
-import {
-  ANNOTATION_UPDATED_EVENT,
-  AnnotationUpdatedMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-updated';
-import {
   AnnotationUpdatedResponse,
   isAnnotationUpdatedResponse,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
-import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
+import {
+  ANNOTATION_CLOSED_EVENT,
+  AnnotationClosedMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-closed';
 import {
   ANNOTATION_EDIT_EVENT,
   AnnotationEditMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-edit';
 import {
-  AnnotationEditResponse,
-  isAnnotationEditResponse,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
-import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
-import eventEmitter from '../utils/event-emitter';
+  ANNOTATION_OPENED_EVENT,
+  AnnotationOpenedMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-opened';
+import {
+  ANNOTATION_UPDATED_EVENT,
+  AnnotationUpdatedMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-updated';
+import { SerializedAnnotation } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import {
+  ObjectClosedResponse,
+  isObjectClosedResponse,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
+import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
+import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import { create } from 'zustand';
+import { useAuthStore } from './auth';
 
 type Position2D = {
   x: number;
@@ -64,7 +63,10 @@ interface AnnotationHandlerState {
   removeUnmovedAnnotations: () => void;
   editAnnotation: (annotationData: AnnotationData) => void;
   updateAnnotation: (annotationData: AnnotationData) => void;
-  removeAnnotation: (annotationId: number, stillMinimized?: boolean) => Promise<void>;
+  removeAnnotation: (
+    annotationId: number,
+    stillMinimized?: boolean
+  ) => Promise<void>;
   canRemoveAnnotation: (annotation: AnnotationData) => Promise<boolean>;
   removeAnnotationAfterTimeout: (annotation: AnnotationData) => void;
   shareAnnotation: (annotation: AnnotationData) => void;
@@ -141,10 +143,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       eventEmitter.on(ANNOTATION_OPENED_EVENT, get().onAnnotation);
       eventEmitter.on(ANNOTATION_CLOSED_EVENT, get().onMenuClosed);
       eventEmitter.on(ANNOTATION_UPDATED_EVENT, get().onUpdatedAnnotation);
-      eventEmitter.on(
-        'restore_annotations',
-        get().onRestoreAnnotations
-      );
+      eventEmitter.on('restore_annotations', get().onRestoreAnnotations);
     },
 
     setAnnotationData: (annotations: AnnotationData[]) => {
@@ -162,7 +161,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           x: event.pageX,
           y: event.pageY,
         },
-        isShiftPressed: event.shiftKey
+        isShiftPressed: event.shiftKey,
       });
     },
 
@@ -230,19 +229,20 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         !annotation.shared ||
         !useCollaborationSessionStore.getState().isOnline()
       ) {
-        set({ annotationData: [
-          ...get().annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
-          {...annotationData, inEdit: true}
-        ]});
+        set({
+          annotationData: [
+            ...get().annotationData.filter(
+              (an) => an.annotationId !== annotationData.annotationId
+            ),
+            { ...annotationData, inEdit: true },
+          ],
+        });
         return;
       }
 
       useWebSocketStore
         .getState()
-        .sendRespondableMessage<
-          AnnotationEditMessage,
-          AnnotationEditResponse
-        >(
+        .sendRespondableMessage<AnnotationEditMessage, AnnotationEditResponse>(
           ANNOTATION_EDIT_EVENT,
           {
             event: ANNOTATION_EDIT_EVENT,
@@ -258,13 +258,17 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
                   .showErrorToastMessage(
                     'Another user is currently editing this annotation.'
                   );
-                  return false;
-                }
+                return false;
+              }
 
-              set({ annotationData: [
-                ...get().annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
-                {...annotationData, inEdit: true}
-              ]});
+              set({
+                annotationData: [
+                  ...get().annotationData.filter(
+                    (an) => an.annotationId !== annotationData.annotationId
+                  ),
+                  { ...annotationData, inEdit: true },
+                ],
+              });
               return true;
             },
             onOffline: () => {
@@ -284,19 +288,23 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       }
 
       annotationData.lastEditor = useAuthStore.getState().user!.name;
-      
+
       if (
         !useCollaborationSessionStore.getState().isOnline() ||
         !annotation.shared
       ) {
-        set({ annotationData: [
-          ...get().annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
-          {...annotationData, inEdit: false}
-        ]});
+        set({
+          annotationData: [
+            ...get().annotationData.filter(
+              (an) => an.annotationId !== annotationData.annotationId
+            ),
+            { ...annotationData, inEdit: false },
+          ],
+        });
 
         return;
       }
-      
+
       useWebSocketStore
         .getState()
         .sendRespondableMessage<
@@ -317,10 +325,14 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
             responseType: isAnnotationUpdatedResponse,
             onResponse: (response: AnnotationUpdatedResponse) => {
               if (response.updated) {
-                set({ annotationData: [
-                  ...get().annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
-                  {...annotation, inEdit: false}
-                ]});
+                set({
+                  annotationData: [
+                    ...get().annotationData.filter(
+                      (an) => an.annotationId !== annotationData.annotationId
+                    ),
+                    { ...annotation, inEdit: false },
+                  ],
+                });
                 return true;
               } else {
                 useToastHandlerStore
@@ -336,7 +348,10 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         );
     },
 
-    removeAnnotation: async (annotationId: number, stillMinimized: boolean = false): Promise<void> => {
+    removeAnnotation: async (
+      annotationId: number,
+      stillMinimized: boolean = false
+    ): Promise<void> => {
       const annotation = get().annotationData.find(
         (an) => an.annotationId === annotationId
       );
@@ -365,9 +380,11 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         }
 
         set({
-          annotationData: [...get().annotationData.filter(
-            (an) => an.annotationId !== annotationId
-          )],
+          annotationData: [
+            ...get().annotationData.filter(
+              (an) => an.annotationId !== annotationId
+            ),
+          ],
         });
       } else {
         useToastHandlerStore
@@ -480,10 +497,19 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
                 const menuId = response.objectId;
                 const shared = true;
 
-                set({ annotationData: [
-                  ...get().annotationData.filter((an) => an.annotationId !== annotation.annotationId),
-                  {...annotation, sharedBy: sharedBy, menuId: menuId, shared: shared}
-                ]});
+                set({
+                  annotationData: [
+                    ...get().annotationData.filter(
+                      (an) => an.annotationId !== annotation.annotationId
+                    ),
+                    {
+                      ...annotation,
+                      sharedBy: sharedBy,
+                      menuId: menuId,
+                      shared: shared,
+                    },
+                  ],
+                });
 
                 return true;
               },
@@ -499,18 +525,26 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       if (isEntityMesh(mesh)) {
         get().annotationData.forEach((an) => {
           if (an.entity !== undefined) {
-            set({ annotationData: [
-              ...get().annotationData.filter((anno) => anno.annotationId !== an.annotationId),
-              {...an, hovered: an.entity.id === mesh.getModelId()}
-            ]})
+            set({
+              annotationData: [
+                ...get().annotationData.filter(
+                  (anno) => anno.annotationId !== an.annotationId
+                ),
+                { ...an, hovered: an.entity.id === mesh.getModelId() },
+              ],
+            });
           }
         });
       } else {
         get().annotationData.forEach((an) => {
-          set({ annotationData: [
-            ...get().annotationData.filter((anno) => anno.annotationId !== an.annotationId),
-            {...an, hovered: false}
-          ]})
+          set({
+            annotationData: [
+              ...get().annotationData.filter(
+                (anno) => anno.annotationId !== an.annotationId
+              ),
+              { ...an, hovered: false },
+            ],
+          });
         });
       }
     },
@@ -642,7 +676,11 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
               an.entity.id === newAnnotation.entity?.id
           );
           if (maybeAnnotation) {
-            get()._updateExistingAnnotation(maybeAnnotation, newAnnotation.annotationText, newAnnotation.annotationTitle);
+            get()._updateExistingAnnotation(
+              maybeAnnotation,
+              newAnnotation.annotationText,
+              newAnnotation.annotationTitle
+            );
             return;
           }
         }
@@ -704,16 +742,32 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           return;
         }
 
-        set({ minimizedAnnotations: [
-          ...get().minimizedAnnotations.filter((an) => an.menuId === objectId),
-          {...annotation, annotationTitle: annotationTitle, annotationText: annotationText, lastEditor: lastEditor}
-        ]});       
+        set({
+          minimizedAnnotations: [
+            ...get().minimizedAnnotations.filter(
+              (an) => an.menuId === objectId
+            ),
+            {
+              ...annotation,
+              annotationTitle: annotationTitle,
+              annotationText: annotationText,
+              lastEditor: lastEditor,
+            },
+          ],
+        });
       }
 
-      set({ annotationData: [
-        ...get().annotationData.filter((an) => an.menuId === objectId),
-        {...annotation, annotationTitle: annotationTitle, annotationText: annotationText, lastEditor: lastEditor}
-      ]}); 
+      set({
+        annotationData: [
+          ...get().annotationData.filter((an) => an.menuId === objectId),
+          {
+            ...annotation,
+            annotationTitle: annotationTitle,
+            annotationText: annotationText,
+            lastEditor: lastEditor,
+          },
+        ],
+      });
     },
 
     onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
@@ -752,10 +806,18 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotationText: string,
       annotationTitle: string
     ) => {
-      set({ annotationData: [
-        ...get().annotationData.filter((an) => an.entity?.id !== annotation.entity!.id),
-        { ...annotation, annotationText: annotationText, annotationTitle: annotationTitle },
-      ],})
+      set({
+        annotationData: [
+          ...get().annotationData.filter(
+            (an) => an.entity?.id !== annotation.entity!.id
+          ),
+          {
+            ...annotation,
+            annotationText: annotationText,
+            annotationTitle: annotationTitle,
+          },
+        ],
+      });
 
       get().updateMeshReference(annotation);
     },
@@ -807,15 +869,19 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           .getState()
           .getMeshById(annotation.entity.id);
         if (isEntityMesh(mesh)) {
-          set({ 
+          set({
             annotationData: [
-            ...get().annotationData.filter((an) => an.annotationId !== annotation.annotationId),
-            {...annotation, mesh: mesh}
+              ...get().annotationData.filter(
+                (an) => an.annotationId !== annotation.annotationId
+              ),
+              { ...annotation, mesh: mesh },
             ],
             minimizedAnnotations: [
-              ...get().minimizedAnnotations.filter((an) => an.annotationId !== annotation.annotationId),
-              {...annotation, mesh: mesh}
-            ]
+              ...get().minimizedAnnotations.filter(
+                (an) => an.annotationId !== annotation.annotationId
+              ),
+              { ...annotation, mesh: mesh },
+            ],
           });
         }
       }

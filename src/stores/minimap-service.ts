@@ -77,8 +77,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
   makeFullsizeMinimap: false, // tracked
   minimapSize: 4, // tracked
   // tracked
-  minimapEnabled:
-    useUserSettingsStore.getState().visualizationSettings.minimap.value,
+  // TODO: This is part of settings
+  minimapEnabled: true,
   cameraControls: undefined, // is set by browser-rendering / vr-rendering
   landscape3D: new Landscape3D(), // is set by browser-rendering / vr-rendering
   minimapUserMarkers: new Map(),
@@ -203,7 +203,9 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
       .get('localUser')!
       .layers.disable(SceneLayers.MinimapMarkers);
 
-    newScene!.add(get().minimapUserMarkers.get('localUser')!);
+    // TODO: Update scene
+    if (!newScene) return;
+    newScene.add(get().minimapUserMarkers.get('localUser')!);
 
     set({
       minimapUserMarkers: newMinimapUserMarkers,
@@ -272,7 +274,11 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     minimapMarker.layers.disable(SceneLayers.Default);
     minimapMarker.name = name;
     get().minimapUserMarkers.set(name, minimapMarker);
-    get().scene!.add(minimapMarker);
+    // TODO: Scene is not available anymore
+    const scene = get().scene;
+    if (scene) {
+      scene.add(minimapMarker);
+    }
   },
 
   /**
@@ -284,7 +290,9 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     if (minimapMarker) {
       const newScene = get().scene;
       const newMinimapUserMarkers = get().minimapUserMarkers;
-      newScene!.remove(minimapMarker);
+      // TODO: Scene is not available anymore
+      if (!newScene) return;
+      newScene.remove(minimapMarker);
       newMinimapUserMarkers.delete(name);
       set({
         scene: newScene,

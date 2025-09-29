@@ -553,7 +553,7 @@ export default function CollaborationControls() {
       {collabStore.connectionStatus === 'online' && (
         <>
           <div>
-            <label className="bold">Room: </label>
+            <label className="bold me-2">Room:</label>
             <label>{collabStore.currentRoomId}</label>
           </div>
 

@@ -182,7 +182,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       set({ userId: id });
       set({ userName: name });
 
-      set({ color: color });
+      set({ color: new THREE.Color('#' + color.getHexString()) });
       set({
         mousePing: new MousePing(new THREE.Color(color), get().animationMixer),
       });

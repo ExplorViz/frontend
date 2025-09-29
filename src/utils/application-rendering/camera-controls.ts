@@ -1,7 +1,6 @@
 import gsap from 'gsap';
 import { Box3, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { MapControls } from 'explorviz-frontend/src/utils/controls/MapControls';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
 
 export default class CameraControls {
@@ -27,13 +26,7 @@ export default class CameraControls {
     this.perspectiveCameraControls.minDistance = 0.1;
     this.perspectiveCameraControls.maxDistance = 1000;
     this.perspectiveCameraControls.maxPolarAngle = Math.PI / 2;
-    // Semantic Zoom trigger Level Decision
-    SemanticZoomManager.instance.registerCam(this.perspectiveCamera);
-    this.perspectiveCameraControls.addEventListener('end', () => {
-      SemanticZoomManager.instance.triggerLevelDecision2WithDebounce(
-        this.perspectiveCamera
-      );
-    });
+
     //
     // ImmersiveView Tracker
     this.lastDistance = perspectiveCamera.position.distanceTo(

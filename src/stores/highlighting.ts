@@ -1,13 +1,19 @@
-import { create } from 'zustand';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  getAllAncestorComponents,
+  openComponentsByList,
+} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import * as Highlighting from 'explorviz-frontend/src/utils/application-rendering/highlighting';
-import { Color } from 'three';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
@@ -15,14 +21,9 @@ import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/appli
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import {
-  getAllAncestorComponents,
-  openComponentsByList,
-} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import * as THREE from 'three';
+import { Color } from 'three';
+import { create } from 'zustand';
 
 type HighlightOptions = { sendMessage?: boolean; remoteColor?: THREE.Color };
 
@@ -102,7 +103,9 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
     if (useCollaborationSessionStore.getState().isOnline()) {
       return useLocalUserStore.getState().color;
     } else {
-      return useUserSettingsStore.getState().colors!.highlightedEntityColor;
+      return new THREE.Color(
+        useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value
+      );
     }
   },
 

@@ -1070,7 +1070,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
                       updateHighlighting={
                         highlightingActions.updateHighlighting
                       }
-                      showSemanticZoomClusterCenters={() => {}}
                     />
                   )}
                 </SidebarComponent>

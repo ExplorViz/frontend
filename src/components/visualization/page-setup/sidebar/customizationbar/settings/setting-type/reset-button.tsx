@@ -1,4 +1,3 @@
-import React from 'react';
 import { SyncIcon } from '@primer/octicons-react';
 
 export default function ResetButton({

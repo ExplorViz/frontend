@@ -13,8 +13,11 @@ import {
 } from 'explorviz-frontend/src/utils/settings/default-settings';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useShallow } from 'zustand/react/shallow';
+import { useEffect, useState } from 'react';
+import * as THREE from 'three';
+import gsap from 'gsap';
 
-export default function ClassLabelR3F({
+export default function CodeBuildingLabel({
   dataModel,
   layout,
   application,
@@ -33,13 +36,11 @@ export default function ClassLabelR3F({
     isClassVisible,
   } = useVisualizationStore(
     useShallow((state) => ({
-      isClassHovered: state.hoveredEntity === dataModel.id,
+      isClassHovered: state.hoveredEntityId === dataModel.id,
       isClassVisible: !state.hiddenClassIds.has(dataModel.id),
-      isParentHovered: state.hoveredEntity === dataModel.parent.id,
-      isClassHighlighted: state.highlightedEntityIds.includes(dataModel.id),
-      isParentHighlighted: state.highlightedEntityIds.includes(
-        dataModel.parent.id
-      ),
+      isParentHovered: state.hoveredEntityId === dataModel.parent.id,
+      isClassHighlighted: state.highlightedEntityIds.has(dataModel.id),
+      isParentHighlighted: state.highlightedEntityIds.has(dataModel.parent.id),
     }))
   );
 
@@ -92,11 +93,46 @@ export default function ClassLabelR3F({
     );
   };
 
-  const getPositionY = () => {
-    return (
-      layout!.position.y - layout!.height / 2 + getClassHeight() + labelOffset
+  const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
+    new THREE.Vector3(layout.positionX, layout.positionY, layout.positionZ)
+  );
+
+  useEffect(() => {
+    const target = new THREE.Vector3(
+      layout.positionX,
+      layout.positionY - layout.height / 2 + getClassHeight() + labelOffset,
+      layout.positionZ
     );
-  };
+
+    const { enableAnimations, animationDuration } =
+      useUserSettingsStore.getState().visualizationSettings;
+    const animationEnabled = enableAnimations.value;
+    const duration = animationDuration.value;
+
+    if (animationEnabled) {
+      const values = {
+        x: labelPosition.x,
+        y: labelPosition.y,
+        z: labelPosition.z,
+      };
+      gsap.to(values, {
+        x: target.x,
+        y: target.y,
+        z: target.z,
+        duration,
+        onUpdate: () =>
+          setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
+      });
+    } else {
+      setLabelPosition(target.clone());
+    }
+  }, [
+    layout,
+    heightMetric,
+    classFootprint,
+    classHeightMultiplier,
+    labelOffset,
+  ]);
 
   return showAllClassLabels ||
     isClassHovered ||
@@ -105,7 +141,7 @@ export default function ClassLabelR3F({
     isParentHighlighted ? (
     <Text
       key={dataModel.id + '-label'}
-      position={[layout.positionX, getPositionY(), layout.positionZ]}
+      position={labelPosition}
       color={classTextColor}
       visible={isClassVisible && isCameraZoomedIn}
       sdfGlyphSize={16}

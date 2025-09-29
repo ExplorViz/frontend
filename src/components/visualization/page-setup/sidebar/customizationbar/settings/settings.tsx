@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 
 import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 import ColorSchemeSelector from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-scheme-selector';
+import SettingPresets from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-presets';
 import ButtonSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/button-setting';
 import FlagSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/flag-setting';
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
+import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
 import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
-import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   ColorSettingId,
   isButtonSetting,
@@ -32,29 +33,19 @@ import {
   VisualizationSettingId,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import SemanticZoomManager from 'explorviz-frontend/src/view-objects/3d/application/utils/semantic-zoom-manager';
 import { Mesh } from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 
 interface SettingsProps {
   enterFullscreen(): void;
-  resetSettings?(saveToLocalStorage: boolean): void;
   setGamepadSupport(support: boolean): void;
-  showSemanticZoomClusterCenters(): void;
-  updateHighlighting(): void;
 }
 
 export default function Settings({
   enterFullscreen,
-  resetSettings,
   setGamepadSupport,
-  showSemanticZoomClusterCenters,
-  updateHighlighting,
 }: SettingsProps) {
-  const [resetState, setResetState] = useState<boolean>(true);
-
+  const stickyNavRef = useRef<HTMLDivElement>(null);
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -67,20 +58,11 @@ export default function Settings({
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
-  const {
-    closeAllComponentsOfAllApplications,
-    openAllComponentsOfAllApplications,
-    updateApplicationLayout,
-  } = useApplicationRendererStore(
+  const { updateApplicationLayout } = useApplicationRendererStore(
     useShallow((state) => ({
-      closeAllComponentsOfAllApplications:
-        state.closeAllComponentsOfAllApplications,
-      openAllComponentsOfAllApplications:
-        state.openAllComponentsOfAllApplications,
       updateApplicationLayout: state.updateApplicationLayout,
     }))
   );
-  const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
   const updateMinimapSphereRadius = useMinimapStore(
     (state) => state.updateSphereRadius
@@ -93,16 +75,15 @@ export default function Settings({
   const setHeatmapActive = useHeatmapConfigurationStore(
     (state) => state.setActive
   );
-  const setSemanticZoomEnabled = useConfigurationStore(
-    (state) => state.setSemanticZoomEnabled
-  );
 
-  const { applyDefaultSettingsForGroup, setColorScheme } = useUserSettingsStore(
-    useShallow((state) => ({
-      applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
-      setColorScheme: state.setColorScheme,
-    }))
-  );
+  const { applyDefaultSettings, applyDefaultSettingsForGroup, setColorScheme } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        applyDefaultSettings: state.applyDefaultSettings,
+        applyDefaultSettingsForGroup: state.applyDefaultSettingsForGroup,
+        setColorScheme: state.setColorScheme,
+      }))
+    );
 
   const updateHighlightingInStore = useHighlightingStore(
     (state) => state.updateHighlighting
@@ -130,7 +111,6 @@ export default function Settings({
       Layout: [],
       Minimap: [],
       Popups: [],
-      'Semantic Zoom': [],
       'Virtual Reality': [],
       Debugging: [],
     };
@@ -180,104 +160,14 @@ export default function Settings({
     }
   };
 
-  const semanticZoomPreSetSetter = (targetPreset: number, valueArray: any) => {
-    if (targetPreset == 1) {
-      valueArray[0].value = 5;
-      valueArray[1].value = 30;
-      valueArray[2].value = 40;
-      valueArray[3].value = 50;
-      valueArray[4].value = 60;
-    } else if (targetPreset == 2) {
-      valueArray[0].value = 10;
-      valueArray[1].value = 40;
-      valueArray[2].value = 50;
-      valueArray[3].value = 60;
-      valueArray[4].value = 70;
-    } else if (targetPreset == 3) {
-      valueArray[0].value = 20;
-      valueArray[1].value = 50;
-      valueArray[2].value = 60;
-      valueArray[3].value = 70;
-      valueArray[4].value = 80;
-    } else if (targetPreset == 4) {
-      valueArray[0].value = 40;
-      valueArray[1].value = 60;
-      valueArray[2].value = 70;
-      valueArray[3].value = 80;
-      valueArray[4].value = 90;
-    } else if (targetPreset == 5) {
-      valueArray[0].value = 65;
-      valueArray[1].value = 80;
-      valueArray[2].value = 85;
-      valueArray[3].value = 90;
-      valueArray[4].value = 95;
-    } else if (targetPreset == 6) {
-      valueArray[0].value = 75;
-      valueArray[1].value = 80;
-      valueArray[2].value = 85;
-      valueArray[3].value = 90;
-      valueArray[4].value = 95;
-    }
-    // Update all the values and save them to the storage
-    for (let index = 0; index < valueArray.length; index++) {
-      const targetValue = valueArray[index].value;
-      updateUserSetting(
-        ('distanceLevel' + (index + 1).toString()) as VisualizationSettingId,
-        targetValue
-      );
-    }
-  };
-
   const updateRangeSetting = (name: VisualizationSettingId, value: number) => {
-    const pre_input: string | number | boolean = defaultVizSettings[name].value;
     const settingId = name as VisualizationSettingId;
     try {
       updateUserSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
-    const semZoomLevels = [
-      visualizationSettings.distanceLevel1,
-      visualizationSettings.distanceLevel2,
-      visualizationSettings.distanceLevel3,
-      visualizationSettings.distanceLevel4,
-      visualizationSettings.distanceLevel5,
-    ];
     switch (settingId) {
-      case 'transparencyIntensity':
-        if (updateHighlighting) {
-          updateHighlighting();
-        }
-        break;
-      case 'distancePreSet':
-        semanticZoomPreSetSetter(value!, semZoomLevels);
-        updateUserSetting('usePredefinedSet', true);
-        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
-          defaultCamera
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'distanceLevel1':
-      case 'distanceLevel2':
-      case 'distanceLevel3':
-      case 'distanceLevel4':
-      case 'distanceLevel5':
-        if (pre_input != undefined && value != undefined) {
-          cleanArray(semZoomLevels, (pre_input as number) < value, false);
-          updateUserSetting('usePredefinedSet', false);
-        }
-        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
-          defaultCamera
-        );
-
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'clusterBasedOnMembers':
-        SemanticZoomManager.instance.cluster(
-          visualizationSettings.clusterBasedOnMembers.value
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
       case 'zoom':
         updateMinimapSphereRadius();
         break;
@@ -308,9 +198,6 @@ export default function Settings({
           sendSyncRoomState(serializeRoom(popupHandlerState.popupData));
         }
         break;
-      case 'showSemanticZoomCenterPoints':
-        showSemanticZoomClusterCenters();
-        break;
       case 'fullscreen':
         if (enterFullscreen) {
           enterFullscreen();
@@ -327,26 +214,20 @@ export default function Settings({
 
   const updateFlagSetting = (
     settingId: VisualizationSettingId,
-    value: boolean
+    value?: boolean
   ) => {
     try {
       updateUserSetting(settingId, value);
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
+    if (value === undefined) return;
 
-    const valueArray = [
-      visualizationSettings.distanceLevel1,
-      visualizationSettings.distanceLevel2,
-      visualizationSettings.distanceLevel3,
-      visualizationSettings.distanceLevel4,
-      visualizationSettings.distanceLevel5,
-    ];
     if (settingId.startsWith('layer')) {
       const layerNumber = parseInt(settingId.slice(5), 10); // Extract the layer number from settingId
       if (!isNaN(layerNumber)) {
         // Ensure it's a valid number
-        if (value || value === undefined) {
+        if (value) {
           minimapCamera.layers.enable(layerNumber);
         } else {
           minimapCamera.layers.disable(layerNumber);
@@ -354,11 +235,6 @@ export default function Settings({
       }
     } else {
       switch (settingId) {
-        case 'applyHighlightingOnHover':
-          if (updateHighlighting) {
-            updateHighlighting();
-          }
-          break;
         case 'enableGamepadControls':
           setGamepadSupport(value);
           break;
@@ -378,11 +254,6 @@ export default function Settings({
     const spotLight = scene.getObjectByName('SpotLight');
 
     switch (settingId) {
-      case 'applyHighlightingOnHover':
-        if (updateHighlighting) {
-          updateHighlighting();
-        }
-        break;
       case 'castShadows':
         if (directionalLight) directionalLight.castShadow = value;
         if (spotLight) spotLight.castShadow = value;
@@ -394,38 +265,6 @@ export default function Settings({
       case 'enableGamepadControls':
         setGamepadSupport(value);
         break;
-      case 'semanticZoomState':
-        if (!SemanticZoomManager.instance.isEnabled && value) {
-          SemanticZoomManager.instance.activate();
-        } else if (SemanticZoomManager.instance.isEnabled && !value) {
-          SemanticZoomManager.instance.deactivate();
-        }
-        setSemanticZoomEnabled(SemanticZoomManager.instance.isEnabled);
-        break;
-      case 'usePredefinedSet':
-        // Set the value of the Slider distancePreSet to the same value again, to trigger the update routine!
-        semanticZoomPreSetSetter(
-          visualizationSettings.distancePreSet.value,
-          valueArray
-        );
-        SemanticZoomManager.instance.createZoomLevelMapDependingOnMeshTypes(
-          defaultCamera
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'autoOpenCloseFeature':
-        value
-          ? closeAllComponentsOfAllApplications()
-          : openAllComponentsOfAllApplications();
-        SemanticZoomManager.instance.toggleAutoOpenClose(value);
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
-      case 'useKMeansInsteadOfMeanShift':
-        SemanticZoomManager.instance.cluster(
-          visualizationSettings.clusterBasedOnMembers.value
-        );
-        SemanticZoomManager.instance.triggerLevelDecision2(undefined);
-        break;
       default:
         break;
     }
@@ -433,7 +272,6 @@ export default function Settings({
 
   const applyColorScheme = (colorScheme: ColorSchemeId) => {
     setColorScheme(colorScheme);
-    setResetState(!resetState);
   };
 
   const updateVisualizationState = () => {
@@ -444,30 +282,48 @@ export default function Settings({
   const resetGroup = (groupId: string) => {
     applyDefaultSettingsForGroup(groupId);
     updateVisualizationState();
-    setResetState(!resetState);
   };
 
   const resetSettingsAndUpdate = async () => {
-    if (resetSettings) {
-      resetSettings(true);
-      setResetState(!resetState);
-      updateVisualizationState();
+    applyDefaultSettings(true);
+    updateVisualizationState();
+  };
+
+  const scrollToSection = (groupId: string) => {
+    const htmlSettingGroup = document.getElementById(
+      `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`
+    );
+    if (htmlSettingGroup) {
+      const navHeight = stickyNavRef.current
+        ? stickyNavRef.current.offsetHeight
+        : 0;
+
+      htmlSettingGroup.style.scrollMarginTop = `${navHeight}px`;
+
+      htmlSettingGroup.scrollIntoView({
+        behavior: 'smooth',
+      });
     }
   };
 
-  return Object.entries(filteredSettingsByGroup).map(
+  const groupedSettings = Object.entries(filteredSettingsByGroup).map(
     ([groupId, settingIdArray]) => {
       if (settingIdArray.length === 0) {
         return <React.Fragment key={groupId}></React.Fragment>;
       }
+      const sectionId = `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`;
       return (
         <React.Fragment key={groupId}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            id={sectionId}
+            style={{ display: 'flex', justifyContent: 'space-between' }}
+          >
             <h6 className="mt-3">
               <strong>{groupId}</strong>
             </h6>
             <ResetButton onClick={resetGroup} args={groupId} />
           </div>
+
           {groupId === 'Colors' && (
             <div id="colorHeader" className="mb-2">
               <ColorSchemeSelector
@@ -476,6 +332,7 @@ export default function Settings({
               />
             </div>
           )}
+
           <div className="ml-3">
             {settingIdArray.map((settingId) => {
               const setting = visualizationSettings[settingId];
@@ -483,17 +340,14 @@ export default function Settings({
                 return (
                   <FlagSetting
                     key={settingId}
-                    setting={setting}
                     settingId={settingId}
                     onChange={updateFlagSetting}
-                    resetState={resetState}
                   />
                 );
               } else if (isRangeSetting(setting)) {
                 return (
                   <RangeSetting
                     key={settingId}
-                    setting={setting}
                     settingId={settingId}
                     onChange={updateRangeSetting}
                   />
@@ -503,8 +357,6 @@ export default function Settings({
                   <ColorPicker
                     key={settingId}
                     id={settingId as ColorSettingId}
-                    setting={setting}
-                    resetState={resetState}
                   />
                 );
               } else if (isButtonSetting(setting)) {
@@ -520,7 +372,6 @@ export default function Settings({
                 return (
                   <SelectSetting
                     key={settingId}
-                    setting={setting}
                     settingId={settingId}
                     onChange={updateSelectSetting}
                   />
@@ -532,6 +383,38 @@ export default function Settings({
         </React.Fragment>
       );
     }
+  );
+
+  // Get available setting groups for navigation
+  const availableGroups = Object.entries(filteredSettingsByGroup)
+    .filter(([, settingIdArray]) => settingIdArray.length > 0)
+    .map(([groupId]) => groupId);
+
+  return (
+    <>
+      {/* Navigation Links */}
+      {availableGroups.length > 1 && (
+        <div ref={stickyNavRef} className="mb-3 quick-navigation-container">
+          <h6 className="mb-2">
+            <strong>Quick Navigation</strong>
+          </h6>
+          <div className="d-flex flex-wrap gap-1">
+            {availableGroups.map((groupId) => (
+              <button
+                key={groupId}
+                type="button"
+                className="btn btn-outline-secondary btn-sm quick-navigation-button"
+                onClick={() => scrollToSection(groupId)}
+              >
+                {groupId}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <SettingPresets />
+      {groupedSettings}
+    </>
   );
 }
 

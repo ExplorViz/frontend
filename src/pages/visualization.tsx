@@ -1,83 +1,83 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { ChevronUpIcon } from '@primer/octicons-react';
+import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
+import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
+import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
+import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
+import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
+import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
+import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
+import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import {
   useLocalUserStore,
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import {
   AnalysisMode,
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
-import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import { useApplicationRendererStore } from '../stores/application-renderer';
-import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
-import { useCommitTreeStateStore } from '../stores/commit-tree-state';
-import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
-import { useHighlightingStore } from '../stores/highlighting';
-import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useLinkRendererStore } from '../stores/link-renderer';
-import { useReloadHandlerStore } from '../stores/reload-handler';
-import { useSpectateConfigurationStore } from '../stores/spectate-configuration';
-import { useToastHandlerStore } from '../stores/toast-handler';
-import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
-import { ForwardedMessage } from '../utils/collaboration/web-socket-messages/receivable/forwarded';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import {
+  ApiToken,
+  useUserApiTokenStore,
+} from 'explorviz-frontend/src/stores/user-api-token';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
-} from '../utils/collaboration/web-socket-messages/receivable/landscape';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/landscape';
 import {
   TIMESTAMP_UPDATE_TIMER_EVENT,
   TimestampUpdateTimerMessage,
-} from '../utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/timestamp-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
   SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
-} from '../utils/collaboration/web-socket-messages/types/serialized-room';
-import eventEmitter from '../utils/event-emitter';
-import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
-import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
-import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
-import { Timestamp } from '../utils/landscape-schemes/timestamp';
-import TimelineDataObjectHandler from '../utils/timeline/timeline-data-object-handler';
-import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
-// import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
-import { ChevronUpIcon } from '@primer/octicons-react';
-import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
-import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
-import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
-import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import { useShallow } from 'zustand/react/shallow';
-import ArRendering from '../components/extended-reality/ar-rendering';
-import EvolutionRenderingButtons from '../components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
-import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
 import useSyncState from '../hooks/sync-state';
 import { ImmersiveView } from '../rendering/application/immersive-view';
-import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
-import { useLandscapeTokenStore } from '../stores/landscape-token';
-import { useFontRepositoryStore } from '../stores/repos/font-repository';
-import { useUserSettingsStore } from '../stores/user-settings';
 
 const queryParams = [
   'roomId',
@@ -159,7 +159,6 @@ export default function Visualization() {
           // onLoad callback
           (font) => {
             setFont(font);
-            SemanticZoomManager.instance.font = font;
             ImmersiveView.instance.font = font;
             resolve(font);
           },
@@ -329,8 +328,6 @@ export default function Visualization() {
   const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.setAppNameAndBranchNameToColorMap
   );
-  const linkRendererFlag = useLinkRendererStore((state) => state._flag);
-  const setFlag = useLinkRendererStore((state) => state.setFlag);
   const updateHighlighting = useHighlightingStore(
     (state) => state.updateHighlighting
   );
@@ -404,6 +401,7 @@ export default function Visualization() {
 
   const shouldDisplayBottomBar = () => {
     return (
+      renderingServiceLandscapeData &&
       !showAR &&
       !showVR &&
       !isSingleLandscapeMode &&
@@ -470,13 +468,10 @@ export default function Visualization() {
       }
     }
 
-    // start main loop
+    // Start main loop
     restartTimestampPollingAndVizUpdate([]);
 
-    // Delete all Semantic Zoom Objects and its tables
-    SemanticZoomManager.instance.reset();
-
-    // fetch applications for evolution mode
+    // Fetch applications for evolution mode
     await fetchAndStoreApplicationCommitTrees();
 
     let showEvolutionVisualization = false;
@@ -547,16 +542,6 @@ export default function Visualization() {
     highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
     annotations,
   }: InitialLandscapeMessage): Promise<void> => {
-    setFlag(true);
-    while (linkRendererFlag) {
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(null);
-        }, 50);
-      });
-    }
-    // Now we can be sure our linkRenderer has all extern links
-
     // Serialized room is used in landscape-data-watcher
     roomSerializer.setSerializedRoom({
       landscape: landscape,
@@ -567,9 +552,13 @@ export default function Visualization() {
       annotations: annotations as SerializedAnnotation[],
     });
 
-    updateHighlighting();
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: landscape.timestamp, spanCount: 0 },
+    ]);
     await renderingServiceTriggerRenderingForGivenTimestamp(
-      landscape.timestamp
+      commitToSelectedTimestampMap
     );
     // Disable polling. It is now triggerd by the websocket.
   };
@@ -577,14 +566,28 @@ export default function Visualization() {
   const onTimestampUpdate = async ({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> => {
-    renderingServiceTriggerRenderingForGivenTimestamp(timestamp);
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: timestamp, spanCount: 0 },
+    ]);
+    renderingServiceTriggerRenderingForGivenTimestamp(
+      commitToSelectedTimestampMap
+    );
   };
 
   const onTimestampUpdateTimer = async ({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> => {
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: timestamp, spanCount: 0 },
+    ]);
     await loadLandscapeByTimestamp(timestamp);
-    renderingServiceTriggerRenderingForGivenTimestamp(timestamp);
+    renderingServiceTriggerRenderingForGivenTimestamp(
+      commitToSelectedTimestampMap
+    );
   };
 
   const onSyncRoomState = async (event: {
@@ -624,18 +627,6 @@ export default function Visualization() {
     if (snapshotToken === null) {
       return;
     }
-
-    // make sure our linkRenderer has all extern links
-    setFlag(true);
-    while (linkRendererFlag) {
-      // war mal 350?
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(null);
-        }, 50);
-      });
-    }
-
     /**
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.

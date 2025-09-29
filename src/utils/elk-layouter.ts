@@ -1,4 +1,8 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
+import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import {
   Application,
   K8sDeployment,
@@ -11,10 +15,6 @@ import {
   getStoredNumberSetting,
   getStoredSettings,
 } from './settings/local-storage-settings';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -44,6 +44,20 @@ let APP_MARGIN: number;
 let PACKAGE_LABEL_MARGIN: number;
 let PACKAGE_MARGIN: number;
 let COMPONENT_HEIGHT: number;
+let COMPONENT_LABEL_PLACEMENT: string;
+
+function getPaddingForLabelPlacement(
+  labelPlacement: string,
+  labelMargin: number,
+  baseMargin: number
+): string {
+  const top = labelPlacement === 'top' ? labelMargin : baseMargin;
+  const bottom = labelPlacement === 'bottom' ? labelMargin : baseMargin;
+  const left = labelPlacement === 'left' ? labelMargin : baseMargin;
+  const right = labelPlacement === 'right' ? labelMargin : baseMargin;
+
+  return `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
+}
 
 export default async function layoutLandscape(
   k8sNodes: K8sNode[],
@@ -66,6 +80,8 @@ export default async function layoutLandscape(
   PACKAGE_LABEL_MARGIN = getStoredNumberSetting('packageLabelMargin');
   PACKAGE_MARGIN = getStoredNumberSetting('packageMargin');
   COMPONENT_HEIGHT = getStoredNumberSetting('openedComponentHeight');
+  COMPONENT_LABEL_PLACEMENT = (getStoredSettings().componentLabelPlacement
+    .value || 'top') as string;
 
   APPLICATION_ALGORITHM = (getStoredSettings().applicationLayoutAlgorithm
     .value || 'stress') as string;
@@ -80,7 +96,11 @@ export default async function layoutLandscape(
     layoutOptions: {
       algorithm: APPLICATION_ALGORITHM,
       desiredEdgeLength: DESIRED_EDGE_LENGTH,
-      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
+      'elk.padding': getPaddingForLabelPlacement(
+        COMPONENT_LABEL_PLACEMENT,
+        APP_LABEL_MARGIN,
+        APP_MARGIN
+      ),
     },
   };
 
@@ -110,7 +130,11 @@ function createK8sNodeGraph(k8sNode: K8sNode) {
     layoutOptions: {
       aspectRatio: ASPECT_RATIO.toString(),
       algorithm: PACKAGE_ALGORITHM,
-      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+      'elk.padding': getPaddingForLabelPlacement(
+        COMPONENT_LABEL_PLACEMENT,
+        APP_LABEL_MARGIN,
+        APP_MARGIN
+      ),
     },
   };
 
@@ -191,7 +215,11 @@ function createApplicationGraph(application: Application) {
     layoutOptions: {
       aspectRatio: ASPECT_RATIO,
       algorithm: PACKAGE_ALGORITHM,
-      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+      'elk.padding': getPaddingForLabelPlacement(
+        COMPONENT_LABEL_PLACEMENT,
+        APP_LABEL_MARGIN,
+        APP_MARGIN
+      ),
     },
   };
   populateAppGraph(appGraph, application);
@@ -208,7 +236,11 @@ function populateAppGraph(appGraph: any, application: Application) {
         algorithm: PACKAGE_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
-        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
+        'elk.padding': getPaddingForLabelPlacement(
+          COMPONENT_LABEL_PLACEMENT,
+          PACKAGE_LABEL_MARGIN,
+          PACKAGE_MARGIN
+        ),
       },
     };
     appGraph.children.push(packageGraph);
@@ -252,7 +284,11 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
         algorithm: PACKAGE_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
-        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
+        'elk.padding': getPaddingForLabelPlacement(
+          COMPONENT_LABEL_PLACEMENT,
+          PACKAGE_LABEL_MARGIN,
+          PACKAGE_MARGIN
+        ),
       },
     };
     packageGraphChildren.push(packageNode);

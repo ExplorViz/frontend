@@ -7,21 +7,21 @@ import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-rendere
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import ClassLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/class-label-r3f';
+import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/application/code-building-label';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
-import ComponentLabelR3F from 'explorviz-frontend/src/view-objects/3d/application/component-label-r3f';
+import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
-import FoundationR3F from 'explorviz-frontend/src/view-objects/3d/application/foundation-r3f';
+import CityFoundation from 'explorviz-frontend/src/view-objects/3d/application/city-foundation';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import InstancedClassR3F from './instanced-class-r3f';
-import InstancedComponentR3F from './instanced-component-r3f';
+import CodeBuildings from './code-buildings';
+import CityDistricts from './city-districts';
 import { useFrame, useThree } from '@react-three/fiber';
 
-export default function ApplicationR3F({
+export default function CodeCity({
   applicationData,
   layoutMap,
 }: {
@@ -116,12 +116,12 @@ export default function ApplicationR3F({
         <EmbeddedBrowser application={applicationData.application} />
       )}
       {layoutMap.get(applicationData.getId()) && (
-        <FoundationR3F
+        <CityFoundation
           application={applicationData.application}
           layout={layoutMap.get(applicationData.getId())!}
         />
       )}
-      <InstancedClassR3F
+      <CodeBuildings
         classes={applicationData.getClasses()}
         appId={applicationData.application.id}
         layoutMap={layoutMap}
@@ -132,7 +132,7 @@ export default function ApplicationR3F({
         .getClasses()
         .map((classData) =>
           layoutMap.get(classData.id) ? (
-            <ClassLabelR3F
+            <CodeBuildingLabel
               key={classData.id + '-label'}
               dataModel={classData}
               application={applicationData.application}
@@ -141,7 +141,7 @@ export default function ApplicationR3F({
             />
           ) : null
         )}
-      <InstancedComponentR3F
+      <CityDistricts
         packages={applicationData.getPackages()}
         layoutMap={layoutMap}
         ref={componentInstanceMeshRef}
@@ -151,7 +151,7 @@ export default function ApplicationR3F({
         .getPackages()
         .map((packageData) =>
           layoutMap.get(packageData.id) ? (
-            <ComponentLabelR3F
+            <CityDistrictLabel
               key={packageData.id + '-label'}
               component={packageData}
               layout={layoutMap.get(packageData.id)!}

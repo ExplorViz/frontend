@@ -5,7 +5,6 @@ import {
   DeviceCameraVideoIcon,
   EyeClosedIcon,
   GlobeIcon,
-  SearchIcon,
 } from '@primer/octicons-react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
@@ -13,9 +12,6 @@ export default function StatusIcons() {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const spectatedUser = useSpectateUserStore((state) => state.spectatedUser);
   const isCommRendered = useConfigurationStore((state) => state.isCommRendered);
-  const isSemanticZoomEnabled = useConfigurationStore(
-    (state) => state.semanticZoomEnabled
-  );
   const idToRemoteUser = useCollaborationSessionStore(
     (state) => state.idToRemoteUser
   );
@@ -31,15 +27,6 @@ export default function StatusIcons() {
             <DeviceCameraVideoIcon size="small" />
           </OverlayTrigger>
         </div>
-      )}
-
-      {isSemanticZoomEnabled && (
-        <OverlayTrigger
-          placement="bottom"
-          overlay={<Tooltip>Semantic Zoom enabled</Tooltip>}
-        >
-          <SearchIcon color="green" size={24} />
-        </OverlayTrigger>
       )}
 
       {isOnline() && (
