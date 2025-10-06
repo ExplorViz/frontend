@@ -81,6 +81,14 @@ export default class ApplicationData {
 
     return classes;
   }
+
+  containsModelId(modelId: string) {
+    return (
+      this.getId() === modelId ||
+      this.getPackages().some((p) => p.id === modelId) ||
+      this.getClasses().some((c) => c.id === modelId)
+    );
+  }
 }
 export interface K8sData {
   k8sNode: string;

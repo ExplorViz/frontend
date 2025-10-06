@@ -149,7 +149,7 @@ export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
       }
       const applicationData = useApplicationRepositoryStore
         .getState()
-        .getById(get().currentApplication!.getModelId());
+        .getByAppId(get().currentApplication!.getModelId());
 
       return applicationData?.applicationMetrics;
     },

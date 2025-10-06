@@ -23,7 +23,7 @@ export default function ClazzPopupRuntime({
   const selectedMetric = useHeatmapConfigurationStore(
     (state) => state.getSelectedMetric
   )();
-  const getById = useApplicationRepositoryStore((state) => state.getById);
+  const getById = useApplicationRepositoryStore((state) => state.getByAppId);
   useHeatmapConfigurationStore((state) => state.selectedMetricName); // For reactivity on metric selection
 
   const name = clazz.name;

@@ -131,7 +131,7 @@ function composeClazzContent(clazzMesh: ClazzMesh) {
   // TODO refactor, duplicated from clazz-popup
   const applicationMetricsForCurrentApplication = useApplicationRepositoryStore
     .getState()
-    .getById(application.getModelId())?.applicationMetrics;
+    .getByAppId(application.getModelId())?.applicationMetrics;
   // const applicationMetricsForCurrentApplication = applicationRepo.getById(
   //   application.getModelId()
   // )?.applicationMetrics;

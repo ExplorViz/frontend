@@ -156,7 +156,7 @@ export default class IdeCrossCommunication {
 
       const applicationData = useApplicationRepositoryStore
         .getState()
-        .getById(application.getModelId());
+        .getByAppId(application.getModelId());
 
       const classCommunications = applicationData?.classCommunications;
 

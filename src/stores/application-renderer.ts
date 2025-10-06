@@ -193,7 +193,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     getClassCommunications: (applicationObjetc3D: ApplicationObject3D) => {
       const applicationData = useApplicationRepositoryStore
         .getState()
-        .getById(applicationObjetc3D.getModelId());
+        .getByAppId(applicationObjetc3D.getModelId());
       return applicationData?.classCommunications || [];
     },
 
@@ -601,7 +601,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       room.openApps.forEach(async (app) => {
         const applicationData = useApplicationRepositoryStore
           .getState()
-          .getById(app.id);
+          .getByAppId(app.id);
         // const applicationData = this.applicationRepo.getById(app.id);
         if (applicationData) {
           await get().addApplicationTask(
