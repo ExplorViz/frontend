@@ -13,7 +13,7 @@ export default function EmbeddedBrowser({ application }: any) {
 
   const defaultUrl = application.name.includes('PetClinic')
     ? 'http://localhost:18080'
-    : 'http://localhost:8080';
+    : 'http://localhost:4200';
   const [url, setUrl] = useState<string>(defaultUrl);
 
   const sizeX = 1000;

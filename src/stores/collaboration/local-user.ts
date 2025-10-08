@@ -1,16 +1,5 @@
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import MousePing from 'explorviz-frontend/src/utils/collaboration/mouse-ping-helper';
 import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { getPoses } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import * as THREE from 'three';
 import { create } from 'zustand';
 import { useMessageSenderStore } from './message-sender';
@@ -24,7 +13,6 @@ interface LocalUserState {
   defaultCamera: THREE.PerspectiveCamera;
   minimapCamera: THREE.OrthographicCamera;
   visualizationMode: VisualizationMode;
-  mousePing: MousePing;
   userGroup: THREE.Group;
   task: any;
   controller1: VRController | undefined;
@@ -87,7 +75,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
     defaultCamera: initDefaultCamera, // tracked
     minimapCamera: new THREE.OrthographicCamera(), // tracked
     visualizationMode: 'browser', // tracked
-    mousePing: new MousePing(new THREE.Color('red'), initAnimationMixer),
     userGroup: initUserGroup,
     task: undefined,
     controller1: undefined,
@@ -105,9 +92,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         newUserGroup.add(get().defaultCamera);
         set({ userGroup: newUserGroup });
       }
-      set({
-        mousePing: new MousePing(new THREE.Color('red'), get().animationMixer),
-      });
       return undefined;
     },
 
@@ -162,9 +146,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       set({ userName: name });
 
       set({ color: new THREE.Color('#' + color.getHexString()) });
-      set({
-        mousePing: new MousePing(new THREE.Color(color), get().animationMixer),
-      });
     },
 
     setController1: (controller1: VRController) => {
