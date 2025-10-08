@@ -456,7 +456,7 @@ export default function BrowserRendering({
   // MARK: JSX
 
   return (
-    <ChatbotProvider>
+    <ChatbotProvider landscapeData={landscapeData}>
       <div className={`row h-100 ${isDisplayed ? 'show' : 'hide'}`}>
         <div className="d-flex flex-column h-100 col-12">
           <div id="rendering" ref={outerDiv}>

@@ -1,6 +1,8 @@
 import { CopilotKit } from '@copilotkit/react-core';
 import { createContext, PropsWithChildren, useEffect, useState } from 'react';
-import { McpServerManager } from './mcp-server-manager';
+import { CopilotTools } from './copilot-tools';
+import { CopilotResources } from './copilot-resources';
+import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
 
@@ -33,7 +35,14 @@ const defaultContext: Context = {
 
 export const ChatbotContext = createContext(defaultContext);
 
-export function ChatbotProvider({ children }: PropsWithChildren) {
+interface ChatbotProviderProps extends PropsWithChildren {
+  landscapeData: LandscapeData | null;
+}
+
+export function ChatbotProvider({
+  children,
+  landscapeData,
+}: ChatbotProviderProps) {
   const [providers, setProviders] = useState(defaultContext.providers);
   const [selectedProvider, setSelectedProvider] = useState(
     defaultContext.selectedProvider
@@ -73,7 +82,8 @@ export function ChatbotProvider({ children }: PropsWithChildren) {
           ['x-explorviz-model']: selectedModel.id,
         }}
       >
-        <McpServerManager />
+        <CopilotResources landscapeData={landscapeData} />
+        <CopilotTools />
         {children}
       </CopilotKit>
     </ChatbotContext.Provider>
