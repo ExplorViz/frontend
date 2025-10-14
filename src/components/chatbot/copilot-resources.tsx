@@ -1,28 +1,25 @@
-import { useCopilotReadable } from '@copilotkit/react-core';
+import { useCopilotAction, useCopilotReadable } from '@copilotkit/react-core';
+import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { type Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface CopilotResourcesProps {
   landscapeData: LandscapeData | null;
 }
 
 export function CopilotResources({ landscapeData }: CopilotResourcesProps) {
+  const applications = landscapeData?.structureLandscapeData.nodes.reduce(
+    (acc, node) => {
+      return acc.concat(node.applications);
+    },
+    [] as Application[]
+  );
   useCopilotReadable({
     description:
-      'The landscape data of the ExplorViz 3D visualization, provided as a list of applications, which in turn are a list of packages, which form a hierarchical structure.',
-    value: JSON.stringify(landscapeData?.structureLandscapeData, [
-      'nodes',
-      'applications',
-      'packages',
-      'subPackages',
-      'classes',
-      'methods',
-      'id',
-      'name',
-    ]),
-    available:
-      landscapeData?.structureLandscapeData !== undefined
-        ? 'enabled'
-        : 'disabled',
+      'Get the list of all applications of the 3D landscape data, the highest level of the underlying data structure.',
+    value: JSON.stringify(applications, getCircularReplacer(true)),
+    available: applications ? 'enabled' : 'disabled',
   });
+  console.log(applications);
   return null;
 }
