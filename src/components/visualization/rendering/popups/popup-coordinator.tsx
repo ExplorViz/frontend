@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 import {
+  CircleIcon,
   CommentIcon,
   PaintbrushIcon,
   PinIcon,
@@ -29,6 +30,7 @@ import {
   Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import Button from 'react-bootstrap/Button';
@@ -269,6 +271,20 @@ export default function PopupCoordinator({
               }}
             >
               <PinIcon className="align-right" />
+            </Button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="top"
+            trigger={['hover', 'focus']}
+            overlay={<Tooltip>Ping Entity</Tooltip>}
+          >
+            <Button
+              variant="primary"
+              onClick={() => {
+                pingByModelId(popupData.entity.id as string);
+              }}
+            >
+              <CircleIcon className="align-right" />
             </Button>
           </OverlayTrigger>
 

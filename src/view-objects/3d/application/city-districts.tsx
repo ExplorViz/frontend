@@ -1,33 +1,33 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
+import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import {
   Application,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import gsap from 'gsap';
 import { forwardRef, useEffect, useMemo, useRef } from 'react';
 import {
   BoxGeometry,
   Color,
-  MeshLambertMaterial,
   Matrix4,
+  MeshLambertMaterial,
   Quaternion,
   Vector3,
 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
-import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import gsap from 'gsap';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
 

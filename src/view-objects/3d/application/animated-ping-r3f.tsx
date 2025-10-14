@@ -3,6 +3,7 @@ import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
+import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { AnimationMixer } from 'three';
@@ -34,6 +35,35 @@ const disposeMesh = (mesh: PingMesh | null) => {
     console.warn('Failed to dispose ping mesh');
   }
 };
+
+export function pingByModelId(
+  modelId: string,
+  options: {
+    color?: THREE.ColorRepresentation;
+    durationMs?: number;
+    restartable?: boolean;
+    replay?: boolean;
+  } = {
+    color: useHighlightingStore.getState().highlightingColor(),
+    durationMs: 3000,
+    restartable: false,
+    replay: false,
+  }
+) {
+  const { color, durationMs, restartable, replay } = options;
+  const modelWorldPosition = getWorldPositionOfModel(modelId);
+  if (!modelWorldPosition) {
+    console.warn('Model position not found.');
+    return;
+  }
+  if (restartable) {
+    triggerRestartablePing(modelWorldPosition, color, durationMs, {
+      replay,
+    });
+  } else {
+    triggerNonRestartablePing(modelWorldPosition, color, durationMs);
+  }
+}
 
 export function triggerRestartablePing(
   position: THREE.Vector3,
@@ -101,7 +131,9 @@ export function triggerRestartablePing(
 
 export function triggerNonRestartablePing(
   position: THREE.Vector3,
-  color: THREE.Color = useHighlightingStore.getState().highlightingColor(),
+  color: THREE.ColorRepresentation = useHighlightingStore
+    .getState()
+    .highlightingColor(),
   durationMs: number = 3000,
   options: {
     pingedObject?: THREE.Object3D;

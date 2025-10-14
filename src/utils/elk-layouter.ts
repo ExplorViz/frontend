@@ -1,4 +1,5 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
@@ -11,10 +12,6 @@ import {
   K8sPod,
   Package,
 } from './landscape-schemes/structure-data';
-import {
-  getStoredNumberSetting,
-  getStoredSettings,
-} from './settings/local-storage-settings';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -46,6 +43,27 @@ let PACKAGE_MARGIN: number;
 let COMPONENT_HEIGHT: number;
 let COMPONENT_LABEL_PLACEMENT: string;
 
+function setVisualizationSettings() {
+  const { visualizationSettings: vs } = useUserSettingsStore.getState();
+
+  DESIRED_EDGE_LENGTH = vs.applicationDistance.value;
+  ASPECT_RATIO = vs.applicationAspectRatio.value;
+  CLASS_FOOTPRINT = vs.classFootprint.value;
+  WIDTH_METRIC = vs.classWidthMetric.value;
+  WIDTH_METRIC_MULTIPLIER = vs.classWidthMultiplier.value;
+  DEPTH_METRIC = vs.classDepthMetric.value;
+  DEPTH_METRIC_MULTIPLIER = vs.classDepthMultiplier.value;
+  CLASS_MARGIN = vs.classMargin.value;
+  APP_LABEL_MARGIN = vs.appLabelMargin.value;
+  APP_MARGIN = vs.appMargin.value;
+  PACKAGE_LABEL_MARGIN = vs.packageLabelMargin.value;
+  PACKAGE_MARGIN = vs.packageMargin.value;
+  COMPONENT_HEIGHT = vs.openedComponentHeight.value;
+  COMPONENT_LABEL_PLACEMENT = vs.componentLabelPlacement.value;
+  APPLICATION_ALGORITHM = vs.applicationLayoutAlgorithm.value;
+  PACKAGE_ALGORITHM = vs.packageLayoutAlgorithm.value;
+}
+
 function getPaddingForLabelPlacement(
   labelPlacement: string,
   labelMargin: number,
@@ -65,28 +83,7 @@ export default async function layoutLandscape(
 ) {
   const elk = new ELK();
 
-  DESIRED_EDGE_LENGTH = getStoredNumberSetting('applicationDistance');
-  ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
-  CLASS_FOOTPRINT = getStoredNumberSetting('classFootprint');
-  WIDTH_METRIC = (getStoredSettings().classWidthMetric.value ||
-    'None') as string;
-  WIDTH_METRIC_MULTIPLIER = getStoredNumberSetting('classWidthMultiplier');
-  DEPTH_METRIC = (getStoredSettings().classDepthMetric.value ||
-    'None') as string;
-  DEPTH_METRIC_MULTIPLIER = getStoredNumberSetting('classDepthMultiplier');
-  CLASS_MARGIN = getStoredNumberSetting('classMargin');
-  APP_LABEL_MARGIN = getStoredNumberSetting('appLabelMargin');
-  APP_MARGIN = getStoredNumberSetting('appMargin');
-  PACKAGE_LABEL_MARGIN = getStoredNumberSetting('packageLabelMargin');
-  PACKAGE_MARGIN = getStoredNumberSetting('packageMargin');
-  COMPONENT_HEIGHT = getStoredNumberSetting('openedComponentHeight');
-  COMPONENT_LABEL_PLACEMENT = (getStoredSettings().componentLabelPlacement
-    .value || 'top') as string;
-
-  APPLICATION_ALGORITHM = (getStoredSettings().applicationLayoutAlgorithm
-    .value || 'stress') as string;
-  PACKAGE_ALGORITHM = (getStoredSettings().packageLayoutAlgorithm.value ||
-    'rectpacking') as string;
+  setVisualizationSettings();
 
   // Initialize landscape graph
   const landscapeGraph: any = {

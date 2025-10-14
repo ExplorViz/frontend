@@ -1,7 +1,7 @@
 import { getAllPackagesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
 import {
-  Package,
   Class,
+  Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 

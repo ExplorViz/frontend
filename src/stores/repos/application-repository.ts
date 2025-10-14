@@ -6,15 +6,21 @@ interface ApplicationRepositoryState {
   add: (applicationId: string, applicationData: ApplicationData) => void;
   remove: (applicationId: string) => void;
   cleanup: () => void;
-  getById: (applicationId: string) => ApplicationData | undefined;
+  getByAppId: (applicationId: string) => ApplicationData | undefined;
+  getByModelId: (modelId: string) => ApplicationData | undefined;
   getAll: () => MapIterator<ApplicationData>;
 }
 
 export const useApplicationRepositoryStore = create<ApplicationRepositoryState>(
   (set, get) => ({
     applications: new Map<string, ApplicationData>(), // tracked
-    getById: (applicationId: string) => {
+    getByAppId: (applicationId: string) => {
       return get().applications.get(applicationId);
+    },
+    getByModelId: (modelId: string) => {
+      return get()
+        .applications.values()
+        .find((application) => application.containsModelId(modelId));
     },
     getAll: () => {
       return get().applications.values();

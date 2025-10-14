@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
 
@@ -17,8 +17,8 @@ interface ApplicationSearchEntity {
 
 export default function ApplicationSearch() {
   useApplicationRepositoryStore((state) => state.applications);
-  const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
-  const highlightById = useHighlightingStore((state) => state.highlightById);
+  const highlightById =
+    useVisualizationStore.getState().actions.setHighlightedEntityId;
 
   const [searchString, setSearchString] = useState<string>('');
   const [selected, setSelected] = useState<any[]>([]);
@@ -53,10 +53,7 @@ export default function ApplicationSearch() {
 
     // Ping all newly selected items
     newlySelectedItems.forEach((item) => {
-      pingByModelId(item.modelId, item.applicationModelId, {
-        durationInMs: 3500,
-        nonrestartable: true,
-      });
+      pingByModelId(item.modelId);
     });
 
     setSelected(Array.from(newSelectedOptions));
@@ -70,10 +67,7 @@ export default function ApplicationSearch() {
 
   const pingAllSelectedEntities = () => {
     selected.forEach((selectedEntity) => {
-      pingByModelId(selectedEntity.modelId, selectedEntity.applicationModelId, {
-        durationInMs: 3500,
-        nonrestartable: true,
-      });
+      pingByModelId(selectedEntity.modelId);
     });
   };
 
@@ -119,14 +113,9 @@ export default function ApplicationSearch() {
 function CustomMultiValueLabel(
   props: MultiValueGenericProps<ApplicationSearchEntity>
 ) {
-  const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
-
   const { data, innerProps } = props;
   const onClick = () => {
-    pingByModelId(data.modelId, data.applicationModelId, {
-      durationInMs: 3500,
-      nonrestartable: true,
-    });
+    pingByModelId(data.modelId);
   };
 
   return (

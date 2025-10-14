@@ -8,12 +8,10 @@ import FlagSetting from 'explorviz-frontend/src/components/visualization/page-se
 import RangeSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/range-setting';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
@@ -58,11 +56,6 @@ export default function Settings({
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
-  const { updateApplicationLayout } = useApplicationRendererStore(
-    useShallow((state) => ({
-      updateApplicationLayout: state.updateApplicationLayout,
-    }))
-  );
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
   const updateMinimapSphereRadius = useMinimapStore(
     (state) => state.updateSphereRadius
@@ -84,10 +77,6 @@ export default function Settings({
         setColorScheme: state.setColorScheme,
       }))
     );
-
-  const updateHighlightingInStore = useHighlightingStore(
-    (state) => state.updateHighlighting
-  );
 
   const popupHandlerState = usePopupHandlerStore(
     useShallow((state) => ({
@@ -274,19 +263,12 @@ export default function Settings({
     setColorScheme(colorScheme);
   };
 
-  const updateVisualizationState = () => {
-    updateHighlightingInStore();
-    updateApplicationLayout();
-  };
-
   const resetGroup = (groupId: string) => {
     applyDefaultSettingsForGroup(groupId);
-    updateVisualizationState();
   };
 
   const resetSettingsAndUpdate = async () => {
     applyDefaultSettings(true);
-    updateVisualizationState();
   };
 
   const scrollToSection = (groupId: string) => {

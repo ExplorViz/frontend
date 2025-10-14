@@ -32,13 +32,10 @@ export const useCameraControlsStore = create<CameraControlsState>(
     ) => {
       const { cameraControlsRef } = get();
       if (cameraControlsRef?.current) {
-        cameraControlsRef.current.moveTo(
+        cameraControlsRef.current.setLookAt(
           position[0],
           position[1],
           position[2],
-          enableTransition
-        );
-        cameraControlsRef.current.setTarget(
           target[0],
           target[1],
           target[2],

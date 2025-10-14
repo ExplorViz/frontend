@@ -1,7 +1,17 @@
 // #region Imports
-import { create } from 'zustand';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
+import { useTextureServiceStore } from 'explorviz-frontend/src/stores/texture-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
+import {
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/src/utils/application-helpers';
 import CommunicationRendering from 'explorviz-frontend/src/utils/application-rendering/communication-rendering';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import * as EntityRendering from 'explorviz-frontend/src/utils/application-rendering/entity-rendering';
@@ -10,46 +20,35 @@ import {
   removeAllHighlightingFor,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import * as Labeler from 'explorviz-frontend/src/utils/application-rendering/labeler';
+import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
+import { CommitComparison } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import VrApplicationObject3D from 'explorviz-frontend/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { FlatDataModelBasicInfo } from 'explorviz-frontend/src/utils/flat-data-schemes/flat-data';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Class,
   getApplicationsFromNodes,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getSubPackagesOfPackage } from 'explorviz-frontend/src/utils/package-helpers';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import * as THREE from 'three';
-import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
-import VrApplicationObject3D from 'explorviz-frontend/src/utils/extended-reality/view-objects/application/vr-application-object-3d';
-import { useConfigurationStore } from './configuration';
-import { useApplicationRepositoryStore } from './repos/application-repository';
-import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
-import { useUserSettingsStore } from './user-settings';
-import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
-import { getSubPackagesOfPackage } from 'explorviz-frontend/src/utils/package-helpers';
-import { useHighlightingStore } from './highlighting';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { CommitComparison } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import {
-  getAllClassesInApplication,
-  getAllPackagesInApplication,
-} from 'explorviz-frontend/src/utils/application-helpers';
-import { MeshLineMaterial } from 'meshline';
-import { FlatDataModelBasicInfo } from 'explorviz-frontend/src/utils/flat-data-schemes/flat-data';
-import { useTextureServiceStore } from 'explorviz-frontend/src/stores/texture-service';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
-import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { MeshLineMaterial } from 'meshline';
+import * as THREE from 'three';
+import { create } from 'zustand';
+import { useConfigurationStore } from './configuration';
+import { useHighlightingStore } from './highlighting';
+import { useApplicationRepositoryStore } from './repos/application-repository';
+import { useUserSettingsStore } from './user-settings';
 // #endregion imports
 
 export type LayoutData = {
@@ -193,7 +192,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
     getClassCommunications: (applicationObjetc3D: ApplicationObject3D) => {
       const applicationData = useApplicationRepositoryStore
         .getState()
-        .getById(applicationObjetc3D.getModelId());
+        .getByAppId(applicationObjetc3D.getModelId());
       return applicationData?.classCommunications || [];
     },
 
@@ -601,7 +600,7 @@ export const useApplicationRendererStore = create<ApplicationRendererState>(
       room.openApps.forEach(async (app) => {
         const applicationData = useApplicationRepositoryStore
           .getState()
-          .getById(app.id);
+          .getByAppId(app.id);
         // const applicationData = this.applicationRepo.getById(app.id);
         if (applicationData) {
           await get().addApplicationTask(
