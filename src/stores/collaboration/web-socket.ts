@@ -8,7 +8,7 @@ import { SELF_CONNECTED_EVENT } from 'explorviz-frontend/src/utils/collaboration
 import { TIMESTAMP_UPDATE_TIMER_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/timestamp-update-timer';
 import { USER_CONNECTED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/user-connected';
 import { USER_DISCONNECTED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/user-disconnect';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/all-highlights-reset';
+import { RESET_HIGHLIGHTING_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import { ANNOTATION_CLOSED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/annotation-closed';
 import { ANNOTATION_EDIT_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/annotation-edit';
 import { ANNOTATION_OPENED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/annotation-opened';
@@ -50,7 +50,7 @@ const collaborationService = import.meta.env.VITE_COLLAB_SERV_URL;
 export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
 const RECEIVABLE_EVENTS = [
-  ALL_HIGHLIGHTS_RESET_EVENT,
+  RESET_HIGHLIGHTING_EVENT,
   CHANGE_LANDSCAPE_EVENT,
   COMPONENT_UPDATE_EVENT,
   DETACHED_MENU_CLOSED_EVENT,

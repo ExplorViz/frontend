@@ -7,7 +7,7 @@ export type ShareSettingsMessage = {
   settings: VisualizationSettings;
 };
 
-export function isSpectatingUpdateMessage(
+export function isShareSettingsUpdateMessage(
   msg: any
 ): msg is ShareSettingsMessage {
   return (

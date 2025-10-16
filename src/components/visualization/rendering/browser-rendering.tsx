@@ -27,7 +27,6 @@ import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/sce
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
-import { moveCameraTo } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
 import {
   DynamicLandscapeData,
@@ -35,7 +34,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -291,12 +289,12 @@ export default function BrowserRendering({
 
     // Initialize minimap
 
-    minimapActions.initializeMinimap(
-      scene,
-      landscape3D,
-      cameraControls.current
-    );
-    minimapActions.setRaycaster(new Raycaster(localUserState.minimapCamera));
+    // minimapActions.initializeMinimap(
+    //   scene,
+    //   landscape3D,
+    //   cameraControls.current
+    // );
+    // minimapActions.setRaycaster(new Raycaster(localUserState.minimapCamera));
   };
 
   const removeAllHighlighting = () => {
@@ -555,7 +553,6 @@ export default function BrowserRendering({
                         dynamicData={landscapeData!.dynamicLandscapeData}
                         renderingLoop={renderingLoop.current!}
                         structureData={landscapeData!.structureLandscapeData}
-                        moveCameraTo={moveCameraTo}
                       />
                     )}
                   </div>

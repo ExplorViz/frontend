@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 
 import debug from 'debug';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import ApplicationData, {
   K8sData,
 } from 'explorviz-frontend/src/utils/application-data';
@@ -10,9 +12,9 @@ import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/d
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
+  getAllPackagesAndClassesFromLandscape,
   getApplicationsFromNodes,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
@@ -105,6 +107,16 @@ export default function useLandscapeDataWatcher(
 
     setApplicationModels(applicationModels);
     setInterAppCommunications(interAppCommunications);
+
+    // Add data to model repository
+    const { packages, classes } = getAllPackagesAndClassesFromLandscape(
+      structureLandscapeData
+    );
+    const modelRepository = useModelStore.getState();
+    modelRepository.setApplications(applicationModels);
+    modelRepository.setComponents(packages);
+    modelRepository.setClasses(classes);
+    modelRepository.setCommunications(classCommunications);
   };
 
   const updateApplicationData = async (

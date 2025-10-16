@@ -7,6 +7,7 @@ import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-s
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -287,6 +288,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     };
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
+      console.log(useModelStore.getState().applications);
+
       if (ref === null || typeof ref === 'function') {
         return;
       }
@@ -317,16 +320,12 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (!componentId) {
         return;
       }
-      const component = componentIdToPackage.get(componentId);
-      if (!component) {
-        return;
-      }
 
       // Toggle open/close state
       if (closedComponentIds.has(componentId)) {
-        EntityManipulation.openComponent(component);
+        EntityManipulation.openComponent(componentId);
       } else {
-        EntityManipulation.closeComponent(component);
+        EntityManipulation.closeComponent(componentId);
       }
     };
 
