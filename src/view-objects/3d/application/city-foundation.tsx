@@ -7,6 +7,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { gsap } from 'gsap';
 import { useEffect, useState } from 'react';
@@ -188,7 +189,7 @@ export default function CityFoundation({
           fontSize={(appLabelMargin * 0.9) / layout.depth}
           raycast={() => null}
         >
-          {application.name}
+          {getEntityDisplayName(application.name, application.id)}
         </Text>
       )}
     </mesh>

@@ -7,6 +7,7 @@ import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import {
   MetricKey,
   metricMappingMultipliers,
@@ -144,16 +145,11 @@ export default function CodeBuildingLabel({
       position={labelPosition}
       color={classTextColor}
       visible={isClassVisible && isCameraZoomedIn}
-      sdfGlyphSize={16}
-      // outlineColor={'black'}
-      // outlineWidth={classLabelFontSize * 0.05}
       rotation={[1.5 * Math.PI, 0, labelRotation]}
       fontSize={classLabelFontSize * Math.min(layout.width, layout.depth) * 0.5}
       raycast={() => null}
     >
-      {dataModel.name.length <= classLabelLength
-        ? dataModel.name
-        : dataModel.name.substring(0, classLabelLength) + '...'}
+      {getTruncatedDisplayName(dataModel.name, dataModel.id, classLabelLength)}
     </Text>
   ) : null;
 }

@@ -2,6 +2,7 @@ import { Text } from '@react-three/drei';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
@@ -143,7 +144,6 @@ export default function CityDistrictLabel({
       visible={isVisible && (isCameraZoomedIn || !isOpen)}
       position={labelPosition}
       rotation={getLabelRotation(componentLabelPlacement)}
-      sdfGlyphSize={16}
       fontSize={
         isOpen
           ? packageLabelMargin * 0.5
@@ -151,7 +151,7 @@ export default function CityDistrictLabel({
       }
       raycast={() => null}
     >
-      {component.name}
+      {getEntityDisplayName(component.name, component.id)}
     </Text>
   );
 }

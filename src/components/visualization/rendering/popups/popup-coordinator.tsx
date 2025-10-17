@@ -33,6 +33,7 @@ import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/applicatio
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -329,7 +330,9 @@ export default function PopupCoordinator({
             overlay={<Tooltip>Annotate</Tooltip>}
           >
             <Button
-              variant="primary"
+              variant={
+                isEntityAnnotated(popupData.entityId) ? 'success' : 'primary'
+              }
               onClick={() => addAnnotationForPopup(popupData)}
             >
               <CommentIcon className="align-middle" />
