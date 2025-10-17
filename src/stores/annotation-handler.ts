@@ -1,5 +1,4 @@
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -168,7 +167,8 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     clearAnnotations: () => {
       get().annotationData.forEach((an) => {
         if (an.entity) {
-          useApplicationRendererStore.getState().updateLabel(an.entity.id, '');
+          // Todo: Update label
+          // useApplicationRendererStore.getState().updateLabel(an.entity.id, '');
         }
       });
 
@@ -361,23 +361,24 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
       if (await get().canRemoveAnnotation(annotation)) {
         // remove potential toggle effects
-        if (annotation.entity) {
-          const mesh = useApplicationRendererStore
-            .getState()
-            .getMeshById(annotation.entity.id);
-          if (mesh?.isHovered) {
-            mesh.resetHoverEffect();
-          }
+        // TODO: Update
+        // if (annotation.entity) {
+        //   const mesh = useApplicationRendererStore
+        //     .getState()
+        //     .getMeshById(annotation.entity.id);
+        //   if (mesh?.isHovered) {
+        //     mesh.resetHoverEffect();
+        //   }
 
-          if (
-            !(annotation.mesh!.dataModel instanceof ClazzCommuMeshDataModel) &&
-            !stillMinimized
-          ) {
-            useApplicationRendererStore
-              .getState()
-              .updateLabel(annotation.entity.id, '');
-          }
-        }
+        //   if (
+        //     !(annotation.mesh!.dataModel instanceof ClazzCommuMeshDataModel) &&
+        //     !stillMinimized
+        //   ) {
+        //     useApplicationRendererStore
+        //       .getState()
+        //       .updateLabel(annotation.entity.id, '');
+        //   }
+        // }
 
         set({
           annotationData: [
@@ -662,9 +663,10 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           });
 
           if (!(mesh.dataModel instanceof ClazzCommuMeshDataModel)) {
-            useApplicationRendererStore
-              .getState()
-              .updateLabel(newAnnotation.entity!.id, ' [annotated]');
+            // Todo: Migrate
+            // useApplicationRendererStore
+            //   .getState()
+            //   .updateLabel(newAnnotation.entity!.id, ' [annotated]');
           }
         }
 
@@ -702,25 +704,26 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       lastEditor,
     }: AnnotationForwardMessage) => {
       let mesh = undefined;
-      if (entityId) {
-        mesh = useApplicationRendererStore.getState().getMeshById(entityId);
-      }
+      // ToDo
+      // if (entityId) {
+      //   mesh = useApplicationRendererStore.getState().getMeshById(entityId);
+      // }
 
-      get().addAnnotation({
-        annotationId: annotationId,
-        mesh: mesh,
-        position: undefined,
-        wasMoved: true,
-        menuId: objectId,
-        hovered: false,
-        annotationTitle: annotationTitle,
-        annotationText: annotationText,
-        sharedBy: userId,
-        owner: owner,
-        shared: true,
-        inEdit: false,
-        lastEditor: lastEditor,
-      });
+      // get().addAnnotation({
+      //   annotationId: annotationId,
+      //   mesh: mesh,
+      //   position: undefined,
+      //   wasMoved: true,
+      //   menuId: objectId,
+      //   hovered: false,
+      //   annotationTitle: annotationTitle,
+      //   annotationText: annotationText,
+      //   sharedBy: userId,
+      //   owner: owner,
+      //   shared: true,
+      //   inEdit: false,
+      //   lastEditor: lastEditor,
+      // });
     },
 
     onUpdatedAnnotation: ({
@@ -773,32 +776,33 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
       set({ annotationData: [] });
 
-      for (const annotation of annotations) {
-        let mesh;
-        if (annotation.entityId !== undefined) {
-          mesh = useApplicationRendererStore
-            .getState()
-            .getMeshById(annotation.entityId);
-        } else {
-          mesh = undefined;
-        }
+      // ToDo:
+      // for (const annotation of annotations) {
+      //   let mesh;
+      //   if (annotation.entityId !== undefined) {
+      //     mesh = useApplicationRendererStore
+      //       .getState()
+      //       .getMeshById(annotation.entityId);
+      //   } else {
+      //     mesh = undefined;
+      //   }
 
-        get().addAnnotation({
-          annotationId: annotation.annotationId,
-          sharedBy: annotation.userId,
-          mesh: mesh,
-          position: undefined,
-          wasMoved: true,
-          menuId: annotation.menuId,
-          hovered: false,
-          annotationTitle: annotation.annotationTitle,
-          annotationText: annotation.annotationText,
-          owner: annotation.owner,
-          shared: annotation.shared !== undefined ? false : true,
-          inEdit: false,
-          lastEditor: annotation.lastEditor,
-        });
-      }
+      //   get().addAnnotation({
+      //     annotationId: annotation.annotationId,
+      //     sharedBy: annotation.userId,
+      //     mesh: mesh,
+      //     position: undefined,
+      //     wasMoved: true,
+      //     menuId: annotation.menuId,
+      //     hovered: false,
+      //     annotationTitle: annotation.annotationTitle,
+      //     annotationText: annotation.annotationText,
+      //     owner: annotation.owner,
+      //     shared: annotation.shared !== undefined ? false : true,
+      //     inEdit: false,
+      //     lastEditor: annotation.lastEditor,
+      //   });
+      // }
     },
 
     _updateExistingAnnotation: (
@@ -833,22 +837,23 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
         const anno = allAnnotations.find((an) => an.menuId === menuId);
 
-        if (anno) {
-          if (anno.entity) {
-            const mesh = useApplicationRendererStore
-              .getState()
-              .getMeshById(anno.entity.id);
-            if (mesh?.isHovered) {
-              mesh.resetHoverEffect();
-            }
+        // ToDo: Migrate
+        // if (anno) {
+        //   if (anno.entity) {
+        //     const mesh = useApplicationRendererStore
+        //       .getState()
+        //       .getMeshById(anno.entity.id);
+        //     if (mesh?.isHovered) {
+        //       mesh.resetHoverEffect();
+        //     }
 
-            if (!(anno.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
-              useApplicationRendererStore
-                .getState()
-                .updateLabel(anno.entity.id, '');
-            }
-          }
-        }
+        //     if (!(anno.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
+        //       useApplicationRendererStore
+        //         .getState()
+        //         .updateLabel(anno.entity.id, '');
+        //     }
+        //   }
+        // }
 
         set({
           minimizedAnnotations: get().minimizedAnnotations.filter(

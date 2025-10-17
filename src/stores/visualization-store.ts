@@ -13,6 +13,7 @@ interface VisualizationStoreState {
     // Actions for all entities
     setHoveredEntityId: (id: string | null) => void;
     setHighlightedEntityId: (id: string, isHighlighted: boolean) => void;
+    removeAllHighlightedEntityIds: () => void;
     resetVisualizationState: () => void;
     filterEntityIds: (validEntityIds: Set<string>) => void;
     // Components
@@ -65,6 +66,9 @@ export const useVisualizationStore = create<VisualizationStoreState>(
             };
           });
         }
+      },
+      removeAllHighlightedEntityIds: () => {
+        set({ highlightedEntityIds: new Set() });
       },
       resetVisualizationState: () => {
         set({

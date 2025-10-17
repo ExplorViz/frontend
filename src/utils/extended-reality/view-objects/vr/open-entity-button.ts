@@ -1,10 +1,6 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import ThreeMeshUI from 'three-mesh-ui';
-import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 
 export type OpenEntityButtonArgs = ThreeMeshUI.BlockOptions & {
   label: string;
@@ -41,21 +37,7 @@ export default class OpenEntityButton
   }
 
   triggerDown() {
-    const mesh = useApplicationRendererStore
-      .getState()
-      .getBoxMeshByModelId(this.classId);
-    const application = useApplicationRendererStore
-      .getState()
-      .getApplicationById(this.applicationId);
-    if (application) {
-      useApplicationRendererStore.getState().openAllComponents(application);
-      if (mesh) {
-        useHighlightingStore.getState().toggleHighlight(mesh as EntityMesh, {
-          sendMessage: true,
-          remoteColor: useLocalUserStore.getState().color,
-        });
-      }
-    }
+    // ToDo
   }
 
   applyHover() {

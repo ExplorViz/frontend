@@ -14,7 +14,6 @@ interface CommunicationPopupProps {
   restructureMode: boolean;
   showApplication?(applicationId: string): void;
   toggleHighlightById(modelId: string): void;
-  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default function CommunicationPopup({
@@ -22,7 +21,6 @@ export default function CommunicationPopup({
   restructureMode,
   showApplication,
   toggleHighlightById,
-  openParents,
 }: CommunicationPopupProps) {
   const communication = popupData.entity as ClazzCommuMeshDataModel;
 
@@ -36,21 +34,13 @@ export default function CommunicationPopup({
       <PopupTabs
         restructureMode={restructureMode}
         originOfData={communication.originOfData}
-        runtimeTab={
-          <CommunicationPopupRuntime
-            communication={communication}
-            showApplication={showApplication}
-            toggleHighlightById={toggleHighlightById}
-            openParents={openParents}
-          />
-        }
+        runtimeTab={<CommunicationPopupRuntime communication={communication} />}
         codeTab={<CommunicationPopupCode />}
         restructureTab={
           <CommunicationPopupRestructure
             communication={communication}
             showApplication={showApplication}
             toggleHighlightById={toggleHighlightById}
-            openParents={openParents}
           />
         }
       />

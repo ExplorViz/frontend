@@ -17,23 +17,18 @@ import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schem
 
 interface CommunicationPopupRuntimeProps {
   communication: ClazzCommuMeshDataModel;
-  showApplication?(applicationId: string): void;
-  toggleHighlightById(modelId: string): void;
-  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default function CommunicationPopupRuntime({
   communication,
-  showApplication,
-  toggleHighlightById,
-  openParents,
 }: CommunicationPopupRuntimeProps) {
   const aggregatedRequestCount = communication.communication.totalRequests;
 
   const highlightEntity = (entity: Package | Class, applicationId: string) => {
-    openParents(entity, applicationId);
-    toggleHighlightById(entity.id);
-    showApplication?.(applicationId);
+    // ToDo: Migrate
+    // openParents(entity, applicationId);
+    // toggleHighlightById(entity.id);
+    // showApplication?.(applicationId);
   };
 
   return (

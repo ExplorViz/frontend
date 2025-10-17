@@ -34,7 +34,7 @@ export function clamp(value: number, min: number, max: number) {
   return value > max ? max : value < min ? min : value;
 }
 
-// Communication Layouting //
+// Communication Layout //
 export default function applyCommunicationLayout(
   applicationObject3D: ApplicationObject3D,
   settings: VisualizationSettings
@@ -141,16 +141,16 @@ export default function applyCommunicationLayout(
         let sourceEntity: Class | Package | null = null;
         let targetEntity: Class | Package | null = null;
 
-        const sourceClazz = classCommunication.sourceClass;
-        const targetClazz = classCommunication.targetClass;
+        const sourceClass = classCommunication.sourceClass;
+        const targetClass = classCommunication.targetClass;
 
-        const sourceParent = sourceClazz.parent;
+        const sourceParent = sourceClass.parent;
         const sourceParentMesh = applicationObject3D.getBoxMeshByModelId(
           sourceParent.id
         );
 
         // Determine where the communication should begin
-        // (clazz or component - based upon their visiblity)
+        // (class or component - based upon their visibility)
         if (
           sourceParentMesh instanceof ComponentMesh &&
           sourceParentMesh.opened
@@ -161,13 +161,13 @@ export default function applyCommunicationLayout(
             findFirstOpenOrLastClosedAncestorComponent(sourceParent);
         }
 
-        const targetParent = targetClazz.parent;
+        const targetParent = targetClass.parent;
         const targetParentMesh = applicationObject3D.getBoxMeshByModelId(
           targetParent.id
         );
 
         // Determine where the communication should end
-        // (clazz or component - based upon their visiblity)
+        // (class or component - based upon their visibility)
         if (
           targetParentMesh instanceof ComponentMesh &&
           targetParentMesh.opened
@@ -226,20 +226,20 @@ export default function applyCommunicationLayout(
     if (internalClazz !== null) {
       const end = new THREE.Vector3();
 
-      const clazzBoxLayout = boxLayoutMap.get(internalClazz.id);
-      if (clazzBoxLayout === undefined) {
+      const classBoxLayout = boxLayoutMap.get(internalClazz.id);
+      if (classBoxLayout === undefined) {
         return;
       }
 
       const centerPoint = new THREE.Vector3(
-        clazzBoxLayout.positionX + clazzBoxLayout.width / 2.0,
-        clazzBoxLayout.positionY + clazzBoxLayout.height / 2.0,
-        clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0
+        classBoxLayout.positionX + classBoxLayout.width / 2.0,
+        classBoxLayout.positionY + classBoxLayout.height / 2.0,
+        classBoxLayout.positionZ + classBoxLayout.depth / 2.0
       );
 
-      end.x = clazzBoxLayout.positionX + clazzBoxLayout.width / 2.0;
+      end.x = classBoxLayout.positionX + classBoxLayout.width / 2.0;
       end.y = centerPoint.y;
-      end.z = clazzBoxLayout.positionZ + clazzBoxLayout.depth / 2.0;
+      end.z = classBoxLayout.positionZ + classBoxLayout.depth / 2.0;
       communicationData.pointsFor3D.push(end);
     }
   }
@@ -274,9 +274,9 @@ export default function applyCommunicationLayout(
 
   layoutEdges(settings);
 
-  classCommunications.forEach((clazzcommunication) => {
-    if (layoutMap.has(clazzcommunication.id)) {
-      layoutAggregatedCommunication(clazzcommunication, application);
+  classCommunications.forEach((classCommunication) => {
+    if (layoutMap.has(classCommunication.id)) {
+      layoutAggregatedCommunication(classCommunication, application);
     }
   });
 

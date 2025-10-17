@@ -48,7 +48,6 @@ interface PopupCoordinatorProps {
   updateMeshReference(popup: PopupData): void;
   showApplication(appId: string): void;
   toggleHighlightById: (modelId: string) => void;
-  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default function PopupCoordinator({
@@ -61,7 +60,6 @@ export default function PopupCoordinator({
   addAnnotationForPopup,
   showApplication,
   toggleHighlightById,
-  openParents,
 }: PopupCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
@@ -385,7 +383,6 @@ export default function PopupCoordinator({
           popupData={popupData}
           showApplication={showApplication}
           toggleHighlightById={toggleHighlightById}
-          openParents={openParents}
         />
       )}
       {entityType == 'k8s' && <K8sPopup data={popupData} />}

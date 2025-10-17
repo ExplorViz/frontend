@@ -21,7 +21,7 @@ import {
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/chat-syncronization';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/chat-synchronization';
 import {
   USER_MUTE_EVENT,
   UserMuteUpdate,

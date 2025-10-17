@@ -25,7 +25,6 @@ import {
   Tab,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-animation';
 import { Button } from 'react-bootstrap';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useShallow } from 'zustand/react/shallow';
 import TraceSpeed from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-speed';
 import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';

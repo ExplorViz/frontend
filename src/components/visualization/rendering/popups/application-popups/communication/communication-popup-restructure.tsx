@@ -23,14 +23,12 @@ interface CommunicationPopupRestructureProps {
   communication: ClazzCommuMeshDataModel;
   showApplication?(applicationId: string): void;
   toggleHighlightById(modelId: string): void;
-  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default function CommunicationPopupRestructure({
   communication,
   showApplication,
   toggleHighlightById,
-  openParents,
 }: CommunicationPopupRestructureProps) {
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode
@@ -39,7 +37,8 @@ export default function CommunicationPopupRestructure({
   const aggregatedRequestCount = communication.communication.totalRequests;
 
   const highlightEntity = (entity: Package | Class, applicationId: string) => {
-    openParents(entity, applicationId);
+    // ToDo: Migrate
+    // openParents(entity, applicationId);
     toggleHighlightById(entity.id);
     showApplication?.(applicationId);
   };

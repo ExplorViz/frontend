@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 
 interface ARSettingsState {
   landscapeOpacity: number; // tracked
@@ -11,8 +9,6 @@ interface ARSettingsState {
   zoomLevel: number; // tracked
   stackPopups: boolean; // tracked
   toggleZoomEnabled: () => void;
-  setApplicationOpacity: (opacity: number) => void;
-  updateApplicationOpacity: () => void;
   setStackPopups: (value: boolean) => void;
 }
 
@@ -30,21 +26,5 @@ export const useARSettingsStore = create<ARSettingsState>((set, get) => ({
 
   setStackPopups: (value: boolean) => {
     set({ stackPopups: value });
-  },
-
-  setApplicationOpacity: (opacity: number) => {
-    set({ applicationOpacity: opacity });
-    if (!useHeatmapConfigurationStore.getState().heatmapActive) {
-      get().updateApplicationOpacity();
-    }
-  },
-
-  updateApplicationOpacity: () => {
-    useApplicationRendererStore
-      .getState()
-      .getOpenApplications()
-      .forEach((applicationObject3D) => {
-        applicationObject3D.setOpacity(get().applicationOpacity);
-      });
   },
 }));

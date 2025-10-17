@@ -68,7 +68,6 @@ import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
 import { create } from 'zustand';
-import { useApplicationRendererStore } from './application-renderer';
 import { useChangelogStore } from './changelog';
 import { useUserSettingsStore } from './user-settings';
 

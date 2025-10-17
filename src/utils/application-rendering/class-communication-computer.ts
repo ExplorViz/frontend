@@ -24,7 +24,7 @@ function computeClassCommunicationRecursively(
   const childSpans = spanIdToChildSpanMap.get(span.spanId);
 
   if (childSpans === undefined || childSpans.length === 0) {
-    // no childspan, therefore no one to call => no communication line
+    // no child span, therefore no one to call => no communication line
     return [];
   }
 
@@ -215,12 +215,12 @@ function createLookupMaps(
   for (const application of allApplications) {
     const classes = getAllClassesInApplication(application);
 
-    for (const clazz of classes) {
-      clazz.methods.forEach(({ methodHash }) =>
-        hashCodeToClassMap.set(methodHash, clazz)
+    for (const classModel of classes) {
+      classModel.methods.forEach(({ methodHash }) =>
+        hashCodeToClassMap.set(methodHash, classModel)
       );
 
-      classToApplicationMap.set(clazz, application);
+      classToApplicationMap.set(classModel, application);
     }
   }
 
@@ -259,7 +259,9 @@ export function computeRestructuredClassCommunication(
       });
     });
 
-    classCommunication = classCommunication.filter(comm => !allDeletedComms.includes(comm));
+    classCommunication = classCommunication.filter(
+      (comm) => !allDeletedComms.includes(comm)
+    );
   }
 
   if (updatedClassCommunications.size) {

@@ -9,7 +9,6 @@ import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/pa
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import {
   useLocalUserStore,
@@ -19,7 +18,6 @@ import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaborat
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
@@ -76,7 +74,6 @@ import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import { useShallow } from 'zustand/react/shallow';
-import useSyncState from '../hooks/sync-state';
 import { ImmersiveView } from '../rendering/application/immersive-view';
 
 const queryParams = [
@@ -257,8 +254,6 @@ export default function Visualization() {
     fetchVrStatus();
   }, []);
 
-  useSyncState();
-
   // #endregion
 
   // #region Store state declaration
@@ -328,14 +323,8 @@ export default function Visualization() {
   const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.setAppNameAndBranchNameToColorMap
   );
-  const updateHighlighting = useHighlightingStore(
-    (state) => state.updateHighlighting
-  );
   const loadLandscapeByTimestamp = useReloadHandlerStore(
     (state) => state.loadLandscapeByTimestamp
-  );
-  const restoreFromSerialization = useApplicationRendererStore(
-    (state) => state.restoreFromSerialization
   );
   const detachedMenuRendererRestore = useDetachedMenuRendererStore(
     (state) => state.restore
@@ -611,14 +600,11 @@ export default function Visualization() {
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
     };
     console.log('onSyncRoomState');
-    restoreFromSerialization(serializedRoom);
     detachedMenuRendererRestore(
       serializedRoom.popups,
       serializedRoom.detachedMenus
     );
     detachedMenuRendererRestoreAnnotations(serializedRoom.annotations);
-
-    updateHighlighting();
 
     showInfoToastMessage('Room state synchronizing ...');
   };
@@ -712,7 +698,6 @@ export default function Visualization() {
   const willDestroy = () => {
     useLandscapeRestructureStore.getState().resetLandscapeRestructure();
     useTimestampPollingStore.getState().resetPolling();
-    useApplicationRendererStore.getState().cleanup();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
     useRenderingServiceStore.getState().resetAllRenderingStates();
 

@@ -1,49 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { GearIcon, ToolsIcon } from '@primer/octicons-react';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
 import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info';
 import RestructureOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/restructure/restructure-opener';
+import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener';
 import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
 import ApplicationSearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
 import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
-import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
+import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
-import {
-  DynamicLandscapeData,
-  Trace,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import * as THREE from 'three';
-import { useShallow } from 'zustand/react/shallow';
-
-import { GearIcon, ToolsIcon } from '@primer/octicons-react';
-import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
-import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import Button from 'react-bootstrap/Button';
+import { useShallow } from 'zustand/react/shallow';
 import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
-import useHeatmapRenderer from '../../../hooks/heatmap-renderer';
-import useSyncState from '../../../hooks/sync-state';
 import { LandscapeToken } from '../../../stores/landscape-token';
 import { ApiToken } from '../../../stores/user-api-token';
 import eventEmitter from '../../../utils/event-emitter';
@@ -59,6 +42,7 @@ import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -91,88 +75,15 @@ export default function BrowserRendering({
 }: BrowserRenderingProps) {
   // MARK: Stores
 
-  const applicationRendererActions = useApplicationRendererStore(
-    useShallow((state) => ({
-      getMeshById: state.getMeshById,
-      getApplicationById: state.getApplicationById,
-      getOpenApplications: state.getOpenApplications,
-      openAllComponentsOfAllApplications:
-        state.openAllComponentsOfAllApplications,
-      toggleCommunicationRendering: state.toggleCommunicationRendering,
-      toggleComponent: state.toggleComponent,
-      closeAllComponents: state.closeAllComponents,
-      addCommunicationForAllApplications:
-        state.addCommunicationForAllApplications,
-      openParents: state.openParents,
-      cleanup: state.cleanup,
-    }))
-  );
-
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
       cleanup: state.cleanup,
     }))
   );
 
-  const landscape3D = useApplicationRendererStore().landscape3D;
-
-  const localUserState = useLocalUserStore(
-    useShallow((state) => ({
-      camera: state.defaultCamera,
-      minimapCamera: state.minimapCamera,
-    }))
-  );
-  const localUserActions = {
-    ping: useLocalUserStore((state) => state.ping),
-    tick: useLocalUserStore((state) => state.tick),
-    setDefaultCamera: useLocalUserStore((state) => state.setDefaultCamera),
-    getCamera: useLocalUserStore((state) => state.getCamera),
-  };
-
-  const { cameraFar, cameraFov, cameraNear, colors, heatmapEnabled } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        cameraFar: state.visualizationSettings.cameraFar.value,
-        cameraFov: state.visualizationSettings.cameraFov.value,
-        cameraNear: state.visualizationSettings.cameraNear.value,
-        colors: state.colors,
-        heatmapEnabled: state.visualizationSettings.heatmapEnabled.value,
-      }))
-    );
-
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
       setIsCommRendered: state.setIsCommRendered,
-    }))
-  );
-
-  const sceneRepositoryActions = useSceneRepositoryStore(
-    useShallow((state) => ({
-      getScene: state.getScene,
-    }))
-  );
-
-  const highlightingActions = useHighlightingStore(
-    useShallow((state) => ({
-      highlightTrace: state.highlightTrace,
-      removeHighlightingForAllApplications:
-        state.removeHighlightingForAllApplications,
-      updateHighlighting: state.updateHighlighting,
-      updateHighlightingOnHover: state.updateHighlightingOnHover,
-      toggleHighlight: state.toggleHighlight,
-      toggleHighlightById: state.toggleHighlightById,
-    }))
-  );
-  const spectateUserActions = useSpectateUserStore(
-    useShallow((state) => ({
-      setCameraControls: state.setCameraControls,
-    }))
-  );
-
-  const minimapActions = useMinimapStore(
-    useShallow((state) => ({
-      initializeMinimap: state.initializeMinimap,
-      setRaycaster: state.setRaycaster,
     }))
   );
 
@@ -208,106 +119,6 @@ export default function BrowserRendering({
     }))
   );
   // MARK: Event handlers
-
-  const getSelectedApplicationObject3D = () => {
-    if (selectedApplicationId === '') {
-      setSelectedApplicationId(
-        applicationRendererActions.getOpenApplications()[0].getModelId()
-      );
-      return applicationRendererActions.getOpenApplications()[0];
-    }
-    return applicationRendererActions.getApplicationById(selectedApplicationId);
-  };
-
-  const tick = async (delta: number) => {
-    useCollaborationSessionStore
-      .getState()
-      .idToRemoteUser.forEach((remoteUser) => {
-        remoteUser.update(delta);
-      });
-  };
-
-  const highlightTrace = (trace: Trace, traceStep: string) => {
-    const selectedObject3D = getSelectedApplicationObject3D();
-
-    if (!landscapeData || !selectedObject3D) {
-      return;
-    }
-
-    highlightingActions.highlightTrace(
-      trace,
-      traceStep,
-      selectedObject3D,
-      landscapeData.structureLandscapeData
-    );
-  };
-
-  const initCameras = () => {
-    if (!canvas.current) {
-      console.error('Unable to initialize cameras: Canvas ref is not defined');
-      return;
-    }
-
-    const aspectRatio = canvas.current.width / canvas.current.height;
-
-    // Camera
-    const newCam = new THREE.PerspectiveCamera(
-      cameraFov,
-      aspectRatio,
-      cameraNear,
-      cameraFar
-    );
-
-    localUserState.camera = newCam;
-
-    newCam.position.set(1, 2, 3);
-    scene.add(newCam);
-    localUserActions.setDefaultCamera(newCam);
-
-    // Add Camera to ImmersiveView manager
-
-    ImmersiveView.instance.registerCamera(newCam);
-    ImmersiveView.instance.registerScene(scene);
-    ImmersiveView.instance.registerCanvas(canvas.current);
-
-    // Controls
-
-    cameraControls.current = new CameraControls(
-      localUserState.camera,
-      canvas.current
-    );
-    spectateUserActions.setCameraControls(cameraControls.current);
-
-    tickCallbacks.current.push({
-      id: 'local-user',
-      callback: localUserActions.tick,
-    });
-    tickCallbacks.current.push({
-      id: 'camera-controls',
-      callback: cameraControls.current.tick,
-    });
-
-    // Initialize minimap
-
-    // minimapActions.initializeMinimap(
-    //   scene,
-    //   landscape3D,
-    //   cameraControls.current
-    // );
-    // minimapActions.setRaycaster(new Raycaster(localUserState.minimapCamera));
-  };
-
-  const removeAllHighlighting = () => {
-    highlightingActions.removeHighlightingForAllApplications(true);
-    highlightingActions.updateHighlighting();
-  };
-
-  const lookAtMesh = (meshId: string) => {
-    const mesh = applicationRendererActions.getMeshById(meshId);
-    if (mesh?.isObject3D) {
-      cameraControls.current!.focusCameraOn(1, mesh);
-    }
-  };
 
   const removeAnnotation = (annotationId: number) => {
     annotationHandlerActions.removeAnnotation(annotationId);
@@ -352,11 +163,6 @@ export default function BrowserRendering({
   const [openedSettingComponent, setOpenedSettingComponent] = useState<
     string | null
   >(null);
-  const [scene] = useState<THREE.Scene>(() =>
-    sceneRepositoryActions.getScene('browser', true)
-  );
-  const [selectedApplicationId, setSelectedApplicationId] =
-    useState<string>('');
 
   const [worker] = useState<Worker>(
     () =>
@@ -367,85 +173,54 @@ export default function BrowserRendering({
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
-  const tickCallbacks = useRef<TickCallback[]>([]);
   const renderingLoop = useRef<RenderingLoop | null>(null);
-  const cameraControls = useRef<CameraControls | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
   // MARK: Effects and hooks
 
-  useEffect(
-    function initialize() {
-      if (!landscape3D) return;
+  useEffect(function initialize() {
+    // Open sidebars automatically on certain restructure actions
 
-      scene.background = colors!.backgroundColor;
+    const handleOpenSettingsSidebarEvent = () => {
+      setShowSettingsSidebar(true);
+    };
 
-      useLocalUserStore
-        .getState()
-        .setDefaultCamera(new THREE.PerspectiveCamera());
+    const handleToggleSettingsSidebarComponentEvent = (component: string) => {
+      const newOpenedSettingComponent =
+        openedSettingComponent === component ? null : component;
+      setOpenedSettingComponent(newOpenedSettingComponent);
+      return newOpenedSettingComponent === component;
+    };
 
-      tickCallbacks.current.push(
-        { id: 'browser-rendering', callback: tick },
-        { id: 'spectate-user', callback: useSpectateUserStore.getState().tick },
-        { id: 'minimap', callback: useMinimapStore.getState().tick }
-      );
+    eventEmitter.on('openSettingsSidebar', handleOpenSettingsSidebarEvent);
+    eventEmitter.on(
+      'restructureComponent',
+      handleToggleSettingsSidebarComponentEvent
+    );
 
-      ImmersiveView.instance.callbackOnEntering = () => {
-        usePopupHandlerStore.getState().setDeactivated(true);
-        usePopupHandlerStore.getState().clearPopups();
-      };
+    // Cleanup on component unmount
+    return function cleanup() {
+      worker.terminate();
+      // renderingLoop.current?.stop();
+      applicationRepositoryActions.cleanup();
+      // renderer.current?.dispose();
+      // renderer.current?.forceContextLoss();
 
-      ImmersiveView.instance.callbackOnExit = () => {
-        usePopupHandlerStore.getState().setDeactivated(false);
-      };
+      // ideWebsocket.dispose();
 
-      // Open sidebars automatically on certain restructure actions
+      // renderingLoop.current?.stop();
+      configurationActions.setIsCommRendered(true);
+      popupHandlerActions.cleanup();
+      annotationHandlerActions.cleanup();
 
-      const handleOpenSettingsSidebarEvent = () => {
-        setShowSettingsSidebar(true);
-      };
-
-      const handleToggleSettingsSidebarComponentEvent = (component: string) => {
-        const newOpenedSettingComponent =
-          openedSettingComponent === component ? null : component;
-        setOpenedSettingComponent(newOpenedSettingComponent);
-        return newOpenedSettingComponent === component;
-      };
-
-      eventEmitter.on('openSettingsSidebar', handleOpenSettingsSidebarEvent);
-      eventEmitter.on(
+      eventEmitter.off('openSettingsSidebar', handleOpenSettingsSidebarEvent);
+      eventEmitter.off(
         'restructureComponent',
         handleToggleSettingsSidebarComponentEvent
       );
+    };
+  }, []);
 
-      // Cleanup on component unmount
-      return function cleanup() {
-        worker.terminate();
-        // renderingLoop.current?.stop();
-        applicationRendererActions.cleanup();
-        applicationRepositoryActions.cleanup();
-        // renderer.current?.dispose();
-        // renderer.current?.forceContextLoss();
-
-        // ideWebsocket.dispose();
-
-        // renderingLoop.current?.stop();
-        configurationActions.setIsCommRendered(true);
-        popupHandlerActions.cleanup();
-        annotationHandlerActions.cleanup();
-
-        eventEmitter.off('openSettingsSidebar', handleOpenSettingsSidebarEvent);
-        eventEmitter.off(
-          'restructureComponent',
-          handleToggleSettingsSidebarComponentEvent
-        );
-      };
-    },
-    [landscape3D]
-  );
-
-  useSyncState();
-  useHeatmapRenderer(localUserState.camera, scene);
   useCollaborativeModifier();
 
   // MARK: JSX
@@ -480,7 +255,8 @@ export default function BrowserRendering({
             </div>
           )}
 
-          {heatmapEnabled && <HeatmapInfo />}
+          {useUserSettingsStore.getState().visualizationSettings.heatmapEnabled
+            .value && <HeatmapInfo />}
 
           <ContextMenu switchToAR={switchToAR}>
             <CanvasWrapper landscapeData={landscapeData} />
@@ -491,12 +267,7 @@ export default function BrowserRendering({
             </div>
           )} */}
 
-          {landscapeData && (
-            <Popups
-              landscapeData={landscapeData}
-              cameraControls={cameraControls}
-            />
-          )}
+          {landscapeData && <Popups landscapeData={landscapeData} />}
 
           {annotationHandlerState.annotationData.map((data) => (
             <AnnotationCoordinator

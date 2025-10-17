@@ -1,8 +1,6 @@
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
-import { useShallow } from 'zustand/react/shallow';
 
 export class TraceNode {
   readonly id: string;
@@ -108,7 +106,6 @@ export class TraceTree {
 }
 
 export class TraceTreeBuilder {
-  getMeshById = useApplicationRendererStore.getState().getMeshById;
   private readonly trace: Span[];
   private readonly classMap: Map<string, Class>;
 
@@ -120,20 +117,20 @@ export class TraceTreeBuilder {
   private buildNode(span: Span): TraceNode | undefined {
     const clazz = this.classMap.get(span.methodHash);
     if (clazz) {
-      const mesh = this.getMeshById(clazz.id);
       const name = clazz.methods.find(
         (method) => method.methodHash === span.methodHash
       )!.name;
-      if (mesh) {
-        return new TraceNode(
-          span.spanId,
-          clazz,
-          name,
-          mesh,
-          span.startTime,
-          span.endTime
-        );
-      }
+      // TODO: Migrate
+      // if (mesh) {
+      //   return new TraceNode(
+      //     span.spanId,
+      //     clazz,
+      //     name,
+      //     mesh,
+      //     span.startTime,
+      //     span.endTime
+      //   );
+      // }
     }
     return undefined;
   }
