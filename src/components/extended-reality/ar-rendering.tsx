@@ -543,7 +543,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const mesh = intersection.object;
     const position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     popupHandlerActions.addPopup({
-      mesh,
+      entityId: mesh.getModelId(),
       position,
       hovered: true,
     });
@@ -641,12 +641,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   const removeUnpinnedPopups = popupHandlerActions.removeUnpinnedPopups;
 
   const addAnnotationForPopup = (popup: PopupData) => {
-    const mesh = applicationRendererActions.getMeshById(popup.entity.id);
-    if (!mesh) return;
-
     annotationHandlerActions.addAnnotation({
       annotationId: undefined,
-      mesh: mesh,
+      entityId: popup.entityId,
+      entity: popup.entity,
       position: { x: popup.mouseX + 400, y: popup.mouseY },
       hovered: true,
       annotationTitle: '',

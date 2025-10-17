@@ -1,4 +1,4 @@
-import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
@@ -14,14 +14,15 @@ export interface AnnotationDataArgs {
   mouseY: number;
   wasMoved: boolean;
   isAssociated: boolean;
+  entityId?: string;
   entity?:
     | Node
     | Application
     | Package
     | Class
     | ClazzCommuMeshDataModel
-    | K8sDataModel;
-  mesh?: EntityMesh;
+    | K8sDataModel
+    | ClassCommunication;
   applicationId?: string;
   menuId: string | null;
   hovered: boolean;
@@ -48,15 +49,16 @@ export default class AnnotationData {
 
   isAssociated: boolean;
 
+  entityId?: string;
+
   entity?:
     | Node
     | Application
     | Package
     | Class
     | ClazzCommuMeshDataModel
-    | K8sDataModel;
-
-  mesh?: EntityMesh;
+    | K8sDataModel
+    | ClassCommunication;
 
   applicationId?: string;
 
@@ -95,8 +97,8 @@ export default class AnnotationData {
     mouseY,
     wasMoved,
     isAssociated,
+    entityId,
     entity,
-    mesh,
     applicationId,
     menuId,
     hovered,
@@ -120,8 +122,8 @@ export default class AnnotationData {
     this.mouseY = mouseY;
     this.wasMoved = wasMoved;
     this.isAssociated = isAssociated;
+    this.entityId = entityId;
     this.entity = entity;
-    this.mesh = mesh;
     this.applicationId = applicationId;
     this.menuId = menuId;
     this.hovered = hovered;

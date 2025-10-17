@@ -9,35 +9,22 @@ import AnnotationData from 'explorviz-frontend/src/components/visualization/rend
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import {
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
 import { useToastHandlerStore } from '../../../../stores/toast-handler';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 
 interface AnnotationCoordinatorProps {
   annotationData: AnnotationData;
   removeAnnotation(annotationId: number): void;
-  toggleHighlightById(modelId: string): void;
-  openParents(
-    entity: Package | Class | EntityMesh,
-    applicationId: string
-  ): void;
 }
 
 export default function AnnotationCoordinator({
   annotationData,
   removeAnnotation,
-  toggleHighlightById,
-  openParents,
 }: AnnotationCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
@@ -51,7 +38,6 @@ export default function AnnotationCoordinator({
       updateAnnotation: state.updateAnnotation,
       editAnnotation: state.editAnnotation,
       shareAnnotation: state.shareAnnotation,
-      updateMeshReference: state.updateMeshReference,
       annotationData: state.annotationData,
       setAnnotationData: state.setAnnotationData,
       minimizedAnnotations: state.minimizedAnnotations,
@@ -74,9 +60,9 @@ export default function AnnotationCoordinator({
     : '';
 
   const onPointerOver = () => {
-    if (isEntityMesh(annotationData.mesh)) {
-      annotationData.mesh.applyHoverEffect();
-    }
+    // TODO: Apply hover effect to entity if needed
+    // This would need to be implemented through a different mechanism
+    // since we no longer have direct mesh access
 
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(
@@ -87,9 +73,9 @@ export default function AnnotationCoordinator({
   };
 
   const onPointerOut = () => {
-    if (isEntityMesh(annotationData.mesh)) {
-      annotationData.mesh.resetHoverEffect();
-    }
+    // TODO: Reset hover effect on entity if needed
+    // This would need to be implemented through a different mechanism
+    // since we no longer have direct mesh access
 
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(
@@ -100,21 +86,15 @@ export default function AnnotationCoordinator({
   };
 
   const highlight = () => {
-    // TODO: Migrate
-    // if (isEntityMesh(annotationData.mesh)) {
-    //   annotationHandler.updateMeshReference(annotationData);
-    //   toggleHighlight(annotationData.mesh, {
-    //     sendMessage: true,
-    //     remoteColor: new THREE.Color(0xffb739),
-    //   });
-    // }
+    if (annotationData.entityId) {
+      toggleHighlightById(annotationData.entityId);
+    }
   };
 
   const ping = () => {
-    // TODO: Migrate
-    // if (annotationData.entity && annotationData.applicationId) {
-    //   pingByModelId(annotationData.entity?.id, annotationData.applicationId);
-    // }
+    if (annotationData.entityId) {
+      pingByModelId(annotationData.entityId);
+    }
   };
 
   const dragMouseDown = (event: React.MouseEvent) => {
@@ -269,14 +249,9 @@ export default function AnnotationCoordinator({
     }
 
     // remove potential toggle effects
-    if (annotationData.entity) {
-      const mesh = useApplicationRendererStore
-        .getState()
-        .getMeshById(annotationData.entity.id);
-      if (mesh?.isHovered) {
-        mesh.resetHoverEffect();
-      }
-    }
+    // TODO: Reset hover effects if needed
+    // This would need to be implemented through a different mechanism
+    // since we no longer have direct mesh access
 
     // const newAnnotation = {...annotation, wasMoved: false}
     annotationHandler.setMinimizedAnnotationData([
@@ -443,7 +418,7 @@ export default function AnnotationCoordinator({
                   <OverlayTrigger
                     placement="top"
                     trigger={['hover', 'focus']}
-                    overlay={<Tooltip>Minimize annotation.</Tooltip>}
+                    overlay={<Tooltip>Minimize Annotation</Tooltip>}
                   >
                     <Button
                       className="annotation-minimize-button"
@@ -457,7 +432,7 @@ export default function AnnotationCoordinator({
                   <OverlayTrigger
                     placement="top"
                     trigger={['hover', 'focus']}
-                    overlay={<Tooltip>Close annotation.</Tooltip>}
+                    overlay={<Tooltip>Discard Annotation</Tooltip>}
                   >
                     <Button
                       className="annotation-close-button"
@@ -684,7 +659,7 @@ export default function AnnotationCoordinator({
               <OverlayTrigger
                 placement="top"
                 trigger={['hover', 'focus']}
-                overlay={<Tooltip>Close annotation.</Tooltip>}
+                overlay={<Tooltip>Discard Annotation</Tooltip>}
               >
                 <Button
                   className="annotation-close-button"

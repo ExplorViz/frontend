@@ -56,23 +56,21 @@ export default function Popups({ landscapeData }: Args) {
   };
 
   const addAnnotationForPopup = (popup: PopupData) => {
-    // ToDo: Migrate
-    // const mesh = applicationRendererActions.getMeshById(`${popup.entity.id}`);
-    // if (!mesh) return;
-    // annotationHandlerActions.addAnnotation({
-    //   annotationId: undefined,
-    //   mesh: mesh,
-    //   position: { x: popup.mouseX + 400, y: popup.mouseY },
-    //   hovered: true,
-    //   annotationTitle: '',
-    //   annotationText: '',
-    //   sharedBy: '',
-    //   owner: authState.user!.name.toString(),
-    //   shared: false,
-    //   inEdit: true,
-    //   lastEditor: undefined,
-    //   wasMoved: true,
-    // });
+    annotationHandlerActions.addAnnotation({
+      annotationId: undefined,
+      entityId: popup.entityId,
+      entity: popup.entity,
+      position: { x: popup.mouseX + 400, y: popup.mouseY },
+      hovered: true,
+      annotationTitle: '',
+      annotationText: '',
+      sharedBy: '',
+      owner: authState.user!.name.toString(),
+      shared: false,
+      inEdit: true,
+      lastEditor: undefined,
+      wasMoved: true,
+    });
   };
 
   return popupData.map((data) => (

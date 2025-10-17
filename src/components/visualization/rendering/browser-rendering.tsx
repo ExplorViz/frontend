@@ -274,8 +274,6 @@ export default function BrowserRendering({
               key={data.annotationId}
               annotationData={data}
               removeAnnotation={removeAnnotation}
-              toggleHighlightById={highlightingActions.toggleHighlightById}
-              openParents={applicationRendererActions.openParents}
             />
           ))}
         </div>
