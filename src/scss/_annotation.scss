@@ -1,24 +1,8 @@
-@media (min-width: 576px) {
-  .annotation {
-    cursor: move;
-    max-width: 550px !important;
-    padding: 0.3rem;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .annotation > .annotation-body {
-    overflow-x: auto;
-
-    > table {
-      display: inline-table;
-    }
-  }
-}
-
 .annotation {
   position: absolute;
-  min-width: 250px;
+  padding: 0.5rem;
+  cursor: move;
+  max-width: 550px !important;
   border: 1px solid lightgray;
   border-radius: 5px;
   background-color: white;
@@ -44,10 +28,6 @@
   border-color: #aaaaaa !important;
 }
 
-.annotation > button {
-  margin: 0.2rem;
-}
-
 .annotation > button[disabled] {
   /* Ensure correct hover effect on popup even though button is disabled */
   pointer-events: none;
@@ -70,4 +50,80 @@
 .annotation-share-button {
   margin-left: 0.5rem;
   float: right;
+}
+
+// Annotation header styles
+.annotation-header-label {
+  margin-left: 0.5rem;
+}
+
+.annotation-header-creator {
+  margin-left: 0.5rem;
+}
+
+.annotation-header-last-editor {
+  font-size: smaller;
+  color: #6c757d;
+}
+
+.annotation-header-last-editor-top {
+  font-size: smaller;
+  color: #6c757d;
+}
+
+// Annotation title styles
+.annotation-title-input {
+  font-weight: bold;
+  width: 250px;
+  margin-right: 0.5rem;
+}
+
+.annotation-title-label {
+  font-weight: bold;
+  font-size: large;
+  width: 250px;
+  overflow: auto;
+  white-space: nowrap;
+  background-color: white;
+  align-self: center;
+}
+
+.annotation-title-label-minimized {
+  font-weight: bold;
+  font-size: large;
+  overflow: scroll;
+  white-space: nowrap;
+}
+
+.annotation-title-display {
+  background-color: lightgray;
+  font-weight: bold;
+}
+
+// Annotation text styles
+.annotation-text {
+  margin-top: 0.5rem;
+}
+
+.annotation-textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: none;
+}
+
+// Annotation buttons
+.annotation-update-button {
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+  font-size: large;
+  border: none;
+}
+
+.annotation-edit-button {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  font-size: large;
+  border: none;
 }
