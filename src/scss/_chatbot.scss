@@ -31,3 +31,26 @@
 .copilotKitMessages::-webkit-scrollbar-track {
   background-color: white;
 }
+
+.tool-call-card {
+  border-radius: 20px;
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  padding: 7.5px 16px 7.5px 40px;
+  max-width: 80%;
+  box-shadow: 0 0 10px inset rgba(0, 0, 0, 0.08);
+  position: relative;
+  min-height: 40px;
+  display: inline-block;
+}
+
+.tool-call-card button {
+  height: 26px;
+  width: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  border-radius: 13px;
+}

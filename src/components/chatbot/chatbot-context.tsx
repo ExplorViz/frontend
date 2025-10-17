@@ -3,6 +3,7 @@ import { createContext, PropsWithChildren, useEffect, useState } from 'react';
 import { CopilotTools } from './copilot-tools';
 import { CopilotResources } from './copilot-resources';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
 
@@ -51,6 +52,13 @@ export function ChatbotProvider({
     defaultContext.selectedModel
   );
 
+  const applications = landscapeData?.structureLandscapeData.nodes.reduce(
+    (acc, node) => {
+      return acc.concat(node.applications);
+    },
+    [] as Application[]
+  );
+
   useEffect(() => {
     fetch(`${copilotUrl}/providers`)
       .then((req) => req.json())
@@ -82,8 +90,8 @@ export function ChatbotProvider({
           ['x-explorviz-model']: selectedModel.id,
         }}
       >
-        <CopilotResources landscapeData={landscapeData} />
-        <CopilotTools />
+        <CopilotResources applications={applications} />
+        <CopilotTools applications={applications} />
         {children}
       </CopilotKit>
     </ChatbotContext.Provider>
