@@ -380,8 +380,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (!componentId) return;
       const component = componentIdToPackage.get(componentId);
       addPopup({
-        model: component,
-        applicationId: application.id,
+        entityId: componentId,
+        entity: component,
         position: {
           x: e.clientX,
           y: e.clientY,

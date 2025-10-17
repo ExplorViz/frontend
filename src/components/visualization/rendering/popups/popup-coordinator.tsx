@@ -21,21 +21,19 @@ import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/coll
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
-  Class,
   isApplication,
   isClass,
   isMethod,
   isNode,
   isPackage,
-  Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -410,12 +408,13 @@ function getEntityType(popupData?: PopupData): string {
   if (isMethod(popupData.entity)) {
     return 'method';
   }
-  if (popupData.entity instanceof ClazzCommuMeshDataModel) {
+  if (popupData.entity instanceof ClassCommunication) {
     return 'classCommunication';
   }
-  if (popupData.mesh instanceof K8sMesh) {
-    return 'k8s';
-  }
+  // TODO:
+  // if (popupData.entity instanceof K8sDataModel) {
+  //   return 'k8s';
+  // }
   if ('htmlNode' in popupData.entity) {
     return 'html';
   }

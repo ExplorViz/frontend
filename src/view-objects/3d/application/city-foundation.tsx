@@ -78,8 +78,8 @@ export default function CityFoundation({
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     addPopup({
-      model: application,
-      applicationId: application.id,
+      entityId: application.id,
+      entity: application,
       position: {
         x: event.clientX,
         y: event.clientY,

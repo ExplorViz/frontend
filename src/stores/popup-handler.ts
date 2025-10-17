@@ -1,23 +1,15 @@
 import { create } from 'zustand';
 
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import {
-  getTypeOfEntity,
-  isEntityMesh,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { MenuDetachedForwardMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
-import {
-  MenuDetachedResponse,
-  isMenuDetachedResponse,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
@@ -26,16 +18,15 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import {
-  MENU_DETACHED_EVENT,
-  MenuDetachedMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import { MENU_DETACHED_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import * as THREE from 'three';
 
 type Position2D = {
@@ -69,6 +60,13 @@ interface PopupHandlerState {
     model,
   }: {
     entityId: string;
+    entity?:
+      | K8sDataModel
+      | Node
+      | Application
+      | Package
+      | Class
+      | ClassCommunication;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
@@ -236,6 +234,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
   addPopup: ({
     entityId,
+    entity,
     position,
     wasMoved,
     pinned,
@@ -245,6 +244,13 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   }) => {
     // TODO: Handle HTML Mesh better
     if (getStoredSettings().hidePopupDelay.value == 0 || get().deactivated) {
+      return;
+    }
+
+    entity = entity || useModelStore.getState().getModel(entityId);
+
+    if (!entity) {
+      console.warn('Could not add popup, entity not found for:', entityId);
       return;
     }
 
@@ -262,6 +268,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       mouseX: popupPosition.x,
       mouseY: popupPosition.y,
       entityId: entityId,
+      entity: entity,
       wasMoved: wasMoved || false,
       isPinned: pinned || false,
       menuId: menuId || null,
@@ -271,7 +278,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
     // Check if popup for entity already exists and update it if so
     const maybePopup = get().popupData.find(
-      (pd) => pd.entity.id === newPopup.entity.id
+      (pd) => pd.entityId === newPopup.entityId
     );
     if (maybePopup) {
       get().updatePopup(newPopup, false);
@@ -333,7 +340,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
       // Popup did not move (was not updated)
       if (maybePopup.mouseX == mouseX && maybePopup.mouseY == mouseY) {
-        get().removePopup(popup.entity.id);
+        get().removePopup(popup.entityId);
         return;
       }
 
@@ -348,7 +355,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
     set((state) => ({
       popupData: state.popupData.map((pd) =>
-        pd.entity.id === updatedPopup.entity.id
+        pd.entityId === updatedPopup.entityId
           ? {
               ...pd,
               wasMoved: pd.wasMoved || updatedPopup.wasMoved,
@@ -376,7 +383,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     // TODO: Check if mesh is deactivated
 
     get().addPopup({
-      mesh,
+      entityId: objectId,
       wasMoved: true,
       pinned: true,
       sharedBy: userId,
@@ -390,7 +397,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
     for (const popup of popups) {
       get().addPopup({
-        mesh,
+        entityId: popup.entityId,
         wasMoved: true,
         pinned: true,
         sharedBy: popup.userId || undefined,
@@ -412,7 +419,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     // ToDo: Check if it is entity mesh
     set({
       popupData: get().popupData.map((pd) =>
-        pd.entity.id === popup.entity.id ? { ...pd, mesh: mesh } : pd
+        pd.entityId === popup.entityId ? { ...pd } : pd
       ),
     });
   },
