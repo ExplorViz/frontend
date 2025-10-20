@@ -968,9 +968,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
                       structureData={
                         arRenderingArgs.landscapeData.structureLandscapeData
                       }
-                      renderingLoop={renderingLoop.current!}
-                      landscapeData={arRenderingArgs.landscapeData}
-                      moveCameraTo={moveCameraTo}
                     />
                   )}
                   {openedSettingComponent === 'Settings' && (

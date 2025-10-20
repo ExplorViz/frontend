@@ -317,10 +317,9 @@ export default function BrowserRendering({
                     )}
                     {openedToolComponent === 'Trace-Replayer' && (
                       <TraceSelectionAndReplayer
-                        highlightTrace={highlightTrace}
-                        removeHighlighting={removeAllHighlighting}
+                        highlightTrace={() => {}}
+                        removeHighlighting={() => {}}
                         dynamicData={landscapeData!.dynamicLandscapeData}
-                        renderingLoop={renderingLoop.current!}
                         structureData={landscapeData!.structureLandscapeData}
                       />
                     )}

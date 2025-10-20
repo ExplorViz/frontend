@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import Plotly from 'plotly.js-dist';
 import { TraceNode } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
+import Plotly from 'plotly.js-dist';
+import { useEffect, useRef } from 'react';
 
 interface TraceTimelineProps {
   timeline: TraceNode[];

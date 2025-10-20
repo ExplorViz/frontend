@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import TraceReplayerMain from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-main';
+import TraceSelection from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
   DynamicLandscapeData,
   Trace,
@@ -6,10 +8,7 @@ import {
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
-import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
-import TraceReplayerMain from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-main';
-import TraceSelection from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import React, { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export type TimeUnit = 'ns' | 'μs' | 'ms' | 's';
@@ -17,7 +16,6 @@ export type TimeUnit = 'ns' | 'μs' | 'ms' | 's';
 interface TraceSelectionAndReplayerProps {
   highlightTrace: (trace: Trace, traceStep: string) => void;
   removeHighlighting: () => void;
-  renderingLoop: RenderingLoop;
   dynamicData: DynamicLandscapeData;
   structureData: StructureLandscapeData;
 }
@@ -25,7 +23,6 @@ interface TraceSelectionAndReplayerProps {
 const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
   highlightTrace,
   removeHighlighting,
-  renderingLoop,
   dynamicData,
   structureData,
 }) => {
@@ -110,7 +107,6 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
         <TraceReplayerMain
           selectedTrace={selectedTrace}
           structureData={structureData}
-          renderingLoop={renderingLoop}
         />
       )}
     </div>
