@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { TraceTab } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tab';
 
 export interface TraceReplayNode {
   id: string;
@@ -17,6 +18,9 @@ interface TraceReplayState {
   speed: number; // animation speed
   eager: boolean;
   afterimage: boolean;
+  ready: boolean;
+  tabs: TraceTab[];
+  opacity: number;
 
   // derived bounds
   minTs: number;
@@ -31,6 +35,9 @@ interface TraceReplayState {
   setSpeed: (s: number) => void;
   setEager: (v: boolean) => void;
   setAfterimage: (v: boolean) => void;
+  setReady: (v: boolean) => void;
+  setTabs: (tabs: TraceTab[]) => void;
+  setOpacity: (v: number) => void;
   tick: (deltaSeconds: number) => void;
 }
 
@@ -41,6 +48,9 @@ export const useTraceReplayStore = create<TraceReplayState>((set, get) => ({
   speed: 5,
   eager: true,
   afterimage: true,
+  ready: false,
+  tabs: [],
+  opacity: 0.3,
   minTs: 0,
   maxTs: 0,
 
@@ -56,6 +66,9 @@ export const useTraceReplayStore = create<TraceReplayState>((set, get) => ({
   setSpeed: (s) => set({ speed: s }),
   setEager: (v) => set({ eager: v }),
   setAfterimage: (v) => set({ afterimage: v }),
+  setReady: (v) => set({ ready: v }),
+  setTabs: (tabs) => set({ tabs }),
+  setOpacity: (v) => set({ opacity: v }),
   tick: (deltaSeconds) => {
     const { playing, speed, minTs, maxTs, cursor } = get();
     if (!playing) return;

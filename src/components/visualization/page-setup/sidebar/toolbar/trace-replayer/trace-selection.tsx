@@ -13,14 +13,13 @@ import {
   sortTracesById,
   sortTracesByRequestCount,
 } from 'explorviz-frontend/src/utils/trace-helpers';
-import { Button } from 'react-bootstrap'; // Assuming you're using react-bootstrap for buttons
 import { TimeUnit } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
 
 interface TraceSelectionProps {
   selectTrace: (trace: Trace) => void;
   structureData: StructureLandscapeData;
-  selectedTrace: Trace;
+  selectedTrace: Trace | null;
   applicationTraces: Trace[];
   toggleUnit: () => void;
   unit: TimeUnit;
@@ -95,7 +94,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
 
   function filterAndSortTraces(
     applicationTraces: Trace[],
-    selectedTrace: Trace,
+    selectedTrace: Trace | null,
     filterTerm: string,
     sortBy: string,
     isSortedAsc: boolean,
@@ -210,9 +209,16 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
                 onClick={() => handleSortByProperty('traceDuration')}
                 scope="col"
               >
-                <Button onClick={toggleUnit} className="th-btn">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleUnit();
+                  }}
+                  className="btn btn-link p-0 border-0 bg-transparent"
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
                   {unit}
-                </Button>
+                </button>
               </th>
             </tr>
           </thead>
@@ -220,8 +226,11 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
             {traces.map((trace, index) => (
               <tr
                 key={trace.traceId}
-                style={{ cursor: 'pointer' }}
-                bgcolor={trace === selectedTrace ? '#cc8a8a' : undefined}
+                style={{
+                  cursor: 'pointer',
+                  backgroundColor:
+                    trace === selectedTrace ? '#cc8a8a' : undefined,
+                }}
                 onClick={() => selectTrace(trace)}
               >
                 <th title={trace.traceId}>{trace.traceId.substring(0, 30)}</th>

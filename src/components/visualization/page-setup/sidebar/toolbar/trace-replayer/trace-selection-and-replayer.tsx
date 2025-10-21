@@ -1,4 +1,4 @@
-import TraceReplayerMain from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-main';
+import TraceReplayerControls from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-controls';
 import TraceSelection from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
@@ -98,13 +98,13 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
         selectTrace={selectTrace}
         structureData={structureData}
         applicationTraces={applicationTraces}
-        selectedTrace={selectedTrace!}
+        selectedTrace={selectedTrace}
         unit={unit}
         toggleUnit={toggleUnit}
       />
 
       {selectedTrace && (
-        <TraceReplayerMain
+        <TraceReplayerControls
           selectedTrace={selectedTrace}
           structureData={structureData}
         />

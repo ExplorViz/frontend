@@ -30,10 +30,14 @@ export default function TraceReplayOverlayR3F() {
     const sphereGroup = spheresRef.current;
     if (!lineGroup || !sphereGroup) return;
 
-    // Cleanup previous frame
-    while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+    // Cleanup spheres (always clear spheres each frame)
     while (sphereGroup.children.length)
       sphereGroup.remove(sphereGroup.children[0]);
+
+    // Only clear lines if afterimage is disabled
+    if (!afterimage) {
+      while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+    }
 
     // Active nodes at cursor
     const active = timeline.filter((n) => n.start <= cursor && n.end >= cursor);
@@ -59,13 +63,18 @@ export default function TraceReplayOverlayR3F() {
 
     active.forEach((node, idx) => {
       // Determine callee path target: if eager, use earliest child start as temporary end
-      const endTs =
-        eager && node.childrenIds.length
-          ? node.childrenIds.reduce((acc, id) => {
-              const child = timeline.find((n) => n.id === id);
-              return child ? Math.min(acc, child.start) : acc;
-            }, node.end)
-          : node.end;
+      let endTs = node.end;
+      if (eager && node.childrenIds.length > 0) {
+        const childStarts = node.childrenIds
+          .map((id) => timeline.find((n) => n.id === id))
+          .filter(
+            (child): child is NonNullable<typeof child> => child !== undefined
+          )
+          .map((child) => child.start);
+        if (childStarts.length > 0) {
+          endTs = Math.min(...childStarts);
+        }
+      }
 
       const progress = THREE.MathUtils.clamp(
         (cursor - node.start) / Math.max(1e-9, endTs - node.start),
@@ -82,20 +91,34 @@ export default function TraceReplayOverlayR3F() {
 
       const pathColor = mkColorById(node.id, idx, active.length);
 
-      // Trail line (simple line segments along 0..progress)
-      const points: THREE.Vector3[] = [];
-      const steps = Math.max(2, Math.floor(64 * progress));
-      for (let i = 0; i <= steps; i++) points.push(curve.getPoint(i / steps));
-      const trailGeom = new THREE.BufferGeometry().setFromPoints(points);
-      const trailMat = new THREE.LineBasicMaterial({
-        color: pathColor,
-        transparent: true,
-        opacity: 0.2,
-      });
+      // Check if line already exists for this node (for afterimage persistence)
+      const existingLine = lineGroup.children.find(
+        (child) => child.userData?.nodeId === node.id
+      );
 
-      const trail = new THREE.Line(trailGeom, trailMat);
+      if (!existingLine) {
+        // Trail line (simple line segments along 0..progress)
+        const points: THREE.Vector3[] = [];
+        const steps = Math.max(2, Math.floor(64 * progress));
+        for (let i = 0; i <= steps; i++) points.push(curve.getPoint(i / steps));
+        const trailGeom = new THREE.BufferGeometry().setFromPoints(points);
+        const trailMat = new THREE.LineBasicMaterial({
+          color: pathColor,
+          transparent: true,
+          opacity: 0.2,
+        });
 
-      lineGroup.add(trail);
+        const trail = new THREE.Line(trailGeom, trailMat);
+        trail.userData = { nodeId: node.id };
+        lineGroup.add(trail);
+      } else {
+        // Update existing line progress
+        const trail = existingLine as THREE.Line;
+        const points: THREE.Vector3[] = [];
+        const steps = Math.max(2, Math.floor(64 * progress));
+        for (let i = 0; i <= steps; i++) points.push(curve.getPoint(i / steps));
+        trail.geometry.setFromPoints(points);
+      }
 
       // Cursor sphere
       const sphereGeom = new THREE.SphereGeometry(0.06, 12, 12);
@@ -104,9 +127,14 @@ export default function TraceReplayOverlayR3F() {
       sphere.position.copy(curve.getPoint(progress));
       spheresRef.current?.add(sphere);
 
-      // Afterimage: if disabled and past end, do not keep line
+      // Afterimage: if disabled and past end, remove the line
       if (!afterimage && progress >= 1) {
-        lineGroup.remove(trail);
+        const lineToRemove = lineGroup.children.find(
+          (child) => child.userData?.nodeId === node.id
+        );
+        if (lineToRemove) {
+          lineGroup.remove(lineToRemove);
+        }
       }
     });
   }, [timeline, cursor, eager, afterimage]);
