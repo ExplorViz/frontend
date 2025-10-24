@@ -7,9 +7,8 @@ export const MOUSE_PING_UPDATE_EVENT = 'mouse_ping_update';
 
 export type MousePingUpdateMessage = {
   event: typeof MOUSE_PING_UPDATE_EVENT;
-  modelId: string;
-  isApplication: boolean;
-  position: Position;
+  modelIds: string[]; // IDs of the models (applications, classes, components) being pinged
+  positions: Position[]; // Positions of the mouse pings
 };
 
 export function isMousePingUpdateMessage(
@@ -19,8 +18,8 @@ export function isMousePingUpdateMessage(
     msg !== null &&
     typeof msg === 'object' &&
     msg.event === MOUSE_PING_UPDATE_EVENT &&
-    typeof msg.modelId === 'string' &&
-    // && typeof msg.isApplication === 'boolean'
-    isPosition(msg.position)
+    Array.isArray(msg.modelIds) &&
+    Array.isArray(msg.positions) &&
+    msg.positions.every((pos: any) => isPosition(pos))
   );
 }

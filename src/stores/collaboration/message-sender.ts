@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AllHighlightsResetMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
+import { ResetHighlightingMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
@@ -143,19 +143,10 @@ interface MessageSenderState {
     scale: THREE.Vector3
   ) => void;
   sendObjectReleased: (objectId: string) => void;
-  sendComponentUpdate: (
-    appId: string,
-    componentId: string,
-    isOpened: boolean,
-    isFoundation: boolean,
-    forward?: boolean
-  ) => void;
+  sendComponentUpdate: (componentIds: string[], isOpened: boolean) => void;
   sendHighlightingUpdate: (
-    appId: string,
-    entityType: string,
-    entityId: string,
-    isHighlighted: boolean,
-    isMultiSelected: boolean
+    entityIds: string[],
+    areHighlighted: boolean
   ) => void;
   sendSharedSettings: (settings: VisualizationSettings) => void;
   sendRestructureModeUpdate: () => void;
@@ -288,7 +279,7 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
   sendAllHighlightsReset: () => {
     useWebSocketStore
       .getState()
-      .send<AllHighlightsResetMessage>('all_highlights_reset', {
+      .send<ResetHighlightingMessage>('all_highlights_reset', {
         event: 'all_highlights_reset',
       });
   },
@@ -333,55 +324,34 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
   /**
    * Informs the backend that a component was opened or closed by this user.
    *
-   * @param {string} appId ID of the app which is a parent to the component
-   * @param {string} componentId ID of the component which was opened or closed
-   * @param {boolean} isOpened Tells whether the component is now open or closed (current state)
+   * @param {string[]} componentIds IDs of the components which were opened or closed
+   * @param {boolean} areOpened Tells whether the components are now open or closed (current state)
    */
-  sendComponentUpdate: (
-    appId: string,
-    componentId: string,
-
-    isOpened: boolean,
-    isFoundation: boolean,
-    forward: boolean = true
-  ) => {
+  sendComponentUpdate: (componentIds: string[], areOpened: boolean) => {
     useWebSocketStore
       .getState()
       .send<ComponentUpdateMessage>(COMPONENT_UPDATE_EVENT, {
         event: COMPONENT_UPDATE_EVENT,
-        appId,
-        componentId,
-        isOpened,
-        isFoundation,
-        forward,
+        componentIds,
+        areOpened,
       });
   },
 
   /**
-   * Informs the backend that an entity (clazz or component) was highlighted
+   * Informs the backend that an entity (application, class, component) was highlighted
    * or unhighlighted.
    *
-   * @param {string} appId ID of the parent application of the entity
    * @param {string} entityType Tells whether a clazz/component or communication was updated
    * @param {string} entityId ID of the highlighted/unhighlighted component/clazz
    * @param {boolean} isHighlighted Tells whether the entity has been highlighted or not
    */
-  sendHighlightingUpdate: (
-    appId: string,
-    entityType: string,
-    entityId: string,
-    isHighlighted: boolean,
-    isMultiSelected: boolean
-  ) => {
+  sendHighlightingUpdate: (entityIds: string[], areHighlighted: boolean) => {
     useWebSocketStore
       .getState()
       .send<HighlightingUpdateMessage>(HIGHLIGHTING_UPDATE_EVENT, {
         event: HIGHLIGHTING_UPDATE_EVENT,
-        appId,
-        entityType,
-        entityId,
-        isHighlighted,
-        multiSelected: isMultiSelected,
+        entityIds,
+        areHighlighted,
       });
   },
 

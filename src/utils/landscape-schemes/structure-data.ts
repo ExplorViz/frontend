@@ -160,6 +160,43 @@ export function getK8sAppsFromNodes(k8sNodes: K8sNode[]) {
   );
 }
 
+export function getAllPackagesAndClassesFromLandscape(
+  landscapeStructure: StructureLandscapeData
+): { packages: Package[]; classes: Class[] } {
+  const packages: Package[] = [];
+  const classes: Class[] = [];
+
+  function collectPackagesAndClasses(pkg: Package) {
+    packages.push(pkg);
+    classes.push(...pkg.classes);
+    pkg.subPackages.forEach(collectPackagesAndClasses);
+  }
+
+  // Get packages and classes from regular nodes
+  landscapeStructure.nodes.forEach((node) => {
+    node.applications.forEach((app) => {
+      app.packages.forEach(collectPackagesAndClasses);
+    });
+  });
+
+  // Get packages and classes from k8s nodes if they exist
+  if (landscapeStructure.k8sNodes) {
+    landscapeStructure.k8sNodes.forEach((k8sNode) => {
+      k8sNode.k8sNamespaces.forEach((k8sNamespace) => {
+        k8sNamespace.k8sDeployments.forEach((k8sDeployment) => {
+          k8sDeployment.k8sPods.forEach((k8sPod) => {
+            k8sPod.applications.forEach((app) => {
+              app.packages.forEach(collectPackagesAndClasses);
+            });
+          });
+        });
+      });
+    });
+  }
+
+  return { packages, classes };
+}
+
 export function getNodeById(
   landscapeStructure: StructureLandscapeData,
   id: string

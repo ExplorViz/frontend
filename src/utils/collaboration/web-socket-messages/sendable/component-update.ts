@@ -2,11 +2,8 @@ export const COMPONENT_UPDATE_EVENT = 'component_update';
 
 export type ComponentUpdateMessage = {
   event: typeof COMPONENT_UPDATE_EVENT;
-  isFoundation: boolean;
-  isOpened: boolean;
-  appId: string;
-  componentId: string;
-  forward?: boolean;
+  componentIds: string[];
+  areOpened: boolean;
 };
 
 export function isComponentUpdateMessage(
@@ -16,9 +13,7 @@ export function isComponentUpdateMessage(
     msg !== null &&
     typeof msg === 'object' &&
     msg.event === COMPONENT_UPDATE_EVENT &&
-    typeof msg.isFoundation === 'boolean' &&
-    typeof msg.isOpened === 'boolean' &&
-    typeof msg.appId === 'string' &&
-    typeof msg.componentId === 'string'
+    Array.isArray(msg.componentIds) &&
+    typeof msg.areOpened === 'boolean'
   );
 }

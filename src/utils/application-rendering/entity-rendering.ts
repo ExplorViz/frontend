@@ -13,11 +13,6 @@ import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
 import * as THREE from 'three';
 import { Font } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import {
-  closeComponent,
-  openComponent,
-  openComponentAndAncestor,
-} from './entity-manipulation';
 
 import CommunicationRendering from 'explorviz-frontend/src/utils/application-rendering/communication-rendering';
 
