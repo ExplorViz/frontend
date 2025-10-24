@@ -259,8 +259,8 @@ export default function BrowserRendering({
               </div>
             )}
 
-          {useUserSettingsStore.getState().visualizationSettings.heatmapEnabled
-            .value && <HeatmapInfo />}
+            {useUserSettingsStore.getState().visualizationSettings
+              .heatmapEnabled.value && <HeatmapInfo />}
 
             <ContextMenu switchToAR={switchToAR}>
               <CanvasWrapper landscapeData={landscapeData} />
@@ -271,15 +271,16 @@ export default function BrowserRendering({
             </div>
           )} */}
 
-          {landscapeData && <Popups landscapeData={landscapeData} />}
+            {landscapeData && <Popups landscapeData={landscapeData} />}
 
-          {annotationHandlerState.annotationData.map((data) => (
-            <AnnotationCoordinator
-              key={data.annotationId}
-              annotationData={data}
-              removeAnnotation={removeAnnotation}
-            />
-          ))}
+            {annotationHandlerState.annotationData.map((data) => (
+              <AnnotationCoordinator
+                key={data.annotationId}
+                annotationData={data}
+                removeAnnotation={removeAnnotation}
+              />
+            ))}
+          </div>
         </div>
         {showToolsSidebar && (
           <div className="sidebar left" id="toolselection">
