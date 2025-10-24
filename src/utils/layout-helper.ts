@@ -1,5 +1,8 @@
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import * as THREE from 'three';
 
 const ZERO_VECTOR = new THREE.Vector3(0, 0, 0);
@@ -54,6 +57,10 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
 export function getWorldPositionOfModel(
   modelId: string
 ): THREE.Vector3 | undefined {
+  // Check is model is a communication
+  if (modelId.indexOf('_') !== -1) {
+    return getWorldPositionOfCommunication(modelId);
+  }
   const appRepo = useApplicationRepositoryStore.getState();
   const settings = useUserSettingsStore.getState().visualizationSettings;
 
@@ -102,4 +109,51 @@ export function getWorldPositionOfModel(
   }
 
   return getLandscapeCenterPosition().add(appPosition).add(modelPosition);
+}
+
+export function getWorldPositionOfCommunication(
+  communicationId: string
+): THREE.Vector3 {
+  const modelStore = useModelStore.getState();
+  const configStore = useConfigurationStore.getState();
+  const userSettings = useUserSettingsStore.getState().visualizationSettings;
+
+  const communication = modelStore.getCommunication(communicationId);
+  if (!(communication instanceof ClassCommunication)) {
+    console.warn(
+      `[getWorldPositionOfCommunication] Invalid communication ID: ${communicationId}`
+    );
+    return new THREE.Vector3();
+  }
+
+  const sourcePos = getWorldPositionOfModel(communication.sourceClass.id);
+  const targetPos = getWorldPositionOfModel(communication.targetClass.id);
+
+  if (!sourcePos || !targetPos) {
+    console.warn(
+      `[getWorldPositionOfCommunication] Missing source or target model position for communication: ${communicationId}`
+    );
+    return new THREE.Vector3();
+  }
+
+  // Calculate midpoint between source and target
+  const midpoint = sourcePos.clone().add(targetPos).multiplyScalar(0.5);
+
+  // Calculate height based on distance and settings
+  const { commCurveHeightDependsOnDistance } = configStore;
+  const curvyCommHeight = userSettings.curvyCommHeight?.value ?? 1.0;
+
+  const horizontalDistance = Math.hypot(
+    targetPos.x - sourcePos.x,
+    targetPos.z - sourcePos.z
+  );
+
+  const baseHeight = commCurveHeightDependsOnDistance
+    ? horizontalDistance * 0.25
+    : 20;
+
+  // Apply height to midpoint
+  midpoint.y = baseHeight * curvyCommHeight;
+
+  return midpoint;
 }

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { Dropdown } from 'react-bootstrap';
 
@@ -58,7 +57,6 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     useConfigurationStore.setState({
       commWidthMultiplier: Number.parseFloat(event.currentTarget.value),
     });
-    useApplicationRendererStore.getState().updateCommunication();
   };
 
   const updateCommunicationHeight = (
@@ -67,7 +65,6 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     useConfigurationStore.setState({
       commCurveHeightMultiplier: Number.parseFloat(event.currentTarget.value),
     });
-    useApplicationRendererStore.getState().updateCommunication();
   };
 
   const updateCameraResolution = (width: number, height: number) => {
@@ -83,8 +80,6 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     useConfigurationStore.setState({
       commCurveHeightDependsOnDistance: !oldValue,
     });
-
-    useApplicationRendererStore.getState().updateCommunication();
   };
 
   const toggleRenderClassCommunication = () => {
@@ -92,8 +87,6 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
     useARSettingsStore.setState({
       renderCommunication: !oldValue,
     });
-
-    useApplicationRendererStore.getState().updateCommunication();
   };
 
   const updateApplicationOpacity = (

@@ -1,7 +1,4 @@
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import {
   blueColors,
   classicColors,
@@ -111,15 +108,6 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
       updateSettings: (settings: VisualizationSettings) => {
         set({ visualizationSettings: settings });
-
-        useApplicationRendererStore
-          .getState()
-          .addCommunicationForAllApplications();
-        useHighlightingStore.getState().updateHighlighting();
-        let tmpDefaultCamera = useLocalUserStore.getState().defaultCamera;
-        tmpDefaultCamera.fov = get().visualizationSettings.cameraFov.value;
-        tmpDefaultCamera.updateProjectionMatrix();
-        useLocalUserStore.setState({ defaultCamera: tmpDefaultCamera });
       },
 
       updateSetting: (name: VisualizationSettingId, value?: unknown) => {

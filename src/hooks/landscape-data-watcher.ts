@@ -113,7 +113,9 @@ export default function useLandscapeDataWatcher(
       structureLandscapeData
     );
     const modelRepository = useModelStore.getState();
-    modelRepository.setApplications(applicationModels);
+    modelRepository.setApplications(
+      applicationModels.map((app) => app.application)
+    );
     modelRepository.setComponents(packages);
     modelRepository.setClasses(classes);
     modelRepository.setCommunications(classCommunications);

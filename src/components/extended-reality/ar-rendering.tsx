@@ -27,7 +27,6 @@ import PopupCoordinator from 'explorviz-frontend/src/components/visualization/re
 import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
 import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
@@ -52,7 +51,6 @@ import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/applicat
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
@@ -60,7 +58,6 @@ import { useResizeDetector } from 'react-resize-detector';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import useCollaborativeModifier from '../../hooks/collaborative-modifier';
-import useHeatmapRenderer from '../../hooks/heatmap-renderer';
 import useInteractionModifier from '../../hooks/interaction-modifier';
 import useLandscapeDataWatcher from '../../hooks/landscape-data-watcher';
 import ContextMenu from '../context-menu';
@@ -89,15 +86,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     }))
   );
 
-  const localUserActions = useLocalUserStore(
-    useShallow((state) => ({
-      getCamera: state.getCamera,
-      setDefaultCamera: state.setDefaultCamera,
-      ping: state.ping,
-      tick: state.tick,
-    }))
-  );
-
   const popupHandlerState = usePopupHandlerStore(
     useShallow((state) => ({
       popupData: state.popupData,
@@ -115,24 +103,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       sharePopup: state.sharePopup,
       handleHoverOnMesh: state.handleHoverOnMesh,
       removeUnpinnedPopups: state.removeUnpinnedPopups,
-    }))
-  );
-
-  const applicationRendererActions = useApplicationRendererStore(
-    useShallow((state) => ({
-      getMeshById: state.getMeshById,
-      getApplicationById: state.getApplicationById,
-      addCommunicationForAllApplications:
-        state.addCommunicationForAllApplications,
-      openAllComponentsOfAllApplications:
-        state.openAllComponentsOfAllApplications,
-      openParents: state.openParents,
-      toggleCommunicationRendering: state.toggleCommunicationRendering,
-      setOpenApplicationsMap: state.setOpenApplicationsMap,
-      setLandscape3D: state.setLandscape3D,
-      openAllComponents: state.openAllComponents,
-      closeAllComponents: state.closeAllComponents,
-      toggleComponent: state.toggleComponent,
     }))
   );
 
@@ -291,11 +261,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
    * Private function
    */
   const initRendering = () => {
-    initCamera();
     initRenderer();
     initAr();
 
-    arZoomHandler.current = new ArZoomHandler(localUserActions.getCamera());
+    // arZoomHandler.current = new ArZoomHandler(localUserActions.getCamera());
 
     renderingLoop.current = new RenderingLoop({
       camera: camera,
@@ -313,10 +282,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     window.addEventListener('resize', resize);
 
     addSpheres('skyblue', mousePosition, scene, tickCallbacks.current);
-    tickCallbacks.current.push({
-      id: 'ar-rendering',
-      callback: tick,
-    });
 
     renderingLoop.current.start();
     initCameraCrosshair();
@@ -337,22 +302,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         domOverlay: { root: document.body },
       })
       .then(onSessionStarted);
-  };
-
-  /**
-   * Creates a PerspectiveCamera according to canvas size and sets its initial position
-   */
-  const initCamera = () => {
-    // Set camera properties
-    localUserActions.setDefaultCamera(
-      new THREE.PerspectiveCamera(
-        65,
-        document.body.clientWidth / document.body.clientHeight,
-        0.01,
-        20
-      )
-    );
-    scene.add(useLocalUserStore.getState().defaultCamera);
   };
 
   const initCameraCrosshair = () => {
@@ -523,7 +472,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     const applicationObject3D = intersection.object.parent;
 
-    applicationRendererActions.openAllComponents(applicationObject3D);
+    // applicationRendererActions.openAllComponents(applicationObject3D);
   };
 
   const handlePing = async () => {
@@ -543,8 +492,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const parentObj = intersection.object.parent;
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
-
-    localUserActions.ping(parentObj, pingPosition);
 
     if (!useCollaborationSessionStore.getState().isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
@@ -596,7 +543,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const mesh = intersection.object;
     const position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     popupHandlerActions.addPopup({
-      mesh,
+      entityId: mesh.getModelId(),
       position,
       hovered: true,
     });
@@ -669,12 +616,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         Date.now() - lastOpenAllComponents.current < 20
       )
         return;
-
-      if (appObject instanceof ComponentMesh) {
-        applicationRendererActions.toggleComponent(appObject, appObject.parent);
-      } else if (appObject instanceof FoundationMesh) {
-        applicationRendererActions.closeAllComponents(appObject.parent);
-      }
     }
 
     // Handle application hits
@@ -700,12 +641,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   const removeUnpinnedPopups = popupHandlerActions.removeUnpinnedPopups;
 
   const addAnnotationForPopup = (popup: PopupData) => {
-    const mesh = applicationRendererActions.getMeshById(popup.entity.id);
-    if (!mesh) return;
-
     annotationHandlerActions.addAnnotation({
       annotationId: undefined,
-      mesh: mesh,
+      entityId: popup.entityId,
+      entity: popup.entity,
       position: { x: popup.mouseX + 400, y: popup.mouseY },
       hovered: true,
       annotationTitle: '',
@@ -729,12 +668,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const removePopup = (entityId: string) => {
     popupHandlerActions.removePopup(entityId);
-
-    // remove potential toggle effect
-    const mesh = applicationRendererActions.getMeshById(entityId);
-    if (mesh?.isHovered) {
-      mesh.resetHoverEffect();
-    }
   };
 
   const showApplication = (appId: string) => {
@@ -772,16 +705,16 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         : 'Pause Visualization',
       action: arRenderingArgs.toggleVisualizationUpdating,
     },
-    {
-      title: 'Open All Components',
-      action: applicationRendererActions.openAllComponentsOfAllApplications,
-    },
-    {
-      title: configurationState.isCommRendered
-        ? 'Hide Communication'
-        : 'Add Communication',
-      action: applicationRendererActions.toggleCommunicationRendering,
-    },
+    // {
+    //   title: 'Open All Components',
+    //   action: applicationRendererActions.openAllComponentsOfAllApplications,
+    // },
+    // {
+    //   title: configurationState.isCommRendered
+    //     ? 'Hide Communication'
+    //     : 'Add Communication',
+    //   action: applicationRendererActions.toggleCommunicationRendering,
+    // },
   ];
 
   // MARK: Effects
@@ -789,18 +722,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   useEffect(function init() {
     scene.background = null;
 
-    applicationRendererActions.setOpenApplicationsMap(new Map());
-
-    scene.add(landscape3D);
-    tickCallbacks.current.push({
-      id: 'local-user',
-      callback: localUserActions.tick,
-    });
-
     const onContextMenu = (event: MouseEvent) => event.preventDefault();
 
     document.addEventListener('contextmenu', onContextMenu);
-    applicationRendererActions.setLandscape3D(landscape3D);
 
     initRendering();
 
@@ -839,7 +763,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   useHeatmapRenderer(camera, scene);
 
-  useLandscapeDataWatcher(arRenderingArgs.landscapeData, landscape3D);
+  useLandscapeDataWatcher(arRenderingArgs.landscapeData);
 
   useCollaborativeModifier();
 
@@ -1044,9 +968,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
                       structureData={
                         arRenderingArgs.landscapeData.structureLandscapeData
                       }
-                      renderingLoop={renderingLoop.current!}
-                      landscapeData={arRenderingArgs.landscapeData}
-                      moveCameraTo={moveCameraTo}
                     />
                   )}
                   {openedSettingComponent === 'Settings' && (

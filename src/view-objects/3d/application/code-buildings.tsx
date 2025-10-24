@@ -2,9 +2,12 @@ import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
+import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
+import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import {
   Application,
   Class,
@@ -13,12 +16,13 @@ import {
   MetricKey,
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { forwardRef, useEffect, useMemo, useRef } from 'react';
+import gsap from 'gsap';
+import { forwardRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import {
   BoxGeometry,
-  MeshLambertMaterial,
   Matrix4,
+  MeshLambertMaterial,
   Quaternion,
   Vector3,
 } from 'three';
@@ -27,10 +31,6 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
-import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
-import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
-import gsap from 'gsap';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -326,10 +326,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
       const classId = instanceIdToClassId.get(instanceId);
       if (!classId) return;
-      const clazz = classIdToClass.get(classId);
+      const classModel = classIdToClass.get(classId);
       addPopup({
-        model: clazz,
-        applicationId: appId,
+        entityId: classId,
+        entity: classModel,
         position: {
           x: e.clientX,
           y: e.clientY,

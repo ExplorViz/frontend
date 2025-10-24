@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
@@ -86,6 +84,7 @@ import { getPackageById } from 'explorviz-frontend/src/utils/package-helpers';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 export default function useCollaborativeModifier() {
   // MARK: Stores
@@ -96,29 +95,9 @@ export default function useCollaborativeModifier() {
     }))
   );
 
-  const applicationRendererActions = useApplicationRendererStore(
-    useShallow((state) => ({
-      getApplicationById: state.getApplicationById,
-      getMeshById: state.getMeshById,
-      toggleComponentLocally: state.toggleComponentLocally,
-      openAllComponentsLocally: state.openAllComponentsLocally,
-      closeAllComponentsLocally: state.closeAllComponentsLocally,
-      cleanup: state.cleanup,
-    }))
-  );
-
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
       cleanup: state.cleanup,
-    }))
-  );
-
-  const highlightingActions = useHighlightingStore(
-    useShallow((state) => ({
-      removeHighlightingForAllApplications:
-        state.removeHighlightingForAllApplications,
-      updateHighlighting: state.updateHighlighting,
-      toggleHighlight: state.toggleHighlight,
     }))
   );
 
@@ -214,8 +193,7 @@ export default function useCollaborativeModifier() {
   };
 
   const onAllHighlightsReset = (): void => {
-    highlightingActions.removeHighlightingForAllApplications(false);
-    highlightingActions.updateHighlighting();
+    removeAllHighlighting(false);
   };
 
   const onHighlightingUpdate = ({
@@ -239,7 +217,6 @@ export default function useCollaborativeModifier() {
     }
     landscapeTokenActions.setTokenByValue(landscapeToken);
 
-    applicationRendererActions.cleanup();
     applicationRepositoryActions.cleanup();
   };
 

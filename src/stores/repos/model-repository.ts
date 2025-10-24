@@ -1,37 +1,38 @@
-import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
+  Application,
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { create } from 'zustand';
 
 interface ModelRepositoryState {
-  applications: Record<string, ApplicationData>;
+  applications: Record<string, Application>;
   components: Record<string, Package>;
   classes: Record<string, Class>;
   communications: Record<string, ClassCommunication>;
 
   // Getter functions for individual models
-  getApplication: (id: string) => ApplicationData | undefined;
+  getApplication: (id: string) => Application | undefined;
   getComponent: (id: string) => Package | undefined;
   getClass: (id: string) => Class | undefined;
   getCommunication: (id: string) => ClassCommunication | undefined;
+  getModel: (id: string) => Application | Package | Class | Class | undefined;
 
   // Getter functions for all models
-  getAllApplications: () => ApplicationData[];
+  getAllApplications: () => Application[];
   getAllComponents: () => Package[];
   getAllClasses: () => Class[];
   getAllCommunications: () => ClassCommunication[];
 
   // Actions for adding individual models
-  addApplication: (id: string, application: ApplicationData) => void;
+  addApplication: (id: string, application: Application) => void;
   addComponent: (id: string, component: Package) => void;
   addClass: (id: string, clazz: Class) => void;
   addCommunication: (id: string, communication: ClassCommunication) => void;
 
   // Actions for setting (overwriting) models
-  setApplications: (applications: ApplicationData[]) => void;
+  setApplications: (applications: Application[]) => void;
   setComponents: (components: Package[]) => void;
   setClasses: (classes: Class[]) => void;
   setCommunications: (communications: ClassCommunication[]) => void;
@@ -67,6 +68,11 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   getAllComponents: () => Object.values(get().components),
   getAllClasses: () => Object.values(get().classes),
   getAllCommunications: () => Object.values(get().communications),
+  getModel: (id) =>
+    get().applications[id] ||
+    get().components[id] ||
+    get().classes[id] ||
+    get().communications[id],
 
   // Set individual models
   addApplication: (id, application) =>
@@ -93,7 +99,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   setApplications: (applicationArray) =>
     set(() => ({
       applications: Object.fromEntries(
-        applicationArray.map((app) => [app.getId(), app])
+        applicationArray.map((app) => [app.id, app])
       ),
     })),
 

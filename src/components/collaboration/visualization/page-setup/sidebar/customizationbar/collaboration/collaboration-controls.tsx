@@ -10,7 +10,6 @@ import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/l
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   useLandscapeTokenStore,
@@ -96,7 +95,6 @@ export default function CollaborationControls() {
   const removeSpectateConfig = useSpectateConfigurationStore(
     (state) => state.deleteSpectateConfig
   );
-  const getAllLinks = useLinkRendererStore((state) => state.getAllLinks);
   const sendKickUser = useMessageSenderStore((state) => state.sendKickUser);
   const sendChangeLandscape = useMessageSenderStore(
     (state) => state.sendChangeLandscape
@@ -305,12 +303,7 @@ export default function CollaborationControls() {
   const landscapeSelected = (event: any) => {
     setTokenByValue(event.target.value);
 
-    // Cleanup old landscape
-    useApplicationRendererStore.getState().cleanup();
-    useApplicationRepositoryStore.getState().cleanup();
-    getAllLinks().forEach((externLink) => {
-      externLink.removeFromParent();
-    });
+    // ToDo: Clean up old landscape
 
     navigate({
       pathname: '/visualization',

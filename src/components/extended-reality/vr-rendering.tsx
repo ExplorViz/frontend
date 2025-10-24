@@ -1,50 +1,79 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { LandscapeData } from '../../utils/landscape-schemes/landscape-data';
-import RenderingLoop from '../../rendering/application/rendering-loop';
-import MenuGroup from '../../utils/extended-reality/vr-menus/menu-group';
-import MenuQueue from '../../utils/extended-reality/vr-menus/menu-queue';
-import VrInputManager from '../../utils/extended-reality/vr-controller/vr-input-manager';
+import { ReplyIcon } from '@primer/octicons-react';
+import gsap from 'gsap';
+import React, { useEffect, useRef, useState } from 'react';
+import { Button } from 'react-bootstrap';
+import { useResizeDetector } from 'react-resize-detector';
 import * as THREE from 'three';
-import CameraControls from '../../utils/application-rendering/camera-controls';
-import Landscape3D from '../../view-objects/3d/landscape/landscape-3d';
+import { GLTFLoader } from 'three-stdlib';
+import { useShallow } from 'zustand/react/shallow';
+import useCollaborativeModifier from '../../hooks/collaborative-modifier';
+import useInteractionModifier from '../../hooks/interaction-modifier';
+import useLandscapeDataWatcher from '../../hooks/landscape-data-watcher';
+import { ImmersiveView } from '../../rendering/application/immersive-view';
+import RenderingLoop from '../../rendering/application/rendering-loop';
+import { useCollaborationSessionStore } from '../../stores/collaboration/collaboration-session';
+import { useLocalUserStore } from '../../stores/collaboration/local-user';
+import { useMessageSenderStore } from '../../stores/collaboration/message-sender';
+import { useSpectateUserStore } from '../../stores/collaboration/spectate-user';
+import { useDetachedMenuGroupsStore } from '../../stores/extended-reality/detached-menu-groups';
+import { useDetachedMenuRendererStore } from '../../stores/extended-reality/detached-menu-renderer';
+import { useGrabbedObjectStore } from '../../stores/extended-reality/grabbed-object';
+import { useVrMenuFactoryStore } from '../../stores/extended-reality/vr-menu-factory';
+import { useHeatmapConfigurationStore } from '../../stores/heatmap/heatmap-configuration';
 import { useSceneRepositoryStore } from '../../stores/repos/scene-repository';
 import { useUserSettingsStore } from '../../stores/user-settings';
-import { useLocalUserStore } from '../../stores/collaboration/local-user';
-import { useApplicationRendererStore } from '../../stores/application-renderer';
-import { useVrMenuFactoryStore } from '../../stores/extended-reality/vr-menu-factory';
-import { useDetachedMenuGroupsStore } from '../../stores/extended-reality/detached-menu-groups';
-import BaseMesh from '../../view-objects/3d/base-mesh';
-import { useHighlightingStore } from '../../stores/highlighting';
-import ComponentMesh from '../../view-objects/3d/application/component-mesh';
-import ApplicationObject3D from '../../view-objects/3d/application/application-object-3d';
-import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
-import { useHeatmapConfigurationStore } from '../../stores/heatmap/heatmap-configuration';
-import CloseIcon from '../../utils/extended-reality/view-objects/vr/close-icon';
-import ActionIcon from '../../utils/extended-reality/view-objects/vr/action-icon';
-import InteractiveMenu from '../../utils/extended-reality/vr-menus/interactive-menu';
-import ScrollUpButton from '../../utils/extended-reality/view-objects/vr/scroll-up-button';
-import ScrollDownButton from '../../utils/extended-reality/view-objects/vr/scroll-down-button';
-import OpenEntityButton from '../../utils/extended-reality/view-objects/vr/open-entity-button';
-import DetailInfoScrollarea from '../../utils/extended-reality/view-objects/vr/detail-info-scrollarea';
-import KeyboardMesh from '../../utils/extended-reality/view-objects/vr/keyboard-mesh';
-import SearchListItem from '../../utils/extended-reality/view-objects/vr/search-list-item';
-import UserListItem from '../../utils/extended-reality/view-objects/vr/user-list-item';
-import DisconnectButton from '../../utils/extended-reality/view-objects/vr/disconnect-button';
-import FloorMesh from '../../utils/extended-reality/view-objects/vr/floor-mesh';
+import { ForwardedMessage } from '../../utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
-  EntityMesh,
-  isEntityMesh,
-} from '../../utils/extended-reality/vr-helpers/detail-info-composer';
-import ClazzCommunicationMesh from '../../view-objects/3d/application/clazz-communication-mesh';
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from '../../utils/collaboration/web-socket-messages/sendable/ping-update';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
   ControllerId,
 } from '../../utils/collaboration/web-socket-messages/types/controller-id';
-import { useMessageSenderStore } from '../../stores/collaboration/message-sender';
-import VRController from '../../utils/extended-reality/vr-controller';
-import VRControllerBindingsList from '../../utils/extended-reality/vr-controller/vr-controller-bindings-list';
 import eventEmitter from '../../utils/event-emitter';
+import {
+  findGrabbableObject,
+  GrabbableObjectWrapper,
+  isGrabbableObject,
+} from '../../utils/extended-reality/view-objects/interfaces/grabbable-object';
+import ActionIcon from '../../utils/extended-reality/view-objects/vr/action-icon';
+import CloseIcon from '../../utils/extended-reality/view-objects/vr/close-icon';
+import DetailInfoScrollarea from '../../utils/extended-reality/view-objects/vr/detail-info-scrollarea';
+import DisconnectButton from '../../utils/extended-reality/view-objects/vr/disconnect-button';
+import FloorMesh from '../../utils/extended-reality/view-objects/vr/floor-mesh';
+import KeyboardMesh from '../../utils/extended-reality/view-objects/vr/keyboard-mesh';
+import OpenEntityButton from '../../utils/extended-reality/view-objects/vr/open-entity-button';
+import ScrollDownButton from '../../utils/extended-reality/view-objects/vr/scroll-down-button';
+import ScrollUpButton from '../../utils/extended-reality/view-objects/vr/scroll-up-button';
+import SearchListItem from '../../utils/extended-reality/view-objects/vr/search-list-item';
+import UserListItem from '../../utils/extended-reality/view-objects/vr/user-list-item';
+import VRController from '../../utils/extended-reality/vr-controller';
+import VRControllerBindings from '../../utils/extended-reality/vr-controller/vr-controller-bindings';
+import VRControllerBindingsList from '../../utils/extended-reality/vr-controller/vr-controller-bindings-list';
+import VRControllerButtonBinding from '../../utils/extended-reality/vr-controller/vr-controller-button-binding';
+import VRControllerThumbpadBinding from '../../utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
+import VrInputManager from '../../utils/extended-reality/vr-controller/vr-input-manager';
+import {
+  EntityMesh,
+  isEntityMesh,
+} from '../../utils/extended-reality/vr-helpers/detail-info-composer';
+import InteractiveMenu from '../../utils/extended-reality/vr-menus/interactive-menu';
+import MenuGroup from '../../utils/extended-reality/vr-menus/menu-group';
+import MenuQueue from '../../utils/extended-reality/vr-menus/menu-queue';
+import HintMenu from '../../utils/extended-reality/vr-menus/ui-menu/hud/hint-menu';
+import { MenuDetachedForwardMessage } from '../../utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
+import { JOIN_VR_EVENT } from '../../utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
+import {
+  OBJECT_MOVED_EVENT,
+  ObjectMovedMessage,
+} from '../../utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
+import {
+  DETACHED_MENU_CLOSED_EVENT,
+  DetachedMenuClosedMessage,
+} from '../../utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
+import { MENU_DETACHED_EVENT } from '../../utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import {
   USER_CONTROLLER_CONNECT_EVENT,
   UserControllerConnectMessage,
@@ -53,51 +82,16 @@ import {
   USER_CONTROLLER_DISCONNECT_EVENT,
   UserControllerDisconnectMessage,
 } from '../../utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
-import {
-  PING_UPDATE_EVENT,
-  PingUpdateMessage,
-} from '../../utils/collaboration/web-socket-messages/sendable/ping-update';
-import {
-  OBJECT_MOVED_EVENT,
-  ObjectMovedMessage,
-} from '../../utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
-import { MENU_DETACHED_EVENT } from '../../utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
-import {
-  DETACHED_MENU_CLOSED_EVENT,
-  DetachedMenuClosedMessage,
-} from '../../utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { JOIN_VR_EVENT } from '../../utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
-import { ImmersiveView } from '../../rendering/application/immersive-view';
-import { useCollaborationSessionStore } from '../../stores/collaboration/collaboration-session';
-import { GLTFLoader } from 'three-stdlib';
-import {
-  findGrabbableObject,
-  GrabbableObjectWrapper,
-  isGrabbableObject,
-} from '../../utils/extended-reality/view-objects/interfaces/grabbable-object';
-import { useSpectateUserStore } from '../../stores/collaboration/spectate-user';
-import { useGrabbedObjectStore } from '../../stores/extended-reality/grabbed-object';
-import { useLinkRendererStore } from '../../stores/link-renderer';
-import HintMenu from '../../utils/extended-reality/vr-menus/ui-menu/hud/hint-menu';
-import VRControllerBindings from '../../utils/extended-reality/vr-controller/vr-controller-bindings';
-import VRControllerButtonBinding from '../../utils/extended-reality/vr-controller/vr-controller-button-binding';
-import VRControllerThumbpadBinding from '../../utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import { ForwardedMessage } from '../../utils/collaboration/web-socket-messages/receivable/forwarded';
-import { MenuDetachedForwardMessage } from '../../utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
-import { useDetachedMenuRendererStore } from '../../stores/extended-reality/detached-menu-renderer';
-import VrDropArea from './vr-drop-area';
-import LoadingIndicator from '../visualization/rendering/loading-indicator';
-import VrButton from './vr-button';
-import { Button } from 'react-bootstrap';
-import { ReplyIcon } from '@primer/octicons-react';
+import { LandscapeData } from '../../utils/landscape-schemes/landscape-data';
+import ApplicationObject3D from '../../view-objects/3d/application/application-object-3d';
+import ClazzCommunicationMesh from '../../view-objects/3d/application/clazz-communication-mesh';
+import ComponentMesh from '../../view-objects/3d/application/component-mesh';
+import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
+import BaseMesh from '../../view-objects/3d/base-mesh';
+import Landscape3D from '../../view-objects/3d/landscape/landscape-3d';
 import { TickCallback } from '../visualization/rendering/browser-rendering';
-import useInteractionModifier from '../../hooks/interaction-modifier';
-import useLandscapeDataWatcher from '../../hooks/landscape-data-watcher';
-import useHeatmapRenderer from '../../hooks/heatmap-renderer';
-import useCollaborativeModifier from '../../hooks/collaborative-modifier';
-import { useResizeDetector } from 'react-resize-detector';
-import { useShallow } from 'zustand/react/shallow';
-import gsap from 'gsap';
+import VrButton from './vr-button';
+import VrDropArea from './vr-drop-area';
 
 interface VrRenderingArgs {
   readonly id: string;
@@ -117,13 +111,6 @@ export default function VrRendering({
   debugMode,
 }: VrRenderingArgs) {
   // #region state values
-  const appRenderer = useApplicationRendererStore(
-    useShallow((state) => ({
-      closeAllComponents: state.closeAllComponents,
-      setOpenApplicationsMap: state.setOpenApplicationsMap,
-      toggleComponent: state.toggleComponent,
-    }))
-  );
   const collabSession = useCollaborationSessionStore(
     useShallow((state) => ({
       remoteUserGroup: state.remoteUserGroup,
@@ -151,21 +138,9 @@ export default function VrRendering({
       setActiveApplication: state.setActiveApplication,
     }))
   );
-  const highlighting = useHighlightingStore(
-    useShallow((state) => ({
-      updateHighlightingOnHover: state.updateHighlightingOnHover,
-      toggleHighlight: state.toggleHighlight,
-    }))
-  );
   const grabbedObject = useGrabbedObjectStore(
     useShallow((state) => ({
       sendObjectPositions: state.sendObjectPositions,
-    }))
-  );
-  const linkRenderer = useLinkRendererStore(
-    useShallow((state) => ({
-      flag: state._flag,
-      setFlag: state.setFlag,
     }))
   );
   const localUser = useLocalUserStore(
@@ -188,7 +163,6 @@ export default function VrRendering({
       rotateCamera: state.rotateCamera,
       getCameraHeight: state.getCameraHeight,
       setCameraHeight: state.setCameraHeight,
-      ping: state.ping,
       getCamera: state.getCamera,
     }))
   );
@@ -247,7 +221,6 @@ export default function VrRendering({
   const willDestroyController = useRef<AbortController>(new AbortController());
   const mouseIntersection = useRef<THREE.Intersection | undefined>(undefined);
   const renderer = useRef<THREE.WebGLRenderer | null>(null);
-  const cameraControls = useRef<CameraControls | null>(null);
   const tickCallbacks = useRef<TickCallback[]>([]);
   const initDone = useRef<boolean>(false);
   const session = useRef<XRSession | undefined>(undefined);
@@ -267,8 +240,6 @@ export default function VrRendering({
     localUser.setDefaultCamera(newDefaultCamera);
     scene.add(newDefaultCamera);
     scene.add(localUser.userGroup);
-
-    appRenderer.setOpenApplicationsMap(new Map());
 
     scene.add(landscape3D);
     tickCallbacks.current.push({
@@ -380,15 +351,6 @@ export default function VrRendering({
     localUser.setXr(renderer.current.xr);
     vrMenuFactory.setRenderer(renderer.current);
 
-    cameraControls.current = new CameraControls(
-      localUser.defaultCamera,
-      canvas.current!
-    );
-    tickCallbacks.current.push({
-      id: 'camera-controls',
-      callback: cameraControls.current.tick,
-    });
-
     initDone.current = true;
   };
 
@@ -413,7 +375,6 @@ export default function VrRendering({
       targetType: BaseMesh,
       hover: (event) => {
         event.target.applyHoverEffect();
-        highlighting.updateHighlightingOnHover(event.target.highlighted);
       },
       resetHover: (event) => {
         event.target.resetHoverEffect();
@@ -425,10 +386,10 @@ export default function VrRendering({
       targetType: ComponentMesh,
       triggerDown: (event) => {
         if (event.target.parent instanceof ApplicationObject3D) {
-          appRenderer.toggleComponent(
-            event.target,
-            event.target.parent as ApplicationObject3D
-          );
+          // appRenderer.toggleComponent(
+          //   event.target,
+          //   event.target.parent as ApplicationObject3D
+          // );
         }
       },
     });
@@ -441,7 +402,7 @@ export default function VrRendering({
         if (heatmapConf.heatmapActive) {
           heatmapConf.setActiveApplication(application);
         } else {
-          appRenderer.closeAllComponents(application);
+          // appRenderer.closeAllComponents(application);
         }
       },
     });
@@ -559,24 +520,24 @@ export default function VrRendering({
       },
     });
 
-    secondaryInputManager.current.addInputHandler({
-      targetType: ApplicationObject3D,
-      triggerDown: (event) =>
-        highlighting.toggleHighlight(event.intersection.object as EntityMesh, {
-          sendMessage: true,
-          remoteColor: localUser.color,
-        }),
-    });
+    // secondaryInputManager.current.addInputHandler({
+    //   targetType: ApplicationObject3D,
+    //   // triggerDown: (event) =>
+    //     // highlighting.toggleHighlight(event.intersection.object as EntityMesh, {
+    //     //   sendMessage: true,
+    //     //   remoteColor: localUser.color,
+    //     }),
+    // });
 
     secondaryInputManager.current.addInputHandler({
       targetType: ClazzCommunicationMesh,
       triggerDown: (event) => {
         if (event.target.parent !== null) {
           // in VR parent is null if we handle intern communication links. But they are already handled elsewhere anyway
-          highlighting.toggleHighlight(event.target as EntityMesh, {
-            sendMessage: true,
-            remoteColor: localUser.color,
-          });
+          // highlighting.toggleHighlight(event.target as EntityMesh, {
+          //   sendMessage: true,
+          //   remoteColor: localUser.color,
+          // });
         }
       },
     });
@@ -817,10 +778,6 @@ export default function VrRendering({
 
     // Update animations
     gsap.ticker.tick();
-
-    if (initDone && linkRenderer.flag) {
-      linkRenderer.setFlag(false);
-    }
   };
 
   // #endregion MAIN LOOP
@@ -1105,18 +1062,7 @@ export default function VrRendering({
   };
 
   const ping = (intersectedViewObj: THREE.Intersection) => {
-    const parentObj = intersectedViewObj.object.parent;
-    const pingPosition = intersectedViewObj.point;
-    if (parentObj) {
-      localUser.ping(parentObj, pingPosition);
-      if (parentObj instanceof ApplicationObject3D) {
-        messageSender.sendMousePingUpdate(
-          parentObj.getModelId(),
-          true,
-          pingPosition
-        );
-      }
-    }
+    // ToDo
   };
 
   // #endregion INTERACTION
@@ -1230,9 +1176,7 @@ export default function VrRendering({
     onMouseMove: handleMouseMove,
   });
 
-  useLandscapeDataWatcher(landscapeData, landscape3D);
-
-  useHeatmapRenderer(localUser.defaultCamera, scene);
+  useLandscapeDataWatcher(landscapeData);
 
   useCollaborativeModifier();
 

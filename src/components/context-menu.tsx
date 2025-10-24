@@ -1,11 +1,10 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { useShallow } from 'zustand/react/shallow';
 import { Position2D } from '../hooks/interaction-modifier';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 export type ContextMenuItem = {
   title: string;
   action: () => void;
@@ -16,10 +15,7 @@ interface ContextMenuProps {
   switchToAR: () => void;
 }
 
-export default function ContextMenu({
-  children,
-  switchToAR,
-}: ContextMenuProps) {
+export default function ContextMenu({ children }: ContextMenuProps) {
   const [visible, setVisible] = useState<boolean>(false);
   const [position, setPosition] = useState<Position2D | null>(null);
 
@@ -28,18 +24,6 @@ export default function ContextMenu({
   const reveal = () => setVisible(true);
 
   const hide = () => setVisible(false);
-
-  const applicationRendererActions = useApplicationRendererStore(
-    useShallow((state) => ({
-      toggleCommunicationRendering: state.toggleCommunicationRendering,
-    }))
-  );
-
-  const configurationState = useConfigurationStore(
-    useShallow((state) => ({
-      isCommRendered: state.isCommRendered,
-    }))
-  );
 
   const resetView = async () => {
     useCameraControlsStore.getState().resetCamera();
@@ -60,12 +44,20 @@ export default function ContextMenu({
       },
     },
     {
-      title: configurationState.isCommRendered
+      title: useConfigurationStore.getState().isCommRendered
         ? 'Hide Communication'
         : 'Add Communication',
-      action: applicationRendererActions.toggleCommunicationRendering,
+      action: () =>
+        useConfigurationStore
+          .getState()
+          .setIsCommRendered(!useConfigurationStore.getState().isCommRendered),
     },
-    { title: 'Enter AR', action: switchToAR },
+    {
+      title: 'Clear Highlighting',
+      action: () => {
+        removeAllHighlighting();
+      },
+    },
   ];
 
   const onMouseUp = (event: React.MouseEvent) => {

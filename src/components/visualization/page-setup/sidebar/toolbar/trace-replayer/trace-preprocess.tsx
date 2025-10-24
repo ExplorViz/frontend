@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';
 import {
   TraceNode,
   TraceTree,
   TraceTreeVisitor,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
+import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
-import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';
 
 interface TracePreProcessProps {
   tree: TraceTree;
@@ -155,7 +155,9 @@ export default function TracePreProcess({
     const iterBottomUp = (
       head: TraceTree | TraceNode
     ): TraceNode | undefined => {
-      frontier.push(...head.parents);
+      if (head instanceof TraceNode && head.parent) {
+        frontier.push(head.parent);
+      }
       return frontier.shift();
     };
 
@@ -164,9 +166,12 @@ export default function TracePreProcess({
       head !== undefined;
       head = iterBottomUp(head)
     ) {
-      head.parents.forEach((parent: TraceNode): void => {
-        parent.endDelay = Math.max(head.endDelay + 1, parent.endDelay);
-      });
+      if (head.parent) {
+        head.parent.endDelay = Math.max(
+          head.endDelay + 1,
+          head.parent.endDelay
+        );
+      }
     }
   };
 

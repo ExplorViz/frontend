@@ -1,8 +1,4 @@
 import { create } from 'zustand';
-import {
-  useApplicationRendererStore,
-  AddApplicationArgs,
-} from 'explorviz-frontend/src/stores/application-renderer';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
@@ -29,7 +25,6 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
-
 
 interface RoomSerializerState {
   serializedRoom?: SerializedRoom;

@@ -2,10 +2,8 @@ import TextItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ite
 import TextbuttonItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/textbutton-item';
 import TitleItem from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/title-item';
 import UiMenu, { UiMenuArgs } from '../ui-menu';
-import { removeAllHighlightingFor } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 
 export type ResetMenuArgs = UiMenuArgs & {
   online: boolean;
@@ -83,26 +81,28 @@ export default class ResetMenu extends UiMenu {
   }
 
   private resetApplications() {
-    useApplicationRendererStore
-      .getState()
-      .getOpenApplications()
-      .forEach((applicationObject) => {
-        useApplicationRendererStore
-          .getState()
-          .closeAllComponents(applicationObject);
-        removeAllHighlightingFor(applicationObject);
-      });
+    // TODO: Migrate
+    // useApplicationRendererStore
+    //   .getState()
+    //   .getOpenApplications()
+    //   .forEach((applicationObject) => {
+    //     useApplicationRendererStore
+    //       .getState()
+    //       .closeAllComponents(applicationObject);
+    //     removeAllHighlightingFor(applicationObject);
+    //   });
   }
 
   private resetLandscape() {
-    const applicationGraph = useApplicationRendererStore
-      .getState()
-      .getOpenApplications()[0].parent;
-    if (applicationGraph) {
-      applicationGraph.position.set(0, 0, 0);
-      applicationGraph.rotation.x = Math.PI / 180;
-      applicationGraph.rotation.y = Math.PI / 180;
-      applicationGraph.rotation.z = Math.PI / 180;
-    }
+    // TODO: Migrate
+    // const applicationGraph = useApplicationRendererStore
+    //   .getState()
+    //   .getOpenApplications()[0].parent;
+    // if (applicationGraph) {
+    //   applicationGraph.position.set(0, 0, 0);
+    //   applicationGraph.rotation.x = Math.PI / 180;
+    //   applicationGraph.rotation.y = Math.PI / 180;
+    //   applicationGraph.rotation.z = Math.PI / 180;
+    // }
   }
 }

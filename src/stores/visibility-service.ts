@@ -1,8 +1,7 @@
-import { create } from 'zustand';
-import { useApplicationRendererStore } from './application-renderer';
+import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import {
-  useRenderingServiceStore,
   EvolutionModeRenderingConfiguration,
+  useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
 import {
   Class,
@@ -11,8 +10,8 @@ import {
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
+import { create } from 'zustand';
 
 interface VisibilityServiceState {
   _evolutionModeRenderingConfiguration: EvolutionModeRenderingConfiguration;

@@ -1,27 +1,23 @@
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
-  Method,
-  Node,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
-import { BoxData } from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 
 export interface PopupDataArgs {
   mouseX: number;
   mouseY: number;
   wasMoved: boolean;
+  entityId: string;
   entity:
     | K8sDataModel
     | Node
     | Application
     | Package
     | Class
-    | ClazzCommuMeshDataModel;
-  mesh: THREE.Mesh | undefined;
-  applicationId: string;
+    | ClassCommunication;
   isPinned: boolean;
   sharedBy: string;
   menuId: string | null;
@@ -38,19 +34,15 @@ export default class PopupData {
   // @tracked
   wasMoved: boolean;
 
+  entityId: string;
+
   entity:
     | K8sDataModel
     | Node
     | Application
     | Package
     | Class
-    | ClazzCommuMeshDataModel
-    | Method
-    | BoxData;
-
-  mesh: THREE.Mesh | undefined;
-
-  applicationId: string;
+    | ClassCommunication;
 
   // @tracked
   isPinned: boolean;
@@ -66,9 +58,8 @@ export default class PopupData {
   constructor({
     mouseX,
     mouseY,
+    entityId,
     entity,
-    mesh,
-    applicationId,
     wasMoved,
     isPinned,
     sharedBy,
@@ -77,10 +68,9 @@ export default class PopupData {
   }: PopupDataArgs) {
     this.mouseX = mouseX;
     this.mouseY = mouseY;
+    this.entityId = entityId;
     this.entity = entity;
     this.wasMoved = wasMoved;
-    this.mesh = mesh;
-    this.applicationId = applicationId;
     this.isPinned = isPinned;
     this.sharedBy = sharedBy;
     this.menuId = menuId;

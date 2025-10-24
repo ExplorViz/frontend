@@ -1,8 +1,8 @@
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { AnnotationForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
 import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
@@ -42,9 +42,15 @@ import {
   isObjectClosedResponse,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import {
+  Application,
+  Class,
+  Node,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
+import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 
@@ -73,7 +79,8 @@ interface AnnotationHandlerState {
   handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addAnnotation: ({
     annotationId,
-    mesh,
+    entityId,
+    entity,
     position,
     wasMoved,
     menuId,
@@ -87,7 +94,15 @@ interface AnnotationHandlerState {
     lastEditor,
   }: {
     annotationId: number | undefined;
-    mesh?: THREE.Object3D;
+    entityId?: string;
+    entity?:
+      | K8sDataModel
+      | Node
+      | Application
+      | Package
+      | Class
+      | ClazzCommuMeshDataModel
+      | ClassCommunication;
     position: Position2D | undefined;
     wasMoved?: boolean;
     menuId?: string | null;
@@ -125,7 +140,6 @@ interface AnnotationHandlerState {
   onMenuClosed: ({
     originalMessage: { menuId },
   }: ForwardedMessage<AnnotationForwardMessage>) => void;
-  updateMeshReference: (annotation: AnnotationData) => void;
   cleanup: () => void;
   setAnnotationData: (annotations: AnnotationData[]) => void;
   setMinimizedAnnotationData: (minimizedAnnotations: AnnotationData[]) => void;
@@ -167,8 +181,9 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
     clearAnnotations: () => {
       get().annotationData.forEach((an) => {
-        if (an.entity) {
-          useApplicationRendererStore.getState().updateLabel(an.entity.id, '');
+        if (an.entityId) {
+          // Todo: Update label
+          // useApplicationRendererStore.getState().updateLabel(an.entityId, '');
         }
       });
 
@@ -198,19 +213,17 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
       unmovedAnnotations.forEach((an) => {
         let found = false;
-        if (an.entity) {
+        if (an.entityId) {
           get().minimizedAnnotations.forEach((man) => {
             if (an.annotationId === man.annotationId) {
               found = true;
             }
           });
-          if (
-            !found &&
-            !(an.mesh!.dataModel instanceof ClazzCommuMeshDataModel)
-          ) {
-            useApplicationRendererStore
-              .getState()
-              .updateLabel(an.entity.id, '');
+          if (!found && !(an.entity instanceof ClazzCommuMeshDataModel)) {
+            // TODO: Update label if needed
+            // useApplicationRendererStore
+            //   .getState()
+            //   .updateLabel(an.entityId, '');
           }
         }
       });
@@ -361,23 +374,24 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
       if (await get().canRemoveAnnotation(annotation)) {
         // remove potential toggle effects
-        if (annotation.entity) {
-          const mesh = useApplicationRendererStore
-            .getState()
-            .getMeshById(annotation.entity.id);
-          if (mesh?.isHovered) {
-            mesh.resetHoverEffect();
-          }
+        // TODO: Update
+        // if (annotation.entity) {
+        //   const mesh = useApplicationRendererStore
+        //     .getState()
+        //     .getMeshById(annotation.entity.id);
+        //   if (mesh?.isHovered) {
+        //     mesh.resetHoverEffect();
+        //   }
 
-          if (
-            !(annotation.mesh!.dataModel instanceof ClazzCommuMeshDataModel) &&
-            !stillMinimized
-          ) {
-            useApplicationRendererStore
-              .getState()
-              .updateLabel(annotation.entity.id, '');
-          }
-        }
+        //   if (
+        //     !(annotation.mesh!.dataModel instanceof ClazzCommuMeshDataModel) &&
+        //     !stillMinimized
+        //   ) {
+        //     useApplicationRendererStore
+        //       .getState()
+        //       .updateLabel(annotation.entity.id, '');
+        //   }
+        // }
 
         set({
           annotationData: [
@@ -463,15 +477,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     shareAnnotation: (annotation: AnnotationData) => {
-      get().updateMeshReference(annotation);
-
-      let mesh = undefined;
-      let entityId = undefined;
-
-      if (annotation.mesh) {
-        mesh = annotation.mesh;
-        entityId = mesh.getModelId();
-      }
+      const entityId = annotation.entityId;
 
       if (useCollaborationSessionStore.getState().isOnline()) {
         useWebSocketStore
@@ -523,14 +529,15 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
     handleHoverOnMesh: (mesh?: THREE.Object3D) => {
       if (isEntityMesh(mesh)) {
+        const meshEntityId = mesh.getModelId();
         get().annotationData.forEach((an) => {
-          if (an.entity !== undefined) {
+          if (an.entityId !== undefined) {
             set({
               annotationData: [
                 ...get().annotationData.filter(
                   (anno) => anno.annotationId !== an.annotationId
                 ),
-                { ...an, hovered: an.entity.id === mesh.getModelId() },
+                { ...an, hovered: an.entityId === meshEntityId },
               ],
             });
           }
@@ -551,7 +558,8 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
     addAnnotation: ({
       annotationId,
-      mesh,
+      entityId,
+      entity,
       position,
       wasMoved,
       menuId,
@@ -565,7 +573,15 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       lastEditor,
     }: {
       annotationId: number | undefined;
-      mesh?: THREE.Object3D;
+      entityId?: string;
+      entity?:
+        | K8sDataModel
+        | Node
+        | Application
+        | Package
+        | Class
+        | ClazzCommuMeshDataModel
+        | ClassCommunication;
       position: Position2D | undefined;
       wasMoved?: boolean;
       menuId?: string | null;
@@ -581,21 +597,24 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       let minimized = false;
       let alreadyExists = false;
 
-      if (isEntityMesh(mesh)) {
+      // Get entity from entityId if not provided
+      const resolvedEntity =
+        entity ||
+        (entityId ? useModelStore.getState().getModel(entityId) : undefined);
+      const resolvedEntityId = entityId || resolvedEntity?.id;
+
+      if (resolvedEntityId) {
         const annotations = get().minimizedAnnotations.filter(
-          (an) => an.entity?.id === mesh.dataModel.id
+          (an) => an.entityId === resolvedEntityId
         );
         if (annotations.length === 1) {
           set({ annotationData: [...get().annotationData, annotations[0]] });
-          // set({ minimizedAnnotations: get().minimizedAnnotations.filter(
-          //   (an) => an.annotationId !== annotation[0].annotationId
-          // ) });
           minimized = true;
           get().removeAnnotationAfterTimeout(annotations[0]);
         }
 
         const anno = get().annotationData.filter(
-          (an) => an.entity?.id === mesh.dataModel.id
+          (an) => an.entityId === resolvedEntityId
         );
         if (anno.length === 1) {
           alreadyExists = true;
@@ -614,66 +633,31 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           };
         }
 
-        let newAnnotation;
-
-        if (!isEntityMesh(mesh)) {
-          newAnnotation = new AnnotationData({
-            annotationId: annotationId,
-            mouseX: annotationPosition.x,
-            mouseY: annotationPosition.y,
-            wasMoved: true,
-            isAssociated: false,
-            entity: undefined,
-            mesh: undefined,
-            applicationId: undefined,
-            menuId: menuId || null,
-            hovered: hovered || false,
-            annotationText: annotationText,
-            annotationTitle: annotationTitle,
-            hidden: false,
-            sharedBy: sharedBy || useAuthStore.getState().user!.sub, // for production: user_id makes more sense
-            owner: owner || useAuthStore.getState().user!.name,
-            shared: shared,
-            inEdit: inEdit === undefined ? true : inEdit,
-            lastEditor: lastEditor || useAuthStore.getState().user!.name,
-          });
-        } else {
-          newAnnotation = new AnnotationData({
-            annotationId: annotationId,
-            mouseX: annotationPosition.x,
-            mouseY: annotationPosition.y,
-            wasMoved: wasMoved || false,
-            isAssociated: true,
-            entity: mesh.dataModel,
-            mesh,
-            applicationId: (
-              mesh.parent as ApplicationObject3D | Landscape3D
-            ).getModelId(),
-            menuId: menuId || null,
-            hovered: hovered || false,
-            annotationText: annotationText,
-            annotationTitle: annotationTitle,
-            hidden: false,
-            sharedBy: sharedBy || useAuthStore.getState().user!.sub, // for production: user_id makes more sense
-            owner: owner || useAuthStore.getState().user!.name,
-            shared: shared,
-            inEdit: inEdit === undefined ? true : inEdit,
-            lastEditor: lastEditor || useAuthStore.getState().user!.name,
-          });
-
-          if (!(mesh.dataModel instanceof ClazzCommuMeshDataModel)) {
-            useApplicationRendererStore
-              .getState()
-              .updateLabel(newAnnotation.entity!.id, ' [annotated]');
-          }
-        }
+        const newAnnotation = new AnnotationData({
+          annotationId: annotationId,
+          mouseX: annotationPosition.x,
+          mouseY: annotationPosition.y,
+          wasMoved: wasMoved || false,
+          isAssociated: !!resolvedEntityId,
+          entityId: resolvedEntityId,
+          entity: resolvedEntity,
+          applicationId: resolvedEntity?.applicationId,
+          menuId: menuId || null,
+          hovered: hovered || false,
+          annotationText: annotationText,
+          annotationTitle: annotationTitle,
+          hidden: false,
+          sharedBy: sharedBy || useAuthStore.getState().user!.sub, // for production: user_id makes more sense
+          owner: owner || useAuthStore.getState().user!.name,
+          shared: shared,
+          inEdit: inEdit === undefined ? true : inEdit,
+          lastEditor: lastEditor || useAuthStore.getState().user!.name,
+        });
 
         // Check if annotation for entity already exists and update it if so
-        if (newAnnotation.entity !== undefined) {
+        if (newAnnotation.entityId !== undefined) {
           const maybeAnnotation = get().annotationData.find(
-            (an) =>
-              an.entity !== undefined &&
-              an.entity.id === newAnnotation.entity?.id
+            (an) => an.entityId === newAnnotation.entityId
           );
           if (maybeAnnotation) {
             get()._updateExistingAnnotation(
@@ -702,25 +686,26 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       lastEditor,
     }: AnnotationForwardMessage) => {
       let mesh = undefined;
-      if (entityId) {
-        mesh = useApplicationRendererStore.getState().getMeshById(entityId);
-      }
+      // ToDo
+      // if (entityId) {
+      //   mesh = useApplicationRendererStore.getState().getMeshById(entityId);
+      // }
 
-      get().addAnnotation({
-        annotationId: annotationId,
-        mesh: mesh,
-        position: undefined,
-        wasMoved: true,
-        menuId: objectId,
-        hovered: false,
-        annotationTitle: annotationTitle,
-        annotationText: annotationText,
-        sharedBy: userId,
-        owner: owner,
-        shared: true,
-        inEdit: false,
-        lastEditor: lastEditor,
-      });
+      // get().addAnnotation({
+      //   annotationId: annotationId,
+      //   mesh: mesh,
+      //   position: undefined,
+      //   wasMoved: true,
+      //   menuId: objectId,
+      //   hovered: false,
+      //   annotationTitle: annotationTitle,
+      //   annotationText: annotationText,
+      //   sharedBy: userId,
+      //   owner: owner,
+      //   shared: true,
+      //   inEdit: false,
+      //   lastEditor: lastEditor,
+      // });
     },
 
     onUpdatedAnnotation: ({
@@ -773,32 +758,33 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
       set({ annotationData: [] });
 
-      for (const annotation of annotations) {
-        let mesh;
-        if (annotation.entityId !== undefined) {
-          mesh = useApplicationRendererStore
-            .getState()
-            .getMeshById(annotation.entityId);
-        } else {
-          mesh = undefined;
-        }
+      // ToDo:
+      // for (const annotation of annotations) {
+      //   let mesh;
+      //   if (annotation.entityId !== undefined) {
+      //     mesh = useApplicationRendererStore
+      //       .getState()
+      //       .getMeshById(annotation.entityId);
+      //   } else {
+      //     mesh = undefined;
+      //   }
 
-        get().addAnnotation({
-          annotationId: annotation.annotationId,
-          sharedBy: annotation.userId,
-          mesh: mesh,
-          position: undefined,
-          wasMoved: true,
-          menuId: annotation.menuId,
-          hovered: false,
-          annotationTitle: annotation.annotationTitle,
-          annotationText: annotation.annotationText,
-          owner: annotation.owner,
-          shared: annotation.shared !== undefined ? false : true,
-          inEdit: false,
-          lastEditor: annotation.lastEditor,
-        });
-      }
+      //   get().addAnnotation({
+      //     annotationId: annotation.annotationId,
+      //     sharedBy: annotation.userId,
+      //     mesh: mesh,
+      //     position: undefined,
+      //     wasMoved: true,
+      //     menuId: annotation.menuId,
+      //     hovered: false,
+      //     annotationTitle: annotation.annotationTitle,
+      //     annotationText: annotation.annotationText,
+      //     owner: annotation.owner,
+      //     shared: annotation.shared !== undefined ? false : true,
+      //     inEdit: false,
+      //     lastEditor: annotation.lastEditor,
+      //   });
+      // }
     },
 
     _updateExistingAnnotation: (
@@ -809,7 +795,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       set({
         annotationData: [
           ...get().annotationData.filter(
-            (an) => an.entity?.id !== annotation.entity!.id
+            (an) => an.entityId !== annotation.entityId
           ),
           {
             ...annotation,
@@ -818,8 +804,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           },
         ],
       });
-
-      get().updateMeshReference(annotation);
     },
 
     onMenuClosed: ({
@@ -833,22 +817,23 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
         const anno = allAnnotations.find((an) => an.menuId === menuId);
 
-        if (anno) {
-          if (anno.entity) {
-            const mesh = useApplicationRendererStore
-              .getState()
-              .getMeshById(anno.entity.id);
-            if (mesh?.isHovered) {
-              mesh.resetHoverEffect();
-            }
+        // ToDo: Migrate
+        // if (anno) {
+        //   if (anno.entity) {
+        //     const mesh = useApplicationRendererStore
+        //       .getState()
+        //       .getMeshById(anno.entity.id);
+        //     if (mesh?.isHovered) {
+        //       mesh.resetHoverEffect();
+        //     }
 
-            if (!(anno.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
-              useApplicationRendererStore
-                .getState()
-                .updateLabel(anno.entity.id, '');
-            }
-          }
-        }
+        //     if (!(anno.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
+        //       useApplicationRendererStore
+        //         .getState()
+        //         .updateLabel(anno.entity.id, '');
+        //     }
+        //   }
+        // }
 
         set({
           minimizedAnnotations: get().minimizedAnnotations.filter(
@@ -860,30 +845,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
             (an) => an.menuId !== menuId
           ),
         });
-      }
-    },
-
-    updateMeshReference: (annotation: AnnotationData) => {
-      if (annotation.entity !== undefined) {
-        const mesh = useApplicationRendererStore
-          .getState()
-          .getMeshById(annotation.entity.id);
-        if (isEntityMesh(mesh)) {
-          set({
-            annotationData: [
-              ...get().annotationData.filter(
-                (an) => an.annotationId !== annotation.annotationId
-              ),
-              { ...annotation, mesh: mesh },
-            ],
-            minimizedAnnotations: [
-              ...get().minimizedAnnotations.filter(
-                (an) => an.annotationId !== annotation.annotationId
-              ),
-              { ...annotation, mesh: mesh },
-            ],
-          });
-        }
       }
     },
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 
 import {
-  CircleIcon,
   CommentIcon,
+  LocationIcon,
   PaintbrushIcon,
   PinIcon,
   ShareAndroidIcon,
@@ -20,22 +20,20 @@ import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
-  Class,
   isApplication,
   isClass,
   isMethod,
   isNode,
   isPackage,
-  Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -48,7 +46,6 @@ interface PopupCoordinatorProps {
   updateMeshReference(popup: PopupData): void;
   showApplication(appId: string): void;
   toggleHighlightById: (modelId: string) => void;
-  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default function PopupCoordinator({
@@ -61,7 +58,6 @@ export default function PopupCoordinator({
   addAnnotationForPopup,
   showApplication,
   toggleHighlightById,
-  openParents,
 }: PopupCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
@@ -284,7 +280,7 @@ export default function PopupCoordinator({
                 pingByModelId(popupData.entity.id as string);
               }}
             >
-              <CircleIcon className="align-right" />
+              <LocationIcon className="align-right" />
             </Button>
           </OverlayTrigger>
 
@@ -334,7 +330,9 @@ export default function PopupCoordinator({
             overlay={<Tooltip>Annotate</Tooltip>}
           >
             <Button
-              variant="primary"
+              variant={
+                isEntityAnnotated(popupData.entityId) ? 'success' : 'primary'
+              }
               onClick={() => addAnnotationForPopup(popupData)}
             >
               <CommentIcon className="align-middle" />
@@ -385,7 +383,6 @@ export default function PopupCoordinator({
           popupData={popupData}
           showApplication={showApplication}
           toggleHighlightById={toggleHighlightById}
-          openParents={openParents}
         />
       )}
       {entityType == 'k8s' && <K8sPopup data={popupData} />}
@@ -413,12 +410,13 @@ function getEntityType(popupData?: PopupData): string {
   if (isMethod(popupData.entity)) {
     return 'method';
   }
-  if (popupData.entity instanceof ClazzCommuMeshDataModel) {
+  if (popupData.entity instanceof ClassCommunication) {
     return 'classCommunication';
   }
-  if (popupData.mesh instanceof K8sMesh) {
-    return 'k8s';
-  }
+  // TODO:
+  // if (popupData.entity instanceof K8sDataModel) {
+  //   return 'k8s';
+  // }
   if ('htmlNode' in popupData.entity) {
     return 'html';
   }

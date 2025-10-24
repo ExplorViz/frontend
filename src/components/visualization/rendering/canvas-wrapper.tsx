@@ -19,6 +19,7 @@ import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/la
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
@@ -292,6 +293,7 @@ export default function CanvasWrapper({
           ))}
       </LandscapeR3F>
       <AnimatedPing />
+      <TraceReplayOverlayR3F />
       <ambientLight />
       <directionalLight
         name="DirectionalLight"
