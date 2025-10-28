@@ -6,14 +6,6 @@ import {
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import ComponentLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/component-label-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
-import MinimapLabelMesh from 'explorviz-frontend/src/view-objects/3d/application/minimap-label-mesh';
-import K8sMesh, {
-  K8sDataModel,
-} from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
-import LabelMesh from 'explorviz-frontend/src/view-objects/3d/label-mesh';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
 import * as THREE from 'three';

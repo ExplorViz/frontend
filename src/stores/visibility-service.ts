@@ -8,7 +8,6 @@ import {
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import { create } from 'zustand';
 

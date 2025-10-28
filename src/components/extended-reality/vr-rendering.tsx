@@ -83,12 +83,8 @@ import {
   UserControllerDisconnectMessage,
 } from '../../utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import { LandscapeData } from '../../utils/landscape-schemes/landscape-data';
-import ApplicationObject3D from '../../view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from '../../view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from '../../view-objects/3d/application/component-mesh';
-import FoundationMesh from '../../view-objects/3d/application/foundation-mesh';
 import BaseMesh from '../../view-objects/3d/base-mesh';
-import Landscape3D from '../../view-objects/3d/landscape/landscape-3d';
 import { TickCallback } from '../visualization/rendering/browser-rendering';
 import VrButton from './vr-button';
 import VrDropArea from './vr-drop-area';
