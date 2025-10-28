@@ -52,6 +52,7 @@ export function ChatbotProvider({
     defaultContext.selectedModel
   );
 
+  console.log(landscapeData);
   const applications = landscapeData?.structureLandscapeData.nodes.reduce(
     (acc, node) => {
       return acc.concat(node.applications);
@@ -84,6 +85,7 @@ export function ChatbotProvider({
       }}
     >
       <CopilotKit
+        showDevConsole={true}
         runtimeUrl={`${copilotUrl}/copilot`}
         headers={{
           ['x-explorviz-provider']: selectedProvider.id,

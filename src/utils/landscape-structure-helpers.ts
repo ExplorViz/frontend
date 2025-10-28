@@ -489,3 +489,151 @@ function findCommonNode(node: Node, nodes: Node[]) {
 }
 
 // #endregion
+
+export interface InsertionApplication {}
+
+export function insertApplicationToLandscape(
+  structure: StructureLandscapeData,
+  name: string,
+  classes: string[]
+) {
+  const nodeId = generateId();
+  const appId = generateId();
+  return [
+    combineStructureLandscapeData(structure, {
+      nodes: [
+        {
+          id: nodeId,
+          name: 'Inserted Node',
+          originOfData: TypeOfAnalysis.Static,
+          applications: [
+            {
+              id: appId,
+              name,
+              language: 'Java',
+              packages: packagesFromFlatClasses(classes),
+              originOfData: TypeOfAnalysis.Static,
+              instanceId: '0',
+              parentId: nodeId,
+            },
+          ],
+          ipAddress: '0.0.0.0',
+          hostName: '',
+        },
+      ],
+      k8sNodes: [],
+      landscapeToken: 'editing-landscape',
+    }),
+    appId,
+  ] as const;
+}
+
+export function insertClassesToLandscape(
+  structure: StructureLandscapeData,
+  id: string,
+  classes: string[]
+) {
+  const application = getApplicationInLandscapeById(structure, id);
+  if (application) {
+    const newPackages = packagesFromFlatClasses(classes, application.packages);
+    console.log(classes, newPackages, application.packages);
+    application.packages = newPackages;
+  }
+  return structure;
+}
+
+// classes are a list of fully qualified names
+function packagesFromFlatClasses(
+  classes: string[],
+  existingPackages?: Package[]
+): Package[] {
+  const rootPackagesMap = new Map<string, Package>();
+  existingPackages?.forEach((pkg) => {
+    rootPackagesMap.set(pkg.name, pkg);
+  });
+
+  classes.forEach((fqn) => {
+    const parts = fqn.split('.');
+    let currentPackagesMap = rootPackagesMap;
+    let parentPackage: Package | undefined = undefined;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      let pkg = currentPackagesMap.get(part);
+
+      if (!pkg) {
+        pkg = {
+          id: generateId(),
+          name: part,
+          classes: [],
+          subPackages: [],
+          originOfData: TypeOfAnalysis.Static,
+          fqn: parentPackage ? `${parentPackage.fqn}.${part}` : part,
+          level: parentPackage ? parentPackage.level + 1 : 0,
+          parent: parentPackage,
+        };
+        currentPackagesMap.set(part, pkg);
+        if (parentPackage) {
+          parentPackage.subPackages.push(pkg);
+        }
+      }
+
+      parentPackage = pkg;
+      currentPackagesMap = new Map<string, Package>();
+      pkg.subPackages.forEach((subPkg) =>
+        currentPackagesMap.set(subPkg.name, subPkg)
+      );
+    }
+
+    // Add class to the last package
+    if (parentPackage) {
+      parentPackage.classes.push({
+        id: generateId(),
+        name: parts[parts.length - 1],
+        methods: [],
+        originOfData: TypeOfAnalysis.Static,
+        fqn,
+        parent: parentPackage,
+        level: 0,
+      });
+    }
+  });
+
+  return Array.from(rootPackagesMap.values());
+}
+
+function generateId(): string {
+  return Array.from({ length: 4 }, () =>
+    Math.random().toString(16).slice(2)
+  ).join('');
+}
+
+export function removeComponentFromLandscape(
+  structure: StructureLandscapeData,
+  id: string
+) {
+  structure.nodes.forEach((node) => {
+    node.applications.forEach((app) => {
+      app.packages = app.packages.filter((pckg) => pckg.id !== id);
+      app.packages = removeSubpackageOrClass(id, app.packages);
+    });
+    node.applications = node.applications.filter(
+      (app) => app.id !== id && app.packages.length > 0
+    );
+  });
+  structure.nodes = structure.nodes.filter(
+    (node) => node.id !== id && node.applications.length > 0
+  );
+  return structure;
+}
+
+function removeSubpackageOrClass(id: string, packages: Package[]): Package[] {
+  return packages
+    .filter((pckg) => pckg.id !== id)
+    .map((pckg) => ({
+      ...pckg,
+      subPackages: removeSubpackageOrClass(id, pckg.subPackages),
+      classes: pckg.classes.filter((clss) => clss.id !== id),
+    }))
+    .filter((pckg) => pckg.subPackages.length > 0 || pckg.classes.length > 0);
+}

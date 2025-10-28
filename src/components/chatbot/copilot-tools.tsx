@@ -15,6 +15,7 @@ import { ToolCallCard } from './tool-call-card';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
+import { useEditingService } from 'explorviz-frontend/src/stores/editing-service';
 
 interface CopilotToolsProps {
   applications?: Application[];
@@ -27,6 +28,7 @@ function getAllSubPackages(pkg: Package): Package[] {
 export function CopilotTools({ applications }: CopilotToolsProps) {
   const { actions } = useVisualizationStore();
   const { moveCameraTo, resetCamera } = useCameraControlsStore();
+  const { addApplication, addClasses, removeComponent } = useEditingService();
   const packages = useMemo(() => {
     const list = [] as Package[];
     applications?.forEach(({ packages }) => {
@@ -36,6 +38,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     });
     return list;
   }, [applications]);
+
+  console.log(applications);
 
   useCopilotAction({
     name: 'highlight-component',
@@ -100,9 +104,9 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
       const component = packages.find((pkg) => pkg.id === id);
       if (component) {
         if (open) {
-          openComponent(component);
+          openComponent(id);
         } else {
-          closeComponent(component);
+          closeComponent(id);
         }
       } else {
         const application = applications?.find((app) => app.id === id);
@@ -193,6 +197,93 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     },
     render: ({ status }) => (
       <ToolCallCard status={status} action="resetCamera" />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'add-application',
+    description:
+      'Adds a new application to the current landscape. Look at the existing data first and use frameworks and package structure already present in the project.',
+    parameters: [
+      {
+        name: 'name',
+        type: 'string',
+        description: 'Name of the application to be added.',
+        required: true,
+      },
+      {
+        name: 'classes',
+        type: 'string[]',
+        description:
+          'List of fully qualified names (FQNs) of classes that belong to the application.',
+        required: true,
+      },
+    ],
+    handler: async ({ name, classes }) => {
+      return addApplication(name, classes);
+    },
+    render: ({ status, args, result }) => (
+      <ToolCallCard
+        status={status}
+        action="addApplication"
+        component={{ id: result, name: args.name }}
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'add-classes-to-application',
+    description:
+      'Adds new classes to an existing application in the current landscape. Look at the existing data first and use frameworks and package structure already present in the project.',
+    parameters: [
+      {
+        name: 'applicationId',
+        type: 'string',
+        description: 'ID of the application to which classes will be added.',
+        required: true,
+      },
+      {
+        name: 'classes',
+        type: 'string[]',
+        description:
+          'List of fully qualified names (FQNs) of classes to be added to the application.',
+        required: true,
+      },
+    ],
+    handler: async ({ applicationId, classes }) => {
+      addClasses(applicationId, classes);
+    },
+    render: ({ status, args }) => (
+      <ToolCallCard
+        status={status}
+        action="addClasses"
+        component={{ id: args.applicationId }}
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'remove-component-from-landscape',
+    description:
+      'Removes a component (application, package, or class) from the current landscape by its id. If you cant find the removed component, it has been removed already.',
+    parameters: [
+      {
+        name: 'id',
+        type: 'string',
+        description: 'ID of the component to be removed.',
+        required: true,
+      },
+    ],
+    handler: async ({ id }) => {
+      removeComponent(id);
+    },
+    render: ({ status, args }) => (
+      <ToolCallCard
+        status={status}
+        action="removeComponent"
+        component={{ id: args.id }}
+        disablePing
+      />
     ),
   });
 

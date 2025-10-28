@@ -10,7 +10,10 @@ type Action =
   | 'close'
   | 'ping'
   | 'moveCamera'
-  | 'resetCamera';
+  | 'resetCamera'
+  | 'addApplication'
+  | 'addClasses'
+  | 'removeComponent';
 type Status = 'inProgress' | 'executing' | 'complete';
 
 interface ToolCallCardProps {
@@ -20,21 +23,28 @@ interface ToolCallCardProps {
   };
   status: Status;
   action?: Action;
+  disablePing?: boolean;
 }
 
-export function ToolCallCard({ component, status, action }: ToolCallCardProps) {
+export function ToolCallCard({
+  component,
+  status,
+  action,
+  disablePing,
+}: ToolCallCardProps) {
   const message = getMessage(status, action);
   const displayComponent = component?.name || component?.id?.slice(0, 8);
   const hasId = Boolean(component?.id);
+  const disabled = !hasId || disablePing;
 
   return (
     <div className="tool-call-card">
       <Button
         variant="primary"
-        disabled={!hasId}
+        disabled={disabled}
         onClick={() => pingByModelId(component?.id!)}
       >
-        {hasId ? <SearchIcon size={14} /> : <ToolsIcon size={14} />}
+        {disabled ? <ToolsIcon size={14} /> : <SearchIcon size={14} />}
       </Button>
       {message}
       {displayComponent && ` ${displayComponent}`}
@@ -76,6 +86,12 @@ function getMessage(status: Status, action?: Action) {
           return 'Moving camera to';
         case 'resetCamera':
           return 'Resetting camera';
+        case 'addApplication':
+          return 'Adding application';
+        case 'addClasses':
+          return 'Adding classes to';
+        case 'removeComponent':
+          return 'Removing component';
         default:
           return 'Tool call';
       }
@@ -95,8 +111,14 @@ function getMessage(status: Status, action?: Action) {
           return 'Moved camera to';
         case 'resetCamera':
           return 'Reset camera';
+        case 'addApplication':
+          return 'Added application';
+        case 'addClasses':
+          return 'Added classes to';
+        case 'removeComponent':
+          return 'Removed component';
         default:
-          return 'Unknown tool call';
+          return 'Tool call';
       }
   }
 }
