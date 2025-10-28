@@ -189,7 +189,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
           <input
             id="filterInput"
             className="form-control input-lg"
-            placeholder="Filter traces"
+            placeholder="Search traces..."
             onInput={handleFilterChange}
           />
         </div>

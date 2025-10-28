@@ -1,5 +1,9 @@
 import { useFrame } from '@react-three/fiber';
-import { useTraceReplayStore } from 'explorviz-frontend/src/stores/trace-replay';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import {
+  PlayState,
+  useTraceReplayStore,
+} from 'explorviz-frontend/src/stores/trace-replay';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -14,14 +18,14 @@ function computeArc(start: THREE.Vector3, end: THREE.Vector3, height: number) {
 }
 
 export default function TraceReplayOverlayR3F() {
-  const { timeline, cursor, playing, eager, afterimage, tick } =
+  const { timeline, cursor, playState, eager, afterimage, tick } =
     useTraceReplayStore();
   const lineGroupRef = useRef<THREE.Group>(null);
   const spheresRef = useRef<THREE.Group>(null);
 
   // Advance time when playing
   useFrame((_, dt) => {
-    if (playing) tick(dt);
+    if (playState === PlayState.PLAYING) tick(dt);
   });
 
   // Recompute visuals each frame based on cursor
@@ -34,13 +38,13 @@ export default function TraceReplayOverlayR3F() {
     while (sphereGroup.children.length)
       sphereGroup.remove(sphereGroup.children[0]);
 
-    // Only clear lines if afterimage is disabled
-    if (!afterimage) {
-      while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
-    }
-
     // Active nodes at cursor
     const active = timeline.filter((n) => n.start <= cursor && n.end >= cursor);
+
+    // Clear lines if no active nodes or if afterimage is disabled
+    if (active.length === 0 || !afterimage) {
+      while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+    }
     // Sort to keep deterministic coloring
     active.sort(
       (a, b) => a.start - b.start || a.end - b.end || a.id.localeCompare(b.id)
@@ -52,7 +56,7 @@ export default function TraceReplayOverlayR3F() {
     const mkColorById = (id: string, idx: number, total: number) => {
       const existing = colorCache.get(id);
       if (existing) return existing;
-      // simple deterministic hash to hue
+      // Simple deterministic hash to hue
       let h = 0;
       for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
       const hue = ((h % 360) / 360 + idx / Math.max(1, total)) % 1;
@@ -127,7 +131,7 @@ export default function TraceReplayOverlayR3F() {
       sphere.position.copy(curve.getPoint(progress));
       spheresRef.current?.add(sphere);
 
-      // Afterimage: if disabled and past end, remove the line
+      // Remove line if afterimage is disabled and progress is complete
       if (!afterimage && progress >= 1) {
         const lineToRemove = lineGroup.children.find(
           (child) => child.userData?.nodeId === node.id
@@ -164,6 +168,23 @@ export default function TraceReplayOverlayR3F() {
 
     prevActiveIdsRef.current = nextActive;
   }, [cursor, timeline]);
+
+  // Clean up when playing stops
+  useEffect(() => {
+    if (playState === PlayState.STOPPED) {
+      const lineGroup = lineGroupRef.current;
+      const sphereGroup = spheresRef.current;
+      if (lineGroup) {
+        while (lineGroup.children.length)
+          lineGroup.remove(lineGroup.children[0]);
+      }
+      if (sphereGroup) {
+        while (sphereGroup.children.length)
+          sphereGroup.remove(sphereGroup.children[0]);
+      }
+      useConfigurationStore.getState().setIsCommRendered(true);
+    }
+  }, [playState]);
 
   return (
     <group>

@@ -11,7 +11,10 @@ import {
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
 import { TraceTab } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tab';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useTraceReplayStore } from 'explorviz-frontend/src/stores/trace-replay';
+import {
+  PlayState,
+  useTraceReplayStore,
+} from 'explorviz-frontend/src/stores/trace-replay';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
@@ -76,7 +79,7 @@ export default function TraceReplayerControls({
     afterimage,
     eager,
     opacity,
-    playing,
+    playState,
     play,
     pause,
     stop,
@@ -93,7 +96,7 @@ export default function TraceReplayerControls({
       afterimage: state.afterimage,
       eager: state.eager,
       opacity: state.opacity,
-      playing: state.playing,
+      playState: state.playState,
       play: state.play,
       pause: state.pause,
       stop: state.stop,
@@ -163,7 +166,7 @@ export default function TraceReplayerControls({
 
   // start / pause effect
   useEffect(() => {
-    if (playing) {
+    if (playState) {
       // Hide communication to avoid clutter
       configuration.setIsCommRendered(false);
 
@@ -174,7 +177,7 @@ export default function TraceReplayerControls({
         obs(useTraceReplayStore.getState().cursor);
       });
     }
-  }, [playing]);
+  }, [playState]);
 
   const toggleEager = () => {
     setEager(!eager);
@@ -269,7 +272,7 @@ export default function TraceReplayerControls({
             <SquareCircleIcon size="small" />
           </button>
 
-          {!playing ? (
+          {!(playState === PlayState.PLAYING) ? (
             <button
               className="btn btn-primary mx-2"
               title="Play"
