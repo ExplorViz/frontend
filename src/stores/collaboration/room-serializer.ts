@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { isTrace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
@@ -121,16 +120,16 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
     serializeApplication: (application: ApplicationObject3D) => {
       // collect transparent extern links
       const transparentExternLinks: Set<string> = new Set();
-      useLinkRendererStore
-        .getState()
-        .getAllLinks()
-        .forEach((link) => {
-          if (link.dataModel.application.id === application.getModelId()) {
-            if (link.material.opacity !== 1) {
-              transparentExternLinks.add(link.getModelId());
-            }
-          }
-        });
+      // useLinkRendererStore
+      //   .getState()
+      //   .getAllLinks()
+      //   .forEach((link) => {
+      //     if (link.dataModel.application.id === application.getModelId()) {
+      //       if (link.material.opacity !== 1) {
+      //         transparentExternLinks.add(link.getModelId());
+      //       }
+      //     }
+      //   });
 
       return {
         id: application.getModelId(),

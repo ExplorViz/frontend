@@ -1,4 +1,3 @@
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import {
   EvolutionModeRenderingConfiguration,
   useRenderingServiceStore,

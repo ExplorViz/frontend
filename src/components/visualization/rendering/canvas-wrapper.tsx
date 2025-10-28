@@ -6,7 +6,6 @@ import {
   useCameraControls,
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -26,6 +25,7 @@ import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/lands
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 
 export default function CanvasWrapper({
   landscapeData,
@@ -162,10 +162,6 @@ export default function CanvasWrapper({
     }))
   );
 
-  const computeCommunicationLayout = useLinkRendererStore(
-    (state) => state.computeCommunicationLayout
-  );
-
   useEffect(() => {
     if (landscapeData) {
       // Use layout of landscape data watcher
@@ -286,8 +282,7 @@ export default function CanvasWrapper({
               communicationLayout={computeCommunicationLayout(
                 communication,
                 applicationModels,
-                layoutMap || applicationModels[0].boxLayoutMap,
-                closedComponentIds
+                layoutMap || applicationModels[0].boxLayoutMap
               )}
             />
           ))}

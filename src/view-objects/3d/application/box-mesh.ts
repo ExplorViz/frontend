@@ -98,8 +98,6 @@ export default abstract class BoxMesh<
     this.height = layout.height;
     this.width = layout.width;
     this.depth = layout.depth;
-
-    this.saveOriginalAppearence();
   }
 
   get width() {

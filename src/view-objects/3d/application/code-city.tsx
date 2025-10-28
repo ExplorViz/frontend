@@ -3,7 +3,6 @@ import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
@@ -20,6 +19,7 @@ import { useShallow } from 'zustand/react/shallow';
 import CodeBuildings from './code-buildings';
 import CityDistricts from './city-districts';
 import { useFrame, useThree } from '@react-three/fiber';
+import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 
 export default function CodeCity({
   applicationData,
@@ -49,9 +49,6 @@ export default function CodeCity({
   );
   const [isBrowserActive, setIsBrowserActive] = useState(false);
 
-  const computeCommunicationLayout = useLinkRendererStore(
-    (state) => state.computeCommunicationLayout
-  );
   const { isCommRendered } = useConfigurationStore(
     useShallow((state) => ({
       isCommRendered: state.isCommRendered,
@@ -167,8 +164,7 @@ export default function CodeCity({
             communicationLayout={computeCommunicationLayout(
               communication,
               [applicationData],
-              layoutMap,
-              closedComponentIds
+              layoutMap
             )}
           />
         ))}

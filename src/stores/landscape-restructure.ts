@@ -1,5 +1,4 @@
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   getAllClassesInApplication,

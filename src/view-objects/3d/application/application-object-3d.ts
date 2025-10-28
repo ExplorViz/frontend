@@ -9,7 +9,6 @@ import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import BoxMesh from 'explorviz-frontend/src/view-objects/3d/application/box-mesh.ts';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
-import { findFirstOpenOrLastClosedAncestorComponent } from 'explorviz-frontend/src/utils/link-helper';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { Vector3 } from 'three';
 import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
