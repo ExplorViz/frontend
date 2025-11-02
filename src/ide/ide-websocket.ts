@@ -18,6 +18,7 @@ import { DefaultEventsMap } from '@socket.io/component-emitter';
 import { Object3DEventMap } from 'three';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { data } from 'react-router-dom';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',
@@ -75,6 +76,7 @@ type OrderTuple = {
 };
 
 const { vsCodeService } = import.meta.env.VITE_VSCODE_SERV_URL;
+const { userService } = import.meta.env.VITE_USER_SERV_URL;
 
 let httpSocket = vsCodeService;
 let socket: Socket<DefaultEventsMap, DefaultEventsMap> | undefined = undefined;
@@ -96,22 +98,37 @@ export default class IdeWebsocket {
   // @service('repos/application-repository')
   // applicationRepo!: ApplicationRepository;
 
-  handleDoubleClickOnMesh: (meshID: string) => void;
-  lookAtMesh: (meshID: string) => void;
+  landscapeToken?: string;
+
+  handleDoubleClickOnMesh?: (meshID: string) => void;
+  lookAtMesh?: (meshID: string) => void;
 
   constructor(
-    handleDoubleClickOnMesh: (meshID: string) => void,
-    lookAtMesh: (meshID: string) => void
+    landscapeToken?: string,
+    handleDoubleClickOnMesh?: (meshID: string) => void,
+    lookAtMesh?: (meshID: string) => void
   ) {
+    this.landscapeToken = landscapeToken;
     this.handleDoubleClickOnMesh = handleDoubleClickOnMesh;
     this.lookAtMesh = lookAtMesh;
 
     eventEmitter.on('ide-refresh-data', this.refreshVizData.bind(this));
     eventEmitter.on('ide-restart-connection', this.reInitialize.bind(this));
+    eventEmitter.on('ide-close-connection', this.closeConnection.bind(this));
   }
 
-  private reInitialize() {
-    this.restartAndSetSocket(httpSocket);
+  private closeConnection(landscapeToken?: string) {
+    if(socket && this.landscapeToken === landscapeToken) {
+      socket.disconnect();
+      useIdeWebsocketFacadeStore.setState({
+        isConnected: false,
+      });
+    }
+  }
+
+
+  private reInitialize(landscapeToken?: string) {
+    this.restartAndSetSocket(httpSocket, landscapeToken);
     this.setupSocketListeners();
   }
 
@@ -119,6 +136,52 @@ export default class IdeWebsocket {
     if (!socket) {
       return;
     }
+
+    socket.on(
+      'create-landscape', async (data, callback) => {
+        // TODO: Refactor this and use facade pattern like navbar.ts does this for connecting to extension
+        let uId = useAuthStore.getState().user?.sub;
+
+        if (!uId) {
+          if (callback)
+            callback();
+          return;
+        }
+
+        uId = encodeURI(uId);
+        const alias = data;
+
+        const tokenResponse = await fetch(`${userService}/user/${uId}/token`, {
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+          body: JSON.stringify({
+            alias,
+          }),
+        });
+
+        if (!tokenResponse.ok) {
+          if (callback)
+            callback();
+          return;
+        }
+
+        const response = await tokenResponse.json();
+
+        const payload = {
+          value: response.value,
+          secret: response.secret,
+        };
+
+        if (callback) {
+          callback(payload);
+        }
+
+
+      }
+    );
 
     // Disconnect-Event from a Frontend-Client.
     socket!.on('disconnect', (err) => {
@@ -319,7 +382,7 @@ export default class IdeWebsocket {
     }
   }
 
-  restartAndSetSocket(newHttpSocket: string) {
+  restartAndSetSocket(newHttpSocket: string, landscapeToken?: string) {
     httpSocket = newHttpSocket;
     if (socket) {
       socket.disconnect();
@@ -329,6 +392,7 @@ export default class IdeWebsocket {
     }
     socket = io(newHttpSocket, {
       path: '/v2/ide/',
+      query: { client: 'frontend', landscapeToken: landscapeToken },
     });
   }
 }

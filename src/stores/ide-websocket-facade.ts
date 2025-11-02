@@ -7,7 +7,8 @@ interface IdeWebsocketFacadeState {
   isConnected: boolean;
   numConnectedIDEs: number;
   refreshVizData: (cl: CommunicationLink[]) => void;
-  restartConnection: () => void;
+  restartConnection: (landscapeToken?: string) => void;
+  closeConnection: (landscapeToken?: string) => void;
 }
 
 export const useIdeWebsocketFacadeStore = create<IdeWebsocketFacadeState>(
@@ -20,8 +21,12 @@ export const useIdeWebsocketFacadeStore = create<IdeWebsocketFacadeState>(
       eventEmitter.emit('ide-refresh-data', cl);
     },
 
-    restartConnection: () => {
-      eventEmitter.emit('ide-restart-connection');
+    restartConnection: (landscapeToken?: string) => {
+      eventEmitter.emit('ide-restart-connection', landscapeToken);
+    },
+
+    closeConnection: (landscapeToken?: string) => {
+      eventEmitter.emit('ide-restart-connection', landscapeToken);
     },
   })
 );
