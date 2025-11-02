@@ -4,6 +4,7 @@ import { useLandscapeTokenStore } from '../../stores/landscape-token';
 import { useRenderingServiceStore } from '../../stores/rendering-service';
 import { useNavigate } from 'react-router-dom';
 import { useSnapshotTokenStore } from '../../stores/snapshot-token';
+import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
 import {
   GitBranchIcon,
   IdBadgeIcon,
@@ -18,8 +19,13 @@ const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+
+  const closeConnection = useIdeWebsocketFacadeStore((state) => state.closeConnection);
+  const restartConnection = useIdeWebsocketFacadeStore((state) => state.restartConnection);
+
   const dropdownRef = useRef<HTMLUListElement | null>(null);
 
+  const isConnected = useIdeWebsocketFacadeStore((state) => state.isConnected);
   const user = useAuthStore((state) => state.user);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const _analysisMode = useRenderingServiceStore(
@@ -201,6 +207,25 @@ export default function Navbar() {
                   <GitBranchIcon size="small" />
                   Git API Token
                 </button>
+              </li>
+              <li>
+                {isConnected ? (
+                  <button
+                    className="dropdown-item"
+                    type="button"
+                    onClick={() => closeConnection(landscapeToken?.value)}
+                  >
+                    Disconnect from VSCode extension
+                  </button>
+                ) : (
+                  <button
+                    className="dropdown-item"
+                    type="button"
+                    onClick={() => restartConnection(landscapeToken?.value)}
+                  >
+                    Connect to VSCode extension
+                  </button>
+                )}
               </li>
               <li>
                 <button
