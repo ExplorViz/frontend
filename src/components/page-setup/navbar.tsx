@@ -209,7 +209,7 @@ export default function Navbar() {
                 </button>
               </li>
               <li>
-                {isConnected ? (
+                {/*isConnected ? (
                   <button
                     className="dropdown-item"
                     type="button"
@@ -225,7 +225,7 @@ export default function Navbar() {
                   >
                     Connect to VSCode extension
                   </button>
-                )}
+                )*/}
               </li>
               <li>
                 <button

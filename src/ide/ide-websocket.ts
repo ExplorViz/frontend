@@ -12,7 +12,7 @@ interface IdeWebsocketStore {
   baseUrl: string;
 
   setupSocketListeners: () => void;
-  restartAndSetSocket: (url: string, landscapeToken?: string) => void;
+  restartAndSetSocket: (landscapeToken?: string) => void;
   closeConnection: () => void;
   dispose: () => void;
 }
@@ -93,6 +93,7 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
    // ---------- consumer methods ----------
 
   restartAndSetSocket: (landscapeToken?: string) => {
+    console.log("restartAndSetSocket called with landscapeToken:", landscapeToken);
     const { socket, baseUrl } = get();
     socket?.disconnect();
 
@@ -100,6 +101,8 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
     set({ socket: newSocket });
 
     get().setupSocketListeners();
+
+    console.log("restartAndSetSocket called");
   },
 
   closeConnection: () => {
