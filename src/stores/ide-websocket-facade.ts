@@ -22,11 +22,12 @@ export const useIdeWebsocketFacadeStore = create<IdeWebsocketFacadeState>(
     },
 
     restartConnection: (landscapeToken?: string) => {
+      console.log('restartConnection called in facade');
       eventEmitter.emit('ide-restart-connection', landscapeToken);
     },
 
     closeConnection: (landscapeToken?: string) => {
-      eventEmitter.emit('ide-restart-connection', landscapeToken);
+      eventEmitter.emit('ide-close-connection', landscapeToken);
     },
   })
 );
