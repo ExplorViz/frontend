@@ -4,28 +4,30 @@ import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-we
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { useAuthStore } from '../stores/auth';
+import { LandscapeToken } from '../stores/landscape-token';
+import { is } from '@react-three/fiber/dist/declarations/src/core/utils';
 
-const { vsCodeService } = import.meta.env.VITE_VSCODE_SERV_URL;
-const { userService } = import.meta.env.VITE_USER_SERV_URL;
+
 interface IdeWebsocketStore {
   socket?: Socket;
-  baseUrl: string;
-
   setupSocketListeners: () => void;
-  restartAndSetSocket: (landscapeToken?: string) => void;
+  restartAndSetSocket: (url: string, landscapeToken?: string) => void;
   closeConnection: () => void;
   dispose: () => void;
 }
 
 export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
   socket: undefined,
-  baseUrl: vsCodeService,
   isConnected: false,
 
   // ---------- internal helpers ----------
   setupSocketListeners: () => {
     const socket = get().socket;
     if (!socket) return;
+
+    const userServiceUrl = import.meta.env.VITE_USER_SERV_URL;
+    console.log("userService URL:", userServiceUrl);
+    const accessToken = useAuthStore.getState().accessToken;
 
     // remove old listener before adding new ones
     socket.removeAllListeners();
@@ -46,10 +48,12 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
     });
 
     socket.on(
-      'create-landscape', async (data, callback) => {
+      'create-landscape',
+      async (alias: string, projectName: string, commitId: string, callback) => {
+
+        console.log("create-landscape from VS Code extension", alias, projectName, commitId);
 
         let uId = useAuthStore.getState().user?.sub;
-        const accessToken = useAuthStore.getState().accessToken;
 
         if (!uId) {
           if (callback)
@@ -58,9 +62,8 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
         }
 
         uId = encodeURI(uId);
-        const alias = data;
 
-        const tokenResponse = await fetch(`${userService}/user/${uId}/token`, {
+        const tokenResponse = await fetch(`${userServiceUrl}/user/${uId}/token`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
@@ -68,6 +71,9 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
           method: 'POST',
           body: JSON.stringify({
             alias,
+            isRequestedFromVSCodeExtension: true,
+            projectName: projectName,
+            commitId: commitId,
           }),
         });
 
@@ -88,21 +94,60 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
           callback(payload);
         }
     });
+
+    socket.on(
+      'load-current-debug-room-list-from-frontend',
+      async (callback) => {
+
+        console.log('load-current-debug-room-list-from-frontend');
+        let uId = useAuthStore.getState().user?.sub;
+        if (!uId) {
+          if (callback)
+            callback();
+          return;
+        }
+        uId = encodeURI(uId);
+        const tokenResponse = await fetch(
+          `${userServiceUrl}/user/${uId}/token`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            method: 'GET',
+          }
+        );
+
+        if (!tokenResponse.ok) {
+          if (callback) callback();
+          return;
+        }
+        console.log("tokenResponse", tokenResponse);
+        const response = (await tokenResponse.json()) as LandscapeToken[];
+        const filteredResponse = response.filter(
+          (token) => token.isRequestedFromVSCodeExtension
+        );
+        if (callback) {
+          callback(filteredResponse);
+        }
+    });
+
   },
 
    // ---------- consumer methods ----------
 
   restartAndSetSocket: (landscapeToken?: string) => {
     console.log("restartAndSetSocket called with landscapeToken:", landscapeToken);
-    const { socket, baseUrl } = get();
+    const url = import.meta.env.VITE_VSCODE_SERV_URL;
+    const { socket } = get();
     socket?.disconnect();
 
-    const newSocket = io(baseUrl, { path: '/v2/ide/', query: { client: 'frontend', landscapeToken: landscapeToken } });
+    const newSocket = io(url, { path: '/v2/ide/', query: { client: 'frontend', landscapeToken: landscapeToken } });
     set({ socket: newSocket });
 
     get().setupSocketListeners();
 
-    console.log("restartAndSetSocket called");
+    console.log("restartAndSetSocket called with url:", url);
   },
 
   closeConnection: () => {
