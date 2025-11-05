@@ -715,48 +715,28 @@ export default function Visualization() {
           </div>
         )}
 
-        {/* ! Rendering mode */}
-        {showAR ? (
-          <ArRendering
-            id="ar-rendering"
-            landscapeData={renderingServiceLandscapeData!}
-            switchToOnScreenMode={switchToOnScreenMode}
-            toggleVisualizationUpdating={
-              renderingServiceToggleVisualizationUpdating
-            }
-            visualizationPaused={renderingServiceVisualizationPaused}
-          />
-        ) : showVR ? (
-          <VrRendering
-            id="vr-rendering"
-            landscapeData={renderingServiceLandscapeData!}
-            switchToOnScreenMode={switchToOnScreenMode}
-            debugMode={visualizationSettings?.showVrOnClick.value ?? false}
-          />
-        ) : (
-          <BrowserRendering
-            // addComponent={addComponent}
-            // applicationArgs={applicationArgs}
-            // closeDataSelection={closeDataSelection}
-            components={components}
-            componentsToolsSidebar={componentsToolsSidebar}
-            id="browser-rendering"
-            isDisplayed={allLandscapeDataExistsAndNotEmpty || false}
-            landscapeData={renderingServiceLandscapeData}
-            landscapeToken={landscapeTokenServiceToken}
-            removeTimestampListener={removeTimestampListener}
-            // restructureLandscape={restructureLandscape}
-            snapshot={snapshotSelected}
-            snapshotReload={snapshotToken}
-            switchToAR={switchToAR}
-            toggleVisualizationUpdating={
-              renderingServiceToggleVisualizationUpdating
-            }
-            // updateLandscape={updateLandscape}
-            userApiTokens={userApiTokens}
-            visualizationPaused={visualizationPaused}
-          />
-        )}
+        <BrowserRendering
+          // addComponent={addComponent}
+          // applicationArgs={applicationArgs}
+          // closeDataSelection={closeDataSelection}
+          components={components}
+          componentsToolsSidebar={componentsToolsSidebar}
+          id="browser-rendering"
+          isDisplayed={allLandscapeDataExistsAndNotEmpty || false}
+          landscapeData={renderingServiceLandscapeData}
+          landscapeToken={landscapeTokenServiceToken}
+          removeTimestampListener={removeTimestampListener}
+          // restructureLandscape={restructureLandscape}
+          snapshot={snapshotSelected}
+          snapshotReload={snapshotToken}
+          switchToAR={switchToAR}
+          toggleVisualizationUpdating={
+            renderingServiceToggleVisualizationUpdating
+          }
+          // updateLandscape={updateLandscape}
+          userApiTokens={userApiTokens}
+          visualizationPaused={visualizationPaused}
+        />
       </div>
 
       {/* ! Bottom Bar */}

@@ -1,5 +1,6 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import { XR, createXRStore } from '@react-three/xr';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -13,19 +14,19 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
+import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 
 export default function CanvasWrapper({
   landscapeData,
@@ -35,6 +36,8 @@ export default function CanvasWrapper({
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+
+  const [red, setRed] = useState(false);
 
   const directionalLightRef = useRef(null);
 
@@ -114,6 +117,8 @@ export default function CanvasWrapper({
   );
 
   const cameraControlsRef = useRef<CameraControls>(null);
+
+  const store = createXRStore();
 
   // Initialize camera controls store
   useCameraControls(cameraControlsRef);
@@ -234,82 +239,92 @@ export default function CanvasWrapper({
   }, []);
 
   return (
-    <Canvas
-      id="threejs-canvas"
-      className={'webgl'}
-      gl={{ powerPreference: 'high-performance' }}
-      style={{ background: sceneBackgroundColor }}
-      onMouseMove={popupHandlerActions.handleMouseMove}
-    >
-      <CameraControls
-        ref={cameraControlsRef}
-        dollySpeed={0.3}
-        draggingSmoothTime={0.05}
-        maxDistance={250}
-        maxPolarAngle={0.5 * Math.PI}
-        makeDefault
-        minDistance={1}
-        mouseButtons={{
-          left: getMouseMapping(leftMouseButtonAction) as any,
-          middle: getMouseMapping(middleMouseButtonAction) as any,
-          wheel: getMouseMapping(mouseWheelAction) as any,
-          right: getMouseMapping(rightMouseButtonAction) as any,
+    <>
+      <button
+        onClick={() => {
+          store.enterVR();
         }}
-        smoothTime={0.5}
-      />
-      <PerspectiveCamera
-        position={INITIAL_CAMERA_POSITION}
-        fov={cameraFov}
-        near={cameraNear}
-        far={cameraFar}
-        makeDefault
-      />
-      <LandscapeR3F
-        layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
       >
-        {applicationModels.map((appModel) => (
-          <CodeCity
-            key={appModel.application.id}
-            applicationData={appModel}
-            layoutMap={layoutMap || appModel.boxLayoutMap}
-          />
-        ))}
-        {isCommRendered &&
-          interAppCommunications.map((communication) => (
-            <CommunicationR3F
-              key={communication.id}
-              communicationModel={communication}
-              communicationLayout={computeCommunicationLayout(
-                communication,
-                applicationModels,
-                layoutMap || applicationModels[0].boxLayoutMap
-              )}
+        Enter VR
+      </button>
+      <Canvas
+        id="threejs-canvas"
+        className={'webgl'}
+        gl={{ powerPreference: 'high-performance' }}
+        style={{ background: sceneBackgroundColor }}
+        onMouseMove={popupHandlerActions.handleMouseMove}
+      >
+        <XR store={store}></XR>
+        <CameraControls
+          ref={cameraControlsRef}
+          dollySpeed={0.3}
+          draggingSmoothTime={0.05}
+          maxDistance={250}
+          maxPolarAngle={0.5 * Math.PI}
+          makeDefault
+          minDistance={1}
+          mouseButtons={{
+            left: getMouseMapping(leftMouseButtonAction) as any,
+            middle: getMouseMapping(middleMouseButtonAction) as any,
+            wheel: getMouseMapping(mouseWheelAction) as any,
+            right: getMouseMapping(rightMouseButtonAction) as any,
+          }}
+          smoothTime={0.5}
+        />
+        <PerspectiveCamera
+          position={INITIAL_CAMERA_POSITION}
+          fov={cameraFov}
+          near={cameraNear}
+          far={cameraFar}
+          makeDefault
+        />
+        <LandscapeR3F
+          layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
+        >
+          {applicationModels.map((appModel) => (
+            <CodeCity
+              key={appModel.application.id}
+              applicationData={appModel}
+              layoutMap={layoutMap || appModel.boxLayoutMap}
             />
           ))}
-      </LandscapeR3F>
-      <AnimatedPing />
-      <TraceReplayOverlayR3F />
-      <ambientLight />
-      <directionalLight
-        name="DirectionalLight"
-        ref={directionalLightRef}
-        intensity={2}
-        position={[5, 10, -20]}
-        castShadow={castShadows}
-      />
-      {showLightHelper && directionalLightRef.current && (
-        <directionalLightHelper
-          args={[directionalLightRef.current, 2, 0x0000ff]}
+          {isCommRendered &&
+            interAppCommunications.map((communication) => (
+              <CommunicationR3F
+                key={communication.id}
+                communicationModel={communication}
+                communicationLayout={computeCommunicationLayout(
+                  communication,
+                  applicationModels,
+                  layoutMap || applicationModels[0].boxLayoutMap
+                )}
+              />
+            ))}
+        </LandscapeR3F>
+        <AnimatedPing />
+        <TraceReplayOverlayR3F />
+        <ambientLight />
+        <directionalLight
+          name="DirectionalLight"
+          ref={directionalLightRef}
+          intensity={2}
+          position={[5, 10, -20]}
+          castShadow={castShadows}
         />
-      )}
-      {showFpsCounter && (
-        <>
-          <Stats showPanel={0} className="stats0" />
-          <Stats showPanel={1} className="stats1" />
-          <Stats showPanel={2} className="stats2" />
-        </>
-      )}
-      {showAxesHelper && <axesHelper args={[5]} />}
-    </Canvas>
+        {showLightHelper && directionalLightRef.current && (
+          <directionalLightHelper
+            args={[directionalLightRef.current, 2, 0x0000ff]}
+          />
+        )}
+        {showFpsCounter && (
+          <>
+            <Stats showPanel={0} className="stats0" />
+            <Stats showPanel={1} className="stats1" />
+            <Stats showPanel={2} className="stats2" />
+          </>
+        )}
+        {showAxesHelper && <axesHelper args={[5]} />}
+      </Canvas>
+    </>
   );
 }
