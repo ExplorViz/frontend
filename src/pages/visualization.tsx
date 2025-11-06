@@ -26,7 +26,6 @@ import {
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { useFontRepositoryStore } from 'explorviz-frontend/src/stores/repos/font-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
@@ -72,7 +71,6 @@ import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timest
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import { useShallow } from 'zustand/react/shallow';
 import { ImmersiveView } from '../rendering/application/immersive-view';
 
@@ -147,29 +145,6 @@ export default function Visualization() {
 
   // beforeModel equivalent
   useEffect(() => {
-    const loadFont = async () => {
-      return await new Promise<Font>((resolve, reject) => {
-        new FontLoader().load(
-          // resource URL
-          '/three.js/fonts/roboto_mono_bold_typeface.json',
-
-          // onLoad callback
-          (font) => {
-            setFont(font);
-            ImmersiveView.instance.font = font;
-            resolve(font);
-          },
-          undefined,
-          (e) => {
-            useToastHandlerStore
-              .getState()
-              .showErrorToastMessage('Failed to load font for labels.');
-            reject(e);
-          }
-        );
-      });
-    };
-
     if (
       landscapeTokenServiceToken === null &&
       !searchParams.get('landscapeToken') &&
@@ -177,10 +152,6 @@ export default function Visualization() {
       !snapshotSelected
     ) {
       navigate('/landscapes');
-    }
-
-    if (!font) {
-      loadFont();
     }
 
     return () => {
@@ -351,8 +322,6 @@ export default function Visualization() {
   const snapshotSelected = useSnapshotTokenStore(
     (state) => state.snapshotSelected
   );
-  const font = useFontRepositoryStore((state) => state.font);
-  const setFont = useFontRepositoryStore((state) => state.setFont);
   const currentSelectedApplicationName = useCommitTreeStateStore(
     (state) => state._currentSelectedApplicationName
   );

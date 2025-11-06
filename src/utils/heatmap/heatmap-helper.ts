@@ -1,7 +1,5 @@
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { getAllClassesInApplications } from 'explorviz-frontend/src/utils/application-helpers';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
 
 export default function applySimpleHeatOnFoundation(

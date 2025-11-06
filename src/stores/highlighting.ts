@@ -5,7 +5,6 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import * as THREE from 'three';
 import { Color } from 'three';
 import { create } from 'zustand';

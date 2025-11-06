@@ -1,10 +1,10 @@
-import React from 'react';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-runtime';
+import ClazzMethodsList from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-methods-list';
 import ClazzPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-code';
 import ClazzPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-restructure';
+import ClazzPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-runtime';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs.tsx';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface ClazzPopupProps {
   popupData: PopupData;
@@ -27,9 +27,17 @@ export default function ClazzPopup({
         restructureMode={restructureMode}
         originOfData={clazz.originOfData}
         runtimeTab={
-          <ClazzPopupRuntime clazz={clazz} applicationId={applicationId} />
+          <>
+            <ClazzMethodsList methods={clazz.methods} />
+            <ClazzPopupRuntime clazz={clazz} applicationId={applicationId} />
+          </>
         }
-        codeTab={<ClazzPopupCode popupData={popupData} />}
+        codeTab={
+          <>
+            <ClazzMethodsList methods={clazz.methods} />
+            <ClazzPopupCode popupData={popupData} />
+          </>
+        }
         restructureTab={
           <ClazzPopupRestructure clazz={clazz} applicationId={applicationId} />
         }
