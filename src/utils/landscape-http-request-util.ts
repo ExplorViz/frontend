@@ -7,12 +7,12 @@ const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 
 export async function requestData(
   startTime: number,
-  intervalInSeconds: number
+  exactTime: number,
+  endTime: number
 ) {
-  const endTime = startTime + intervalInSeconds * 1000;
 
   const structureDataPromise = requestStructureData(/* startTime, endTime */);
-  const dynamicDataPromise = requestDynamicData(startTime, endTime);
+  const dynamicDataPromise = requestDynamicData(startTime, exactTime, endTime);
 
   const landscapeData = Promise.allSettled([
     structureDataPromise,
@@ -51,14 +51,14 @@ export function requestStructureData(/* fromTimestamp: number, toTimestamp: numb
   });
 }
 
-export function requestDynamicData(fromTimestamp: number, toTimestamp: number) {
+export function requestDynamicData(fromTimestamp: number, exactTimestamp: number, toTimestamp: number) {
   return new Promise<DynamicLandscapeData>((resolve, reject) => {
     if (useLandscapeTokenStore.getState().token === null) {
       reject(new Error('No landscape token selected'));
       return;
     }
     fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&to=${toTimestamp}`,
+      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,

@@ -9,6 +9,7 @@ import { useRenderingServiceStore } from '../rendering-service';
 
 interface TimestampRespositoryState {
   commitToTimestampMap: Map<string, Map<number, Timestamp>>;
+  timestampsForDebugSnapshots: Map<number, Timestamp>;
   _timelineDataObjectHandler: TimelineDataObjectHandler | null;
   addCommitToTimestamp: (
     commitId: string,
@@ -24,15 +25,19 @@ interface TimestampRespositoryState {
     epochMilli?: number
   ) => Timestamp | undefined;
   getLatestTimestamp: (commitId: string) => Timestamp | undefined;
-  getTimestampsForCommitId: (commitId: string) => Timestamp[];
+  getTimestampsForCommitId: (commitId: string, includeTimestampsFromDebugSnapshots: boolean) => Timestamp[];
+  getTimestampsForDebugSnapshots(): Timestamp[];
   addTimestamps: (commitId: string, timestamps: Timestamp[]) => void;
+  addTimestampsForDebugSnapshots: (timestamps: Timestamp[]) => void;
   addTimestamp: (commitId: string, timestamp: Timestamp) => void;
+  addTimestampForDebugSnapshot: (timestamp: Timestamp) => void;
   resetState: () => void;
 }
 
 export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
   (set, get) => ({
     commitToTimestampMap: new Map(), // tracked
+    timestampsForDebugSnapshots: new Map(),
     _timelineDataObjectHandler: null,
 
     addCommitToTimestamp,
@@ -41,6 +46,7 @@ export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
       if (useRenderingServiceStore.getState()._analysisMode === 'runtime') {
         // reset states when going back to runtime mode
         get().commitToTimestampMap = new Map();
+        get().timestampsForDebugSnapshots = new Map();
         get()._timelineDataObjectHandler?.resetState();
         useRenderingServiceStore.getState().resumeVisualizationUpdating();
       }
@@ -71,7 +77,8 @@ export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
     },
 
     timestampPollingCallback: (
-      commitToNewTimestampsMap: Map<string, Timestamp[]>
+      commitToNewTimestampsMap: Map<string, Timestamp[]>,
+      timestampsForDebugSnapshots?: Timestamp[]
     ) => {
       // Short Polling Event Loop for Runtime Data
 
@@ -82,16 +89,21 @@ export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
       const commitTimestampsToRenderMap = new Map();
       const allNewTimestampsToRender: Timestamp[] = [];
 
+      if(timestampsForDebugSnapshots) {
+        get().addTimestampsForDebugSnapshots(timestampsForDebugSnapshots);
+      }
+
       for (const [
         commitId,
         newTimestampsForCommit,
       ] of commitToNewTimestampsMap) {
         get().addTimestamps(commitId, newTimestampsForCommit);
         get()._timelineDataObjectHandler!.updateTimestampsForCommit(
-          get().getTimestampsForCommitId(commitId),
+          get().getTimestampsForCommitId(commitId, !!timestampsForDebugSnapshots),
           commitId
         );
 
+        // TODO: Why is the following within the for-loop?
         const lastSelectTimestamp = useTimestampStore
           .getState()
           .getLatestTimestampByCommitOrFallback(commitId);
@@ -147,19 +159,39 @@ export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
     },
 
     getLatestTimestamp: (commitId: string) => {
-      const timestamps = get().getTimestampsForCommitId(commitId);
+      const timestamps = get().getTimestampsForCommitId(commitId, false);
       return timestamps.length > 0
         ? timestamps[timestamps.length - 1]
         : undefined;
     },
 
-    getTimestampsForCommitId: (commitId: string) => {
+    getLatestDebugSnapshotTimestamp: () => {
+      const timestamps = get().getTimestampsForDebugSnapshots();
+      return timestamps.length > 0
+        ? timestamps[timestamps.length - 1]
+        : undefined;
+    },
+
+    getTimestampsForCommitId: (commitId: string, includeTimestampsFromDebugSnapshots: boolean = false) => {
       const timestampsForCommitId = get().commitToTimestampMap.get(commitId);
-      if (timestampsForCommitId) {
+      const timestampsForDebugSnapshots = get().getTimestampsForDebugSnapshots();
+
+      if(timestampsForCommitId && !includeTimestampsFromDebugSnapshots) {
         return [...timestampsForCommitId.values()];
+      }else if (timestampsForCommitId && includeTimestampsFromDebugSnapshots) {
+        return [
+          ...timestampsForCommitId.values(),
+          ...timestampsForDebugSnapshots,
+        ].sort((a, b) => a.epochMilli - b.epochMilli);
+      }else if (!timestampsForCommitId && includeTimestampsFromDebugSnapshots) {
+        return timestampsForDebugSnapshots;
       } else {
         return [];
       }
+    },
+
+    getTimestampsForDebugSnapshots: () => {
+      return [...get().timestampsForDebugSnapshots.values()];
     },
 
     addTimestamps: (commitId: string, timestamps: Timestamp[]) => {
@@ -178,6 +210,19 @@ export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
       }
     },
 
+    addTimestampsForDebugSnapshots: (timestamps: Timestamp[]) => {
+      for (const timestamp of timestamps) {
+        get().addTimestampForDebugSnapshot(timestamp);
+      }
+      if (timestamps.length) {
+        set({
+          timestampsForDebugSnapshots: new Map(
+            [...get().timestampsForDebugSnapshots.entries()].sort()
+          ),
+        });
+      }
+    },
+
     addTimestamp: (commitId: string, timestamp: Timestamp) => {
       const timestamps =
         get().commitToTimestampMap.get(commitId) ??
@@ -187,8 +232,13 @@ export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
       get().addCommitToTimestamp(commitId, timestamps);
     },
 
+    addTimestampForDebugSnapshot: (timestamp: Timestamp) => {
+      get().timestampsForDebugSnapshots.set(timestamp.epochMilli, timestamp);
+    },
+
     resetState: () => {
       get().commitToTimestampMap = new Map();
+      get().timestampsForDebugSnapshots = new Map();
       useTimestampStore.getState().resetState();
       get()._timelineDataObjectHandler?.resetState();
       get()._timelineDataObjectHandler?.triggerTimelineUpdate();
