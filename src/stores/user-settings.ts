@@ -356,3 +356,4 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 );
 
 useUserSettingsStore.getState()._constructApplicationColors();
+

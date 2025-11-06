@@ -1,0 +1,108 @@
+import { EdgeBundlingConfig } from './edge-bundling-utils';
+import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import * as THREE from 'three';
+
+export class BundledCommunicationLayout extends CommunicationLayout {
+  private _controlPoints: THREE.Vector3[] = [];
+  private _bundlingConfig: EdgeBundlingConfig;
+  
+  constructor(
+    model: ClassCommunication | ComponentCommunication,
+    startPoint: THREE.Vector3,
+    endPoint: THREE.Vector3,
+    lineThickness: number = 1,
+    config?: Partial<EdgeBundlingConfig>
+  ) {
+
+    super(model);
+    
+    // Set position and thickness
+    this.startPoint = startPoint;
+    this.endPoint = endPoint;
+    this.lineThickness = lineThickness;
+    
+    this._bundlingConfig = {
+      bundleStrength: config?.bundleStrength ?? 0.3,
+      compatibilityThreshold: config?.compatibilityThreshold ?? 0.6,
+      iterations: config?.iterations ?? 50,
+      stepSize: config?.stepSize ?? 0.1
+    };
+    
+    this.initializeControlPoints();
+  }
+  
+  private initializeControlPoints(): void {
+    // Create initial control points for the curve
+    const midPoint = new THREE.Vector3()
+      .addVectors(this.startPoint, this.endPoint)
+      .multiplyScalar(0.5);
+    
+    const direction = new THREE.Vector3()
+      .subVectors(this.endPoint, this.startPoint)
+      .normalize();
+    
+    const perpendicular = new THREE.Vector3(-direction.z, 0, direction.x);
+    
+    // Create 3 control points for smooth curve
+    this._controlPoints = [
+      new THREE.Vector3()
+        .addVectors(this.startPoint, direction.clone().multiplyScalar(0.33)),
+      midPoint.clone().add(perpendicular.multiplyScalar(2)),
+      new THREE.Vector3()
+        .addVectors(this.startPoint, direction.clone().multiplyScalar(0.66))
+    ];
+  }
+  
+  public updateControlPoints(points: THREE.Vector3[]): void {
+    this._controlPoints = points.map(p => p.clone());
+  }
+  
+  public getControlPoints(): THREE.Vector3[] {
+    return this._controlPoints.map(p => p.clone());
+  }
+  
+  public getBundlingConfig(): EdgeBundlingConfig {
+    return { ...this._bundlingConfig };
+  }
+  
+  public setBundlingConfig(config: Partial<EdgeBundlingConfig>): void {
+    this._bundlingConfig = { ...this._bundlingConfig, ...config };
+  }
+  
+  public getCurveWithHeight(yOffset: number = 0): THREE.CatmullRomCurve3 {
+    const points = [this.startPoint];
+    
+    // Add control points with height offset
+    this._controlPoints.forEach(point => {
+      const elevatedPoint = point.clone();
+      elevatedPoint.y += yOffset;
+      points.push(elevatedPoint);
+    });
+    
+    points.push(this.endPoint);
+    
+    return new THREE.CatmullRomCurve3(points);
+  }
+  
+  public override getCurve(options?: { yOffset?: number }): THREE.CatmullRomCurve3 {
+    const yOffset = options?.yOffset ?? 0;
+    return this.getCurveWithHeight(yOffset);
+  }
+  
+  /**
+   * Override copy method to include bundling specific properties
+   */
+  override copy(): BundledCommunicationLayout {
+    const copy = new BundledCommunicationLayout(
+      this.model,
+      this.startPoint,
+      this.endPoint,
+      this.lineThickness,
+      this._bundlingConfig
+    );
+    copy.updateControlPoints(this._controlPoints);
+    return copy;
+  }
+}

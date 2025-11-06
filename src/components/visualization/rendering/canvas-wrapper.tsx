@@ -22,6 +22,7 @@ import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
+import BundledCommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/bundled-communication-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
@@ -291,6 +292,23 @@ export default function CanvasWrapper({
               )}
             />
           ))}
+
+        {/* {isCommRendered &&
+          interAppCommunications.map((communication) => (
+            <BundledCommunicationR3F
+              key={communication.id}
+              communicationModel={communication}
+              communicationLayout={computeCommunicationLayout(
+                communication,
+                applicationModels,
+                layoutMap || applicationModels[0].boxLayoutMap,
+                closedComponentIds
+              )}
+            />
+          ))} */}
+
+
+
       </LandscapeR3F>
       <AnimatedPing />
       <TraceReplayOverlayR3F />

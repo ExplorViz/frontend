@@ -9,6 +9,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/application/code-building-label';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
+import BundledCommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/bundled-communication-r3f';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/application/city-foundation';
@@ -172,6 +173,20 @@ export default function CodeCity({
             )}
           />
         ))}
+
+      {/* {isCommRendered &&
+        applicationData.classCommunications.map((communication) => (
+          <BundledCommunicationR3F
+            key={communication.id}
+            communicationModel={communication}
+            communicationLayout={computeCommunicationLayout(
+              communication,
+              [applicationData],
+              layoutMap,
+              closedComponentIds
+            )}
+          />
+        ))} */}
     </group>
   );
 }
