@@ -14,14 +14,20 @@ import {
   UndoIcon,
 } from '@primer/octicons-react';
 import StatusIcons from 'explorviz-frontend/src/components/page-setup/status-icons';
+import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
-  const closeConnection = useIdeWebsocketFacadeStore((state) => state.closeConnection);
-  const restartConnection = useIdeWebsocketFacadeStore((state) => state.restartConnection);
+    const restartAndSetSocket = useIdeWebsocketStore(
+      (state) => state.restartAndSetSocket
+    );
+
+    const closeConnection = useIdeWebsocketStore(
+      (state) => state.closeConnection
+    );
 
   const dropdownRef = useRef<HTMLUListElement | null>(null);
 
@@ -209,11 +215,11 @@ export default function Navbar() {
                 </button>
               </li>
               <li>
-                {/*isConnected ? (
+                {isConnected ? (
                   <button
                     className="dropdown-item"
                     type="button"
-                    onClick={() => closeConnection(landscapeToken?.value)}
+                    onClick={() => closeConnection()}
                   >
                     Disconnect from VSCode extension
                   </button>
@@ -221,11 +227,11 @@ export default function Navbar() {
                   <button
                     className="dropdown-item"
                     type="button"
-                    onClick={() => restartConnection(landscapeToken?.value)}
+                    onClick={() => restartAndSetSocket(landscapeToken?.value)}
                   >
                     Connect to VSCode extension
                   </button>
-                )*/}
+                )}
               </li>
               <li>
                 <button
