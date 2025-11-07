@@ -40,7 +40,7 @@ export default function PlotlyTimeline({
 
   const plotlyTimestampsWithoutNullValues = useRef<any>(null);
 
-  const minRequestFilter = useRef<number>(10);
+  const minRequestFilter = useRef<number>(0);
   const maxRequestFilter = useRef<number>(Number.MAX_SAFE_INTEGER);
 
   // #region template-argument getters for default values
