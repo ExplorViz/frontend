@@ -12,10 +12,10 @@ export type ContextMenuItem = {
 
 interface ContextMenuProps {
   children: ReactNode;
-  switchToAR: () => void;
+  enterVR: () => void;
 }
 
-export default function ContextMenu({ children }: ContextMenuProps) {
+export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
   const [visible, setVisible] = useState<boolean>(false);
   const [position, setPosition] = useState<Position2D | null>(null);
 
@@ -58,8 +58,8 @@ export default function ContextMenu({ children }: ContextMenuProps) {
         removeAllHighlighting();
       },
     },
+    { title: 'Enter VR', action: enterVR },
   ];
-
   const onMouseUp = (event: React.MouseEvent) => {
     if (event.button === 2 && !mouseMoved.current) {
       event.preventDefault();

@@ -1,6 +1,7 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { XR, createXRStore } from '@react-three/xr';
+import { XR } from '@react-three/xr';
+import type { XRStore } from '@react-three/xr';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -30,8 +31,10 @@ import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
   landscapeData,
+  store,
 }: {
   landscapeData: LandscapeData | null;
+  store: XRStore;
 }) {
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
@@ -115,8 +118,6 @@ export default function CanvasWrapper({
   );
 
   const cameraControlsRef = useRef<CameraControls>(null);
-
-  const xrStore = createXRStore();
 
   // Initialize camera controls store
   useCameraControls(cameraControlsRef);
@@ -237,13 +238,6 @@ export default function CanvasWrapper({
 
   return (
     <>
-      <button
-        onClick={() => {
-          store.enterVR();
-        }}
-      >
-        Enter VR
-      </button>
       <Canvas
         id="three-js-canvas"
         className={'webgl'}
@@ -251,7 +245,7 @@ export default function CanvasWrapper({
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={xrStore}></XR>
+        <XR store={store} />
         <CameraControls
           ref={cameraControlsRef}
           dollySpeed={0.3}

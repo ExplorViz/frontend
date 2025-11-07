@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
+import { createXRStore } from '@react-three/xr';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
@@ -20,6 +21,7 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -42,7 +44,6 @@ import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -74,6 +75,8 @@ export default function BrowserRendering({
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
+
+  const xrStore = createXRStore();
 
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
@@ -258,8 +261,8 @@ export default function BrowserRendering({
           {useUserSettingsStore.getState().visualizationSettings.heatmapEnabled
             .value && <HeatmapInfo />}
 
-          <ContextMenu switchToAR={switchToAR}>
-            <CanvasWrapper landscapeData={landscapeData} />
+          <ContextMenu enterVR={() => xrStore.enterVR()}>
+            <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
           </ContextMenu>
           {/* {loadNewLandscape.isRunning && (
             <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
