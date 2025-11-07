@@ -1,11 +1,10 @@
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useShallow } from 'zustand/react/shallow';
-import PopupCoordinator from './popup-coordinator';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import PopupData from './popup-data';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { useShallow } from 'zustand/react/shallow';
+import PopupCoordinator from './popup-coordinator';
+import PopupData from './popup-data';
 
 interface Args {
   landscapeData: LandscapeData;
@@ -21,12 +20,6 @@ export default function Popups({ landscapeData }: Args) {
       updatePopup: state.updatePopup,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
-      updateMeshReference: state.updateMeshReference,
-    }))
-  );
-  const highlightingActions = useHighlightingStore(
-    useShallow((state) => ({
-      toggleHighlightById: state.toggleHighlightById,
     }))
   );
   const authState = useAuthStore(
@@ -40,16 +33,6 @@ export default function Popups({ landscapeData }: Args) {
       addAnnotation: state.addAnnotation,
     }))
   );
-
-  const showApplication = (appId: string) => {
-    // TODO: Migrate
-    // removePopup(appId);
-    // const applicationObject3D =
-    //   applicationRendererActions.getApplicationById(appId);
-    // if (applicationObject3D) {
-    //   cameraControls.current!.focusCameraOn(0.8, applicationObject3D);
-    // }
-  };
 
   const removePopup = (entityId: string) => {
     popupHandlerActions.removePopup(entityId);
@@ -82,10 +65,7 @@ export default function Popups({ landscapeData }: Args) {
       updatePopup={popupHandlerActions.updatePopup}
       removePopup={removePopup}
       sharePopup={popupHandlerActions.sharePopup}
-      showApplication={showApplication}
       structureData={landscapeData.structureLandscapeData}
-      toggleHighlightById={highlightingActions.toggleHighlightById}
-      updateMeshReference={popupHandlerActions.updateMeshReference}
     />
   ));
 }

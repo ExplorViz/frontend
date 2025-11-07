@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function LoadingIndicator({ text }: { text: string }) {
   return (
     <div className="d-flex text-secondary">

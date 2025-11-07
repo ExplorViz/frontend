@@ -91,7 +91,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     useShallow((state) => ({
       addPopup: state.addPopup,
       updatePopup: state.updatePopup,
-      updateMeshReference: state.updateMeshReference,
       removePopup: state.removePopup,
       clearPopups: state.clearPopups,
       pinPopup: state.pinPopup,
@@ -806,7 +805,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
               sharePopup={popupHandlerActions.sharePopup}
               removePopup={popupHandlerActions.removePopup}
               updatePopup={popupHandlerActions.updatePopup}
-              updateMeshReference={popupHandlerActions.updateMeshReference}
               structureData={
                 arRenderingArgs.landscapeData.structureLandscapeData
               }

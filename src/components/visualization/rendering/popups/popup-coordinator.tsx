@@ -43,9 +43,6 @@ interface PopupCoordinatorProps {
   removePopup(entityId: string): void;
   updatePopup(newData: PopupData): void;
   sharePopup(popup: PopupData): void;
-  updateMeshReference(popup: PopupData): void;
-  showApplication(appId: string): void;
-  toggleHighlightById: (modelId: string) => void;
 }
 
 export default function PopupCoordinator({
@@ -54,10 +51,7 @@ export default function PopupCoordinator({
   removePopup,
   updatePopup,
   sharePopup,
-  updateMeshReference,
   addAnnotationForPopup,
-  showApplication,
-  toggleHighlightById,
 }: PopupCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
@@ -378,12 +372,7 @@ export default function PopupCoordinator({
         <MethodPopup restructureMode={restructureMode} popupData={popupData} />
       )}
       {entityType == 'classCommunication' && (
-        <CommunicationPopup
-          restructureMode={restructureMode}
-          popupData={popupData}
-          showApplication={showApplication}
-          toggleHighlightById={toggleHighlightById}
-        />
+        <CommunicationPopup popupData={popupData} />
       )}
       {entityType == 'k8s' && <K8sPopup data={popupData} />}
       {entityType == 'html' && <HtmlPopup data={popupData} />}

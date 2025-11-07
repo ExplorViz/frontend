@@ -15,7 +15,6 @@ import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualiza
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
-import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -98,8 +97,6 @@ export default function BrowserRendering({
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
       handleMouseMove: state.handleMouseMove,
-      handleHoverOnMesh: state.handleHoverOnMesh,
-      updateMeshReference: state.updateMeshReference,
       cleanup: state.cleanup,
     }))
   );
@@ -117,7 +114,6 @@ export default function BrowserRendering({
       clearAnnotations: state.clearAnnotations,
       handleMouseMove: state.handleMouseMove,
       handleHoverOnMesh: state.handleHoverOnMesh,
-      updateMeshReference: state.updateMeshReference,
       cleanup: state.cleanup,
     }))
   );
@@ -157,7 +153,7 @@ export default function BrowserRendering({
 
   // MARK: State
 
-  const [showToolsSidebar, setShowToolsSiderbar] = useState<boolean>(false);
+  const [showToolsSidebar, setShowToolsSidebar] = useState<boolean>(false);
   const [showSettingsSidebar, setShowSettingsSidebar] =
     useState<boolean>(false);
   const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
@@ -176,7 +172,6 @@ export default function BrowserRendering({
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
-  const renderingLoop = useRef<RenderingLoop | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
   // MARK: Effects and hooks
@@ -238,7 +233,7 @@ export default function BrowserRendering({
                 id="toolsOpener"
                 variant="outline-secondary"
                 title="Tools"
-                onClick={() => setShowToolsSiderbar(true)}
+                onClick={() => setShowToolsSidebar(true)}
               >
                 <ToolsIcon size="small" className="align-middle" />
               </Button>
@@ -285,7 +280,7 @@ export default function BrowserRendering({
         <div className="sidebar left" id="toolselection">
           <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
             <ToolSelection
-              closeToolSelection={() => setShowToolsSiderbar(false)}
+              closeToolSelection={() => setShowToolsSidebar(false)}
             >
               <div className="explorviz-visualization-navbar">
                 <ul className="nav justify-content-center">

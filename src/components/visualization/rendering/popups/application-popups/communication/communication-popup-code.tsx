@@ -1,4 +1,3 @@
-import React from 'react';
 import { CodeIcon } from '@primer/octicons-react';
 
 export default function CommunicationPopupCode() {
