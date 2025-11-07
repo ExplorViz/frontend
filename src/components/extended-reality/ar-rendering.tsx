@@ -44,7 +44,6 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import hitTest from 'explorviz-frontend/src/utils/hit-test';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
@@ -595,7 +594,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     if (renderer.current!.xr.enabled) {
       if (!landscape3D.visible || reticle.current!.visible) {
-        hitTest(renderer.current!, reticle.current!, frame);
+        // hitTest(renderer.current!, reticle.current!, frame);
       }
     }
     collaborationSessionActions.idToRemoteUser.forEach((remoteUser) => {
