@@ -237,13 +237,13 @@ export default function CanvasWrapper({
 
   return (
     <>
-      {/* <button
+      <button
         onClick={() => {
           store.enterVR();
         }}
       >
         Enter VR
-      </button> */}
+      </button>
       <Canvas
         id="three-js-canvas"
         className={'webgl'}

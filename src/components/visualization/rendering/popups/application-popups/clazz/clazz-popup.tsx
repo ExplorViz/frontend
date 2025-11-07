@@ -26,18 +26,11 @@ export default function ClazzPopup({
       <PopupTabs
         restructureMode={restructureMode}
         originOfData={clazz.originOfData}
+        methodsTab={<ClazzMethodsList methods={clazz.methods} />}
         runtimeTab={
-          <>
-            <ClazzMethodsList methods={clazz.methods} />
-            <ClazzPopupRuntime clazz={clazz} applicationId={applicationId} />
-          </>
+          <ClazzPopupRuntime clazz={clazz} applicationId={applicationId} />
         }
-        codeTab={
-          <>
-            <ClazzMethodsList methods={clazz.methods} />
-            <ClazzPopupCode popupData={popupData} />
-          </>
-        }
+        codeTab={<ClazzPopupCode popupData={popupData} />}
         restructureTab={
           <ClazzPopupRestructure clazz={clazz} applicationId={applicationId} />
         }
