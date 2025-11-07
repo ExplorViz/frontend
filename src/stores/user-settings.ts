@@ -8,7 +8,6 @@ import {
   desertCity,
 } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { validateRangeSetting } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import {
   ColorSettingId,
   ColorSettings,
@@ -116,7 +115,6 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         const newValue = value ?? defaultVizSettings[name].value;
 
         if (isRangeSetting(setting) && typeof newValue === 'number') {
-          validateRangeSetting(setting, newValue);
           set({
             visualizationSettings: {
               ...get().visualizationSettings,

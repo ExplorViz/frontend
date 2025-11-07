@@ -4,6 +4,7 @@ import PopupData from 'explorviz-frontend/src/components/visualization/rendering
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
@@ -24,8 +25,6 @@ import {
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-// import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 
 type Position2D = {
   x: number;
@@ -217,7 +216,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     hovered,
   }) => {
     // TODO: Handle HTML Mesh better
-    if (getStoredSettings().hidePopupDelay.value == 0 || get().deactivated) {
+    if (
+      useUserSettingsStore.getState().visualizationSettings.hidePopupDelay
+        .value == 0 ||
+      get().deactivated
+    ) {
       return;
     }
 
@@ -319,7 +322,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       }
 
       get()._removePopupAfterTimeout(popup);
-    }, getStoredSettings().hidePopupDelay.value * 1000);
+    }, useUserSettingsStore.getState().visualizationSettings.hidePopupDelay.value * 1000);
   },
 
   updatePopup: (updatedPopup: PopupData, updatePosition = true) => {
