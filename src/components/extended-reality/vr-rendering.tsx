@@ -1215,7 +1215,7 @@ export default function VrRendering({
           <div id="rendering" ref={renderingRef}>
             <>
               <canvas
-                id="threejs-canvas"
+                id="three-js-canvas"
                 className={`webgl ${debugMode ? '' : 'hidden'}`}
                 ref={canvas}
                 onClick={(event) => handleMouseClick(event, handleSingleClick)}

@@ -37,8 +37,6 @@ export default function CanvasWrapper({
     null
   );
 
-  const [red, setRed] = useState(false);
-
   const directionalLightRef = useRef(null);
 
   const {
@@ -118,7 +116,7 @@ export default function CanvasWrapper({
 
   const cameraControlsRef = useRef<CameraControls>(null);
 
-  const store = createXRStore();
+  const xrStore = createXRStore();
 
   // Initialize camera controls store
   useCameraControls(cameraControlsRef);
@@ -160,9 +158,8 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { closedComponentIds, resetVisualizationState } = useVisualizationStore(
+  const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
-      closedComponentIds: state.closedComponentIds,
       resetVisualizationState: state.actions.resetVisualizationState,
     }))
   );
@@ -183,7 +180,7 @@ export default function CanvasWrapper({
       )
         .map((app) => getAllClassesInApplication(app))
         .flat();
-      const classIds = new Set(allClasses.map((clazz) => clazz.id));
+      const classIds = new Set(allClasses.map((classModel) => classModel.id));
 
       const communicationIds = new Set(
         interAppCommunications.map((comm) => comm.id)
@@ -240,21 +237,21 @@ export default function CanvasWrapper({
 
   return (
     <>
-      <button
+      {/* <button
         onClick={() => {
           store.enterVR();
         }}
       >
         Enter VR
-      </button>
+      </button> */}
       <Canvas
-        id="threejs-canvas"
+        id="three-js-canvas"
         className={'webgl'}
         gl={{ powerPreference: 'high-performance' }}
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={store}></XR>
+        <XR store={xrStore}></XR>
         <CameraControls
           ref={cameraControlsRef}
           dollySpeed={0.3}

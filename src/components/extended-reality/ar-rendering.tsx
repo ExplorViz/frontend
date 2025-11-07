@@ -820,7 +820,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
           <ContextMenu items={rightClickMenuItems}>
             <canvas
-              id="threejs-canvas"
+              id="three-js-canvas"
               className="webgl position-absolute"
               ref={canvasRef}
             />
