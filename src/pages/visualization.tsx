@@ -75,6 +75,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
 import { useShallow } from 'zustand/react/shallow';
 import { ImmersiveView } from '../rendering/application/immersive-view';
+import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 
 const queryParams = [
   'roomId',
@@ -851,6 +852,9 @@ export default function Visualization() {
                     timelineDataObject={
                       timelineDataObjectHandler.timelineDataObject!
                     }
+                    debugSnapshots={useDebugSnapshotRepositoryStore.getState().getDebugSnapshotsByLandscapeToken(
+                      landscapeTokenServiceToken!.value
+                    )}
                     clicked={timelineDataObjectHandler.timelineClicked}
                   />
                 </>

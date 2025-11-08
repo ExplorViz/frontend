@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
 import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
 import Plotly from 'plotly.js-dist';
+import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -14,6 +15,7 @@ export interface IMarkerStates {
 
 interface PlotlyTimelineArgs {
   timelineDataObject: TimelineDataObject;
+  debugSnapshots?: DebugSnapshot[];
   clicked(
     timelineDataObject: TimelineDataObject,
     selectedTimestamps: Map<string, Timestamp[]>
@@ -22,8 +24,10 @@ interface PlotlyTimelineArgs {
 
 export default function PlotlyTimeline({
   timelineDataObject,
+  debugSnapshots,
   clicked,
 }: PlotlyTimelineArgs) {
+  console.log("debugSnapshots in PlotlyTimeline:", debugSnapshots);
   // variable used for output when clicked
   const selectedCommitTimestampsMap = useRef<Map<string, Timestamp[]>>(
     new Map()
@@ -40,11 +44,12 @@ export default function PlotlyTimeline({
 
   const plotlyTimestampsWithoutNullValues = useRef<any>(null);
 
-  const minRequestFilter = useRef<number>(0);
+  const minRequestFilter = useRef<number>(-1);
   const maxRequestFilter = useRef<number>(Number.MAX_SAFE_INTEGER);
 
   // #region template-argument getters for default values
   const defaultMarkerColor = useRef<string>('#1f77b4');
+  const debugSnapshotMarkerColor = useRef<string>('#000000');
   const defaultMarkerSize = useRef<number>(8);
   const highlightedMarkerSize = useRef<number>(15);
   const selectionCount = useRef<number>(1);
@@ -671,7 +676,9 @@ export default function PlotlyTimeline({
           colors.push(markerState.color);
           sizes.push(markerState.size);
         } else {
-          const defaultColor = defaultMarkerColor.current;
+          const defaultColor = debugSnapshots?.some(ds =>
+            ds.timestamp.epochMilli === timestamp.epochMilli) ?
+            debugSnapshotMarkerColor.current : defaultMarkerColor.current;
           const defaultSize = defaultMarkerSize.current;
 
           colors.push(defaultColor);

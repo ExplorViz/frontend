@@ -18,13 +18,15 @@ interface TimestampRespositoryState {
   restartTimestampPollingAndVizUpdate: (commits: SelectedCommit[]) => void;
   stopTimestampPolling: () => void;
   timestampPollingCallback: (
-    commitToNewTimestampsMap: Map<string, Timestamp[]>
+    commitToNewTimestampsMap: Map<string, Timestamp[]>,
+    timestampsForDebugSnapshots?: Timestamp[]
   ) => void;
   getNextTimestampOrLatest: (
     commitId: string,
     epochMilli?: number
   ) => Timestamp | undefined;
   getLatestTimestamp: (commitId: string) => Timestamp | undefined;
+  getLatestDebugSnapshotTimestamp: () => Timestamp | undefined;
   getTimestampsForCommitId: (commitId: string, includeTimestampsFromDebugSnapshots: boolean) => Timestamp[];
   getTimestampsForDebugSnapshots(): Timestamp[];
   addTimestamps: (commitId: string, timestamps: Timestamp[]) => void;
