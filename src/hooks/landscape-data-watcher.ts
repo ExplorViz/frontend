@@ -56,6 +56,11 @@ export default function useLandscapeDataWatcher(
   };
 
   const handleUpdatedLandscapeData = async () => {
+    console.log(
+      'Update landscape',
+      useVisualizationStore.getState().removedComponentIds
+    );
+
     log('handleUpdateLandscape');
     await Promise.resolve();
     if (!structureLandscapeData || !dynamicLandscapeData) {
@@ -70,8 +75,15 @@ export default function useLandscapeDataWatcher(
       ({ id }) => !removedComponentIds.has(id)
     );
 
+    const removedEntityIds =
+      useVisualizationStore.getState().removedComponentIds;
+
     log('Layouting landscape ...');
-    const boxLayoutMap = await layoutLandscape([], applications);
+    const boxLayoutMap = await layoutLandscape(
+      [],
+      applications,
+      removedComponentIds
+    );
     log('Layouted landscape.');
 
     // ToDo: This can take quite some time. Optimize.

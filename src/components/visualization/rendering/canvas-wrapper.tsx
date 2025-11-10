@@ -212,7 +212,8 @@ export default function CanvasWrapper({
       landscapeData.structureLandscapeData.k8sNodes!,
       getApplicationsFromNodes(
         landscapeData.structureLandscapeData.nodes
-      ).filter((app) => !removedComponentIds.has(app.id))
+      ).filter((app) => !removedComponentIds.has(app.id)),
+      useVisualizationStore.getState().removedComponentIds ?? new Set<string>()
     );
     setLayoutMap(layoutMap);
   };
