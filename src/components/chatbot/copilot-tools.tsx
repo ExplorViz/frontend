@@ -10,12 +10,12 @@ import {
   Application,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useMemo } from 'react';
+import { use, useMemo } from 'react';
 import { ToolCallCard } from './tool-call-card';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import { useEditingService } from 'explorviz-frontend/src/stores/editing-service';
+import { EditingContext } from '../editing/editing-context';
 
 interface CopilotToolsProps {
   applications?: Application[];
@@ -28,7 +28,7 @@ function getAllSubPackages(pkg: Package): Package[] {
 export function CopilotTools({ applications }: CopilotToolsProps) {
   const { actions } = useVisualizationStore();
   const { moveCameraTo, resetCamera } = useCameraControlsStore();
-  const { addApplication, addClasses, removeComponent } = useEditingService();
+  const { addApplication, addClasses, removeComponent } = use(EditingContext);
   const packages = useMemo(() => {
     const list = [] as Package[];
     applications?.forEach(({ packages }) => {
@@ -38,8 +38,6 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     });
     return list;
   }, [applications]);
-
-  console.log(applications);
 
   useCopilotAction({
     name: 'highlight-component',
@@ -59,6 +57,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
           'Set to true if you want to set the component to be highlighted. Set to false to remove the highlighting.',
       },
     ],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async ({ id, isHighlighted }) => {
       actions.setHighlightedEntityId(id, isHighlighted);
     },
@@ -99,6 +99,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         required: true,
       },
     ],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async ({ id, open }) => {
       console.log(packages, id);
       const component = packages.find((pkg) => pkg.id === id);
@@ -145,6 +147,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         required: true,
       },
     ],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async ({ id }) => {
       pingByModelId(id);
     },
@@ -169,6 +173,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         required: true,
       },
     ],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async ({ id }) => {
       const position = getWorldPositionOfModel(id);
       if (position) {
@@ -192,6 +198,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     description:
       'Resets the camera to its default position and orientation in the 3D visualization.',
     parameters: [],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async () => {
       resetCamera();
     },
@@ -219,6 +227,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         required: true,
       },
     ],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async ({ name, classes }) => {
       return addApplication(name, classes);
     },
@@ -250,6 +260,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         required: true,
       },
     ],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async ({ applicationId, classes }) => {
       addClasses(applicationId, classes);
     },
@@ -274,6 +286,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         required: true,
       },
     ],
+    // @ts-ignore
+    _isRenderAndWait: true,
     handler: async ({ id }) => {
       removeComponent(id);
     },

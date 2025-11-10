@@ -113,6 +113,8 @@ export default function CanvasWrapper({
     }))
   );
 
+  const { removedComponentIds } = useVisualizationStore();
+
   const cameraControlsRef = useRef<CameraControls>(null);
 
   // Initialize camera controls store
@@ -173,15 +175,19 @@ export default function CanvasWrapper({
       const allPackages = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
+        .filter((app) => !removedComponentIds.has(app.id))
         .map((app) => getAllPackagesInApplication(app))
-        .flat();
+        .flat()
+        .filter((pkg) => !removedComponentIds.has(pkg.id));
       const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
 
       const allClasses = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
+        .filter((app) => !removedComponentIds.has(app.id))
         .map((app) => getAllClassesInApplication(app))
-        .flat();
+        .flat()
+        .filter((clazz) => !removedComponentIds.has(clazz.id));
       const classIds = new Set(allClasses.map((clazz) => clazz.id));
 
       const communicationIds = new Set(
@@ -204,7 +210,9 @@ export default function CanvasWrapper({
 
     const layoutMap = await layoutLandscape(
       landscapeData.structureLandscapeData.k8sNodes!,
-      getApplicationsFromNodes(landscapeData.structureLandscapeData.nodes)
+      getApplicationsFromNodes(
+        landscapeData.structureLandscapeData.nodes
+      ).filter((app) => !removedComponentIds.has(app.id))
     );
     setLayoutMap(layoutMap);
   };
@@ -229,6 +237,7 @@ export default function CanvasWrapper({
     packageLabelMargin,
     packageLayoutAlgorithm,
     packageMargin,
+    removedComponentIds,
   ]);
 
   useEffect(() => {

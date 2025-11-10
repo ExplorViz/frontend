@@ -11,6 +11,7 @@ import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simp
 import {
   Application,
   Class,
+  TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   MetricKey,
@@ -60,6 +61,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     const {
       hiddenClassIds,
+      removedComponentIds,
       hoveredEntityId,
       setHoveredEntity,
       highlightedEntityIds,
@@ -67,6 +69,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     } = useVisualizationStore(
       useShallow((state) => ({
         hiddenClassIds: state.hiddenClassIds,
+        removedComponentIds: state.removedComponentIds,
         hoveredEntityId: state.hoveredEntityId,
         setHoveredEntity: state.actions.setHoveredEntityId,
         highlightedEntityIds: state.highlightedEntityIds,
@@ -213,6 +216,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         }
       }
 
+      if (dataModel.originOfData === TypeOfAnalysis.Editing) {
+        return new THREE.Color(addedClassColor);
+      }
+
       const isHovered = hoveredEntityId === dataModel.id;
       const isHighlighted = highlightedEntityIds.has(dataModel.id);
 
@@ -239,10 +246,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         // Set visibility based on classData
         meshRef.current?.setVisibilityAt(
           instanceId,
-          !hiddenClassIds.has(classId)
+          !hiddenClassIds.has(classId) && !removedComponentIds.has(classId)
         );
       });
-    }, [hiddenClassIds]);
+    }, [hiddenClassIds, removedComponentIds]);
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
       if (meshRef === null || typeof meshRef === 'function') {
@@ -357,15 +364,21 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         classIdToInstanceId.set(classes[i].id, obj.id);
         classIdToClass.set(classes[i].id, classes[i]);
         const layout = layoutMap.get(classes[i].id);
+        if (!layout) {
+          console.log(`No layout found for component with id ${classes[i].id}`);
+          return;
+        }
         obj.position.set(
-          layout!.position.x,
-          layout!.position.y -
-            layout!.height / 2 +
+          layout.position.x,
+          layout.position.y -
+            layout.height / 2 +
             getClassHeight(classes[i]) / 2,
-          layout!.position.z
+          layout.position.z
         );
-        obj.visible = !hiddenClassIds.has(classes[i].id);
-        obj.scale.set(layout!.width, getClassHeight(classes[i]), layout!.depth);
+        obj.visible =
+          !hiddenClassIds.has(classes[i].id) &&
+          !removedComponentIds.has(classes[i].id);
+        obj.scale.set(layout.width, getClassHeight(classes[i]), layout.depth);
         obj.color = computeColor(classes[i].id);
         obj.updateMatrix();
         i++;

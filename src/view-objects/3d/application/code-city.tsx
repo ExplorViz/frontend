@@ -44,8 +44,8 @@ export default function CodeCity({
     setIsCameraZoomedIn(camera.position.y < zoomDistance);
   });
 
-  const [appPosition, setAppPosition] = useState<THREE.Vector3>(
-    layoutMap.get(applicationData.getId())?.position!
+  const [appPosition, setAppPosition] = useState<THREE.Vector3 | undefined>(
+    layoutMap.get(applicationData.getId())?.position
   );
   const [isBrowserActive, setIsBrowserActive] = useState(false);
 
@@ -68,8 +68,9 @@ export default function CodeCity({
   );
 
   useEffect(() => {
-    const newPosition = layoutMap.get(applicationData.getId())?.position!;
-    if (enableAnimations) {
+    const newPosition = layoutMap.get(applicationData.getId())?.position;
+    if (!newPosition) return;
+    if (enableAnimations && appPosition) {
       const gsapValues = {
         positionX: appPosition.x,
         positionY: appPosition.y,

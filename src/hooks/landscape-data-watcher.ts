@@ -15,6 +15,7 @@ import {
   getAllPackagesAndClassesFromLandscape,
   getApplicationsFromNodes,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useVisualizationStore } from '../stores/visualization-store';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
@@ -23,6 +24,8 @@ export default function useLandscapeDataWatcher(
   interAppCommunications: ClassCommunication[];
 } {
   const log = debug('app:hooks:useLandscapeWatcher');
+
+  const { removedComponentIds } = useVisualizationStore();
 
   const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
     []
@@ -63,7 +66,9 @@ export default function useLandscapeDataWatcher(
     // TODO: Handle k8s nodes
 
     log('Get applications from nodes');
-    const applications = getApplicationsFromNodes(nodes);
+    const applications = getApplicationsFromNodes(nodes).filter(
+      ({ id }) => !removedComponentIds.has(id)
+    );
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape([], applications);
@@ -85,13 +90,17 @@ export default function useLandscapeDataWatcher(
         classCommunications,
         boxLayoutMap
       );
-
-      applicationModels.push(applicationData);
+      if (!removedComponentIds.has(applicationData.getId())) {
+        applicationModels.push(applicationData);
+      }
     }
 
     // Add inter-app communication
     const interAppCommunications = classCommunications.filter(
-      (x) => x.sourceApp !== x.targetApp
+      (x) =>
+        x.sourceApp !== x.targetApp &&
+        !removedComponentIds.has(x.sourceApp.id) &&
+        !removedComponentIds.has(x.targetApp.id)
     );
 
     // TODO: Add data for IDE extension

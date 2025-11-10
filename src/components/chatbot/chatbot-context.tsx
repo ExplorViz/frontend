@@ -52,7 +52,6 @@ export function ChatbotProvider({
     defaultContext.selectedModel
   );
 
-  console.log(landscapeData);
   const applications = landscapeData?.structureLandscapeData.nodes.reduce(
     (acc, node) => {
       return acc.concat(node.applications);

@@ -8,8 +8,12 @@ interface CopilotResourcesProps {
 }
 
 export function CopilotResources({ applications }: CopilotResourcesProps) {
-  const { closedComponentIds, highlightedEntityIds, hoveredEntityId } =
-    useVisualizationStore();
+  const {
+    closedComponentIds,
+    highlightedEntityIds,
+    hoveredEntityId,
+    removedComponentIds,
+  } = useVisualizationStore();
 
   useCopilotReadable({
     description:
@@ -31,6 +35,11 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     description:
       'Get the ID of the component currently being hovered over by the user in the 3D visualization. If no component is being hovered over, this will be null.',
     value: hoveredEntityId ?? 'null',
+  });
+  useCopilotReadable({
+    description:
+      'Get the list of all currently removed components from the 3D visualization by their IDs. Removed components are not visible in the visualization.',
+    value: JSON.stringify([...removedComponentIds]),
   });
   return null;
 }

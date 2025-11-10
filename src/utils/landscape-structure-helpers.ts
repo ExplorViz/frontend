@@ -13,10 +13,12 @@ import {
   Method,
   Package,
   TypeOfAnalysis,
+  BaseModel,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAncestorPackages,
   getPackageById,
+  packageContainsClass,
 } from 'explorviz-frontend/src/utils/package-helpers';
 import {
   getTraceIdToSpanTree,
@@ -512,9 +514,10 @@ export function insertApplicationToLandscape(
               name,
               language: 'Java',
               packages: packagesFromFlatClasses(classes),
-              originOfData: TypeOfAnalysis.Static,
+              originOfData: TypeOfAnalysis.Editing,
               instanceId: '0',
               parentId: nodeId,
+              editingState: 'added',
             },
           ],
           ipAddress: '0.0.0.0',
@@ -567,10 +570,11 @@ function packagesFromFlatClasses(
           name: part,
           classes: [],
           subPackages: [],
-          originOfData: TypeOfAnalysis.Static,
+          originOfData: TypeOfAnalysis.Editing,
           fqn: parentPackage ? `${parentPackage.fqn}.${part}` : part,
           level: parentPackage ? parentPackage.level + 1 : 0,
           parent: parentPackage,
+          editingState: 'added',
         };
         currentPackagesMap.set(part, pkg);
         if (parentPackage) {
@@ -591,10 +595,11 @@ function packagesFromFlatClasses(
         id: generateId(),
         name: parts[parts.length - 1],
         methods: [],
-        originOfData: TypeOfAnalysis.Static,
+        originOfData: TypeOfAnalysis.Editing,
         fqn,
         parent: parentPackage,
         level: 0,
+        editingState: 'added',
       });
     }
   });
@@ -612,28 +617,84 @@ export function removeComponentFromLandscape(
   structure: StructureLandscapeData,
   id: string
 ) {
-  structure.nodes.forEach((node) => {
-    node.applications.forEach((app) => {
-      app.packages = app.packages.filter((pckg) => pckg.id !== id);
-      app.packages = removeSubpackageOrClass(id, app.packages);
+  let removedIds = new Set<string>([id]);
+  structure.nodes.map((node) => {
+    const applications = node.applications.map((app) => {
+      const [packages, removedSubIds] = removeSubpackageOrClass(
+        id,
+        app.packages,
+        app.id === id
+      );
+      removedIds = removedIds.union(removedSubIds);
+      const allChildrenRemoved = packages.every(isRemoved);
+      const editingState =
+        app.id === id || allChildrenRemoved ? 'removed' : app.editingState;
+
+      if (editingState === 'removed') {
+        removedIds.add(app.id);
+      }
+      return {
+        ...app,
+        packages,
+        editingState,
+      };
     });
-    node.applications = node.applications.filter(
-      (app) => app.id !== id && app.packages.length > 0
-    );
+
+    return {
+      ...node,
+      applications,
+    };
   });
-  structure.nodes = structure.nodes.filter(
-    (node) => node.id !== id && node.applications.length > 0
-  );
-  return structure;
+  return [structure, removedIds] as const;
 }
 
-function removeSubpackageOrClass(id: string, packages: Package[]): Package[] {
-  return packages
-    .filter((pckg) => pckg.id !== id)
-    .map((pckg) => ({
+function removeSubpackageOrClass(
+  id: string,
+  packages: Package[],
+  parentRemoved: boolean
+): [Package[], Set<string>] {
+  let removedIds = new Set<string>();
+  const pkgs = packages.map((pckg) => {
+    const [subPackages, removedSubIds] = removeSubpackageOrClass(
+      id,
+      pckg.subPackages,
+      parentRemoved || pckg.id === id
+    );
+    removedIds = removedIds.union(removedSubIds);
+    const classes = pckg.classes.map((clazz) => {
+      const editingState =
+        clazz.id === id || parentRemoved || pckg.id === id
+          ? 'removed'
+          : clazz.editingState;
+      if (editingState === 'removed') {
+        removedIds.add(clazz.id);
+      }
+      return {
+        ...clazz,
+        editingState,
+      };
+    });
+    const allChildrenRemoved =
+      subPackages.every(isRemoved) && classes.every(isRemoved);
+    const editingState =
+      pckg.id === id || parentRemoved || allChildrenRemoved
+        ? 'removed'
+        : pckg.editingState;
+
+    if (editingState === 'removed') {
+      removedIds.add(pckg.id);
+    }
+
+    return {
       ...pckg,
-      subPackages: removeSubpackageOrClass(id, pckg.subPackages),
-      classes: pckg.classes.filter((clss) => clss.id !== id),
-    }))
-    .filter((pckg) => pckg.subPackages.length > 0 || pckg.classes.length > 0);
+      subPackages,
+      classes,
+      editingState,
+    };
+  });
+  return [pkgs, removedIds];
+}
+
+function isRemoved(model: BaseModel): boolean {
+  return model.editingState === 'removed';
 }

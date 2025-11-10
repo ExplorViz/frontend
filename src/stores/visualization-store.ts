@@ -9,6 +9,7 @@ interface VisualizationStoreState {
   hiddenComponentIds: Set<string>; // Usually components in closed components
   // State for classes
   hiddenClassIds: Set<string>; // Usually classes in hidden components
+  removedComponentIds: Set<string>;
   actions: {
     // Actions for all entities
     setHoveredEntityId: (id: string | null) => void;
@@ -26,6 +27,8 @@ interface VisualizationStoreState {
     showClasses: (ids: string[]) => void;
     hideClasses: (ids: string[]) => void;
     resetClassStates: () => void;
+    removeComponents: (ids: Set<string>) => void;
+    setRemovedComponents: (ids: Set<string>) => void;
   };
 }
 
@@ -39,6 +42,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     hiddenComponentIds: new Set(),
     // Class state
     hiddenClassIds: new Set(),
+    removedComponentIds: new Set(),
     actions: {
       // Shared entity states
       setHoveredEntityId: (id: string | null) => {
@@ -145,6 +149,16 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       hideClasses: (ids: string[]) => {
         set({
           hiddenClassIds: get().hiddenClassIds.union(new Set(ids)),
+        });
+      },
+      removeComponents: (ids: Set<string>) => {
+        set({
+          removedComponentIds: get().removedComponentIds.union(ids),
+        });
+      },
+      setRemovedComponents: (ids: Set<string>) => {
+        set({
+          removedComponentIds: ids,
         });
       },
       resetClassStates: () => {

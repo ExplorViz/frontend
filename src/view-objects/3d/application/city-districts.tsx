@@ -16,6 +16,7 @@ import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/three
 import {
   Application,
   Package,
+  TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
@@ -68,6 +69,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       hiddenComponentIds,
       highlightedEntityIds,
       hoveredEntityId,
+      removedComponentIds,
       setHighlightedEntity,
       setHoveredEntity,
     } = useVisualizationStore(
@@ -76,6 +78,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         hiddenComponentIds: state.hiddenComponentIds,
         highlightedEntityIds: state.highlightedEntityIds,
         hoveredEntityId: state.hoveredEntityId,
+        removedComponentIds: state.removedComponentIds,
         setHighlightedEntity: state.actions.setHighlightedEntityId,
         setHoveredEntity: state.actions.setHoveredEntityId,
       }))
@@ -174,7 +177,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           componentIdToInstanceId.set(packages[i].id, obj.id);
           componentIdToPackage.set(packages[i].id, packages[i]);
           const isOpen = !closedComponentIds.has(packages[i].id);
-          const isVisible = !hiddenComponentIds.has(packages[i].id);
+          const isVisible =
+            !hiddenComponentIds.has(packages[i].id) &&
+            !removedComponentIds.has(packages[i].id);
           const closedPosition = layout.position.clone();
           // Y-Position of layout is center of opened component
           closedPosition.y =
@@ -229,10 +234,11 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       componentIdToInstanceId.forEach((instanceId, componentId) => {
         meshRef.current?.setVisibilityAt(
           instanceId,
-          !hiddenComponentIds.has(componentId)
+          !hiddenComponentIds.has(componentId) &&
+            !removedComponentIds.has(componentId)
         );
       });
-    }, [hiddenComponentIds]);
+    }, [hiddenComponentIds, removedComponentIds]);
 
     useEffect(() => {
       if (ref === null || typeof ref === 'function') {
@@ -266,6 +272,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         } else {
           return new Color(unChangedComponentColor);
         }
+      }
+
+      if (component.originOfData === TypeOfAnalysis.Editing) {
+        return new Color(addedComponentColor);
       }
 
       const isHovered = hoveredEntityId === componentId;
