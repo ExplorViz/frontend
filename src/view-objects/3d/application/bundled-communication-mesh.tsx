@@ -1,8 +1,8 @@
-import React, { useMemo } from "react";
-import * as THREE from "three";
-import { Line } from "@react-three/drei";
-import { useVisualizationStore } from "explorviz-frontend/src/stores/visualization-store";
-import { useModelStore } from "explorviz-frontend/src/stores/repos/model-repository"; 
+import React, { useMemo } from 'react';
+import * as THREE from 'three';
+import { Line } from '@react-three/drei';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 
 type ClassObj = any;
 type CommunicationModel = any;
@@ -18,7 +18,7 @@ type CommunicationLayout = {
 interface Props {
   communicationModel: CommunicationModel;
   communicationLayout?: CommunicationLayout;
-  bundlingBeta?: number; 
+  bundlingBeta?: number;
   segments?: number;
   color?: string;
 }
@@ -37,16 +37,16 @@ export default function BundledCommunicationMesh({
   communicationLayout,
   bundlingBeta = 0.8,
   segments = 60,
-  color = "#00aaff",
+  color = '#00aaff',
 }: Props) {
-  const { setHighlightedEntity, hoveredEntityId, highlightedEntityIds } =
-    useVisualizationStore((state) => ({
-      setHighlightedEntity: state.actions.setHighlightedEntityId,
+  const { hoveredEntityId, highlightedEntityIds } = useVisualizationStore(
+    (state) => ({
       hoveredEntityId: state.hoveredEntityId,
       highlightedEntityIds: state.highlightedEntityIds,
-    }));
+    })
+  );
 
-  const modelStore = useModelStore?.(); 
+  const modelStore = useModelStore?.();
 
   // Attempt to locate class IDs on communicationModel (heuristic)
   const originId =
@@ -93,14 +93,18 @@ export default function BundledCommunicationMesh({
     (originClass && (originClass.position as THREE.Vector3)) ||
     layoutStart ||
     (originClass &&
-      typeof originClass.x === "number" &&
-      new THREE.Vector3(originClass.x, originClass.y ?? 0, originClass.z ?? 0)) ||
+      typeof originClass.x === 'number' &&
+      new THREE.Vector3(
+        originClass.x,
+        originClass.y ?? 0,
+        originClass.z ?? 0
+      )) ||
     undefined;
   const D: THREE.Vector3 | undefined =
     (destClass && (destClass.position as THREE.Vector3)) ||
     layoutEnd ||
     (destClass &&
-      typeof destClass.x === "number" &&
+      typeof destClass.x === 'number' &&
       new THREE.Vector3(destClass.x, destClass.y ?? 0, destClass.z ?? 0)) ||
     undefined;
 
@@ -128,11 +132,12 @@ export default function BundledCommunicationMesh({
           cur.parent_class; // heuristics
         if (!nextId) break;
         // if nextId is an object (already resolved), use it; otherwise try modelStore lookup
-        if (typeof nextId === "object") {
+        if (typeof nextId === 'object') {
           cur = nextId;
         } else {
           const found =
-            modelStore && (modelStore.getClass?.(nextId) ?? modelStore.getModel?.(nextId));
+            modelStore &&
+            (modelStore.getClass?.(nextId) ?? modelStore.getModel?.(nextId));
           if (found) cur = found;
           else break;
         }
@@ -180,7 +185,9 @@ export default function BundledCommunicationMesh({
     symmetricDiffNodes.forEach((n, idx) => {
       const p =
         (n && (n.position as THREE.Vector3)) ??
-        (typeof n.x === "number" ? new THREE.Vector3(n.x, n.y ?? 0, n.z ?? 0) : null);
+        (typeof n.x === 'number'
+          ? new THREE.Vector3(n.x, n.y ?? 0, n.z ?? 0)
+          : null);
       if (p) realPositions.push(p.clone());
     });
 
@@ -191,16 +198,19 @@ export default function BundledCommunicationMesh({
         const OP = new THREE.Vector3().subVectors(Ppos, safeO);
         const projFactor = OP.dot(OD) / OD_len2;
         const Pprime = safeO.clone().add(OD.clone().multiplyScalar(projFactor));
-        const Pdoubleprime = Ppos.clone().multiplyScalar(bundlingBeta).add(
-          Pprime.clone().multiplyScalar(1 - bundlingBeta)
-        );
+        const Pdoubleprime = Ppos.clone()
+          .multiplyScalar(bundlingBeta)
+          .add(Pprime.clone().multiplyScalar(1 - bundlingBeta));
         res.push(Pdoubleprime);
       });
       return res;
     }
 
     // fallback synthetic HAPs: n evenly spaced points along OD with small orthogonal offset
-    const fallbackCount = Math.min(4, Math.max(1, Math.floor((symmetricDiffNodes.length || 3))));
+    const fallbackCount = Math.min(
+      4,
+      Math.max(1, Math.floor(symmetricDiffNodes.length || 3))
+    );
     const orth = new THREE.Vector3();
     // compute a perpendicular vector
     if (OD.x !== 0 || OD.z !== 0) {
@@ -213,8 +223,14 @@ export default function BundledCommunicationMesh({
       const t = i / (fallbackCount + 1);
       const base = safeO.clone().lerp(safeD, t);
       // offset magnitude shrinks with β (more β -> closer to real HAPs -> smaller offset)
-      const offsetMag = (1 - bundlingBeta) * 0.5 * (1 - Math.abs(0.5 - t)) * (OD.length() * 0.08);
-      const offset = orth.clone().multiplyScalar(offsetMag * (i % 2 === 0 ? 1 : -1));
+      const offsetMag =
+        (1 - bundlingBeta) *
+        0.5 *
+        (1 - Math.abs(0.5 - t)) *
+        (OD.length() * 0.08);
+      const offset = orth
+        .clone()
+        .multiplyScalar(offsetMag * (i % 2 === 0 ? 1 : -1));
       base.add(offset);
       res.push(base);
     }
@@ -255,35 +271,38 @@ export default function BundledCommunicationMesh({
   if (!curvePoints || curvePoints.length < 2) return null;
 
   // create smooth curve (CatmullRom) and sample points
-  const curve = new THREE.CatmullRomCurve3(curvePoints, false, "catmullrom", 0.5);
+  const curve = new THREE.CatmullRomCurve3(
+    curvePoints,
+    false,
+    'catmullrom',
+    0.5
+  );
   const points = curve.getPoints(segments);
 
   const key =
     (communicationModel && communicationModel.id) ||
-    `${originId ?? "o"}-${destId ?? "d"}-${Math.round(bundlingBeta * 100)}`;
+    `${originId ?? 'o'}-${destId ?? 'd'}-${Math.round(bundlingBeta * 100)}`;
 
   const isHighlighted = highlightedEntityIds?.has(key) ?? false;
 
   const handlePointerOver = (e: any) => {
     e.stopPropagation();
-    setHighlightedEntity(key);
   };
 
   const handlePointerOut = (e: any) => {
     e.stopPropagation();
-    setHighlightedEntity(null);
   };
 
   const handleClick = (e: any) => {
     e.stopPropagation();
-    setHighlightedEntity(key, !isHighlighted);
+    toggleHighlightById(key);
   };
 
   return (
     <Line
       key={key}
       points={points}
-      color={isHighlighted ? "#ff8800" : color}
+      color={isHighlighted ? '#ff8800' : color}
       lineWidth={Math.max(0.4, (communicationModel?.weight ?? 1) * 0.6)}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
@@ -291,14 +310,3 @@ export default function BundledCommunicationMesh({
     />
   );
 }
-
-
-
-
-
-
-
-
-
-
-

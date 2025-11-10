@@ -84,7 +84,11 @@ import { getPackageById } from 'explorviz-frontend/src/utils/package-helpers';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import {
+  highlightById,
+  removeAllHighlighting,
+  setHighlightingById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 export default function useCollaborativeModifier() {
   // MARK: Stores
@@ -203,9 +207,19 @@ export default function useCollaborativeModifier() {
     const user = collaborationSessionActions.lookupRemoteUserById(userId);
     if (!user) return;
 
-    useVisualizationStore
-      .getState()
-      .actions.setHighlightedEntityId(entityIds[0], areHighlighted);
+    if (areHighlighted) {
+      user.highlightedEntityIds = user.highlightedEntityIds.union(
+        new Set(entityIds)
+      );
+    } else {
+      user.highlightedEntityIds = user.highlightedEntityIds.difference(
+        new Set(entityIds)
+      );
+    }
+
+    entityIds.forEach((entityId) => {
+      setHighlightingById(entityId, areHighlighted, false);
+    });
   };
 
   const onChangeLandscape = ({

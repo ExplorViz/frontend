@@ -34,6 +34,7 @@ import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -87,10 +88,7 @@ export default function PopupCoordinator({
   }, [vizStore.hoveredEntityId]);
 
   const highlight = () => {
-    const entity = popupData.entity;
-
-    const wasHighlighted = vizStore.highlightedEntityIds.has(entity.id);
-    vizStore.actions.setHighlightedEntityId(entity.id, !wasHighlighted);
+    toggleHighlightById(popupData.entity.id);
   };
 
   const elementDrag = (event: MouseEvent) => {

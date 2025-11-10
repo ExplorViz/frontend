@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { highlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
@@ -17,8 +17,6 @@ interface ApplicationSearchEntity {
 
 export default function ApplicationSearch() {
   useApplicationRepositoryStore((state) => state.applications);
-  const highlightById =
-    useVisualizationStore.getState().actions.setHighlightedEntityId;
 
   const [searchString, setSearchString] = useState<string>('');
   const [selected, setSelected] = useState<any[]>([]);
@@ -61,7 +59,7 @@ export default function ApplicationSearch() {
 
   const highlightAllSelectedEntities = () => {
     selected.forEach((selectedEntity) => {
-      highlightById(selectedEntity.modelId, true);
+      highlightById(selectedEntity.modelId);
     });
   };
 

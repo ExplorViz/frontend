@@ -170,6 +170,7 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { BundledCommunicationLayout } from './bundled-communication-layout';
 import { EdgeBundlingConfig } from './edge-bundling-utils';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 export default function CommunicationR3F({
   communicationModel,
@@ -203,25 +204,24 @@ export default function CommunicationR3F({
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       curveHeight: state.visualizationSettings.curvyCommHeight.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
-      
+
       // Edge Bundling settings:
       enableEdgeBundling: state.visualizationSettings.enableEdgeBundling.value,
       bundleStrength: state.visualizationSettings.bundleStrength.value,
-      compatibilityThreshold: state.visualizationSettings.compatibilityThreshold.value,
+      compatibilityThreshold:
+        state.visualizationSettings.compatibilityThreshold.value,
       bundlingIterations: state.visualizationSettings.bundlingIterations.value,
       bundlingStepSize: state.visualizationSettings.bundlingStepSize.value,
     }))
   );
 
-  const { isHighlighted, isHovered, setHighlightedEntity, setHoveredEntity } =
-    useVisualizationStore(
-      useShallow((state) => ({
-        isHighlighted: state.highlightedEntityIds.has(communicationModel.id),
-        isHovered: state.hoveredEntityId === communicationModel.id,
-        setHighlightedEntity: state.actions.setHighlightedEntityId,
-        setHoveredEntity: state.actions.setHoveredEntityId,
-      }))
-    );
+  const { isHighlighted, isHovered, setHoveredEntity } = useVisualizationStore(
+    useShallow((state) => ({
+      isHighlighted: state.highlightedEntityIds.has(communicationModel.id),
+      isHovered: state.hoveredEntityId === communicationModel.id,
+      setHoveredEntity: state.actions.setHoveredEntityId,
+    }))
+  );
 
   const { commCurveHeightDependsOnDistance } = useConfigurationStore(
     useShallow((state) => ({
@@ -267,7 +267,7 @@ export default function CommunicationR3F({
   };
 
   const handleClick = (/*event*/) => {
-    setHighlightedEntity(communicationModel.id, !isHighlighted);
+    toggleHighlightById(communicationModel.id);
   };
 
   const handleDoubleClick = (/*event*/) => {};
@@ -289,33 +289,41 @@ export default function CommunicationR3F({
   };
 
   // Edge Bundling config
-  const edgeBundlingConfig = useMemo<EdgeBundlingConfig>(() => ({
-    bundleStrength,
-    compatibilityThreshold,
-    iterations: bundlingIterations,
-    stepSize: bundlingStepSize,
-  }), [bundleStrength, compatibilityThreshold, bundlingIterations, bundlingStepSize]);
+  const edgeBundlingConfig = useMemo<EdgeBundlingConfig>(
+    () => ({
+      bundleStrength,
+      compatibilityThreshold,
+      iterations: bundlingIterations,
+      stepSize: bundlingStepSize,
+    }),
+    [
+      bundleStrength,
+      compatibilityThreshold,
+      bundlingIterations,
+      bundlingStepSize,
+    ]
+  );
 
   // Create bundled layout
   const bundledLayout = useMemo(() => {
     if (!communicationLayout) return undefined;
 
     if (!enableEdgeBundling) {
-    // If it is a BundledLayout already, convert back to normal layout
+      // If it is a BundledLayout already, convert back to normal layout
       if (communicationLayout instanceof BundledCommunicationLayout) {
         const normalLayout = new CommunicationLayout(communicationModel);
         normalLayout.startPoint = communicationLayout.startPoint;
         normalLayout.endPoint = communicationLayout.endPoint;
         normalLayout.lineThickness = communicationLayout.lineThickness;
         return normalLayout;
+      }
+      return communicationLayout;
     }
-    return communicationLayout;
-  }
-    
+
     if (communicationLayout instanceof BundledCommunicationLayout) {
       return communicationLayout;
     }
-    
+
     // Convert normal layout to BundledLayout
     const startPoint = new THREE.Vector3(
       communicationLayout.startX,
@@ -327,7 +335,7 @@ export default function CommunicationR3F({
       communicationLayout.endY,
       communicationLayout.endZ
     );
-    
+
     return new BundledCommunicationLayout(
       communicationModel,
       startPoint,
@@ -335,7 +343,12 @@ export default function CommunicationR3F({
       communicationLayout.lineThickness,
       edgeBundlingConfig
     );
-  }, [communicationLayout, communicationModel, edgeBundlingConfig, enableEdgeBundling]);
+  }, [
+    communicationLayout,
+    communicationModel,
+    edgeBundlingConfig,
+    enableEdgeBundling,
+  ]);
 
   const constructorArgs = useMemo<
     ThreeElements['clazzCommunicationMesh']['args']
@@ -372,7 +385,9 @@ export default function CommunicationR3F({
       ref={meshRef}
       // Edge Bundling props
       enableEdgeBundling={enableEdgeBundling}
-      bundleGroupId={communicationModel.sourceClass + '_' + communicationModel.targetClass}
+      bundleGroupId={
+        communicationModel.sourceClass + '_' + communicationModel.targetClass
+      }
       bundlingConfig={edgeBundlingConfig}
     ></clazzCommunicationMesh>
   );

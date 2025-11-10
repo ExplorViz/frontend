@@ -36,6 +36,8 @@ export default class RemoteUser extends THREE.Object3D {
 
   color: THREE.Color;
 
+  highlightedEntityIds: Set<string> = new Set();
+
   state: string;
 
   camera: Camera | null;

@@ -1,9 +1,7 @@
-import React from 'react';
-
+import { NorthStarIcon } from '@primer/octicons-react';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import Button from 'react-bootstrap/Button';
-import { NorthStarIcon } from '@primer/octicons-react';
 
 interface PingButtonProps {
   handlePing: () => void;
