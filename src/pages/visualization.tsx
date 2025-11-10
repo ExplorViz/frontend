@@ -568,7 +568,6 @@ export default function Visualization() {
       annotations: annotations as SerializedAnnotation[],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
     };
-    console.log('onSyncRoomState');
     detachedMenuRendererRestore(
       serializedRoom.popups,
       serializedRoom.detachedMenus

@@ -82,8 +82,6 @@ export default async function layoutLandscape(
   applications: Application[],
   removedComponentIds: Set<string>
 ) {
-  console.log('Removed component ids:', removedComponentIds);
-
   const elk = new ELK();
 
   setVisualizationSettings();

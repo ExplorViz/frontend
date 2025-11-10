@@ -4,7 +4,6 @@ import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -12,7 +11,10 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import {
+  getHighlightingColorForEntity,
+  toggleHighlightById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import {
   Application,
@@ -289,7 +291,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (!layout) return new Color('white');
 
       const baseColor = isHighlighted
-        ? useHighlightingStore.getState().highlightingColor()
+        ? getHighlightingColorForEntity(componentId)
         : new Color(
             layout.level % 2 === 0 ? componentEvenColor : componentOddColor
           );

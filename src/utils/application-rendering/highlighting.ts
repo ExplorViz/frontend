@@ -17,14 +17,16 @@ export function getLocalHighlightingColor(): THREE.Color {
 
 export function getHighlightingColorForEntity(entityId: string): THREE.Color {
   if (useCollaborationSessionStore.getState().isOnline()) {
-    const remoteUsers = useCollaborationSessionStore
-      .getState()
-      .getAllRemoteUsers();
-    remoteUsers.forEach((user) => {
+    const remoteUsers = Array.from(
+      useCollaborationSessionStore.getState().getAllRemoteUsers()
+    );
+
+    for (let i = 0; i < remoteUsers.length; i++) {
+      const user = remoteUsers[i];
       if (user.highlightedEntityIds.has(entityId)) {
         return user.color;
       }
-    });
+    }
   }
   return getLocalHighlightingColor();
 }

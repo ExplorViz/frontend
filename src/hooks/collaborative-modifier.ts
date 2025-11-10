@@ -8,11 +8,14 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   closeComponent,
   openComponent,
 } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import {
+  removeAllHighlighting,
+  setHighlightingById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { BaseChangeLogEntry } from 'explorviz-frontend/src/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
@@ -84,11 +87,6 @@ import { getPackageById } from 'explorviz-frontend/src/utils/package-helpers';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import {
-  highlightById,
-  removeAllHighlighting,
-  setHighlightingById,
-} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 export default function useCollaborativeModifier() {
   // MARK: Stores

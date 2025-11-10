@@ -15,7 +15,10 @@ import * as THREE from 'three';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useShallow } from 'zustand/react/shallow';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import {
+  getHighlightingColorForEntity,
+  toggleHighlightById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 export default function CityFoundation({
   application,
@@ -136,7 +139,7 @@ export default function CityFoundation({
 
   const computeColor = () => {
     const baseColor = isHighlighted
-      ? new THREE.Color(highlightedEntityColor)
+      ? getHighlightingColorForEntity(application.id)
       : new THREE.Color(foundationColor);
 
     if (enableHoverEffects && isHovered) {

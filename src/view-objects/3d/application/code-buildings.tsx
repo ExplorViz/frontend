@@ -32,7 +32,10 @@ import { useUserSettingsStore } from '../../../stores/user-settings';
 import { useVisualizationStore } from '../../../stores/visualization-store';
 import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
 import BoxLayout from '../../layout-models/box-layout';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import {
+  getHighlightingColorForEntity,
+  toggleHighlightById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -223,7 +226,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       const isHighlighted = highlightedEntityIds.has(dataModel.id);
 
       const baseColor = isHighlighted
-        ? new THREE.Color(highlightedEntityColor)
+        ? getHighlightingColorForEntity(dataModel.id)
         : new THREE.Color(classColor);
 
       if (enableHoverEffects && isHovered) {

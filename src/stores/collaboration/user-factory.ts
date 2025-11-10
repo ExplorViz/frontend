@@ -1,12 +1,10 @@
-import { create } from 'zustand';
+import { useHMDStore } from 'explorviz-frontend/src/stores/extended-reality/hmd';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
-import * as THREE from 'three';
 import { Color } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/color';
 import { Position } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/position';
 import { Quaternion } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
-import { useLocalUserStore } from './local-user';
-import { useHMDStore } from 'explorviz-frontend/src/stores/extended-reality/hmd';
-import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import * as THREE from 'three';
+import { create } from 'zustand';
 
 // TODO this could probably just be a utility
 
@@ -43,7 +41,11 @@ export const useUserFactoryStore = create<UserFactoryState>((set, get) => ({
     const remoteUser = new RemoteUser({
       userName,
       userId,
-      color: new THREE.Color(color.red, color.green, color.blue),
+      color: new THREE.Color().setRGB(
+        color.red / 255,
+        color.green / 255,
+        color.blue / 255
+      ),
       state: 'online',
     });
     useHMDStore
