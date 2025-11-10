@@ -357,28 +357,36 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         return;
       }
 
+      meshRef.current.clearInstances();
+      instanceIdToClassId.clear();
+      classIdToInstanceId.clear();
+      classIdToClass.clear();
+
       let i = 0;
       meshRef.current.addInstances(classes.length, (obj) => {
-        instanceIdToClassId.set(obj.id, classes[i].id);
-        classIdToInstanceId.set(classes[i].id, obj.id);
-        classIdToClass.set(classes[i].id, classes[i]);
-        const layout = layoutMap.get(classes[i].id);
+        const classData = classes[i];
+        if (!classData) {
+          return;
+        }
+
+        instanceIdToClassId.set(obj.id, classData.id);
+        classIdToInstanceId.set(classData.id, obj.id);
+        classIdToClass.set(classData.id, classData);
+        const layout = layoutMap.get(classData.id);
         if (!layout) {
-          console.log(`No layout found for component with id ${classes[i].id}`);
+          console.log(`No layout found for component with id ${classData.id}`);
           return;
         }
         obj.position.set(
           layout.position.x,
-          layout.position.y -
-            layout.height / 2 +
-            getClassHeight(classes[i]) / 2,
+          layout.position.y - layout.height / 2 + getClassHeight(classData) / 2,
           layout.position.z
         );
         obj.visible =
-          !hiddenClassIds.has(classes[i].id) &&
-          !removedComponentIds.has(classes[i].id);
-        obj.scale.set(layout.width, getClassHeight(classes[i]), layout.depth);
-        obj.color = computeColor(classes[i].id);
+          !hiddenClassIds.has(classData.id) &&
+          !removedComponentIds.has(classData.id);
+        obj.scale.set(layout.width, getClassHeight(classData), layout.depth);
+        obj.color = computeColor(classData.id);
         obj.updateMatrix();
         i++;
       });

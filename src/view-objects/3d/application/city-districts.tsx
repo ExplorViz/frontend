@@ -152,7 +152,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         return;
       }
       if (!meshRef.current) return;
-      meshRef.current?.clearInstances();
+      meshRef.current.clearInstances();
       instanceIdToComponentId.clear();
       componentIdToInstanceId.clear();
       componentIdToPackage.clear();
@@ -160,35 +160,39 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       const mesh = meshRef.current.addInstances(
         packages.length,
         (obj, index) => {
-          const i = index;
-          if (!packages[i]) {
-            console.log(`No package found at index ${i}`);
+          const component = packages[index];
+          if (!component) {
             return;
           }
-          const layout = layoutMap.get(packages[i].id);
+
+          const layout = layoutMap.get(component.id);
           if (!layout) {
             console.log(
-              `No layout found for component with id ${packages[i].id}`
+              `No layout found for component with id ${component.id}`
             );
             return;
           }
-          instanceIdToComponentId.set(obj.id, packages[i].id);
-          componentIdToInstanceId.set(packages[i].id, obj.id);
-          componentIdToPackage.set(packages[i].id, packages[i]);
-          const isOpen = !closedComponentIds.has(packages[i].id);
+
+          instanceIdToComponentId.set(obj.id, component.id);
+          componentIdToInstanceId.set(component.id, obj.id);
+          componentIdToPackage.set(component.id, component);
+
+          const isOpen = !closedComponentIds.has(component.id);
           const isVisible =
-            !hiddenComponentIds.has(packages[i].id) &&
-            !removedComponentIds.has(packages[i].id);
+            !hiddenComponentIds.has(component.id) &&
+            !removedComponentIds.has(component.id);
+
           const closedPosition = layout.position.clone();
           // Y-Position of layout is center of opened component
           closedPosition.y =
             layout.positionY +
             (closedComponentHeight - openedComponentHeight) / 2;
+
           if (isOpen) {
             obj.position.set(
-              layout!.position.x,
-              layout!.position.y,
-              layout!.position.z
+              layout.position.x,
+              layout.position.y,
+              layout.position.z
             );
           } else {
             obj.position.set(
@@ -197,13 +201,14 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
               closedPosition.z
             );
           }
+
           obj.scale.set(
-            layout!.width,
+            layout.width,
             isOpen ? openedComponentHeight : closedComponentHeight,
-            layout!.depth
+            layout.depth
           );
           obj.visible = isVisible;
-          obj.color = computeColor(packages[i].id);
+          obj.color = computeColor(component.id);
           obj.updateMatrix();
         }
       );
