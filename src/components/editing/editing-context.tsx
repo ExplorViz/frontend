@@ -48,8 +48,6 @@ export function EditingProvider({ children }: PropsWithChildren) {
   // always +1 of the currently rendered element in history
   const [editingCursor, setEditingCursor] = useState(0);
 
-  console.log(editingCursor, history);
-
   const addToHistory = useCallback(
     (landscapeData: LandscapeData, removedIds?: Set<string>) => {
       setHistory((prevHistory) => [
@@ -74,7 +72,6 @@ export function EditingProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    console.log('init');
     // Initialize history with the current state
     if (landscapeData && history.length === 0) {
       addToHistory(landscapeData);
