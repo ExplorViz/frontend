@@ -239,7 +239,7 @@ export default function BrowserRendering({
                     id="toolsOpener"
                     variant="outline-secondary"
                     title="Tools"
-                    onClick={() => setShowToolsSiderbar(true)}
+                    onClick={() => setShowToolsSidebar(true)}
                   >
                     <ToolsIcon size="small" className="align-middle" />
                   </Button>
