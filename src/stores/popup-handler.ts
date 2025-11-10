@@ -56,13 +56,7 @@ interface PopupHandlerState {
     model,
   }: {
     entityId: string;
-    entity?:
-      | K8sDataModel
-      | Node
-      | Application
-      | Package
-      | Class
-      | ClassCommunication;
+    entity?: Node | Application | Package | Class | ClassCommunication;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;

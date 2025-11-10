@@ -70,7 +70,7 @@ export const useRoomServiceStore = create<RoomServiceState>((set, get) => ({
     return {
       roomId,
       landscape: room.landscape,
-      openApps: room.openApps.map(({ ...app }) => app),
+      openApps: [], // TODO
       detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
       annotations: room.annotations!.map(({ ...annotation }) => annotation),
     };
