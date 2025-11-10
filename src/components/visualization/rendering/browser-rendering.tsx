@@ -428,14 +428,6 @@ export default function BrowserRendering({
                           landscapeToken={landscapeToken}
                         />
                       )}
-                      {openedToolComponent === 'Trace-Replayer' && (
-                        <TraceSelectionAndReplayer
-                          highlightTrace={() => {}}
-                          removeHighlighting={() => {}}
-                          dynamicData={landscapeData!.dynamicLandscapeData}
-                          structureData={landscapeData!.structureLandscapeData}
-                        />
-                      )}
                       {openedSettingComponent === 'Persist-Landscape' && (
                         <Snapshot
                           landscapeData={landscapeData!}
