@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import Plotly from 'plotly.js-dist';
+import { useEffect, useRef } from 'react';
 import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
 import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
-import Plotly from 'plotly.js-dist';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -40,7 +40,7 @@ export default function PlotlyTimeline({
 
   const plotlyTimestampsWithoutNullValues = useRef<any>(null);
 
-  const minRequestFilter = useRef<number>(10);
+  const minRequestFilter = useRef<number>(0);
   const maxRequestFilter = useRef<number>(Number.MAX_SAFE_INTEGER);
 
   // #region template-argument getters for default values

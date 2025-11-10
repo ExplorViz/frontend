@@ -1,4 +1,7 @@
-import { Span, Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import {
+  Span,
+  Trace,
+} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 
 /**
  * Returns the span's total duration in nanoseconds
@@ -115,12 +118,12 @@ export function sortTracesByRequestCount(
 /**
  * Sorts the given span array by their startTime and returns it
  *
- * @param spanArary The array that is to be sorted
+ * @param spanArray The array that is to be sorted
  * @param copy If set to true, a sorted copy of the array is returned,
  * else the original array is mutated and returned
  */
-export function sortSpanArrayByTime(spanArary: Span[], copy = false) {
-  let sortedArray = spanArary;
+export function sortSpanArrayByTime(spanArray: Span[], copy = false) {
+  let sortedArray = spanArray;
   if (copy) {
     sortedArray = [...sortedArray];
   }
@@ -154,8 +157,8 @@ export function getTraceIdToSpanTree(trace: Trace) {
     parentSpanIdToChildSpansMap.get(span.parentSpanId)?.push(span);
   });
 
-  parentSpanIdToChildSpansMap.forEach((spanArary) =>
-    sortSpanArrayByTime(spanArary)
+  parentSpanIdToChildSpansMap.forEach((spanArray) =>
+    sortSpanArrayByTime(spanArray)
   );
 
   const tree: SpanTree = {

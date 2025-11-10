@@ -62,6 +62,7 @@
     "@react-three/uikit-apfel": "^0.8.15",
     "@react-three/uikit-default": "^0.8.15",
     "@react-three/uikit-lucide": "^0.8.15",
+    "@react-three/xr": "^6.6.27",
     "@three.ez/instanced-mesh": "^0.3.5",
     "@webxr-input-profiles/motion-controllers": "1.0.0",
     "body-parser": "1.20.2",

@@ -67,12 +67,30 @@ export type CommunicationSettingId =
   | 'commThickness'
   | 'commArrowSize'
   | 'commArrowOffset'
-  | 'curvyCommHeight';
+  | 'curvyCommHeight'
+  // | 'bundlingBeta'
+  | 'enableEdgeBundling'
+  | 'bundleStrength'
+  | 'compatibilityThreshold'
+  | 'bundlingIterations'
+  | 'bundlingStepSize';
 
-export type CommunicationSettings = Record<
-  CommunicationSettingId,
-  RangeSetting
->;
+// export type CommunicationSettings = Record<
+//   CommunicationSettingId,
+//   RangeSetting
+// >;
+
+export type CommunicationSettings = {
+  commThickness: RangeSetting;
+  commArrowSize: RangeSetting;
+  commArrowOffset: RangeSetting;
+  curvyCommHeight: RangeSetting;
+  enableEdgeBundling: FlagSetting;  // ← FlagSetting statt RangeSetting
+  bundleStrength: RangeSetting;
+  compatibilityThreshold: RangeSetting;
+  bundlingIterations: RangeSetting;
+  bundlingStepSize: RangeSetting;
+};
 
 export type DebugSettings = {
   showExtendedSettings: FlagSetting;

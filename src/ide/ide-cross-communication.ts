@@ -1,19 +1,14 @@
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
+import IdeCrossCommunicationEvent from 'explorviz-frontend/src/ide/ide-cross-communication-event';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
   Application,
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import IdeCrossCommunicationEvent from 'explorviz-frontend/src/ide/ide-cross-communication-event';
 import { Object3DEventMap } from 'three';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 
 export enum IDEApiDest {
   VizDo = 'vizDo',

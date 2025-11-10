@@ -29,7 +29,7 @@ export default function TraceSpeed() {
   return (
     <div className="range-slider--container">
       <div style={{ width: '100%' }}>
-        <label htmlFor="trace-speed-slider">Playback speed</label>
+        <label htmlFor="trace-speed-slider">Playback Speed</label>
         <input
           id="trace-speed-slider"
           value={speed}

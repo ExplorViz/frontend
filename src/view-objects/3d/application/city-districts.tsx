@@ -12,6 +12,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import {
   Application,
@@ -70,7 +71,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       highlightedEntityIds,
       hoveredEntityId,
       removedComponentIds,
-      setHighlightedEntity,
       setHoveredEntity,
     } = useVisualizationStore(
       useShallow((state) => ({
@@ -79,7 +79,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         highlightedEntityIds: state.highlightedEntityIds,
         hoveredEntityId: state.hoveredEntityId,
         removedComponentIds: state.removedComponentIds,
-        setHighlightedEntity: state.actions.setHighlightedEntityId,
         setHoveredEntity: state.actions.setHoveredEntityId,
       }))
     );
@@ -310,7 +309,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       const componentId = instanceIdToComponentId.get(instanceId);
       if (!componentId) return;
       // Toggle highlighting
-      setHighlightedEntity(componentId, !highlightedEntityIds.has(componentId));
+      toggleHighlightById(componentId);
     };
 
     const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {

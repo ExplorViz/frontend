@@ -5,7 +5,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as THREE from 'three';
 
-export function getHighlightingColor(): THREE.Color {
+export function getLocalHighlightingColor(): THREE.Color {
   if (useCollaborationSessionStore.getState().isOnline()) {
     return useLocalUserStore.getState().color;
   } else {
@@ -13,6 +13,20 @@ export function getHighlightingColor(): THREE.Color {
       useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value
     );
   }
+}
+
+export function getHighlightingColorForEntity(entityId: string): THREE.Color {
+  if (useCollaborationSessionStore.getState().isOnline()) {
+    const remoteUsers = useCollaborationSessionStore
+      .getState()
+      .getAllRemoteUsers();
+    remoteUsers.forEach((user) => {
+      if (user.highlightedEntityIds.has(entityId)) {
+        return user.color;
+      }
+    });
+  }
+  return getLocalHighlightingColor();
 }
 
 export function setHighlightingById(

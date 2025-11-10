@@ -4,11 +4,11 @@ import PopupData from 'explorviz-frontend/src/components/visualization/rendering
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { MenuDetachedForwardMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
 import {
   ObjectClosedResponse,
@@ -25,9 +25,6 @@ import {
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
-import * as THREE from 'three';
 
 type Position2D = {
   x: number;
@@ -48,7 +45,6 @@ interface PopupHandlerState {
   pinPopup: (popup: PopupData) => void;
   removePopup: (entityId: string) => Promise<void>;
   handleMouseMove: (event: any) => void;
-  handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addPopup: ({
     entityId,
     position,
@@ -60,13 +56,7 @@ interface PopupHandlerState {
     model,
   }: {
     entityId: string;
-    entity?:
-      | K8sDataModel
-      | Node
-      | Application
-      | Package
-      | Class
-      | ClassCommunication;
+    entity?: Node | Application | Package | Class | ClassCommunication;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
@@ -93,7 +83,6 @@ interface PopupHandlerState {
   /**
    * Updates mesh reference of popup with given ID in popup data.
    */
-  updateMeshReference: (popup: PopupData) => void;
   cleanup: () => void;
 }
 
@@ -122,8 +111,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   },
 
   sharePopup: (popup: PopupData) => {
-    get().updateMeshReference(popup);
-
     // ToDO:
     // const { mesh } = popup;
     // const entityId = mesh.getModelId();
@@ -131,7 +118,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     //   .getState()
     //   .getPositionInLandscape(mesh);
     // worldPosition.y += 0.3;
-
     // useWebSocketStore
     //   .getState()
     //   .sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
@@ -154,18 +140,15 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     //           isPinned: true,
     //           menuId: response.objectId,
     //         };
-
     //         const newPopupData = [
     //           ...get().popupData.filter(
     //             (pd) => pd.entity.id !== popup.entity.id
     //           ),
     //           newPopup,
     //         ];
-
     //         set({
     //           popupData: newPopupData,
     //         });
-
     //         return true;
     //       },
     //       onOffline: () => {
@@ -216,22 +199,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       isShiftPressed: event.shiftKey,
     });
   },
-
-  handleHoverOnMesh: (mesh?: THREE.Object3D) => {
-    if (isEntityMesh(mesh)) {
-      set({
-        popupData: get().popupData.map((pd) => ({
-          ...pd,
-          hovered: pd.entity.id === mesh.getModelId(),
-        })),
-      });
-    } else {
-      set({
-        popupData: get().popupData.map((pd) => ({ ...pd, hovered: false })),
-      });
-    }
-  },
-
   addPopup: ({
     entityId,
     entity,
@@ -243,7 +210,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     hovered,
   }) => {
     // TODO: Handle HTML Mesh better
-    if (getStoredSettings().hidePopupDelay.value == 0 || get().deactivated) {
+    if (
+      useUserSettingsStore.getState().visualizationSettings.hidePopupDelay
+        .value == 0 ||
+      get().deactivated
+    ) {
       return;
     }
 
@@ -345,7 +316,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       }
 
       get()._removePopupAfterTimeout(popup);
-    }, getStoredSettings().hidePopupDelay.value * 1000);
+    }, useUserSettingsStore.getState().visualizationSettings.hidePopupDelay.value * 1000);
   },
 
   updatePopup: (updatedPopup: PopupData, updatePosition = true) => {
@@ -368,8 +339,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
           : pd
       ),
     }));
-
-    get().updateMeshReference(updatedPopup);
   },
 
   /**
@@ -410,18 +379,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     originalMessage: { menuId },
   }: ForwardedMessage<DetachedMenuClosedMessage>) => {
     set({ popupData: get().popupData.filter((pd) => pd.menuId !== menuId) });
-  },
-
-  /**
-   * Updates mesh reference of popup with given ID in popup data.
-   */
-  updateMeshReference: (popup: PopupData) => {
-    // ToDo: Check if it is entity mesh
-    set({
-      popupData: get().popupData.map((pd) =>
-        pd.entityId === popup.entityId ? { ...pd } : pd
-      ),
-    });
   },
 
   cleanup: () => {

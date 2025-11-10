@@ -341,8 +341,8 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
    * Informs the backend that an entity (application, class, component) was highlighted
    * or unhighlighted.
    *
-   * @param {string} entityType Tells whether a clazz/component or communication was updated
-   * @param {string} entityId ID of the highlighted/unhighlighted component/clazz
+   * @param {string} entityType Tells whether a class/component or communication was updated
+   * @param {string} entityId ID of the highlighted/unhighlighted component/class
    * @param {boolean} isHighlighted Tells whether the entity has been highlighted or not
    */
   sendHighlightingUpdate: (entityIds: string[], areHighlighted: boolean) => {

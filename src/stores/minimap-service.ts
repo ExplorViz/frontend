@@ -1,11 +1,9 @@
 import { create } from 'zustand';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
 import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
 import * as THREE from 'three';
-import Landscape3D from '../view-objects/3d/landscape/landscape-3d';
 
 export enum SceneLayers {
   Default = 0,
@@ -27,17 +25,17 @@ interface MinimapState {
   makeFullsizeMinimap: boolean;
   minimapSize: number;
   minimapEnabled: boolean;
-  cameraControls?: CameraControls;
-  landscape3D: Landscape3D;
+  // cameraControls?: CameraControls;
+  // landscape3D: Landscape3D;
   minimapUserMarkers: Map<string, THREE.Mesh>;
   userPosition: THREE.Vector3;
   distance?: number;
   raycaster?: Raycaster;
   scene?: THREE.Scene;
   initializeMinimap: (
-    scene: THREE.Scene,
-    landscape3D: Landscape3D,
-    cameraControls: CameraControls
+    scene: THREE.Scene
+    // landscape3D: Landscape3D,
+    // cameraControls: CameraControls
   ) => void;
   tick: () => void;
   addZoomDelta: (zoomDelta: number) => void;
@@ -51,7 +49,7 @@ interface MinimapState {
     name: string,
     remoteUser?: RemoteUser
   ) => void;
-  setupCamera: (cameraControls: CameraControls) => void;
+  // setupCamera: (cameraControls: CameraControls) => void;
   setupLocalUserMarker: () => void;
   getCurrentPosition: () => void;
   checkBoundingBox: (intersection: THREE.Vector3) => THREE.Vector3;
@@ -80,7 +78,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
   // TODO: This is part of settings
   minimapEnabled: true,
   cameraControls: undefined, // is set by browser-rendering / vr-rendering
-  landscape3D: new Landscape3D(), // is set by browser-rendering / vr-rendering
+  // landscape3D: new Landscape3D(), // is set by browser-rendering / vr-rendering
   minimapUserMarkers: new Map(),
   userPosition: new THREE.Vector3(0, 0, 0),
   distance: undefined,

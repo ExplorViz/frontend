@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
+import { createXRStore } from '@react-three/xr';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
@@ -14,12 +15,12 @@ import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualiza
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
-import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -45,7 +46,6 @@ import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-repla
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
 import { ChatbotProvider } from '../../chatbot/chatbot-context';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { EditingProvider } from '../../editing/editing-context';
 
 interface BrowserRenderingProps {
@@ -79,6 +79,8 @@ export default function BrowserRendering({
 }: BrowserRenderingProps) {
   // MARK: Stores
 
+  const xrStore = createXRStore();
+
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
       cleanup: state.cleanup,
@@ -99,8 +101,6 @@ export default function BrowserRendering({
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
       handleMouseMove: state.handleMouseMove,
-      handleHoverOnMesh: state.handleHoverOnMesh,
-      updateMeshReference: state.updateMeshReference,
       cleanup: state.cleanup,
     }))
   );
@@ -118,7 +118,6 @@ export default function BrowserRendering({
       clearAnnotations: state.clearAnnotations,
       handleMouseMove: state.handleMouseMove,
       handleHoverOnMesh: state.handleHoverOnMesh,
-      updateMeshReference: state.updateMeshReference,
       cleanup: state.cleanup,
     }))
   );
@@ -158,7 +157,7 @@ export default function BrowserRendering({
 
   // MARK: State
 
-  const [showToolsSidebar, setShowToolsSiderbar] = useState<boolean>(false);
+  const [showToolsSidebar, setShowToolsSidebar] = useState<boolean>(false);
   const [showSettingsSidebar, setShowSettingsSidebar] =
     useState<boolean>(false);
   const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
@@ -177,7 +176,6 @@ export default function BrowserRendering({
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
-  const renderingLoop = useRef<RenderingLoop | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
   // MARK: Effects and hooks
@@ -264,8 +262,8 @@ export default function BrowserRendering({
               {useUserSettingsStore.getState().visualizationSettings
                 .heatmapEnabled.value && <HeatmapInfo />}
 
-              <ContextMenu switchToAR={switchToAR}>
-                <CanvasWrapper landscapeData={landscapeData} />
+              <ContextMenu enterVR={() => xrStore.enterVR()}>
+                <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
               </ContextMenu>
               {/* {loadNewLandscape.isRunning && (
             <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
@@ -291,7 +289,7 @@ export default function BrowserRendering({
                 style={{ zIndex: 90 }}
               >
                 <ToolSelection
-                  closeToolSelection={() => setShowToolsSiderbar(false)}
+                  closeToolSelection={() => setShowToolsSidebar(false)}
                 >
                   <div className="explorviz-visualization-navbar">
                     <ul className="nav justify-content-center">
@@ -332,14 +330,12 @@ export default function BrowserRendering({
                         )}
                         {openedToolComponent === 'Trace-Replayer' && (
                           <TraceSelectionAndReplayer
-                            highlightTrace={highlightTrace}
-                            removeHighlighting={removeAllHighlighting}
+                            highlightTrace={() => {}}
+                            removeHighlighting={() => {}}
                             dynamicData={landscapeData!.dynamicLandscapeData}
-                            renderingLoop={renderingLoop.current!}
                             structureData={
                               landscapeData!.structureLandscapeData
                             }
-                            moveCameraTo={moveCameraTo}
                           />
                         )}
                       </div>

@@ -8,7 +8,6 @@ export default class CommunicationArrowMesh extends BaseMesh {
   dataModel: ClassCommunication | ComponentCommunication;
 
   _axis = new THREE.Vector3();
-  isHovered = false;
 
   HOVER_Y_TRANSLATION = 2;
   HOVER_SCALE_FACTOR = 2.5;
