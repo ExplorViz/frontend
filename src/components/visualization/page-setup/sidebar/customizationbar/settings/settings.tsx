@@ -99,6 +99,7 @@ export default function Settings({
       Minimap: [],
       Popups: [],
       'Virtual Reality': [],
+      Misc: [],
       Debugging: [],
     };
 
