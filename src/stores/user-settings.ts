@@ -184,11 +184,11 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             foundationColor: new THREE.Color(
               visualizationSettings.foundationColor.value
             ),
-            componentOddColor: new THREE.Color(
-              visualizationSettings.componentOddColor.value
+            componentRootLevelColor: new THREE.Color(
+              visualizationSettings.componentRootLevelColor.value
             ),
-            componentEvenColor: new THREE.Color(
-              visualizationSettings.componentEvenColor.value
+            componentDeepestLevelColor: new THREE.Color(
+              visualizationSettings.componentDeepestLevelColor.value
             ),
             classColor: new THREE.Color(visualizationSettings.classColor.value),
             highlightedEntityColor: new THREE.Color(
@@ -342,7 +342,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
     }),
     {
       name: 'ExplorVizSettings',
-      version: 11, // increment to overwrite existing storage (if needed)
+      version: 13, // increment to overwrite existing storage (if needed)
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(

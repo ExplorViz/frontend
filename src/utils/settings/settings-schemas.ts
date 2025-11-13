@@ -10,9 +10,8 @@ export type SettingGroup =
   | 'Layout'
   | 'Label'
   | 'Minimap'
+  | 'Misc'
   | 'Popups'
-  | 'Virtual Reality'
-  | 'Debugging'
   | 'Virtual Reality';
 
 export type CameraSettings = {
@@ -32,8 +31,8 @@ export type ColorSettingId =
   | 'classTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
-  | 'componentEvenColor'
-  | 'componentOddColor'
+  | 'componentRootLevelColor'
+  | 'componentDeepestLevelColor'
   | 'componentTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
@@ -87,7 +86,7 @@ export type CommunicationSettings = {
   commArrowSize: RangeSetting;
   commArrowOffset: RangeSetting;
   curvyCommHeight: RangeSetting;
-  enableEdgeBundling: FlagSetting;  // ← FlagSetting statt RangeSetting
+  enableEdgeBundling: FlagSetting; // ← FlagSetting statt RangeSetting
   bundleStrength: RangeSetting;
   compatibilityThreshold: RangeSetting;
   bundlingIterations: RangeSetting;
@@ -187,6 +186,11 @@ export type PopupSettings = {
 };
 export type PopupSettingId = keyof PopupSettings;
 
+export type MiscSettings = {
+  showEmbeddedBrowserIcon: FlagSetting;
+};
+export type MiscSettingId = keyof MiscSettings;
+
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
@@ -202,6 +206,7 @@ export type VisualizationSettingId =
   | LayoutSettingId
   | LabelSettingId
   | MinimapSettingId
+  | MiscSettingId
   | PopupSettingId
   | XrSettingId;
 
@@ -215,6 +220,7 @@ export type VisualizationSettings = CameraSettings &
   LayoutSettings &
   LabelSettings &
   MinimapSettings &
+  MiscSettings &
   PopupSettings &
   XrSettings &
   ColorSettings;
