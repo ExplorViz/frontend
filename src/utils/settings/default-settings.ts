@@ -403,7 +403,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   enableEdgeBundling: {
   level: SettingLevel.DEFAULT,
-  value: true,
+  value: false,
   group: 'Communication',
   displayName: 'Enable Edge Bundling',
   description: 'Bundle communication lines for better visualization of dense areas',
@@ -420,7 +420,7 @@ bundleStrength: {
 },
 compatibilityThreshold: {
   level: SettingLevel.EXTENDED,
-  value: 0.6,
+  value: 0,
   range: { min: 0.0, max: 1.0, step: 0.01 },
   group: 'Communication',
   displayName: 'Compatibility Threshold',
@@ -445,15 +445,23 @@ bundlingStepSize: {
   description: 'Step size for bundling algorithm (smaller = smoother)',
   isRangeSetting: true,
 },
-  // bundlingBeta: {
-  //   value: 0.5,
-  //   range: { min: 0.0, max: 1.0, step: 0.01 },
-  //   group: 'Communication',
-  //   displayName: 'Edge Bundling β',
-  //   description: 'Controls the bundling strength (higher = stronger bundling)',
-  //   level: SettingLevel.DEFAULT,
-  //   isRangeSetting: true,
-  // },
+  beta: {
+    level: SettingLevel.DEFAULT,
+    value: 0.8,
+    range: { min: 0.0, max: 1.0, step: 0.1 },
+    group: 'Communication',
+    displayName: '3D-HAP Attraction Power (β)',
+    description: 'Controls the attraction power of hierarchical attraction points (β factor from paper)',
+    isRangeSetting: true,
+  },
+  use3DHAPAlgorithm: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Use 3D-HAP Algorithm',
+    description: 'Enable 3D Hierarchical Edge Bundling algorithm from Caserta paper',
+    isFlagSetting: true,
+  },
 
   // Label settings
   appLabelMargin: {

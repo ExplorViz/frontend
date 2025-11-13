@@ -168,6 +168,8 @@ export default function CodeCity({
               [applicationData],
               layoutMap
             )}
+            applicationElement={applicationData.application}
+            layoutMap={layoutMap}
           />
         ))}
 

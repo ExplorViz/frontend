@@ -68,12 +68,14 @@ export type CommunicationSettingId =
   | 'commArrowSize'
   | 'commArrowOffset'
   | 'curvyCommHeight'
-  // | 'bundlingBeta'
   | 'enableEdgeBundling'
   | 'bundleStrength'
   | 'compatibilityThreshold'
   | 'bundlingIterations'
-  | 'bundlingStepSize';
+  | 'bundlingStepSize'
+  | 'beta'
+  | 'use3DHAPAlgorithm'; 
+
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -90,6 +92,8 @@ export type CommunicationSettings = {
   compatibilityThreshold: RangeSetting;
   bundlingIterations: RangeSetting;
   bundlingStepSize: RangeSetting;
+  beta: RangeSetting;  // NEU
+  use3DHAPAlgorithm: FlagSetting;  // NEU
 };
 
 export type DebugSettings = {
