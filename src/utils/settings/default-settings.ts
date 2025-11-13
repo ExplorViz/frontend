@@ -66,20 +66,22 @@ export const defaultVizSettings: VisualizationSettings = {
     description: '',
     isColorSetting: true,
   },
-  componentEvenColor: {
+  componentRootLevelColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.componentEvenColor,
+    value: defaultColors.componentRootLevelColor,
     group: 'Colors',
-    displayName: 'Component Even',
-    description: '',
+    displayName: 'Component on Root Level',
+    description:
+      'Color for components at the root/top level of the component tree',
     isColorSetting: true,
   },
-  componentOddColor: {
+  componentDeepestLevelColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.componentOddColor,
+    value: defaultColors.componentDeepestLevelColor,
     group: 'Colors',
-    displayName: 'Component Odd',
-    description: '',
+    displayName: 'Component on Deepest Level',
+    description:
+      'Color for components at the deepest level of the component tree',
     isColorSetting: true,
   },
   componentTextColor: {

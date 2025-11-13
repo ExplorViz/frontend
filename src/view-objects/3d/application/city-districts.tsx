@@ -4,6 +4,7 @@ import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -88,8 +89,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     const {
       castShadows,
       closedComponentHeight,
-      componentEvenColor,
-      componentOddColor,
+      componentRootLevelColor,
+      componentDeepestLevelColor,
       enableAnimations,
       enableHoverEffects,
       highlightedEntityColor,
@@ -103,9 +104,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         castShadows: state.visualizationSettings.castShadows.value,
         highlightedEntityColor:
           state.visualizationSettings.highlightedEntityColor.value,
-        componentEvenColor:
-          state.visualizationSettings.componentEvenColor.value,
-        componentOddColor: state.visualizationSettings.componentOddColor.value,
+        componentRootLevelColor:
+          state.visualizationSettings.componentRootLevelColor.value,
+        componentDeepestLevelColor:
+          state.visualizationSettings.componentDeepestLevelColor.value,
         closedComponentHeight:
           state.visualizationSettings.closedComponentHeight.value,
         openedComponentHeight:
@@ -290,11 +292,24 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       const layout = layoutMap.get(componentId);
       if (!layout) return new Color('white');
 
-      const baseColor = isHighlighted
-        ? getHighlightingColorForEntity(componentId)
-        : new Color(
-            layout.level % 2 === 0 ? componentEvenColor : componentOddColor
-          );
+      let baseColor: Color;
+      if (isHighlighted) {
+        baseColor = getHighlightingColorForEntity(componentId);
+      } else {
+        // Calculate gradient color based on level
+        const rootLevel = 1;
+        const deepestLevel = useLayoutStore.getState().maxComponentLevel ?? 20;
+        if (rootLevel === deepestLevel) {
+          // All components are at the same level, use top level color
+          baseColor = new Color(componentRootLevelColor);
+        } else {
+          // Interpolate between top and deepest level colors
+          const alpha = (layout.level - rootLevel) / (deepestLevel - rootLevel); // 0.0 to 1.0
+          const rootLevelColor = new Color(componentRootLevelColor);
+          const deepestLevelColor = new Color(componentDeepestLevelColor);
+          baseColor = rootLevelColor.clone().lerp(deepestLevelColor, alpha);
+        }
+      }
 
       if (enableHoverEffects && isHovered) {
         return calculateColorBrightness(baseColor, 1.1);
@@ -359,8 +374,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       hoveredEntityId,
       heatmapActive,
       selectedClassMetric,
-      componentEvenColor,
-      componentOddColor,
+      componentRootLevelColor,
+      componentDeepestLevelColor,
     ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {

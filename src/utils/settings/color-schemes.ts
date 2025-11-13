@@ -6,11 +6,11 @@ export const defaultColors = {
   classColor: '#a7cffb', // light pastel blue
   classTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
-  communicationColor: '#d6d48b', // dark grey
-  componentEvenColor: '#3c8db0', // desaturated cyan
-  componentOddColor: '#65c97e', // lime green
+  communicationColor: '#d6d48b', // light yellow
+  componentRootLevelColor: '#3c8db0', // desaturated cyan
+  componentDeepestLevelColor: '#65c97e', // lime green
   componentTextColor: '#ffffff', // white
-  foundationColor: '#c7c7c7', // grey
+  foundationColor: '#f3f3f3', // light grey
   foundationTextColor: '#000000', // black
   highlightedEntityColor: '#ff5151', // pastel red
   addedComponentColor: '#9ACD32', // light green
@@ -32,28 +32,28 @@ export const defaultColors = {
 export const classicColors = {
   classColor: '#3e14a0', // purple-blue
   communicationColor: '#f49100', // orange
-  componentEvenColor: '#00bb41', // light green
-  componentOddColor: '#169e2b', // dark green
+  componentRootLevelColor: '#169e2b', // dark green
+  componentDeepestLevelColor: '#4efa79', // light green
 };
 
 export const blueColors = {
-  classColor: '#f300cb', // magenta
-  communicationColor: '#f49100', // orange
-  componentEvenColor: '#0096be', // light blue
-  componentOddColor: '#015a6e', // deep teal
+  classColor: '#FDB882', // light orange
+
+  componentRootLevelColor: '#031e7f', // deep teal
+  componentDeepestLevelColor: '#82c7fd', // light blue
 };
 
 export const darkColors = {
   classColor: '#4073b6', // blue
   communicationColor: '#e3e3e3', // light grey
-  componentEvenColor: '#5B7B88', // blue-grey
-  componentOddColor: '#2f3d3b', // dark grey
+  componentRootLevelColor: '#2f3d3b', // dark grey
+  componentDeepestLevelColor: '#5B7B88', // blue-grey
 };
 
 export const desertCity = {
   foundationColor: '#ffffff', // white
   classColor: '#e0e0e0', // light grey
-  communicationColor: '#e3e3e3', // light grey
-  componentEvenColor: '#fff995', // blue-grey
-  componentOddColor: '#f2ed59', // dark grey
+
+  componentRootLevelColor: '#f2ed59', // dark grey
+  componentDeepestLevelColor: '#afbac2', // light blue-grey
 };
