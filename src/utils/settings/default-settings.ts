@@ -449,6 +449,24 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Step size for bundling algorithm (smaller = smoother)',
     isRangeSetting: true,
   },
+  beta: {
+    level: SettingLevel.DEFAULT,
+    value: 0.8,
+    range: { min: 0.0, max: 1.0, step: 0.1 },
+    group: 'Communication',
+    displayName: '3D-HAP Attraction Power (β)',
+    description: 'Controls the attraction power of hierarchical attraction points (β factor from paper)',
+    isRangeSetting: true,
+  },
+  use3DHAPAlgorithm: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Use 3D-HAP Algorithm',
+    description: 'Enable 3D Hierarchical Edge Bundling algorithm from Caserta paper',
+    isFlagSetting: true,
+  },
+  
   // bundlingBeta: {
   //   value: 0.5,
   //   range: { min: 0.0, max: 1.0, step: 0.01 },
