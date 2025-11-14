@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon } from '@primer/octicons-react';
-import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
 import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
@@ -72,7 +70,6 @@ import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/tim
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { ImmersiveView } from '../rendering/application/immersive-view';
 
 const queryParams = [
   'roomId',
@@ -141,6 +138,19 @@ export default function Visualization() {
     };
 
     loadUserAPITokens();
+  }, []);
+
+  // Load preset when visualization opens
+  useEffect(() => {
+    const { selectedPreset, loadPreset, listPresets } =
+      useUserSettingsStore.getState();
+    if (selectedPreset) {
+      // Verify preset still exists before loading
+      const presets = listPresets();
+      if (presets.includes(selectedPreset)) {
+        loadPreset(selectedPreset);
+      }
+    }
   }, []);
 
   // beforeModel equivalent

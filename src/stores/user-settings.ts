@@ -26,6 +26,7 @@ interface UserSettingsState {
   visualizationSettings: VisualizationSettings; // tracked
   colors: ExplorVizColors | undefined; // tracked
   presets: Record<string, VisualizationSettings>; // stored presets for settings
+  selectedPreset: string | null; // name of the currently selected preset
 
   _constructApplicationColors: () => void;
   applyDefaultSettingsForGroup: (groupId: string) => void;
@@ -51,6 +52,7 @@ interface UserSettingsState {
     overwrite?: boolean
   ) => boolean;
   listPresets: () => string[];
+  setSelectedPreset: (presetName: string | null) => void;
 }
 
 export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
@@ -65,6 +67,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       visualizationSettings: defaultVizSettings,
       colors: undefined,
       presets: {},
+      selectedPreset: null,
 
       // Used as constructor for applicationColors
       _constructApplicationColors: () => {
@@ -314,6 +317,10 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         const newPresets = { ...get().presets };
         delete newPresets[normalized];
         set({ presets: newPresets });
+        // Clear selected preset if it was the one removed
+        if (get().selectedPreset === normalized) {
+          set({ selectedPreset: null });
+        }
         return true;
       },
 
@@ -333,20 +340,38 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         newPresets[b] = newPresets[a];
         delete newPresets[a];
         set({ presets: newPresets });
+        // Update selected preset if it was the one renamed
+        if (get().selectedPreset === a) {
+          set({ selectedPreset: b });
+        }
         return true;
       },
 
       listPresets: () => {
         return Object.keys(get().presets);
       },
+
+      setSelectedPreset: (presetName: string | null) => {
+        if (
+          !presetName ||
+          (typeof presetName === 'string' && presetName.trim().length === 0)
+        ) {
+          set({ selectedPreset: null });
+        } else {
+          set({ selectedPreset: presetName.trim() });
+        }
+      },
     }),
     {
       name: 'ExplorVizSettings',
-      version: 14, // increment to overwrite existing storage (if needed)
+      version: 15, // increment to overwrite existing storage (if needed)
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
-            ([key]) => key === 'visualizationSettings' || key === 'presets'
+            ([key]) =>
+              key === 'visualizationSettings' ||
+              key === 'presets' ||
+              key === 'selectedPreset'
           )
         ),
     }
