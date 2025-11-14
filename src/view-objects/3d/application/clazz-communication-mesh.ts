@@ -5,10 +5,14 @@ import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/appli
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout.ts';
-import { BundledCommunicationLayout } from './bundled-communication-layout';
-import { EdgeBundlingProcessor, EdgeBundlingConfig, HierarchicalAttractionSystem, HAPNode } from './edge-bundling-utils';
 import * as THREE from 'three';
-
+import { BundledCommunicationLayout } from './bundled-communication-layout';
+import {
+  EdgeBundlingConfig,
+  EdgeBundlingProcessor,
+  HAPNode,
+  HierarchicalAttractionSystem,
+} from './edge-bundling-utils';
 
 export default class ClazzCommunicationMesh extends BaseMesh {
   dataModel: ClazzCommuMeshDataModel;
@@ -52,7 +56,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   set arrowWidth(width: number) {
-    if (this.layout) {
+    if (this.layout && width > 0) {
       this._arrowWidth = width + this.layout.lineThickness / 2;
       this.addArrows();
     } else {
@@ -280,7 +284,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       hasHAPNodes: !!(this._originHAP && this._destinationHAP),
       beta: this._beta,
       isBidirectional: this.dataModel.communication.isBidirectional,
-      layoutType: this.layout.constructor.name
+      layoutType: this.layout.constructor.name,
     });
 
     // Handle recursive communication
@@ -294,7 +298,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.renderOriginalAlgorithm(curveSegments);
     } else {
       // Edge Bundling is active
-      if (this._use3DHAPAlgorithm && this._hapSystem && this._originHAP && this._destinationHAP) {
+      if (
+        this._use3DHAPAlgorithm &&
+        this._hapSystem &&
+        this._originHAP &&
+        this._destinationHAP
+      ) {
         console.log('Using 3D-HAP Algorithm with gradient coloring');
         // Use 3D-HAP algorithm with color gradients
         this.renderWith3DHAPGradient(curveSegments);
@@ -330,52 +339,66 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   // Get layout as BundledCommunicationLayout if possible
   private getBundledLayout(): BundledCommunicationLayout | null {
-    return this.isBundledLayout() ? this.layout as unknown as BundledCommunicationLayout : null;
+    return this.isBundledLayout()
+      ? (this.layout as unknown as BundledCommunicationLayout)
+      : null;
   }
 
   /**
    * Create gradient-colored geometry for 3D-HAP edges
    * Implements color scheme: Green (origin) -> Red (destination)
    */
-private createGradientColoredGeometry(curve: THREE.Curve<THREE.Vector3>, segments: number): THREE.BufferGeometry {
-  const tubeGeometry = new THREE.TubeGeometry(curve, segments, this.layout.lineThickness);
-  const geometry = tubeGeometry;
-  const positionAttribute = geometry.getAttribute('position');
-  const vertexCount = positionAttribute.count;
-  const colors = new Float32Array(vertexCount * 3);
+  private createGradientColoredGeometry(
+    curve: THREE.Curve<THREE.Vector3>,
+    segments: number
+  ): THREE.BufferGeometry {
+    const tubeGeometry = new THREE.TubeGeometry(
+      curve,
+      segments,
+      this.layout.lineThickness
+    );
+    const geometry = tubeGeometry;
+    const positionAttribute = geometry.getAttribute('position');
+    const vertexCount = positionAttribute.count;
+    const colors = new Float32Array(vertexCount * 3);
 
-  for (let i = 0; i < vertexCount; i++) {
-    const t = i / (vertexCount - 1);
-    
-    if (this.dataModel.communication.isBidirectional) {
-      // Deep purple gradient for bidirectional
-      colors[i * 3] = 0.4 + t * 0.3;     // R: 0.4 -> 0.7
-      colors[i * 3 + 1] = 0.2;           // G low and constant
-      colors[i * 3 + 2] = 0.6 - t * 0.2; // B: 0.6 -> 0.4
-    } else {
-      // Deep Green (0,0.8,0) -> Deep Red (0.9,0,0)
-      if (t < 0.5) {
-        // Deep green to yellow-green
-        colors[i * 3] = t * 1.0;           // R: 0 -> 0.5
-        colors[i * 3 + 1] = 0.8;           // G stays very high
-        colors[i * 3 + 2] = 0.1;           // B very low
+    for (let i = 0; i < vertexCount; i++) {
+      const t = i / (vertexCount - 1);
+
+      if (this.dataModel.communication.isBidirectional) {
+        // Deep purple gradient for bidirectional
+        colors[i * 3] = 0.4 + t * 0.3; // R: 0.4 -> 0.7
+        colors[i * 3 + 1] = 0.2; // G low and constant
+        colors[i * 3 + 2] = 0.6 - t * 0.2; // B: 0.6 -> 0.4
       } else {
-        // Yellow-green to deep red
-        colors[i * 3] = 0.5 + (t - 0.5) * 0.8; // R: 0.5 -> 0.9
-        colors[i * 3 + 1] = 0.8 - (t - 0.5) * 1.6; // G: 0.8 -> 0.0
-        colors[i * 3 + 2] = 0.1;           // B very low
+        // Deep Green (0,0.8,0) -> Deep Red (0.9,0,0)
+        if (t < 0.5) {
+          // Deep green to yellow-green
+          colors[i * 3] = t * 1.0; // R: 0 -> 0.5
+          colors[i * 3 + 1] = 0.8; // G stays very high
+          colors[i * 3 + 2] = 0.1; // B very low
+        } else {
+          // Yellow-green to deep red
+          colors[i * 3] = 0.5 + (t - 0.5) * 0.8; // R: 0.5 -> 0.9
+          colors[i * 3 + 1] = 0.8 - (t - 0.5) * 1.6; // G: 0.8 -> 0.0
+          colors[i * 3 + 2] = 0.1; // B very low
+        }
       }
     }
+
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    return geometry;
   }
-  
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  return geometry;
-}
 
   // Render with 3D Hierarchical Edge Bundling algorithm with gradient coloring
   private renderWith3DHAPGradient(curveSegments: number): void {
     const bundledLayout = this.getBundledLayout();
-    if (!bundledLayout || !this._hapSystem || !this._originHAP || !this._destinationHAP) {
+    if (
+      !bundledLayout ||
+      !this._hapSystem ||
+      !this._originHAP ||
+      !this._destinationHAP
+    ) {
       // Fallback to existing algorithm if 3D-HAP not available
       this.renderWithEdgeBundling(curveSegments);
       return;
@@ -386,21 +409,21 @@ private createGradientColoredGeometry(curve: THREE.Curve<THREE.Vector3>, segment
     bundledLayout.setBeta(this._beta);
 
     const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
-    
+
     // Use gradient-colored geometry
     this.geometry = this.createGradientColoredGeometry(curve, curveSegments);
-    
+
     // Use vertex color material
     this.material = new THREE.MeshBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.8,
     });
 
     console.log('3D-HAP gradient rendering completed:', {
       curvePoints: curve.getPoints().length,
       segments: curveSegments,
-      isBidirectional: this.dataModel.communication.isBidirectional
+      isBidirectional: this.dataModel.communication.isBidirectional,
     });
   }
 
@@ -420,7 +443,7 @@ private createGradientColoredGeometry(curve: THREE.Curve<THREE.Vector3>, segment
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.8,
     });
   }
 
@@ -440,21 +463,20 @@ private createGradientColoredGeometry(curve: THREE.Curve<THREE.Vector3>, segment
     const bundledLayout = this.getBundledLayout();
     if (!bundledLayout) return;
 
-    const compatibleEdges = allCommunications.filter(comm => 
-      comm !== this && 
-      comm.bundleGroupId === this.bundleGroupId &&
-      comm.layout &&
-      comm.isBundledLayout() &&
-      !comm.use3DHAPAlgorithm // Only bundle with other non-HAP edges
+    const compatibleEdges = allCommunications.filter(
+      (comm) =>
+        comm !== this &&
+        comm.bundleGroupId === this.bundleGroupId &&
+        comm.layout &&
+        comm.isBundledLayout() &&
+        !comm.use3DHAPAlgorithm // Only bundle with other non-HAP edges
     );
 
     if (compatibleEdges.length > 0) {
       // Extract control points for bundling
-      const edges: THREE.Vector3[][] = [
-        bundledLayout.getControlPoints()
-      ];
+      const edges: THREE.Vector3[][] = [bundledLayout.getControlPoints()];
 
-      compatibleEdges.forEach(comm => {
+      compatibleEdges.forEach((comm) => {
         const commBundledLayout = comm.getBundledLayout();
         if (commBundledLayout) {
           edges.push(commBundledLayout.getControlPoints());
@@ -490,7 +512,7 @@ private createGradientColoredGeometry(curve: THREE.Curve<THREE.Vector3>, segment
       hasHAPSystem: !!this._hapSystem,
       hasHAPNodes: !!(this._originHAP && this._destinationHAP),
       beta: this._beta,
-      use3DHAP: this._use3DHAPAlgorithm
+      use3DHAP: this._use3DHAPAlgorithm,
     };
   }
 
@@ -514,6 +536,8 @@ private createGradientColoredGeometry(curve: THREE.Curve<THREE.Vector3>, segment
       const arrow = this.children[i];
       this.remove(arrow);
     }
+
+    if (this.arrowWidth <= 0) return;
 
     const { layout } = this;
     const { startPoint } = layout;
