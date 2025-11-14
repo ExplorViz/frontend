@@ -1,4 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -17,13 +18,6 @@ let globalTimeouts: ReturnType<typeof setTimeout>[] = [];
 let restartableContainer: THREE.Group | null = null;
 let restartableMesh: PingMesh | null = null;
 
-// Track active non-restartable pings
-const nonRestartableContainers = new Map<string, THREE.Group>();
-const nonRestartableMeshes = new Map<string, PingMesh>();
-
-const posKey = (v: THREE.Vector3) =>
-  `${v.x.toFixed(5)},${v.y.toFixed(5)},${v.z.toFixed(5)}`;
-
 const disposeMesh = (mesh: PingMesh | null) => {
   if (!mesh) return;
   try {
@@ -38,38 +32,34 @@ const disposeMesh = (mesh: PingMesh | null) => {
 
 export function pingByModelId(
   modelId: string,
+  sendMessage: boolean = true,
   options: {
     color?: THREE.ColorRepresentation;
     durationMs?: number;
-    restartable?: boolean;
     replay?: boolean;
   } = {
     color: useHighlightingStore.getState().highlightingColor(),
     durationMs: 3000,
-    restartable: false,
     replay: false,
   }
 ) {
-  const { color, durationMs, restartable, replay } = options;
+  const { color, durationMs, replay } = options;
   const modelWorldPosition = getWorldPositionOfModel(modelId);
   if (!modelWorldPosition) {
     console.warn('Model position not found.');
     return;
   }
-  if (restartable) {
-    triggerRestartablePing(modelWorldPosition, color, durationMs, {
-      replay,
-    });
-  } else {
-    triggerNonRestartablePing(modelWorldPosition, color, durationMs);
-  }
+  pingPosition(modelWorldPosition, color, sendMessage, durationMs, {
+    replay,
+  });
 }
 
-export function triggerRestartablePing(
+export function pingPosition(
   position: THREE.Vector3,
   color: THREE.ColorRepresentation = useHighlightingStore
     .getState()
     .highlightingColor(),
+  sendMessage = true,
   durationMs: number = 3000,
   options: {
     pingedObject?: THREE.Object3D;
@@ -88,6 +78,12 @@ export function triggerRestartablePing(
   if (!(pingedObject instanceof THREE.Object3D)) {
     console.warn('Pinged object is not a valid Object3D');
     return;
+  }
+
+  if (sendMessage) {
+    useMessageSenderStore.getState().sendPingUpdate({
+      positions: [position],
+    });
   }
 
   // Clean up existing restartable ping
@@ -129,67 +125,6 @@ export function triggerRestartablePing(
   globalTimeouts.push(timeout);
 }
 
-export function triggerNonRestartablePing(
-  position: THREE.Vector3,
-  color: THREE.ColorRepresentation = useHighlightingStore
-    .getState()
-    .highlightingColor(),
-  durationMs: number = 3000,
-  options: {
-    pingedObject?: THREE.Object3D;
-  } = {}
-) {
-  if (!globalMixer || !globalScene) {
-    console.warn(
-      'Ping system not initialized. Make sure AnimatedPing component is mounted.'
-    );
-    return;
-  }
-
-  const { pingedObject = globalScene } = options;
-
-  if (!(pingedObject instanceof THREE.Object3D)) {
-    console.warn('Pinged object is not a valid Object3D');
-    return;
-  }
-
-  // Skip if one at same position is already active
-  const key = posKey(position);
-  if (nonRestartableMeshes.has(key)) {
-    return;
-  }
-
-  const container = new THREE.Group();
-  container.position.copy(position);
-
-  const pingColorObj = new THREE.Color(color);
-  const mesh = new PingMesh({
-    animationMixer: globalMixer,
-    color: pingColorObj,
-  });
-  mesh.layers.enable(SceneLayers.Ping);
-  container.add(mesh);
-
-  container.scale.setScalar(
-    useUserSettingsStore.getState().visualizationSettings.landscapeScalar.value
-  );
-  globalScene.add(container);
-
-  nonRestartableMeshes.set(key, mesh);
-  nonRestartableContainers.set(key, container);
-  mesh.startPinging();
-
-  const timeout = setTimeout(() => {
-    disposeMesh(mesh);
-    nonRestartableMeshes.delete(key);
-    if (nonRestartableContainers.has(key)) {
-      globalScene?.remove(nonRestartableContainers.get(key)!);
-    }
-    nonRestartableContainers.delete(key);
-  }, durationMs);
-  globalTimeouts.push(timeout);
-}
-
 // Cleanup function
 export function cleanupPings() {
   globalTimeouts.forEach(clearTimeout);
@@ -197,9 +132,6 @@ export function cleanupPings() {
   disposeMesh(restartableMesh);
   restartableMesh = null;
   restartableContainer = null;
-  for (const [, mesh] of nonRestartableMeshes) disposeMesh(mesh);
-  nonRestartableMeshes.clear();
-  nonRestartableContainers.clear();
 }
 
 export function AnimatedPing() {

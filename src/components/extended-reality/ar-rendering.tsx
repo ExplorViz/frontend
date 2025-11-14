@@ -154,7 +154,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const messageSenderActions = useMessageSenderStore(
     useShallow((state) => ({
-      sendMousePingUpdate: state.sendMousePingUpdate,
+      sendMousePingUpdate: state.sendPingUpdate,
     }))
   );
 

@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { GrabbableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/grabbable-object';
-import * as THREE from 'three';
 import {
   ObjectGrabbedResponse,
   isObjectGrabbedResponse,
@@ -9,9 +9,8 @@ import {
   OBJECT_GRABBED_EVENT,
   ObjectGrabbedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/object-grabbed';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-
+import * as THREE from 'three';
+import { create } from 'zustand';
 
 interface GrabbedObjectState {
   grabCounters: Map<GrabbableObject, number>;

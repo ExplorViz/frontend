@@ -17,7 +17,6 @@ import { CHANGE_LANDSCAPE_EVENT } from 'explorviz-frontend/src/utils/collaborati
 import { COMPONENT_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/component-update';
 import { HEATMAP_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/heatmap-update';
 import { HIGHLIGHTING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/highlighting-update';
-import { MOUSE_PING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/mouse-ping-update';
 import { PING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/ping-update';
 import { SHARE_SETTINGS_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/share-settings';
 import { SPECTATING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/spectating-update';
@@ -64,7 +63,6 @@ const RECEIVABLE_EVENTS = [
   ANNOTATION_OPENED_EVENT,
   ANNOTATION_EDIT_EVENT,
   ANNOTATION_UPDATED_EVENT,
-  MOUSE_PING_UPDATE_EVENT,
   OBJECT_MOVED_EVENT,
   PING_UPDATE_EVENT,
   SELF_CONNECTED_EVENT,

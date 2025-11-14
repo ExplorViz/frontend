@@ -56,7 +56,7 @@ export default class PingMenu extends AnimatedMenu {
         this.mesh?.startPinging();
         useMessageSenderStore
           .getState()
-          .sendPingUpdate(controller.gamepadIndex, true);
+          .sendControllerPingUpdate(controller.gamepadIndex, true);
       },
       onButtonPress: (controller: VRController) => {
         this.updatePing(controller);
@@ -65,7 +65,7 @@ export default class PingMenu extends AnimatedMenu {
         this.mesh?.stopPinging();
         useMessageSenderStore
           .getState()
-          .sendPingUpdate(controller.gamepadIndex, false);
+          .sendControllerPingUpdate(controller.gamepadIndex, false);
       },
     });
   }
