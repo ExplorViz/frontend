@@ -277,15 +277,15 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   render(curveSegments = 20) {
     if (!this.layout) return;
 
-    console.log('Rendering communication:', {
-      enableEdgeBundling: this._enableEdgeBundling,
-      use3DHAPAlgorithm: this._use3DHAPAlgorithm,
-      hasHAPSystem: !!this._hapSystem,
-      hasHAPNodes: !!(this._originHAP && this._destinationHAP),
-      beta: this._beta,
-      isBidirectional: this.dataModel.communication.isBidirectional,
-      layoutType: this.layout.constructor.name,
-    });
+    // console.log('Rendering communication:', {
+    //   enableEdgeBundling: this._enableEdgeBundling,
+    //   use3DHAPAlgorithm: this._use3DHAPAlgorithm,
+    //   hasHAPSystem: !!this._hapSystem,
+    //   hasHAPNodes: !!(this._originHAP && this._destinationHAP),
+    //   beta: this._beta,
+    //   isBidirectional: this.dataModel.communication.isBidirectional,
+    //   layoutType: this.layout.constructor.name,
+    // });
 
     // Handle recursive communication
     if (this.dataModel.communication.isRecursive) {
@@ -304,11 +304,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         this._originHAP &&
         this._destinationHAP
       ) {
-        console.log('Using 3D-HAP Algorithm with gradient coloring');
+        // console.log('Using 3D-HAP Algorithm with gradient coloring');
         // Use 3D-HAP algorithm with color gradients
         this.renderWith3DHAPGradient(curveSegments);
       } else {
-        console.log('Using existing Edge Bundling Algorithm');
+        // console.log('Using existing Edge Bundling Algorithm');
         // Fallback to existing edge bundling algorithm
         this.renderWithEdgeBundling(curveSegments);
       }
@@ -420,11 +420,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       opacity: 0.8,
     });
 
-    console.log('3D-HAP gradient rendering completed:', {
-      curvePoints: curve.getPoints().length,
-      segments: curveSegments,
-      isBidirectional: this.dataModel.communication.isBidirectional,
-    });
+    // console.log('3D-HAP gradient rendering completed:', {
+    //   curvePoints: curve.getPoints().length,
+    //   segments: curveSegments,
+    //   isBidirectional: this.dataModel.communication.isBidirectional,
+    // });
   }
 
   // Render with existing edge bundling algorithm (fallback)
