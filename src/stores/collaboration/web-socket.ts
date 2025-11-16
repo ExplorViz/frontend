@@ -153,6 +153,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
 
     const newSocket = io(get()._currentSocketUrl!, {
       transports: ['websocket'],
+      reconnection: true, // Allow reconnection for unexpected disconnects
       query: {
         ticketId: ticketId,
         userName: useAuthStore.getState().user?.name,
@@ -180,13 +181,11 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   },
 
   closeSocket: () => {
-    if (get().isWebSocketOpen()) {
-      const clonedSocket = Object.assign(
-        Object.create(Object.getPrototypeOf(get()._currentSocket)),
-        get()._currentSocket
-      );
-      clonedSocket.disconnect();
-      set({ _currentSocket: clonedSocket });
+    if (get()._currentSocket) {
+      get()._currentSocket?.off('disconnect', get()._closeHandler);
+      get()._currentSocket?.disconnect();
+      set({ _currentSocket: null });
+      set({ _currentSocketUrl: null });
     }
   },
 

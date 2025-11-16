@@ -207,16 +207,27 @@ export default function Visualization() {
   // equivalent to old auto-join-lobby
   useEffect(() => {
     const autoJoinLobby = async (retries = 5) => {
-      if (connectionStatus === 'online') {
+      const currentConnectionStatus =
+        useCollaborationSessionStore.getState().connectionStatus;
+      // Don't try to reconnect if already online or if intentionally disconnected
+      if (
+        currentConnectionStatus === 'online' ||
+        currentConnectionStatus === 'connecting'
+      ) {
         return;
       }
-      const roomHosted = await hostRoom(searchParams.get('roomId')!);
+      // Only try to auto-join if there's a roomId in the URL
+      const roomId = searchParams.get('roomId');
+      if (!roomId) {
+        return;
+      }
+      const roomHosted = await hostRoom(roomId);
 
       if (!roomHosted && retries <= 0) {
         useToastHandlerStore
           .getState()
           .showErrorToastMessage('Failed to join room automatically.');
-      } else {
+      } else if (!roomHosted && retries > 0) {
         setTimeout(() => {
           autoJoinLobby(retries - 1);
         }, 5000);
@@ -226,7 +237,7 @@ export default function Visualization() {
     if (searchParams.get('roomId')) {
       autoJoinLobby();
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchVrStatus = async () => {
@@ -238,9 +249,6 @@ export default function Visualization() {
   // #endregion
 
   // #region Store state declaration
-  const connectionStatus = useCollaborationSessionStore(
-    (state) => state.connectionStatus
-  );
   const hostRoom = useCollaborationSessionStore((state) => state.hostRoom);
   const renderingServiceToggleVisualizationUpdating = useRenderingServiceStore(
     (state) => state.toggleVisualizationUpdating
