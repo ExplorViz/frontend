@@ -1,4 +1,5 @@
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -39,10 +40,14 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
     serializeRoom: (snapshot: boolean = false): SerializedRoom => {
       const serializedRoom = {
         landscape: get()._serializeLandscape(),
-        highlightedEntities: [], // TODO
         closedComponentIds: Array.from(
           useVisualizationStore.getState().closedComponentIds
         ),
+        highlightedEntities: Array.from(
+          useVisualizationStore.getState().highlightedEntityIds
+        ).map((entityId) => {
+          return { id: entityId, usedId: useLocalUserStore.getState().userId };
+        }), // TODO: Add highlighted entities of remote users
         popups: get()._serializeOpenPopups(snapshot),
         annotations: get()._serializeOpenAnnotations(snapshot),
         detachedMenus: get()._serializeDetachedMenus(),
@@ -55,7 +60,9 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
     _serializeLandscape: (): SerializedLandscape => {
       return {
         landscapeToken: useLandscapeTokenStore.getState().token?.value,
-        timestamp: useTimestampStore.getState().timestamp, // TODO: Timestamp was refactored in the past, whats right here?
+        timestamp: useTimestampStore
+          .getState()
+          .getLatestTimestampByCommitOrFallback('cross-commit'), // TODO: Handle commits properly
       };
     },
 
