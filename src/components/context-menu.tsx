@@ -52,6 +52,7 @@ export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
         color: 0x00ff00, // Green color
         durationMs: 3000,
         replay: false,
+        removeOldPings: false,
       });
     });
   };
