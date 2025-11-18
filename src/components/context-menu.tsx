@@ -5,6 +5,8 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Position2D } from '../hooks/interaction-modifier';
 import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 export type ContextMenuItem = {
   title: string;
   action: () => void;
@@ -27,6 +29,31 @@ export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
 
   const resetView = async () => {
     useCameraControlsStore.getState().resetCamera();
+  };
+
+  const pingAnnotations = () => {
+    const annotationHandlerStore = useAnnotationHandlerStore.getState();
+    const allAnnotations = [
+      ...annotationHandlerStore.annotationData,
+      ...annotationHandlerStore.minimizedAnnotations,
+    ];
+
+    // Get entity IDs for all annotations
+    const annotatedEntityIds = new Set<string>();
+    allAnnotations.forEach((annotation) => {
+      if (annotation.entityId) {
+        annotatedEntityIds.add(annotation.entityId);
+      }
+    });
+
+    // Ping each annotated model with green color
+    annotatedEntityIds.forEach((entityId) => {
+      pingByModelId(entityId, true, {
+        color: 0x00ff00, // Green color
+        durationMs: 3000,
+        replay: false,
+      });
+    });
   };
 
   const menuItems: ContextMenuItem[] = [
@@ -57,6 +84,10 @@ export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
       action: () => {
         removeAllHighlighting();
       },
+    },
+    {
+      title: 'Ping Annotations',
+      action: pingAnnotations,
     },
     { title: 'Enter VR', action: enterVR },
   ];
