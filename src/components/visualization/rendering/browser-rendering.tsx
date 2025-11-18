@@ -54,7 +54,6 @@ interface BrowserRenderingProps {
   readonly landscapeToken: LandscapeToken;
   readonly userApiTokens: ApiToken[];
   readonly visualizationPaused: boolean;
-  readonly isDisplayed: boolean;
   readonly snapshot: boolean | undefined | null;
   readonly snapshotReload: SnapshotToken | undefined | null;
   toggleVisualizationUpdating(): void;
@@ -71,7 +70,6 @@ export default function BrowserRendering({
   landscapeToken,
   userApiTokens,
   visualizationPaused,
-  isDisplayed,
   toggleVisualizationUpdating,
   switchToAR,
   restructureLandscape,
@@ -230,7 +228,7 @@ export default function BrowserRendering({
   return (
     <EditingProvider>
       <ChatbotProvider landscapeData={landscapeData}>
-        <div className={`row h-100 ${isDisplayed ? 'show' : 'hide'}`}>
+        <div className="row h-100">
           <div className="d-flex flex-column h-100 col-12">
             <div id="rendering" ref={outerDiv}>
               {!showToolsSidebar && (
@@ -316,28 +314,30 @@ export default function BrowserRendering({
                   {openedToolComponent && (
                     <div className="card sidebar-card mt-3">
                       <div className="card-body d-flex flex-column">
-                        {openedToolComponent === 'entity-filtering' && (
-                          <>
-                            <h5 className="text-center">Entity Filtering</h5>
-                            <EntityFiltering landscapeData={landscapeData!} />
-                          </>
-                        )}
+                        {openedToolComponent === 'entity-filtering' &&
+                          landscapeData && (
+                            <>
+                              <h5 className="text-center">Entity Filtering</h5>
+                              <EntityFiltering landscapeData={landscapeData} />
+                            </>
+                          )}
                         {openedToolComponent === 'application-search' && (
                           <>
                             <h5 className="text-center">Application Search</h5>
                             <ApplicationSearch />
                           </>
                         )}
-                        {openedToolComponent === 'Trace-Replayer' && (
-                          <TraceSelectionAndReplayer
-                            highlightTrace={() => {}}
-                            removeHighlighting={() => {}}
-                            dynamicData={landscapeData!.dynamicLandscapeData}
-                            structureData={
-                              landscapeData!.structureLandscapeData
-                            }
-                          />
-                        )}
+                        {openedToolComponent === 'Trace-Replayer' &&
+                          landscapeData && (
+                            <TraceSelectionAndReplayer
+                              highlightTrace={() => {}}
+                              removeHighlighting={() => {}}
+                              dynamicData={landscapeData.dynamicLandscapeData}
+                              structureData={
+                                landscapeData.structureLandscapeData
+                              }
+                            />
+                          )}
                       </div>
                     </div>
                   )}

@@ -27,7 +27,10 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
-import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
+import {
+  TIMESTAMP_POLLING_START_EVENT,
+  useTimestampPollingStore,
+} from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   ApiToken,
@@ -126,6 +129,7 @@ export default function Visualization() {
     useState<boolean>(true);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
     useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number>(10);
 
   // # endregion
 
@@ -289,6 +293,9 @@ export default function Visualization() {
   const restartTimestampPollingAndVizUpdate = useTimestampRepositoryStore(
     (state) => state.restartTimestampPollingAndVizUpdate
   );
+  const manualPollTimestamps = useTimestampPollingStore(
+    (state) => state.manuallyPollTimestamps
+  );
   const appNameCommitTreeMapEvolutionDataRepository =
     useEvolutionDataRepositoryStore((state) => state._appNameCommitTreeMap);
   const fetchAndStoreApplicationCommitTrees = useEvolutionDataRepositoryStore(
@@ -391,6 +398,38 @@ export default function Visualization() {
       import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token'
     );
   })();
+
+  // Countdown timer for loading screen - syncs with actual fetch intervals
+  useEffect(() => {
+    if (!allLandscapeDataExistsAndNotEmpty && !isLandscapeExistentAndEmpty) {
+      // Start countdown from 10 when loading screen appears
+      setCountdown(10);
+
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 0) {
+            return 10; // Reset to 10 when it reaches 0
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [allLandscapeDataExistsAndNotEmpty, isLandscapeExistentAndEmpty]);
+
+  // Reset countdown when timestamp polling actually starts
+  useEffect(() => {
+    const handlePollingStart = () => {
+      setCountdown(10); // Reset to 10 when polling starts
+    };
+
+    eventEmitter.on(TIMESTAMP_POLLING_START_EVENT, handlePollingStart);
+
+    return () => {
+      eventEmitter.off(TIMESTAMP_POLLING_START_EVENT, handlePollingStart);
+    };
+  }, []);
 
   const { mode } = useParams();
 
@@ -555,6 +594,9 @@ export default function Visualization() {
   const onTimestampUpdateTimer = async ({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> => {
+    // Reset countdown when fetch is triggered
+    setCountdown(10);
+
     // TODO: Refactor
     const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
     commitToSelectedTimestampMap.set('cross-commit', [
@@ -719,16 +761,38 @@ export default function Visualization() {
       <div id="vizspace">
         {/* Loading screen  */}
         {!allLandscapeDataExistsAndNotEmpty && (
-          <div className="container-fluid mt-6">
-            <div className="jumbotron">
+          <div className="loading-screen-container">
+            <div className="loading-screen-content">
               {isLandscapeExistentAndEmpty ? (
-                <h2>Empty Landscape from Span Service received.</h2>
+                <h2 className="loading-screen-title">
+                  Empty Landscape from Span Service received.
+                </h2>
               ) : (
-                <h2>Loading Dynamic Landscape Data ...</h2>
+                <>
+                  <h2 className="loading-screen-title">
+                    Loading Landscape Data ...
+                  </h2>
+                  <p className="loading-screen-message">
+                    Landscape data is being fetched every 10 seconds.
+                  </p>
+                  <div className="loading-screen-countdown">
+                    Next fetch in: {countdown}s
+                  </div>
+                  <div
+                    className="loading-screen-spinner"
+                    role="status"
+                    aria-label="Loading"
+                  ></div>
+                  <Button
+                    variant="primary"
+                    onClick={manualPollTimestamps}
+                    className="loading-screen-poll-button"
+                  >
+                    Fetch Now
+                  </Button>
+                </>
               )}
-              <p>A new landscape will be fetched every 10 seconds.</p>
             </div>
-            <div className="spinner-center-3" role="status"></div>
           </div>
         )}
 
@@ -739,7 +803,7 @@ export default function Visualization() {
           components={components}
           componentsToolsSidebar={componentsToolsSidebar}
           id="browser-rendering"
-          isDisplayed={allLandscapeDataExistsAndNotEmpty || false}
+          isDisplayed={true}
           landscapeData={renderingServiceLandscapeData}
           landscapeToken={landscapeTokenServiceToken}
           removeTimestampListener={removeTimestampListener}
