@@ -209,6 +209,29 @@ export default function Visualization() {
     };
   }, []);
 
+  // Register event listeners immediately on mount to ensure they're ready
+  // before any WebSocket connection (e.g., from auto-connect or landscape selection)
+  useEffect(() => {
+    // Register collaboration event listeners
+    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
+    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
+    eventEmitter.on(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
+
+    if (!isSingleLandscapeMode) {
+      eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
+    }
+
+    // Cleanup: remove listeners on unmount
+    return () => {
+      eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
+      eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
+      eventEmitter.off(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
+      if (!isSingleLandscapeMode) {
+        eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     initRenderingAndSetupListeners();
   }, []);
@@ -537,16 +560,6 @@ export default function Visualization() {
       // start main loop for cross-commit runtime
       restartTimestampPollingAndVizUpdate([]);
     }
-
-    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
-    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-    eventEmitter.on(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
-
-    if (!isSingleLandscapeMode) {
-      eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-    }
-
-    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
   };
 
   // # endregion
