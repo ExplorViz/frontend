@@ -13,6 +13,7 @@ import {
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
@@ -60,7 +61,6 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
-  SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
@@ -73,6 +73,11 @@ import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/tim
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
+import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import {
+  highlightById,
+  removeAllHighlighting,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 const queryParams = [
   'roomId',
@@ -550,20 +555,83 @@ export default function Visualization() {
 
   // collaboration start
   // user handling end
+
+  /**
+   * Applies room state (closed components, highlighted entities, detached menus, annotations, popups)
+   * to the visualization. This is shared logic used by both initial landscape and sync room state handlers.
+   */
+  const applyRoomState = (
+    closedComponentIds: string[] | undefined,
+    highlightedEntities:
+      | Array<{ userId: string; entityId: string }>
+      | undefined,
+    detachedMenus: SerializedDetachedMenu[],
+    annotations: SerializedAnnotation[],
+    popups: SerializedPopup[] | undefined
+  ): void => {
+    useVisualizationStore.getState().actions.resetVisualizationState();
+
+    // Apply closed components if provided
+    if (closedComponentIds && closedComponentIds.length > 0) {
+      closeComponentsByList(closedComponentIds, false, false);
+    }
+
+    // Reset all highlights first
+    removeAllHighlighting(false);
+
+    // Apply highlighted entities if provided
+    if (highlightedEntities && highlightedEntities.length > 0) {
+      highlightedEntities.forEach(({ userId, entityId }) => {
+        const user = useCollaborationSessionStore
+          .getState()
+          .lookupRemoteUserById(userId);
+        if (user) {
+          user.highlightedEntityIds.add(entityId);
+        }
+        highlightById(entityId, false);
+      });
+    }
+
+    // Restore detached menus and popups
+    const popupsToRestore = popups || [];
+    detachedMenuRendererRestore(popupsToRestore, detachedMenus);
+
+    // Restore annotations
+    detachedMenuRendererRestoreAnnotations(annotations);
+  };
+
   const onInitialLandscape = async ({
     landscape,
-    openApps,
     detachedMenus,
-    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
     annotations,
+    closedComponents,
+    highlightedEntities,
   }: InitialLandscapeMessage): Promise<void> => {
+    // Convert detached menus to popups format for browser mode
+    const popupsFromMenus: SerializedPopup[] = detachedMenus.map(
+      (detachedMenu) => ({
+        userId: detachedMenu.userId || null,
+        entityId: detachedMenu.entityId,
+        menuId: detachedMenu.objectId,
+      })
+    );
+
+    // Apply room state (with reset for initial landscape)
+    applyRoomState(
+      closedComponents,
+      highlightedEntities,
+      detachedMenus as SerializedDetachedMenu[],
+      annotations as SerializedAnnotation[],
+      popupsFromMenus
+    );
+
     // Serialized room is used in landscape-data-watcher
     roomSerializer.setSerializedRoom({
       landscape: landscape,
-      openApps: openApps as SerializedApp[],
+      highlightedEntities: highlightedEntities || [], // Already in {userId, entityId} format
+      closedComponentIds: closedComponents || [],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks,
-      popups: [],
+      popups: popupsFromMenus,
       annotations: annotations as SerializedAnnotation[],
     });
 
@@ -614,25 +682,22 @@ export default function Visualization() {
   }) => {
     const {
       landscape,
-      openApps,
-      highlightedExternCommunicationLinks,
+      closedComponentIds,
+      highlightedEntities,
       popups,
       annotations,
       detachedMenus,
     } = event.originalMessage;
-    const serializedRoom = {
-      landscape: landscape,
-      openApps: openApps as SerializedApp[],
-      highlightedExternCommunicationLinks,
-      popups: popups as SerializedPopup[],
-      annotations: annotations as SerializedAnnotation[],
-      detachedMenus: detachedMenus as SerializedDetachedMenu[],
-    };
-    detachedMenuRendererRestore(
-      serializedRoom.popups,
-      serializedRoom.detachedMenus
+
+    // Apply room state (without reset for sync)
+    // highlightedEntities is already in {userId, entityId} format
+    applyRoomState(
+      closedComponentIds,
+      highlightedEntities,
+      detachedMenus as SerializedDetachedMenu[],
+      annotations as SerializedAnnotation[],
+      popups as SerializedPopup[]
     );
-    detachedMenuRendererRestoreAnnotations(serializedRoom.annotations);
 
     showInfoToastMessage('Room state synchronizing ...');
   };

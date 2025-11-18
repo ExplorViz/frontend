@@ -46,7 +46,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
         highlightedEntities: Array.from(
           useVisualizationStore.getState().highlightedEntityIds
         ).map((entityId) => {
-          return { id: entityId, usedId: useLocalUserStore.getState().userId };
+          return { userId: useLocalUserStore.getState().userId, entityId: entityId };
         }), // TODO: Add highlighted entities of remote users
         popups: get()._serializeOpenPopups(snapshot),
         annotations: get()._serializeOpenAnnotations(snapshot),

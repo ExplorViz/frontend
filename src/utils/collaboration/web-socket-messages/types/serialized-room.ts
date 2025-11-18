@@ -18,8 +18,8 @@ export type SerializedLandscape = {
 };
 
 export type SerializedHighlightedEntity = {
-  id: string;
-  usedId: string;
+  userId: string;
+  entityId: string;
 };
 
 export type SerializedPopup = {

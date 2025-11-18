@@ -62,7 +62,16 @@ export function toggleHighlightById(modelId: string, sendMessage = true) {
 }
 
 export function removeAllHighlighting(sendMessage = true) {
+  // Remove all highlights
   useVisualizationStore.getState().actions.removeAllHighlightedEntityIds();
+
+  // Clear all remote user highlights
+  useCollaborationSessionStore
+    .getState()
+    .getAllRemoteUsers()
+    .forEach((user) => {
+      user.highlightedEntityIds.clear();
+    });
 
   if (sendMessage) {
     useMessageSenderStore.getState().sendAllHighlightsReset();

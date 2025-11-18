@@ -605,14 +605,14 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
     if (!room) {
       return;
     }
+    
     useWebSocketStore
       .getState()
       .send<SyncRoomStateMessage>(SYNC_ROOM_STATE_EVENT, {
         event: SYNC_ROOM_STATE_EVENT,
         landscape: room.landscape,
-        openApps: room.openApps.map(({ ...app }) => app),
-        highlightedExternCommunicationLinks:
-          room.highlightedExternCommunicationLinks,
+        closedComponentIds: room.closedComponentIds,
+        highlightedEntities: room.highlightedEntities, // Already in {userId, entityId} format
         popups: room.popups.map(({ ...popup }) => popup),
         annotations: room.annotations!.map(({ ...annotation }) => annotation),
         detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
