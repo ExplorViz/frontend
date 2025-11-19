@@ -242,6 +242,8 @@ export default function PlotlyTimeline({
 
         const pn = data.points[0].pointNumber;
 
+        console.log("data.points[0]:", data.points[0]);
+
         const numberOfPoints = data.points[0].fullData.x.length;
 
         let colors = data.points[0].fullData.marker.color;
@@ -257,8 +259,19 @@ export default function PlotlyTimeline({
         ) {
           resetSelectionInStateObjects();
           colors = Array(numberOfPoints).fill(
-            timelineColors.current![selectedTimeline]
+            defaultMarkerColor.current
           );
+
+          // debug snapshot coloring
+          if(debugSnapshots) {
+            const debugTsSet = new Set(debugSnapshots.map(s => s.timestamp.epochMilli));
+            data.points[0].data.timestampId.forEach((value, index) => {
+              if (debugTsSet.has(value)) {
+                colors[index] = debugSnapshotMarkerColor.current;
+              }
+            });
+          }
+
           sizes = Array(numberOfPoints).fill(defaultMarkerSize.current);
         }
 
