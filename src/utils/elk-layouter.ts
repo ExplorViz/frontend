@@ -1,4 +1,9 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
+import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import {
   Application,
   K8sDeployment,
@@ -7,12 +12,6 @@ import {
   K8sPod,
   Package,
 } from './landscape-schemes/structure-data';
-import {
-  getStoredNumberSetting,
-  getStoredSettingValueById,
-} from './settings/local-storage-settings';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -32,35 +31,60 @@ let PACKAGE_ALGORITHM: string;
 let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
+let WIDTH_METRIC: string;
+let WIDTH_METRIC_MULTIPLIER: number;
+let DEPTH_METRIC: string;
+let DEPTH_METRIC_MULTIPLIER: number;
 let CLASS_MARGIN: number;
 let APP_LABEL_MARGIN: number;
 let APP_MARGIN: number;
 let PACKAGE_LABEL_MARGIN: number;
 let PACKAGE_MARGIN: number;
 let COMPONENT_HEIGHT: number;
+let COMPONENT_LABEL_PLACEMENT: string;
+
+function setVisualizationSettings() {
+  const { visualizationSettings: vs } = useUserSettingsStore.getState();
+
+  DESIRED_EDGE_LENGTH = vs.applicationDistance.value;
+  ASPECT_RATIO = vs.applicationAspectRatio.value;
+  CLASS_FOOTPRINT = vs.classFootprint.value;
+  WIDTH_METRIC = vs.classWidthMetric.value;
+  WIDTH_METRIC_MULTIPLIER = vs.classWidthMultiplier.value;
+  DEPTH_METRIC = vs.classDepthMetric.value;
+  DEPTH_METRIC_MULTIPLIER = vs.classDepthMultiplier.value;
+  CLASS_MARGIN = vs.classMargin.value;
+  APP_LABEL_MARGIN = vs.appLabelMargin.value;
+  APP_MARGIN = vs.appMargin.value;
+  PACKAGE_LABEL_MARGIN = vs.packageLabelMargin.value;
+  PACKAGE_MARGIN = vs.packageMargin.value;
+  COMPONENT_HEIGHT = vs.openedComponentHeight.value;
+  COMPONENT_LABEL_PLACEMENT = vs.componentLabelPlacement.value;
+  APPLICATION_ALGORITHM = vs.applicationLayoutAlgorithm.value;
+  PACKAGE_ALGORITHM = vs.packageLayoutAlgorithm.value;
+}
+
+function getPaddingForLabelPlacement(
+  labelPlacement: string,
+  labelMargin: number,
+  baseMargin: number
+): string {
+  const top = labelPlacement === 'top' ? labelMargin : baseMargin;
+  const bottom = labelPlacement === 'bottom' ? labelMargin : baseMargin;
+  const left = labelPlacement === 'left' ? labelMargin : baseMargin;
+  const right = labelPlacement === 'right' ? labelMargin : baseMargin;
+
+  return `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
+}
 
 export default async function layoutLandscape(
   k8sNodes: K8sNode[],
-  applications: Application[]
+  applications: Application[],
+  removedComponentIds: Set<string>
 ) {
   const elk = new ELK();
 
-  DESIRED_EDGE_LENGTH = getStoredNumberSetting('applicationDistance');
-  ASPECT_RATIO = getStoredNumberSetting('applicationAspectRatio');
-  CLASS_FOOTPRINT = getStoredNumberSetting('classFootprint');
-  CLASS_MARGIN = getStoredNumberSetting('classMargin');
-  APP_LABEL_MARGIN = getStoredNumberSetting('appLabelMargin');
-  APP_MARGIN = getStoredNumberSetting('appMargin');
-  PACKAGE_LABEL_MARGIN = getStoredNumberSetting('packageLabelMargin');
-  PACKAGE_MARGIN = getStoredNumberSetting('packageMargin');
-  COMPONENT_HEIGHT = getStoredNumberSetting('openedComponentHeight');
-
-  APPLICATION_ALGORITHM = getStoredSettingValueById(
-    'applicationLayoutAlgorithm'
-  ) as string;
-  PACKAGE_ALGORITHM = getStoredSettingValueById(
-    'packageLayoutAlgorithm'
-  ) as string;
+  setVisualizationSettings();
 
   // Initialize landscape graph
   const landscapeGraph: any = {
@@ -70,7 +94,11 @@ export default async function layoutLandscape(
     layoutOptions: {
       algorithm: APPLICATION_ALGORITHM,
       desiredEdgeLength: DESIRED_EDGE_LENGTH,
-      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_MARGIN},right=${APP_MARGIN}]`,
+      'elk.padding': getPaddingForLabelPlacement(
+        COMPONENT_LABEL_PLACEMENT,
+        APP_LABEL_MARGIN,
+        APP_MARGIN
+      ),
     },
   };
 
@@ -81,7 +109,7 @@ export default async function layoutLandscape(
 
   // Add applications
   applications.forEach((app) => {
-    const appGraph = createApplicationGraph(app);
+    const appGraph = createApplicationGraph(app, removedComponentIds);
     landscapeGraph.children.push(appGraph);
   });
 
@@ -100,7 +128,11 @@ function createK8sNodeGraph(k8sNode: K8sNode) {
     layoutOptions: {
       aspectRatio: ASPECT_RATIO.toString(),
       algorithm: PACKAGE_ALGORITHM,
-      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+      'elk.padding': getPaddingForLabelPlacement(
+        COMPONENT_LABEL_PLACEMENT,
+        APP_LABEL_MARGIN,
+        APP_MARGIN
+      ),
     },
   };
 
@@ -168,29 +200,43 @@ function populateDeployment(deploymentGraph: any, pods: K8sPod[]) {
 
 function populatePod(podGraph: any, applications: Application[]) {
   applications.forEach((application) => {
-    const appGraph = createApplicationGraph(application);
+    const appGraph = createApplicationGraph(application, new Set<string>());
 
     podGraph.children.push(appGraph);
   });
 }
 
-function createApplicationGraph(application: Application) {
+function createApplicationGraph(
+  application: Application,
+  removedComponentIds: Set<string>
+) {
   const appGraph = {
     id: APP_PREFIX + application.id,
     children: [],
     layoutOptions: {
       aspectRatio: ASPECT_RATIO,
       algorithm: PACKAGE_ALGORITHM,
-      'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
+      'elk.padding': getPaddingForLabelPlacement(
+        COMPONENT_LABEL_PLACEMENT,
+        APP_LABEL_MARGIN,
+        APP_MARGIN
+      ),
     },
   };
-  populateAppGraph(appGraph, application);
+  populateAppGraph(appGraph, application, removedComponentIds);
 
   return appGraph;
 }
 
-function populateAppGraph(appGraph: any, application: Application) {
+function populateAppGraph(
+  appGraph: any,
+  application: Application,
+  removedComponentIds: Set<string>
+) {
   application.packages.forEach((component) => {
+    if (removedComponentIds.has(component.id)) {
+      return;
+    }
     const packageGraph = {
       id: PACKAGE_PREFIX + component.id,
       children: [],
@@ -198,27 +244,54 @@ function populateAppGraph(appGraph: any, application: Application) {
         algorithm: PACKAGE_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
-        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
+        'elk.padding': getPaddingForLabelPlacement(
+          COMPONENT_LABEL_PLACEMENT,
+          PACKAGE_LABEL_MARGIN,
+          PACKAGE_MARGIN
+        ),
       },
     };
     appGraph.children.push(packageGraph);
 
-    populatePackage(packageGraph.children, component);
+    populatePackage(packageGraph.children, component, removedComponentIds);
   });
 }
 
-function populatePackage(packageGraphChildren: any[], component: Package) {
+function populatePackage(
+  packageGraphChildren: any[],
+  component: Package,
+  removedComponentIds: Set<string>
+) {
   component.classes.forEach((clazz) => {
+    let widthByMetric = 0;
+    if (WIDTH_METRIC === SelectedClassMetric.Method) {
+      widthByMetric =
+        WIDTH_METRIC_MULTIPLIER *
+        metricMappingMultipliers['Method Count'] *
+        clazz.methods.length;
+    }
+
+    let depthByMetric = 0;
+    if (DEPTH_METRIC === SelectedClassMetric.Method) {
+      depthByMetric =
+        DEPTH_METRIC_MULTIPLIER *
+        metricMappingMultipliers['Method Count'] *
+        clazz.methods.length;
+    }
+
     const classNode = {
       id: CLASS_PREFIX + clazz.id,
       children: [],
-      width: CLASS_FOOTPRINT,
-      height: CLASS_FOOTPRINT,
+      width: CLASS_FOOTPRINT + widthByMetric,
+      height: CLASS_FOOTPRINT + depthByMetric,
     };
     packageGraphChildren.push(classNode);
   });
 
   component.subPackages.forEach((subPackage) => {
+    if (removedComponentIds.has(subPackage.id)) {
+      return;
+    }
     const packageNode = {
       id: PACKAGE_PREFIX + subPackage.id,
       children: [],
@@ -226,13 +299,17 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
         algorithm: PACKAGE_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
         'spacing.nodeNode': CLASS_MARGIN,
-        'elk.padding': `[top=${PACKAGE_MARGIN},left=${PACKAGE_MARGIN},bottom=${PACKAGE_LABEL_MARGIN},right=${PACKAGE_MARGIN}]`,
+        'elk.padding': getPaddingForLabelPlacement(
+          COMPONENT_LABEL_PLACEMENT,
+          PACKAGE_LABEL_MARGIN,
+          PACKAGE_MARGIN
+        ),
       },
     };
     packageGraphChildren.push(packageNode);
 
     if (subPackage.subPackages.length > 0 || subPackage.classes.length > 0) {
-      populatePackage(packageNode.children, subPackage);
+      populatePackage(packageNode.children, subPackage, removedComponentIds);
     } else {
       // Add dummy class, otherwise package would be assigned with zero width/depth
       populateWithDummyClass(packageNode.children);
@@ -271,22 +348,41 @@ export function convertElkToBoxLayout(
 ): Map<string, BoxLayout> {
   let height = COMPONENT_HEIGHT;
   if (elkGraph.id.startsWith(CLASS_PREFIX)) {
-    height = 5;
+    height = CLASS_FOOTPRINT;
   }
 
   const boxLayout = new BoxLayout();
-  boxLayout.positionX = xOffset + elkGraph.x!;
-  boxLayout.positionY = COMPONENT_HEIGHT * depth;
-  boxLayout.positionZ = zOffset + elkGraph.y!;
+
   // Prevent 0 value for width and depth
   boxLayout.width = elkGraph.width || CLASS_FOOTPRINT;
   boxLayout.depth = elkGraph.height || CLASS_FOOTPRINT;
   boxLayout.height = height;
 
+  boxLayout.positionX = xOffset + elkGraph.x!;
+  boxLayout.positionY = COMPONENT_HEIGHT * (depth - 1) + height / 2.0;
+  boxLayout.positionZ = zOffset + elkGraph.y!;
+
+  boxLayout.level = depth;
+
   // Landscape and applications are on the same level
   if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
     // eslint-disable-next-line
     depth = depth - 1;
+  }
+
+  if (elkGraph.id.startsWith(APP_PREFIX)) {
+    // Add application offset since all components and classes are placed directly in app
+    xOffset -= boxLayout.positionX;
+    zOffset -= boxLayout.positionZ;
+  }
+
+  if (
+    elkGraph.id.startsWith(PACKAGE_PREFIX) ||
+    elkGraph.id.startsWith(CLASS_PREFIX)
+  ) {
+    // Geometries in three.js are centered around the origin
+    boxLayout.positionX = boxLayout.positionX + boxLayout.width / 2.0;
+    boxLayout.positionZ = boxLayout.positionZ + boxLayout.depth / 2.0;
   }
 
   // Ids in ELK must not start with numbers, therefore we added letters as prefix

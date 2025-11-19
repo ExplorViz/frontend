@@ -1,25 +1,22 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
-import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
-import Button from 'react-bootstrap/Button';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { highlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import Button from 'react-bootstrap/Button';
+import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
 
 interface ApplicationSearchEntity {
   fqn: string;
   applicationName: string;
   modelId: string;
   applicationModelId: string;
+  type: string;
 }
-
-interface ApplicationSearchProps {}
 
 export default function ApplicationSearch() {
   useApplicationRepositoryStore((state) => state.applications);
-  const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
-  const highlightById = useHighlightingStore((state) => state.highlightById);
 
   const [searchString, setSearchString] = useState<string>('');
   const [selected, setSelected] = useState<any[]>([]);
@@ -32,7 +29,7 @@ export default function ApplicationSearch() {
       return fqnStr;
     }
 
-    // Highlight all occurences of the search string in the suggested options
+    // Highlight all occurrences of the search string in the suggested options
     const parts = fqnStr.split(new RegExp(`(${searchString})`, 'gi'));
 
     return parts.map((part, index) =>
@@ -43,8 +40,6 @@ export default function ApplicationSearch() {
   const onChange = (
     newSelectedOptions: MultiValue<ApplicationSearchEntity>
   ) => {
-    // Highlight all newly selected items
-
     const newlySelectedItems = newSelectedOptions.filter(
       (newItem) =>
         !selected.some(
@@ -54,11 +49,9 @@ export default function ApplicationSearch() {
         )
     );
 
+    // Ping all newly selected items
     newlySelectedItems.forEach((item) => {
-      pingByModelId(item.modelId, item.applicationModelId, {
-        durationInMs: 3500,
-        nonrestartable: true,
-      });
+      pingByModelId(item.modelId);
     });
 
     setSelected(Array.from(newSelectedOptions));
@@ -66,16 +59,13 @@ export default function ApplicationSearch() {
 
   const highlightAllSelectedEntities = () => {
     selected.forEach((selectedEntity) => {
-      highlightById(selectedEntity.modelId, true);
+      highlightById(selectedEntity.modelId);
     });
   };
 
   const pingAllSelectedEntities = () => {
     selected.forEach((selectedEntity) => {
-      pingByModelId(selectedEntity.modelId, selectedEntity.applicationModelId, {
-        durationInMs: 3500,
-        nonrestartable: true,
-      });
+      pingByModelId(selectedEntity.modelId);
     });
   };
 
@@ -105,7 +95,11 @@ export default function ApplicationSearch() {
         >
           Hightlight All
         </Button>
-        <Button variant="outline-secondary" onClick={pingAllSelectedEntities}>
+        <Button
+          className="mx-2"
+          variant="outline-secondary"
+          onClick={pingAllSelectedEntities}
+        >
           Ping All
         </Button>
       </div>
@@ -117,14 +111,9 @@ export default function ApplicationSearch() {
 function CustomMultiValueLabel(
   props: MultiValueGenericProps<ApplicationSearchEntity>
 ) {
-  const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
-
   const { data, innerProps } = props;
   const onClick = () => {
-    pingByModelId(data.modelId, data.applicationModelId, {
-      durationInMs: 3500,
-      nonrestartable: true,
-    });
+    pingByModelId(data.modelId);
   };
 
   return (

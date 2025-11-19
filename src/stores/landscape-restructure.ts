@@ -1,34 +1,28 @@
-import { create } from 'zustand';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
-  addFoundationToLandscape,
-  addMethodToClass,
-  movePackage,
-  moveClass,
-  removeApplication,
-  removeClassFromPackage,
-  removePackageFromApplication,
-  getClassInApplicationById,
-  createPackage,
-  createClass,
-  changeID,
-  copyPackageContent,
-  copyClassContent,
-  restoreID,
-  removeAffectedCommunications,
-  canDeleteClass,
-  canDeletePackage,
-  pastePackage,
-  pasteClass,
-  duplicateApplication,
-} from 'explorviz-frontend/src/utils/restructure-helper';
+  getAllClassesInApplication,
+  getAllPackagesInApplication,
+} from 'explorviz-frontend/src/utils/application-helpers';
+import {
+  AppChangeLogEntry,
+  BaseChangeLogEntry,
+  ClassChangeLogEntry,
+  CommunicationChangeLogEntry,
+  PackageChangeLogEntry,
+  SubPackageChangeLogEntry,
+} from 'explorviz-frontend/src/utils/changelog-entry';
+import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
   Class,
-  Package,
   isApplication,
   isClass,
   isPackage,
+  Package,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -43,35 +37,34 @@ import {
   getPackageById,
   getSubPackagesOfPackage,
 } from 'explorviz-frontend/src/utils/package-helpers';
-import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
-  RestructureAction,
+  addFoundationToLandscape,
+  addMethodToClass,
+  canDeleteClass,
+  canDeletePackage,
+  changeID,
+  copyClassContent,
+  copyPackageContent,
+  createClass,
+  createPackage,
+  duplicateApplication,
   EntityType,
+  getClassInApplicationById,
+  moveClass,
+  movePackage,
+  pasteClass,
+  pastePackage,
+  removeAffectedCommunications,
+  removeApplication,
+  removeClassFromPackage,
+  removePackageFromApplication,
+  restoreID,
+  RestructureAction,
 } from 'explorviz-frontend/src/utils/restructure-helper';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import * as THREE from 'three';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import {
-  getAllClassesInApplication,
-  getAllPackagesInApplication,
-} from 'explorviz-frontend/src/utils/application-helpers';
-import {
-  AppChangeLogEntry,
-  BaseChangeLogEntry,
-  ClassChangeLogEntry,
-  CommunicationChangeLogEntry,
-  PackageChangeLogEntry,
-  SubPackageChangeLogEntry,
-} from 'explorviz-frontend/src/utils/changelog-entry';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import eventEmitter from '../utils/event-emitter';
-import { useApplicationRendererStore } from './application-renderer';
+import * as THREE from 'three';
+import { create } from 'zustand';
 import { useChangelogStore } from './changelog';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from './user-settings';
 
 type MeshModelTextureMapping = {
@@ -1335,9 +1328,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 } else {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 }
               });
             } else if (
@@ -1352,10 +1345,10 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectComponent) {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 }
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 }
               });
             } else if (elem.meshType === EntityType.Clazz) {
@@ -1364,7 +1357,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 }
               });
             }
@@ -1394,7 +1387,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   mesh instanceof ClazzMesh &&
                   mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectComponent || isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 }
               });
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
@@ -1403,15 +1396,15 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                     mesh instanceof ComponentMesh &&
                     mesh.dataModel.id === pckg.id;
                   if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath); 
+                    mesh.changeTexture(elem.texturePath);
                   }
                 });
 
                 allClassesInPackage.forEach((clazz) => {
                   const isCorrectClass =
-                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id; 
+                    mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath); 
+                    mesh.changeTexture(elem.texturePath);
                   }
                 });
               });
@@ -1419,9 +1412,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 const isCorrectClass =
                   mesh instanceof ClazzMesh &&
-                  mesh.dataModel.id === elem.clazz?.id; 
+                  mesh.dataModel.id === elem.clazz?.id;
                 if (isCorrectClass) {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 }
               });
             }
@@ -1433,7 +1426,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const foundationMesh = currentAppModel?.modelIdToMesh.get(
                   elem.app.id
                 );
-                foundationMesh?.changeTexture(elem.texturePath); 
+                foundationMesh?.changeTexture(elem.texturePath);
               }
             } else if (elem.meshType === EntityType.Package) {
               const appliedTexture = get()._findAppliedTexture(
@@ -1445,7 +1438,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const componentMesh = currentAppModel?.modelIdToMesh.get(
                   elem.pckg?.id as string
                 );
-                componentMesh?.changeTexture(elem.texturePath); 
+                componentMesh?.changeTexture(elem.texturePath);
               }
             } else if (elem.meshType === EntityType.Clazz) {
               const appliedTexture = get()._findAppliedTexture(
@@ -1456,7 +1449,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath); 
+                clazzMesh?.changeTexture(elem.texturePath);
               }
             }
             // Apply X texture for copied Meshes
@@ -1464,9 +1457,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             if (elem.meshType === EntityType.App) {
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 if (mesh instanceof ClazzMesh) {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 } else {
-                  mesh.changeTexture(elem.texturePath); 
+                  mesh.changeTexture(elem.texturePath);
                 }
               });
             } else if (elem.meshType === EntityType.Package) {
@@ -1483,14 +1476,14 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 elem.pckg?.id as string
               );
 
-              componentMesh?.changeTexture(elem.texturePath); 
+              componentMesh?.changeTexture(elem.texturePath);
               currentAppModel?.modelIdToMesh.forEach((mesh) => {
                 allSubPackages.forEach((pckg) => {
                   const isCorrectComponent =
                     mesh instanceof ComponentMesh &&
                     mesh.dataModel.id === pckg.id;
                   if (isCorrectComponent) {
-                    mesh.changeTexture(elem.texturePath); 
+                    mesh.changeTexture(elem.texturePath);
                   }
                 });
 
@@ -1498,7 +1491,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                   const isCorrectClass =
                     mesh instanceof ClazzMesh && mesh.dataModel.id === clazz.id;
                   if (isCorrectClass) {
-                    mesh.changeTexture(elem.texturePath); 
+                    mesh.changeTexture(elem.texturePath);
                   }
                 });
               });
@@ -1506,7 +1499,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
               const clazzMesh = currentAppModel?.modelIdToMesh.get(
                 elem.clazz?.id as string
               );
-              clazzMesh?.changeTexture(elem.texturePath); 
+              clazzMesh?.changeTexture(elem.texturePath);
             }
             // Apply Slash texture for inserted Meshes
           } else if (elem.action === RestructureAction.CutInsert) {
@@ -1526,14 +1519,14 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const componentMesh = currentAppModel?.modelIdToMesh.get(
                   elem.pckg?.id as string
                 );
-                componentMesh?.changeTexture(elem.texturePath); 
+                componentMesh?.changeTexture(elem.texturePath);
                 currentAppModel?.modelIdToMesh.forEach((mesh) => {
                   allSubPackages.forEach((pckg) => {
                     const isCorrectComponent =
                       mesh instanceof ComponentMesh &&
                       mesh.dataModel.id === pckg.id;
                     if (isCorrectComponent) {
-                      mesh.changeTexture(elem.texturePath); 
+                      mesh.changeTexture(elem.texturePath);
                     }
                   });
 
@@ -1542,7 +1535,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                       mesh instanceof ClazzMesh &&
                       mesh.dataModel.id === clazz.id;
                     if (isCorrectClass) {
-                      mesh.changeTexture(elem.texturePath); 
+                      mesh.changeTexture(elem.texturePath);
                     }
                   });
                 });
@@ -1555,7 +1548,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
                 const clazzMesh = currentAppModel?.modelIdToMesh.get(
                   elem.clazz?.id as string
                 );
-                clazzMesh?.changeTexture(elem.texturePath); 
+                clazzMesh?.changeTexture(elem.texturePath);
               }
             }
           }
@@ -1611,7 +1604,6 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           subPackage.classes.push(newClass as Class);
           subPackage = get()._addOriginOfData(subPackage);
           pckg.subPackages.push(subPackage);
-
 
           // Create Changelog Entry
           useChangelogStore
@@ -2499,7 +2491,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
     // INFO: originOfData had to be added for packages and classes
     //       to fix crashing on adding or pasting packages/classes
     _addOriginOfData: (entity: Package) => {
-      let newEntity = {...entity};
+      let newEntity = { ...entity };
 
       if (newEntity.originOfData === undefined) {
         newEntity.originOfData = TypeOfAnalysis.Static;
@@ -2551,9 +2543,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         // Distinguish between clipped Package and clipped Class
         if (isPackage(get().clippedMesh)) {
           // Copy the clipped package
-          let cuttedPackage = copyPackageContent(
-            get().clippedMesh as Package
-          );
+          let cuttedPackage = copyPackageContent(get().clippedMesh as Package);
           cuttedPackage.parent = get().clippedMesh!.parent;
 
           cuttedPackage = get()._addOriginOfData(cuttedPackage);

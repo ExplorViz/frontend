@@ -8,20 +8,22 @@ export type SettingGroup =
   | 'Heatmap'
   | 'Highlighting'
   | 'Layout'
+  | 'Label'
   | 'Minimap'
+  | 'Misc'
   | 'Popups'
-  | 'Virtual Reality'
-  | 'Semantic Zoom'
-  | 'Debugging'
   | 'Virtual Reality';
-
-export type CameraSettingId = 'cameraNear' | 'cameraFar' | 'cameraFov';
 
 export type CameraSettings = {
   cameraNear: RangeSetting;
   cameraFar: RangeSetting;
   cameraFov: RangeSetting;
+  raycastEnabled: FlagSetting;
+  raycastFirstHit: FlagSetting;
+  raycastNear: RangeSetting;
+  raycastFar: RangeSetting;
 };
+export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
@@ -29,12 +31,19 @@ export type ColorSettingId =
   | 'classTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
-  | 'componentEvenColor'
-  | 'componentOddColor'
+  | 'componentRootLevelColor'
+  | 'componentDeepestLevelColor'
   | 'componentTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
   | 'highlightedEntityColor'
+  | 'addedComponentColor'
+  | 'removedComponentColor'
+  | 'unchangedComponentColor'
+  | 'addedClassColor'
+  | 'modifiedClassColor'
+  | 'removedClassColor'
+  | 'unchangedClassColor'
   | 'k8sNodeColor'
   | 'k8sNamespaceColor'
   | 'k8sDeploymentColor'
@@ -43,56 +52,64 @@ export type ColorSettingId =
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
-export type ControlSettingId = 'enableGamepadControls' | 'selectedGamepadIndex';
-
 export type ControlSettings = {
+  leftMouseButtonAction: SelectSetting<string>;
+  middleMouseButtonAction: SelectSetting<string>;
+  mouseWheelAction: SelectSetting<string>;
+  rightMouseButtonAction: SelectSetting<string>;
   enableGamepadControls: FlagSetting;
   selectedGamepadIndex: RangeSetting;
 };
+export type ControlSettingId = keyof ControlSettings;
 
 export type CommunicationSettingId =
   | 'commThickness'
   | 'commArrowSize'
   | 'commArrowOffset'
-  | 'curvyCommHeight';
+  | 'curvyCommHeight'
+  | 'enableEdgeBundling'
+  | 'bundleStrength'
+  | 'compatibilityThreshold'
+  | 'bundlingIterations'
+  | 'bundlingStepSize'
+  | 'beta'
+  | 'use3DHAPAlgorithm'; 
 
-export type CommunicationSettings = Record<
-  CommunicationSettingId,
-  RangeSetting
->;
 
-export type DebugSettingId =
-  | 'showExtendedSettings'
-  | 'showFpsCounter'
-  | 'showAxesHelper'
-  | 'showLightHelper'
-  | 'showSemanticZoomCenterPoints'
-  | 'fullscreen'
-  | 'syncRoomState'
-  | 'resetToDefaults';
+// export type CommunicationSettings = Record<
+//   CommunicationSettingId,
+//   RangeSetting
+// >;
+
+export type CommunicationSettings = {
+  commThickness: RangeSetting;
+  commArrowSize: RangeSetting;
+  commArrowOffset: RangeSetting;
+  curvyCommHeight: RangeSetting;
+  enableEdgeBundling: FlagSetting; // ← FlagSetting statt RangeSetting
+  bundleStrength: RangeSetting;
+  compatibilityThreshold: RangeSetting;
+  bundlingIterations: RangeSetting;
+  bundlingStepSize: RangeSetting;
+  beta: RangeSetting;  // NEU
+  use3DHAPAlgorithm: FlagSetting;  // NEU
+};
 
 export type DebugSettings = {
   showExtendedSettings: FlagSetting;
   showFpsCounter: FlagSetting;
   showAxesHelper: FlagSetting;
   showLightHelper: FlagSetting;
-  showSemanticZoomCenterPoints: ButtonSetting;
   fullscreen: ButtonSetting;
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
 };
-
-export type HeatmapSettingId = 'heatmapEnabled';
+export type DebugSettingId = keyof DebugSettings;
 
 export type HeatmapSettings = {
   heatmapEnabled: FlagSetting;
 };
-
-export type HighlightingSettingId =
-  | 'applyHighlightingOnHover'
-  | 'keepHighlightingOnOpenOrClose'
-  | 'transparencyIntensity'
-  | 'enableMultipleHighlighting';
+export type HeatmapSettingId = keyof HeatmapSettings;
 
 export type HighlightingSettings = {
   applyHighlightingOnHover: FlagSetting;
@@ -100,61 +117,56 @@ export type HighlightingSettings = {
   transparencyIntensity: RangeSetting;
   enableMultipleHighlighting: FlagSetting;
 };
+export type HighlightingSettingId = keyof HighlightingSettings;
 
-export type HoveringSettingId =
-  | 'enableHoverEffects'
-  | 'enableAnimations'
-  | 'castShadows';
+export type EffectSettings = {
+  animationDuration: RangeSetting;
+  castShadows: FlagSetting;
+  enableAnimations: FlagSetting;
+  enableHoverEffects: FlagSetting;
+  showAllClassLabels: FlagSetting;
+  showOutlines: FlagSetting;
+};
+export type EffectSettingId = keyof EffectSettings;
 
-export type HoveringSettings = Record<HoveringSettingId, FlagSetting>;
-
-export type LayoutSettingId =
-  | 'applicationLayoutAlgorithm'
-  | 'packageLayoutAlgorithm'
-  | 'applicationDistance'
-  | 'applicationAspectRatio'
-  | 'classFootprint'
-  | 'classMargin'
-  | 'classLabelFontSize'
-  | 'classLabelLength'
-  | 'classLabelOffset'
-  | 'classLabelOrientation'
-  | 'appLabelMargin'
-  | 'appMargin'
-  | 'packageLabelMargin'
-  | 'packageMargin'
-  | 'openedComponentHeight'
-  | 'closedComponentHeight';
+export type LabelSettings = {
+  appLabelMargin: RangeSetting;
+  classLabelFontSize: RangeSetting;
+  classLabelLength: RangeSetting;
+  classLabelOrientation: RangeSetting;
+  labelOffset: RangeSetting;
+  maxCamHeightForCamera: RangeSetting;
+  packageLabelMargin: RangeSetting;
+  componentLabelPlacement: SelectSetting<string>;
+};
+export type LabelSettingId = keyof LabelSettings;
 
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
+  landscapeScalar: RangeSetting;
+  landscapePositionX: RangeSetting;
+  landscapePositionY: RangeSetting;
+  landscapePositionZ: RangeSetting;
+  landscapeRotationX: RangeSetting;
+  landscapeRotationY: RangeSetting;
+  landscapeRotationZ: RangeSetting;
   applicationDistance: RangeSetting;
   applicationAspectRatio: RangeSetting;
-  classFootprint: RangeSetting;
-  classMargin: RangeSetting;
-  classLabelFontSize: RangeSetting;
-  classLabelLength: RangeSetting;
-  classLabelOffset: RangeSetting;
-  classLabelOrientation: RangeSetting;
-  appLabelMargin: RangeSetting;
   appMargin: RangeSetting;
-  packageLabelMargin: RangeSetting;
   packageMargin: RangeSetting;
+  classFootprint: RangeSetting;
+  classWidthMetric: SelectSetting<string>;
+  classWidthMultiplier: RangeSetting;
+  classDepthMetric: SelectSetting<string>;
+  classDepthMultiplier: RangeSetting;
+  classHeightMetric: SelectSetting<string>;
+  classHeightMultiplier: RangeSetting;
+  classMargin: RangeSetting;
   openedComponentHeight: RangeSetting;
   closedComponentHeight: RangeSetting;
 };
-
-export type MinimapSettingId =
-  | 'minimap'
-  | 'zoom'
-  | 'useCameraPosition'
-  | 'layer1'
-  | 'layer2'
-  | 'layer3'
-  | 'layer4'
-  | 'layer6'
-  | 'layer7';
+export type LayoutSettingId = keyof LayoutSettings;
 
 export type MinimapSettings = {
   minimap: FlagSetting;
@@ -167,42 +179,19 @@ export type MinimapSettings = {
   layer6: FlagSetting;
   layer7: FlagSetting;
 };
-
-export type PopupSettingId = 'hidePopupDelay';
+export type MinimapSettingId = keyof MinimapSettings;
 
 export type PopupSettings = {
   hidePopupDelay: RangeSetting;
 };
+export type PopupSettingId = keyof PopupSettings;
 
-export type SemanticZoomSettingId =
-  | 'semanticZoomState'
-  | 'usePredefinedSet'
-  | 'distancePreSet'
-  | 'distanceLevel1'
-  | 'distanceLevel2'
-  | 'distanceLevel3'
-  | 'distanceLevel4'
-  | 'distanceLevel5'
-  | 'autoOpenCloseFeature'
-  | 'useKMeansInsteadOfMeanShift'
-  | 'clusterBasedOnMembers';
-
-export type SemanticZoomSettings = {
-  usePredefinedSet: FlagSetting;
-  semanticZoomState: FlagSetting;
-  distancePreSet: RangeSetting;
-  distanceLevel1: RangeSetting;
-  distanceLevel2: RangeSetting;
-  distanceLevel3: RangeSetting;
-  distanceLevel4: RangeSetting;
-  distanceLevel5: RangeSetting;
-  clusterBasedOnMembers: RangeSetting;
-  autoOpenCloseFeature: FlagSetting;
-  useKMeansInsteadOfMeanShift: FlagSetting;
+export type MiscSettings = {
+  showEmbeddedBrowserIcon: FlagSetting;
 };
+export type MiscSettingId = keyof MiscSettings;
 
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
-
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type VisualizationSettingId =
@@ -213,11 +202,12 @@ export type VisualizationSettingId =
   | DebugSettingId
   | HeatmapSettingId
   | HighlightingSettingId
-  | HoveringSettingId
+  | EffectSettingId
   | LayoutSettingId
+  | LabelSettingId
   | MinimapSettingId
+  | MiscSettingId
   | PopupSettingId
-  | SemanticZoomSettingId
   | XrSettingId;
 
 export type VisualizationSettings = CameraSettings &
@@ -226,11 +216,12 @@ export type VisualizationSettings = CameraSettings &
   DebugSettings &
   HeatmapSettings &
   HighlightingSettings &
-  HoveringSettings &
+  EffectSettings &
   LayoutSettings &
+  LabelSettings &
   MinimapSettings &
+  MiscSettings &
   PopupSettings &
-  SemanticZoomSettings &
   XrSettings &
   ColorSettings;
 
@@ -261,6 +252,12 @@ export interface ButtonSetting extends Setting<boolean> {
     | 'link';
   buttonText: string;
   readonly isButtonSetting: true;
+}
+
+export enum SelectedClassMetric {
+  None = 'None',
+  Method = 'Method Count',
+  LoC = 'LoC',
 }
 
 export interface FlagSetting extends Setting<boolean> {

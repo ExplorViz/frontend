@@ -1,9 +1,24 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
+import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  closeComponent,
+  openComponent,
+} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import {
+  removeAllHighlighting,
+  setHighlightingById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { BaseChangeLogEntry } from 'explorviz-frontend/src/utils/changelog-entry';
+import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
 import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
@@ -22,10 +37,7 @@ import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
-import {
-  MOUSE_PING_UPDATE_EVENT,
-  MousePingUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
+import { RESET_HIGHLIGHTING_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -57,15 +69,8 @@ import {
   SHARE_SETTINGS_EVENT,
   ShareSettingsMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/share-settings';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { BaseChangeLogEntry } from 'explorviz-frontend/src/utils/changelog-entry';
-import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import WaypointIndicator from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
@@ -76,14 +81,16 @@ import {
 import { getApplicationInLandscapeById } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { getPackageById } from 'explorviz-frontend/src/utils/package-helpers';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import WaypointIndicator from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import * as THREE from 'three';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { useShallow } from 'zustand/react/shallow';
+import {
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/ping-update';
+import {
+  pingByModelId,
+  pingPosition,
+} from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 
 export default function useCollaborativeModifier() {
   // MARK: Stores
@@ -94,35 +101,9 @@ export default function useCollaborativeModifier() {
     }))
   );
 
-  const applicationRendererActions = useApplicationRendererStore(
-    useShallow((state) => ({
-      getApplicationById: state.getApplicationById,
-      getMeshById: state.getMeshById,
-      toggleComponentLocally: state.toggleComponentLocally,
-      openAllComponentsLocally: state.openAllComponentsLocally,
-      closeAllComponentsLocally: state.closeAllComponentsLocally,
-      cleanup: state.cleanup,
-    }))
-  );
-
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
       cleanup: state.cleanup,
-    }))
-  );
-
-  const highlightingActions = useHighlightingStore(
-    useShallow((state) => ({
-      removeHighlightingForAllApplications:
-        state.removeHighlightingForAllApplications,
-      updateHighlighting: state.updateHighlighting,
-      toggleHighlight: state.toggleHighlight,
-    }))
-  );
-
-  const linkRendererActions = useLinkRendererStore(
-    useShallow((state) => ({
-      getAllLinks: state.getAllLinks,
     }))
   );
 
@@ -182,6 +163,7 @@ export default function useCollaborativeModifier() {
       changeLogEntries: state.changeLogEntries,
     }))
   );
+
   const changeLogActions = useChangelogStore(
     useShallow((state) => ({
       removeEntry: state.removeEntry,
@@ -203,67 +185,43 @@ export default function useCollaborativeModifier() {
   // MARK: Event handlers
 
   const onComponentUpdate = ({
-    originalMessage: { isFoundation, appId, isOpened, componentId },
+    originalMessage: { componentIds, areOpened },
   }: ForwardedMessage<ComponentUpdateMessage>): void => {
-    const applicationObject3D =
-      applicationRendererActions.getApplicationById(appId);
-    if (!applicationObject3D) return;
-
-    const componentMesh = applicationObject3D.getBoxMeshByModelId(componentId);
-
-    if (isFoundation) {
-      if (isOpened) {
-        applicationRendererActions.openAllComponentsLocally(
-          applicationObject3D
-        );
-      } else {
-        applicationRendererActions.closeAllComponentsLocally(
-          applicationObject3D
-        );
-      }
-    } else if (
-      componentMesh instanceof ComponentMesh &&
-      componentMesh.opened !== isOpened
-    ) {
-      applicationRendererActions.toggleComponentLocally(
-        componentMesh,
-        applicationObject3D
-      );
+    if (areOpened) {
+      componentIds.forEach((componentId) => {
+        openComponent(componentId, false);
+      });
+    } else {
+      componentIds.forEach((componentId) => {
+        closeComponent(componentId, false);
+      });
     }
   };
 
   const onAllHighlightsReset = (): void => {
-    highlightingActions.removeHighlightingForAllApplications(false);
-    highlightingActions.updateHighlighting();
+    removeAllHighlighting(false);
   };
 
   const onHighlightingUpdate = ({
     userId,
-    originalMessage: { appId, entityId, isHighlighted },
+    originalMessage: { entityIds, areHighlighted },
   }: ForwardedMessage<HighlightingUpdateMessage>): void => {
     const user = collaborationSessionActions.lookupRemoteUserById(userId);
     if (!user) return;
-    const application = applicationRendererActions.getApplicationById(appId);
-    if (!application) {
-      // extern communication link
-      const mesh = applicationRendererActions.getMeshById(entityId);
-      if (mesh instanceof ClazzCommunicationMesh) {
-        // multi selected extern links?
-        highlightingActions.toggleHighlight(mesh, {
-          sendMessage: false,
-          remoteColor: user.color,
-        });
-      }
-      return;
+
+    if (areHighlighted) {
+      user.highlightedEntityIds = user.highlightedEntityIds.union(
+        new Set(entityIds)
+      );
+    } else {
+      user.highlightedEntityIds = user.highlightedEntityIds.difference(
+        new Set(entityIds)
+      );
     }
 
-    const mesh: any = application.getMeshById(entityId);
-    if (mesh?.highlighted !== isHighlighted) {
-      highlightingActions.toggleHighlight(mesh, {
-        sendMessage: false,
-        remoteColor: user.color,
-      });
-    }
+    entityIds.forEach((entityId) => {
+      setHighlightingById(entityId, areHighlighted, false);
+    });
   };
 
   const onChangeLandscape = ({
@@ -275,11 +233,7 @@ export default function useCollaborativeModifier() {
     }
     landscapeTokenActions.setTokenByValue(landscapeToken);
 
-    applicationRendererActions.cleanup();
     applicationRepositoryActions.cleanup();
-    linkRendererActions.getAllLinks().forEach((externLink) => {
-      externLink.removeFromParent();
-    });
   };
 
   const onShareSettings = ({
@@ -550,34 +504,37 @@ export default function useCollaborativeModifier() {
     changeLogActions.restoreDeletedEntries(key, true);
   };
 
-  const onMousePingUpdate = ({
+  const onPingUpdate = ({
     userId,
-    originalMessage: { modelId, position },
-  }: ForwardedMessage<MousePingUpdateMessage>): void => {
+    originalMessage: { positions, modelIds },
+  }: ForwardedMessage<PingUpdateMessage>): void => {
     const remoteUser = collaborationSessionActions.lookupRemoteUserById(userId);
     if (!remoteUser) return;
+    const pingColor = remoteUser.color;
 
-    const applicationObj =
-      applicationRendererActions.getApplicationById(modelId);
-
-    const point = new THREE.Vector3().fromArray(position);
-    if (applicationObj) {
-      remoteUser.mousePing.ping(applicationObj, point, 5000, false);
-    }
-
-    const waypointIndicator = new WaypointIndicator({
-      target: remoteUser.mousePing.mesh,
-      color: remoteUser.color,
+    positions.forEach((pos) => {
+      const position = new THREE.Vector3(pos[0], pos[1], pos[2]);
+      pingPosition(position, pingColor, false);
     });
-    localUserState.defaultCamera.add(waypointIndicator);
+
+    modelIds.forEach((modelId) => {
+      pingByModelId(modelId, false, { color: pingColor });
+    });
+
+    // TODO:
+    // const waypointIndicator = new WaypointIndicator({
+    //   target: remoteUser.mousePing.mesh,
+    //   color: remoteUser.color,
+    // });
+    //localUserState.defaultCamera.add(waypointIndicator);
   };
 
   // MARK: Effects
 
   useEffect(function registerEventListeners() {
-    eventEmitter.on(MOUSE_PING_UPDATE_EVENT, onMousePingUpdate);
+    eventEmitter.on(PING_UPDATE_EVENT, onPingUpdate);
     eventEmitter.on(COMPONENT_UPDATE_EVENT, onComponentUpdate);
-    eventEmitter.on(ALL_HIGHLIGHTS_RESET_EVENT, onAllHighlightsReset);
+    eventEmitter.on(RESET_HIGHLIGHTING_EVENT, onAllHighlightsReset);
     eventEmitter.on(HIGHLIGHTING_UPDATE_EVENT, onHighlightingUpdate);
     eventEmitter.on(CHANGE_LANDSCAPE_EVENT, onChangeLandscape);
     eventEmitter.on(SHARE_SETTINGS_EVENT, onShareSettings);
@@ -625,9 +582,9 @@ export default function useCollaborativeModifier() {
     eventEmitter.on(RESTRUCTURE_DUPLICATE_APP, onRestructureDuplicateApp);
 
     return function cleanupEventListeners() {
-      eventEmitter.off(MOUSE_PING_UPDATE_EVENT, onMousePingUpdate);
+      eventEmitter.off(PING_UPDATE_EVENT, onPingUpdate);
       eventEmitter.off(COMPONENT_UPDATE_EVENT, onComponentUpdate);
-      eventEmitter.off(ALL_HIGHLIGHTS_RESET_EVENT, onAllHighlightsReset);
+      eventEmitter.off(RESET_HIGHLIGHTING_EVENT, onAllHighlightsReset);
       eventEmitter.off(HIGHLIGHTING_UPDATE_EVENT, onHighlightingUpdate);
       eventEmitter.off(CHANGE_LANDSCAPE_EVENT, onChangeLandscape);
       eventEmitter.off(SHARE_SETTINGS_EVENT, onShareSettings);

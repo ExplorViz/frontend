@@ -1,40 +1,40 @@
 import React, { useEffect, useRef } from 'react';
 
-import Button from 'react-bootstrap/Button';
 import {
   CommentIcon,
+  LocationIcon,
   PaintbrushIcon,
   PinIcon,
   ShareAndroidIcon,
   XIcon,
 } from '@primer/octicons-react';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import ClazzPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup.tsx';
+import CommunicationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup.tsx';
+import ComponentPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup.tsx';
+import FoundationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup.tsx';
+import HtmlPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/html-popup';
+import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/method/method-popup.tsx';
+import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import {
-  Class,
-  Package,
-  StructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   isApplication,
   isClass,
   isMethod,
   isNode,
   isPackage,
+  StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import FoundationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup.tsx';
-import ComponentPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup.tsx';
-import ClazzPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup.tsx';
-import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/method/method-popup.tsx';
-import CommunicationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup.tsx';
-import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
-import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
+import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -44,10 +44,6 @@ interface PopupCoordinatorProps {
   removePopup(entityId: string): void;
   updatePopup(newData: PopupData): void;
   sharePopup(popup: PopupData): void;
-  updateMeshReference(popup: PopupData): void;
-  showApplication(appId: string): void;
-  toggleHighlightById: (modelId: string) => void;
-  openParents(entity: Class | Package, applicationId: string): void;
 }
 
 export default function PopupCoordinator({
@@ -56,17 +52,10 @@ export default function PopupCoordinator({
   removePopup,
   updatePopup,
   sharePopup,
-  updateMeshReference,
   addAnnotationForPopup,
-  showApplication,
-  toggleHighlightById,
-  openParents,
 }: PopupCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
-  const toggleHighlight = useHighlightingStore(
-    (state) => state.toggleHighlight
-  );
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode
   );
@@ -77,21 +66,29 @@ export default function PopupCoordinator({
   const sharedByColor = popupData.sharedBy ? getColor(popupData.sharedBy) : '';
   const entityType = getEntityType(popupData);
 
+  const vizStore = useVisualizationStore();
+
   const onPointerOver = () => {
-    popupData.mesh.applyHoverEffect();
     updatePopup({ ...popupData, hovered: true });
+
+    const entity = popupData.entity;
+    vizStore.actions.setHoveredEntityId(entity.id);
   };
 
   const onPointerOut = () => {
-    popupData.mesh.resetHoverEffect();
     updatePopup({ ...popupData, hovered: false });
+    vizStore.actions.setHoveredEntityId(null);
   };
 
-  const highlight = () => {
-    updateMeshReference(popupData);
-    toggleHighlight(popupData.mesh, {
-      sendMessage: true,
+  useEffect(() => {
+    updatePopup({
+      ...popupData,
+      hovered: vizStore.hoveredEntityId === popupData.entity.id,
     });
+  }, [vizStore.hoveredEntityId]);
+
+  const highlight = () => {
+    toggleHighlightById(popupData.entity.id);
   };
 
   const elementDrag = (event: MouseEvent) => {
@@ -100,7 +97,7 @@ export default function PopupCoordinator({
     const diffX = lastMousePosition.current.x - event.clientX;
     const diffY = lastMousePosition.current.y - event.clientY;
 
-    // Store latest mouse position for next delta calulation
+    // Store latest mouse position for next delta calculation
     lastMousePosition.current.x = event.clientX;
     lastMousePosition.current.y = event.clientY;
 
@@ -264,6 +261,20 @@ export default function PopupCoordinator({
               <PinIcon className="align-right" />
             </Button>
           </OverlayTrigger>
+          <OverlayTrigger
+            placement="top"
+            trigger={['hover', 'focus']}
+            overlay={<Tooltip>Ping Entity</Tooltip>}
+          >
+            <Button
+              variant="primary"
+              onClick={() => {
+                pingByModelId(popupData.entity.id as string);
+              }}
+            >
+              <LocationIcon className="align-right" />
+            </Button>
+          </OverlayTrigger>
 
           {popupData.sharedBy ? (
             <OverlayTrigger
@@ -311,7 +322,9 @@ export default function PopupCoordinator({
             overlay={<Tooltip>Annotate</Tooltip>}
           >
             <Button
-              variant="primary"
+              variant={
+                isEntityAnnotated(popupData.entityId) ? 'success' : 'primary'
+              }
               onClick={() => addAnnotationForPopup(popupData)}
             >
               <CommentIcon className="align-middle" />
@@ -326,7 +339,7 @@ export default function PopupCoordinator({
             <Button
               variant="outline-secondary"
               className="popup-close-button"
-              onClick={() => removePopup(popupData.entity.id)}
+              onClick={() => removePopup(popupData.entity.id as string)}
             >
               <XIcon className="align-middle" />
             </Button>
@@ -357,15 +370,10 @@ export default function PopupCoordinator({
         <MethodPopup restructureMode={restructureMode} popupData={popupData} />
       )}
       {entityType == 'classCommunication' && (
-        <CommunicationPopup
-          restructureMode={restructureMode}
-          popupData={popupData}
-          showApplication={showApplication}
-          toggleHighlightById={toggleHighlightById}
-          openParents={openParents}
-        />
+        <CommunicationPopup popupData={popupData} />
       )}
       {entityType == 'k8s' && <K8sPopup data={popupData} />}
+      {entityType == 'html' && <HtmlPopup data={popupData} />}
     </div>
   );
 }
@@ -389,11 +397,15 @@ function getEntityType(popupData?: PopupData): string {
   if (isMethod(popupData.entity)) {
     return 'method';
   }
-  if (popupData.entity instanceof ClazzCommuMeshDataModel) {
+  if (popupData.entity instanceof ClassCommunication) {
     return 'classCommunication';
   }
-  if (popupData.mesh instanceof K8sMesh) {
-    return 'k8s';
+  // TODO:
+  // if (popupData.entity instanceof K8sDataModel) {
+  //   return 'k8s';
+  // }
+  if ('htmlNode' in popupData.entity) {
+    return 'html';
   }
   return '';
 }

@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import {
   AppChangeLogEntry,
   BaseChangeLogEntry,
@@ -7,21 +7,20 @@ import {
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/src/utils/changelog-entry';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
   Package,
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import {
-  RestructureAction,
-  EntityType,
-  changeID,
-} from 'explorviz-frontend/src/utils/restructure-helper';
 import { getAncestorPackages } from 'explorviz-frontend/src/utils/package-helpers';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import eventEmitter from '../utils/event-emitter';
+import {
+  EntityType,
+  RestructureAction,
+} from 'explorviz-frontend/src/utils/restructure-helper';
+import { create } from 'zustand';
 
 interface ChangelogState {
   changeLogEntries: BaseChangeLogEntry[]; // tracked

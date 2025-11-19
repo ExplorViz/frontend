@@ -351,9 +351,7 @@ interface ImmersiveViewCapable {
 
 type Constructor = new (...args: any[]) => any;
 /**
- * This Mixin can extend any kind of THREE Object class and implmenet the basic function of the `SemanticZoomableObject` Interface
- * Is gets the orignal class as a parameter and returns a new extended class that can be used to instanciate
- * const extendedClass = SemanticZoomableObjectBaseMixin(orignalClass)
+ * This Mixin can extend any kind of THREE Object class
  * extendedClass(orignal params);
  * @template Base
  * @param base

@@ -1,54 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import {
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import * as THREE from 'three';
+  LocationIcon,
+  ShareAndroidIcon,
+  TrashIcon,
+} from '@primer/octicons-react';
+import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import {
-  ShareAndroidIcon,
-  LocationIcon,
-  TrashIcon,
-} from '@primer/octicons-react';
-import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useShallow } from 'zustand/react/shallow';
 import { useToastHandlerStore } from '../../../../stores/toast-handler';
-import { useApplicationRendererStore } from '../../../../stores/application-renderer';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 
 interface AnnotationCoordinatorProps {
   annotationData: AnnotationData;
   removeAnnotation(annotationId: number): void;
-  toggleHighlightById(modelId: string): void;
-  openParents(
-    entity: Package | Class | EntityMesh,
-    applicationId: string
-  ): void;
 }
 
 export default function AnnotationCoordinator({
   annotationData,
   removeAnnotation,
-  toggleHighlightById,
-  openParents,
 }: AnnotationCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
-  const toggleHighlight = useHighlightingStore(
-    (state) => state.toggleHighlight
-  );
-  const pingByModelId = useLocalUserStore((state) => state.pingByModelId);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -59,7 +38,6 @@ export default function AnnotationCoordinator({
       updateAnnotation: state.updateAnnotation,
       editAnnotation: state.editAnnotation,
       shareAnnotation: state.shareAnnotation,
-      updateMeshReference: state.updateMeshReference,
       annotationData: state.annotationData,
       setAnnotationData: state.setAnnotationData,
       minimizedAnnotations: state.minimizedAnnotations,
@@ -82,9 +60,9 @@ export default function AnnotationCoordinator({
     : '';
 
   const onPointerOver = () => {
-    if (isEntityMesh(annotationData.mesh)) {
-      annotationData.mesh.applyHoverEffect();
-    }
+    // TODO: Apply hover effect to entity if needed
+    // This would need to be implemented through a different mechanism
+    // since we no longer have direct mesh access
 
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(
@@ -95,9 +73,9 @@ export default function AnnotationCoordinator({
   };
 
   const onPointerOut = () => {
-    if (isEntityMesh(annotationData.mesh)) {
-      annotationData.mesh.resetHoverEffect();
-    }
+    // TODO: Reset hover effect on entity if needed
+    // This would need to be implemented through a different mechanism
+    // since we no longer have direct mesh access
 
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(
@@ -108,18 +86,14 @@ export default function AnnotationCoordinator({
   };
 
   const highlight = () => {
-    if (isEntityMesh(annotationData.mesh)) {
-      annotationHandler.updateMeshReference(annotationData);
-      toggleHighlight(annotationData.mesh, {
-        sendMessage: true,
-        remoteColor: new THREE.Color(0xffb739),
-      });
+    if (annotationData.entityId) {
+      toggleHighlightById(annotationData.entityId);
     }
   };
 
   const ping = () => {
-    if (annotationData.entity && annotationData.applicationId) {
-      pingByModelId(annotationData.entity?.id, annotationData.applicationId);
+    if (annotationData.entityId) {
+      pingByModelId(annotationData.entityId);
     }
   };
 
@@ -275,14 +249,9 @@ export default function AnnotationCoordinator({
     }
 
     // remove potential toggle effects
-    if (annotationData.entity) {
-      const mesh = useApplicationRendererStore
-        .getState()
-        .getMeshById(annotationData.entity.id);
-      if (mesh?.isHovered) {
-        mesh.resetHoverEffect();
-      }
-    }
+    // TODO: Reset hover effects if needed
+    // This would need to be implemented through a different mechanism
+    // since we no longer have direct mesh access
 
     // const newAnnotation = {...annotation, wasMoved: false}
     annotationHandler.setMinimizedAnnotationData([
@@ -310,14 +279,12 @@ export default function AnnotationCoordinator({
             {annotationData.wasMoved ? (
               <>
                 <div className="d-flex justify-content-between">
-                  <label
-                    style={{
-                      fontWeight: 'bold',
-                      marginLeft: '3px',
-                      marginBottom: 0,
-                    }}
-                  >
-                    Associated with '{annotationData.entity!.name}'
+                  <label>
+                    Associated with '
+                    {annotationData.entity && 'name' in annotationData.entity
+                      ? annotationData.entity.name
+                      : 'Unknown Entity'}
+                    '
                   </label>
                   <div>
                     <label
@@ -333,14 +300,7 @@ export default function AnnotationCoordinator({
                 </div>
                 <div className="d-flex justify-content-between">
                   <div></div>
-                  <label
-                    style={{
-                      fontWeight: 'bold',
-                      fontSize: 'smaller',
-                      marginRight: '3px',
-                      color: '#6c757d',
-                    }}
-                  >
+                  <label className="annotation-header-last-editor">
                     Last change by {annotationData.lastEditor}
                   </label>
                 </div>
@@ -348,31 +308,14 @@ export default function AnnotationCoordinator({
                   {annotationData.inEdit ? (
                     <input
                       id="annotationTitle"
-                      style={{
-                        fontWeight: 'bold',
-                        width: '279px',
-                        height: '38px',
-                      }}
-                      className="form-control mr-2"
+                      className="form-control mr-2 annotation-title-input"
                       placeholder="Annotation Title"
                       type="text"
                       value={annotationTitle}
                       onChange={(e) => setAnnotationTitle(e.target.value)}
                     />
                   ) : (
-                    <label
-                      style={{
-                        fontWeight: 'bold',
-                        fontSize: 'x-large',
-                        marginLeft: '3px',
-                        marginBottom: 0,
-                        width: '276px',
-                        height: '38px',
-                        overflow: 'scroll',
-                        whiteSpace: 'nowrap',
-                      }}
-                      className="mr-2"
-                    >
+                    <label className="mr-2 annotation-title-label">
                       {annotationTitle}
                     </label>
                   )}
@@ -449,7 +392,7 @@ export default function AnnotationCoordinator({
                   <OverlayTrigger
                     placement="top"
                     trigger={['hover', 'focus']}
-                    overlay={<Tooltip>Minimize annotation.</Tooltip>}
+                    overlay={<Tooltip>Minimize Annotation</Tooltip>}
                   >
                     <Button
                       className="annotation-minimize-button"
@@ -463,11 +406,11 @@ export default function AnnotationCoordinator({
                   <OverlayTrigger
                     placement="top"
                     trigger={['hover', 'focus']}
-                    overlay={<Tooltip>Close annotation.</Tooltip>}
+                    overlay={<Tooltip>Discard Annotation</Tooltip>}
                   >
                     <Button
                       className="annotation-close-button"
-                      variant="outline-secondary"
+                      variant="outline-danger"
                       onClick={() =>
                         removeAnnotation(annotationData.annotationId)
                       }
@@ -480,77 +423,57 @@ export default function AnnotationCoordinator({
                   <>
                     {annotationData.inEdit ? (
                       <>
-                        <div
-                          className="annotation-text"
-                          style={{ marginTop: '5px' }}
-                        >
+                        <div className="annotation-text">
                           <textarea
                             id="annotationtext"
                             value={annotationText}
-                            rows={4}
-                            cols={50}
-                            style={{ resize: 'none' }}
+                            className="annotation-textarea"
                             onChange={(e) => setAnnotationText(e.target.value)}
                           />
                         </div>
-                        <Button
-                          title="Update"
-                          style={{
-                            width: '98.8%',
-                            backgroundColor: '#28a745',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: 'large',
-                            border: 'none',
-                          }}
-                          variant="outline-secondary"
-                          onClick={() =>
-                            annotationHandler.updateAnnotation({
-                              ...annotationData,
-                              annotationText: annotationText,
-                              annotationTitle: annotationTitle,
-                            })
-                          }
-                        >
-                          Update Annotation
-                        </Button>
+                        <div className="d-flex justify-content-end">
+                          <Button
+                            title="Update"
+                            className="annotation-update-button"
+                            variant="outline-secondary"
+                            onClick={() =>
+                              annotationHandler.updateAnnotation({
+                                ...annotationData,
+                                annotationText: annotationText,
+                                annotationTitle: annotationTitle,
+                              })
+                            }
+                          >
+                            Update Annotation
+                          </Button>
+                        </div>
                       </>
                     ) : (
                       <>
-                        <div
-                          className="annotation-text"
-                          style={{ marginTop: '5px' }}
-                        >
+                        <div className="annotation-text">
                           <textarea
                             id="annotationtext"
                             value={annotationText}
-                            rows={4}
-                            cols={50}
-                            style={{ resize: 'none' }}
+                            className="annotation-textarea"
                             readOnly
                           />
                         </div>
-                        <Button
-                          title="Update"
-                          style={{
-                            width: '98.8%',
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: 'large',
-                            border: 'none',
-                          }}
-                          variant="outline-secondary"
-                          onClick={() => {
-                            annotationHandler.editAnnotation({
-                              ...annotationData,
-                              annotationText: annotationText,
-                              annotationTitle: annotationTitle,
-                            });
-                          }}
-                        >
-                          Edit Annotation
-                        </Button>
+                        <div className="d-flex justify-content-end">
+                          <Button
+                            title="Update"
+                            className="annotation-edit-button"
+                            variant="outline-secondary"
+                            onClick={() => {
+                              annotationHandler.editAnnotation({
+                                ...annotationData,
+                                annotationText: annotationText,
+                                annotationTitle: annotationTitle,
+                              });
+                            }}
+                          >
+                            Edit Annotation
+                          </Button>
+                        </div>
                       </>
                     )}
                   </>
@@ -559,18 +482,17 @@ export default function AnnotationCoordinator({
             ) : (
               <>
                 <div className="d-flex justify-content-between">
-                  <label style={{ fontWeight: 'bold', marginLeft: '3px' }}>
-                    Annotation
-                  </label>
+                  <label className="annotation-header-label">Annotation</label>
                 </div>
-                <label
-                  style={{ backgroundColor: 'lightgray', fontWeight: 'bold' }}
-                  className="form-control mr-2"
-                >
+                <label className="form-control mr-2 annotation-title-display">
                   {annotationTitle}
                 </label>
-                <label style={{ marginLeft: '3px' }}>
-                  Associated to '{annotationData.entity!.name}'
+                <label>
+                  Associated to '
+                  {annotationData.entity && 'name' in annotationData.entity
+                    ? annotationData.entity.name
+                    : 'Unknown Entity'}
+                  '
                 </label>
               </>
             )}
@@ -578,19 +500,11 @@ export default function AnnotationCoordinator({
         ) : (
           <>
             <div className="d-flex justify-content-between">
-              <label style={{ fontWeight: 'bold', marginLeft: '3px' }}>
+              <label className="annotation-header-creator">
                 Creator:
                 {annotationData.owner}
               </label>
-              <label
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: 'smaller',
-                  marginRight: '3px',
-                  marginTop: '2px',
-                  color: '#6c757d',
-                }}
-              >
+              <label className="annotation-header-last-editor-top">
                 Last change by {annotationData.lastEditor}
               </label>
             </div>
@@ -598,29 +512,14 @@ export default function AnnotationCoordinator({
               {annotationData.inEdit ? (
                 <input
                   id="annotationTitle"
-                  style={{ fontWeight: 'bold' }}
-                  className="form-control mr-2"
+                  className="form-control mr-2 annotation-title-input"
                   placeholder="Annotation Title"
                   type="text"
                   value={annotationTitle}
                   onChange={(e) => setAnnotationTitle(e.target.value)}
                 />
               ) : (
-                <label
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: 'x-large',
-                    marginLeft: '3px',
-                    marginBottom: 0,
-                    minWidth: '273px',
-                    maxWidth: '273px',
-                    minHeight: '38px',
-                    maxHeight: '38px',
-                    overflow: 'scroll',
-                    whiteSpace: 'nowrap',
-                  }}
-                  className="mr-2"
-                >
+                <label className="mr-2 annotation-title-label-minimized">
                   {annotationTitle}
                 </label>
               )}
@@ -690,11 +589,11 @@ export default function AnnotationCoordinator({
               <OverlayTrigger
                 placement="top"
                 trigger={['hover', 'focus']}
-                overlay={<Tooltip>Close annotation.</Tooltip>}
+                overlay={<Tooltip>Discard Annotation</Tooltip>}
               >
                 <Button
                   className="annotation-close-button"
-                  variant="outline-secondary"
+                  variant="outline-danger"
                   onClick={() => removeAnnotation(annotationData.annotationId)}
                 >
                   <TrashIcon size="small" className="align-right" />
@@ -705,29 +604,16 @@ export default function AnnotationCoordinator({
               <>
                 {annotationData.inEdit ? (
                   <>
-                    <div
-                      className="annotation-text"
-                      style={{ marginTop: '5px' }}
-                    >
+                    <div className="annotation-text">
                       <textarea
                         id="annotationtext"
                         value={annotationText}
                         rows={4}
                         cols={45}
-                        style={{ resize: 'none' }}
                       />
                     </div>
                     <Button
                       title="Update"
-                      style={{
-                        width: '98.5%',
-                        backgroundColor: '#28a745',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: 'large',
-                        border: 'none',
-                      }}
-                      variant="outline-secondary"
                       onClick={() =>
                         annotationHandler.updateAnnotation({
                           ...annotationData,
@@ -741,30 +627,17 @@ export default function AnnotationCoordinator({
                   </>
                 ) : (
                   <>
-                    <div
-                      className="annotation-text"
-                      style={{ marginTop: '5px' }}
-                    >
+                    <div className="annotation-text">
                       <textarea
                         id="annotationtext"
                         value={annotationText}
                         rows={4}
                         cols={45}
-                        style={{ resize: 'none' }}
                         readOnly
                       />
                     </div>
                     <Button
                       title="Update"
-                      style={{
-                        width: '98.5%',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: 'large',
-                        border: 'none',
-                      }}
-                      variant="outline-secondary"
                       onClick={() => {
                         annotationHandler.editAnnotation({
                           ...annotationData,

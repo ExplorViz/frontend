@@ -16,6 +16,21 @@ export function getAllPackagesInApplication(application: Application) {
   ];
 }
 
+export function getAllPackageIdsInApplications(
+  applications: Application | Application[]
+): string[] {
+  const apps = applications instanceof Array ? applications : [applications];
+  let packageIds: string[] = [];
+  apps.forEach((app) => {
+    packageIds = packageIds.concat(
+      getAllPackagesInApplication(app).map(
+        (containedPackage) => containedPackage.id
+      )
+    );
+  });
+  return packageIds;
+}
+
 export function getAllPackagesInApplicationForGivenOrigin(
   application: Application,
   originOfData: TypeOfAnalysis
@@ -38,6 +53,17 @@ export function getAllClassesInApplication(application: Application) {
   return getAllPackagesInApplication(application)
     .map((pckg) => pckg.classes)
     .flat();
+}
+
+export function getAllClassesInApplications(
+  applications: Application | Application[]
+): Class[] {
+  const apps = applications instanceof Array ? applications : [applications];
+  let classes: Class[] = [];
+  apps.forEach((app) => {
+    classes = classes.concat(getAllClassesInApplication(app));
+  });
+  return classes;
 }
 
 export function getAllClassesInApplicationForGivenOrigin(
@@ -65,6 +91,17 @@ export function getAllClassIdsInApplication(application: Application) {
   return getAllClassesInApplication(application).map(
     (containedClass) => containedClass.id
   );
+}
+
+export function getAllClassIdsInApplications(
+  applications: Application | Application[]
+) {
+  const apps = applications instanceof Array ? applications : [applications];
+  let classIds: string[] = [];
+  apps.forEach((app) => {
+    classIds = classIds.concat(getAllClassIdsInApplication(app));
+  });
+  return classIds;
 }
 
 export function getAllMethodsInApplication(application: Application) {

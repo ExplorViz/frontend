@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { format } from 'date-fns';
-import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
-import convertDate from '../utils/helpers/time-convter';
-import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { PlusIcon, TrashIcon } from '@primer/octicons-react';
+import { format } from 'date-fns';
+import {
+  ApiToken,
+  useUserApiTokenStore,
+} from 'explorviz-frontend/src/stores/user-api-token';
+import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
+import React, { useState } from 'react';
+import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 const today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
 
@@ -133,7 +136,10 @@ export default function ApiTokenSelection({
     <>
       <div className="pb-5 px-5 w-100">
         <h5 className="text-left mb-3">API-Tokens</h5>
-        <div className="flex-row justify-content-center selection-table" style={{maxHeight: '700px'}}>
+        <div
+          className="flex-row justify-content-center selection-table"
+          style={{ maxHeight: '700px' }}
+        >
           <table className="table table-striped">
             <thead>
               <tr>
@@ -195,18 +201,18 @@ export default function ApiTokenSelection({
             </tbody>
             <tfoot>
               <tr>
-                  <td colSpan={5} className="p-1">
-                    <div className="d-flex flex-row justify-content-center">
-                      <Button
-                        variant="primary"
-                        className="align-self-center pt-2 px-3"
-                        onClick={() => setCreateToken(true)}
-                      >
-                        <PlusIcon size="small" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
+                <td colSpan={5} className="p-1">
+                  <div className="d-flex flex-row justify-content-center">
+                    <Button
+                      variant="primary"
+                      className="align-self-center pt-2 px-3"
+                      onClick={() => setCreateToken(true)}
+                    >
+                      <PlusIcon size="small" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
             </tfoot>
           </table>
         </div>

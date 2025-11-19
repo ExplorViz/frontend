@@ -2,6 +2,9 @@ include:
   - project: 'ExplorViz/code/deployment'
     file: '.gitlab-ci-explorviz-common.yml'
 
+variables:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
 default:
   tags:
     - exec-docker

@@ -23,7 +23,7 @@ export default function ClazzPopupRuntime({
   const selectedMetric = useHeatmapConfigurationStore(
     (state) => state.getSelectedMetric
   )();
-  const getById = useApplicationRepositoryStore((state) => state.getById);
+  const getById = useApplicationRepositoryStore((state) => state.getByAppId);
   useHeatmapConfigurationStore((state) => state.selectedMetricName); // For reactivity on metric selection
 
   const name = clazz.name;
@@ -138,19 +138,23 @@ export default function ClazzPopupRuntime({
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <td className="fw-bold text-primary">Method Count:</td>
+          <td className="text-center fw-bold text-primary">
+            {clazz.methods.length}
+          </td>
+        </tr>
         {allMetrics.map((metric) => {
           return selectedMetric!.name == metric.metricName ? (
             <tr>
-              <td className="font-weight-bold text-primary">
-                {metric.metricName}:
-              </td>
-              <td className="text-center font-weight-bold text-primary">
+              <td className="fw-bold text-primary">{metric.metricName}:</td>
+              <td className="text-center fw-bold text-primary">
                 {metric.snapshotVal}
               </td>
-              {/* <td className="text-center font-weight-bold text-primary">
+              {/* <td className="text-center fw-bold text-primary">
           {metric.contAggVal}
         </td>
-        <td className="text-center font-weight-bold text-primary">
+        <td className="text-center fw-bold text-primary">
           {metric.winVal}
         </td> */}
             </tr>

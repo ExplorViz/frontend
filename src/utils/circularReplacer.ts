@@ -1,4 +1,4 @@
-export function getCircularReplacer() {
+export function getCircularReplacer(dropKeys: boolean = false) {
   const ancestors: any = [];
   // eslint-disable-next-line func-names
   return function (this: any, key: any, value: any) {
@@ -10,7 +10,7 @@ export function getCircularReplacer() {
       ancestors.pop();
     }
     if (ancestors.includes(value)) {
-      return '[Circular]';
+      return dropKeys ? undefined : '[Circular]';
     }
     ancestors.push(value);
     return value;

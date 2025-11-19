@@ -2,20 +2,20 @@ import RoomList from 'explorviz-frontend/src/components/collaboration/room-list'
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
 import TokenCreationModal from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
-import React, { useEffect, useState } from 'react';
-import { Tab, Tabs } from 'react-bootstrap';
-import { createSearchParams, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/auth';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   LandscapeToken,
   useLandscapeTokenStore,
-} from '../stores/landscape-token';
+} from 'explorviz-frontend/src/stores/landscape-token';
 import {
   SnapshotInfo,
   TinySnapshot,
   useSnapshotTokenStore,
-} from '../stores/snapshot-token';
-import { useToastHandlerStore } from '../stores/toast-handler';
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import React, { useEffect, useState } from 'react';
+import { Tab, Tabs } from 'react-bootstrap';
+import { createSearchParams, useNavigate } from 'react-router-dom';
 import LandscapeLoader from './landscapes-loading';
 
 export default function Landscapes() {
@@ -221,7 +221,6 @@ export default function Landscapes() {
           id="tabnav"
           className="mb-3"
           justify
-          style={{ fontSize: 'larger', fontWeight: 'bold' }}
         >
           <Tab eventKey="landscapes" title="Landscapes" id="landscape-tab">
             <div

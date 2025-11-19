@@ -5,32 +5,32 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAncestorPackages } from 'explorviz-frontend/src/utils/package-helpers';
 
-export function getClassAncestorPackages(clss: Class) {
-  return [clss.parent, ...getAncestorPackages(clss.parent)];
+export function getClassAncestorPackages(classModel: Class) {
+  return [classModel.parent, ...getAncestorPackages(classModel.parent)];
 }
 
-export function getClassMethodHashCodes(clss: Class) {
-  return clss.methods.map((method) => method.methodHash);
+export function getClassMethodHashCodes(classModel: Class) {
+  return classModel.methods.map((method) => method.methodHash);
 }
 
-export function getClassMethodByName(clss: Class, methodName: string) {
-  return clss.methods.find((method) => method.name === methodName);
+export function getClassMethodByName(classModel: Class, methodName: string) {
+  return classModel.methods.find((method) => method.name === methodName);
 }
 
 export function getClassById(
   landscapeData: StructureLandscapeData,
-  clssId: string
+  classId: string
 ) {
-  let clazz: Class | undefined;
+  let classModel: Class | undefined;
 
   if (landscapeData) {
     for (const node of landscapeData.nodes) {
       for (const app of node.applications) {
         const allClasses = getAllClassesInApplication(app);
-        clazz = allClasses.find((c) => c.id === clssId);
-        if (clazz) return clazz;
+        classModel = allClasses.find((c) => c.id === classId);
+        if (classModel) return classModel;
       }
     }
   }
-  return clazz;
+  return classModel;
 }

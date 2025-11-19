@@ -1,10 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { ChevronUpIcon } from '@primer/octicons-react';
+import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
+import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
+import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
+import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
+import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import {
   useLocalUserStore,
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import {
   AnalysisMode,
   useRenderingServiceStore,
@@ -12,72 +27,57 @@ import {
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
-import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
-import { Font, FontLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/FontLoader';
-import { useApplicationRendererStore } from '../stores/application-renderer';
-import { useRoomSerializerStore } from '../stores/collaboration/room-serializer';
-import { useCommitTreeStateStore } from '../stores/commit-tree-state';
-import { useDetachedMenuRendererStore } from '../stores/extended-reality/detached-menu-renderer';
-import { useHighlightingStore } from '../stores/highlighting';
-import { useLandscapeRestructureStore } from '../stores/landscape-restructure';
-import { useLinkRendererStore } from '../stores/link-renderer';
-import { useReloadHandlerStore } from '../stores/reload-handler';
-import { useSpectateConfigurationStore } from '../stores/spectate-configuration';
-import { useToastHandlerStore } from '../stores/toast-handler';
-import { ApiToken, useUserApiTokenStore } from '../stores/user-api-token';
-import { ForwardedMessage } from '../utils/collaboration/web-socket-messages/receivable/forwarded';
+import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
+import {
+  TIMESTAMP_POLLING_START_EVENT,
+  useTimestampPollingStore,
+} from 'explorviz-frontend/src/stores/timestamp-polling';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import {
+  ApiToken,
+  useUserApiTokenStore,
+} from 'explorviz-frontend/src/stores/user-api-token';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
   InitialLandscapeMessage,
-} from '../utils/collaboration/web-socket-messages/receivable/landscape';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/landscape';
 import {
   TIMESTAMP_UPDATE_TIMER_EVENT,
   TimestampUpdateTimerMessage,
-} from '../utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
 import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
 import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/timestamp-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import {
   VISUALIZATION_MODE_UPDATE_EVENT,
   VisualizationModeUpdateMessage,
-} from '../utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
-  SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
-} from '../utils/collaboration/web-socket-messages/types/serialized-room';
-import eventEmitter from '../utils/event-emitter';
-import { DynamicLandscapeData } from '../utils/landscape-schemes/dynamic/dynamic-data';
-import { LandscapeData } from '../utils/landscape-schemes/landscape-data';
-import { StructureLandscapeData } from '../utils/landscape-schemes/structure-data';
-import { Timestamp } from '../utils/landscape-schemes/timestamp';
-import TimelineDataObjectHandler from '../utils/timeline/timeline-data-object-handler';
-import SemanticZoomManager from '../view-objects/3d/application/utils/semantic-zoom-manager';
-// import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
-import { ChevronUpIcon } from '@primer/octicons-react';
-import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
-import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
-import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
-import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import ArRendering from '../components/extended-reality/ar-rendering';
-import EvolutionRenderingButtons from '../components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import CommitTreeApplicationSelection from '../components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
-import PlayPauseButton from '../components/visualization/rendering/play-pause-button';
-import useSyncState from '../hooks/sync-state';
-import { ImmersiveView } from '../rendering/application/immersive-view';
-import { useCollaborationSessionStore } from '../stores/collaboration/collaboration-session';
-import { useLandscapeTokenStore } from '../stores/landscape-token';
-import { useFontRepositoryStore } from '../stores/repos/font-repository';
-import { useUserSettingsStore } from '../stores/user-settings';
+import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import {
+  highlightById,
+  removeAllHighlighting,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 const queryParams = [
   'roomId',
@@ -134,6 +134,7 @@ export default function Visualization() {
     useState<boolean>(true);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
     useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number>(10);
 
   // # endregion
 
@@ -148,32 +149,21 @@ export default function Visualization() {
     loadUserAPITokens();
   }, []);
 
+  // Load preset when visualization opens
+  useEffect(() => {
+    const { selectedPreset, loadPreset, listPresets } =
+      useUserSettingsStore.getState();
+    if (selectedPreset) {
+      // Verify preset still exists before loading
+      const presets = listPresets();
+      if (presets.includes(selectedPreset)) {
+        loadPreset(selectedPreset);
+      }
+    }
+  }, []);
+
   // beforeModel equivalent
   useEffect(() => {
-    const loadFont = async () => {
-      return await new Promise<Font>((resolve, reject) => {
-        new FontLoader().load(
-          // resource URL
-          '/three.js/fonts/roboto_mono_bold_typeface.json',
-
-          // onLoad callback
-          (font) => {
-            setFont(font);
-            SemanticZoomManager.instance.font = font;
-            ImmersiveView.instance.font = font;
-            resolve(font);
-          },
-          undefined,
-          (e) => {
-            useToastHandlerStore
-              .getState()
-              .showErrorToastMessage('Failed to load font for labels.');
-            reject(e);
-          }
-        );
-      });
-    };
-
     if (
       landscapeTokenServiceToken === null &&
       !searchParams.get('landscapeToken') &&
@@ -181,10 +171,6 @@ export default function Visualization() {
       !snapshotSelected
     ) {
       navigate('/landscapes');
-    }
-
-    if (!font) {
-      loadFont();
     }
 
     return () => {
@@ -223,6 +209,29 @@ export default function Visualization() {
     };
   }, []);
 
+  // Register event listeners immediately on mount to ensure they're ready
+  // before any WebSocket connection (e.g., from auto-connect or landscape selection)
+  useEffect(() => {
+    // Register collaboration event listeners
+    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
+    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
+    eventEmitter.on(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
+
+    if (!isSingleLandscapeMode) {
+      eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
+    }
+
+    // Cleanup: remove listeners on unmount
+    return () => {
+      eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
+      eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
+      eventEmitter.off(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
+      if (!isSingleLandscapeMode) {
+        eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     initRenderingAndSetupListeners();
   }, []);
@@ -230,16 +239,27 @@ export default function Visualization() {
   // equivalent to old auto-join-lobby
   useEffect(() => {
     const autoJoinLobby = async (retries = 5) => {
-      if (connectionStatus === 'online') {
+      const currentConnectionStatus =
+        useCollaborationSessionStore.getState().connectionStatus;
+      // Don't try to reconnect if already online or if intentionally disconnected
+      if (
+        currentConnectionStatus === 'online' ||
+        currentConnectionStatus === 'connecting'
+      ) {
         return;
       }
-      const roomHosted = await hostRoom(searchParams.get('roomId')!);
+      // Only try to auto-join if there's a roomId in the URL
+      const roomId = searchParams.get('roomId');
+      if (!roomId) {
+        return;
+      }
+      const roomHosted = await hostRoom(roomId);
 
       if (!roomHosted && retries <= 0) {
         useToastHandlerStore
           .getState()
           .showErrorToastMessage('Failed to join room automatically.');
-      } else {
+      } else if (!roomHosted && retries > 0) {
         setTimeout(() => {
           autoJoinLobby(retries - 1);
         }, 5000);
@@ -249,7 +269,7 @@ export default function Visualization() {
     if (searchParams.get('roomId')) {
       autoJoinLobby();
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchVrStatus = async () => {
@@ -258,14 +278,9 @@ export default function Visualization() {
     fetchVrStatus();
   }, []);
 
-  useSyncState();
-
   // #endregion
 
   // #region Store state declaration
-  const connectionStatus = useCollaborationSessionStore(
-    (state) => state.connectionStatus
-  );
   const hostRoom = useCollaborationSessionStore((state) => state.hostRoom);
   const renderingServiceToggleVisualizationUpdating = useRenderingServiceStore(
     (state) => state.toggleVisualizationUpdating
@@ -306,6 +321,9 @@ export default function Visualization() {
   const restartTimestampPollingAndVizUpdate = useTimestampRepositoryStore(
     (state) => state.restartTimestampPollingAndVizUpdate
   );
+  const manualPollTimestamps = useTimestampPollingStore(
+    (state) => state.manuallyPollTimestamps
+  );
   const appNameCommitTreeMapEvolutionDataRepository =
     useEvolutionDataRepositoryStore((state) => state._appNameCommitTreeMap);
   const fetchAndStoreApplicationCommitTrees = useEvolutionDataRepositoryStore(
@@ -329,16 +347,8 @@ export default function Visualization() {
   const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.setAppNameAndBranchNameToColorMap
   );
-  const linkRendererFlag = useLinkRendererStore((state) => state._flag);
-  const setFlag = useLinkRendererStore((state) => state.setFlag);
-  const updateHighlighting = useHighlightingStore(
-    (state) => state.updateHighlighting
-  );
   const loadLandscapeByTimestamp = useReloadHandlerStore(
     (state) => state.loadLandscapeByTimestamp
-  );
-  const restoreFromSerialization = useApplicationRendererStore(
-    (state) => state.restoreFromSerialization
   );
   const detachedMenuRendererRestore = useDetachedMenuRendererStore(
     (state) => state.restore
@@ -365,8 +375,6 @@ export default function Visualization() {
   const snapshotSelected = useSnapshotTokenStore(
     (state) => state.snapshotSelected
   );
-  const font = useFontRepositoryStore((state) => state.font);
-  const setFont = useFontRepositoryStore((state) => state.setFont);
   const currentSelectedApplicationName = useCommitTreeStateStore(
     (state) => state._currentSelectedApplicationName
   );
@@ -404,6 +412,7 @@ export default function Visualization() {
 
   const shouldDisplayBottomBar = () => {
     return (
+      renderingServiceLandscapeData &&
       !showAR &&
       !showVR &&
       !isSingleLandscapeMode &&
@@ -417,6 +426,38 @@ export default function Visualization() {
       import.meta.env.VITE_ONLY_SHOW_TOKEN !== 'change-token'
     );
   })();
+
+  // Countdown timer for loading screen - syncs with actual fetch intervals
+  useEffect(() => {
+    if (!allLandscapeDataExistsAndNotEmpty && !isLandscapeExistentAndEmpty) {
+      // Start countdown from 10 when loading screen appears
+      setCountdown(10);
+
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 0) {
+            return 10; // Reset to 10 when it reaches 0
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [allLandscapeDataExistsAndNotEmpty, isLandscapeExistentAndEmpty]);
+
+  // Reset countdown when timestamp polling actually starts
+  useEffect(() => {
+    const handlePollingStart = () => {
+      setCountdown(10); // Reset to 10 when polling starts
+    };
+
+    eventEmitter.on(TIMESTAMP_POLLING_START_EVENT, handlePollingStart);
+
+    return () => {
+      eventEmitter.off(TIMESTAMP_POLLING_START_EVENT, handlePollingStart);
+    };
+  }, []);
 
   const { mode } = useParams();
 
@@ -470,13 +511,10 @@ export default function Visualization() {
       }
     }
 
-    // start main loop
+    // Start main loop
     restartTimestampPollingAndVizUpdate([]);
 
-    // Delete all Semantic Zoom Objects and its tables
-    SemanticZoomManager.instance.reset();
-
-    // fetch applications for evolution mode
+    // Fetch applications for evolution mode
     await fetchAndStoreApplicationCommitTrees();
 
     let showEvolutionVisualization = false;
@@ -522,16 +560,6 @@ export default function Visualization() {
       // start main loop for cross-commit runtime
       restartTimestampPollingAndVizUpdate([]);
     }
-
-    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
-    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-    eventEmitter.on(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
-
-    if (!isSingleLandscapeMode) {
-      eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-    }
-
-    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
   };
 
   // # endregion
@@ -540,36 +568,93 @@ export default function Visualization() {
 
   // collaboration start
   // user handling end
-  const onInitialLandscape = async ({
-    landscape,
-    openApps,
-    detachedMenus,
-    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
-    annotations,
-  }: InitialLandscapeMessage): Promise<void> => {
-    setFlag(true);
-    while (linkRendererFlag) {
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(null);
-        }, 50);
+
+  /**
+   * Applies room state (closed components, highlighted entities, detached menus, annotations, popups)
+   * to the visualization. This is shared logic used by both initial landscape and sync room state handlers.
+   */
+  const applyRoomState = (
+    closedComponentIds: string[] | undefined,
+    highlightedEntities:
+      | Array<{ userId: string; entityId: string }>
+      | undefined,
+    detachedMenus: SerializedDetachedMenu[],
+    annotations: SerializedAnnotation[],
+    popups: SerializedPopup[] | undefined
+  ): void => {
+    useVisualizationStore.getState().actions.resetVisualizationState();
+
+    // Apply closed components if provided
+    if (closedComponentIds && closedComponentIds.length > 0) {
+      closeComponentsByList(closedComponentIds, false, false);
+    }
+
+    // Reset all highlights first
+    removeAllHighlighting(false);
+
+    // Apply highlighted entities if provided
+    if (highlightedEntities && highlightedEntities.length > 0) {
+      highlightedEntities.forEach(({ userId, entityId }) => {
+        const user = useCollaborationSessionStore
+          .getState()
+          .lookupRemoteUserById(userId);
+        if (user) {
+          user.highlightedEntityIds.add(entityId);
+        }
+        highlightById(entityId, false);
       });
     }
-    // Now we can be sure our linkRenderer has all extern links
+
+    // Restore detached menus and popups
+    const popupsToRestore = popups || [];
+    detachedMenuRendererRestore(popupsToRestore, detachedMenus);
+
+    // Restore annotations
+    detachedMenuRendererRestoreAnnotations(annotations);
+  };
+
+  const onInitialLandscape = async ({
+    landscape,
+    detachedMenus,
+    annotations,
+    closedComponents,
+    highlightedEntities,
+  }: InitialLandscapeMessage): Promise<void> => {
+    // Convert detached menus to popups format for browser mode
+    const popupsFromMenus: SerializedPopup[] = detachedMenus.map(
+      (detachedMenu) => ({
+        userId: detachedMenu.userId || null,
+        entityId: detachedMenu.entityId,
+        menuId: detachedMenu.objectId,
+      })
+    );
+
+    // Apply room state (with reset for initial landscape)
+    applyRoomState(
+      closedComponents,
+      highlightedEntities,
+      detachedMenus as SerializedDetachedMenu[],
+      annotations as SerializedAnnotation[],
+      popupsFromMenus
+    );
 
     // Serialized room is used in landscape-data-watcher
     roomSerializer.setSerializedRoom({
       landscape: landscape,
-      openApps: openApps as SerializedApp[],
+      highlightedEntities: highlightedEntities || [], // Already in {userId, entityId} format
+      closedComponentIds: closedComponents || [],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks,
-      popups: [],
+      popups: popupsFromMenus,
       annotations: annotations as SerializedAnnotation[],
     });
 
-    updateHighlighting();
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: landscape.timestamp, spanCount: 0 },
+    ]);
     await renderingServiceTriggerRenderingForGivenTimestamp(
-      landscape.timestamp
+      commitToSelectedTimestampMap
     );
     // Disable polling. It is now triggerd by the websocket.
   };
@@ -577,14 +662,31 @@ export default function Visualization() {
   const onTimestampUpdate = async ({
     originalMessage: { timestamp },
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> => {
-    renderingServiceTriggerRenderingForGivenTimestamp(timestamp);
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: timestamp, spanCount: 0 },
+    ]);
+    renderingServiceTriggerRenderingForGivenTimestamp(
+      commitToSelectedTimestampMap
+    );
   };
 
   const onTimestampUpdateTimer = async ({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> => {
+    // Reset countdown when fetch is triggered
+    setCountdown(10);
+
+    // TODO: Refactor
+    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
+    commitToSelectedTimestampMap.set('cross-commit', [
+      { epochMilli: timestamp, spanCount: 0 },
+    ]);
     await loadLandscapeByTimestamp(timestamp);
-    renderingServiceTriggerRenderingForGivenTimestamp(timestamp);
+    renderingServiceTriggerRenderingForGivenTimestamp(
+      commitToSelectedTimestampMap
+    );
   };
 
   const onSyncRoomState = async (event: {
@@ -593,29 +695,22 @@ export default function Visualization() {
   }) => {
     const {
       landscape,
-      openApps,
-      highlightedExternCommunicationLinks,
+      closedComponentIds,
+      highlightedEntities,
       popups,
       annotations,
       detachedMenus,
     } = event.originalMessage;
-    const serializedRoom = {
-      landscape: landscape,
-      openApps: openApps as SerializedApp[],
-      highlightedExternCommunicationLinks,
-      popups: popups as SerializedPopup[],
-      annotations: annotations as SerializedAnnotation[],
-      detachedMenus: detachedMenus as SerializedDetachedMenu[],
-    };
-    console.log('onSyncRoomState');
-    restoreFromSerialization(serializedRoom);
-    detachedMenuRendererRestore(
-      serializedRoom.popups,
-      serializedRoom.detachedMenus
-    );
-    detachedMenuRendererRestoreAnnotations(serializedRoom.annotations);
 
-    updateHighlighting();
+    // Apply room state (without reset for sync)
+    // highlightedEntities is already in {userId, entityId} format
+    applyRoomState(
+      closedComponentIds,
+      highlightedEntities,
+      detachedMenus as SerializedDetachedMenu[],
+      annotations as SerializedAnnotation[],
+      popups as SerializedPopup[]
+    );
 
     showInfoToastMessage('Room state synchronizing ...');
   };
@@ -624,18 +719,6 @@ export default function Visualization() {
     if (snapshotToken === null) {
       return;
     }
-
-    // make sure our linkRenderer has all extern links
-    setFlag(true);
-    while (linkRendererFlag) {
-      // war mal 350?
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(null);
-        }, 50);
-      });
-    }
-
     /**
      * Serialized room is used in landscape-data-watcher to load the landscape with
      * all highlights and popUps.
@@ -721,7 +804,6 @@ export default function Visualization() {
   const willDestroy = () => {
     useLandscapeRestructureStore.getState().resetLandscapeRestructure();
     useTimestampPollingStore.getState().resetPolling();
-    useApplicationRendererStore.getState().cleanup();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
     useRenderingServiceStore.getState().resetAllRenderingStates();
 
@@ -757,61 +839,63 @@ export default function Visualization() {
       <div id="vizspace">
         {/* Loading screen  */}
         {!allLandscapeDataExistsAndNotEmpty && (
-          <div className="container-fluid mt-6">
-            <div className="jumbotron">
+          <div className="loading-screen-container">
+            <div className="loading-screen-content">
               {isLandscapeExistentAndEmpty ? (
-                <h2>Empty Landscape from Span Service received.</h2>
+                <h2 className="loading-screen-title">
+                  Empty Landscape from Span Service received.
+                </h2>
               ) : (
-                <h2>Loading Dynamic Landscape Data ...</h2>
+                <>
+                  <h2 className="loading-screen-title">
+                    Loading Landscape Data ...
+                  </h2>
+                  <p className="loading-screen-message">
+                    Landscape data is being fetched every 10 seconds.
+                  </p>
+                  <div className="loading-screen-countdown">
+                    Next fetch in: {countdown}s
+                  </div>
+                  <div
+                    className="loading-screen-spinner"
+                    role="status"
+                    aria-label="Loading"
+                  ></div>
+                  <Button
+                    variant="primary"
+                    onClick={manualPollTimestamps}
+                    className="loading-screen-poll-button"
+                  >
+                    Fetch Now
+                  </Button>
+                </>
               )}
-              <p>A new landscape will be fetched every 10 seconds.</p>
             </div>
-            <div className="spinner-center-3" role="status"></div>
           </div>
         )}
 
-        {/* ! Rendering mode */}
-        {showAR ? (
-          <ArRendering
-            id="ar-rendering"
-            landscapeData={renderingServiceLandscapeData!}
-            switchToOnScreenMode={switchToOnScreenMode}
-            toggleVisualizationUpdating={
-              renderingServiceToggleVisualizationUpdating
-            }
-            visualizationPaused={renderingServiceVisualizationPaused}
-          />
-        ) : showVR ? (
-          <VrRendering
-            id="vr-rendering"
-            landscapeData={renderingServiceLandscapeData!}
-            switchToOnScreenMode={switchToOnScreenMode}
-            debugMode={visualizationSettings?.showVrOnClick.value ?? false}
-          />
-        ) : (
-          <BrowserRendering
-            // addComponent={addComponent}
-            // applicationArgs={applicationArgs}
-            // closeDataSelection={closeDataSelection}
-            components={components}
-            componentsToolsSidebar={componentsToolsSidebar}
-            id="browser-rendering"
-            isDisplayed={allLandscapeDataExistsAndNotEmpty || false}
-            landscapeData={renderingServiceLandscapeData}
-            landscapeToken={landscapeTokenServiceToken}
-            removeTimestampListener={removeTimestampListener}
-            // restructureLandscape={restructureLandscape}
-            snapshot={snapshotSelected}
-            snapshotReload={snapshotToken}
-            switchToAR={switchToAR}
-            toggleVisualizationUpdating={
-              renderingServiceToggleVisualizationUpdating
-            }
-            // updateLandscape={updateLandscape}
-            userApiTokens={userApiTokens}
-            visualizationPaused={visualizationPaused}
-          />
-        )}
+        <BrowserRendering
+          // addComponent={addComponent}
+          // applicationArgs={applicationArgs}
+          // closeDataSelection={closeDataSelection}
+          components={components}
+          componentsToolsSidebar={componentsToolsSidebar}
+          id="browser-rendering"
+          isDisplayed={true}
+          landscapeData={renderingServiceLandscapeData}
+          landscapeToken={landscapeTokenServiceToken}
+          removeTimestampListener={removeTimestampListener}
+          // restructureLandscape={restructureLandscape}
+          snapshot={snapshotSelected}
+          snapshotReload={snapshotToken}
+          switchToAR={switchToAR}
+          toggleVisualizationUpdating={
+            renderingServiceToggleVisualizationUpdating
+          }
+          // updateLandscape={updateLandscape}
+          userApiTokens={userApiTokens}
+          visualizationPaused={visualizationPaused}
+        />
       </div>
 
       {/* ! Bottom Bar */}

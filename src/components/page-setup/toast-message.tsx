@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { ToastContainer, Toast } from 'react-bootstrap';
@@ -74,6 +74,7 @@ export default function ToastMessage() {
     <ToastContainer
       position="bottom-end"
       className={'p-3 toast-stack-container position-fixed'}
+      style={{ zIndex: 10000003 }}
     >
       <div className="toast-card-stack">
         {toastMessages.map(({ htmlId, header, message, cssClasses }) => (

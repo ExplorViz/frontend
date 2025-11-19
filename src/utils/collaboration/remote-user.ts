@@ -5,7 +5,6 @@ import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects
 import RayMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ray-mesh';
 import { DEFAULT_RAY_LENGTH } from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 import VrControllerModelFactory from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-model-factory';
-import MousePing from 'explorviz-frontend/src/utils/collaboration/mouse-ping-helper';
 import {
   ControllerPose,
   Pose,
@@ -36,13 +35,13 @@ export default class RemoteUser extends THREE.Object3D {
 
   color: THREE.Color;
 
+  highlightedEntityIds: Set<string> = new Set();
+
   state: string;
 
   camera: Camera | null;
 
   private animationMixer: THREE.AnimationMixer;
-
-  mousePing: MousePing;
 
   controllers: (Controller | null)[];
 
@@ -68,7 +67,6 @@ export default class RemoteUser extends THREE.Object3D {
     this.animationMixer = new THREE.AnimationMixer(this);
 
     this.camera = null;
-    this.mousePing = new MousePing(color, this.animationMixer);
     this.controllers = [null, null];
     this.nameTag = null;
 

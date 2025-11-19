@@ -15,7 +15,7 @@ interface ClazzPopupCodeProps {
 }
 
 export default function ClazzPopupCode({ popupData }: ClazzPopupCodeProps) {
-  const getById = useApplicationRepositoryStore((state) => state.getById);
+  const getById = useApplicationRepositoryStore((state) => state.getByAppId);
   const appNameToCommitIdToApplicationMetricsCodeMap =
     useEvolutionDataRepositoryStore(
       (state) => state._appNameToCommitIdToApplicationMetricsCodeMap

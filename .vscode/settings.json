@@ -1,5 +1,8 @@
 {
-  "eslint.validate": ["javascript", "typescript"],
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
   "[gjs]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -7,9 +10,9 @@
   "eslint.workingDirectories": [
     "app/",
   ],
-
   "[gts]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

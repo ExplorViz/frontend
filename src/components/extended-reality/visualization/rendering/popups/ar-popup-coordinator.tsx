@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Application,
   Class,
@@ -9,8 +8,8 @@ import {
   Package,
 } from '../../../../../utils/landscape-schemes/structure-data';
 import ClazzCommuMeshDataModel from '../../../../../view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import CommunicationPopup from '../../../../visualization/rendering/popups/application-popups/communication/communication-popup';
 import ClazzPopup from '../../../../visualization/rendering/popups/application-popups/clazz/clazz-popup';
+import CommunicationPopup from '../../../../visualization/rendering/popups/application-popups/communication/communication-popup';
 import ComponentPopup from '../../../../visualization/rendering/popups/application-popups/component/component-popup';
 import FoundationPopup from '../../../../visualization/rendering/popups/application-popups/foundation/foundation-popup';
 import PopupData from '../../../../visualization/rendering/popups/popup-data';
@@ -54,11 +53,9 @@ export default function ArPopupCoordinator({
         <div className="ar-popover">
           {entityType == 'application' ? (
             <FoundationPopup popupData={popupData} restructureMode={false} />
-          ) :
-          entityType == 'package' ? (
+          ) : entityType == 'package' ? (
             <ComponentPopup popupData={popupData} restructureMode={false} />
-          ) :
-          entityType == 'class' ? (
+          ) : entityType == 'class' ? (
             <ClazzPopup popupData={popupData} restructureMode={false} />
           ) : (
             entityType == 'classCommunication' && (

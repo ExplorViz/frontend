@@ -1,80 +1,62 @@
-import { useRef, useState, useEffect } from 'react';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  DashIcon,
+  GearIcon,
+  PlusIcon,
+  ThreeBarsIcon,
+} from '@primer/octicons-react';
+import CollaborationControls from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx';
+import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
+import HeatmapButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button';
+import PingButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
+import PopupButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/popup-button.tsx';
+import PrimaryInteractionButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button';
+import SecondaryInteractionButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button';
+import ZoomButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button';
+import ArSettingsOpener from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/navbar/ar-settings-opener.tsx';
+import ArSettingsSelector from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/sidebar/ar-settings-selector.tsx';
+import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info.tsx';
+import SettingsSidebar from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar.tsx';
+import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
+import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
+import SidebarComponent from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-component.tsx';
+import TraceSelectionAndReplayer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer.tsx';
+import { TickCallback } from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
+import PopupCoordinator from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-coordinator.tsx';
+import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
+import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  closeAllComponents,
-  moveCameraTo,
-  updateColors,
-} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { addSpheres } from 'explorviz-frontend/src/utils/application-rendering/spheres';
-import hitTest from 'explorviz-frontend/src/utils/hit-test';
-import Raycaster from 'explorviz-frontend/src/utils/raycaster';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
-import * as THREE from 'three';
-import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 import ArZoomHandler from 'explorviz-frontend/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
-import LoadingIndicator from 'explorviz-frontend/src/components/visualization/rendering/loading-indicator.tsx';
-import ArSettingsOpener from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/navbar/ar-settings-opener.tsx';
-import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener.tsx';
-import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener.tsx';
-import HeatmapInfo from 'explorviz-frontend/src/components/heatmap/heatmap-info.tsx';
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useResizeDetector } from 'react-resize-detector';
-import PopupCoordinator from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-coordinator.tsx';
-import PopupButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/popup-button.tsx';
-import HeatmapButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/heatmap-button';
-import ZoomButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/zoom-button';
-import PrimaryInteractionButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/primary-interaction-button';
-import SecondaryInteractionButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/secondary-interaction-button';
-import PingButton from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/ar-buttons/ping-button';
-import {
-  PlusIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  DashIcon,
-  GearIcon,
-  ThreeBarsIcon,
-} from '@primer/octicons-react';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import Raycaster from 'explorviz-frontend/src/utils/raycaster';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
+import { useResizeDetector } from 'react-resize-detector';
+import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import SettingsSidebar from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings-sidebar.tsx';
-import SidebarComponent from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/sidebar-component.tsx';
-import CollaborationControls from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls.tsx';
-import ArSettingsSelector from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/sidebar/ar-settings-selector.tsx';
-import TraceSelectionAndReplayer from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer.tsx';
-import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { TickCallback } from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
-import PopupData from '../visualization/rendering/popups/popup-data';
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import useHeatmapRenderer from '../../hooks/heatmap-renderer';
-import ContextMenu from '../context-menu';
+import useCollaborativeModifier from '../../hooks/collaborative-modifier';
 import useInteractionModifier from '../../hooks/interaction-modifier';
 import useLandscapeDataWatcher from '../../hooks/landscape-data-watcher';
-import useCollaborativeModifier from '../../hooks/collaborative-modifier';
+import ContextMenu from '../context-menu';
+import PopupData from '../visualization/rendering/popups/popup-data';
 
 interface ArRenderingArgs {
   readonly id: string;
@@ -99,15 +81,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     }))
   );
 
-  const localUserActions = useLocalUserStore(
-    useShallow((state) => ({
-      getCamera: state.getCamera,
-      setDefaultCamera: state.setDefaultCamera,
-      ping: state.ping,
-      tick: state.tick,
-    }))
-  );
-
   const popupHandlerState = usePopupHandlerStore(
     useShallow((state) => ({
       popupData: state.popupData,
@@ -118,31 +91,12 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     useShallow((state) => ({
       addPopup: state.addPopup,
       updatePopup: state.updatePopup,
-      updateMeshReference: state.updateMeshReference,
       removePopup: state.removePopup,
       clearPopups: state.clearPopups,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
       handleHoverOnMesh: state.handleHoverOnMesh,
       removeUnpinnedPopups: state.removeUnpinnedPopups,
-    }))
-  );
-
-  const applicationRendererActions = useApplicationRendererStore(
-    useShallow((state) => ({
-      getMeshById: state.getMeshById,
-      getApplicationById: state.getApplicationById,
-      addCommunicationForAllApplications:
-        state.addCommunicationForAllApplications,
-      openAllComponentsOfAllApplications:
-        state.openAllComponentsOfAllApplications,
-      openParents: state.openParents,
-      toggleCommunicationRendering: state.toggleCommunicationRendering,
-      setOpenApplicationsMap: state.setOpenApplicationsMap,
-      setLandscape3D: state.setLandscape3D,
-      openAllComponents: state.openAllComponents,
-      closeAllComponents: state.closeAllComponents,
-      toggleComponent: state.toggleComponent,
     }))
   );
 
@@ -200,7 +154,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const messageSenderActions = useMessageSenderStore(
     useShallow((state) => ({
-      sendMousePingUpdate: state.sendMousePingUpdate,
+      sendMousePingUpdate: state.sendPingUpdate,
     }))
   );
 
@@ -301,11 +255,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
    * Private function
    */
   const initRendering = () => {
-    initCamera();
     initRenderer();
     initAr();
 
-    arZoomHandler.current = new ArZoomHandler(localUserActions.getCamera());
+    // arZoomHandler.current = new ArZoomHandler(localUserActions.getCamera());
 
     renderingLoop.current = new RenderingLoop({
       camera: camera,
@@ -323,10 +276,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     window.addEventListener('resize', resize);
 
     addSpheres('skyblue', mousePosition, scene, tickCallbacks.current);
-    tickCallbacks.current.push({
-      id: 'ar-rendering',
-      callback: tick,
-    });
 
     renderingLoop.current.start();
     initCameraCrosshair();
@@ -347,22 +296,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         domOverlay: { root: document.body },
       })
       .then(onSessionStarted);
-  };
-
-  /**
-   * Creates a PerspectiveCamera according to canvas size and sets its initial position
-   */
-  const initCamera = () => {
-    // Set camera properties
-    localUserActions.setDefaultCamera(
-      new THREE.PerspectiveCamera(
-        65,
-        document.body.clientWidth / document.body.clientHeight,
-        0.01,
-        20
-      )
-    );
-    scene.add(useLocalUserStore.getState().defaultCamera);
   };
 
   const initCameraCrosshair = () => {
@@ -533,7 +466,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     const applicationObject3D = intersection.object.parent;
 
-    applicationRendererActions.openAllComponents(applicationObject3D);
+    // applicationRendererActions.openAllComponents(applicationObject3D);
   };
 
   const handlePing = async () => {
@@ -553,8 +486,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const parentObj = intersection.object.parent;
     const pingPosition = intersection.point;
     parentObj.worldToLocal(pingPosition);
-
-    localUserActions.ping(parentObj, pingPosition);
 
     if (!useCollaborationSessionStore.getState().isOnline) {
       if (parentObj instanceof ApplicationObject3D) {
@@ -606,7 +537,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const mesh = intersection.object;
     const position = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     popupHandlerActions.addPopup({
-      mesh,
+      entityId: mesh.getModelId(),
       position,
       hovered: true,
     });
@@ -662,7 +593,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     if (renderer.current!.xr.enabled) {
       if (!landscape3D.visible || reticle.current!.visible) {
-        hitTest(renderer.current!, reticle.current!, frame);
+        // hitTest(renderer.current!, reticle.current!, frame);
       }
     }
     collaborationSessionActions.idToRemoteUser.forEach((remoteUser) => {
@@ -679,12 +610,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         Date.now() - lastOpenAllComponents.current < 20
       )
         return;
-
-      if (appObject instanceof ComponentMesh) {
-        applicationRendererActions.toggleComponent(appObject, appObject.parent);
-      } else if (appObject instanceof FoundationMesh) {
-        applicationRendererActions.closeAllComponents(appObject.parent);
-      }
     }
 
     // Handle application hits
@@ -709,17 +634,11 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const removeUnpinnedPopups = popupHandlerActions.removeUnpinnedPopups;
 
-  const updateSceneColors = () => {
-    updateColors(scene, userSettingsState.colors!);
-  };
-
   const addAnnotationForPopup = (popup: PopupData) => {
-    const mesh = applicationRendererActions.getMeshById(popup.entity.id);
-    if (!mesh) return;
-
     annotationHandlerActions.addAnnotation({
       annotationId: undefined,
-      mesh: mesh,
+      entityId: popup.entityId,
+      entity: popup.entity,
       position: { x: popup.mouseX + 400, y: popup.mouseY },
       hovered: true,
       annotationTitle: '',
@@ -743,12 +662,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const removePopup = (entityId: string) => {
     popupHandlerActions.removePopup(entityId);
-
-    // remove potential toggle effect
-    const mesh = applicationRendererActions.getMeshById(entityId);
-    if (mesh?.isHovered) {
-      mesh.resetHoverEffect();
-    }
   };
 
   const showApplication = (appId: string) => {
@@ -786,16 +699,16 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
         : 'Pause Visualization',
       action: arRenderingArgs.toggleVisualizationUpdating,
     },
-    {
-      title: 'Open All Components',
-      action: applicationRendererActions.openAllComponentsOfAllApplications,
-    },
-    {
-      title: configurationState.isCommRendered
-        ? 'Hide Communication'
-        : 'Add Communication',
-      action: applicationRendererActions.toggleCommunicationRendering,
-    },
+    // {
+    //   title: 'Open All Components',
+    //   action: applicationRendererActions.openAllComponentsOfAllApplications,
+    // },
+    // {
+    //   title: configurationState.isCommRendered
+    //     ? 'Hide Communication'
+    //     : 'Add Communication',
+    //   action: applicationRendererActions.toggleCommunicationRendering,
+    // },
   ];
 
   // MARK: Effects
@@ -803,18 +716,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   useEffect(function init() {
     scene.background = null;
 
-    applicationRendererActions.setOpenApplicationsMap(new Map());
-
-    scene.add(landscape3D);
-    tickCallbacks.current.push({
-      id: 'local-user',
-      callback: localUserActions.tick,
-    });
-
     const onContextMenu = (event: MouseEvent) => event.preventDefault();
 
     document.addEventListener('contextmenu', onContextMenu);
-    applicationRendererActions.setLandscape3D(landscape3D);
 
     initRendering();
 
@@ -853,7 +757,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   useHeatmapRenderer(camera, scene);
 
-  useLandscapeDataWatcher(arRenderingArgs.landscapeData, landscape3D);
+  useLandscapeDataWatcher(arRenderingArgs.landscapeData);
 
   useCollaborativeModifier();
 
@@ -901,7 +805,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
               sharePopup={popupHandlerActions.sharePopup}
               removePopup={popupHandlerActions.removePopup}
               updatePopup={popupHandlerActions.updatePopup}
-              updateMeshReference={popupHandlerActions.updateMeshReference}
               structureData={
                 arRenderingArgs.landscapeData.structureLandscapeData
               }
@@ -914,7 +817,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
           <ContextMenu items={rightClickMenuItems}>
             <canvas
-              id="threejs-canvas"
+              id="three-js-canvas"
               className="webgl position-absolute"
               ref={canvasRef}
             />
@@ -1058,9 +961,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
                       structureData={
                         arRenderingArgs.landscapeData.structureLandscapeData
                       }
-                      renderingLoop={renderingLoop.current!}
-                      landscapeData={arRenderingArgs.landscapeData}
-                      moveCameraTo={moveCameraTo}
                     />
                   )}
                   {openedSettingComponent === 'Settings' && (
@@ -1072,11 +972,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
                       }
                       resetSettings={userSettingsActions.applyDefaultSettings}
                       setGamepadSupport={() => {}}
-                      updateColors={updateSceneColors}
                       updateHighlighting={
                         highlightingActions.updateHighlighting
                       }
-                      showSemanticZoomClusterCenters={() => {}}
                     />
                   )}
                 </SidebarComponent>

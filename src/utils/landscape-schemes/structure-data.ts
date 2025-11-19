@@ -11,6 +11,7 @@ export interface Parameters {
   type: string;
 }
 export type Method = {
+  originOfData: TypeOfAnalysis;
   id: string;
   name: string;
   type: string;
@@ -27,16 +28,16 @@ export enum TypeOfAnalysis {
   Dynamic = 'dynamic',
   Static = 'static',
   StaticAndDynamic = 'static+dynamic',
+  Editing = 'editing',
 }
 
 export type BaseModel = {
   id: string;
   name: string;
-  methods: Method[];
-  parent: Package;
   variables?: Variable[];
   extends?: Class[];
   implements?: Interface[];
+  editingState?: 'added' | 'removed';
 };
 
 type OriginOfData = {
@@ -46,16 +47,20 @@ type OriginOfData = {
 export type Class = BaseModel &
   OriginOfData & {
     name: string;
+    fqn: string | undefined;
     methods: Method[];
     parent: Package;
+    level: number;
   };
 
 export type Package = BaseModel &
   OriginOfData & {
     name: string;
+    fqn: string | undefined;
     subPackages: Package[];
     classes: Class[];
     parent?: Package;
+    level: number;
   };
 
 export type Application = BaseModel &
@@ -77,6 +82,7 @@ export type Node = BaseModel &
 export interface K8sPod {
   id: string;
   name: string;
+  originOfData: TypeOfAnalysis.Dynamic;
   applications: Application[];
 }
 
@@ -156,6 +162,43 @@ export function getK8sAppsFromNodes(k8sNodes: K8sNode[]) {
   );
 }
 
+export function getAllPackagesAndClassesFromLandscape(
+  landscapeStructure: StructureLandscapeData
+): { packages: Package[]; classes: Class[] } {
+  const packages: Package[] = [];
+  const classes: Class[] = [];
+
+  function collectPackagesAndClasses(pkg: Package) {
+    packages.push(pkg);
+    classes.push(...pkg.classes);
+    pkg.subPackages.forEach(collectPackagesAndClasses);
+  }
+
+  // Get packages and classes from regular nodes
+  landscapeStructure.nodes.forEach((node) => {
+    node.applications.forEach((app) => {
+      app.packages.forEach(collectPackagesAndClasses);
+    });
+  });
+
+  // Get packages and classes from k8s nodes if they exist
+  if (landscapeStructure.k8sNodes) {
+    landscapeStructure.k8sNodes.forEach((k8sNode) => {
+      k8sNode.k8sNamespaces.forEach((k8sNamespace) => {
+        k8sNamespace.k8sDeployments.forEach((k8sDeployment) => {
+          k8sDeployment.k8sPods.forEach((k8sPod) => {
+            k8sPod.applications.forEach((app) => {
+              app.packages.forEach(collectPackagesAndClasses);
+            });
+          });
+        });
+      });
+    });
+  }
+
+  return { packages, classes };
+}
+
 export function getNodeById(
   landscapeStructure: StructureLandscapeData,
   id: string
@@ -188,12 +231,19 @@ export function preProcessAndEnhanceStructureLandscape(
     entitiesForIdHashing.add(app);
   }
 
-  function createPackageIds(component: Package, parentId: string) {
+  function createPackageIdsAndFqns(
+    component: Package,
+    parentId: string,
+    parentFqn = ''
+  ) {
     component.id = `${parentId}.component-${component.name}`;
+    component.fqn = parentFqn
+      ? `${parentFqn}.${component.name}`
+      : component.name;
     entitiesForIdHashing.add(component);
     if (component.subPackages) {
       component.subPackages.forEach((subComponent) => {
-        createPackageIds(subComponent, component.id);
+        createPackageIdsAndFqns(subComponent, component.id, component.fqn);
       });
     } else {
       component.subPackages = [];
@@ -204,7 +254,11 @@ export function preProcessAndEnhanceStructureLandscape(
     components.forEach((component) => {
       component.classes.forEach((clazz) => {
         clazz.id = `${component.id}.class-${clazz.name}`;
+        clazz.fqn = `${component.fqn}.${clazz.name}`;
         entitiesForIdHashing.add(clazz);
+        clazz.methods.forEach((method) => {
+          method.originOfData = typeOfAnalysis;
+        });
       });
       createClassIds(component.subPackages);
     });
@@ -268,7 +322,7 @@ export function preProcessAndEnhanceStructureLandscape(
       app.packages.forEach((component) => {
         // create package ids in Java notation, e.g., 'net.explorviz.test'
         // and add parent relations for quicker access
-        createPackageIds(component, app.id);
+        createPackageIdsAndFqns(component, app.id);
         component.subPackages.forEach((subComponent) => {
           addParentToPackage(subComponent, component);
         });

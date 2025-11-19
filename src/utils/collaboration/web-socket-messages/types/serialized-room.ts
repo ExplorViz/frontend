@@ -5,8 +5,8 @@ import { Scale } from 'explorviz-frontend/src/utils/collaboration/web-socket-mes
 
 export type SerializedRoom = {
   landscape: SerializedLandscape;
-  openApps: SerializedApp[];
-  highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
+  highlightedEntities: SerializedHighlightedEntity[];
+  closedComponentIds: string[];
   popups: SerializedPopup[];
   annotations?: SerializedAnnotation[];
   detachedMenus: SerializedDetachedMenu[];
@@ -17,47 +17,9 @@ export type SerializedLandscape = {
   timestamp: number;
 };
 
-export type SerializedK8sNode = {
-  name: string;
-  namespaces: SerializedK8sNamespace[];
-};
-
-export type SerializedK8sNamespace = {
-  name: string;
-  pods: SerializedK8sPod[];
-};
-
-export type SerializedK8sPod = {
-  name: string;
-  applicationIds: string[];
-};
-
-export type SerializedApp = {
-  id: string;
-  position: Position;
-  quaternion: Quaternion;
-  scale: Scale;
-  openComponents: string[];
-  transparentComponents: string[];
-  highlightedComponents: SerializedHighlightedComponent[];
-};
-
-export type SerializedHighlightedComponent = {
-  appId: string;
+export type SerializedHighlightedEntity = {
   userId: string;
-  entityType: string;
   entityId: string;
-  isHighlighted: boolean;
-  color: number[];
-};
-
-export type SerializedHighlightedExternLink = {
-  appId: string;
-  color: number[];
-  entityId: string;
-  entityType: string;
-  isHighlighted: boolean;
-  userId: string;
 };
 
 export type SerializedPopup = {

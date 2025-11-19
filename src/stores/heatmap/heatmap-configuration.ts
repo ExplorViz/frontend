@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
   ApplicationMetrics,
   Metric,
@@ -7,7 +6,7 @@ import {
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import revertKey from 'explorviz-frontend/src/utils/heatmap/heatmap-generator';
 
-import { getDefaultGradient as getSimpleDefaultGradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import { getColorGradient as getSimpleDefaultGradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 export type HeatmapMode =
@@ -149,7 +148,7 @@ export const useHeatmapConfigurationStore = create<HeatmapConfigurationState>(
       }
       const applicationData = useApplicationRepositoryStore
         .getState()
-        .getById(get().currentApplication!.getModelId());
+        .getByAppId(get().currentApplication!.getModelId());
 
       return applicationData?.applicationMetrics;
     },

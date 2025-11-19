@@ -1,33 +1,25 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
-  RangeSetting as RangeSettingData,
+  RangeSetting as RangeSettingSchema,
   VisualizationSettingId,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useEffect } from 'react';
-import { useState } from 'react';
 
 export default function RangeSetting({
-  setting,
   onChange,
   settingId,
-  resetState,
 }: {
-  setting: RangeSettingData;
   onChange: (settingId: VisualizationSettingId, value: number) => void;
   settingId: VisualizationSettingId;
-  resetState: boolean;
 }) {
-  const [value, setValue]: any = useState(setting.value);
-
-  useEffect(() => {
-    setValue(defaultVizSettings[settingId].value);
-  }, [resetState]);
+  const setting = useUserSettingsStore.getState().visualizationSettings[
+    settingId
+  ]! as RangeSettingSchema;
 
   const handleInput = (newValue: number) => {
     onChange(settingId, newValue);
-    setValue(newValue);
   };
 
   return (
@@ -40,7 +32,7 @@ export default function RangeSetting({
         <div style={{ width: '100%' }}>
           <input
             id={setting.displayName}
-            value={value}
+            value={setting.value.toFixed(2)}
             min={setting.range.min}
             max={setting.range.max}
             type="range"
@@ -50,14 +42,14 @@ export default function RangeSetting({
             onChange={(event) => handleInput(Number(event.target.value))}
           />
           <div className="range-slider--values">
-            <span>{setting.range.min}</span>
+            <span>{setting.range.min.toFixed(2)}</span>
             <input
               style={{ fontWeight: 'bold', textAlign: 'center', width: '5rem' }}
               type="number"
-              value={value}
+              value={Number(setting.value.toFixed(2))}
               onChange={(event) => handleInput(Number(event.target.value))}
             />
-            <span>{setting.range.max}</span>
+            <span>{setting.range.max.toFixed(2)}</span>
           </div>
         </div>
         <ResetButton

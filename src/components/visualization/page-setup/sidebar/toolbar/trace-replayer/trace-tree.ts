@@ -1,40 +1,35 @@
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
-import { useShallow } from 'zustand/react/shallow';
 
 export class TraceNode {
   readonly id: string;
-  readonly clazz: Class;
   readonly name: string;
-  readonly mesh: BaseMesh;
+  sourceClass?: Class | null;
+  targetClass: Class;
   start: number;
   end: number;
   startDelay: number;
   endDelay: number;
 
-  parents: TraceNode[];
+  parent: TraceNode | null;
   children: TraceNode[];
 
   constructor(
     id: string,
-    clazz: Class,
     name: string,
-    mesh: BaseMesh,
+    targetClass: Class,
     start: number,
     end: number
   ) {
     this.id = id;
-    this.clazz = clazz;
     this.name = name;
-    this.mesh = mesh;
+    this.targetClass = targetClass;
     this.start = start;
     this.end = end;
     this.startDelay = 0;
     this.endDelay = 0;
 
-    this.parents = [];
+    this.parent = null;
     this.children = [];
   }
 
@@ -42,8 +37,15 @@ export class TraceNode {
     visitor.visit(this);
   }
 
+  setParent(parent: TraceNode | null) {
+    this.parent = parent;
+    if (parent) {
+      this.sourceClass = parent.targetClass;
+    }
+  }
+
   get isRoot() {
-    return this.parents.length == 0;
+    return this.parent !== null;
   }
 
   get isLeaf() {
@@ -108,7 +110,6 @@ export class TraceTree {
 }
 
 export class TraceTreeBuilder {
-  getMeshById = useApplicationRendererStore.getState().getMeshById;
   private readonly trace: Span[];
   private readonly classMap: Map<string, Class>;
 
@@ -118,22 +119,20 @@ export class TraceTreeBuilder {
   }
 
   private buildNode(span: Span): TraceNode | undefined {
-    const clazz = this.classMap.get(span.methodHash);
-    if (clazz) {
-      const mesh = this.getMeshById(clazz.id);
-      const name = clazz.methods.find(
+    const targetClass = this.classMap.get(span.methodHash);
+    if (targetClass) {
+      const name = targetClass.methods.find(
         (method) => method.methodHash === span.methodHash
       )!.name;
-      if (mesh) {
-        return new TraceNode(
-          span.spanId,
-          clazz,
-          name,
-          mesh,
-          span.startTime,
-          span.endTime
-        );
-      }
+      const node = new TraceNode(
+        span.spanId,
+        name,
+        targetClass,
+        span.startTime,
+        span.endTime
+      );
+      node.targetClass = targetClass;
+      return node;
     }
     return undefined;
   }
@@ -143,7 +142,7 @@ export class TraceTreeBuilder {
     const map = new Map<string, TraceNode>();
     let global: number = Infinity;
 
-    // Build shallow nodes
+    // Build all nodes without relationships first
     this.trace.forEach((span) => {
       const node = this.buildNode(span);
       if (node) {
@@ -156,7 +155,7 @@ export class TraceTreeBuilder {
       }
     });
 
-    // Build tree
+    // Build tree from created nodes
     this.trace.forEach((span) => {
       const node = map.get(span.spanId);
       if (node) {
@@ -164,7 +163,8 @@ export class TraceTreeBuilder {
 
         if (parent) {
           parent.children.push(node);
-          node.parents.push(parent);
+          node.setParent(parent);
+          node.sourceClass = parent.targetClass;
         } else {
           tree.children.push(node);
         }

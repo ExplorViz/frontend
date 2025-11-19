@@ -1,34 +1,35 @@
-import React, { useState } from 'react';
+import { useTraceReplayStore } from 'explorviz-frontend/src/stores/trace-replay';
+import React from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
-interface TraceSpeedProps {
-  callback: (speed: number) => void;
-}
-
-export default function TraceSpeed({ callback }: TraceSpeedProps) {
+export default function TraceSpeed() {
   const min = 0.1;
   const max = 100;
   const step = 0.1;
 
-  const [speed, setSpeed] = useState<number>(5);
+  const { speed, setSpeed } = useTraceReplayStore(
+    useShallow((state) => ({
+      speed: state.speed,
+      setSpeed: state.setSpeed,
+    }))
+  );
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value);
     if (!isNaN(value)) {
       setSpeed(Math.min(Math.max(value, min), max));
-      callback(Math.min(Math.max(value, min), max));
     }
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value);
     setSpeed(Math.min(Math.max(value, min), max));
-    callback(Math.min(Math.max(value, min), max));
   };
 
   return (
     <div className="range-slider--container">
       <div style={{ width: '100%' }}>
-        <label htmlFor="trace-speed-slider">Playback speed</label>
+        <label htmlFor="trace-speed-slider">Playback Speed</label>
         <input
           id="trace-speed-slider"
           value={speed}

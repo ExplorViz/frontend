@@ -1,19 +1,17 @@
 import { create } from 'zustand';
 
-import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import * as THREE from 'three';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useUserFactoryStore } from './user-factory';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import {
-  useWebSocketStore,
   SELF_DISCONNECTED_EVENT,
+  useWebSocketStore,
 } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import { useRoomServiceStore } from './room-service';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
+import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   SELF_CONNECTED_EVENT,
   SelfConnectedMessage,
@@ -27,25 +25,23 @@ import {
   UserDisconnectedMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/user-disconnect';
 import {
-  USER_POSITIONS_EVENT,
-  UserPositionsMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
+  USER_KICK_EVENT,
+  UserKickEvent,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/kick-user';
 import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import {
-  USER_KICK_EVENT,
-  UserKickEvent,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/kick-user';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import eventEmitter from '../../utils/event-emitter';
+  USER_POSITIONS_EVENT,
+  UserPositionsMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import { createSearchParams } from 'react-router-dom';
+import * as THREE from 'three';
+import eventEmitter from '../../utils/event-emitter';
 import { useRouterStore } from '../store-router';
+import { useRoomServiceStore } from './room-service';
+import { useUserFactoryStore } from './user-factory';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -303,29 +299,29 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       for (const highlightedEntityComponent of highlightedComponents) {
         const { highlightedApp, highlightedEntity } =
           highlightedEntityComponent;
-        if (highlightedApp !== '') {
-          const application = useApplicationRendererStore
-            .getState()
-            .getApplicationById(highlightedApp);
-          if (application) {
-            const mesh = application.getMeshById(highlightedEntity);
-            if (isEntityMesh(mesh)) {
-              useHighlightingStore.getState().toggleHighlight(mesh, {
-                sendMessage: false,
-              });
-            }
-          }
-        } else {
-          //extern Link
-          const link = useLinkRendererStore
-            .getState()
-            .getLinkById(highlightedEntity);
-          if (link) {
-            useHighlightingStore.getState().toggleHighlight(link, {
-              sendMessage: false,
-            });
-          }
-        }
+        // if (highlightedApp !== '') {
+        //   const application = useApplicationRendererStore
+        //     .getState()
+        //     .getApplicationById(highlightedApp);
+        //   if (application) {
+        //     const mesh = application.getMeshById(highlightedEntity);
+        //     if (isEntityMesh(mesh)) {
+        //       useHighlightingStore.getState().toggleHighlight(mesh, {
+        //         sendMessage: false,
+        //       });
+        //     }
+        //   }
+        // } else {
+        //   //extern Link
+        //   const link = useLinkRendererStore
+        //     .getState()
+        //     .getLinkById(highlightedEntity);
+        //   if (link) {
+        //     useHighlightingStore.getState().toggleHighlight(link, {
+        //       sendMessage: false,
+        //     });
+        //   }
+        // }
       }
     },
 
@@ -355,9 +351,10 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       // Remove remote users.
       get().removeAllRemoteUsers();
 
-      useHighlightingStore.getState().resetColorsOfHighlightedEntities();
+      // TODO:
+      // useHighlightingStore.getState().resetColorsOfHighlightedEntities();
 
-      useHighlightingStore.getState().updateHighlighting();
+      // useHighlightingStore.getState().updateHighlighting();
 
       useChatStore
         .getState()
@@ -379,12 +376,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     },
 
     hostRoom: async (roomId = '') => {
-      if (
-        !get().isConnecting() &&
-        !get().isOnline() &&
-        useApplicationRendererStore.getState().getOpenApplications().length > 0
-      ) {
-        // this.connectionStatus = 'connecting';
+      if (!get().isConnecting() && !get().isOnline()) {
         try {
           const response = await useRoomServiceStore
             .getState()
@@ -392,6 +384,8 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
           get().joinRoom(response.roomId);
           return true;
         } catch (e: any) {
+          console.log(e);
+
           // this.connectionStatus = 'offline';
           useToastHandlerStore
             .getState()

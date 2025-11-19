@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import eventEmitter from '../utils/event-emitter';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { CommunicationLink } from 'explorviz-frontend/src/ide/ide-websocket';
 
 interface IdeWebsocketFacadeState {

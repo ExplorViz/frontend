@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import Plotly from 'plotly.js-dist';
 import { TraceNode } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
+import { useTraceReplayStore } from 'explorviz-frontend/src/stores/trace-replay';
+import Plotly from 'plotly.js-dist';
+import { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 interface TraceTimelineProps {
   timeline: TraceNode[];
@@ -20,6 +22,12 @@ export default function TraceTimeline({
   callback,
 }: TraceTimelineProps) {
   const divRef = useRef<HTMLDivElement | null>(null);
+  const { cursor: storeCursor, setCursor } = useTraceReplayStore(
+    useShallow((state) => ({
+      cursor: state.cursor,
+      setCursor: state.setCursor,
+    }))
+  );
 
   const options = {
     displayModeBar: false,
@@ -119,9 +127,9 @@ export default function TraceTimeline({
   if (cursor) {
     layout.shapes.push({
       type: 'line',
-      x0: 0,
+      x0: storeCursor,
       y0: -1,
-      x1: 0,
+      x1: storeCursor,
       y1: 1,
       line: {
         color: '#d62728',
@@ -137,6 +145,7 @@ export default function TraceTimeline({
       const handleClick = (data: any) => {
         if (data && cursor) {
           const cursorValue = data.points[0].x;
+          setCursor(cursorValue);
           observer.forEach((obs) => obs(cursorValue));
           callback(cursorValue);
         }
@@ -149,8 +158,8 @@ export default function TraceTimeline({
         }
       };
 
-      divRef.current.on('plotly_click', handleClick);
-      divRef.current.on('plotly_selected', handleSelect);
+      (divRef.current as any).on('plotly_click', handleClick);
+      (divRef.current as any).on('plotly_selected', handleSelect);
 
       observer.push((cursorValue: number) => {
         if (cursor) {
@@ -162,12 +171,62 @@ export default function TraceTimeline({
 
       return () => {
         if (divRef.current) {
-          divRef.current.removeEventListener('plotly_click', handleClick);
-          divRef.current.removeEventListener('plotly_selected', handleSelect);
+          (divRef.current as any).removeEventListener(
+            'plotly_click',
+            handleClick
+          );
+          (divRef.current as any).removeEventListener(
+            'plotly_selected',
+            handleSelect
+          );
         }
       };
     }
   }, [timeline]);
+
+  // Update timeline cursor when store cursor changes
+  useEffect(() => {
+    if (divRef.current && cursor && storeCursor !== undefined) {
+      const layout = {
+        shapes: [
+          {
+            type: 'line',
+            x0: 0,
+            y0: -1,
+            x1: 0,
+            y1: 1,
+            line: {
+              color: 'black',
+              width: 1,
+            },
+          },
+          {
+            type: 'line',
+            x0: max,
+            y0: -1,
+            x1: max,
+            y1: 1,
+            line: {
+              color: 'black',
+              width: 1,
+            },
+          },
+          {
+            type: 'line',
+            x0: storeCursor,
+            y0: -1,
+            x1: storeCursor,
+            y1: 1,
+            line: {
+              color: '#d62728',
+              width: 3,
+            },
+          },
+        ],
+      };
+      Plotly.relayout(divRef.current, layout);
+    }
+  }, [storeCursor, max]);
 
   return <div style={{ width: '100%' }} className="plotlyDiv" ref={divRef} />;
 }

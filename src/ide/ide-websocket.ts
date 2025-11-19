@@ -1,5 +1,4 @@
 import { Socket, io } from 'socket.io-client';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   Application,
@@ -7,12 +6,8 @@ import {
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 import { Object3DEventMap } from 'three';
@@ -241,7 +236,7 @@ export default class IdeWebsocket {
 
       const applicationData = useApplicationRepositoryStore
         .getState()
-        .getById(application.getModelId());
+        .getByAppId(application.getModelId());
 
       const classCommunications = applicationData?.classCommunications;
 

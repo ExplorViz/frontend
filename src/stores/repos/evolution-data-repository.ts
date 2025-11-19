@@ -4,20 +4,21 @@ import {
   AppNameCommitTreeMap,
   CommitComparison,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import { StructureLandscapeData } from '../../utils/landscape-schemes/structure-data';
+import {
+  Class,
+  StructureLandscapeData,
+} from '../../utils/landscape-schemes/structure-data';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import {
-  ApplicationMetrics,
-  ApplicationMetricsCode,
-} from '../../utils/metric-schemes/metric-data';
+import { ApplicationMetricsCode } from '../../utils/metric-schemes/metric-data';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
 } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataFetchServiceStore } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 interface EvolutionDataRepositoryState {
   _appNameCommitTreeMap: AppNameCommitTreeMap;
@@ -60,6 +61,12 @@ interface EvolutionDataRepositoryState {
   _fetchCommitTreeForAppName: (
     appName: string
   ) => Promise<CommitTree | undefined>;
+  getMetricForClass: (
+    dataModel: Class,
+    applicationName: string,
+    metricKey: string,
+    getDiff: boolean
+  ) => number;
 }
 
 export const useEvolutionDataRepositoryStore =
@@ -87,7 +94,39 @@ export const useEvolutionDataRepositoryStore =
       const [firstCommit, secondCommit] = selectedCommits;
       const mapKey = `${firstCommit.commitId}-${secondCommit.commitId}`;
 
-      return get()._commitsToCommitComparisonMap.get(mapKey);
+      const commitComparison = get()._commitsToCommitComparisonMap.get(mapKey);
+
+      if (!commitComparison || commitComparison.addedPackageFqns) {
+        return commitComparison;
+      }
+
+      // ToDo: This should be refactored in code service such that this is not necessary
+      const addedPackagesWithFqn: string[] = [];
+      commitComparison.addedPackages.forEach((addedPackage, index) => {
+        const classFqn = commitComparison.added[index];
+        if (!classFqn) return;
+        const packageSuffixesNo = addedPackage.split('.').length - 1;
+        for (let index = 0; index < packageSuffixesNo; index++) {
+          const endIndex = classFqn.lastIndexOf('.');
+          addedPackagesWithFqn.push(classFqn.substring(0, endIndex));
+        }
+      });
+      commitComparison.addedPackageFqns = addedPackagesWithFqn;
+
+      // ToDo: This should be refactored in code service such that this is not necessary
+      const deletedPackagesWithFqn: string[] = [];
+      commitComparison.deletedPackages.forEach((deletedPackage, index) => {
+        const classFqn = commitComparison.deleted[index];
+        if (!classFqn) return;
+        const packageSuffixesNo = deletedPackage.split('.').length - 1;
+        for (let index = 0; index < packageSuffixesNo; index++) {
+          const endIndex = classFqn.lastIndexOf('.');
+          deletedPackagesWithFqn.push(classFqn.substring(0, endIndex));
+        }
+      });
+      commitComparison.deletedPackageFqns = deletedPackagesWithFqn;
+
+      return commitComparison;
     },
 
     fetchAndStoreApplicationCommitTrees: async (): Promise<void> => {
@@ -309,5 +348,42 @@ export const useEvolutionDataRepositoryStore =
         );
         return undefined;
       }
+    },
+
+    getMetricForClass: (
+      dataModel: Class,
+      applicationName: string,
+      metricKey: string,
+      getDiff = false
+    ) => {
+      if (metricKey === SelectedClassMetric.None) return 0;
+      if (metricKey === SelectedClassMetric.Method)
+        return dataModel.methods.length;
+
+      const selectedCommitToApplicationMetricsCodeMap =
+        get()._appNameToCommitIdToApplicationMetricsCodeMap.get(
+          applicationName
+        );
+      if (!selectedCommitToApplicationMetricsCodeMap) return 0;
+
+      let metricValue = 0;
+      for (const [
+        _,
+        appMetricsCode,
+      ] of selectedCommitToApplicationMetricsCodeMap) {
+        const metricForCommit = Number.parseInt(
+          appMetricsCode.classMetrics[dataModel.fqn]?.[metricKey] || '-1'
+        );
+
+        if (!metricForCommit) {
+          continue;
+        }
+        if (metricValue === 0) {
+          metricValue = metricForCommit;
+        } else if (getDiff) {
+          metricValue = Math.abs(metricValue - metricForCommit);
+        }
+      }
+      return metricValue;
     },
   }));

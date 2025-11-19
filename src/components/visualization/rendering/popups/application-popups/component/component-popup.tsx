@@ -1,11 +1,10 @@
-import React from 'react';
-
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import ComponentPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-code';
+import ComponentPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-restructure';
+import ComponentPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-runtime';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs.tsx';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ComponentPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-runtime';
-import ComponentPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-code';
-import ComponentPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup-restructure';
 
 interface ComponentPopupProps {
   popupData: PopupData;
@@ -21,8 +20,11 @@ export default function ComponentPopup({
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break font-weight-bold pl-1">
-          {component.name}
+        <div className="d-flex align-items-center justify-content-center gap-2">
+          <div className="text-center text-break fw-bold pl-1">
+            {component.name}
+          </div>
+          <CopyButton text={component.name} />
         </div>
       </h3>
       <PopupTabs

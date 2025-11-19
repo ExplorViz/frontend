@@ -12,10 +12,13 @@ import {
   StructureLandscapeData,
   Method,
   Package,
+  TypeOfAnalysis,
+  BaseModel,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAncestorPackages,
   getPackageById,
+  packageContainsClass,
 } from 'explorviz-frontend/src/utils/package-helpers';
 import {
   getTraceIdToSpanTree,
@@ -237,20 +240,21 @@ export function combineStructureLandscapeData(
   for (const nodeA of structureA.nodes) {
     const nodeB = findCommonNode(nodeA, structureB.nodes);
     if (nodeB) {
-      const node: Node = {
+      const combinedNode: Node = {
         id: nodeB.id,
+        name: nodeB.name,
         ipAddress: nodeB.ipAddress,
         hostName: nodeB.hostName,
-        originOfData: 'static+dynamic',
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
         applications: [],
       };
       const applications: Application[] = combineApplications(
         nodeA.applications,
         nodeB.applications
       );
-      node.applications = applications;
-      applications.forEach((app) => (app.parentId = node.id));
-      structure.nodes.push(node);
+      combinedNode.applications = applications;
+      applications.forEach((app) => (app.parentId = combinedNode.id));
+      structure.nodes.push(combinedNode);
     } else {
       // node of structureA that is not in structureB
       structure.nodes.push(nodeA);
@@ -322,11 +326,13 @@ function findCommonPackage(
 }
 
 function combineMethods(methodsA: Method[], methodsB: Method[]): Method[] {
-  const methods: Method[] = [...methodsB];
-  for (const methodA of methodsA) {
-    const methodB = findCommonMethod(methodA, methodsB);
-    if (!methodB) {
-      methods.push(methodA);
+  let methods: Method[] = [...methodsA];
+  for (const methodB of methodsB) {
+    const commonMethod = findCommonMethod(methodB, methodsA);
+    if (!commonMethod) {
+      methods.push(methodB);
+    } else {
+      commonMethod.originOfData = TypeOfAnalysis.StaticAndDynamic;
     }
   }
 
@@ -335,19 +341,35 @@ function combineMethods(methodsA: Method[], methodsB: Method[]): Method[] {
 
 function combineClasses(classesA: Class[], classesB: Class[]): Class[] {
   const classes: Class[] = [];
+  // Set origin of data for methods in classesA
+  classesA.forEach((classA) => {
+    classA.methods = classA.methods.map((method) => {
+      method.originOfData = classA.originOfData;
+      return method;
+    });
+  });
+  // Set origin of data for methods in classesB
+  classesB.forEach((classB) => {
+    classB.methods = classB.methods.map((method) => {
+      method.originOfData = classB.originOfData;
+      return method;
+    });
+  });
   for (const classA of classesA) {
     const classB = findCommonClass(classA, classesB);
     if (classB) {
-      const clazz: Class = {
+      const classModel: Class = {
         id: classB.id,
-        originOfData: 'static+dynamic',
+        level: classB.level,
+        fqn: classB.fqn,
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
         name: classB.name,
         methods: [],
         parent: classB.parent,
       };
       const methods: Method[] = combineMethods(classA.methods, classB.methods);
-      clazz.methods = methods;
-      classes.push(clazz);
+      classModel.methods = methods;
+      classes.push(classModel);
     } else {
       classes.push(classA);
     }
@@ -371,9 +393,11 @@ function combinePackages(
   for (const packageA of packagesA) {
     const packageB = findCommonPackage(packageA, packagesB);
     if (packageB) {
-      const pckg: Package = {
+      const combinedPackage: Package = {
         id: packageB.id,
-        originOfData: 'static+dynamic',
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
+        fqn: packageB.fqn,
+        level: packageB.level,
         name: packageB.name,
         subPackages: [],
         classes: [],
@@ -385,11 +409,11 @@ function combinePackages(
         packageB.subPackages
       );
       const classes = combineClasses(packageA.classes, packageB.classes);
-      classes.forEach((clazz) => (clazz.parent = pckg));
-      pckg.subPackages = subPackages;
-      subPackages.forEach((subPckg) => (subPckg.parent = pckg));
-      pckg.classes = classes;
-      packages.push(pckg);
+      classes.forEach((clazz) => (clazz.parent = combinedPackage));
+      combinedPackage.subPackages = subPackages;
+      subPackages.forEach((subPckg) => (subPckg.parent = combinedPackage));
+      combinedPackage.classes = classes;
+      packages.push(combinedPackage);
     } else {
       packages.push(packageA);
     }
@@ -415,7 +439,7 @@ function combineApplications(
     if (applicationB) {
       const application: Application = {
         id: applicationB.id,
-        originOfData: 'static+dynamic',
+        originOfData: TypeOfAnalysis.StaticAndDynamic,
         name: applicationB.name,
         language: applicationB.language,
         instanceId: applicationB.instanceId,
@@ -467,3 +491,210 @@ function findCommonNode(node: Node, nodes: Node[]) {
 }
 
 // #endregion
+
+export interface InsertionApplication {}
+
+export function insertApplicationToLandscape(
+  structure: StructureLandscapeData,
+  name: string,
+  classes: string[]
+) {
+  const nodeId = generateId();
+  const appId = generateId();
+  return [
+    combineStructureLandscapeData(structure, {
+      nodes: [
+        {
+          id: nodeId,
+          name: 'Inserted Node',
+          originOfData: TypeOfAnalysis.Static,
+          applications: [
+            {
+              id: appId,
+              name,
+              language: 'Java',
+              packages: packagesFromFlatClasses(classes),
+              originOfData: TypeOfAnalysis.Editing,
+              instanceId: '0',
+              parentId: nodeId,
+              editingState: 'added',
+            },
+          ],
+          ipAddress: '0.0.0.0',
+          hostName: '',
+        },
+      ],
+      k8sNodes: [],
+      landscapeToken: 'editing-landscape',
+    }),
+    appId,
+  ] as const;
+}
+
+export function insertClassesToLandscape(
+  structure: StructureLandscapeData,
+  id: string,
+  classes: string[]
+) {
+  const application = getApplicationInLandscapeById(structure, id);
+  if (application) {
+    const newPackages = packagesFromFlatClasses(classes, application.packages);
+    console.log(classes, newPackages, application.packages);
+    application.packages = newPackages;
+  }
+  return structure;
+}
+
+// classes are a list of fully qualified names
+function packagesFromFlatClasses(
+  classes: string[],
+  existingPackages?: Package[]
+): Package[] {
+  const rootPackagesMap = new Map<string, Package>();
+  existingPackages?.forEach((pkg) => {
+    rootPackagesMap.set(pkg.name, pkg);
+  });
+
+  classes.forEach((fqn) => {
+    const parts = fqn.split('.');
+    let currentPackagesMap = rootPackagesMap;
+    let parentPackage: Package | undefined = undefined;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      let pkg = currentPackagesMap.get(part);
+
+      if (!pkg) {
+        pkg = {
+          id: generateId(),
+          name: part,
+          classes: [],
+          subPackages: [],
+          originOfData: TypeOfAnalysis.Editing,
+          fqn: parentPackage ? `${parentPackage.fqn}.${part}` : part,
+          level: parentPackage ? parentPackage.level + 1 : 0,
+          parent: parentPackage,
+          editingState: 'added',
+        };
+        currentPackagesMap.set(part, pkg);
+        if (parentPackage) {
+          parentPackage.subPackages.push(pkg);
+        }
+      }
+
+      parentPackage = pkg;
+      currentPackagesMap = new Map<string, Package>();
+      pkg.subPackages.forEach((subPkg) =>
+        currentPackagesMap.set(subPkg.name, subPkg)
+      );
+    }
+
+    // Add class to the last package
+    if (parentPackage) {
+      parentPackage.classes.push({
+        id: generateId(),
+        name: parts[parts.length - 1],
+        methods: [],
+        originOfData: TypeOfAnalysis.Editing,
+        fqn,
+        parent: parentPackage,
+        level: 0,
+        editingState: 'added',
+      });
+    }
+  });
+
+  return Array.from(rootPackagesMap.values());
+}
+
+function generateId(): string {
+  return Array.from({ length: 4 }, () =>
+    Math.random().toString(16).slice(2)
+  ).join('');
+}
+
+export function removeComponentFromLandscape(
+  structure: StructureLandscapeData,
+  id: string
+) {
+  let removedIds = new Set<string>([id]);
+  structure.nodes.map((node) => {
+    const applications = node.applications.map((app) => {
+      const [packages, removedSubIds] = removeSubpackageOrClass(
+        id,
+        app.packages,
+        app.id === id
+      );
+      removedIds = removedIds.union(removedSubIds);
+      const allChildrenRemoved = packages.every(isRemoved);
+      const editingState =
+        app.id === id || allChildrenRemoved ? 'removed' : app.editingState;
+
+      if (editingState === 'removed') {
+        removedIds.add(app.id);
+      }
+      return {
+        ...app,
+        packages,
+        editingState,
+      };
+    });
+
+    return {
+      ...node,
+      applications,
+    };
+  });
+  return [structure, removedIds] as const;
+}
+
+function removeSubpackageOrClass(
+  id: string,
+  packages: Package[],
+  parentRemoved: boolean
+): [Package[], Set<string>] {
+  let removedIds = new Set<string>();
+  const pkgs = packages.map((pckg) => {
+    const [subPackages, removedSubIds] = removeSubpackageOrClass(
+      id,
+      pckg.subPackages,
+      parentRemoved || pckg.id === id
+    );
+    removedIds = removedIds.union(removedSubIds);
+    const classes = pckg.classes.map((clazz) => {
+      const editingState =
+        clazz.id === id || parentRemoved || pckg.id === id
+          ? 'removed'
+          : clazz.editingState;
+      if (editingState === 'removed') {
+        removedIds.add(clazz.id);
+      }
+      return {
+        ...clazz,
+        editingState,
+      };
+    });
+    const allChildrenRemoved =
+      subPackages.every(isRemoved) && classes.every(isRemoved);
+    const editingState =
+      pckg.id === id || parentRemoved || allChildrenRemoved
+        ? 'removed'
+        : pckg.editingState;
+
+    if (editingState === 'removed') {
+      removedIds.add(pckg.id);
+    }
+
+    return {
+      ...pckg,
+      subPackages,
+      classes,
+      editingState,
+    };
+  });
+  return [pkgs, removedIds];
+}
+
+function isRemoved(model: BaseModel): boolean {
+  return model.editingState === 'removed';
+}

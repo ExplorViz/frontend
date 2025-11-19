@@ -1,18 +1,23 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
+import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { Position2D } from '../hooks/interaction-modifier';
-
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 export type ContextMenuItem = {
   title: string;
   action: () => void;
 };
 
 interface ContextMenuProps {
-  items: ContextMenuItem[];
   children: ReactNode;
+  enterVR: () => void;
 }
 
-export default function ContextMenu({ items, children }: ContextMenuProps) {
+export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
   const [visible, setVisible] = useState<boolean>(false);
   const [position, setPosition] = useState<Position2D | null>(null);
 
@@ -22,6 +27,71 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
 
   const hide = () => setVisible(false);
 
+  const resetView = async () => {
+    useCameraControlsStore.getState().resetCamera();
+  };
+
+  const pingAnnotations = () => {
+    const annotationHandlerStore = useAnnotationHandlerStore.getState();
+    const allAnnotations = [
+      ...annotationHandlerStore.annotationData,
+      ...annotationHandlerStore.minimizedAnnotations,
+    ];
+
+    // Get entity IDs for all annotations
+    const annotatedEntityIds = new Set<string>();
+    allAnnotations.forEach((annotation) => {
+      if (annotation.entityId) {
+        annotatedEntityIds.add(annotation.entityId);
+      }
+    });
+
+    // Ping each annotated model with green color
+    annotatedEntityIds.forEach((entityId) => {
+      pingByModelId(entityId, true, {
+        color: 0x00ff00, // Green color
+        durationMs: 3000,
+        replay: false,
+        removeOldPings: false,
+      });
+    });
+  };
+
+  const menuItems: ContextMenuItem[] = [
+    { title: 'Reset View', action: resetView },
+    {
+      title: 'Open All Components',
+      action: () => {
+        EntityManipulation.openAllComponentsInLandscape();
+      },
+    },
+    {
+      title: 'Close All Components',
+      action: () => {
+        EntityManipulation.closeAllComponentsInLandscape();
+      },
+    },
+    {
+      title: useConfigurationStore.getState().isCommRendered
+        ? 'Hide Communication'
+        : 'Add Communication',
+      action: () =>
+        useConfigurationStore
+          .getState()
+          .setIsCommRendered(!useConfigurationStore.getState().isCommRendered),
+    },
+    {
+      title: 'Clear Highlighting',
+      action: () => {
+        removeAllHighlighting();
+      },
+    },
+    {
+      title: 'Ping Annotations',
+      action: pingAnnotations,
+    },
+    { title: 'Enter VR', action: enterVR },
+  ];
   const onMouseUp = (event: React.MouseEvent) => {
     if (event.button === 2 && !mouseMoved.current) {
       event.preventDefault();
@@ -58,6 +128,7 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
       onMouseUp={onMouseUp}
       onMouseDown={onMouseDown}
       onContextMenu={onContextMenu}
+      style={{ width: '100%' }}
     >
       {visible && position && (
         <ul
@@ -68,10 +139,10 @@ export default function ContextMenu({ items, children }: ContextMenuProps) {
             left: position.x,
             listStyle: 'none',
             padding: 0,
-            zIndex: 500,
+            zIndex: '2000',
           }}
         >
-          {items.map((item) => (
+          {menuItems.map((item) => (
             <ContextMenuItem
               key={item.title}
               title={item.title}

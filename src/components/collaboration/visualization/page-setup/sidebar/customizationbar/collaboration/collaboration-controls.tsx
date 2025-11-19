@@ -4,28 +4,6 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Select from 'react-select';
 
-import { RoomListRecord } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
-import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import {
-  useLandscapeTokenStore,
-  LandscapeToken,
-} from 'explorviz-frontend/src/stores/landscape-token';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import {
-  useSpectateConfigurationStore,
-  SpectateConfig,
-} from 'explorviz-frontend/src/stores/spectate-configuration';
-import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   DeviceCameraVideoIcon,
   DiffAddedIcon,
@@ -36,6 +14,25 @@ import {
   UnmuteIcon,
   XIcon,
 } from '@primer/octicons-react';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
+import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
+import {
+  LandscapeToken,
+  useLandscapeTokenStore,
+} from 'explorviz-frontend/src/stores/landscape-token';
+import {
+  SpectateConfig,
+  useSpectateConfigurationStore,
+} from 'explorviz-frontend/src/stores/spectate-configuration';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { RoomListRecord } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
 import {
   createSearchParams,
   useNavigate,
@@ -96,7 +93,6 @@ export default function CollaborationControls() {
   const removeSpectateConfig = useSpectateConfigurationStore(
     (state) => state.deleteSpectateConfig
   );
-  const getAllLinks = useLinkRendererStore((state) => state.getAllLinks);
   const sendKickUser = useMessageSenderStore((state) => state.sendKickUser);
   const sendChangeLandscape = useMessageSenderStore(
     (state) => state.sendChangeLandscape
@@ -305,12 +301,7 @@ export default function CollaborationControls() {
   const landscapeSelected = (event: any) => {
     setTokenByValue(event.target.value);
 
-    // Cleanup old landscape
-    useApplicationRendererStore.getState().cleanup();
-    useApplicationRepositoryStore.getState().cleanup();
-    getAllLinks().forEach((externLink) => {
-      externLink.removeFromParent();
-    });
+    // ToDo: Clean up old landscape
 
     navigate({
       pathname: '/visualization',
@@ -553,7 +544,7 @@ export default function CollaborationControls() {
       {collabStore.connectionStatus === 'online' && (
         <>
           <div>
-            <label className="bold">Room: </label>
+            <label className="bold me-2">Room:</label>
             <label>{collabStore.currentRoomId}</label>
           </div>
 

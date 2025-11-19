@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 
-import { useAuthStore } from '../stores/auth';
-import { TinySnapshot } from '../stores/snapshot-token';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { InfoIcon } from '@primer/octicons-react';
-import { Tooltip, Popover } from 'react-bootstrap';
-import { LandscapeToken } from '../stores/landscape-token';
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { Popover, Tooltip } from 'react-bootstrap';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
 interface AdditionalSnapshotInfoProps {
   token: {
@@ -54,45 +52,50 @@ export default function AdditionalSnapshotInfo(
   };
 
   const popover = (
-    <Popover id={args.token.landscapeToken.value} title={args.token.landscapeToken.alias}>
+    <Popover
+      id={args.token.landscapeToken.value}
+      title={args.token.landscapeToken.alias}
+    >
       <Popover.Header>{args.token.landscapeToken.alias}</Popover.Header>
       <Popover.Body>
-      <table className="table table-striped" style={{ width: '100%' }}>
-        <tbody>
-          <tr>
-            <td>
-              <b>Owner</b>
-            </td>
-            <td style={{ wordBreak: 'break-all' }}>
-              {args.token.landscapeToken.ownerId === user?.sub
-                ? 'You'
-                : args.token.landscapeToken.ownerId}
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td>
-              <b>ID</b>
-            </td>
-            <td>{args.token.landscapeToken.value}</td>
-            <td>
-              <CopyButton text={args.token.landscapeToken.value} />
-            </td>
-          </tr>
-          {args.token.landscapeToken.secret && (
+        <table className="table table-striped" style={{ width: '100%' }}>
+          <tbody>
             <tr>
               <td>
-                {' '}
-                <b>Secret</b>
+                <b>Owner</b>
               </td>
-              <td style={{ wordBreak: 'break-all' }}>{args.token.landscapeToken.secret}</td>
+              <td style={{ wordBreak: 'break-all' }}>
+                {args.token.landscapeToken.ownerId === user?.sub
+                  ? 'You'
+                  : args.token.landscapeToken.ownerId}
+              </td>
+              <td></td>
+            </tr>
+            <tr>
               <td>
-                <CopyButton text={args.token.landscapeToken.secret} />
+                <b>ID</b>
+              </td>
+              <td>{args.token.landscapeToken.value}</td>
+              <td>
+                <CopyButton text={args.token.landscapeToken.value} />
               </td>
             </tr>
-          )}
-        </tbody>
-      </table>
+            {args.token.landscapeToken.secret && (
+              <tr>
+                <td>
+                  {' '}
+                  <b>Secret</b>
+                </td>
+                <td style={{ wordBreak: 'break-all' }}>
+                  {args.token.landscapeToken.secret}
+                </td>
+                <td>
+                  <CopyButton text={args.token.landscapeToken.secret} />
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </Popover.Body>
     </Popover>
   );

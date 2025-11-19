@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
-import SemanticZoomManager from '../../../../view-objects/3d/application/utils/semantic-zoom-manager';
 
 export default class ApplicationGroup extends THREE.Group {
   openedApps: Map<string, ApplicationObject3D>;
@@ -81,7 +79,7 @@ export default class ApplicationGroup extends THREE.Group {
       this.openedApps.delete(application.dataModel.application.instanceId);
       application.children.forEach((child) => {
         if (child instanceof BaseMesh) {
-          child.disposeRecursively(SemanticZoomManager);
+          child.disposeRecursively();
         }
       });
     });

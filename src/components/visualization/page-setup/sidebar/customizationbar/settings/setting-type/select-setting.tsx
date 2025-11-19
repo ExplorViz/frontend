@@ -1,34 +1,26 @@
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip.tsx';
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button.tsx';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
   SelectSetting as SelectSettingData,
   VisualizationSettingId,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { useEffect } from 'react';
-import { useState } from 'react';
 import { Dropdown, DropdownButton } from 'react-bootstrap';
 
 export default function SelectSetting({
-  setting,
   onChange,
   settingId,
-  resetState,
 }: {
-  setting: SelectSettingData<unknown>;
   onChange: (settingId: VisualizationSettingId, value: unknown) => void;
   settingId: VisualizationSettingId;
-  resetState: boolean;
 }) {
-  const [value, setValue]: any = useState(setting.value);
-
-  useEffect(() => {
-    setValue(defaultVizSettings[settingId].value);
-  }, [resetState]);
+  const setting = useUserSettingsStore.getState().visualizationSettings[
+    settingId
+  ] as SelectSettingData<unknown>;
 
   const handleInput = (newValue: unknown) => {
     onChange(settingId, newValue);
-    setValue(newValue);
   };
 
   return (
@@ -41,7 +33,7 @@ export default function SelectSetting({
         <div>
           <DropdownButton
             id="dropdown-basic-button"
-            title={value as string}
+            title={setting.value as string}
             variant="primary"
           >
             {setting.options.map((option) => (
@@ -58,10 +50,7 @@ export default function SelectSetting({
         </div>
         <ResetButton
           onClick={() => {
-            const defaultValue = defaultVizSettings[settingId].value;
-            if (typeof defaultValue === 'number') {
-              handleInput(defaultValue);
-            }
+            handleInput(defaultVizSettings[settingId].value);
           }}
         />
       </div>

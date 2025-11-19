@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { CHAT_MESSAGE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/chat-message';
+import { CHAT_SYNC_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/chat-syncronization';
 import { INITIAL_LANDSCAPE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/landscape';
 import { ANNOTATION_EDIT_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/response/annotation-edit-response';
 import { ANNOTATION_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/response/annotation-response';
@@ -8,22 +12,23 @@ import { SELF_CONNECTED_EVENT } from 'explorviz-frontend/src/utils/collaboration
 import { TIMESTAMP_UPDATE_TIMER_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/timestamp-update-timer';
 import { USER_CONNECTED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/user-connected';
 import { USER_DISCONNECTED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/user-disconnect';
-import { ALL_HIGHLIGHTS_RESET_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/all-highlights-reset';
 import { ANNOTATION_CLOSED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/annotation-closed';
 import { ANNOTATION_EDIT_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/annotation-edit';
 import { ANNOTATION_OPENED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/annotation-opened';
 import { ANNOTATION_UPDATED_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/annotation-updated';
 import { CHANGE_LANDSCAPE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/change-landscape';
 import { COMPONENT_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/component-update';
+import { MESSAGE_DELETE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/delete-message';
 import { HEATMAP_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/heatmap-update';
 import { HIGHLIGHTING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/highlighting-update';
-import { MOUSE_PING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/mouse-ping-update';
+import { USER_KICK_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/kick-user';
 import { PING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/ping-update';
 import { SHARE_SETTINGS_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/share-settings';
 import { SPECTATING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/spectating-update';
 import { SYNC_ROOM_STATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/synchronize-room-state';
 import { TIMESTAMP_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/timestamp-update';
 import { Nonce } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/types/nonce';
+import { RESET_HIGHLIGHTING_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import { MENU_DETACHED_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import { OBJECT_CLOSED_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import { OBJECT_GRABBED_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-grabbed';
@@ -34,13 +39,7 @@ import { MENU_DETACHED_EVENT } from 'explorviz-frontend/src/utils/extended-reali
 import { USER_CONTROLLER_CONNECT_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
 import { USER_CONTROLLER_DISCONNECT_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import { USER_POSITIONS_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
-import { CHAT_MESSAGE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/chat-message';
-import { CHAT_SYNC_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/chat-syncronization';
 import { io, Socket } from 'socket.io-client';
-import { USER_KICK_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/kick-user';
-import { MESSAGE_DELETE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/delete-message';
-import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import eventEmitter from '../../utils/event-emitter';
 
 type ResponseHandler<T> = (msg: T) => void;
@@ -50,7 +49,7 @@ const collaborationService = import.meta.env.VITE_COLLAB_SERV_URL;
 export const SELF_DISCONNECTED_EVENT = 'self_disconnected';
 
 const RECEIVABLE_EVENTS = [
-  ALL_HIGHLIGHTS_RESET_EVENT,
+  RESET_HIGHLIGHTING_EVENT,
   CHANGE_LANDSCAPE_EVENT,
   COMPONENT_UPDATE_EVENT,
   DETACHED_MENU_CLOSED_EVENT,
@@ -60,11 +59,9 @@ const RECEIVABLE_EVENTS = [
   INITIAL_LANDSCAPE_EVENT,
   JOIN_VR_EVENT,
   MENU_DETACHED_EVENT,
-  MENU_DETACHED_EVENT,
   ANNOTATION_OPENED_EVENT,
   ANNOTATION_EDIT_EVENT,
   ANNOTATION_UPDATED_EVENT,
-  MOUSE_PING_UPDATE_EVENT,
   OBJECT_MOVED_EVENT,
   PING_UPDATE_EVENT,
   SELF_CONNECTED_EVENT,
@@ -156,6 +153,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
 
     const newSocket = io(get()._currentSocketUrl!, {
       transports: ['websocket'],
+      reconnection: true, // Allow reconnection for unexpected disconnects
       query: {
         ticketId: ticketId,
         userName: useAuthStore.getState().user?.name,
@@ -183,13 +181,11 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   },
 
   closeSocket: () => {
-    if (get().isWebSocketOpen()) {
-      const clonedSocket = Object.assign(
-        Object.create(Object.getPrototypeOf(get()._currentSocket)),
-        get()._currentSocket
-      );
-      clonedSocket.disconnect();
-      set({ _currentSocket: clonedSocket });
+    if (get()._currentSocket) {
+      get()._currentSocket?.off('disconnect', get()._closeHandler);
+      get()._currentSocket?.disconnect();
+      set({ _currentSocket: null });
+      set({ _currentSocketUrl: null });
     }
   },
 

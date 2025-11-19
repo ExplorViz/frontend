@@ -4,6 +4,22 @@
   gap: 0.5rem;
 }
 
+.quick-navigation-container {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--bs-body-bg, #fff);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  margin-bottom: 1rem;
+}
+
+.quick-navigation-button {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
 .range-slider--values {
   display: flex;
   justify-content: space-between;
@@ -102,4 +118,16 @@
 /* Show the wide-checkbox when checked */
 .wide-checkbox-container input:checked ~ .wide-checkbox:after {
   display: block;
+}
+
+/* Preset controls */
+.preset-controls-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.preset-control-input {
+  width: 200px;
 }

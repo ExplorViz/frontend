@@ -1,31 +1,30 @@
-import React from 'react';
-import { useEffect, useRef } from 'react';
-import Picker from 'vanilla-picker';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { ColorSettingId } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  ColorSetting,
+  ColorSettingId,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import React, { useEffect, useRef } from 'react';
+import { Color } from 'three';
+import Picker from 'vanilla-picker';
 
-export default function ColorPicker({
-  id,
-  setting,
-  updateColors,
-  resetState,
-}: {
-  id: ColorSettingId; // ColorSettingId
-  setting: any; // ColorSetting
-  updateColors(): void;
-  resetState: boolean;
-}) {
-  const colorPickerRef: React.MutableRefObject<any> = useRef(null);
+export default function ColorPicker({ id }: { id: ColorSettingId }) {
+  const colorSetting = useUserSettingsStore.getState().visualizationSettings[
+    id
+  ] as ColorSetting;
+
+  const colorPickerRef: React.RefObject<any> = useRef(null);
 
   useEffect(() => {
     setupApplicationColorpicker(id, colorPickerRef);
-  }, [resetState]);
+  }, [colorSetting.value]);
 
   const setupApplicationColorpicker = (
     colorName: keyof ExplorVizColors,
     element: any // HTMLElement
   ) => {
-    const colorObject = useUserSettingsStore.getState().colors![colorName];
+    const colorObject = new Color(
+      useUserSettingsStore.getState().visualizationSettings[colorName].value
+    );
     setupColorpicker(element.current, {
       colorObject,
       colorName,
@@ -54,7 +53,7 @@ export default function ColorPicker({
       alpha: false,
     });
 
-    picker.onChange = (color) => {
+    picker.onChange = (color: any) => {
       element.style.background = color.rgbaString;
       const inputColor = color.hex.substring(0, 7);
 
@@ -62,7 +61,6 @@ export default function ColorPicker({
       useUserSettingsStore
         .getState()
         .updateSetting(colorPickerObject.colorName, inputColor);
-      updateColors();
     };
   };
 
@@ -86,7 +84,7 @@ export default function ColorPicker({
       className="setting-container input-group justify-content-between"
     >
       <span className="colorpicker-label">
-        {formatColorProperty(setting.displayName)}
+        {formatColorProperty(colorSetting.displayName)}
       </span>
       <span className="input-group-append colorpicker-input">
         <span

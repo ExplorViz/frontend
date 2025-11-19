@@ -1,18 +1,8 @@
-import { create } from 'zustand';
-import MousePing from 'explorviz-frontend/src/utils/collaboration/mouse-ping-helper';
-import * as THREE from 'three';
 import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 import { getPoses } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
+import * as THREE from 'three';
+import { create } from 'zustand';
 import { useMessageSenderStore } from './message-sender';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
-import { useApplicationRendererStore } from 'explorviz-frontend/src/stores/application-renderer';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import {
-  EntityMesh,
-  isEntityMesh,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 
@@ -23,7 +13,6 @@ interface LocalUserState {
   defaultCamera: THREE.PerspectiveCamera;
   minimapCamera: THREE.OrthographicCamera;
   visualizationMode: VisualizationMode;
-  mousePing: MousePing;
   userGroup: THREE.Group;
   task: any;
   controller1: VRController | undefined;
@@ -49,28 +38,6 @@ interface LocalUserState {
   setPanoramaSphere: (panoramaSphere: THREE.Object3D) => void;
   updateControllers: (delta: number) => void;
   updateCameraAspectRatio: (width: number, height: number) => void;
-  pingByModelId: (
-    modelId: string,
-    appId: string,
-    options?: { durationInMs?: number; nonrestartable?: boolean }
-  ) => void;
-  pingNonRestartable: (
-    obj: EntityMesh | null,
-    pingPosition: THREE.Vector3,
-    durationInMs: number
-  ) => void;
-  ping: (
-    obj: THREE.Object3D,
-    pingPosition: THREE.Vector3,
-    durationInMs?: number
-  ) => void;
-  pingReplay: (
-    userId: string,
-    modelId: string,
-    position: number[],
-    durationInMs: number,
-    replay: boolean
-  ) => void;
   teleportToPosition: (position: THREE.Vector3) => void;
   getCameraWorldPosition: () => THREE.Vector3;
   getCameraHeight: () => number;
@@ -108,7 +75,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
     defaultCamera: initDefaultCamera, // tracked
     minimapCamera: new THREE.OrthographicCamera(), // tracked
     visualizationMode: 'browser', // tracked
-    mousePing: new MousePing(new THREE.Color('red'), initAnimationMixer),
     userGroup: initUserGroup,
     task: undefined,
     controller1: undefined,
@@ -126,9 +92,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
         newUserGroup.add(get().defaultCamera);
         set({ userGroup: newUserGroup });
       }
-      set({
-        mousePing: new MousePing(new THREE.Color('red'), get().animationMixer),
-      });
       return undefined;
     },
 
@@ -182,10 +145,7 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       set({ userId: id });
       set({ userName: name });
 
-      set({ color: color });
-      set({
-        mousePing: new MousePing(new THREE.Color(color), get().animationMixer),
-      });
+      set({ color: new THREE.Color('#' + color.getHexString()) });
     },
 
     setController1: (controller1: VRController) => {
@@ -234,137 +194,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       newDefaultCamera.aspect = width / height;
       set({ defaultCamera: newDefaultCamera });
       get().defaultCamera.updateProjectionMatrix();
-    },
-
-    pingByModelId: (
-      modelId: string,
-      appId: string,
-      options?: { durationInMs?: number; nonrestartable?: boolean }
-    ) => {
-      if (!get().mousePing || !modelId) {
-        return;
-      }
-
-      const duration = options?.durationInMs ?? 5000;
-
-      const applicationObject3D = useApplicationRendererStore
-        .getState()
-        .getApplicationById(appId);
-
-      if (applicationObject3D) {
-        const mesh = applicationObject3D.getBoxMeshByModelId(modelId);
-        if (!mesh) return;
-
-        if (options?.nonrestartable) {
-          get().pingNonRestartable(
-            mesh,
-            mesh.getWorldPosition(mesh!.position),
-            duration
-          );
-        } else {
-          get().ping(mesh, mesh.getWorldPosition(mesh.position), duration);
-        }
-      }
-    },
-
-    pingNonRestartable: (
-      obj: EntityMesh | null,
-      pingPosition: THREE.Vector3,
-      durationInMs: number = 5000
-    ) => {
-      // or touch, primary input ...
-      if (!get().mousePing || !obj) {
-        return;
-      }
-
-      const app3D = obj.parent;
-      if (
-        !app3D ||
-        !(app3D instanceof ApplicationObject3D || app3D instanceof Landscape3D)
-      ) {
-        return;
-      }
-
-      app3D.worldToLocal(pingPosition);
-
-      useApplicationRendererStore
-        .getState()
-        .openParents(obj, app3D.getModelId());
-
-      get().mousePing.pingNonRestartable(app3D, pingPosition, durationInMs);
-
-      useMessageSenderStore
-        .getState()
-        .sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
-    },
-
-    ping: (
-      obj: THREE.Object3D,
-      pingPosition: THREE.Vector3,
-      durationInMs: number = 5000
-    ) => {
-      const app3D = obj.parent;
-      if (
-        !app3D ||
-        !(app3D instanceof ApplicationObject3D || app3D instanceof Landscape3D)
-      ) {
-        return;
-      }
-
-      app3D.worldToLocal(pingPosition);
-
-      if (isEntityMesh(obj)) {
-        useApplicationRendererStore
-          .getState()
-          .openParents(obj, app3D.getModelId());
-      }
-
-      const replay = false;
-
-      get().mousePing.ping(app3D, pingPosition, durationInMs, replay);
-
-      useMessageSenderStore
-        .getState()
-        .sendMousePingUpdate(app3D.getModelId(), true, pingPosition);
-      useChatStore
-        .getState()
-        .sendChatMessage(
-          get().userId,
-          `${get().userName}(${get().userId}) pinged ${obj.dataModel.name}`,
-          true,
-          'ping',
-          [app3D.getModelId(), pingPosition.toArray(), durationInMs]
-        );
-    },
-
-    pingReplay: (
-      userId: string,
-      modelId: string,
-      position: number[],
-      durationInMs: number,
-      replay: boolean = true
-    ) => {
-      const remoteUser = useCollaborationSessionStore
-        .getState()
-        .lookupRemoteUserById(userId);
-
-      const applicationObj = useApplicationRendererStore
-        .getState()
-        .getApplicationById(modelId);
-
-      const point = new THREE.Vector3().fromArray(position);
-      if (applicationObj) {
-        if (remoteUser) {
-          remoteUser.mousePing.ping(
-            applicationObj,
-            point,
-            durationInMs,
-            replay
-          );
-        } else {
-          get().mousePing.ping(applicationObj, point, durationInMs, replay);
-        }
-      }
     },
 
     /*

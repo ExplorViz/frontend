@@ -1,5 +1,4 @@
-import { create } from 'zustand';
-import { AllHighlightsResetMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/all-highlights-reset';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import {
   CHANGE_LANDSCAPE_EVENT,
   ChangeLandscapeMessage,
@@ -11,73 +10,38 @@ import {
   ChangeLogRestoreEntriesMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/changelog-update';
 import {
-  PING_UPDATE_EVENT,
-  PingUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/ping-update';
-import {
   CHAT_MESSAGE_EVENT,
   ChatMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/chat-message';
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/chat-syncronization';
-import {
-  USER_MUTE_EVENT,
-  UserMuteUpdate,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mute-update';
-import {
-  SHARE_SETTINGS_EVENT,
-  ShareSettingsMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/share-settings';
-import {
-  TIMESTAMP_UPDATE_EVENT,
-  TimestampUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
-import { ControllerId } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
-import {
-  EntityType,
-  RestructureAction,
-} from 'explorviz-frontend/src/utils/restructure-helper';
-import { default as VRController } from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
-import { getControllerPose } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
-import { JoinVrMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
-import {
-  OBJECT_MOVED_EVENT,
-  ObjectMovedMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
-import {
-  OBJECT_RELEASED_EVENT,
-  ObjectReleasedMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-released';
-import {
-  USER_CONTROLLER_CONNECT_EVENT,
-  UserControllerConnectMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
-import {
-  USER_CONTROLLER_DISCONNECT_EVENT,
-  UserControllerDisconnectMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
-import {
-  ControllerPose,
-  Pose,
-  USER_POSITIONS_EVENT,
-  UserPositionsMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
-import * as THREE from 'three';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/chat-synchronization';
 import {
   COMPONENT_UPDATE_EVENT,
   ComponentUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/component-update';
 import {
+  MESSAGE_DELETE_EVENT,
+  MessageDeleteEvent,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/delete-message';
+import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
 import {
-  MOUSE_PING_UPDATE_EVENT,
-  MousePingUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
+  USER_KICK_EVENT,
+  UserKickEvent,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/kick-user';
+import {
+  USER_MUTE_EVENT,
+  UserMuteUpdate,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mute-update';
+import {
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/ping-update';
+import { ResetHighlightingMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
   RESTRUCTURE_COPY_AND_PASTE_CLASS_EVENT,
@@ -107,6 +71,10 @@ import {
   RestructureUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/restructure-update';
 import {
+  SHARE_SETTINGS_EVENT,
+  ShareSettingsMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/share-settings';
+import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
@@ -114,16 +82,43 @@ import {
   SYNC_ROOM_STATE_EVENT,
   SyncRoomStateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
+import {
+  TIMESTAMP_UPDATE_EVENT,
+  TimestampUpdateMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import { default as VRController } from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import { getControllerPose } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
+import { JoinVrMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
 import {
-  USER_KICK_EVENT,
-  UserKickEvent,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/kick-user';
+  OBJECT_MOVED_EVENT,
+  ObjectMovedMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-moved';
 import {
-  MESSAGE_DELETE_EVENT,
-  MessageDeleteEvent,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/delete-message';
+  OBJECT_RELEASED_EVENT,
+  ObjectReleasedMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/object-released';
+import {
+  USER_CONTROLLER_CONNECT_EVENT,
+  UserControllerConnectMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-connect';
+import {
+  USER_CONTROLLER_DISCONNECT_EVENT,
+  UserControllerDisconnectMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
+import {
+  ControllerPose,
+  Pose,
+  USER_POSITIONS_EVENT,
+  UserPositionsMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
+import {
+  EntityType,
+  RestructureAction,
+} from 'explorviz-frontend/src/utils/restructure-helper';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import * as THREE from 'three';
+import { create } from 'zustand';
 
 // TODO: This could probably be a utility
 // But for migration reasons, its first implemented as store.
@@ -143,19 +138,10 @@ interface MessageSenderState {
     scale: THREE.Vector3
   ) => void;
   sendObjectReleased: (objectId: string) => void;
-  sendComponentUpdate: (
-    appId: string,
-    componentId: string,
-    isOpened: boolean,
-    isFoundation: boolean,
-    forward?: boolean
-  ) => void;
+  sendComponentUpdate: (componentIds: string[], isOpened: boolean) => void;
   sendHighlightingUpdate: (
-    appId: string,
-    entityType: string,
-    entityId: string,
-    isHighlighted: boolean,
-    isMultiSelected: boolean
+    entityIds: string[],
+    areHighlighted: boolean
   ) => void;
   sendSharedSettings: (settings: VisualizationSettings) => void;
   sendRestructureModeUpdate: () => void;
@@ -209,12 +195,12 @@ interface MessageSenderState {
     undoCutOperation: boolean
   ) => void;
   sendRestructureRestorePackageMessage: (
-    pckgId: string,
+    packageId: string,
     undoCutOperation: boolean
   ) => void;
   sendRestructureRestoreClassMessage: (
     appId: string,
-    clazzId: string,
+    classId: string,
     undoCutOperation: boolean
   ) => void;
   sendChangeLogRestoreEntriesMessage: (key: string) => void;
@@ -231,12 +217,10 @@ interface MessageSenderState {
   ) => Promise<void>;
   sendJoinVr: () => Promise<void>;
   sendControllerDisconnect: (controller: VRController) => void;
-  sendPingUpdate: (controllerId: ControllerId, isPinging: boolean) => void;
-  sendMousePingUpdate: (
-    modelId: string,
-    isApplication: boolean,
-    position: THREE.Vector3
-  ) => void;
+  sendPingUpdate: (pings: {
+    modelIds?: string[];
+    positions?: THREE.Vector3[];
+  }) => void;
   sendTimestampUpdate: (timestamp: number) => void;
   sendChatMessage: (
     userId: string,
@@ -288,7 +272,7 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
   sendAllHighlightsReset: () => {
     useWebSocketStore
       .getState()
-      .send<AllHighlightsResetMessage>('all_highlights_reset', {
+      .send<ResetHighlightingMessage>('all_highlights_reset', {
         event: 'all_highlights_reset',
       });
   },
@@ -333,55 +317,34 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
   /**
    * Informs the backend that a component was opened or closed by this user.
    *
-   * @param {string} appId ID of the app which is a parent to the component
-   * @param {string} componentId ID of the component which was opened or closed
-   * @param {boolean} isOpened Tells whether the component is now open or closed (current state)
+   * @param {string[]} componentIds IDs of the components which were opened or closed
+   * @param {boolean} areOpened Tells whether the components are now open or closed (current state)
    */
-  sendComponentUpdate: (
-    appId: string,
-    componentId: string,
-
-    isOpened: boolean,
-    isFoundation: boolean,
-    forward: boolean = true
-  ) => {
+  sendComponentUpdate: (componentIds: string[], areOpened: boolean) => {
     useWebSocketStore
       .getState()
       .send<ComponentUpdateMessage>(COMPONENT_UPDATE_EVENT, {
         event: COMPONENT_UPDATE_EVENT,
-        appId,
-        componentId,
-        isOpened,
-        isFoundation,
-        forward,
+        componentIds,
+        areOpened,
       });
   },
 
   /**
-   * Informs the backend that an entity (clazz or component) was highlighted
+   * Informs the backend that an entity (application, class, component) was highlighted
    * or unhighlighted.
    *
-   * @param {string} appId ID of the parent application of the entity
-   * @param {string} entityType Tells whether a clazz/component or communication was updated
-   * @param {string} entityId ID of the highlighted/unhighlighted component/clazz
+   * @param {string} entityType Tells whether a class/component or communication was updated
+   * @param {string} entityId ID of the highlighted/unhighlighted component/class
    * @param {boolean} isHighlighted Tells whether the entity has been highlighted or not
    */
-  sendHighlightingUpdate: (
-    appId: string,
-    entityType: string,
-    entityId: string,
-    isHighlighted: boolean,
-    isMultiSelected: boolean
-  ) => {
+  sendHighlightingUpdate: (entityIds: string[], areHighlighted: boolean) => {
     useWebSocketStore
       .getState()
       .send<HighlightingUpdateMessage>(HIGHLIGHTING_UPDATE_EVENT, {
         event: HIGHLIGHTING_UPDATE_EVENT,
-        appId,
-        entityType,
-        entityId,
-        isHighlighted,
-        multiSelected: isMultiSelected,
+        entityIds,
+        areHighlighted,
       });
   },
 
@@ -642,14 +605,14 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
     if (!room) {
       return;
     }
+    
     useWebSocketStore
       .getState()
       .send<SyncRoomStateMessage>(SYNC_ROOM_STATE_EVENT, {
         event: SYNC_ROOM_STATE_EVENT,
         landscape: room.landscape,
-        openApps: room.openApps.map(({ ...app }) => app),
-        highlightedExternCommunicationLinks:
-          room.highlightedExternCommunicationLinks,
+        closedComponentIds: room.closedComponentIds,
+        highlightedEntities: room.highlightedEntities, // Already in {userId, entityId} format
         popups: room.popups.map(({ ...popup }) => popup),
         annotations: room.annotations!.map(({ ...annotation }) => annotation),
         detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
@@ -694,27 +657,14 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
       });
   },
 
-  sendPingUpdate: (controllerId: ControllerId, isPinging: boolean) => {
+  sendPingUpdate: ({ modelIds, positions }) => {
+    modelIds = modelIds ?? [];
+    positions = positions ?? [];
     useWebSocketStore.getState().send<PingUpdateMessage>(PING_UPDATE_EVENT, {
-      event: 'ping_update',
-      controllerId,
-      isPinging,
+      event: PING_UPDATE_EVENT,
+      modelIds,
+      positions: positions.map((pos) => pos.toArray()),
     });
-  },
-
-  sendMousePingUpdate: (
-    modelId: string,
-    isApplication: boolean,
-    position: THREE.Vector3
-  ) => {
-    useWebSocketStore
-      .getState()
-      .send<MousePingUpdateMessage>(MOUSE_PING_UPDATE_EVENT, {
-        event: 'mouse_ping_update',
-        modelId,
-        isApplication,
-        position: position.toArray(),
-      });
   },
 
   sendTimestampUpdate: (timestamp: number) => {

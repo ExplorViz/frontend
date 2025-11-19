@@ -7,7 +7,7 @@ import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useRenderingServiceStore } from '../rendering-service';
 
-interface TimestampRespositoryState {
+interface TimestampRepositoryState {
   commitToTimestampMap: Map<string, Map<number, Timestamp>>;
   _timelineDataObjectHandler: TimelineDataObjectHandler | null;
   addCommitToTimestamp: (
@@ -30,7 +30,7 @@ interface TimestampRespositoryState {
   resetState: () => void;
 }
 
-export const useTimestampRepositoryStore = create<TimestampRespositoryState>(
+export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
   (set, get) => ({
     commitToTimestampMap: new Map(), // tracked
     _timelineDataObjectHandler: null,
