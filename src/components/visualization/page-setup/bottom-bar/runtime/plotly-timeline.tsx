@@ -3,6 +3,7 @@ import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
 import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
 import Plotly from 'plotly.js-dist';
 import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -47,12 +48,24 @@ export default function PlotlyTimeline({
   const minRequestFilter = useRef<number>(-1);
   const maxRequestFilter = useRef<number>(Number.MAX_SAFE_INTEGER);
 
+  // #region Stores
+
+  const getCurrentSelectedApplicationName = useCommitTreeStateStore(
+    (state) => state.getCurrentSelectedApplicationName
+  );
+
+  const getSelectedCommits = useCommitTreeStateStore(
+    (state) => state.getSelectedCommits
+  );
+
+  // #endregion
+
   // #region template-argument getters for default values
   const defaultMarkerColor = useRef<string>('#1f77b4');
   const debugSnapshotMarkerColor = useRef<string>('#000000');
   const defaultMarkerSize = useRef<number>(8);
   const highlightedMarkerSize = useRef<number>(15);
-  const selectionCount = useRef<number>(1);
+  const selectionCount = useRef<number>(2);
   const slidingWindowLowerBoundInMinutes = useRef<number>(4);
   const slidingWindowUpperBoundInMinutes = useRef<number>(4);
   const timefstamps = useRef([]);
@@ -244,11 +257,21 @@ export default function PlotlyTimeline({
 
         const selectedTimeline = data.points[0].curveNumber;
 
+        const commitIdAssociatedWithTimeline = getSelectedCommits().get(getCurrentSelectedApplicationName())?.[selectedTimeline];
+
+        console.log("selectedCommitTimestampsMap", selectedCommitTimestampsMap.current);
+
+        selectedCommitTimestampsMap.current.forEach((timestamps, commit) => {
+          console.log("commit in selectedCommitTimestampsMap:", commit);
+          console.log("timestamps in selectedCommitTimestampsMap:", timestamps);
+        });
+
         // reset old selection, since maximum selection value is achieved
         // and user clicked on a new point
         if (
           selectedCommitTimestampsMap.current.size === selectionCount.current
         ) {
+          console.log("Resetting selection");
           resetSelectionInStateObjects();
           colors = Array(numberOfPoints).fill(
             timelineColors.current![selectedTimeline]

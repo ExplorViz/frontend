@@ -13,8 +13,8 @@ export type TimelineDataObject = Map<
   TimelineDataForCommit
 >;
 
-const SELECTED_COLOR = 'red';
-const UNSELECTED_COLOR = 'blue';
+const PAUSED_COLOR = 'red';
+const UNPAUSED_COLOR = 'blue';
 
 export default class TimelineDataObjectHandler {
   // #region Properties
@@ -40,9 +40,9 @@ export default class TimelineDataObjectHandler {
       if (
         timelineData &&
         timelineData.selectedTimestamps.length > 0 &&
-        selectedTimestamps === timelineData.selectedTimestamps
+        selectedTimestamps === timelineData.selectedTimestamps // TODO: compare arrays properly, not by reference
       ) {
-        return;
+        return; // TODO: shouldn't we continue instead of return?
       }
     }
 
@@ -62,11 +62,11 @@ export default class TimelineDataObjectHandler {
 
   // #region Timeline Setter
 
-  updateHighlightedMarkerColorForSelectedCommits(areCommitsSelected: boolean) {
+  updateHighlightedMarkerColorForSelectedCommits(isVisualizationPaused: boolean) {
     this.timelineDataObject.forEach((dataForCommit) => {
-      dataForCommit.highlightedMarkerColor = areCommitsSelected
-        ? SELECTED_COLOR
-        : UNSELECTED_COLOR;
+      dataForCommit.highlightedMarkerColor = isVisualizationPaused
+        ? PAUSED_COLOR
+        : UNPAUSED_COLOR;
     });
   }
 
