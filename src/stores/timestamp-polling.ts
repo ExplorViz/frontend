@@ -183,7 +183,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         if (newestLocalTimestamp) {
-          url += `?newest=${newestLocalTimestamp.epochMilli}`;
+          url += `?newest=${newestLocalTimestamp.epochNano}`;
           if (commit) {
             url += `&commit=${commit.commitId}`;
           }
