@@ -165,7 +165,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
             debugSnapshotTimestampsPromise
               .then((debugSnapshots: DebugSnapshot[]) => {
 
-                console.log(`Fetched ${debugSnapshots.length} new debug snapshots from VS Code extension.`, debugSnapshots);
+                //console.log(`Fetched ${debugSnapshots.length} new debug snapshots from VS Code extension.`, debugSnapshots);
 
                 useDebugSnapshotRepositoryStore.getState().saveDebugSnapshots(
                   useLandscapeTokenStore.getState().token!.value,

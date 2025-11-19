@@ -2,7 +2,6 @@ import Plotly from 'plotly.js-dist';
 import { useEffect, useRef } from 'react';
 import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
 import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
-import Plotly from 'plotly.js-dist';
 import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 // const Plotly = require('plotly.js-dist');
@@ -48,18 +47,6 @@ export default function PlotlyTimeline({
 
   const minRequestFilter = useRef<number>(0);
   const maxRequestFilter = useRef<number>(Number.MAX_SAFE_INTEGER);
-
-  // #region Stores
-
-  const getCurrentSelectedApplicationName = useCommitTreeStateStore(
-    (state) => state.getCurrentSelectedApplicationName
-  );
-
-  const getSelectedCommits = useCommitTreeStateStore(
-    (state) => state.getSelectedCommits
-  );
-
-  // #endregion
 
   // #region template-argument getters for default values
   const defaultMarkerColor = useRef<string>('#1f77b4');
@@ -133,6 +120,7 @@ export default function PlotlyTimeline({
   };
 
   const getCommitIdBasedForMapIndex = (index: number) => {
+    console.log("Array.from(timelineDataObject.keys()):", Array.from(timelineDataObject.keys()));
     return Array.from(timelineDataObject.keys())[index];
   };
 
@@ -170,6 +158,7 @@ export default function PlotlyTimeline({
   };
 
   const setupPlotlyTimelineChart = (plotlyDiv: any) => {
+    console.log("Setting up Plotly Timeline Chart");
     timelineDiv.current = plotlyDiv;
 
     updateMarkerStates();
@@ -194,6 +183,8 @@ export default function PlotlyTimeline({
       // timestamps might be selected upon first rendering
       const selectedTimestampsForCommit =
         timelineDataForCommit.selectedTimestamps;
+
+      console.log("selectedTimestampsForCommit:", selectedTimestampsForCommit);
 
       if (selectedTimestampsForCommit.length) {
         selectedCommitTimestampsMap.current.set(
@@ -257,30 +248,19 @@ export default function PlotlyTimeline({
         let sizes = data.points[0].fullData.marker.size;
 
         const selectedTimeline = data.points[0].curveNumber;
-
-        const commitIdAssociatedWithTimeline = getSelectedCommits().get(getCurrentSelectedApplicationName())?.[selectedTimeline];
-
-        console.log("selectedCommitTimestampsMap", selectedCommitTimestampsMap.current);
-
-        selectedCommitTimestampsMap.current.forEach((timestamps, commit) => {
-          console.log("commit in selectedCommitTimestampsMap:", commit);
-          console.log("timestamps in selectedCommitTimestampsMap:", timestamps);
-        });
+        const commitId = getCommitIdBasedForMapIndex(selectedTimeline);
 
         // reset old selection, since maximum selection value is achieved
         // and user clicked on a new point
         if (
-          selectedCommitTimestampsMap.current.size === selectionCount.current
+          selectedCommitTimestampsMap.current.get(commitId)?.length === selectionCount.current
         ) {
-          console.log("Resetting selection");
           resetSelectionInStateObjects();
           colors = Array(numberOfPoints).fill(
             timelineColors.current![selectedTimeline]
           );
           sizes = Array(numberOfPoints).fill(defaultMarkerSize.current);
         }
-
-        const commitId = getCommitIdBasedForMapIndex(selectedTimeline);
 
         const highlightedMarkerColor =
           getHighlightedMarkerColorForCommitId(commitId);
@@ -361,6 +341,7 @@ export default function PlotlyTimeline({
   };
 
   const updateMarkerStates = () => {
+    console.log("updateMarkerStates");
     if (timelineDataObject.size == 0) {
       return;
     }
@@ -405,7 +386,7 @@ export default function PlotlyTimeline({
       return;
     }
 
-    updateMarkerStates();
+    //updateMarkerStates();
 
     const data: any[] = [];
     const shapez: any[] = [];
@@ -754,11 +735,13 @@ export default function PlotlyTimeline({
   };
 
   const resetHighlightInStateObjects = () => {
+    console.log("resetHighlightInStateObjects");
     selectedCommitTimestampsMap.current = new Map();
     markerStateMap.current = new Map();
   };
 
   const resetSelectionInStateObjects = () => {
+    console.log("resetSelectionInStateObjects");
     selectedCommitTimestampsMap.current.forEach((timestamps, commit) => {
       const markerState = markerStateMap.current.get(commit);
       if (markerState) {
