@@ -1,9 +1,6 @@
-import ThreeMeshUI from 'three-mesh-ui';
 import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import * as THREE from 'three';
-import { EntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import ThreeMeshUI from 'three-mesh-ui';
 
 export const BLOCK_OPTIONS_LIST_ITEM = {
   height: 0.08,

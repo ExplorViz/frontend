@@ -1,7 +1,7 @@
 import { useThree } from '@react-three/fiber';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
-import { triggerRestartablePing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
@@ -65,7 +65,7 @@ export default function LandscapeR3F({
           if (e.object.type === 'InstancedMesh2') {
             pingedPoint = e.object.localToWorld(pingedPoint);
           }
-          triggerRestartablePing(pingedPoint);
+          pingPosition(pingedPoint);
         }
       }}
     >

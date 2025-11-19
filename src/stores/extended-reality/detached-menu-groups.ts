@@ -27,6 +27,7 @@ import {
   isObjectClosedResponse,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 interface DetachedMenuGroupsState {
   detachedMenuGroups: Set<DetachedMenuGroup>;
@@ -265,8 +266,7 @@ export const useDetachedMenuGroupsStore = create<DetachedMenuGroupsState>(
 
     toggleHighlightComponent: (entityId: string): Promise<boolean> => {
       return new Promise((resolve) => {
-        useHighlightingStore.getState().toggleHighlightById(entityId);
-        useHighlightingStore.getState().updateHighlighting();
+        toggleHighlightById(entityId);
         resolve(true);
       });
     },

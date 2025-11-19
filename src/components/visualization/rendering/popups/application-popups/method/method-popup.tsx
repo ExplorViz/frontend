@@ -1,11 +1,10 @@
-import React from 'react';
-
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs.tsx';
 import {
   Method,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 
 interface MethodPopupProps {
   restructureMode: boolean;
@@ -17,15 +16,19 @@ export default function MethodPopup({
   popupData,
 }: MethodPopupProps) {
   const method = popupData.entity as Method;
-  const applicationId = popupData.applicationId;
+
+  const methodTitle = `Method: ${method.name}, type ${method.type}`;
 
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break fw-bold pl-1">
-          Method:
-          {method.name}, type
-          {method.type}
+        <div className="d-flex align-items-center justify-content-center gap-2">
+          <div className="text-center text-break fw-bold pl-1">
+            Method:
+            {method.name}, type
+            {method.type}
+          </div>
+          <CopyButton text={methodTitle} />
         </div>
       </h3>
 

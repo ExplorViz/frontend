@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
+import { createXRStore } from '@react-three/xr';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
@@ -14,12 +15,12 @@ import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualiza
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
-import RenderingLoop from 'explorviz-frontend/src/rendering/application/rendering-loop';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -36,13 +37,16 @@ import ChatBox from '../page-setup/sidebar/customizationbar/chat/chat-box';
 import Restructure from '../page-setup/sidebar/customizationbar/restructure/restructure';
 import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
+import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
+import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
 import SidebarComponent from '../page-setup/sidebar/sidebar-component';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { ChatbotProvider } from '../../chatbot/chatbot-context';
+import { EditingProvider } from '../../editing/editing-context';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 
 interface BrowserRenderingProps {
@@ -51,7 +55,6 @@ interface BrowserRenderingProps {
   readonly landscapeToken: LandscapeToken;
   readonly userApiTokens: ApiToken[];
   readonly visualizationPaused: boolean;
-  readonly isDisplayed: boolean;
   readonly snapshot: boolean | undefined | null;
   readonly snapshotReload: SnapshotToken | undefined | null;
   toggleVisualizationUpdating(): void;
@@ -68,13 +71,14 @@ export default function BrowserRendering({
   landscapeToken,
   userApiTokens,
   visualizationPaused,
-  isDisplayed,
   toggleVisualizationUpdating,
   switchToAR,
   restructureLandscape,
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
+
+  const xrStore = createXRStore();
 
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
@@ -96,8 +100,6 @@ export default function BrowserRendering({
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
       handleMouseMove: state.handleMouseMove,
-      handleHoverOnMesh: state.handleHoverOnMesh,
-      updateMeshReference: state.updateMeshReference,
       cleanup: state.cleanup,
     }))
   );
@@ -115,7 +117,6 @@ export default function BrowserRendering({
       clearAnnotations: state.clearAnnotations,
       handleMouseMove: state.handleMouseMove,
       handleHoverOnMesh: state.handleHoverOnMesh,
-      updateMeshReference: state.updateMeshReference,
       cleanup: state.cleanup,
     }))
   );
@@ -164,7 +165,7 @@ export default function BrowserRendering({
 
   // MARK: State
 
-  const [showToolsSidebar, setShowToolsSiderbar] = useState<boolean>(false);
+  const [showToolsSidebar, setShowToolsSidebar] = useState<boolean>(false);
   const [showSettingsSidebar, setShowSettingsSidebar] =
     useState<boolean>(false);
   const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
@@ -183,7 +184,6 @@ export default function BrowserRendering({
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
-  const renderingLoop = useRef<RenderingLoop | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
   // MARK: Effects and hooks
@@ -243,199 +243,233 @@ export default function BrowserRendering({
   // MARK: JSX
 
   return (
-    <div className={`row h-100 ${isDisplayed ? 'show' : 'hide'}`}>
-      <div className="d-flex flex-column h-100 col-12">
-        <div id="rendering" ref={outerDiv}>
-          {!showToolsSidebar && (
-            <div className="sidebar-tools-button foreground mt-6">
-              <Button
-                id="toolsOpener"
-                variant="outline-secondary"
-                title="Tools"
-                onClick={() => setShowToolsSiderbar(true)}
-              >
-                <ToolsIcon size="small" className="align-middle" />
-              </Button>
-            </div>
-          )}
+    <EditingProvider>
+      <ChatbotProvider landscapeData={landscapeData}>
+        <div className="row h-100">
+          <div className="d-flex flex-column h-100 col-12">
+            <div id="rendering" ref={outerDiv}>
+              {!showToolsSidebar && (
+                <div className="sidebar-tools-button foreground mt-6">
+                  <Button
+                    id="toolsOpener"
+                    variant="outline-secondary"
+                    title="Tools"
+                    onClick={() => setShowToolsSidebar(true)}
+                  >
+                    <ToolsIcon size="small" className="align-middle" />
+                  </Button>
+                </div>
+              )}
 
-          {!showSettingsSidebar && (
-            <div className="sidebar-open-button foreground mt-6">
-              <Button
-                id="undoAction"
-                variant="outline-secondary"
-                title="Settings"
-                onClick={() => setShowSettingsSidebar(true)}
-              >
-                <GearIcon size="small" className="align-middle" />
-              </Button>
-            </div>
-          )}
+              {!showSettingsSidebar && (
+                <div className="sidebar-open-button foreground mt-6">
+                  <Button
+                    id="undoAction"
+                    variant="outline-secondary"
+                    title="Settings"
+                    onClick={() => setShowSettingsSidebar(true)}
+                  >
+                    <GearIcon size="small" className="align-middle" />
+                  </Button>
+                </div>
+              )}
 
-          {useUserSettingsStore.getState().visualizationSettings.heatmapEnabled
-            .value && <HeatmapInfo />}
+              {useUserSettingsStore.getState().visualizationSettings
+                .heatmapEnabled.value && <HeatmapInfo />}
 
-          <ContextMenu switchToAR={switchToAR}>
-            <CanvasWrapper landscapeData={landscapeData} />
-          </ContextMenu>
-          {/* {loadNewLandscape.isRunning && (
+              <ContextMenu enterVR={() => xrStore.enterVR()}>
+                <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
+              </ContextMenu>
+              {/* {loadNewLandscape.isRunning && (
             <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
               <LoadingIndicator text="Loading new Landscape" />
             </div>
           )} */}
 
-          {landscapeData && <Popups landscapeData={landscapeData} />}
+              {landscapeData && <Popups landscapeData={landscapeData} />}
 
-          {annotationHandlerState.annotationData.map((data) => (
-            <AnnotationCoordinator
-              key={data.annotationId}
-              annotationData={data}
-              removeAnnotation={removeAnnotation}
-            />
-          ))}
-        </div>
-      </div>
-      {showToolsSidebar && (
-        <div className="sidebar left" id="toolselection">
-          <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
-            <ToolSelection
-              closeToolSelection={() => setShowToolsSiderbar(false)}
-            >
-              <div className="explorviz-visualization-navbar">
-                <ul className="nav justify-content-center">
-                  <EntityFilteringOpener
-                    openedComponent={openedToolComponent}
-                    toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                  />
-                  <ApplicationSearchOpener
-                    openedComponent={openedToolComponent}
-                    toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                  />
-                  <TraceReplayerOpener
-                    openedComponent={openedToolComponent}
-                    toggleToolsSidebarComponent={toggleToolsSidebarComponent}
-                  />
-                </ul>
-              </div>
-              {openedToolComponent && (
-                <div className="card sidebar-card mt-3">
-                  <div className="card-body d-flex flex-column">
-                    {openedToolComponent === 'entity-filtering' && (
-                      <>
-                        <h5 className="text-center">Entity Filtering</h5>
-                        <EntityFiltering landscapeData={landscapeData!} />
-                      </>
-                    )}
-                    {openedToolComponent === 'application-search' && (
-                      <>
-                        <h5 className="text-center">Application Search</h5>
-                        <ApplicationSearch />
-                      </>
-                    )}
-                    {openedToolComponent === 'Trace-Replayer' && (
-                      <TraceSelectionAndReplayer
-                        highlightTrace={() => {}}
-                        removeHighlighting={() => {}}
-                        dynamicData={landscapeData!.dynamicLandscapeData}
-                        structureData={landscapeData!.structureLandscapeData}
+              {annotationHandlerState.annotationData.map((data) => (
+                <AnnotationCoordinator
+                  key={data.annotationId}
+                  annotationData={data}
+                  removeAnnotation={removeAnnotation}
+                />
+              ))}
+            </div>
+          </div>
+          {showToolsSidebar && (
+            <div className="sidebar left" id="toolselection">
+              <div
+                className="mt-6 d-flex flex-row w-100"
+                style={{ zIndex: 90 }}
+              >
+                <ToolSelection
+                  closeToolSelection={() => setShowToolsSidebar(false)}
+                >
+                  <div className="explorviz-visualization-navbar">
+                    <ul className="nav justify-content-center">
+                      <EntityFilteringOpener
+                        openedComponent={openedToolComponent}
+                        toggleToolsSidebarComponent={
+                          toggleToolsSidebarComponent
+                        }
                       />
-                    )}
+                      <ApplicationSearchOpener
+                        openedComponent={openedToolComponent}
+                        toggleToolsSidebarComponent={
+                          toggleToolsSidebarComponent
+                        }
+                      />
+                      <TraceReplayerOpener
+                        openedComponent={openedToolComponent}
+                        toggleToolsSidebarComponent={
+                          toggleToolsSidebarComponent
+                        }
+                      />
+                    </ul>
                   </div>
-                </div>
-              )}
-            </ToolSelection>
-          </div>
-        </div>
-      )}
-      {showSettingsSidebar && (
-        <div className="sidebar right" id="settingsSidebar">
-          <div className="mt-6 d-flex flex-row w-100" style={{ zIndex: 90 }}>
-            <SettingsSidebar
-              closeSettingsSidebar={() => setShowSettingsSidebar(false)}
-            >
-              <div className="explorviz-visualization-navbar">
-                <ul className="nav justify-content-center">
-                  <CollaborationOpener
-                    openedComponent={openedSettingComponent!}
-                    toggleSettingsSidebarComponent={
-                      toggleSettingsSidebarComponent
-                    }
-                  />
-                  <VscodeExtensionOpener
-                    openedComponent={openedSettingComponent}
-                    toggleSettingsSidebarComponent={
-                      toggleSettingsSidebarComponent
-                    }
-                  />
-                  <RestructureOpener
-                    openedComponent={openedSettingComponent}
-                    toggleSettingsSidebarComponent={
-                      toggleSettingsSidebarComponent
-                    }
-                  />
-                  <SnapshotOpener
-                    openedComponent={openedSettingComponent}
-                    toggleSettingsSidebarComponent={
-                      toggleSettingsSidebarComponent
-                    }
-                  />
-                  <SettingsOpener
-                    openedComponent={openedSettingComponent}
-                    toggleSettingsSidebarComponent={
-                      toggleSettingsSidebarComponent
-                    }
-                  />
-                </ul>
+                  {openedToolComponent && (
+                    <div className="card sidebar-card mt-3">
+                      <div className="card-body d-flex flex-column">
+                        {openedToolComponent === 'entity-filtering' &&
+                          landscapeData && (
+                            <>
+                              <h5 className="text-center">Entity Filtering</h5>
+                              <EntityFiltering landscapeData={landscapeData} />
+                            </>
+                          )}
+                        {openedToolComponent === 'application-search' && (
+                          <>
+                            <h5 className="text-center">Application Search</h5>
+                            <ApplicationSearch />
+                          </>
+                        )}
+                        {openedToolComponent === 'Trace-Replayer' &&
+                          landscapeData && (
+                            <TraceSelectionAndReplayer
+                              highlightTrace={() => {}}
+                              removeHighlighting={() => {}}
+                              dynamicData={landscapeData.dynamicLandscapeData}
+                              structureData={
+                                landscapeData.structureLandscapeData
+                              }
+                            />
+                          )}
+                      </div>
+                    </div>
+                  )}
+                </ToolSelection>
               </div>
-              {openedSettingComponent && (
-                <SidebarComponent componentId={openedSettingComponent}>
-                  {openedSettingComponent === 'Collaboration' && (
-                    <>
-                      <CollaborationControls />
-                      <ChatBox />
-                    </>
+            </div>
+          )}
+          {showSettingsSidebar && (
+            <div className="sidebar right" id="settingsSidebar">
+              <div
+                className="mt-6 d-flex flex-row w-100"
+                style={{ zIndex: 90 }}
+              >
+                <SettingsSidebar
+                  closeSettingsSidebar={() => setShowSettingsSidebar(false)}
+                >
+                  <div className="explorviz-visualization-navbar">
+                    <ul className="nav justify-content-center">
+                      <CollaborationOpener
+                        openedComponent={openedSettingComponent!}
+                        toggleSettingsSidebarComponent={
+                          toggleSettingsSidebarComponent
+                        }
+                      />
+                      <ChatbotOpener
+                        openedComponent={openedSettingComponent}
+                        toggleSettingsSidebarComponent={
+                          toggleSettingsSidebarComponent
+                        }
+                      />
+                      <VscodeExtensionOpener
+                        openedComponent={openedSettingComponent}
+                        toggleSettingsSidebarComponent={
+                          toggleSettingsSidebarComponent
+                        }
+                      />
+                      <RestructureOpener
+                        openedComponent={openedSettingComponent}
+                        toggleSettingsSidebarComponent={
+                          toggleSettingsSidebarComponent
+                        }
+                      />
+                      <SnapshotOpener
+                        openedComponent={openedSettingComponent}
+                        toggleSettingsSidebarComponent={
+                          toggleSettingsSidebarComponent
+                        }
+                      />
+                      <SettingsOpener
+                        openedComponent={openedSettingComponent}
+                        toggleSettingsSidebarComponent={
+                          toggleSettingsSidebarComponent
+                        }
+                      />
+                    </ul>
+                  </div>
+                  {openedSettingComponent && (
+                    <SidebarComponent componentId={openedSettingComponent}>
+                      {openedSettingComponent === 'Collaboration' && (
+                        <>
+                          <CollaborationControls />
+                          <ChatBox />
+                        </>
+                      )}
+                      {openedSettingComponent === 'Chatbot' && (
+                        <>
+                          <ChatbotBox />
+                        </>
+                      )}
+                      {openedSettingComponent ===
+                        'VSCode-Extension-Settings' && (
+                        <VscodeExtensionSettings />
+                      )}
+                      {openedSettingComponent === 'Restructure-Landscape' && (
+                        <Restructure
+                          landscapeData={landscapeData!}
+                          restructureLandscape={restructureLandscape}
+                          visualizationPaused={visualizationPaused}
+                          toggleVisualizationUpdating={
+                            toggleVisualizationUpdating
+                          }
+                          removeTimestampListener={removeTimestampListener}
+                          userApiTokens={userApiTokens}
+                          annotationData={annotationHandlerState.annotationData}
+                          minimizedAnnotations={
+                            annotationHandlerState.minimizedAnnotations
+                          }
+                          landscapeToken={landscapeToken}
+                        />
+                      )}
+                      {openedSettingComponent === 'Persist-Landscape' && (
+                        <Snapshot
+                          landscapeData={landscapeData!}
+                          annotationData={annotationHandlerState.annotationData}
+                          minimizedAnnotations={
+                            annotationHandlerState.minimizedAnnotations
+                          }
+                          landscapeToken={landscapeToken}
+                        />
+                      )}
+                      {openedSettingComponent === 'Settings' && (
+                        <Settings
+                          enterFullscreen={enterFullscreen}
+                          setGamepadSupport={setGamepadSupport}
+                        />
+                      )}
+                    </SidebarComponent>
                   )}
-                  {openedSettingComponent === 'VSCode-Extension-Settings' && (
-                    <VscodeExtensionSettings />
-                  )}
-                  {openedSettingComponent === 'Restructure-Landscape' && (
-                    <Restructure
-                      landscapeData={landscapeData!}
-                      restructureLandscape={restructureLandscape}
-                      visualizationPaused={visualizationPaused}
-                      toggleVisualizationUpdating={toggleVisualizationUpdating}
-                      removeTimestampListener={removeTimestampListener}
-                      userApiTokens={userApiTokens}
-                      annotationData={annotationHandlerState.annotationData}
-                      minimizedAnnotations={
-                        annotationHandlerState.minimizedAnnotations
-                      }
-                      landscapeToken={landscapeToken}
-                    />
-                  )}
-                  {openedSettingComponent === 'Persist-Landscape' && (
-                    <Snapshot
-                      landscapeData={landscapeData!}
-                      annotationData={annotationHandlerState.annotationData}
-                      minimizedAnnotations={
-                        annotationHandlerState.minimizedAnnotations
-                      }
-                      landscapeToken={landscapeToken}
-                    />
-                  )}
-                  {openedSettingComponent === 'Settings' && (
-                    <Settings
-                      enterFullscreen={enterFullscreen}
-                      setGamepadSupport={setGamepadSupport}
-                    />
-                  )}
-                </SidebarComponent>
-              )}
-            </SettingsSidebar>
-          </div>
+                </SettingsSidebar>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </ChatbotProvider>
+    </EditingProvider>
   );
 }
 

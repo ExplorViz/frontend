@@ -44,14 +44,9 @@ import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
-import hitTest from 'explorviz-frontend/src/utils/hit-test';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Raycaster from 'explorviz-frontend/src/utils/raycaster';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import Landscape3D from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-3d';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { useResizeDetector } from 'react-resize-detector';
@@ -96,7 +91,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     useShallow((state) => ({
       addPopup: state.addPopup,
       updatePopup: state.updatePopup,
-      updateMeshReference: state.updateMeshReference,
       removePopup: state.removePopup,
       clearPopups: state.clearPopups,
       pinPopup: state.pinPopup,
@@ -160,7 +154,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const messageSenderActions = useMessageSenderStore(
     useShallow((state) => ({
-      sendMousePingUpdate: state.sendMousePingUpdate,
+      sendMousePingUpdate: state.sendPingUpdate,
     }))
   );
 
@@ -599,7 +593,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
     if (renderer.current!.xr.enabled) {
       if (!landscape3D.visible || reticle.current!.visible) {
-        hitTest(renderer.current!, reticle.current!, frame);
+        // hitTest(renderer.current!, reticle.current!, frame);
       }
     }
     collaborationSessionActions.idToRemoteUser.forEach((remoteUser) => {
@@ -811,7 +805,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
               sharePopup={popupHandlerActions.sharePopup}
               removePopup={popupHandlerActions.removePopup}
               updatePopup={popupHandlerActions.updatePopup}
-              updateMeshReference={popupHandlerActions.updateMeshReference}
               structureData={
                 arRenderingArgs.landscapeData.structureLandscapeData
               }
@@ -824,7 +817,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
           <ContextMenu items={rightClickMenuItems}>
             <canvas
-              id="threejs-canvas"
+              id="three-js-canvas"
               className="webgl position-absolute"
               ref={canvasRef}
             />

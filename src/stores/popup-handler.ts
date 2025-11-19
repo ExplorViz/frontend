@@ -1,15 +1,29 @@
 import { create } from 'zustand';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import {
+  APPLICATION_ENTITY_TYPE,
+  CLASS_COMMUNICATION_ENTITY_TYPE,
+  CLASS_ENTITY_TYPE,
+  COMPONENT_ENTITY_TYPE,
+  EntityType,
+  NODE_ENTITY_TYPE,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { MenuDetachedForwardMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
+import {
+  MenuDetachedResponse,
+  isMenuDetachedResponse,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
@@ -18,21 +32,51 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { MENU_DETACHED_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import {
+  MENU_DETACHED_EVENT,
+  MenuDetachedMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
+  Node,
   Package,
+  isApplication,
+  isClass,
+  isNode,
+  isPackage,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
-import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
-import * as THREE from 'three';
 
 type Position2D = {
   x: number;
   y: number;
 };
+
+/**
+ * Converts a popup entity to the EntityType used by websocket messages
+ */
+function getEntityTypeForPopup(
+  entity: Node | Application | Package | Class | ClassCommunication
+): EntityType {
+  if (isNode(entity)) {
+    return NODE_ENTITY_TYPE;
+  }
+  if (isApplication(entity)) {
+    return APPLICATION_ENTITY_TYPE;
+  }
+  if (isPackage(entity)) {
+    return COMPONENT_ENTITY_TYPE;
+  }
+  if (isClass(entity)) {
+    return CLASS_ENTITY_TYPE;
+  }
+  if (entity instanceof ClassCommunication) {
+    return CLASS_COMMUNICATION_ENTITY_TYPE;
+  }
+  // Default fallback
+  return APPLICATION_ENTITY_TYPE;
+}
 
 interface PopupHandlerState {
   popupData: PopupData[];
@@ -48,7 +92,6 @@ interface PopupHandlerState {
   pinPopup: (popup: PopupData) => void;
   removePopup: (entityId: string) => Promise<void>;
   handleMouseMove: (event: any) => void;
-  handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addPopup: ({
     entityId,
     position,
@@ -60,13 +103,7 @@ interface PopupHandlerState {
     model,
   }: {
     entityId: string;
-    entity?:
-      | K8sDataModel
-      | Node
-      | Application
-      | Package
-      | Class
-      | ClassCommunication;
+    entity?: Node | Application | Package | Class | ClassCommunication;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
@@ -93,7 +130,6 @@ interface PopupHandlerState {
   /**
    * Updates mesh reference of popup with given ID in popup data.
    */
-  updateMeshReference: (popup: PopupData) => void;
   cleanup: () => void;
 }
 
@@ -122,57 +158,51 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   },
 
   sharePopup: (popup: PopupData) => {
-    get().updateMeshReference(popup);
+    const entityId = popup.entityId;
+    const entityType = getEntityTypeForPopup(popup.entity);
 
-    // ToDO:
-    // const { mesh } = popup;
-    // const entityId = mesh.getModelId();
-    // const worldPosition = useApplicationRendererStore
-    //   .getState()
-    //   .getPositionInLandscape(mesh);
-    // worldPosition.y += 0.3;
+    if (useCollaborationSessionStore.getState().isOnline()) {
+      useWebSocketStore
+        .getState()
+        .sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
+          MENU_DETACHED_EVENT,
+          {
+            event: MENU_DETACHED_EVENT,
+            detachId: entityId,
+            entityType: entityType,
+            position: [0, 0, 0], // Position not needed for browser popups
+            quaternion: [0, 0, 0, 1],
+            scale: [1, 1, 1],
+            nonce: 0, // will be overwritten
+          },
+          {
+            responseType: isMenuDetachedResponse,
+            onResponse: (response: MenuDetachedResponse) => {
+              const sharedBy = useAuthStore.getState().user!.sub;
+              const menuId = response.objectId;
 
-    // useWebSocketStore
-    //   .getState()
-    //   .sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
-    //     MENU_DETACHED_EVENT,
-    //     {
-    //       event: MENU_DETACHED_EVENT,
-    //       detachId: entityId,
-    //       entityType: getTypeOfEntity(mesh),
-    //       position: worldPosition.toArray(),
-    //       quaternion: [0, 0, 0, 0],
-    //       scale: [1, 1, 1],
-    //       nonce: 0, // will be overwritten
-    //     },
-    //     {
-    //       responseType: isMenuDetachedResponse,
-    //       onResponse: (response: MenuDetachedResponse) => {
-    //         const newPopup = {
-    //           ...popup,
-    //           sharedBy: useLocalUserStore.getState().userId,
-    //           isPinned: true,
-    //           menuId: response.objectId,
-    //         };
+              set({
+                popupData: [
+                  ...get().popupData.filter(
+                    (pd) => pd.entityId !== popup.entityId
+                  ),
+                  {
+                    ...popup,
+                    sharedBy: sharedBy,
+                    isPinned: true,
+                    menuId: menuId,
+                  },
+                ],
+              });
 
-    //         const newPopupData = [
-    //           ...get().popupData.filter(
-    //             (pd) => pd.entity.id !== popup.entity.id
-    //           ),
-    //           newPopup,
-    //         ];
-
-    //         set({
-    //           popupData: newPopupData,
-    //         });
-
-    //         return true;
-    //       },
-    //       onOffline: () => {
-    //         // Not used at the moment
-    //       },
-    //     }
-    //   );
+              return true;
+            },
+            onOffline: () => {
+              // Not used at the moment
+            },
+          }
+        );
+    }
   },
 
   pinPopup: (popup: PopupData) =>
@@ -216,22 +246,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       isShiftPressed: event.shiftKey,
     });
   },
-
-  handleHoverOnMesh: (mesh?: THREE.Object3D) => {
-    if (isEntityMesh(mesh)) {
-      set({
-        popupData: get().popupData.map((pd) => ({
-          ...pd,
-          hovered: pd.entity.id === mesh.getModelId(),
-        })),
-      });
-    } else {
-      set({
-        popupData: get().popupData.map((pd) => ({ ...pd, hovered: false })),
-      });
-    }
-  },
-
   addPopup: ({
     entityId,
     entity,
@@ -243,7 +257,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     hovered,
   }) => {
     // TODO: Handle HTML Mesh better
-    if (getStoredSettings().hidePopupDelay.value == 0 || get().deactivated) {
+    if (
+      useUserSettingsStore.getState().visualizationSettings.hidePopupDelay
+        .value == 0 ||
+      get().deactivated
+    ) {
       return;
     }
 
@@ -345,7 +363,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       }
 
       get()._removePopupAfterTimeout(popup);
-    }, getStoredSettings().hidePopupDelay.value * 1000);
+    }, useUserSettingsStore.getState().visualizationSettings.hidePopupDelay.value * 1000);
   },
 
   updatePopup: (updatedPopup: PopupData, updatePosition = true) => {
@@ -368,8 +386,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
           : pd
       ),
     }));
-
-    get().updateMeshReference(updatedPopup);
   },
 
   /**
@@ -383,7 +399,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     // TODO: Check if mesh is deactivated
 
     get().addPopup({
-      entityId: objectId,
+      entityId: detachId,
       wasMoved: true,
       pinned: true,
       sharedBy: userId,
@@ -410,18 +426,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     originalMessage: { menuId },
   }: ForwardedMessage<DetachedMenuClosedMessage>) => {
     set({ popupData: get().popupData.filter((pd) => pd.menuId !== menuId) });
-  },
-
-  /**
-   * Updates mesh reference of popup with given ID in popup data.
-   */
-  updateMeshReference: (popup: PopupData) => {
-    // ToDo: Check if it is entity mesh
-    set({
-      popupData: get().popupData.map((pd) =>
-        pd.entityId === popup.entityId ? { ...pd } : pd
-      ),
-    });
   },
 
   cleanup: () => {

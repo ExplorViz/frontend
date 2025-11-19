@@ -1,25 +1,24 @@
+import { useFrame, useThree } from '@react-three/fiber';
 import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import { useLinkRendererStore } from 'explorviz-frontend/src/stores/link-renderer';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
+import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
+import CityFoundation from 'explorviz-frontend/src/view-objects/3d/application/city-foundation';
 import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/application/code-building-label';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
-import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
-import CityFoundation from 'explorviz-frontend/src/view-objects/3d/application/city-foundation';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import CodeBuildings from './code-buildings';
 import CityDistricts from './city-districts';
-import { useFrame, useThree } from '@react-three/fiber';
+import CodeBuildings from './code-buildings';
 
 export default function CodeCity({
   applicationData,
@@ -31,27 +30,30 @@ export default function CodeCity({
   const [isCameraZoomedIn, setIsCameraZoomedIn] = useState(false);
   const { camera } = useThree();
 
-  const { animationDuration, enableAnimations, zoomDistance } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        animationDuration: state.visualizationSettings.animationDuration.value,
-        enableAnimations: state.visualizationSettings.enableAnimations.value,
-        zoomDistance: state.visualizationSettings.maxCamHeightForCamera.value,
-      }))
-    );
+  const {
+    animationDuration,
+    enableAnimations,
+    zoomDistance,
+    showEmbeddedBrowserIcon,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      animationDuration: state.visualizationSettings.animationDuration.value,
+      enableAnimations: state.visualizationSettings.enableAnimations.value,
+      zoomDistance: state.visualizationSettings.maxCamHeightForCamera.value,
+      showEmbeddedBrowserIcon:
+        state.visualizationSettings.showEmbeddedBrowserIcon.value,
+    }))
+  );
 
   useFrame(() => {
     setIsCameraZoomedIn(camera.position.y < zoomDistance);
   });
 
-  const [appPosition, setAppPosition] = useState<THREE.Vector3>(
-    layoutMap.get(applicationData.getId())?.position!
+  const [appPosition, setAppPosition] = useState<THREE.Vector3 | undefined>(
+    layoutMap.get(applicationData.getId())?.position
   );
   const [isBrowserActive, setIsBrowserActive] = useState(false);
 
-  const computeCommunicationLayout = useLinkRendererStore(
-    (state) => state.computeCommunicationLayout
-  );
   const { isCommRendered } = useConfigurationStore(
     useShallow((state) => ({
       isCommRendered: state.isCommRendered,
@@ -61,15 +63,10 @@ export default function CodeCity({
   const classInstanceMeshRef = useRef<InstancedMesh2>(null);
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
-  const { closedComponentIds } = useVisualizationStore(
-    useShallow((state) => ({
-      closedComponentIds: state.closedComponentIds,
-    }))
-  );
-
   useEffect(() => {
-    const newPosition = layoutMap.get(applicationData.getId())?.position!;
-    if (enableAnimations) {
+    const newPosition = layoutMap.get(applicationData.getId())?.position;
+    if (!newPosition) return;
+    if (enableAnimations && appPosition) {
       const gsapValues = {
         positionX: appPosition.x,
         positionY: appPosition.y,
@@ -97,21 +94,23 @@ export default function CodeCity({
 
   return (
     <group position={appPosition}>
-      <Root positionBottom={15} positionLeft={0} pixelSize={1}>
-        <Container>
-          <Button
-            width={25}
-            height={25}
-            padding={5}
-            backgroundColor={isBrowserActive ? 'red' : 'black'}
-            onClick={() => {
-              setIsBrowserActive(!isBrowserActive);
-            }}
-          >
-            <AppWindow />
-          </Button>
-        </Container>
-      </Root>
+      {showEmbeddedBrowserIcon && (
+        <Root positionBottom={15} positionLeft={0} pixelSize={1}>
+          <Container>
+            <Button
+              width={25}
+              height={25}
+              padding={5}
+              backgroundColor={isBrowserActive ? 'red' : 'black'}
+              onClick={() => {
+                setIsBrowserActive(!isBrowserActive);
+              }}
+            >
+              <AppWindow />
+            </Button>
+          </Container>
+        </Root>
+      )}
       {isBrowserActive && (
         <EmbeddedBrowser application={applicationData.application} />
       )}
@@ -167,9 +166,10 @@ export default function CodeCity({
             communicationLayout={computeCommunicationLayout(
               communication,
               [applicationData],
-              layoutMap,
-              closedComponentIds
+              layoutMap
             )}
+            applicationElement={applicationData.application}
+            layoutMap={layoutMap}
           />
         ))}
     </group>

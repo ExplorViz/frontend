@@ -26,6 +26,7 @@
     "@types/bootstrap": "^5.2.10",
     "@types/chart.js": "2.9.41",
     "@types/crypto-js": "4.2.2",
+    "@types/express": "^5.0.3",
     "@types/hammerjs": "2.0.45",
     "@types/node": "20.11.0",
     "@types/rsvp": "4.0.9",
@@ -52,6 +53,8 @@
   },
   "dependencies": {
     "3d-force-graph": "1.73.0",
+    "@copilotkit/react-core": "^1.10.6",
+    "@copilotkit/react-ui": "^1.10.6",
     "@primer/octicons-react": "^19.14.0",
     "@react-three/drei": "^10.0.6",
     "@react-three/fiber": "^9.1.2",
@@ -59,10 +62,11 @@
     "@react-three/uikit-apfel": "^0.8.15",
     "@react-three/uikit-default": "^0.8.15",
     "@react-three/uikit-lucide": "^0.8.15",
+    "@react-three/xr": "^6.6.27",
     "@three.ez/instanced-mesh": "^0.3.5",
     "@webxr-input-profiles/motion-controllers": "1.0.0",
-    "bootstrap": "^5.3.3",
     "body-parser": "1.20.2",
+    "bootstrap": "^5.3.3",
     "chart.js": "4.4.1",
     "colors": "1.4.0",
     "crypto-js": "4.2.0",
@@ -70,7 +74,9 @@
     "debug": "^4.4.1",
     "elkjs": "0.9.3",
     "events": "^3.3.0",
+    "express": "^5.1.0",
     "fast-deep-equal": "^3.1.3",
+    "globals": "^16.0.0",
     "gsap": "3.12.5",
     "hammerjs": "2.0.8",
     "html-to-image": "^1.11.13",
@@ -96,7 +102,8 @@
     "three-stdlib": "^2.36.0",
     "vanilla-picker": "2.12.2",
     "web-worker": "1.3.0",
+    "zod": "^3.25.67",
     "zustand": "^5.0.3"
   },
-  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
+  "packageManager": "pnpm@10.21.0"
 }

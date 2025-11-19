@@ -119,3 +119,15 @@
 .wide-checkbox-container input:checked ~ .wide-checkbox:after {
   display: block;
 }
+
+/* Preset controls */
+.preset-controls-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.preset-control-input {
+  width: 200px;
+}

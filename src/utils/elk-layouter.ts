@@ -79,7 +79,8 @@ function getPaddingForLabelPlacement(
 
 export default async function layoutLandscape(
   k8sNodes: K8sNode[],
-  applications: Application[]
+  applications: Application[],
+  removedComponentIds: Set<string>
 ) {
   const elk = new ELK();
 
@@ -108,7 +109,7 @@ export default async function layoutLandscape(
 
   // Add applications
   applications.forEach((app) => {
-    const appGraph = createApplicationGraph(app);
+    const appGraph = createApplicationGraph(app, removedComponentIds);
     landscapeGraph.children.push(appGraph);
   });
 
@@ -199,13 +200,16 @@ function populateDeployment(deploymentGraph: any, pods: K8sPod[]) {
 
 function populatePod(podGraph: any, applications: Application[]) {
   applications.forEach((application) => {
-    const appGraph = createApplicationGraph(application);
+    const appGraph = createApplicationGraph(application, new Set<string>());
 
     podGraph.children.push(appGraph);
   });
 }
 
-function createApplicationGraph(application: Application) {
+function createApplicationGraph(
+  application: Application,
+  removedComponentIds: Set<string>
+) {
   const appGraph = {
     id: APP_PREFIX + application.id,
     children: [],
@@ -219,13 +223,20 @@ function createApplicationGraph(application: Application) {
       ),
     },
   };
-  populateAppGraph(appGraph, application);
+  populateAppGraph(appGraph, application, removedComponentIds);
 
   return appGraph;
 }
 
-function populateAppGraph(appGraph: any, application: Application) {
+function populateAppGraph(
+  appGraph: any,
+  application: Application,
+  removedComponentIds: Set<string>
+) {
   application.packages.forEach((component) => {
+    if (removedComponentIds.has(component.id)) {
+      return;
+    }
     const packageGraph = {
       id: PACKAGE_PREFIX + component.id,
       children: [],
@@ -242,11 +253,15 @@ function populateAppGraph(appGraph: any, application: Application) {
     };
     appGraph.children.push(packageGraph);
 
-    populatePackage(packageGraph.children, component);
+    populatePackage(packageGraph.children, component, removedComponentIds);
   });
 }
 
-function populatePackage(packageGraphChildren: any[], component: Package) {
+function populatePackage(
+  packageGraphChildren: any[],
+  component: Package,
+  removedComponentIds: Set<string>
+) {
   component.classes.forEach((clazz) => {
     let widthByMetric = 0;
     if (WIDTH_METRIC === SelectedClassMetric.Method) {
@@ -274,6 +289,9 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
   });
 
   component.subPackages.forEach((subPackage) => {
+    if (removedComponentIds.has(subPackage.id)) {
+      return;
+    }
     const packageNode = {
       id: PACKAGE_PREFIX + subPackage.id,
       children: [],
@@ -291,7 +309,7 @@ function populatePackage(packageGraphChildren: any[], component: Package) {
     packageGraphChildren.push(packageNode);
 
     if (subPackage.subPackages.length > 0 || subPackage.classes.length > 0) {
-      populatePackage(packageNode.children, subPackage);
+      populatePackage(packageNode.children, subPackage, removedComponentIds);
     } else {
       // Add dummy class, otherwise package would be assigned with zero width/depth
       populateWithDummyClass(packageNode.children);

@@ -15,6 +15,10 @@ import * as THREE from 'three';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { useShallow } from 'zustand/react/shallow';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
+import {
+  getHighlightingColorForEntity,
+  toggleHighlightById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 export default function CityFoundation({
   application,
@@ -56,19 +60,14 @@ export default function CityFoundation({
     }
   }, [layout.width, layout.positionY, layout.depth]);
 
-  const {
-    isHighlighted,
-    isHovered,
-    setHighlightedEntityId,
-    setHoveredEntityId,
-  } = useVisualizationStore(
-    useShallow((state) => ({
-      isHighlighted: state.highlightedEntityIds.has(application.id),
-      isHovered: state.hoveredEntityId === application.id,
-      setHighlightedEntityId: state.actions.setHighlightedEntityId,
-      setHoveredEntityId: state.actions.setHoveredEntityId,
-    }))
-  );
+  const { isHighlighted, isHovered, setHoveredEntityId } =
+    useVisualizationStore(
+      useShallow((state) => ({
+        isHighlighted: state.highlightedEntityIds.has(application.id),
+        isHovered: state.hoveredEntityId === application.id,
+        setHoveredEntityId: state.actions.setHoveredEntityId,
+      }))
+    );
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -128,7 +127,7 @@ export default function CityFoundation({
   };
 
   const handleClick = (/*event: any*/) => {
-    setHighlightedEntityId(application.id, !isHighlighted);
+    toggleHighlightById(application.id);
   };
 
   const handleDoubleClick = (/*event: any*/) => {
@@ -140,7 +139,7 @@ export default function CityFoundation({
 
   const computeColor = () => {
     const baseColor = isHighlighted
-      ? new THREE.Color(highlightedEntityColor)
+      ? getHighlightingColorForEntity(application.id)
       : new THREE.Color(foundationColor);
 
     if (enableHoverEffects && isHovered) {

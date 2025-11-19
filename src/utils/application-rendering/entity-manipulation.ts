@@ -58,6 +58,16 @@ export function openComponentsByList(
   }
 }
 
+export function closeComponentsByList(
+  componentIds: string[],
+  hide = false,
+  sendMessage = true
+) {
+  componentIds.forEach((componentId) => {
+    closeComponent(componentId, hide, sendMessage);
+  });
+}
+
 /**
  * Opens the component and its ancestors
  *

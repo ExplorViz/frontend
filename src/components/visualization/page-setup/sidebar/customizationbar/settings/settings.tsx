@@ -14,7 +14,6 @@ import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaborat
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
@@ -31,7 +30,6 @@ import {
   VisualizationSettingId,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { Mesh } from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsProps {
@@ -101,6 +99,7 @@ export default function Settings({
       Minimap: [],
       Popups: [],
       'Virtual Reality': [],
+      Misc: [],
       Debugging: [],
     };
 
@@ -238,19 +237,7 @@ export default function Settings({
       }
     }
 
-    const scene = useSceneRepositoryStore.getState().getScene('browser', false);
-    const directionalLight = scene.getObjectByName('DirectionalLight');
-    const spotLight = scene.getObjectByName('SpotLight');
-
     switch (settingId) {
-      case 'castShadows':
-        if (directionalLight) directionalLight.castShadow = value;
-        if (spotLight) spotLight.castShadow = value;
-        // Update shadow casting on objects
-        scene.traverse((child) => {
-          if (child instanceof Mesh) child.material.needsUpdate = true;
-        });
-        break;
       case 'enableGamepadControls':
         setGamepadSupport(value);
         break;

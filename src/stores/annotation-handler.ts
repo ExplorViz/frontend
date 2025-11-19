@@ -1,8 +1,8 @@
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { AnnotationForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
 import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
@@ -36,12 +36,10 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-updated';
 import { SerializedAnnotation } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { isEntityMesh } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
@@ -53,6 +51,7 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/appl
 import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 type Position2D = {
   x: number;
@@ -76,7 +75,6 @@ interface AnnotationHandlerState {
   canRemoveAnnotation: (annotation: AnnotationData) => Promise<boolean>;
   removeAnnotationAfterTimeout: (annotation: AnnotationData) => void;
   shareAnnotation: (annotation: AnnotationData) => void;
-  handleHoverOnMesh: (mesh?: THREE.Object3D) => void;
   addAnnotation: ({
     annotationId,
     entityId,
@@ -473,7 +471,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         }
 
         get().removeAnnotationAfterTimeout(annotation);
-      }, getStoredSettings().hidePopupDelay.value * 1000);
+      }, useUserSettingsStore.getState().visualizationSettings.hidePopupDelay.value);
     },
 
     shareAnnotation: (annotation: AnnotationData) => {
@@ -524,35 +522,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
               },
             }
           );
-      }
-    },
-
-    handleHoverOnMesh: (mesh?: THREE.Object3D) => {
-      if (isEntityMesh(mesh)) {
-        const meshEntityId = mesh.getModelId();
-        get().annotationData.forEach((an) => {
-          if (an.entityId !== undefined) {
-            set({
-              annotationData: [
-                ...get().annotationData.filter(
-                  (anno) => anno.annotationId !== an.annotationId
-                ),
-                { ...an, hovered: an.entityId === meshEntityId },
-              ],
-            });
-          }
-        });
-      } else {
-        get().annotationData.forEach((an) => {
-          set({
-            annotationData: [
-              ...get().annotationData.filter(
-                (anno) => anno.annotationId !== an.annotationId
-              ),
-              { ...an, hovered: false },
-            ],
-          });
-        });
       }
     },
 
@@ -685,27 +654,24 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       owner,
       lastEditor,
     }: AnnotationForwardMessage) => {
-      let mesh = undefined;
-      // ToDo
-      // if (entityId) {
-      //   mesh = useApplicationRendererStore.getState().getMeshById(entityId);
-      // }
-
-      // get().addAnnotation({
-      //   annotationId: annotationId,
-      //   mesh: mesh,
-      //   position: undefined,
-      //   wasMoved: true,
-      //   menuId: objectId,
-      //   hovered: false,
-      //   annotationTitle: annotationTitle,
-      //   annotationText: annotationText,
-      //   sharedBy: userId,
-      //   owner: owner,
-      //   shared: true,
-      //   inEdit: false,
-      //   lastEditor: lastEditor,
-      // });
+      get().addAnnotation({
+        annotationId: annotationId,
+        entityId: entityId,
+        entity: entityId
+          ? useModelStore.getState().getModel(entityId)
+          : undefined,
+        position: undefined,
+        wasMoved: true,
+        menuId: objectId,
+        hovered: false,
+        annotationTitle: annotationTitle,
+        annotationText: annotationText,
+        sharedBy: userId,
+        owner: owner,
+        shared: true,
+        inEdit: false,
+        lastEditor: lastEditor,
+      });
     },
 
     onUpdatedAnnotation: ({
@@ -758,33 +724,26 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
       set({ annotationData: [] });
 
-      // ToDo:
-      // for (const annotation of annotations) {
-      //   let mesh;
-      //   if (annotation.entityId !== undefined) {
-      //     mesh = useApplicationRendererStore
-      //       .getState()
-      //       .getMeshById(annotation.entityId);
-      //   } else {
-      //     mesh = undefined;
-      //   }
-
-      //   get().addAnnotation({
-      //     annotationId: annotation.annotationId,
-      //     sharedBy: annotation.userId,
-      //     mesh: mesh,
-      //     position: undefined,
-      //     wasMoved: true,
-      //     menuId: annotation.menuId,
-      //     hovered: false,
-      //     annotationTitle: annotation.annotationTitle,
-      //     annotationText: annotation.annotationText,
-      //     owner: annotation.owner,
-      //     shared: annotation.shared !== undefined ? false : true,
-      //     inEdit: false,
-      //     lastEditor: annotation.lastEditor,
-      //   });
-      // }
+      for (const annotation of annotations) {
+        get().addAnnotation({
+          annotationId: annotation.annotationId,
+          entityId: annotation.entityId,
+          entity: annotation.entityId
+            ? useModelStore.getState().getModel(annotation.entityId)
+            : undefined,
+          position: undefined,
+          wasMoved: true,
+          menuId: annotation.menuId || null,
+          hovered: false,
+          annotationTitle: annotation.annotationTitle,
+          annotationText: annotation.annotationText,
+          sharedBy: annotation.userId,
+          owner: annotation.owner,
+          shared: annotation.shared !== undefined ? annotation.shared : true,
+          inEdit: false,
+          lastEditor: annotation.lastEditor,
+        });
+      }
     },
 
     _updateExistingAnnotation: (

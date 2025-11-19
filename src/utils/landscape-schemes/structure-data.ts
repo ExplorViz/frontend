@@ -28,6 +28,7 @@ export enum TypeOfAnalysis {
   Dynamic = 'dynamic',
   Static = 'static',
   StaticAndDynamic = 'static+dynamic',
+  Editing = 'editing',
 }
 
 export type BaseModel = {
@@ -36,6 +37,7 @@ export type BaseModel = {
   variables?: Variable[];
   extends?: Class[];
   implements?: Interface[];
+  editingState?: 'added' | 'removed';
 };
 
 type OriginOfData = {

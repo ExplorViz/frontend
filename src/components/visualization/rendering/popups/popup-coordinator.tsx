@@ -34,6 +34,7 @@ import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -43,9 +44,6 @@ interface PopupCoordinatorProps {
   removePopup(entityId: string): void;
   updatePopup(newData: PopupData): void;
   sharePopup(popup: PopupData): void;
-  updateMeshReference(popup: PopupData): void;
-  showApplication(appId: string): void;
-  toggleHighlightById: (modelId: string) => void;
 }
 
 export default function PopupCoordinator({
@@ -54,10 +52,7 @@ export default function PopupCoordinator({
   removePopup,
   updatePopup,
   sharePopup,
-  updateMeshReference,
   addAnnotationForPopup,
-  showApplication,
-  toggleHighlightById,
 }: PopupCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
   const getColor = useCollaborationSessionStore((state) => state.getColor);
@@ -93,10 +88,7 @@ export default function PopupCoordinator({
   }, [vizStore.hoveredEntityId]);
 
   const highlight = () => {
-    const entity = popupData.entity;
-
-    const wasHighlighted = vizStore.highlightedEntityIds.has(entity.id);
-    vizStore.actions.setHighlightedEntityId(entity.id, !wasHighlighted);
+    toggleHighlightById(popupData.entity.id);
   };
 
   const elementDrag = (event: MouseEvent) => {
@@ -378,12 +370,7 @@ export default function PopupCoordinator({
         <MethodPopup restructureMode={restructureMode} popupData={popupData} />
       )}
       {entityType == 'classCommunication' && (
-        <CommunicationPopup
-          restructureMode={restructureMode}
-          popupData={popupData}
-          showApplication={showApplication}
-          toggleHighlightById={toggleHighlightById}
-        />
+        <CommunicationPopup popupData={popupData} />
       )}
       {entityType == 'k8s' && <K8sPopup data={popupData} />}
       {entityType == 'html' && <HtmlPopup data={popupData} />}

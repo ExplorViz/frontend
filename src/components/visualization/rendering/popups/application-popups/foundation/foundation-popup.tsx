@@ -1,11 +1,10 @@
-import React from 'react';
-
-import FoundationPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup-runtime.tsx';
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import FoundationPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup-code.tsx';
 import FoundationPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup-restructure.tsx';
+import FoundationPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup-runtime.tsx';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs.tsx';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface FoundationPopupProps {
   popupData: PopupData;
@@ -21,8 +20,11 @@ export default function FoundationPopup({
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break fw-bold pl-1">
-          {application.name}
+        <div className="d-flex align-items-center justify-content-center gap-2">
+          <div className="text-center text-break fw-bold pl-1">
+            {application.name}
+          </div>
+          <CopyButton text={application.name} />
         </div>
       </h3>
       <PopupTabs

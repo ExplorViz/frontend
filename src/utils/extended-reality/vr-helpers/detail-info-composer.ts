@@ -7,11 +7,7 @@ import {
   getSubPackagesOfPackage,
   getClassesInPackage,
 } from 'explorviz-frontend/src/utils/package-helpers';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import ClazzMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-mesh';
-import ComponentMesh from 'explorviz-frontend/src/view-objects/3d/application/component-mesh';
-import FoundationMesh from 'explorviz-frontend/src/view-objects/3d/application/foundation-mesh';
 import * as THREE from 'three';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
@@ -22,7 +18,6 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { MethodMesh } from 'explorviz-frontend/src/view-objects/3d/application/method-mesh';
-import K8sMesh from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 
 export type DetailedInfo = {
   title: string;

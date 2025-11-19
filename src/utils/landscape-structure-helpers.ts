@@ -13,10 +13,12 @@ import {
   Method,
   Package,
   TypeOfAnalysis,
+  BaseModel,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAncestorPackages,
   getPackageById,
+  packageContainsClass,
 } from 'explorviz-frontend/src/utils/package-helpers';
 import {
   getTraceIdToSpanTree,
@@ -489,3 +491,210 @@ function findCommonNode(node: Node, nodes: Node[]) {
 }
 
 // #endregion
+
+export interface InsertionApplication {}
+
+export function insertApplicationToLandscape(
+  structure: StructureLandscapeData,
+  name: string,
+  classes: string[]
+) {
+  const nodeId = generateId();
+  const appId = generateId();
+  return [
+    combineStructureLandscapeData(structure, {
+      nodes: [
+        {
+          id: nodeId,
+          name: 'Inserted Node',
+          originOfData: TypeOfAnalysis.Static,
+          applications: [
+            {
+              id: appId,
+              name,
+              language: 'Java',
+              packages: packagesFromFlatClasses(classes),
+              originOfData: TypeOfAnalysis.Editing,
+              instanceId: '0',
+              parentId: nodeId,
+              editingState: 'added',
+            },
+          ],
+          ipAddress: '0.0.0.0',
+          hostName: '',
+        },
+      ],
+      k8sNodes: [],
+      landscapeToken: 'editing-landscape',
+    }),
+    appId,
+  ] as const;
+}
+
+export function insertClassesToLandscape(
+  structure: StructureLandscapeData,
+  id: string,
+  classes: string[]
+) {
+  const application = getApplicationInLandscapeById(structure, id);
+  if (application) {
+    const newPackages = packagesFromFlatClasses(classes, application.packages);
+    console.log(classes, newPackages, application.packages);
+    application.packages = newPackages;
+  }
+  return structure;
+}
+
+// classes are a list of fully qualified names
+function packagesFromFlatClasses(
+  classes: string[],
+  existingPackages?: Package[]
+): Package[] {
+  const rootPackagesMap = new Map<string, Package>();
+  existingPackages?.forEach((pkg) => {
+    rootPackagesMap.set(pkg.name, pkg);
+  });
+
+  classes.forEach((fqn) => {
+    const parts = fqn.split('.');
+    let currentPackagesMap = rootPackagesMap;
+    let parentPackage: Package | undefined = undefined;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      let pkg = currentPackagesMap.get(part);
+
+      if (!pkg) {
+        pkg = {
+          id: generateId(),
+          name: part,
+          classes: [],
+          subPackages: [],
+          originOfData: TypeOfAnalysis.Editing,
+          fqn: parentPackage ? `${parentPackage.fqn}.${part}` : part,
+          level: parentPackage ? parentPackage.level + 1 : 0,
+          parent: parentPackage,
+          editingState: 'added',
+        };
+        currentPackagesMap.set(part, pkg);
+        if (parentPackage) {
+          parentPackage.subPackages.push(pkg);
+        }
+      }
+
+      parentPackage = pkg;
+      currentPackagesMap = new Map<string, Package>();
+      pkg.subPackages.forEach((subPkg) =>
+        currentPackagesMap.set(subPkg.name, subPkg)
+      );
+    }
+
+    // Add class to the last package
+    if (parentPackage) {
+      parentPackage.classes.push({
+        id: generateId(),
+        name: parts[parts.length - 1],
+        methods: [],
+        originOfData: TypeOfAnalysis.Editing,
+        fqn,
+        parent: parentPackage,
+        level: 0,
+        editingState: 'added',
+      });
+    }
+  });
+
+  return Array.from(rootPackagesMap.values());
+}
+
+function generateId(): string {
+  return Array.from({ length: 4 }, () =>
+    Math.random().toString(16).slice(2)
+  ).join('');
+}
+
+export function removeComponentFromLandscape(
+  structure: StructureLandscapeData,
+  id: string
+) {
+  let removedIds = new Set<string>([id]);
+  structure.nodes.map((node) => {
+    const applications = node.applications.map((app) => {
+      const [packages, removedSubIds] = removeSubpackageOrClass(
+        id,
+        app.packages,
+        app.id === id
+      );
+      removedIds = removedIds.union(removedSubIds);
+      const allChildrenRemoved = packages.every(isRemoved);
+      const editingState =
+        app.id === id || allChildrenRemoved ? 'removed' : app.editingState;
+
+      if (editingState === 'removed') {
+        removedIds.add(app.id);
+      }
+      return {
+        ...app,
+        packages,
+        editingState,
+      };
+    });
+
+    return {
+      ...node,
+      applications,
+    };
+  });
+  return [structure, removedIds] as const;
+}
+
+function removeSubpackageOrClass(
+  id: string,
+  packages: Package[],
+  parentRemoved: boolean
+): [Package[], Set<string>] {
+  let removedIds = new Set<string>();
+  const pkgs = packages.map((pckg) => {
+    const [subPackages, removedSubIds] = removeSubpackageOrClass(
+      id,
+      pckg.subPackages,
+      parentRemoved || pckg.id === id
+    );
+    removedIds = removedIds.union(removedSubIds);
+    const classes = pckg.classes.map((clazz) => {
+      const editingState =
+        clazz.id === id || parentRemoved || pckg.id === id
+          ? 'removed'
+          : clazz.editingState;
+      if (editingState === 'removed') {
+        removedIds.add(clazz.id);
+      }
+      return {
+        ...clazz,
+        editingState,
+      };
+    });
+    const allChildrenRemoved =
+      subPackages.every(isRemoved) && classes.every(isRemoved);
+    const editingState =
+      pckg.id === id || parentRemoved || allChildrenRemoved
+        ? 'removed'
+        : pckg.editingState;
+
+    if (editingState === 'removed') {
+      removedIds.add(pckg.id);
+    }
+
+    return {
+      ...pckg,
+      subPackages,
+      classes,
+      editingState,
+    };
+  });
+  return [pkgs, removedIds];
+}
+
+function isRemoved(model: BaseModel): boolean {
+  return model.editingState === 'removed';
+}

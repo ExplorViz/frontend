@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import ApplicationObject3D from 'explorviz-frontend/src/view-objects/3d/application/application-object-3d';
 import {
   ApplicationMetrics,
   Metric,

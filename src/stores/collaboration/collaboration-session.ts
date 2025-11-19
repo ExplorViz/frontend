@@ -6,7 +6,6 @@ import {
   SELF_DISCONNECTED_EVENT,
   useWebSocketStore,
 } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
@@ -352,9 +351,10 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       // Remove remote users.
       get().removeAllRemoteUsers();
 
-      useHighlightingStore.getState().resetColorsOfHighlightedEntities();
+      // TODO:
+      // useHighlightingStore.getState().resetColorsOfHighlightedEntities();
 
-      useHighlightingStore.getState().updateHighlighting();
+      // useHighlightingStore.getState().updateHighlighting();
 
       useChatStore
         .getState()
@@ -384,6 +384,8 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
           get().joinRoom(response.roomId);
           return true;
         } catch (e: any) {
+          console.log(e);
+
           // this.connectionStatus = 'offline';
           useToastHandlerStore
             .getState()

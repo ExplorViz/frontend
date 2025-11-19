@@ -1,18 +1,25 @@
-import { create } from 'zustand';
 import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
-import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import { useAuthStore } from './auth';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
-import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { create } from 'zustand';
+import { useAuthStore } from './auth';
 import { useLandscapeTokenStore } from './landscape-token';
 import { DebugSnapshot, useDebugSnapshotRepositoryStore } from './repos/debug-snapshot-repository';
+import { useToastHandlerStore } from './toast-handler';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;
 
+export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
+
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
+  currentCommits: SelectedCommit[] | null;
+  currentCallback:
+    | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
+    | null;
   initTimestampPollingWithCallback: (
     commits: SelectedCommit[],
     callback: (
@@ -21,6 +28,7 @@ interface TimestampPollingState {
     ) => void
   ) => void;
   resetPolling: () => void;
+  manuallyPollTimestamps: () => Promise<void>;
   _startTimestampPolling: (
     commits: SelectedCommit[],
     callback: (
@@ -47,6 +55,8 @@ interface TimestampPollingState {
 export const useTimestampPollingStore = create<TimestampPollingState>(
   (set, get) => ({
     timer: null,
+    currentCommits: null,
+    currentCallback: null,
 
     initTimestampPollingWithCallback: async (
       commits: SelectedCommit[],
@@ -55,12 +65,23 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         timestampsForDebugSnapshots?: Timestamp[]
       ) => void
     ) => {
+      set({ currentCommits: commits, currentCallback: callback });
       get()._startTimestampPolling(commits, callback);
     },
 
     resetPolling: () => {
       if (get().timer) {
         clearTimeout(get().timer!);
+      }
+      set({ timer: null });
+    },
+
+    manuallyPollTimestamps: async () => {
+      const { currentCommits, currentCallback } = get();
+      if (currentCommits && currentCallback) {
+        // TIMESTAMP_POLLING_START_EVENT not send for manual polling
+        // to avoid resetting the countdown timer in the loading screen
+        await get()._pollTimestamps(currentCommits, currentCallback);
       }
     },
 
@@ -77,10 +98,14 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         return setInterval(func, interval);
       }
 
+      const pollFunction = async () => {
+        // Emit event to notify that polling is starting
+        eventEmitter.emit(TIMESTAMP_POLLING_START_EVENT);
+        await get()._pollTimestamps(commits, callback);
+      };
+
       set({
-        timer: setIntervalImmediately(async () => {
-          get()._pollTimestamps(commits, callback);
-        }, 10 * 1000),
+        timer: setIntervalImmediately(pollFunction, 10 * 1000),
       });
     },
 
@@ -117,9 +142,17 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         await allCommitsTimestampPromise
           .then((timestamps: Timestamp[]) => {
             polledCommitToTimestampMap.set(commitId, timestamps);
+            if (timestamps.length === 0) {
+              useToastHandlerStore
+                .getState()
+                .showInfoToastMessage('Empty list of timestamps was received.');
+            }
           })
           .catch((error: Error) => {
             console.error(`Error on fetch of timestamps: ${error}`);
+            useToastHandlerStore
+              .getState()
+              .showErrorToastMessage('No timestamp data could be fetched.');
             callback(new Map([[CROSS_COMMIT_IDENTIFIER, []]]));
             return;
           }).then(() => {
@@ -172,9 +205,19 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
                 selectedCommit.commitId,
                 timestamps
               );
+              if (timestamps.length === 0) {
+                useToastHandlerStore
+                  .getState()
+                  .showInfoToastMessage(
+                    'Empty list of timestamps was received.'
+                  );
+              }
             })
             .catch((error: Error) => {
               console.error(`Error on fetch of timestamps: ${error}`);
+              useToastHandlerStore
+                .getState()
+                .showErrorToastMessage('No timestamp data could be fetched.');
               polledCommitToTimestampMap.set(selectedCommit.commitId, []);
             });
         }

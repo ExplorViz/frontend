@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-// import { Position2D } from 'explorviz-frontend/src/modifiers/interaction-modifier';
-import CrosshairMesh from 'explorviz-frontend/src/view-objects/3d/crosshair-mesh.ts';
-import { defaultRaycastFilter } from 'explorviz-frontend/src/utils/raycaster';
-import { getStoredSettings } from 'explorviz-frontend/src/utils/settings/local-storage-settings';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { gamepadMappings } from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-mappings';
+import { defaultRaycastFilter } from 'explorviz-frontend/src/utils/raycaster';
+import CrosshairMesh from 'explorviz-frontend/src/view-objects/3d/crosshair-mesh.ts';
 
 export type Position2D = {
   x: number;
@@ -64,7 +63,9 @@ export type GamepadInteractionCallbacks = {
 export default class GamepadControls {
   private connectedGamepads: any = {};
   private gamepadAvailable = false;
-  private gamepadEnabled = getStoredSettings().enableGamepadControls.value;
+  private gamepadEnabled =
+    useUserSettingsStore.getState().visualizationSettings.enableGamepadControls
+      .value;
   private mapping = gamepadMappings[0];
 
   private camera: THREE.Camera;
@@ -248,7 +249,9 @@ export default class GamepadControls {
 
   private getGamepad(): Gamepad | null {
     const gamepads = navigator.getGamepads();
-    const selectedGamepadIndex = getStoredSettings().selectedGamepadIndex.value;
+    const selectedGamepadIndex =
+      useUserSettingsStore.getState().visualizationSettings.selectedGamepadIndex
+        .value;
 
     if (!gamepads || !gamepads[selectedGamepadIndex]) {
       console.error('No connected gamepad could be found');

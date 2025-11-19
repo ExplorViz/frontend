@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { Socket, io } from 'socket.io-client';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import {
+  Application,
+  Class,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
 import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { DefaultEventsMap } from '@socket.io/component-emitter';
+import { Object3DEventMap } from 'three';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { useAuthStore } from '../stores/auth';

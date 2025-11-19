@@ -15,6 +15,8 @@ import {
   getAllPackagesAndClassesFromLandscape,
   getApplicationsFromNodes,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useLayoutStore } from '../stores/layout-store';
+import { useVisualizationStore } from '../stores/visualization-store';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
@@ -23,6 +25,8 @@ export default function useLandscapeDataWatcher(
   interAppCommunications: ClassCommunication[];
 } {
   const log = debug('app:hooks:useLandscapeWatcher');
+
+  const { removedComponentIds } = useVisualizationStore();
 
   const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
     []
@@ -53,6 +57,11 @@ export default function useLandscapeDataWatcher(
   };
 
   const handleUpdatedLandscapeData = async () => {
+    console.log(
+      'Update landscape',
+      useVisualizationStore.getState().removedComponentIds
+    );
+
     log('handleUpdateLandscape');
     await Promise.resolve();
     if (!structureLandscapeData || !dynamicLandscapeData) {
@@ -63,10 +72,19 @@ export default function useLandscapeDataWatcher(
     // TODO: Handle k8s nodes
 
     log('Get applications from nodes');
-    const applications = getApplicationsFromNodes(nodes);
+    const applications = getApplicationsFromNodes(nodes).filter(
+      ({ id }) => !removedComponentIds.has(id)
+    );
+
+    const removedEntityIds =
+      useVisualizationStore.getState().removedComponentIds;
 
     log('Layouting landscape ...');
-    const boxLayoutMap = await layoutLandscape([], applications);
+    const boxLayoutMap = await layoutLandscape(
+      [],
+      applications,
+      removedComponentIds
+    );
     log('Layouted landscape.');
 
     // ToDo: This can take quite some time. Optimize.
@@ -85,13 +103,17 @@ export default function useLandscapeDataWatcher(
         classCommunications,
         boxLayoutMap
       );
-
-      applicationModels.push(applicationData);
+      if (!removedComponentIds.has(applicationData.getId())) {
+        applicationModels.push(applicationData);
+      }
     }
 
     // Add inter-app communication
     const interAppCommunications = classCommunications.filter(
-      (x) => x.sourceApp !== x.targetApp
+      (x) =>
+        x.sourceApp !== x.targetApp &&
+        !removedComponentIds.has(x.sourceApp.id) &&
+        !removedComponentIds.has(x.targetApp.id)
     );
 
     // TODO: Add data for IDE extension
@@ -119,6 +141,9 @@ export default function useLandscapeDataWatcher(
     modelRepository.setComponents(packages);
     modelRepository.setClasses(classes);
     modelRepository.setCommunications(classCommunications);
+
+    // Update layout store after model repository is populated
+    useLayoutStore.getState().updateLayouts(boxLayoutMap);
   };
 
   const updateApplicationData = async (

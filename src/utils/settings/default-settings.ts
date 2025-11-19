@@ -66,20 +66,22 @@ export const defaultVizSettings: VisualizationSettings = {
     description: '',
     isColorSetting: true,
   },
-  componentEvenColor: {
+  componentRootLevelColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.componentEvenColor,
+    value: defaultColors.componentRootLevelColor,
     group: 'Colors',
-    displayName: 'Component Even',
-    description: '',
+    displayName: 'Component on Root Level',
+    description:
+      'Color for components at the root/top level of the component tree',
     isColorSetting: true,
   },
-  componentOddColor: {
+  componentDeepestLevelColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.componentOddColor,
+    value: defaultColors.componentDeepestLevelColor,
     group: 'Colors',
-    displayName: 'Component Odd',
-    description: '',
+    displayName: 'Component on Deepest Level',
+    description:
+      'Color for components at the deepest level of the component tree',
     isColorSetting: true,
   },
   componentTextColor: {
@@ -401,6 +403,80 @@ export const defaultVizSettings: VisualizationSettings = {
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
   },
+  enableEdgeBundling: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Enable Edge Bundling',
+    description:
+      'Bundle communication lines for better visualization of dense areas',
+    isFlagSetting: true,
+  },
+  bundleStrength: {
+    level: SettingLevel.DEFAULT,
+    value: 0.3,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Communication',
+    displayName: 'Bundling Strength',
+    description: 'Controls how strongly edges are bundled together',
+    isRangeSetting: true,
+  },
+  compatibilityThreshold: {
+    level: SettingLevel.EXTENDED,
+    value: 0.6,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Communication',
+    displayName: 'Compatibility Threshold',
+    description: 'Minimum compatibility score for edges to be bundled',
+    isRangeSetting: true,
+  },
+  bundlingIterations: {
+    level: SettingLevel.EXTENDED,
+    value: 30,
+    range: { min: 1, max: 100, step: 1 },
+    group: 'Communication',
+    displayName: 'Bundling Iterations',
+    description:
+      'Number of bundling algorithm iterations (higher = better quality)',
+    isRangeSetting: true,
+  },
+  bundlingStepSize: {
+    level: SettingLevel.EXTENDED,
+    value: 0.1,
+    range: { min: 0.01, max: 0.5, step: 0.01 },
+    group: 'Communication',
+    displayName: 'Bundling Step Size',
+    description: 'Step size for bundling algorithm (smaller = smoother)',
+    isRangeSetting: true,
+  },
+  beta: {
+    level: SettingLevel.DEFAULT,
+    value: 0.8,
+    range: { min: 0.0, max: 1.0, step: 0.1 },
+    group: 'Communication',
+    displayName: '3D-HAP Attraction Power (β)',
+    description: 'Controls the attraction power of hierarchical attraction points (β factor from paper)',
+    isRangeSetting: true,
+  },
+  use3DHAPAlgorithm: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Use 3D-HAP Algorithm',
+    description: 'Enable 3D Hierarchical Edge Bundling algorithm from Caserta paper',
+    isFlagSetting: true,
+  },
+  
+  // bundlingBeta: {
+  //   value: 0.5,
+  //   range: { min: 0.0, max: 1.0, step: 0.01 },
+  //   group: 'Communication',
+  //   displayName: 'Edge Bundling β',
+  //   description: 'Controls the bundling strength (higher = stronger bundling)',
+  //   level: SettingLevel.DEFAULT,
+  //   isRangeSetting: true,
+  // },
+
   // Label settings
   appLabelMargin: {
     level: SettingLevel.DEFAULT,
@@ -798,6 +874,17 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Virtual Reality',
     displayName: 'Show VR in Browser',
     description: 'Shows the VR room in the browser after joining',
+    isFlagSetting: true,
+  },
+
+  // Misc Settings
+  showEmbeddedBrowserIcon: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Misc',
+    displayName: 'Show Embedded Browser Icons',
+    description:
+      'Toggle visibility of the embedded browser icons near the code cities',
     isFlagSetting: true,
   },
 

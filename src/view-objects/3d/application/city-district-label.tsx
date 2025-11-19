@@ -44,7 +44,9 @@ export default function CityDistrictLabel({
   const { isOpen, isVisible } = useVisualizationStore(
     useShallow((state) => ({
       isOpen: !state.closedComponentIds.has(component.id),
-      isVisible: !state.hiddenComponentIds.has(component.id),
+      isVisible:
+        !state.hiddenComponentIds.has(component.id) &&
+        !state.removedComponentIds.has(component.id),
     }))
   );
 

@@ -5,7 +5,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as THREE from 'three';
 
-export function getHighlightingColor(): THREE.Color {
+export function getLocalHighlightingColor(): THREE.Color {
   if (useCollaborationSessionStore.getState().isOnline()) {
     return useLocalUserStore.getState().color;
   } else {
@@ -13,6 +13,22 @@ export function getHighlightingColor(): THREE.Color {
       useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value
     );
   }
+}
+
+export function getHighlightingColorForEntity(entityId: string): THREE.Color {
+  if (useCollaborationSessionStore.getState().isOnline()) {
+    const remoteUsers = Array.from(
+      useCollaborationSessionStore.getState().getAllRemoteUsers()
+    );
+
+    for (let i = 0; i < remoteUsers.length; i++) {
+      const user = remoteUsers[i];
+      if (user.highlightedEntityIds.has(entityId)) {
+        return user.color;
+      }
+    }
+  }
+  return getLocalHighlightingColor();
 }
 
 export function setHighlightingById(
@@ -46,7 +62,16 @@ export function toggleHighlightById(modelId: string, sendMessage = true) {
 }
 
 export function removeAllHighlighting(sendMessage = true) {
+  // Remove all highlights
   useVisualizationStore.getState().actions.removeAllHighlightedEntityIds();
+
+  // Clear all remote user highlights
+  useCollaborationSessionStore
+    .getState()
+    .getAllRemoteUsers()
+    .forEach((user) => {
+      user.highlightedEntityIds.clear();
+    });
 
   if (sendMessage) {
     useMessageSenderStore.getState().sendAllHighlightsReset();

@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function PlayPauseButton() {
   return (
     <div id="play-pause-button-container" className="center">
