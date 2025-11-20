@@ -53,9 +53,34 @@ export class HAPSystemManager {
     this.hapSystems.forEach(system => system.setBeta(beta));
   }
 
-  // Clear HAP system for an application (cleanup)
-  public clearHAPSystem(applicationId: string): void {
-    this.hapSystems.delete(applicationId);
-    // Remove all HAP nodes for this application
-  }
+public clearHAPSystem(applicationId: string): void {
+  this.hapSystems.delete(applicationId);
+  
+  // Delete all HAP-Nodes for application
+  const elementsToRemove: string[] = [];
+  this.elementToHAP.forEach((node, elementId) => {
+    if (node.element && this.isElementInApplication(node.element, applicationId)) {
+      elementsToRemove.push(elementId);
+    }
+  });
+  
+  elementsToRemove.forEach(elementId => {
+    this.elementToHAP.delete(elementId);
+  });
+  
+  console.log(`Cleared HAP system for application: ${applicationId}`);
 }
+
+private isElementInApplication(element: any, applicationId: string): boolean {
+  let current = element;
+  while (current && current.parent) {
+    if (current.id === applicationId) {
+      return true;
+    }
+    current = current.parent;
+  }
+  return false;
+}
+
+}
+

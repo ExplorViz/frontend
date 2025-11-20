@@ -164,9 +164,9 @@ export class HierarchicalAttractionSystem {
    // Deeper levels (higher level number) = stronger attraction
   private calculateLevelBasedBeta(level: number, baseBeta: number): number {
     // Paper suggests stronger attraction for deeper hierarchy levels
-    // Class (level 2) = strongest, Application (level 0) = weakest
+    // Application (level 2) = strongest, Class (level 0) = weakest
     const levelMultiplier = 1.0 + (level * 0.2); // +20% per level
-    return Math.min(1.0, baseBeta * levelMultiplier);
+    return Math.min(0.9, baseBeta * levelMultiplier);
   }
 
   /**
