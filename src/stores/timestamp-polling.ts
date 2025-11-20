@@ -116,11 +116,6 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         await allCommitsTimestampPromise
           .then((timestamps: Timestamp[]) => {
             polledCommitToTimestampMap.set(commitId, timestamps);
-            if (timestamps.length === 0) {
-              useToastHandlerStore
-                .getState()
-                .showInfoToastMessage('Empty list of timestamps was received.');
-            }
           })
           .catch((error: Error) => {
             console.error(`Error on fetch of timestamps: ${error}`);
@@ -149,13 +144,6 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
                 selectedCommit.commitId,
                 timestamps
               );
-              if (timestamps.length === 0) {
-                useToastHandlerStore
-                  .getState()
-                  .showInfoToastMessage(
-                    'Empty list of timestamps was received.'
-                  );
-              }
             })
             .catch((error: Error) => {
               console.error(`Error on fetch of timestamps: ${error}`);
