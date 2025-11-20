@@ -193,11 +193,12 @@ export default function CommunicationR3F({
 
   // The deeper into the hierarchy tree, the closer the 3D-HAP is to its geometric element
   const getLevel = (element: any): number => {
-    if (isClass(element)) return 2;       // HIGHEST level - farthest from geometry
+    if (isClass(element)) return 0;       // LOWEST level - closest to geometry
     if (isPackage(element)) return 1;     // Middle level
-    if (isApplication(element)) return 0; // LOWEST level - closest to geometry
+    if (isApplication(element)) return 2; // HIGHEST level - farthest from geometry
     return 0;
   };
+
 
   // Use effective layout map from prop or global
   const effectiveLayoutMap = layoutMap || globalLayoutMap;
@@ -213,6 +214,7 @@ export default function CommunicationR3F({
     return new THREE.Vector3(center.x, center.y + elevation, center.z);
   };
 
+
   // Helper functions for position calculation
   const getFallbackPosition = (element: any): THREE.Vector3 => {
     const level = getLevel(element);
@@ -220,7 +222,7 @@ export default function CommunicationR3F({
     if (isApplication(element)) {
       return new THREE.Vector3(
         (Math.random() - 0.5) * 100,
-        0 + (level * 10),  // Application (Level 0) = 0
+        0 + (level * 10),  // Application (Level 2) = 20
         (Math.random() - 0.5) * 100
       );
     }
@@ -236,7 +238,7 @@ export default function CommunicationR3F({
       const parentPos = getPosition(element.parent);
       return new THREE.Vector3(
         parentPos.x + (Math.random() - 0.5) * 10,
-        0 + (level * 10),  // Class (Level 2) = 20
+        0 + (level * 10),  // Class (Level 0) = 0
         parentPos.z + (Math.random() - 0.5) * 10
       );
     }
@@ -260,19 +262,20 @@ export default function CommunicationR3F({
 
   // Initialize HAP system for the application
   useEffect(() => {
-    if (applicationElement && enableEdgeBundling && use3DHAPAlgorithm) {
+    if (applicationElement && enableEdgeBundling) {
+      // Check if HAP-System already exists
+      const existingSystem = hapSystemManager.getHAPSystem(applicationElement.id);
+      if (existingSystem) {
+        console.log('HAP system already exists, skipping initialization');
+        return;
+      }
+
       console.log('=== INITIALIZING HAP SYSTEM ===');
 
       const getChildren = (element: any): any[] => {
-        if (isPackage(element)) {
-          return [...element.subPackages, ...element.classes];
-        }
-        if (isApplication(element)) {
-          return element.packages;
-        }
-        if (isClass(element)) {
-          return [];
-        }
+        if (isPackage(element)) return [...element.subPackages, ...element.classes];
+        if (isApplication(element)) return element.packages;
+        if (isClass(element)) return [];
         return [];
       };
 
@@ -285,21 +288,12 @@ export default function CommunicationR3F({
           getLevel
         );
         
-        console.log('HAP system successfully initialized for application:', applicationElement.id);
-        
-        // Debug: Show all created HAP nodes
-        const allHAPNodes = Array.from((hapSystemManager as any).elementToHAP?.entries() || []);
-        console.log('Created HAP nodes:', allHAPNodes.map(([id, node]: [string, any]) => ({
-          id,
-          level: node.level,
-          position: node.position
-        })));
-        
+        console.log('HAP system successfully initialized');
       } catch (error) {
         console.error('Error initializing HAP system:', error);
       }
     }
-  }, [applicationElement, enableEdgeBundling, use3DHAPAlgorithm]);
+  }, [applicationElement?.id, enableEdgeBundling]);
 
   // Get HAP nodes for this specific communication
   const hapNodes = useMemo(() => {
@@ -434,6 +428,19 @@ export default function CommunicationR3F({
     applicationElement
   ]);
 
+  useEffect(() => {
+    if (meshRef.current && finalLayout) {
+      console.log('🎯 UPDATING MESH - use3DHAPAlgorithm:', use3DHAPAlgorithm);
+      
+      meshRef.current.layout = finalLayout as any;
+      meshRef.current.enableEdgeBundling = enableEdgeBundling;
+      meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm;
+      meshRef.current.beta = beta;
+      
+      meshRef.current.render();
+    }
+  }, [finalLayout, enableEdgeBundling, use3DHAPAlgorithm, beta]);
+
   // Initialize HAP system on the mesh when it's created
   useEffect(() => {
     if (meshRef.current && enableEdgeBundling && use3DHAPAlgorithm && hapNodes) {
@@ -484,6 +491,7 @@ export default function CommunicationR3F({
 
   return (
     <clazzCommunicationMesh
+      key={`${enableEdgeBundling}-${use3DHAPAlgorithm}`}
       {...pointerStopHandlers}
       onPointerOver={handleOnPointerOver}
       onPointerOut={handleOnPointerOut}
