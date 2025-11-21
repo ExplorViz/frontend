@@ -251,7 +251,10 @@ export default function CanvasWrapper({
       <Canvas
         id="three-js-canvas"
         className={'webgl'}
-        gl={{ powerPreference: 'high-performance' }}
+        gl={{
+          powerPreference: 'high-performance',
+          preserveDrawingBuffer: true,
+        }}
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
