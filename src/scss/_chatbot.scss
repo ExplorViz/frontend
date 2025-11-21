@@ -43,6 +43,10 @@
   display: inline-block;
 }
 
+.tool-call-card.error {
+  background-color: rgba(var(--bs-danger-rgb), 0.3);
+}
+
 .tool-call-card button {
   height: 26px;
   width: 26px;

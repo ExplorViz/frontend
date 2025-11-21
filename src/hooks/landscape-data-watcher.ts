@@ -56,11 +56,6 @@ export default function useLandscapeDataWatcher(
   };
 
   const handleUpdatedLandscapeData = async () => {
-    console.log(
-      'Update landscape',
-      useVisualizationStore.getState().removedComponentIds
-    );
-
     log('handleUpdateLandscape');
     await Promise.resolve();
     if (!structureLandscapeData || !dynamicLandscapeData) {

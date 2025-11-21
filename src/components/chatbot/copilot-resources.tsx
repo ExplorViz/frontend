@@ -2,6 +2,8 @@ import { useCopilotReadable } from '@copilotkit/react-core';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
 import { type Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { EditingContext } from '../editing/editing-context';
+import { use } from 'react';
 
 interface CopilotResourcesProps {
   applications?: Application[];
@@ -14,6 +16,8 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     hoveredEntityId,
     removedComponentIds,
   } = useVisualizationStore();
+
+  const { canGoBack, canGoForward } = use(EditingContext);
 
   useCopilotReadable({
     description:
@@ -40,6 +44,16 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     description:
       'Get the list of all currently removed components from the 3D visualization by their IDs. Removed components are not visible in the visualization.',
     value: JSON.stringify([...removedComponentIds]),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the user can navigate back in their editing history of the 3D landscape data.',
+    value: JSON.stringify(canGoBack),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the user can navigate forward in their editing history of the 3D landscape data.',
+    value: JSON.stringify(canGoForward),
   });
   return null;
 }

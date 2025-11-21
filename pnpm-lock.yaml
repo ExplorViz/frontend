@@ -204,6 +204,9 @@ importers:
       '@types/three':
         specifier: 0.161.2
         version: 0.161.2
+      '@types/w3c-image-capture':
+        specifier: ^1.0.11
+        version: 1.0.11
       '@typescript-eslint/eslint-plugin':
         specifier: 6.21.0
         version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.8.2))(eslint@8.57.1)(typescript@5.8.2)
@@ -1296,8 +1299,14 @@ packages:
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
+  '@types/w3c-image-capture@1.0.11':
+    resolution: {integrity: sha512-g3BsmP29VsaaB9M2Hp0IJ8W/WatH0NzM6GV6Awdaqex5wjCcScdDa58ctX0al+ixQLDfIxplu+xOaLNA/u66bg==}
+
   '@types/warning@3.0.3':
     resolution: {integrity: sha512-D1XC7WK8K+zZEveUPY+cf4+kgauk8N4eHr/XIHXGlGYkHLud6hK9lYfZk1ry1TNh798cZUCgb6MqGEG8DkJt6Q==}
+
+  '@types/webrtc@0.0.47':
+    resolution: {integrity: sha512-l4G2skp32Q7ENiocokNhIHG6dKfws9ALJ04zW+ZZ97LMe6G+yqs/E8qsJLZJELGcdUDgEWvi2jg7KSP5TpJxeg==}
 
   '@types/webxr@0.5.21':
     resolution: {integrity: sha512-geZIAtLzjGmgY2JUi6VxXdCrTb99A7yP49lxLr2Nm/uIK0PkkxcEi4OGhoGDO4pxCf3JwGz2GiJL2Ej4K2bKaA==}
@@ -5886,7 +5895,13 @@ snapshots:
 
   '@types/unist@3.0.3': {}
 
+  '@types/w3c-image-capture@1.0.11':
+    dependencies:
+      '@types/webrtc': 0.0.47
+
   '@types/warning@3.0.3': {}
+
+  '@types/webrtc@0.0.47': {}
 
   '@types/webxr@0.5.21': {}
 

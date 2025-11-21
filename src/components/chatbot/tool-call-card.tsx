@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { SearchIcon, ToolsIcon } from '@primer/octicons-react';
+import { InfoIcon, SearchIcon, ToolsIcon } from '@primer/octicons-react';
 import { Button } from 'react-bootstrap';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 
 type Action =
   | 'highlight'
@@ -13,38 +15,69 @@ type Action =
   | 'resetCamera'
   | 'addApplication'
   | 'addClasses'
-  | 'removeComponent';
+  | 'removeComponent'
+  | 'undoEdit'
+  | 'redoEdit'
+  | 'screenshot'
+  | 'clickOnScreen';
 type Status = 'inProgress' | 'executing' | 'complete';
 
 interface ToolCallCardProps {
   component?: {
     id?: string;
     name?: string;
+    fqn?: string;
   };
   status: Status;
   action?: Action;
-  disablePing?: boolean;
+  showPopup?: boolean;
+  errorMessage?: string;
 }
 
 export function ToolCallCard({
   component,
   status,
   action,
-  disablePing,
+  showPopup,
+  errorMessage,
 }: ToolCallCardProps) {
-  const message = getMessage(status, action);
-  const displayComponent = component?.name || component?.id?.slice(0, 8);
-  const hasId = Boolean(component?.id);
-  const disabled = !hasId || disablePing;
+  const message = getMessage(status, action, errorMessage);
+  const disabled = !component?.id;
+  const application = component?.id
+    ? useModelStore.getState().getApplication(component?.id)
+    : undefined;
+  const pckg = component?.id
+    ? useModelStore.getState().getComponent(component?.id)
+    : undefined;
+  const clazz = component?.id
+    ? useModelStore.getState().getClass(component?.id)
+    : undefined;
+  const displayComponent =
+    component?.name ||
+    (application?.name && `application ${application.name}`) ||
+    (pckg?.fqn && `package ${pckg.fqn}`) ||
+    (clazz?.fqn && `class ${clazz.fqn}`) ||
+    component?.id?.slice(0, 8);
+  const { addPopup } = usePopupHandlerStore();
 
   return (
-    <div className="tool-call-card">
+    <div className={`tool-call-card ${errorMessage ? 'error' : ''}`}>
       <Button
-        variant="primary"
+        variant={errorMessage ? 'danger' : 'primary'}
         disabled={disabled}
-        onClick={() => pingByModelId(component?.id!)}
+        onClick={() =>
+          showPopup
+            ? addPopup({ entityId: component!.id, entity })
+            : pingByModelId(component?.id!)
+        }
       >
-        {disabled ? <ToolsIcon size={14} /> : <SearchIcon size={14} />}
+        {disabled ? (
+          <ToolsIcon size={14} />
+        ) : showPopup ? (
+          <InfoIcon size={14} />
+        ) : (
+          <SearchIcon size={14} />
+        )}
       </Button>
       {message}
       {displayComponent && ` ${displayComponent}`}
@@ -67,7 +100,7 @@ function AnimatedEllipsis() {
   return '.'.repeat(count);
 }
 
-function getMessage(status: Status, action?: Action) {
+function getMessage(status: Status, action?: Action, errorMessage?: string) {
   switch (status) {
     case 'inProgress':
     case 'executing':
@@ -92,6 +125,14 @@ function getMessage(status: Status, action?: Action) {
           return 'Adding classes to';
         case 'removeComponent':
           return 'Removing component';
+        case 'undoEdit':
+          return 'Undoing edit';
+        case 'redoEdit':
+          return 'Redoing edit';
+        case 'screenshot':
+          return 'Taking screenshot';
+        case 'clickOnScreen':
+          return 'Clicking on screen at';
         default:
           return 'Tool call';
       }
@@ -117,6 +158,17 @@ function getMessage(status: Status, action?: Action) {
           return 'Added classes to';
         case 'removeComponent':
           return 'Removed component';
+        case 'undoEdit':
+          return 'Undid edit';
+        case 'redoEdit':
+          return 'Redid edit';
+        case 'screenshot':
+          if (errorMessage) {
+            return `Failed to take screenshot: ${errorMessage}`;
+          }
+          return 'Took screenshot';
+        case 'clickOnScreen':
+          return 'Clicked on screen at';
         default:
           return 'Tool call';
       }

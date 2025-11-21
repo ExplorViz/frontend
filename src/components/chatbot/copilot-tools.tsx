@@ -1,4 +1,7 @@
-import { useCopilotAction } from '@copilotkit/react-core';
+import {
+  useCopilotAction,
+  useCopilotChatInternal,
+} from '@copilotkit/react-core';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   closeComponent,
@@ -16,6 +19,7 @@ import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/applicatio
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { EditingContext } from '../editing/editing-context';
+import * as htmlToImage from 'html-to-image';
 
 interface CopilotToolsProps {
   applications?: Application[];
@@ -28,7 +32,15 @@ function getAllSubPackages(pkg: Package): Package[] {
 export function CopilotTools({ applications }: CopilotToolsProps) {
   const { actions } = useVisualizationStore();
   const { moveCameraTo, resetCamera } = useCameraControlsStore();
-  const { addApplication, addClasses, removeComponent } = use(EditingContext);
+  const {
+    addApplication,
+    addClasses,
+    removeComponent,
+    goBack,
+    goForward,
+    canGoBack,
+    canGoForward,
+  } = use(EditingContext);
   const packages = useMemo(() => {
     const list = [] as Package[];
     applications?.forEach(({ packages }) => {
@@ -38,6 +50,8 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     });
     return list;
   }, [applications]);
+
+  const { sendMessage } = useCopilotChatInternal();
 
   useCopilotAction({
     name: 'highlight-component',
@@ -296,7 +310,192 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         status={status}
         action="removeComponent"
         component={{ id: args.id }}
-        disablePing
+        showPopup
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'undo-edit',
+    description:
+      'Undoes the last edit made to the landscape, reverting it to the previous state.',
+    parameters: [],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async () => {
+      if (canGoBack) {
+        goBack();
+      }
+    },
+    render: ({ status }) => <ToolCallCard status={status} action="undoEdit" />,
+  });
+
+  useCopilotAction({
+    name: 'redo-edit',
+    description:
+      'Redoes the last undone edit to the landscape, reapplying the change that was previously reverted.',
+    parameters: [],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async () => {
+      if (canGoForward) {
+        goForward();
+      }
+    },
+    render: ({ status }) => <ToolCallCard status={status} action="redoEdit" />,
+  });
+
+  useCopilotAction({
+    name: 'take-screenshot',
+    description:
+      'Takes a screenshot of the current browser window and appends it as an user message to the chat. You can use this for example to explain other elements of the ExplorViz frontend to the user, that are not part of the 3d landscape. When an error occurs when taking the screenshot, please explain the error message to the user. The screenshot does not include the 3d landscape due to technical limitations, but all other parts of the frontend UI are visible in the screenshot.',
+    parameters: [],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async () => {
+      // let track: MediaStreamTrack | undefined;
+      // try {
+      //   const captureStream = await navigator.mediaDevices.getDisplayMedia({
+      //     video: {
+      //       displaySurface: 'browser',
+      //     },
+      //     preferCurrentTab: true,
+      //     selfBrowserSurface: 'include',
+      //     surfaceSwitching: 'include',
+      //     monitorTypeSurfaces: 'exclude',
+      //   } as any);
+      //   track = captureStream.getVideoTracks().find(Boolean);
+      //   if (track) {
+      //     let imageCapture = new ImageCapture(track);
+      //     const screenshot = await imageCapture.grabFrame();
+      //     //track.stop();
+      //     const url = await new Promise<string>((resolve, reject) => {
+      //       const canvas = document.createElement('canvas');
+      //       canvas.width = screenshot.width;
+      //       canvas.height = screenshot.height;
+      //       const context = canvas.getContext('2d');
+      //       if (!context) {
+      //         reject(new Error('Could not get canvas context'));
+      //         return;
+      //       }
+      //       context.drawImage(screenshot, 0, 0);
+      //       canvas.toBlob((blob) => {
+      //         if (blob) {
+      //           const reader = new FileReader();
+      //           reader.onloadend = () => {
+      //             resolve(reader.result as string);
+      //           };
+      //           reader.readAsDataURL(blob);
+      //         } else {
+      //           reject(new Error('Could not convert canvas to blob'));
+      //         }
+      //       }, 'image/png');
+      //     });
+      //     console.log('Screenshot taken: ', url);
+      //     const [format, bytes] = url
+      //       .split(/data:image\/|;|base64,/)
+      //       .filter(Boolean);
+      //     await sendMessage({
+      //       id: 'screenshot-' + Date.now(),
+      //       role: 'user',
+      //       image: {
+      //         format,
+      //         bytes,
+      //       },
+      //       content: '',
+      //     });
+      //     return 'Screenshot taken and appended to the chat.';
+      //   } else {
+      //     throw new Error('No video track available for screenshot.');
+      //   }
+      // } catch (err) {
+      //   track?.stop();
+      //   console.error('Error taking screenshot: ', err);
+      //   return `Error taking screenshot: ${err instanceof Error ? err.message : String(err)}`;
+      // }
+      const url = await htmlToImage.toBlob(document.body).then(function (blob) {
+        return new Promise<string>((resolve, reject) => {
+          if (blob) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              resolve(reader.result as string);
+            };
+            reader.readAsDataURL(blob);
+          } else {
+            reject(new Error('Could not convert to blob'));
+          }
+        });
+      });
+
+      console.log('Screenshot taken: ', url);
+      const [format, bytes] = url
+        .split(/data:image\/|;|base64,/)
+        .filter(Boolean);
+      await sendMessage({
+        id: 'screenshot-' + Date.now(),
+        role: 'user',
+        image: {
+          format,
+          bytes,
+        },
+        content: '',
+      });
+      return 'Screenshot taken and appended to the chat.';
+    },
+    render: ({ status, result }) => (
+      <ToolCallCard
+        status={status}
+        action="screenshot"
+        errorMessage={
+          (typeof result === 'string' &&
+            result.includes('Error taking screenshot: ') &&
+            result.split('Error taking screenshot: ')[1]) ||
+          undefined
+        }
+      />
+    ),
+    followUp: false,
+  });
+
+  useCopilotAction({
+    name: 'click-on-screen',
+    description:
+      'Simulates a click on a specific position on the screen given by the normalized screen position. This can be used to interact with UI elements outside of the 3D visualization, such as buttons or menus in the ExplorViz frontend. Do the following steps to achieve optimal results: 1. Check if there was a screenshot taken already, if not take a screenshot with the take-screenshot tool. 2. Read the screenshot resolution (width W, height H in pixels). 3. Visually locate the target element and determine the pixel coordinates of its center (x_px, y_px). Do not guess. Do not eyeball. 4. Convert to normalized coordinates with 5 decimals: x = round(x_px / W, 5) y = round(y_px / H, 5). 5. Take these normalized coordinates as parameters for this tool call. If the target is ambiguous or partially hidden, ask for clarification before clicking. After clicking, verify the expected UI change; if not achieved, adjust by small offsets (±3–5 px) and retry once.',
+    parameters: [
+      {
+        name: 'x',
+        type: 'number',
+        description:
+          'Normalized x coordinate on the screen, 0 (left) to 1 (right).',
+        required: true,
+      },
+      {
+        name: 'y',
+        type: 'number',
+        description:
+          'Normalized y coordinate on the screen, 0 (top) to 1 (bottom).',
+        required: true,
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ x, y }) => {
+      const clientX = Math.round(x * window.innerWidth);
+      const clientY = Math.round(y * window.innerHeight);
+      const clickEvent = new MouseEvent('click', {
+        clientX,
+        clientY,
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
+      document.elementFromPoint(clientX, clientY)?.dispatchEvent(clickEvent);
+    },
+    render: ({ args, status }) => (
+      <ToolCallCard
+        status={status}
+        action="clickOnScreen"
+        component={{ name: `(${args.x}, ${args.y})` }}
       />
     ),
   });
