@@ -15,6 +15,7 @@ import {
   getAllPackagesAndClassesFromLandscape,
   getApplicationsFromNodes,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useLayoutStore } from '../stores/layout-store';
 import { useVisualizationStore } from '../stores/visualization-store';
 
 export default function useLandscapeDataWatcher(
@@ -135,6 +136,9 @@ export default function useLandscapeDataWatcher(
     modelRepository.setComponents(packages);
     modelRepository.setClasses(classes);
     modelRepository.setCommunications(classCommunications);
+
+    // Update layout store after model repository is populated
+    useLayoutStore.getState().updateLayouts(boxLayoutMap);
   };
 
   const updateApplicationData = async (

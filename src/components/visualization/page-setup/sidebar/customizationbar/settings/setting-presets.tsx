@@ -14,52 +14,57 @@ export default function SettingPresets() {
 
   const {
     presets,
+    selectedPreset,
     addPreset,
     savePreset,
     loadPreset,
     removePreset,
     renamePreset,
     listPresets,
+    setSelectedPreset,
   } = useUserSettingsStore(
     useShallow((state) => ({
       presets: state.presets,
+      selectedPreset: state.selectedPreset,
       addPreset: state.addPreset,
       savePreset: state.savePreset,
       loadPreset: state.loadPreset,
       removePreset: state.removePreset,
       renamePreset: state.renamePreset,
       listPresets: state.listPresets,
+      setSelectedPreset: state.setSelectedPreset,
     }))
   );
 
   // ----- Preset UI state & handlers -----
-  const [selectedPreset, setSelectedPreset] = useState<string>('');
   const [newPresetName, setNewPresetName] = useState<string>('');
   const [renameTo, setRenameTo] = useState<string>('');
 
-  // Keep selectedPreset in sync with available presets - pick first if none selected
+  // Keep selectedPreset in sync with available presets - pick first if none selected (UI only, no auto-load)
   useEffect(() => {
     const names = listPresets();
     if (names.length === 0) {
-      setSelectedPreset('');
+      if (selectedPreset) {
+        setSelectedPreset(null);
+      }
     } else if (!selectedPreset || !names.includes(selectedPreset)) {
+      // Only update the selected preset in the store, don't load it
       setSelectedPreset(names[0]);
-      loadPreset(names[0]);
     }
-  }, [JSON.stringify(presets)]);
+  }, [JSON.stringify(presets), selectedPreset, listPresets, setSelectedPreset]);
 
-  const handlePresetSelection = (selectedPreset: string) => {
-    setSelectedPreset(selectedPreset);
+  const handlePresetSelection = (presetName: string | null) => {
+    setSelectedPreset(presetName);
 
-    if (!selectedPreset) {
+    if (!presetName) {
       showErrorToastMessage('No preset selected to load');
       return;
     }
-    const ok = loadPreset(selectedPreset);
+    const ok = loadPreset(presetName);
     if (ok) {
-      showSuccessToastMessage(`Preset "${selectedPreset}" loaded`);
+      showSuccessToastMessage(`Preset "${presetName}" loaded`);
     } else {
-      showErrorToastMessage(`Failed to load preset "${selectedPreset}"`);
+      showErrorToastMessage(`Failed to load preset "${presetName}"`);
     }
   };
 
@@ -74,6 +79,7 @@ export default function SettingPresets() {
       showSuccessToastMessage(`Preset "${name}" created`);
       setNewPresetName('');
       setSelectedPreset(name);
+      // Note: Preset is not auto-loaded, it will be loaded when visualization opens
     } else {
       showErrorToastMessage(
         `Preset "${name}" already exists. Use Save to overwrite or choose a different name.`
@@ -110,7 +116,7 @@ export default function SettingPresets() {
     const ok = removePreset(selectedPreset);
     if (ok) {
       showSuccessToastMessage(`Preset "${selectedPreset}" deleted`);
-      setSelectedPreset('');
+      // selectedPreset is cleared in the store by removePreset
     } else {
       showErrorToastMessage(`Failed to delete preset "${selectedPreset}"`);
     }
@@ -131,7 +137,7 @@ export default function SettingPresets() {
       showSuccessToastMessage(
         `Preset "${selectedPreset}" renamed to "${newName}"`
       );
-      setSelectedPreset(newName);
+      // selectedPreset is updated in the store by renamePreset
       setRenameTo('');
     } else {
       showErrorToastMessage(
@@ -146,20 +152,12 @@ export default function SettingPresets() {
         <strong>Presets</strong>
       </h6>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'center',
-          marginBottom: '0.5rem',
-        }}
-      >
+      <div className="preset-controls-row">
         <select
-          className="form-control form-control-sm"
-          style={{ width: 200 }}
-          value={selectedPreset}
+          className="form-control form-control-sm preset-control-input"
+          value={selectedPreset || ''}
           onChange={(e) => {
-            handlePresetSelection(e.target.value);
+            handlePresetSelection(e.target.value || null);
           }}
         >
           <option value="">— Select preset —</option>
@@ -187,17 +185,9 @@ export default function SettingPresets() {
         </button>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'center',
-          marginBottom: '0.5rem',
-        }}
-      >
+      <div className="preset-controls-row">
         <input
-          className="form-control form-control-sm"
-          style={{ width: 200 }}
+          className="form-control form-control-sm preset-control-input"
           placeholder={
             selectedPreset
               ? `Rename "${selectedPreset}" to...`
@@ -216,17 +206,9 @@ export default function SettingPresets() {
         </button>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'center',
-          marginBottom: '0.5rem',
-        }}
-      >
+      <div className="preset-controls-row">
         <input
-          className="form-control form-control-sm"
-          style={{ width: 200 }}
+          className="form-control form-control-sm preset-control-input"
           placeholder="Preset name..."
           value={newPresetName}
           onChange={(e) => setNewPresetName(e.target.value)}

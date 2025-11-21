@@ -6,6 +6,13 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { create } from 'zustand';
 
+export type EntityType =
+  | 'application'
+  | 'component'
+  | 'class'
+  | 'communication'
+  | null;
+
 interface ModelRepositoryState {
   applications: Record<string, Application>;
   components: Record<string, Package>;
@@ -18,6 +25,7 @@ interface ModelRepositoryState {
   getClass: (id: string) => Class | undefined;
   getCommunication: (id: string) => ClassCommunication | undefined;
   getModel: (id: string) => Application | Package | Class | Class | undefined;
+  getEntityType: (id: string) => EntityType;
 
   // Getter functions for all models
   getAllApplications: () => Application[];
@@ -73,6 +81,23 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
     get().components[id] ||
     get().classes[id] ||
     get().communications[id],
+
+  getEntityType: (id) => {
+    const state = get();
+    if (state.applications[id]) {
+      return 'application';
+    }
+    if (state.components[id]) {
+      return 'component';
+    }
+    if (state.classes[id]) {
+      return 'class';
+    }
+    if (state.communications[id]) {
+      return 'communication';
+    }
+    return null;
+  },
 
   // Set individual models
   addApplication: (id, application) =>

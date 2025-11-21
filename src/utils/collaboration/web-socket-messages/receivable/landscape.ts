@@ -14,7 +14,6 @@ import {
   Quaternion,
   isQuaternion,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/quaternion';
-import { SerializedHighlightedExternLink } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 
 export const INITIAL_LANDSCAPE_EVENT = 'landscape';
 
@@ -33,6 +32,7 @@ type DetachedMenu = {
   position: Position;
   quaternion: Quaternion;
   scale: Scale;
+  userId?: string;
 };
 
 type Annotation = {
@@ -69,11 +69,11 @@ type Landscape = {
 
 export type InitialLandscapeMessage = {
   event: typeof INITIAL_LANDSCAPE_EVENT;
-  openApps: App[];
   landscape: Landscape;
   detachedMenus: DetachedMenu[];
-  highlightedExternCommunicationLinks: SerializedHighlightedExternLink[];
   annotations: Annotation[];
+  closedComponents?: string[];
+  highlightedEntities?: Array<{ userId: string; entityId: string }>;
 };
 
 function isHighlightedComponent(comp: any): comp is HighlightedComponent {

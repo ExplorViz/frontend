@@ -654,27 +654,24 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       owner,
       lastEditor,
     }: AnnotationForwardMessage) => {
-      let mesh = undefined;
-      // ToDo
-      // if (entityId) {
-      //   mesh = useApplicationRendererStore.getState().getMeshById(entityId);
-      // }
-
-      // get().addAnnotation({
-      //   annotationId: annotationId,
-      //   mesh: mesh,
-      //   position: undefined,
-      //   wasMoved: true,
-      //   menuId: objectId,
-      //   hovered: false,
-      //   annotationTitle: annotationTitle,
-      //   annotationText: annotationText,
-      //   sharedBy: userId,
-      //   owner: owner,
-      //   shared: true,
-      //   inEdit: false,
-      //   lastEditor: lastEditor,
-      // });
+      get().addAnnotation({
+        annotationId: annotationId,
+        entityId: entityId,
+        entity: entityId
+          ? useModelStore.getState().getModel(entityId)
+          : undefined,
+        position: undefined,
+        wasMoved: true,
+        menuId: objectId,
+        hovered: false,
+        annotationTitle: annotationTitle,
+        annotationText: annotationText,
+        sharedBy: userId,
+        owner: owner,
+        shared: true,
+        inEdit: false,
+        lastEditor: lastEditor,
+      });
     },
 
     onUpdatedAnnotation: ({
@@ -727,33 +724,26 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
       set({ annotationData: [] });
 
-      // ToDo:
-      // for (const annotation of annotations) {
-      //   let mesh;
-      //   if (annotation.entityId !== undefined) {
-      //     mesh = useApplicationRendererStore
-      //       .getState()
-      //       .getMeshById(annotation.entityId);
-      //   } else {
-      //     mesh = undefined;
-      //   }
-
-      //   get().addAnnotation({
-      //     annotationId: annotation.annotationId,
-      //     sharedBy: annotation.userId,
-      //     mesh: mesh,
-      //     position: undefined,
-      //     wasMoved: true,
-      //     menuId: annotation.menuId,
-      //     hovered: false,
-      //     annotationTitle: annotation.annotationTitle,
-      //     annotationText: annotation.annotationText,
-      //     owner: annotation.owner,
-      //     shared: annotation.shared !== undefined ? false : true,
-      //     inEdit: false,
-      //     lastEditor: annotation.lastEditor,
-      //   });
-      // }
+      for (const annotation of annotations) {
+        get().addAnnotation({
+          annotationId: annotation.annotationId,
+          entityId: annotation.entityId,
+          entity: annotation.entityId
+            ? useModelStore.getState().getModel(annotation.entityId)
+            : undefined,
+          position: undefined,
+          wasMoved: true,
+          menuId: annotation.menuId || null,
+          hovered: false,
+          annotationTitle: annotation.annotationTitle,
+          annotationText: annotation.annotationText,
+          sharedBy: annotation.userId,
+          owner: annotation.owner,
+          shared: annotation.shared !== undefined ? annotation.shared : true,
+          inEdit: false,
+          lastEditor: annotation.lastEditor,
+        });
+      }
     },
 
     _updateExistingAnnotation: (

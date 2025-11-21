@@ -299,6 +299,8 @@ export default function CanvasWrapper({
                   applicationModels,
                   layoutMap || applicationModels[0].boxLayoutMap
                 )}
+                applicationElement={communication.sourceApp}
+                layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
               />
             ))}
         </LandscapeR3F>

@@ -5,11 +5,26 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 
+// Helper functions to convert between nanoseconds and milliseconds
+// The backend now uses nanoseconds, but frontend Date objects use milliseconds
+const NANOSECONDS_PER_MILLISECOND = 1_000_000;
+const NANOSECONDS_PER_SECOND = 1_000_000_000;
+
+export function nanosecondsToMilliseconds(nanos: number): number {
+  return Math.floor(nanos / NANOSECONDS_PER_MILLISECOND);
+}
+
+export function millisecondsToNanoseconds(millis: number): number {
+  return millis * NANOSECONDS_PER_MILLISECOND;
+}
+
 export async function requestData(
   startTime: number,
   intervalInSeconds: number
 ) {
-  const endTime = startTime + intervalInSeconds * 1000;
+  // startTime is expected to be in nanoseconds from the backend
+  // Calculate endTime in nanoseconds
+  const endTime = startTime + intervalInSeconds * NANOSECONDS_PER_SECOND;
 
   const structureDataPromise = requestStructureData(/* startTime, endTime */);
   const dynamicDataPromise = requestDynamicData(startTime, endTime);

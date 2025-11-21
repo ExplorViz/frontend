@@ -10,9 +10,8 @@ export type SettingGroup =
   | 'Layout'
   | 'Label'
   | 'Minimap'
+  | 'Misc'
   | 'Popups'
-  | 'Virtual Reality'
-  | 'Debugging'
   | 'Virtual Reality';
 
 export type CameraSettings = {
@@ -32,8 +31,8 @@ export type ColorSettingId =
   | 'classTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
-  | 'componentEvenColor'
-  | 'componentOddColor'
+  | 'componentRootLevelColor'
+  | 'componentDeepestLevelColor'
   | 'componentTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
@@ -68,12 +67,13 @@ export type CommunicationSettingId =
   | 'commArrowSize'
   | 'commArrowOffset'
   | 'curvyCommHeight'
-  // | 'bundlingBeta'
   | 'enableEdgeBundling'
   | 'bundleStrength'
   | 'compatibilityThreshold'
   | 'bundlingIterations'
-  | 'bundlingStepSize';
+  | 'bundlingStepSize'
+  | 'beta'
+  | 'use3DHAPAlgorithm';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -85,11 +85,13 @@ export type CommunicationSettings = {
   commArrowSize: RangeSetting;
   commArrowOffset: RangeSetting;
   curvyCommHeight: RangeSetting;
-  enableEdgeBundling: FlagSetting;  // ← FlagSetting statt RangeSetting
+  enableEdgeBundling: FlagSetting;
   bundleStrength: RangeSetting;
   compatibilityThreshold: RangeSetting;
   bundlingIterations: RangeSetting;
   bundlingStepSize: RangeSetting;
+  beta: RangeSetting;
+  use3DHAPAlgorithm: FlagSetting;
 };
 
 export type DebugSettings = {
@@ -183,6 +185,11 @@ export type PopupSettings = {
 };
 export type PopupSettingId = keyof PopupSettings;
 
+export type MiscSettings = {
+  showEmbeddedBrowserIcon: FlagSetting;
+};
+export type MiscSettingId = keyof MiscSettings;
+
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
@@ -198,6 +205,7 @@ export type VisualizationSettingId =
   | LayoutSettingId
   | LabelSettingId
   | MinimapSettingId
+  | MiscSettingId
   | PopupSettingId
   | XrSettingId;
 
@@ -211,6 +219,7 @@ export type VisualizationSettings = CameraSettings &
   LayoutSettings &
   LabelSettings &
   MinimapSettings &
+  MiscSettings &
   PopupSettings &
   XrSettings &
   ColorSettings;
@@ -221,12 +230,67 @@ export enum SettingLevel {
   DEVELOPER,
 }
 
+/**
+ * Defines a dependency condition for a setting.
+ * A setting with a dependsOn condition will only be displayed
+ * if the condition is met.
+ */
+export type SettingDependency =
+  | {
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Single value that must match (equality check)
+       */
+      value: any;
+    }
+  | {
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Array of allowed values. The setting is displayed if the dependent
+       * setting's value is one of these values.
+       */
+      values: any[];
+    }
+  | {
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Value that must NOT match (inequality check).
+       * The setting is displayed if the dependent setting's value is NOT equal to this value.
+       */
+      notEqual: any;
+    }
+  | {
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Array of values that must NOT match.
+       * The setting is displayed if the dependent setting's value is NOT one of these values.
+       */
+      notValues: any[];
+    };
+
 export type Setting<T> = {
   value: T;
   group: SettingGroup;
   displayName: string;
   description: string;
   level: SettingLevel;
+  /**
+   * Optional dependency condition. If specified, this setting will only
+   * be displayed if the dependency condition is met.
+   */
+  dependsOn?: SettingDependency;
 };
 
 export interface ButtonSetting extends Setting<boolean> {

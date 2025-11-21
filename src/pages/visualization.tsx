@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon } from '@primer/octicons-react';
-import ArRendering from 'explorviz-frontend/src/components/extended-reality/ar-rendering';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
-import VrRendering from 'explorviz-frontend/src/components/extended-reality/vr-rendering';
 import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
@@ -15,6 +13,7 @@ import {
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
@@ -29,7 +28,10 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
-import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
+import {
+  TIMESTAMP_POLLING_START_EVENT,
+  useTimestampPollingStore,
+} from 'explorviz-frontend/src/stores/timestamp-polling';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   ApiToken,
@@ -59,7 +61,6 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
 import {
   SerializedAnnotation,
-  SerializedApp,
   SerializedDetachedMenu,
   SerializedPopup,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
@@ -72,7 +73,11 @@ import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/tim
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { ImmersiveView } from '../rendering/application/immersive-view';
+import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import {
+  highlightById,
+  removeAllHighlighting,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 const queryParams = [
   'roomId',
@@ -129,6 +134,7 @@ export default function Visualization() {
     useState<boolean>(true);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
     useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number>(10);
 
   // # endregion
 
@@ -141,6 +147,19 @@ export default function Visualization() {
     };
 
     loadUserAPITokens();
+  }, []);
+
+  // Load preset when visualization opens
+  useEffect(() => {
+    const { selectedPreset, loadPreset, listPresets } =
+      useUserSettingsStore.getState();
+    if (selectedPreset) {
+      // Verify preset still exists before loading
+      const presets = listPresets();
+      if (presets.includes(selectedPreset)) {
+        loadPreset(selectedPreset);
+      }
+    }
   }, []);
 
   // beforeModel equivalent
@@ -190,6 +209,29 @@ export default function Visualization() {
     };
   }, []);
 
+  // Register event listeners immediately on mount to ensure they're ready
+  // before any WebSocket connection (e.g., from auto-connect or landscape selection)
+  useEffect(() => {
+    // Register collaboration event listeners
+    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
+    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
+    eventEmitter.on(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
+
+    if (!isSingleLandscapeMode) {
+      eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
+    }
+
+    // Cleanup: remove listeners on unmount
+    return () => {
+      eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
+      eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
+      eventEmitter.off(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
+      if (!isSingleLandscapeMode) {
+        eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     initRenderingAndSetupListeners();
   }, []);
@@ -197,16 +239,27 @@ export default function Visualization() {
   // equivalent to old auto-join-lobby
   useEffect(() => {
     const autoJoinLobby = async (retries = 5) => {
-      if (connectionStatus === 'online') {
+      const currentConnectionStatus =
+        useCollaborationSessionStore.getState().connectionStatus;
+      // Don't try to reconnect if already online or if intentionally disconnected
+      if (
+        currentConnectionStatus === 'online' ||
+        currentConnectionStatus === 'connecting'
+      ) {
         return;
       }
-      const roomHosted = await hostRoom(searchParams.get('roomId')!);
+      // Only try to auto-join if there's a roomId in the URL
+      const roomId = searchParams.get('roomId');
+      if (!roomId) {
+        return;
+      }
+      const roomHosted = await hostRoom(roomId);
 
       if (!roomHosted && retries <= 0) {
         useToastHandlerStore
           .getState()
           .showErrorToastMessage('Failed to join room automatically.');
-      } else {
+      } else if (!roomHosted && retries > 0) {
         setTimeout(() => {
           autoJoinLobby(retries - 1);
         }, 5000);
@@ -216,7 +269,7 @@ export default function Visualization() {
     if (searchParams.get('roomId')) {
       autoJoinLobby();
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchVrStatus = async () => {
@@ -228,9 +281,6 @@ export default function Visualization() {
   // #endregion
 
   // #region Store state declaration
-  const connectionStatus = useCollaborationSessionStore(
-    (state) => state.connectionStatus
-  );
   const hostRoom = useCollaborationSessionStore((state) => state.hostRoom);
   const renderingServiceToggleVisualizationUpdating = useRenderingServiceStore(
     (state) => state.toggleVisualizationUpdating
@@ -270,6 +320,9 @@ export default function Visualization() {
   );
   const restartTimestampPollingAndVizUpdate = useTimestampRepositoryStore(
     (state) => state.restartTimestampPollingAndVizUpdate
+  );
+  const manualPollTimestamps = useTimestampPollingStore(
+    (state) => state.manuallyPollTimestamps
   );
   const appNameCommitTreeMapEvolutionDataRepository =
     useEvolutionDataRepositoryStore((state) => state._appNameCommitTreeMap);
@@ -374,6 +427,38 @@ export default function Visualization() {
     );
   })();
 
+  // Countdown timer for loading screen - syncs with actual fetch intervals
+  useEffect(() => {
+    if (!allLandscapeDataExistsAndNotEmpty && !isLandscapeExistentAndEmpty) {
+      // Start countdown from 10 when loading screen appears
+      setCountdown(10);
+
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 0) {
+            return 10; // Reset to 10 when it reaches 0
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [allLandscapeDataExistsAndNotEmpty, isLandscapeExistentAndEmpty]);
+
+  // Reset countdown when timestamp polling actually starts
+  useEffect(() => {
+    const handlePollingStart = () => {
+      setCountdown(10); // Reset to 10 when polling starts
+    };
+
+    eventEmitter.on(TIMESTAMP_POLLING_START_EVENT, handlePollingStart);
+
+    return () => {
+      eventEmitter.off(TIMESTAMP_POLLING_START_EVENT, handlePollingStart);
+    };
+  }, []);
+
   const { mode } = useParams();
 
   const showAR = (() => {
@@ -475,16 +560,6 @@ export default function Visualization() {
       // start main loop for cross-commit runtime
       restartTimestampPollingAndVizUpdate([]);
     }
-
-    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
-    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-    eventEmitter.on(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
-
-    if (!isSingleLandscapeMode) {
-      eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-    }
-
-    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
   };
 
   // # endregion
@@ -493,27 +568,90 @@ export default function Visualization() {
 
   // collaboration start
   // user handling end
+
+  /**
+   * Applies room state (closed components, highlighted entities, detached menus, annotations, popups)
+   * to the visualization. This is shared logic used by both initial landscape and sync room state handlers.
+   */
+  const applyRoomState = (
+    closedComponentIds: string[] | undefined,
+    highlightedEntities:
+      | Array<{ userId: string; entityId: string }>
+      | undefined,
+    detachedMenus: SerializedDetachedMenu[],
+    annotations: SerializedAnnotation[],
+    popups: SerializedPopup[] | undefined
+  ): void => {
+    useVisualizationStore.getState().actions.resetVisualizationState();
+
+    // Apply closed components if provided
+    if (closedComponentIds && closedComponentIds.length > 0) {
+      closeComponentsByList(closedComponentIds, false, false);
+    }
+
+    // Reset all highlights first
+    removeAllHighlighting(false);
+
+    // Apply highlighted entities if provided
+    if (highlightedEntities && highlightedEntities.length > 0) {
+      highlightedEntities.forEach(({ userId, entityId }) => {
+        const user = useCollaborationSessionStore
+          .getState()
+          .lookupRemoteUserById(userId);
+        if (user) {
+          user.highlightedEntityIds.add(entityId);
+        }
+        highlightById(entityId, false);
+      });
+    }
+
+    // Restore detached menus and popups
+    const popupsToRestore = popups || [];
+    detachedMenuRendererRestore(popupsToRestore, detachedMenus);
+
+    // Restore annotations
+    detachedMenuRendererRestoreAnnotations(annotations);
+  };
+
   const onInitialLandscape = async ({
     landscape,
-    openApps,
     detachedMenus,
-    highlightedExternCommunicationLinks, //transparentExternCommunicationLinks
     annotations,
+    closedComponents,
+    highlightedEntities,
   }: InitialLandscapeMessage): Promise<void> => {
+    // Convert detached menus to popups format for browser mode
+    const popupsFromMenus: SerializedPopup[] = detachedMenus.map(
+      (detachedMenu) => ({
+        userId: detachedMenu.userId || null,
+        entityId: detachedMenu.entityId,
+        menuId: detachedMenu.objectId,
+      })
+    );
+
+    // Apply room state (with reset for initial landscape)
+    applyRoomState(
+      closedComponents,
+      highlightedEntities,
+      detachedMenus as SerializedDetachedMenu[],
+      annotations as SerializedAnnotation[],
+      popupsFromMenus
+    );
+
     // Serialized room is used in landscape-data-watcher
     roomSerializer.setSerializedRoom({
       landscape: landscape,
-      openApps: openApps as SerializedApp[],
+      highlightedEntities: highlightedEntities || [], // Already in {userId, entityId} format
+      closedComponentIds: closedComponents || [],
       detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      highlightedExternCommunicationLinks,
-      popups: [],
+      popups: popupsFromMenus,
       annotations: annotations as SerializedAnnotation[],
     });
 
     // TODO: Refactor
     const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
     commitToSelectedTimestampMap.set('cross-commit', [
-      { epochMilli: landscape.timestamp, spanCount: 0 },
+      { epochNano: landscape.timestamp, spanCount: 0 },
     ]);
     await renderingServiceTriggerRenderingForGivenTimestamp(
       commitToSelectedTimestampMap
@@ -527,7 +665,7 @@ export default function Visualization() {
     // TODO: Refactor
     const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
     commitToSelectedTimestampMap.set('cross-commit', [
-      { epochMilli: timestamp, spanCount: 0 },
+      { epochNano: timestamp, spanCount: 0 },
     ]);
     renderingServiceTriggerRenderingForGivenTimestamp(
       commitToSelectedTimestampMap
@@ -537,10 +675,13 @@ export default function Visualization() {
   const onTimestampUpdateTimer = async ({
     timestamp,
   }: TimestampUpdateTimerMessage): Promise<void> => {
+    // Reset countdown when fetch is triggered
+    setCountdown(10);
+
     // TODO: Refactor
     const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
     commitToSelectedTimestampMap.set('cross-commit', [
-      { epochMilli: timestamp, spanCount: 0 },
+      { epochNano: timestamp, spanCount: 0 },
     ]);
     await loadLandscapeByTimestamp(timestamp);
     renderingServiceTriggerRenderingForGivenTimestamp(
@@ -554,25 +695,22 @@ export default function Visualization() {
   }) => {
     const {
       landscape,
-      openApps,
-      highlightedExternCommunicationLinks,
+      closedComponentIds,
+      highlightedEntities,
       popups,
       annotations,
       detachedMenus,
     } = event.originalMessage;
-    const serializedRoom = {
-      landscape: landscape,
-      openApps: openApps as SerializedApp[],
-      highlightedExternCommunicationLinks,
-      popups: popups as SerializedPopup[],
-      annotations: annotations as SerializedAnnotation[],
-      detachedMenus: detachedMenus as SerializedDetachedMenu[],
-    };
-    detachedMenuRendererRestore(
-      serializedRoom.popups,
-      serializedRoom.detachedMenus
+
+    // Apply room state (without reset for sync)
+    // highlightedEntities is already in {userId, entityId} format
+    applyRoomState(
+      closedComponentIds,
+      highlightedEntities,
+      detachedMenus as SerializedDetachedMenu[],
+      annotations as SerializedAnnotation[],
+      popups as SerializedPopup[]
     );
-    detachedMenuRendererRestoreAnnotations(serializedRoom.annotations);
 
     showInfoToastMessage('Room state synchronizing ...');
   };
@@ -701,16 +839,38 @@ export default function Visualization() {
       <div id="vizspace">
         {/* Loading screen  */}
         {!allLandscapeDataExistsAndNotEmpty && (
-          <div className="container-fluid mt-6">
-            <div className="jumbotron">
+          <div className="loading-screen-container">
+            <div className="loading-screen-content">
               {isLandscapeExistentAndEmpty ? (
-                <h2>Empty Landscape from Span Service received.</h2>
+                <h2 className="loading-screen-title">
+                  Empty Landscape from Span Service received.
+                </h2>
               ) : (
-                <h2>Loading Dynamic Landscape Data ...</h2>
+                <>
+                  <h2 className="loading-screen-title">
+                    Loading Landscape Data ...
+                  </h2>
+                  <p className="loading-screen-message">
+                    Landscape data is being fetched every 10 seconds.
+                  </p>
+                  <div className="loading-screen-countdown">
+                    Next fetch in: {countdown}s
+                  </div>
+                  <div
+                    className="loading-screen-spinner"
+                    role="status"
+                    aria-label="Loading"
+                  ></div>
+                  <Button
+                    variant="primary"
+                    onClick={manualPollTimestamps}
+                    className="loading-screen-poll-button"
+                  >
+                    Fetch Now
+                  </Button>
+                </>
               )}
-              <p>A new landscape will be fetched every 10 seconds.</p>
             </div>
-            <div className="spinner-center-3" role="status"></div>
           </div>
         )}
 
@@ -721,7 +881,7 @@ export default function Visualization() {
           components={components}
           componentsToolsSidebar={componentsToolsSidebar}
           id="browser-rendering"
-          isDisplayed={allLandscapeDataExistsAndNotEmpty || false}
+          isDisplayed={true}
           landscapeData={renderingServiceLandscapeData}
           landscapeToken={landscapeTokenServiceToken}
           removeTimestampListener={removeTimestampListener}

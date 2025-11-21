@@ -37,10 +37,6 @@ import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
-import {
-  MOUSE_PING_UPDATE_EVENT,
-  MousePingUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/mouse-ping-update';
 import { RESET_HIGHLIGHTING_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
@@ -87,6 +83,14 @@ import { getPackageById } from 'explorviz-frontend/src/utils/package-helpers';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import {
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/ping-update';
+import {
+  pingByModelId,
+  pingPosition,
+} from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 
 export default function useCollaborativeModifier() {
   // MARK: Stores
@@ -500,32 +504,35 @@ export default function useCollaborativeModifier() {
     changeLogActions.restoreDeletedEntries(key, true);
   };
 
-  const onMousePingUpdate = ({
+  const onPingUpdate = ({
     userId,
-    originalMessage: { modelId, position },
-  }: ForwardedMessage<MousePingUpdateMessage>): void => {
+    originalMessage: { positions, modelIds },
+  }: ForwardedMessage<PingUpdateMessage>): void => {
     const remoteUser = collaborationSessionActions.lookupRemoteUserById(userId);
     if (!remoteUser) return;
+    const pingColor = remoteUser.color;
 
-    const applicationObj =
-      applicationRendererActions.getApplicationById(modelId);
-
-    const point = new THREE.Vector3().fromArray(position);
-    if (applicationObj) {
-      remoteUser.mousePing.ping(applicationObj, point, 5000, false);
-    }
-
-    const waypointIndicator = new WaypointIndicator({
-      target: remoteUser.mousePing.mesh,
-      color: remoteUser.color,
+    positions.forEach((pos) => {
+      const position = new THREE.Vector3(pos[0], pos[1], pos[2]);
+      pingPosition(position, pingColor, false);
     });
-    localUserState.defaultCamera.add(waypointIndicator);
+
+    modelIds.forEach((modelId) => {
+      pingByModelId(modelId, false, { color: pingColor });
+    });
+
+    // TODO:
+    // const waypointIndicator = new WaypointIndicator({
+    //   target: remoteUser.mousePing.mesh,
+    //   color: remoteUser.color,
+    // });
+    //localUserState.defaultCamera.add(waypointIndicator);
   };
 
   // MARK: Effects
 
   useEffect(function registerEventListeners() {
-    eventEmitter.on(MOUSE_PING_UPDATE_EVENT, onMousePingUpdate);
+    eventEmitter.on(PING_UPDATE_EVENT, onPingUpdate);
     eventEmitter.on(COMPONENT_UPDATE_EVENT, onComponentUpdate);
     eventEmitter.on(RESET_HIGHLIGHTING_EVENT, onAllHighlightsReset);
     eventEmitter.on(HIGHLIGHTING_UPDATE_EVENT, onHighlightingUpdate);
@@ -575,7 +582,7 @@ export default function useCollaborativeModifier() {
     eventEmitter.on(RESTRUCTURE_DUPLICATE_APP, onRestructureDuplicateApp);
 
     return function cleanupEventListeners() {
-      eventEmitter.off(MOUSE_PING_UPDATE_EVENT, onMousePingUpdate);
+      eventEmitter.off(PING_UPDATE_EVENT, onPingUpdate);
       eventEmitter.off(COMPONENT_UPDATE_EVENT, onComponentUpdate);
       eventEmitter.off(RESET_HIGHLIGHTING_EVENT, onAllHighlightsReset);
       eventEmitter.off(HIGHLIGHTING_UPDATE_EVENT, onHighlightingUpdate);

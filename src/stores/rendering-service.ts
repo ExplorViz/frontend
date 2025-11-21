@@ -206,7 +206,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       ] of commitToSelectedTimestampMap.entries()) {
         commitToSelectedEpochMap.set(
           commitId,
-          selectedTimestampsForACommit.map((timestamp) => timestamp.epochMilli)
+          selectedTimestampsForACommit.map((timestamp) => timestamp.epochNano)
         );
       }
       return commitToSelectedEpochMap;
@@ -225,7 +225,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             latestFetchedDynamicLandscapeData,
           ] = await useReloadHandlerStore
             .getState()
-            .loadLandscapeByTimestamp(selectedTimestamp.epochMilli);
+            .loadLandscapeByTimestamp(selectedTimestamp.epochNano);
 
           commitToRuntimeLandscapeDataMap.set(commitId, {
             structureLandscapeData: latestFetchedStructureLandscapeData,

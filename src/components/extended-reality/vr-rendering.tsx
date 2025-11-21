@@ -167,7 +167,7 @@ export default function VrRendering({
       sendJoinVr: state.sendJoinVr,
       sendControllerConnect: state.sendControllerConnect,
       sendControllerDisconnect: state.sendControllerDisconnect,
-      sendMousePingUpdate: state.sendMousePingUpdate,
+      sendMousePingUpdate: state.sendPingUpdate,
     }))
   );
   const userSettings = useUserSettingsStore(

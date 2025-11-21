@@ -21,7 +21,7 @@ interface TimestampRepositoryState {
   ) => void;
   getNextTimestampOrLatest: (
     commitId: string,
-    epochMilli?: number
+    epochNano?: number
   ) => Timestamp | undefined;
   getLatestTimestamp: (commitId: string) => Timestamp | undefined;
   getTimestampsForCommitId: (commitId: string) => Timestamp[];
@@ -126,18 +126,18 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
       }
     },
 
-    getNextTimestampOrLatest: (commitId: string, epochMilli?: number) => {
+    getNextTimestampOrLatest: (commitId: string, epochNano?: number) => {
       const timestampsForCommit = get().commitToTimestampMap.get(commitId);
       if (!timestampsForCommit) return undefined;
 
       const values = [...timestampsForCommit.values()];
 
-      if (epochMilli === undefined) {
+      if (epochNano === undefined) {
         return values[values.length - 1];
       }
 
       const index = values.findIndex(
-        (timestamp) => timestamp.epochMilli === epochMilli
+        (timestamp) => timestamp.epochNano === epochNano
       );
 
       // Return the next timestamp if it exists, otherwise return the last timestamp
@@ -183,7 +183,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         get().commitToTimestampMap.get(commitId) ??
         new Map<number, Timestamp>();
 
-      timestamps.set(timestamp.epochMilli, timestamp);
+      timestamps.set(timestamp.epochNano, timestamp);
       get().addCommitToTimestamp(commitId, timestamps);
     },
 

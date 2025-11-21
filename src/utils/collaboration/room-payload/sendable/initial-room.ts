@@ -19,14 +19,6 @@ export type InitialAnnotations = {
   owner: string;
 };
 
-export type InitialRoomApp = {
-  id: string;
-  position: Position;
-  quaternion: Quaternion;
-  scale: Scale;
-  openComponents: string[];
-};
-
 export type InitialRoomLandscape = {
   landscapeToken: string | undefined;
   timestamp: number;
@@ -35,7 +27,8 @@ export type InitialRoomLandscape = {
 export type InitialRoomPayload = {
   roomId: string;
   landscape: InitialRoomLandscape;
-  openApps: InitialRoomApp[];
+  closedComponentIds: string[];
+  highlightedEntityIds: string[];
   detachedMenus: InitialRoomDetachedMenu[];
   annotations: InitialAnnotations[];
 };

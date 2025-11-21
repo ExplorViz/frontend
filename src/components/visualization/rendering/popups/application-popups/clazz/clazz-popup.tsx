@@ -1,3 +1,4 @@
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import ClazzMethodsList from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-methods-list';
 import ClazzPopupCode from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-code';
 import ClazzPopupRestructure from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup-restructure';
@@ -15,24 +16,32 @@ export default function ClazzPopup({
   popupData,
   restructureMode,
 }: ClazzPopupProps) {
-  const clazz = popupData.entity as Class;
+  const classModel = popupData.entity as Class;
   const applicationId = popupData.applicationId;
 
   return (
     <>
       <h3 className="popover-header">
-        <div className="text-center text-break fw-bold pl-1">{clazz.name}</div>
+        <div className="d-flex align-items-center justify-content-center gap-2">
+          <div className="text-center text-break fw-bold pl-1">
+            {classModel.name}
+          </div>
+          <CopyButton text={classModel.name} />
+        </div>
       </h3>
       <PopupTabs
         restructureMode={restructureMode}
-        originOfData={clazz.originOfData}
-        methodsTab={<ClazzMethodsList methods={clazz.methods} />}
+        originOfData={classModel.originOfData}
+        methodsTab={<ClazzMethodsList methods={classModel.methods} />}
         runtimeTab={
-          <ClazzPopupRuntime clazz={clazz} applicationId={applicationId} />
+          <ClazzPopupRuntime clazz={classModel} applicationId={applicationId} />
         }
         codeTab={<ClazzPopupCode popupData={popupData} />}
         restructureTab={
-          <ClazzPopupRestructure clazz={clazz} applicationId={applicationId} />
+          <ClazzPopupRestructure
+            clazz={classModel}
+            applicationId={applicationId}
+          />
         }
       />
     </>

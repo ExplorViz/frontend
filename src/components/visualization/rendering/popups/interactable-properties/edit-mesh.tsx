@@ -36,8 +36,8 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
   );
 
   const [packageColor, setPackageColor] = useState<string>(
-    useUserSettingsStore.getState().visualizationSettings.componentOddColor
-      .value
+    useUserSettingsStore.getState().visualizationSettings
+      .componentRootLevelColor.value
   );
 
   const [classColor, setclassColor] = useState<string>(

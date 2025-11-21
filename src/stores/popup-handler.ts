@@ -1,15 +1,29 @@
 import { create } from 'zustand';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
+import {
+  APPLICATION_ENTITY_TYPE,
+  CLASS_COMMUNICATION_ENTITY_TYPE,
+  CLASS_ENTITY_TYPE,
+  COMPONENT_ENTITY_TYPE,
+  EntityType,
+  NODE_ENTITY_TYPE,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { MenuDetachedForwardMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
+import {
+  MenuDetachedResponse,
+  isMenuDetachedResponse,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
   ObjectClosedResponse,
   isObjectClosedResponse,
@@ -18,18 +32,51 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { MENU_DETACHED_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import {
+  MENU_DETACHED_EVENT,
+  MenuDetachedMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
+  Node,
   Package,
+  isApplication,
+  isClass,
+  isNode,
+  isPackage,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 type Position2D = {
   x: number;
   y: number;
 };
+
+/**
+ * Converts a popup entity to the EntityType used by websocket messages
+ */
+function getEntityTypeForPopup(
+  entity: Node | Application | Package | Class | ClassCommunication
+): EntityType {
+  if (isNode(entity)) {
+    return NODE_ENTITY_TYPE;
+  }
+  if (isApplication(entity)) {
+    return APPLICATION_ENTITY_TYPE;
+  }
+  if (isPackage(entity)) {
+    return COMPONENT_ENTITY_TYPE;
+  }
+  if (isClass(entity)) {
+    return CLASS_ENTITY_TYPE;
+  }
+  if (entity instanceof ClassCommunication) {
+    return CLASS_COMMUNICATION_ENTITY_TYPE;
+  }
+  // Default fallback
+  return APPLICATION_ENTITY_TYPE;
+}
 
 interface PopupHandlerState {
   popupData: PopupData[];
@@ -111,51 +158,51 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   },
 
   sharePopup: (popup: PopupData) => {
-    // ToDO:
-    // const { mesh } = popup;
-    // const entityId = mesh.getModelId();
-    // const worldPosition = useApplicationRendererStore
-    //   .getState()
-    //   .getPositionInLandscape(mesh);
-    // worldPosition.y += 0.3;
-    // useWebSocketStore
-    //   .getState()
-    //   .sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
-    //     MENU_DETACHED_EVENT,
-    //     {
-    //       event: MENU_DETACHED_EVENT,
-    //       detachId: entityId,
-    //       entityType: getTypeOfEntity(mesh),
-    //       position: worldPosition.toArray(),
-    //       quaternion: [0, 0, 0, 0],
-    //       scale: [1, 1, 1],
-    //       nonce: 0, // will be overwritten
-    //     },
-    //     {
-    //       responseType: isMenuDetachedResponse,
-    //       onResponse: (response: MenuDetachedResponse) => {
-    //         const newPopup = {
-    //           ...popup,
-    //           sharedBy: useLocalUserStore.getState().userId,
-    //           isPinned: true,
-    //           menuId: response.objectId,
-    //         };
-    //         const newPopupData = [
-    //           ...get().popupData.filter(
-    //             (pd) => pd.entity.id !== popup.entity.id
-    //           ),
-    //           newPopup,
-    //         ];
-    //         set({
-    //           popupData: newPopupData,
-    //         });
-    //         return true;
-    //       },
-    //       onOffline: () => {
-    //         // Not used at the moment
-    //       },
-    //     }
-    //   );
+    const entityId = popup.entityId;
+    const entityType = getEntityTypeForPopup(popup.entity);
+
+    if (useCollaborationSessionStore.getState().isOnline()) {
+      useWebSocketStore
+        .getState()
+        .sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
+          MENU_DETACHED_EVENT,
+          {
+            event: MENU_DETACHED_EVENT,
+            detachId: entityId,
+            entityType: entityType,
+            position: [0, 0, 0], // Position not needed for browser popups
+            quaternion: [0, 0, 0, 1],
+            scale: [1, 1, 1],
+            nonce: 0, // will be overwritten
+          },
+          {
+            responseType: isMenuDetachedResponse,
+            onResponse: (response: MenuDetachedResponse) => {
+              const sharedBy = useAuthStore.getState().user!.sub;
+              const menuId = response.objectId;
+
+              set({
+                popupData: [
+                  ...get().popupData.filter(
+                    (pd) => pd.entityId !== popup.entityId
+                  ),
+                  {
+                    ...popup,
+                    sharedBy: sharedBy,
+                    isPinned: true,
+                    menuId: menuId,
+                  },
+                ],
+              });
+
+              return true;
+            },
+            onOffline: () => {
+              // Not used at the moment
+            },
+          }
+        );
+    }
   },
 
   pinPopup: (popup: PopupData) =>
@@ -352,7 +399,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     // TODO: Check if mesh is deactivated
 
     get().addPopup({
-      entityId: objectId,
+      entityId: detachId,
       wasMoved: true,
       pinned: true,
       sharedBy: userId,
