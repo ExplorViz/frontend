@@ -11,6 +11,7 @@ import {
   insertApplicationToLandscape,
   insertClassesToLandscape,
   removeComponentFromLandscape,
+  SimpleClass,
 } from '../../utils/landscape-structure-helpers';
 import { useRenderingServiceStore } from '../../stores/rendering-service';
 import { useVisualizationStore } from '../../stores/visualization-store';
@@ -18,8 +19,8 @@ import { useVisualizationStore } from '../../stores/visualization-store';
 interface EditingContextData {
   canGoBack: boolean;
   canGoForward: boolean;
-  addApplication: (name: string, classes: string[]) => string | undefined;
-  addClasses: (id: string, classes: string[]) => void;
+  addApplication: (name: string, classes: SimpleClass[]) => string | undefined;
+  addClasses: (id: string, classes: SimpleClass[]) => void;
   removeComponent: (id: string) => void;
   goBack: () => void;
   goForward: () => void;
@@ -86,7 +87,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
   const canGoForward = editingCursor < history.length;
 
   const addApplication = useCallback(
-    (name: string, classes: string[]) => {
+    (name: string, classes: SimpleClass[]) => {
       if (!landscapeData) return;
 
       const [structureLandscapeData, id] = insertApplicationToLandscape(
@@ -106,7 +107,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
   );
 
   const addClasses = useCallback(
-    (id: string, classes: string[]) => {
+    (id: string, classes: SimpleClass[]) => {
       if (!landscapeData) return;
 
       const structureLandscapeData = insertClassesToLandscape(

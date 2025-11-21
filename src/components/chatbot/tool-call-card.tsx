@@ -32,6 +32,7 @@ interface ToolCallCardProps {
   action?: Action;
   showPopup?: boolean;
   errorMessage?: string;
+  onClick?: () => void;
 }
 
 export function ToolCallCard({
@@ -40,9 +41,10 @@ export function ToolCallCard({
   action,
   showPopup,
   errorMessage,
+  onClick,
 }: ToolCallCardProps) {
   const message = getMessage(status, action, errorMessage);
-  const disabled = !component?.id;
+  const disabled = !component?.id && !onClick;
   const application = component?.id
     ? useModelStore.getState().getApplication(component?.id)
     : undefined;
@@ -65,10 +67,12 @@ export function ToolCallCard({
       <Button
         variant={errorMessage ? 'danger' : 'primary'}
         disabled={disabled}
-        onClick={() =>
-          showPopup
-            ? addPopup({ entityId: component!.id, entity })
-            : pingByModelId(component?.id!)
+        onClick={
+          onClick ||
+          (() =>
+            showPopup
+              ? addPopup({ entityId: component!.id, entity })
+              : pingByModelId(component?.id!))
         }
       >
         {disabled ? (

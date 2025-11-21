@@ -1,9 +1,16 @@
 import { CopilotKit } from '@copilotkit/react-core';
-import { createContext, PropsWithChildren, useEffect, useState } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { CopilotTools } from './copilot-tools';
 import { CopilotResources } from './copilot-resources';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { PingIndicator } from './ping-indicator';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
 
@@ -24,6 +31,7 @@ interface Context {
   setSelectedProvider: (provider: Provider) => void;
   selectedModel: Model;
   setSelectedModel: (model: Model) => void;
+  pingScreenAtPoint: (x: number, y: number) => void;
 }
 
 const defaultContext: Context = {
@@ -32,6 +40,7 @@ const defaultContext: Context = {
   setSelectedProvider: () => {},
   selectedModel: { id: '', name: '' },
   setSelectedModel: () => {},
+  pingScreenAtPoint: () => {},
 };
 
 export const ChatbotContext = createContext(defaultContext);
@@ -51,6 +60,7 @@ export function ChatbotProvider({
   const [selectedModel, setSelectedModel] = useState(
     defaultContext.selectedModel
   );
+  const [activePing, setActivePing] = useState<{ x: number; y: number }>();
 
   const applications = landscapeData?.structureLandscapeData.nodes.reduce(
     (acc, node) => {
@@ -58,6 +68,13 @@ export function ChatbotProvider({
     },
     [] as Application[]
   );
+
+  const pingScreenAtPoint = useCallback((x: number, y: number) => {
+    setActivePing({ x, y });
+    setTimeout(() => {
+      setActivePing(undefined);
+    }, 3000);
+  }, []);
 
   useEffect(() => {
     fetch(`${copilotUrl}/providers`)
@@ -81,6 +98,7 @@ export function ChatbotProvider({
         setSelectedProvider,
         selectedModel,
         setSelectedModel,
+        pingScreenAtPoint,
       }}
     >
       <CopilotKit
@@ -94,6 +112,7 @@ export function ChatbotProvider({
         <CopilotResources applications={applications} />
         <CopilotTools applications={applications} />
         {children}
+        {activePing && <PingIndicator x={activePing.x} y={activePing.y} />}
       </CopilotKit>
     </ChatbotContext.Provider>
   );

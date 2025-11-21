@@ -20,6 +20,7 @@ import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-hel
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { EditingContext } from '../editing/editing-context';
 import * as htmlToImage from 'html-to-image';
+import { ChatbotContext } from './chatbot-context';
 
 interface CopilotToolsProps {
   applications?: Application[];
@@ -52,6 +53,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   }, [applications]);
 
   const { sendMessage } = useCopilotChatInternal();
+  const { pingScreenAtPoint } = use(ChatbotContext);
 
   useCopilotAction({
     name: 'highlight-component',
@@ -460,7 +462,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   useCopilotAction({
     name: 'click-on-screen',
     description:
-      'Simulates a click on a specific position on the screen given by the normalized screen position. This can be used to interact with UI elements outside of the 3D visualization, such as buttons or menus in the ExplorViz frontend. Do the following steps to achieve optimal results: 1. Check if there was a screenshot taken already, if not take a screenshot with the take-screenshot tool. 2. Read the screenshot resolution (width W, height H in pixels). 3. Visually locate the target element and determine the pixel coordinates of its center (x_px, y_px). Do not guess. Do not eyeball. 4. Convert to normalized coordinates with 5 decimals: x = round(x_px / W, 5) y = round(y_px / H, 5). 5. Take these normalized coordinates as parameters for this tool call. If the target is ambiguous or partially hidden, ask for clarification before clicking. After clicking, verify the expected UI change; if not achieved, adjust by small offsets (±3–5 px) and retry once.',
+      'Simulates a click on a specific position on the screen given by the normalized screen position. This can be used to interact with UI elements outside of the 3D visualization, such as buttons or menus in the ExplorViz frontend. Do the following steps to achieve optimal results: 1. Check if there was a screenshot taken already, if not take a screenshot with the take-screenshot tool. 2. Read the screenshot resolution (width W, height H in pixels). 3. Visually locate the target element and determine the pixel coordinates of its center (x_px, y_px). Do not guess. Do not eyeball. Aim for the center of interactive elements like texts and buttons. 4. Convert to normalized coordinates with 5 decimals: x = round(x_px / W, 5) y = round(y_px / H, 5). 5. Take these normalized coordinates as parameters for this tool call. If the target is ambiguous or partially hidden, ask for clarification before clicking. After clicking, verify the expected UI change; if not achieved, adjust by small offsets (±3–5 px) and retry once.',
     parameters: [
       {
         name: 'x',
@@ -490,14 +492,21 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         view: window,
       });
       document.elementFromPoint(clientX, clientY)?.dispatchEvent(clickEvent);
+      pingScreenAtPoint(clientX, clientY);
     },
-    render: ({ args, status }) => (
-      <ToolCallCard
-        status={status}
-        action="clickOnScreen"
-        component={{ name: `(${args.x}, ${args.y})` }}
-      />
-    ),
+    render: ({ args, status }) => {
+      const clientX = args.x ? Math.round(args.x * window.innerWidth) : 0;
+      const clientY = args.y ? Math.round(args.y * window.innerHeight) : 0;
+
+      return (
+        <ToolCallCard
+          status={status}
+          action="clickOnScreen"
+          component={{ name: `(${clientX}, ${clientY})` }}
+          onClick={() => pingScreenAtPoint(clientX, clientY)}
+        />
+      );
+    },
   });
 
   return null;
