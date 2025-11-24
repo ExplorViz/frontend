@@ -10,9 +10,10 @@ import UiMenu, {
   UiMenuArgs,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { nanosecondsToMilliseconds, millisecondsToNanoseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 
 const MS_PER_SECOND = 1000;
-const TIMESTAMP_INTERVAL = 10 * MS_PER_SECOND;
+const TIMESTAMP_INTERVAL_MS = 10 * MS_PER_SECOND;
 
 export default class TimeMenu extends UiMenu {
   private date: Date;
@@ -30,7 +31,23 @@ export default class TimeMenu extends UiMenu {
   constructor({ ...args }: UiMenuArgs) {
     super(args);
 
-    this.date = new Date(useTimestampStore.getState().timestamp);
+    // Get a timestamp value from the store (timestamp is a Map<string, number[]>)
+    // Try to get latest timestamp for 'cross-commit' or fallback to first available
+    const timestampStore = useTimestampStore.getState();
+    let timestampNanos = 0;
+    const crossCommitTimestamps = timestampStore.timestamp.get('cross-commit');
+    if (crossCommitTimestamps && crossCommitTimestamps.length > 0) {
+      timestampNanos = crossCommitTimestamps[crossCommitTimestamps.length - 1];
+    } else if (timestampStore.timestamp.size > 0) {
+      const firstEntry = timestampStore.timestamp.values().next().value;
+      if (firstEntry && firstEntry.length > 0) {
+        timestampNanos = firstEntry[firstEntry.length - 1];
+      }
+    }
+    
+    // Convert nanoseconds to milliseconds for Date object
+    const timestampMillis = timestampNanos > 0 ? nanosecondsToMilliseconds(timestampNanos) : Date.now();
+    this.date = new Date(timestampMillis);
 
     const title = new TitleItem({
       text: 'Time',
@@ -53,11 +70,11 @@ export default class TimeMenu extends UiMenu {
       width: 50,
       height: 60,
       onTriggerPressed: (value) => {
-        this.setDateBackBy(value * TIMESTAMP_INTERVAL);
+        this.setDateBackBy(value * TIMESTAMP_INTERVAL_MS);
         this.redrawMenu();
       },
       onTriggerDown: () => {
-        this.setDateBackBy(TIMESTAMP_INTERVAL);
+        this.setDateBackBy(TIMESTAMP_INTERVAL_MS);
         this.redrawMenu();
       },
     });
@@ -69,7 +86,7 @@ export default class TimeMenu extends UiMenu {
       width: 50,
       height: 60,
       onTriggerPressed: (value) => {
-        this.setDateForthBy(value * TIMESTAMP_INTERVAL);
+        this.setDateForthBy(value * TIMESTAMP_INTERVAL_MS);
         this.redrawMenu();
       },
     });
@@ -109,7 +126,10 @@ export default class TimeMenu extends UiMenu {
   }
 
   private applySelectedTimestamp() {
-    useTimestampStore.getState().updateTimestampFromVr(this.date.getTime());
+    // Convert milliseconds to nanoseconds for backend
+    const timestampMillis = this.date.getTime();
+    const timestampNanos = millisecondsToNanoseconds(timestampMillis);
+    useTimestampStore.getState().updateTimestampFromVr(timestampNanos);
   }
 
   makeThumbpadBinding() {
@@ -119,11 +139,11 @@ export default class TimeMenu extends UiMenu {
         onThumbpadDown: (_, axes) => {
           switch (VRControllerThumbpadBinding.getHorizontalDirection(axes)) {
             case VRControllerThumbpadHorizontalDirection.LEFT:
-              this.setDateBackBy(TIMESTAMP_INTERVAL);
+              this.setDateBackBy(TIMESTAMP_INTERVAL_MS);
               this.timeBackButton.enableHoverEffectByButton();
               break;
             case VRControllerThumbpadHorizontalDirection.RIGHT:
-              this.setDateForthBy(TIMESTAMP_INTERVAL);
+              this.setDateForthBy(TIMESTAMP_INTERVAL_MS);
               this.timeForthButton.enableHoverEffectByButton();
               break;
             default:

@@ -5,6 +5,7 @@ import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-sch
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { nanosecondsToMilliseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 
 interface TraceStartProps {
   readonly traces: DynamicLandscapeData;
@@ -109,6 +110,7 @@ export default function TraceStart({
   );
 }
 
-function formatTimestampToDate(timestamp: number) {
-  return new Date(timestamp).toLocaleTimeString();
+function formatTimestampToDate(timestampNanos: number) {
+  const timestampMillis = nanosecondsToMilliseconds(timestampNanos);
+  return new Date(timestampMillis).toLocaleTimeString();
 }

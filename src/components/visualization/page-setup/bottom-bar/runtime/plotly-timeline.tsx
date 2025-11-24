@@ -4,6 +4,7 @@ import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
 import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
 import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { nanosecondsToMilliseconds } from '../../../../../utils/landscape-http-request-util';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -378,7 +379,7 @@ export default function PlotlyTimeline({
         timelineDataForCommit.selectedTimestamps;
 
       selectedTimestampsForCommit.forEach((timestamp) => {
-        const timestampId = timestamp.epochMilli;
+        const timestampId = timestamp.epochNano;
         if (markerStates[timestampId]) {
           markerStates[timestampId].color =
             timelineDataForCommit.highlightedMarkerColor;
@@ -570,8 +571,10 @@ export default function PlotlyTimeline({
     markerStatesOfOneCommit: IMarkerStates,
     commitId: string
   ) => {
-    function getTimestampTickLabel(timestampEpoch: number) {
-      const timestampDate = new Date(timestampEpoch);
+    function getTimestampTickLabel(timestampEpochNanos: number) {
+      // Convert nanoseconds to milliseconds for Date object
+      const timestampEpochMillis = nanosecondsToMilliseconds(timestampEpochNanos);
+      const timestampDate = new Date(timestampEpochMillis);
       return timestampDate
         .toISOString()
         .replace('T', '<br>')
@@ -626,11 +629,12 @@ export default function PlotlyTimeline({
     let nextExpectedTimestamp = 0;
     let i = 0;
 
-    const TIMESTAMP_INTERVAL = 10000;
+    // 10 seconds in nanoseconds = 10_000_000_000 nanoseconds
+    const TIMESTAMP_INTERVAL = 10_000_000_000;
 
     while (i < timestampsOfOneCommit.length) {
       const timestamp = timestampsOfOneCommit[i];
-      const timestampId = timestamp.epochMilli;
+      const timestampId = timestamp.epochNano;
 
       // Only add real timestamps and shapes in the data arrays
       let addCurrentTimestampToDataObject = false;
@@ -664,7 +668,7 @@ export default function PlotlyTimeline({
         }
         addCurrentTimestampToDataObject = true;
         nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
-      } else if (timestamp.epochMilli === null) {
+      } else if (timestamp.epochNano === null) {
         // Edge case if API will return null values in the future
         x.push(null);
         y.push(null);
@@ -683,7 +687,7 @@ export default function PlotlyTimeline({
           tempGapIndicator.y0 = y.filter((y) => y != null).at(-1)!;
         }
         nextExpectedTimestamp =
-          timestampsOfOneCommit[i].epochMilli ||
+          timestampsOfOneCommit[i].epochNano ||
           timestampId + TIMESTAMP_INTERVAL;
       }
 
@@ -759,8 +763,8 @@ export default function PlotlyTimeline({
       const markerState = markerStateMap.current.get(commit);
       if (markerState) {
         timestamps.forEach((t) => {
-          markerState[t.epochMilli].color = defaultMarkerColor.current;
-          markerState[t.epochMilli].size = defaultMarkerSize.current;
+          markerState[t.epochNano].color = defaultMarkerColor.current;
+          markerState[t.epochNano].size = defaultMarkerSize.current;
         });
       }
     });

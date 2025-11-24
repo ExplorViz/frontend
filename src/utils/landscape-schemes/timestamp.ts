@@ -1,4 +1,4 @@
 export interface Timestamp {
-  epochMilli: number;
+  epochNano: number;
   spanCount: number;
 }

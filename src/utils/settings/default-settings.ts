@@ -264,6 +264,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Controls',
     displayName: 'Selected Gamepad Index',
     description: 'Index of the gamepad to be used for navigation',
+    dependsOn: {
+      settingId: 'enableGamepadControls',
+      value: true,
+    },
     isRangeSetting: true,
   },
   // Heatmap Settings
@@ -330,6 +334,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Animation Duration',
     description:
       'Duration of animations in seconds (e.g. opening and closing of components)',
+    dependsOn: {
+      settingId: 'enableAnimations',
+      value: true,
+    },
     isRangeSetting: true,
   },
   enableHoverEffects: {
@@ -419,6 +427,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Communication',
     displayName: 'Bundling Strength',
     description: 'Controls how strongly edges are bundled together',
+    dependsOn: {
+      settingId: 'enableEdgeBundling',
+      value: true,
+    },
     isRangeSetting: true,
   },
   compatibilityThreshold: {
@@ -428,6 +440,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Communication',
     displayName: 'Compatibility Threshold',
     description: 'Minimum compatibility score for edges to be bundled',
+    dependsOn: {
+      settingId: 'enableEdgeBundling',
+      value: true,
+    },
     isRangeSetting: true,
   },
   bundlingIterations: {
@@ -438,6 +454,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Bundling Iterations',
     description:
       'Number of bundling algorithm iterations (higher = better quality)',
+    dependsOn: {
+      settingId: 'enableEdgeBundling',
+      value: true,
+    },
     isRangeSetting: true,
   },
   bundlingStepSize: {
@@ -447,6 +467,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Communication',
     displayName: 'Bundling Step Size',
     description: 'Step size for bundling algorithm (smaller = smoother)',
+    dependsOn: {
+      settingId: 'enableEdgeBundling',
+      value: true,
+    },
     isRangeSetting: true,
   },
   beta: {
@@ -455,7 +479,12 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 1.0, step: 0.1 },
     group: 'Communication',
     displayName: '3D-HAP Attraction Power (β)',
-    description: 'Controls the attraction power of hierarchical attraction points (β factor from paper)',
+    description:
+      'Controls the attraction power of hierarchical attraction points (β factor from paper)',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
     isRangeSetting: true,
   },
   use3DHAPAlgorithm: {
@@ -463,10 +492,15 @@ export const defaultVizSettings: VisualizationSettings = {
     value: false,
     group: 'Communication',
     displayName: 'Use 3D-HAP Algorithm',
-    description: 'Enable 3D Hierarchical Edge Bundling algorithm from Caserta paper',
+    description:
+      'Enable 3D Hierarchical Edge Bundling algorithm from Caserta paper',
+    dependsOn: {
+      settingId: 'enableEdgeBundling',
+      value: true,
+    },
     isFlagSetting: true,
   },
-  
+
   // bundlingBeta: {
   //   value: 0.5,
   //   range: { min: 0.0, max: 1.0, step: 0.01 },
@@ -689,6 +723,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Width Multiplier',
     description:
       'Multiplier for metric that is mapped to the width of a class.',
+    dependsOn: {
+      settingId: 'classWidthMetric',
+      notEqual: 'None',
+    },
     isRangeSetting: true,
   },
   classDepthMetric: {
@@ -708,6 +746,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Depth Multiplier',
     description:
       'Multiplier for metric that is mapped to the depth of a class.',
+    dependsOn: {
+      settingId: 'classDepthMetric',
+      notEqual: 'None',
+    },
     isRangeSetting: true,
   },
   classHeightMetric: {
@@ -727,6 +769,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Height Multiplier',
     description:
       'Multiplier for metric that is mapped to the height of a class.',
+    dependsOn: {
+      settingId: 'classHeightMetric',
+      notEqual: 'None',
+    },
     isRangeSetting: true,
   },
   classFootprint: {
@@ -838,6 +884,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Camera',
     displayName: 'Raycast First Hit',
     description: 'Only hit the first object with raycaster.',
+    dependsOn: {
+      settingId: 'raycastEnabled',
+      value: true,
+    },
     isFlagSetting: true,
   },
   raycastNear: {
@@ -848,6 +898,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Raycast Near',
     description:
       'Set near plane for raycasting. Must be smaller than far plane.',
+    dependsOn: {
+      settingId: 'raycastEnabled',
+      value: true,
+    },
     isRangeSetting: true,
   },
   raycastFar: {
@@ -857,6 +911,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Camera',
     displayName: 'Raycast Far',
     description: 'Far plane for raycasting. Must be larger than near plane.',
+    dependsOn: {
+      settingId: 'raycastEnabled',
+      value: true,
+    },
     isRangeSetting: true,
   },
   // VR Settings
@@ -968,6 +1026,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
     description: 'Set zoom of the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isRangeSetting: true,
   },
   useCameraPosition: {
@@ -977,6 +1039,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Use Camera Position',
     description:
       'If off, calculate minimap position via intersection of camera with ground plane.',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isFlagSetting: true,
   },
   layer1: {
@@ -985,6 +1051,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Minimap',
     displayName: 'Enable foundation visibility',
     description: 'Toggle foundation visibility for the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isFlagSetting: true,
   },
   layer2: {
@@ -993,6 +1063,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Minimap',
     displayName: 'Enable component visibility',
     description: 'Toggle component visibility for the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isFlagSetting: true,
   },
   layer3: {
@@ -1001,6 +1075,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Minimap',
     displayName: 'Enable clazz visibility',
     description: 'Toggle clazz visibility for the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isFlagSetting: true,
   },
   layer4: {
@@ -1009,6 +1087,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Minimap',
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isFlagSetting: true,
   },
   layer6: {
@@ -1017,6 +1099,10 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Minimap',
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isFlagSetting: true,
   },
   layer7: {
@@ -1026,6 +1112,10 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable visibility of different user-markers',
     description:
       'Toggle the different users position markers visibility for the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
     isFlagSetting: true,
   },
 } as const;

@@ -142,11 +142,6 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         await allCommitsTimestampPromise
           .then((timestamps: Timestamp[]) => {
             polledCommitToTimestampMap.set(commitId, timestamps);
-            if (timestamps.length === 0) {
-              useToastHandlerStore
-                .getState()
-                .showInfoToastMessage('Empty list of timestamps was received.');
-            }
           })
           .catch((error: Error) => {
             console.error(`Error on fetch of timestamps: ${error}`);
@@ -205,13 +200,6 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
                 selectedCommit.commitId,
                 timestamps
               );
-              if (timestamps.length === 0) {
-                useToastHandlerStore
-                  .getState()
-                  .showInfoToastMessage(
-                    'Empty list of timestamps was received.'
-                  );
-              }
             })
             .catch((error: Error) => {
               console.error(`Error on fetch of timestamps: ${error}`);
@@ -239,7 +227,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         if (newestLocalTimestamp) {
-          url += `?newest=${newestLocalTimestamp.epochMilli}`;
+          url += `?newest=${newestLocalTimestamp.epochNano}`;
           if (commit) {
             url += `&commit=${commit.commitId}`;
           }

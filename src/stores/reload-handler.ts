@@ -46,13 +46,13 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
 
       const timestampIndex1 = get().findLastIndexPolyfill(
         listOfAllTimestamps,
-        (timestamp) => timestamp.epochMilli <= timestampFrom
+        (timestamp) => timestamp.epochNano <= timestampFrom
       );
 
-      const tenSecondBucketEpochMilli =
+      const tenSecondBucketEpochNano =
         timestampIndex1 === -1
           ? 0
-          : listOfAllTimestamps[timestampIndex1].epochMilli;
+          : listOfAllTimestamps[timestampIndex1].epochNano;
 
       listOfAllTimestamps = useTimestampRepositoryStore.getState().getTimestampsForCommitId(
         'cross-commit',
@@ -60,15 +60,17 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
       );
 
       const timestampIndex2 = listOfAllTimestamps.findIndex(
-        (ts) => ts.epochMilli > timestampFrom
+        (ts) => ts.epochNano > timestampFrom
       );
 
-      const start = tenSecondBucketEpochMilli;
+      const start = tenSecondBucketEpochNano;
       const exact = timestampFrom;
+      const intervalInSeconds = 10;
+      const NANOSECONDS_PER_SECOND = 1_000_000_000;
       const end =
         timestampIndex2 === -1
-          ? exact + 10_000
-          : listOfAllTimestamps[timestampIndex2].epochMilli;
+          ? exact + intervalInSeconds * NANOSECONDS_PER_SECOND
+          : listOfAllTimestamps[timestampIndex2].epochNano;
       const [structureDataPromise, dynamicDataPromise] =
         await requestData(
           start,
