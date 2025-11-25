@@ -58,7 +58,7 @@ export default function PlotlyCommitTree({
 
   useEffect(() => {
     setupPlotlyCommitTreeChart();
-  }, []);
+  }, [appNameCommitTreeMap]);
 
   useEffect(() => {
     if (plotlyCommitDivRef.current) {

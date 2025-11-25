@@ -12,17 +12,17 @@ export default function CommitTreeApplicationSelection({
 }) {
   useEffect(() => {
     const appNames = Array.from(appNameCommitTreeMap.keys());
-    if (
-      !selectedAppName ||
-      (appNames.includes(selectedAppName) && appNameCommitTreeMap!.size > 0)
-    ) {
+
+    if (appNames.length === 0) {
+      return;
+    }
+
+    if (!selectedAppName || !appNames.includes(selectedAppName)) {
       useCommitTreeStateStore
         .getState()
-        .setCurrentSelectedApplicationName(
-          Array.from(appNameCommitTreeMap.keys())[0]
-        );
+        .setCurrentSelectedApplicationName(appNames[0]);
     }
-  }, []);
+  }, [appNameCommitTreeMap, selectedAppName]);
 
   if (appNameCommitTreeMap!.size > 0) {
     let obj = { array: Array.from(appNameCommitTreeMap.keys()) };
