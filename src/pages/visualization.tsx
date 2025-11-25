@@ -129,7 +129,7 @@ export default function Visualization() {
   const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
     useState<TimelineDataObjectHandler>(new TimelineDataObjectHandler()); //(null);
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
-    useState<boolean>(true);
+    useState<boolean>(false);
   const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
     useState<boolean>(true);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
@@ -412,7 +412,6 @@ export default function Visualization() {
 
   const shouldDisplayBottomBar = () => {
     return (
-      renderingServiceLandscapeData &&
       !showAR &&
       !showVR &&
       !isSingleLandscapeMode &&
