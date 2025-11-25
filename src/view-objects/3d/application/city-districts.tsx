@@ -1,9 +1,11 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
+import { log } from 'console';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
@@ -319,8 +321,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     };
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
-      console.log(useModelStore.getState().applications);
-
       if (ref === null || typeof ref === 'function') {
         return;
       }
