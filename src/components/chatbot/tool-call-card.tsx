@@ -10,6 +10,14 @@ type Action =
   | 'removeHighlight'
   | 'open'
   | 'close'
+  | 'openToolsSidebar'
+  | 'closeToolsSidebar'
+  | 'openSettingsSidebar'
+  | 'closeSettingsSidebar'
+  | 'openToolsComponent'
+  | 'closeToolsComponent'
+  | 'openSettingsComponent'
+  | 'closeSettingsComponent'
   | 'ping'
   | 'moveCamera'
   | 'resetCamera'
@@ -71,7 +79,7 @@ export function ToolCallCard({
           onClick ||
           (() =>
             showPopup
-              ? addPopup({ entityId: component!.id, entity })
+              ? addPopup({ entityId: component!.id! })
               : pingByModelId(component?.id!))
         }
       >
@@ -117,6 +125,22 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
           return 'Opening';
         case 'close':
           return 'Closing';
+        case 'openToolsSidebar':
+          return 'Opening tools sidebar';
+        case 'closeToolsSidebar':
+          return 'Closing tools sidebar';
+        case 'openSettingsSidebar':
+          return 'Opening settings sidebar';
+        case 'closeSettingsSidebar':
+          return 'Closing settings sidebar';
+        case 'openToolsComponent':
+          return 'Opening tools component';
+        case 'closeToolsComponent':
+          return 'Closing tools component';
+        case 'openSettingsComponent':
+          return 'Opening settings component';
+        case 'closeSettingsComponent':
+          return 'Closing settings component';
         case 'ping':
           return 'Pinging';
         case 'moveCamera':
@@ -150,6 +174,22 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
           return 'Opened';
         case 'close':
           return 'Closed';
+        case 'openToolsSidebar':
+          return 'Opened tools sidebar';
+        case 'closeToolsSidebar':
+          return 'Closed tools sidebar';
+        case 'openSettingsSidebar':
+          return 'Opened settings sidebar';
+        case 'closeSettingsSidebar':
+          return 'Closed settings sidebar';
+        case 'openToolsComponent':
+          return 'Opened tools component';
+        case 'closeToolsComponent':
+          return 'Closed tools component';
+        case 'openSettingsComponent':
+          return 'Opened settings component';
+        case 'closeSettingsComponent':
+          return 'Closed settings component';
         case 'ping':
           return 'Pinged';
         case 'moveCamera':

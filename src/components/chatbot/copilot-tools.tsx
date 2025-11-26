@@ -53,7 +53,17 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   }, [applications]);
 
   const { sendMessage } = useCopilotChatInternal();
-  const { pingScreenAtPoint } = use(ChatbotContext);
+  const {
+    pingScreenAtPoint,
+    showToolsSidebar,
+    setShowToolsSidebar,
+    showSettingsSidebar,
+    setShowSettingsSidebar,
+    openedToolComponent,
+    setOpenedToolComponent,
+    openedSettingComponent,
+    setOpenedSettingComponent,
+  } = use(ChatbotContext);
 
   useCopilotAction({
     name: 'highlight-component',
@@ -94,6 +104,142 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         />
       );
     },
+  });
+
+  useCopilotAction({
+    name: 'open-close-tools-sidebar',
+    description:
+      'Opens or closes the tools sidebar in the UI. The tools sidebar is located on the top left side of the screen.',
+    parameters: [
+      {
+        name: 'open',
+        type: 'boolean',
+        description:
+          'Set to true if you want to open the tools sidebar. Set to false if you want to close it.',
+        required: true,
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ open }) => {
+      if (showToolsSidebar !== open) {
+        setShowToolsSidebar(open);
+      }
+    },
+    render: ({ args, status }) => (
+      <ToolCallCard
+        component={{ id: 'tools-sidebar', name: 'Tools Sidebar' }}
+        status={status}
+        action={args.open ? 'openToolsSidebar' : 'closeToolsSidebar'}
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'open-close-settings-sidebar',
+    description:
+      'Opens or closes the settings sidebar in the UI. The settings sidebar is located on the top right side of the screen.',
+    parameters: [
+      {
+        name: 'open',
+        type: 'boolean',
+        description:
+          'Set to true if you want to open the settings sidebar. Set to false if you want to close it.',
+        required: true,
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ open }) => {
+      if (showSettingsSidebar !== open) {
+        setShowSettingsSidebar(open);
+      }
+    },
+    render: ({ args, status }) => (
+      <ToolCallCard
+        component={{ id: 'settings-sidebar', name: 'Settings Sidebar' }}
+        status={status}
+        action={args.open ? 'openSettingsSidebar' : 'closeSettingsSidebar'}
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'open-close-tools-component',
+    description:
+      'Opens or closes a component inside the tools sidebar. Opening the component will also open the sidebar. Allowed component ids: entity-filtering, application-search, Trace-Replayer.',
+    parameters: [
+      {
+        name: 'id',
+        type: 'string',
+        description:
+          'ID of the component in the tools sidebar to be opened or closed. Valid values: entity-filtering, application-search, Trace-Replayer.',
+        required: true,
+      },
+      {
+        name: 'open',
+        type: 'boolean',
+        description:
+          'Set to true if you want to open the component. Set to false if you want to close it.',
+        required: true,
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ id, open }) => {
+      if (open) {
+        setShowToolsSidebar(true);
+        setOpenedToolComponent(id);
+      } else if (openedToolComponent === id) {
+        setOpenedToolComponent(null);
+      }
+    },
+    render: ({ args, status }) => (
+      <ToolCallCard
+        component={{ name: args.id }}
+        status={status}
+        action={args.open ? 'openToolsComponent' : 'closeToolsComponent'}
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'open-close-settings-component',
+    description:
+      'Opens or closes a component inside the settings sidebar. Opening the component will also open the sidebar. Allowed component ids: Collaboration, Chatbot, VSCode-Extension-Settings, Restructure-Landscape, Persist-Landscape, Settings.',
+    parameters: [
+      {
+        name: 'id',
+        type: 'string',
+        description:
+          'ID of the component in the settings sidebar to be opened or closed. Valid values: Collaboration, Chatbot, VSCode-Extension-Settings, Restructure-Landscape, Persist-Landscape, Settings.',
+        required: true,
+      },
+      {
+        name: 'open',
+        type: 'boolean',
+        description:
+          'Set to true if you want to open the component. Set to false if you want to close it.',
+        required: true,
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ id, open }) => {
+      if (open) {
+        setShowSettingsSidebar(true);
+        setOpenedSettingComponent(id);
+      } else if (openedSettingComponent === id) {
+        setOpenedSettingComponent(null);
+      }
+    },
+    render: ({ args, status }) => (
+      <ToolCallCard
+        component={{ name: args.id }}
+        status={status}
+        action={args.open ? 'openSettingsComponent' : 'closeSettingsComponent'}
+      />
+    ),
   });
 
   useCopilotAction({

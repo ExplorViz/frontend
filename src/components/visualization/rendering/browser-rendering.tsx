@@ -227,7 +227,17 @@ export default function BrowserRendering({
 
   return (
     <EditingProvider>
-      <ChatbotProvider landscapeData={landscapeData}>
+      <ChatbotProvider
+        landscapeData={landscapeData}
+        showToolsSidebar={showToolsSidebar}
+        setShowToolsSidebar={setShowToolsSidebar}
+        showSettingsSidebar={showSettingsSidebar}
+        setShowSettingsSidebar={setShowSettingsSidebar}
+        openedToolComponent={openedToolComponent}
+        setOpenedToolComponent={setOpenedToolComponent}
+        openedSettingComponent={openedSettingComponent}
+        setOpenedSettingComponent={setOpenedSettingComponent}
+      >
         <div className="row h-100">
           <div className="d-flex flex-column h-100 col-12">
             <div id="rendering" ref={outerDiv}>

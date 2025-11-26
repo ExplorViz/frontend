@@ -11,7 +11,6 @@ import { CopilotResources } from './copilot-resources';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { PingIndicator } from './ping-indicator';
-import { set } from 'date-fns';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
 
@@ -36,6 +35,14 @@ interface Context {
   selectedModel: Model;
   setSelectedModel: (model: Model) => void;
   pingScreenAtPoint: (x: number, y: number) => void;
+  showToolsSidebar: boolean;
+  setShowToolsSidebar: (open: boolean) => void;
+  showSettingsSidebar: boolean;
+  setShowSettingsSidebar: (open: boolean) => void;
+  openedToolComponent: string | null;
+  setOpenedToolComponent: (component: string | null) => void;
+  openedSettingComponent: string | null;
+  setOpenedSettingComponent: (component: string | null) => void;
 }
 
 const defaultContext: Context = {
@@ -45,17 +52,41 @@ const defaultContext: Context = {
   selectedModel: { id: '', name: '' },
   setSelectedModel: () => {},
   pingScreenAtPoint: () => {},
+  showToolsSidebar: false,
+  setShowToolsSidebar: () => {},
+  showSettingsSidebar: false,
+  setShowSettingsSidebar: () => {},
+  openedToolComponent: null,
+  setOpenedToolComponent: () => {},
+  openedSettingComponent: null,
+  setOpenedSettingComponent: () => {},
 };
 
 export const ChatbotContext = createContext(defaultContext);
 
 interface ChatbotProviderProps extends PropsWithChildren {
   landscapeData: LandscapeData | null;
+  showToolsSidebar: boolean;
+  setShowToolsSidebar: (open: boolean) => void;
+  showSettingsSidebar: boolean;
+  setShowSettingsSidebar: (open: boolean) => void;
+  openedToolComponent: string | null;
+  setOpenedToolComponent: (component: string | null) => void;
+  openedSettingComponent: string | null;
+  setOpenedSettingComponent: (component: string | null) => void;
 }
 
 export function ChatbotProvider({
   children,
   landscapeData,
+  showToolsSidebar,
+  setShowToolsSidebar,
+  showSettingsSidebar,
+  setShowSettingsSidebar,
+  openedToolComponent,
+  setOpenedToolComponent,
+  openedSettingComponent,
+  setOpenedSettingComponent,
 }: ChatbotProviderProps) {
   const [providers, setProviders] = useState(defaultContext.providers);
   const [selectedProvider, setSelectedProvider] = useState(
@@ -121,6 +152,14 @@ export function ChatbotProvider({
         selectedModel,
         setSelectedModel: setSelectedModelPersistent,
         pingScreenAtPoint,
+        showToolsSidebar,
+        setShowToolsSidebar,
+        showSettingsSidebar,
+        setShowSettingsSidebar,
+        openedToolComponent,
+        setOpenedToolComponent,
+        openedSettingComponent,
+        setOpenedSettingComponent,
       }}
     >
       <CopilotKit

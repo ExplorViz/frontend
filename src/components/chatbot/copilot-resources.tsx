@@ -4,6 +4,7 @@ import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplac
 import { type Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { EditingContext } from '../editing/editing-context';
 import { use } from 'react';
+import { ChatbotContext } from './chatbot-context';
 
 interface CopilotResourcesProps {
   applications?: Application[];
@@ -18,6 +19,12 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
   } = useVisualizationStore();
 
   const { canGoBack, canGoForward } = use(EditingContext);
+  const {
+    showToolsSidebar,
+    showSettingsSidebar,
+    openedToolComponent,
+    openedSettingComponent,
+  } = use(ChatbotContext);
 
   useCopilotReadable({
     description:
@@ -54,6 +61,26 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     description:
       'Indicates whether the user can navigate forward in their editing history of the 3D landscape data.',
     value: JSON.stringify(canGoForward),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the tools sidebar in the visualization UI is currently visible.',
+    value: JSON.stringify(showToolsSidebar),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the settings sidebar in the visualization UI is currently visible.',
+    value: JSON.stringify(showSettingsSidebar),
+  });
+  useCopilotReadable({
+    description:
+      'Gets the identifier of the currently opened component in the tools sidebar, or null if none is open.',
+    value: JSON.stringify(openedToolComponent),
+  });
+  useCopilotReadable({
+    description:
+      'Gets the identifier of the currently opened component in the settings sidebar, or null if none is open.',
+    value: JSON.stringify(openedSettingComponent),
   });
   return null;
 }
