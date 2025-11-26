@@ -11,8 +11,12 @@ import { CopilotResources } from './copilot-resources';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { PingIndicator } from './ping-indicator';
+import { set } from 'date-fns';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
+
+const providerKey = 'explorviz-copilot-provider';
+const modelKey = 'explorviz-copilot-model';
 
 interface Model {
   id: string;
@@ -62,6 +66,16 @@ export function ChatbotProvider({
   );
   const [activePing, setActivePing] = useState<{ x: number; y: number }>();
 
+  function setSelectedProviderPersistent(provider: Provider) {
+    setSelectedProvider(provider);
+    localStorage.setItem(providerKey, provider.id);
+  }
+
+  function setSelectedModelPersistent(model: Model) {
+    setSelectedModel(model);
+    localStorage.setItem(modelKey, model.id);
+  }
+
   const applications = landscapeData?.structureLandscapeData.nodes.reduce(
     (acc, node) => {
       return acc.concat(node.applications);
@@ -79,12 +93,20 @@ export function ChatbotProvider({
   useEffect(() => {
     fetch(`${copilotUrl}/providers`)
       .then((req) => req.json())
-      .then((data) => {
+      .then((data: { providers: Provider[] }) => {
         setProviders(data.providers);
         if (data.providers.length > 0) {
-          setSelectedProvider(data.providers[0]);
-          if (data.providers[0].models.length > 0) {
-            setSelectedModel(data.providers[0].models[0]);
+          const provider =
+            data.providers.find(
+              ({ id }) => id === localStorage.getItem(providerKey)
+            ) || data.providers[0];
+          setSelectedProviderPersistent(provider);
+          if (provider.models.length > 0) {
+            const model =
+              provider.models.find(
+                ({ id }) => id === localStorage.getItem(modelKey)
+              ) || provider.models[0];
+            setSelectedModelPersistent(model);
           }
         }
       });
@@ -95,9 +117,9 @@ export function ChatbotProvider({
       value={{
         providers,
         selectedProvider,
-        setSelectedProvider,
+        setSelectedProvider: setSelectedProviderPersistent,
         selectedModel,
-        setSelectedModel,
+        setSelectedModel: setSelectedModelPersistent,
         pingScreenAtPoint,
       }}
     >
