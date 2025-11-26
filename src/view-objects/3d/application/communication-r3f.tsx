@@ -17,12 +17,13 @@ import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/appli
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef} from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { BundledCommunicationLayout } from './bundled-communication-layout';
-import { EdgeBundlingConfig } from './edge-bundling-utils';
+import { EdgeBundlingConfig, HierarchicalAttractionSystem} from './edge-bundling-utils';
 import { HAPSystemManager } from './hap-system-manager';
+import { useThree } from '@react-three/fiber';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -89,10 +90,12 @@ export default function CommunicationR3F({
 
         // 3D-HAP settings with safe fallbacks
         beta: vizSettings.beta?.value ?? 0.8,
-        use3DHAPAlgorithm: vizSettings.use3DHAPAlgorithm?.value ?? true,
+        use3DHAPAlgorithm: vizSettings.use3DHAPAlgorithm?.value ?? false,
       };
     })
   );
+
+  const { scene } = useThree();
 
   const { isHighlighted, isHovered, setHoveredEntity } = useVisualizationStore(
     useShallow((state) => ({
@@ -225,9 +228,9 @@ export default function CommunicationR3F({
 
     if (isApplication(element)) {
       return new THREE.Vector3(
-        (Math.random() - 0.5) * 100,
+        (Math.random() - 0.5) * 5,
         0 + level * 10, // Application (Level 2) = 20
-        (Math.random() - 0.5) * 100
+        (Math.random() - 0.5) * 5
       );
     } else if (isPackage(element) && element.parent) {
       const parentPos = getPosition(element.parent);
@@ -249,6 +252,7 @@ export default function CommunicationR3F({
   };
 
   const getPosition = (element: any): THREE.Vector3 => {
+
     // Get layout from layoutmap - using exact HAP position
     if (effectiveLayoutMap && effectiveLayoutMap.has(element.id)) {
       const layout = effectiveLayoutMap.get(element.id);
@@ -260,6 +264,34 @@ export default function CommunicationR3F({
     // Fallback for elements without layout
     return getFallbackPosition(element);
   };
+
+  const hapSystem = useMemo<HierarchicalAttractionSystem | null>(() => {
+    if (!applicationElement || !enableEdgeBundling) return null;
+
+    let system = hapSystemManager.getHAPSystem(applicationElement.id);
+    if (!system) {
+      const getChildren = (el: any) => {
+        if (isPackage(el)) return [...el.subPackages, ...el.classes];
+        if (isApplication(el)) return el.packages;
+        return [];
+      };
+
+      hapSystemManager.buildApplicationHAPTree(
+        applicationElement.id,
+        applicationElement,
+        getChildren,
+        getPosition,
+        getLevel
+      );
+
+      // Get HAPSystem
+      system = hapSystemManager.getHAPSystem(applicationElement.id);
+    }
+
+    return system || null;
+  }, [applicationElement?.id, enableEdgeBundling, effectiveLayoutMap]);
+
+  
 
   // Initialize HAP system for the application
   useEffect(() => {
@@ -294,137 +326,110 @@ export default function CommunicationR3F({
     }
   }, [applicationElement?.id, enableEdgeBundling]);
 
-  // Get HAP nodes for this specific communication
   const hapNodes = useMemo(() => {
-    if (!enableEdgeBundling || !use3DHAPAlgorithm || !applicationElement) {
-      return null;
+    if (!hapSystem || !communicationModel.sourceClass || !communicationModel.targetClass) return null;
+    const originHAP = hapSystemManager.getHAPNode(communicationModel.sourceClass.id);
+    const destinationHAP = hapSystemManager.getHAPNode(communicationModel.targetClass.id);
+    console.log("HAP source:",communicationModel.sourceClass.id, originHAP);
+    console.log("HAP dest:", communicationModel.targetClass.id, destinationHAP);
+    if (!originHAP || !destinationHAP) return null;
+    return { originHAP, destinationHAP };
+  }, [hapSystem, communicationModel.sourceClass?.id, communicationModel.targetClass?.id]);
+
+    useEffect(() => {
+    if (!meshRef.current) return;
+
+    console.log("HAP toggle detected:", use3DHAPAlgorithm);
+
+    meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm;
+
+    if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes) {
+      const hapSystem = hapSystemManager.getHAPSystem(applicationElement?.id || 'default');
+      if (hapSystem) {
+        meshRef.current.initializeHAPSystem(hapSystem, hapNodes.originHAP, hapNodes.destinationHAP);
+      }
     }
 
-    const sourceClassId = communicationModel.sourceClass?.id;
-    const targetClassId = communicationModel.targetClass?.id;
-
-    if (!sourceClassId || !targetClassId) {
-      return null;
-    }
-
-    const originHAP = hapSystemManager.getHAPNode(sourceClassId);
-    const destinationHAP = hapSystemManager.getHAPNode(targetClassId);
-
-    if (originHAP && destinationHAP) {
-      return { originHAP, destinationHAP };
-    }
-
-    return null;
-  }, [
-    communicationModel.sourceClass,
-    communicationModel.targetClass,
-    enableEdgeBundling,
-    use3DHAPAlgorithm,
-    applicationElement,
-  ]);
+    // Force re-render
+    if (meshRef.current.render) meshRef.current.render();
+  }, [use3DHAPAlgorithm, enableEdgeBundling, hapNodes]);
 
   // Create appropriate layout based on algorithm selection
-  const finalLayout = useMemo(() => {
-    if (!communicationLayout) return undefined;
+const finalLayout = useMemo(() => {
+  if (!communicationLayout) return undefined;
 
-    // When edge bundling disabled: standard ExplorViz algorithm
-    if (!enableEdgeBundling) {
-      // Convert back to normal layout if needed
-      if (communicationLayout instanceof BundledCommunicationLayout) {
-        const normalLayout = new CommunicationLayout(communicationModel);
-        normalLayout.startPoint = communicationLayout.startPoint;
-        normalLayout.endPoint = communicationLayout.endPoint;
-        normalLayout.lineThickness = communicationLayout.lineThickness;
-        return normalLayout;
-      }
-      return communicationLayout;
+  const startPoint = new THREE.Vector3(
+    communicationLayout.startX,
+    communicationLayout.startY,
+    communicationLayout.startZ
+  );
+  const endPoint = new THREE.Vector3(
+    communicationLayout.endX,
+    communicationLayout.endY,
+    communicationLayout.endZ
+  );
+
+  if (!enableEdgeBundling) {
+    // Edge-Bundling off -> Original layout
+    if (communicationLayout instanceof BundledCommunicationLayout) {
+      const normalLayout = new CommunicationLayout(communicationModel);
+      normalLayout.startPoint = communicationLayout.startPoint;
+      normalLayout.endPoint = communicationLayout.endPoint;
+      normalLayout.lineThickness = communicationLayout.lineThickness;
+      return normalLayout;
     }
+    return communicationLayout;
+  }
 
-    // When edge bundling enabled:
-    const startPoint = new THREE.Vector3(
-      communicationLayout.startX,
-      communicationLayout.startY,
-      communicationLayout.startZ
+  let bundledLayout: BundledCommunicationLayout;
+
+  if (communicationLayout instanceof BundledCommunicationLayout) {
+    bundledLayout = communicationLayout;
+  } else {
+    bundledLayout = new BundledCommunicationLayout(
+      communicationModel,
+      startPoint,
+      endPoint,
+      communicationLayout.lineThickness,
+      edgeBundlingConfig
     );
-    const endPoint = new THREE.Vector3(
-      communicationLayout.endX,
-      communicationLayout.endY,
-      communicationLayout.endZ
-    );
+  }
 
-    if (use3DHAPAlgorithm) {
-      // Use 3d-HAP algorithm
-      const hapSystem = hapSystemManager.getHAPSystem(
-        applicationElement?.id || 'default'
-      );
-
-      if (communicationLayout instanceof BundledCommunicationLayout) {
-        // Update existing bundled layout with HAP system
-        if (hapSystem && hapNodes) {
-          const bundledLayout =
-            communicationLayout as unknown as BundledCommunicationLayout;
-          bundledLayout.setHAPNodes(
-            hapNodes.originHAP,
-            hapNodes.destinationHAP
-          );
-          bundledLayout.setBeta(beta);
-        }
-        return communicationLayout;
-      }
-
-      // Convert to BundledLayout with HAP
-      const bundledLayout = new BundledCommunicationLayout(
-        communicationModel,
-        startPoint,
-        endPoint,
-        communicationLayout.lineThickness,
-        edgeBundlingConfig,
-        hapSystem || undefined
-      );
-
-      // Initialize with HAP nodes if available
-      if (hapSystem && hapNodes) {
-        bundledLayout.setHAPNodes(hapNodes.originHAP, hapNodes.destinationHAP);
-        bundledLayout.setBeta(beta);
-      }
-
-      return bundledLayout;
-    } else {
-      // FALLBACK: Use existing Edge Bundling Algorithm
-      if (communicationLayout instanceof BundledCommunicationLayout) {
-        return communicationLayout;
-      }
-
-      // Convert to BundledLayout without HAP
-      return new BundledCommunicationLayout(
-        communicationModel,
-        startPoint,
-        endPoint,
-        communicationLayout.lineThickness,
-        edgeBundlingConfig
-      );
+  if (use3DHAPAlgorithm && hapNodes) {
+    const hapSystem = hapSystemManager.getHAPSystem(applicationElement?.id || 'default');
+    if (hapSystem) {
+      bundledLayout.setHAPNodes(hapNodes.originHAP, hapNodes.destinationHAP);
+      bundledLayout.setBeta(beta);
     }
-  }, [
-    communicationLayout,
-    communicationModel,
-    edgeBundlingConfig,
-    enableEdgeBundling,
-    use3DHAPAlgorithm,
-    hapNodes,
-    beta,
-    applicationElement,
-  ]);
+  }
 
-  useEffect(() => {
-    if (meshRef.current && finalLayout) {
-      meshRef.current.layout = finalLayout as any;
-      meshRef.current.enableEdgeBundling = enableEdgeBundling;
-      meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm;
-      meshRef.current.beta = beta;
+  return bundledLayout;
+}, [
+  communicationLayout,
+  communicationModel,
+  edgeBundlingConfig,
+  enableEdgeBundling,
+  use3DHAPAlgorithm,
+  hapNodes,
+  beta,
+  applicationElement,
+]);
 
-      meshRef.current.render();
+
+    useEffect(() => {
+    if (!meshRef.current || !finalLayout) return;
+
+    meshRef.current.layout = finalLayout as any;
+    meshRef.current.enableEdgeBundling = enableEdgeBundling;
+    meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm;
+    meshRef.current.beta = beta;
+
+    if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes && hapSystem) {
+      meshRef.current.initializeHAPSystem(hapSystem, hapNodes.originHAP, hapNodes.destinationHAP);
     }
-  }, [finalLayout, enableEdgeBundling, use3DHAPAlgorithm, beta]);
+
+    meshRef.current.render();
+  }, [finalLayout, enableEdgeBundling, use3DHAPAlgorithm, hapNodes, hapSystem, beta]);
 
   // Initialize HAP system on the mesh when it's created
   useEffect(() => {
@@ -465,6 +470,30 @@ export default function CommunicationR3F({
     beta,
   ]);
 
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts
+      if (meshRef.current) {
+        meshRef.current.disposeRecursively();
+      }
+    };
+  }, []);
+
+  // When application changes, clear the entire geometry cache
+  useEffect(() => {
+    if (applicationElement?.id) {
+      // Clear shared geometries when switching applications
+      ClazzCommunicationMesh.clearSharedGeometries();
+    }
+  }, [applicationElement?.id]);
+
+  // Visualize HAPs
+  useEffect(() => {
+    if (applicationElement?.id) {
+      hapSystemManager.visualizeHAPs(applicationElement.id, scene);
+    }
+  }, [applicationElement?.id, scene]);
+
   const constructorArgs = useMemo<
     ThreeElements['clazzCommunicationMesh']['args']
   >(() => {
@@ -472,8 +501,8 @@ export default function CommunicationR3F({
       communicationModel,
       communicationModel.id
     );
-    return [dataModel];
-  }, [communicationModel]);
+    return [dataModel, { use3DHAPAlgorithm }];
+  }, [communicationModel, use3DHAPAlgorithm]);
 
   // Check if component should be displayed
   if (!evoConfig.renderDynamic) {

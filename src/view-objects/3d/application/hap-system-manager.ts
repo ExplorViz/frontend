@@ -67,8 +67,6 @@ public clearHAPSystem(applicationId: string): void {
   elementsToRemove.forEach(elementId => {
     this.elementToHAP.delete(elementId);
   });
-  
-  console.log(`Cleared HAP system for application: ${applicationId}`);
 }
 
 private isElementInApplication(element: any, applicationId: string): boolean {
@@ -82,5 +80,58 @@ private isElementInApplication(element: any, applicationId: string): boolean {
   return false;
 }
 
+// HAP-visualization
+public visualizeHAPs(applicationId: string, scene: THREE.Scene): void {
+  const system = this.getHAPSystem(applicationId);
+  if (!system) return;
+
+  const hapTree = system.getHAPTree();
+  if (!hapTree) return;
+
+  const visualizeNode = (node: HAPNode) => {
+    // Visualize HAPs as spheres
+    const geometry = new THREE.SphereGeometry(0.5);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: this.getLevelColor(node.level),
+      transparent: true,
+      opacity: 0.7
+    });
+    
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.copy(node.position);
+    scene.add(mesh);
+
+    // Connection to parent
+    if (node.parent) {
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+        node.position,
+        node.parent.position
+      ]);
+      const lineMaterial = new THREE.LineBasicMaterial({ 
+        color: this.getLevelColor(node.level),
+        transparent: true,
+        opacity: 0.3
+      });
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      scene.add(line);
+    }
+
+    node.children.forEach(child => visualizeNode(child));
+  };
+
+  visualizeNode(hapTree);
 }
+
+private getLevelColor(level: number): THREE.Color {
+  switch(level) {
+    case 0: return new THREE.Color(0xff0000); // Class - Blue
+    case 1: return new THREE.Color(0x00ff00); // Package - Green  
+    case 2: return new THREE.Color(0x0000ff); // Application - Red
+    default: return new THREE.Color(0xffffff);
+  }
+}
+
+}
+
+
 

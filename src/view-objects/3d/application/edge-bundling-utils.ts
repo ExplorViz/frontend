@@ -85,20 +85,27 @@ export class HierarchicalAttractionSystem {
   // Scattering implementation
   // Scatter the edges around the first 3D-HAP (the one at class level)
   private addScattering(points: THREE.Vector3[], scatterRadius: number = 0.3): void {
-    if (points.length < 2) return;
-    
-    // Only add scattering to first HAP after origin (class level)
-    // This prevents edges from having exactly the same coordinates
-    const scatterVector = new THREE.Vector3(
-      (Math.random() - 0.5) * scatterRadius,
-      (Math.random() - 0.5) * scatterRadius, 
-      (Math.random() - 0.5) * scatterRadius
-    );
-    
-    // Apply scattering to first HAP point (index 1, after origin)
-    if (points.length > 1) {
-      points[1].add(scatterVector);
+    if (points.length < 3) return;
+
+    // Scatter the edges around the first 3D-HAP (the one at class level)
+    const classLevelIndices: number[] = [];
+
+    // Find class-level points
+    for (let i = 1; i < points.length - 1; i++) {
+      if (i === 1 || i === points.length - 2) {
+        classLevelIndices.push(i);
+      }
     }
+
+    // Use scattering only on class-level points
+    classLevelIndices.forEach(index => {
+      const scatterVector = new THREE.Vector3(
+        (Math.random() - 0.5) * scatterRadius,
+        (Math.random() - 0.5) * scatterRadius * 0.5,
+        (Math.random() - 0.5) * scatterRadius
+      );
+      points[index].add(scatterVector);
+    });
   }
 
 
@@ -111,7 +118,7 @@ export class HierarchicalAttractionSystem {
     beta: number = 0.8
   ): THREE.Vector3[] {
     const allHAPs = [...hapPath.pathOrigin, ...hapPath.pathDestination];
-    
+
     if (allHAPs.length === 0 || beta === 0) {
       return [origin, destination];
     }
@@ -121,34 +128,34 @@ export class HierarchicalAttractionSystem {
   // Apply attraction power to each HAP
   allHAPs.forEach(hap => {
     const Pn = hap.position.clone();
-    
+
     // Level-based beta-value
     const levelBasedBeta = this.calculateLevelBasedBeta(hap.level, beta);
-    
+
     // Project HAP onto the OD line (P′n)
     const OD = new THREE.Vector3().subVectors(destination, origin);
     const OPn = new THREE.Vector3().subVectors(Pn, origin);
     const dotProduct = OPn.dot(OD);
     const magnitudeSquared = OD.lengthSq();
-    
+
     // P′n = O + OD * (OPn · OD) / ||OD||²
     const P_prime = origin.clone().add(OD.multiplyScalar(dotProduct / magnitudeSquared));
-    
-    const P_prime_scaled = P_prime.multiplyScalar(levelBasedBeta); // P′n * β
-    const P_final = new THREE.Vector3()
-      .addVectors(
-        Pn.multiplyScalar(levelBasedBeta),                    // Pn * β
-        P_prime_scaled.multiplyScalar(1 - levelBasedBeta)     // (1 - β) * (P′n * β)
-      );
-    
+
+    // P′′n = Pn * β + (1 − β)(P′n * β)
+    const term1 = Pn.multiplyScalar(levelBasedBeta);                    // Pn * β
+    const term2 = P_prime.multiplyScalar(levelBasedBeta)               // P′n * β
+                      .multiplyScalar(1 - levelBasedBeta);             // * (1 - β)
+
+    const P_final = new THREE.Vector3().addVectors(term1, term2);
+
     points.push(P_final);
   });
 
     points.push(destination);
-    
+
     // Apply Scattering to prevent overlapping edges
     this.addScattering(points);
-    
+
     return points;
   }
 
@@ -163,9 +170,10 @@ export class HierarchicalAttractionSystem {
    // Level-based beta calculation
    // Deeper levels (higher level number) = stronger attraction
   private calculateLevelBasedBeta(level: number, baseBeta: number): number {
-    // Paper suggests stronger attraction for deeper hierarchy levels
-    // Application (level 2) = strongest, Class (level 0) = weakest
-    const levelMultiplier = 1.0 + (level * 0.2); // +20% per level
+    // if (level === 0) { // Class Level
+    //   return 0.0; 
+    // }
+    const levelMultiplier = 1.0 - (level * 0.2); 
     return Math.min(0.9, baseBeta * levelMultiplier);
   }
 
@@ -175,18 +183,18 @@ export class HierarchicalAttractionSystem {
   public testPaperMathematics(): void {
     // Simple test setup like in paper figure 8
     const O = new THREE.Vector3(0, 0, 0);    // Origin Class
-    const D = new THREE.Vector3(10, 0, 0);   // Destination Class  
+    const D = new THREE.Vector3(10, 0, 0);   // Destination Class
     const P0 = new THREE.Vector3(5, 5, 0);   // HAP like in paper
-    
+
     const beta = 0.8;
-    
+
     // Calculate projection P′0
     const OD = new THREE.Vector3().subVectors(D, O);
     const OP0 = new THREE.Vector3().subVectors(P0, O);
     const dotProduct = OP0.dot(OD);
     const magnitudeSquared = OD.lengthSq();
     const P_prime = O.clone().add(OD.multiplyScalar(dotProduct / magnitudeSquared));
-    
+
     // PAPER FORMULA: P′′0 = P0 * β + (1 - β)(P′0 * β)
     const P_prime_scaled = P_prime.multiplyScalar(beta);
     const P_final = new THREE.Vector3()
@@ -194,10 +202,10 @@ export class HierarchicalAttractionSystem {
         P0.multiplyScalar(beta),
         P_prime_scaled.multiplyScalar(1 - beta)
       );
-    
+
     console.log('=== PAPER MATHEMATICS TEST ===');
     console.log('O (Origin):', O);
-    console.log('D (Destination):', D); 
+    console.log('D (Destination):', D);
     console.log('P0 (HAP):', P0);
     console.log('P′0 (Projection):', P_prime);
     console.log('P′′0 (Final):', P_final);
@@ -255,52 +263,52 @@ export class EdgeBundlingProcessor {
     config: EdgeBundlingConfig
   ): THREE.Vector3[][] {
     const { bundleStrength, compatibilityThreshold, iterations, stepSize } = config;
-    
+
     let currentEdges = edges.map(edge => [...edge]);
-    
+
     for (let iter = 0; iter < iterations; iter++) {
       const newEdges: THREE.Vector3[][] = [];
-      
+
       for (let i = 0; i < currentEdges.length; i++) {
         const edge = currentEdges[i];
         const newEdge: THREE.Vector3[] = [];
-        
+
         for (let j = 0; j < edge.length; j++) {
           const point = edge[j].clone();
           let force = new THREE.Vector3();
           let forceCount = 0;
-          
+
           // Calculate attraction to compatible edges
           for (let k = 0; k < currentEdges.length; k++) {
             if (i === k) continue;
-            
+
             const otherEdge = currentEdges[k];
             const compatibility = this.calculateCompatibility(edge, otherEdge);
-            
+
             if (compatibility > compatibilityThreshold && j < otherEdge.length) {
               const attraction = new THREE.Vector3()
                 .subVectors(otherEdge[j], point)
                 .multiplyScalar(compatibility * bundleStrength);
-              
+
               force.add(attraction);
               forceCount++;
             }
           }
-          
+
           if (forceCount > 0) {
             force.divideScalar(forceCount);
             point.add(force.multiplyScalar(stepSize));
           }
-          
+
           newEdge.push(point);
         }
-        
+
         newEdges.push(newEdge);
       }
-      
+
       currentEdges = newEdges;
     }
-    
+
     return currentEdges;
   }
 
@@ -311,16 +319,16 @@ export class EdgeBundlingProcessor {
     curveHeight: number
   ): THREE.CatmullRomCurve3 {
     const points: THREE.Vector3[] = [startPoint];
-    
+
     // Add control points with height
     controlPoints.forEach(point => {
       const elevatedPoint = point.clone();
       elevatedPoint.y += curveHeight;
       points.push(elevatedPoint);
     });
-    
+
     points.push(endPoint);
-    
+
     return new THREE.CatmullRomCurve3(points);
   }
 }

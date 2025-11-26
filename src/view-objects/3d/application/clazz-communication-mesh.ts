@@ -88,7 +88,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _originHAP: HAPNode | null = null;
   private _destinationHAP: HAPNode | null = null;
   private _beta: number = 0.8;
-  private _use3DHAPAlgorithm: boolean = true;
+  private _use3DHAPAlgorithm: boolean = false;
+
+  // Shared geometries cache
+  private static sharedGeometries: Map<string, THREE.BufferGeometry> = new Map();
+  private static geometryUsageCount: Map<string, number> = new Map();
 
   get enableEdgeBundling(): boolean {
     return this._enableEdgeBundling;
@@ -130,10 +134,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   }
 
-  constructor(dataModel: ClazzCommuMeshDataModel) {
+  constructor(dataModel: ClazzCommuMeshDataModel, options?: { use3DHAPAlgorithm?: boolean }) {
     super();
     this.dataModel = dataModel;
-
+    this._use3DHAPAlgorithm = options?.use3DHAPAlgorithm ?? false;
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
     });
@@ -305,22 +309,39 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     this.addArrows();
   }
 
-  // Render using original algorithm (no edge bundling)
-  private renderOriginalAlgorithm(curveSegments: number): void {
-    this.geometry = new THREE.TubeGeometry(
-      this.layout.getCurve({ yOffset: this.curveHeight }),
-      this.curveHeight === 0 ? 1 : curveSegments,
-      this.layout.lineThickness
-    );
+    private renderOriginalAlgorithm(curveSegments: number): void {
+    const curve = this.layout.getCurve({ yOffset: this.curveHeight });
+    
+    this.geometry = this.getSharedGeometry(curve, this.curveHeight === 0 ? 1 : curveSegments);
 
-    // Reset to original material
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
       transparent: true,
     });
   }
 
-  // Check if layout is BundledCommunicationLayout
+  /**
+   * Override disposeRecursively to clean up shared geometries
+   * This is called by the parent class disposal mechanism
+   */
+  public disposeRecursively(): void {
+    // Clean up shared geometries
+    if (this.geometry) {
+      this.releaseSharedGeometry(this.geometry);
+    }
+
+    super.disposeRecursively();
+
+    this.clearHAPSystem();
+    
+    // Clean up child arrows
+    this.getArrowMeshes().forEach(arrow => {
+      if (arrow.disposeRecursively) {
+        arrow.disposeRecursively();
+      }
+    });
+  }
+
   private isBundledLayout(): boolean {
     return this.layout instanceof BundledCommunicationLayout;
   }
@@ -332,96 +353,158 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       : null;
   }
 
-  /**
-   * Create gradient-colored geometry for 3D-HAP edges
-   * Implements color scheme: Green (origin) -> Red (destination)
-   */
-  private createGradientColoredGeometry(
-    curve: THREE.Curve<THREE.Vector3>,
-    segments: number
-  ): THREE.BufferGeometry {
-    const tubeGeometry = new THREE.TubeGeometry(
-      curve,
-      segments,
-      this.layout.lineThickness
+// Directions of Edges is displayed by color
+private createGradientColoredGeometry(
+  baseGeometry: THREE.BufferGeometry, 
+  curve: THREE.Curve<THREE.Vector3>
+): THREE.BufferGeometry {
+  const geometry = baseGeometry.clone();
+  const positionAttribute = geometry.getAttribute('position');
+  const vertexCount = positionAttribute.count;
+  const colors = new Float32Array(vertexCount * 3);
+
+  const isBidirectional = this.dataModel.communication.isBidirectional;
+
+  for (let i = 0; i < vertexCount; i++) {
+    const vertexPosition = new THREE.Vector3(
+      positionAttribute.getX(i),
+      positionAttribute.getY(i), 
+      positionAttribute.getZ(i)
     );
-    const geometry = tubeGeometry;
-    const positionAttribute = geometry.getAttribute('position');
-    const vertexCount = positionAttribute.count;
-    const colors = new Float32Array(vertexCount * 3);
+    
+    const t = this.calculateVertexT(vertexPosition, curve);
 
-    for (let i = 0; i < vertexCount; i++) {
-      const t = i / (vertexCount - 1);
-
-      if (this.dataModel.communication.isBidirectional) {
-        // Deep purple gradient for bidirectional
-        colors[i * 3] = 0.4 + t * 0.3; // R: 0.4 -> 0.7
-        colors[i * 3 + 1] = 0.2; // G low and constant
-        colors[i * 3 + 2] = 0.6 - t * 0.2; // B: 0.6 -> 0.4
+    if (isBidirectional) {
+      // Bidirectional: Uniform green (both directions active)
+      colors[i * 3] = 0.0;        // R: 0
+      colors[i * 3 + 1] = 0.7;    // G: strong green
+      colors[i * 3 + 2] = 0.0;    // B: 0
+    } else {
+      // Unidirectional: Green -> Red
+      if (t < 0.5) {
+        // Green origin side
+        const greenIntensity = 0.3 + 0.7 * (1 - t * 2);
+        colors[i * 3] = 0.0;
+        colors[i * 3 + 1] = greenIntensity; 
+        colors[i * 3 + 2] = 0.0;
       } else {
-        // Deep Green (0,0.8,0) -> Deep Red (0.9,0,0)
-        if (t < 0.5) {
-          // Deep green to yellow-green
-          colors[i * 3] = t * 1.0; // R: 0 -> 0.5
-          colors[i * 3 + 1] = 0.8; // G stays very high
-          colors[i * 3 + 2] = 0.1; // B very low
-        } else {
-          // Yellow-green to deep red
-          colors[i * 3] = 0.5 + (t - 0.5) * 0.8; // R: 0.5 -> 0.9
-          colors[i * 3 + 1] = 0.8 - (t - 0.5) * 1.6; // G: 0.8 -> 0.0
-          colors[i * 3 + 2] = 0.1; // B very low
-        }
+        // Red destination side
+        const redIntensity = 0.3 + 0.7 * ((t - 0.5) * 2);
+        colors[i * 3] = redIntensity;
+        colors[i * 3 + 1] = 0.0;
+        colors[i * 3 + 2] = 0.0;
       }
     }
-
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    return geometry;
   }
 
-  // Render with 3D Hierarchical Edge Bundling algorithm with gradient coloring
-  private renderWith3DHAPGradient(curveSegments: number): void {
-    const bundledLayout = this.getBundledLayout();
-    if (
-      !bundledLayout ||
-      !this._hapSystem ||
-      !this._originHAP ||
-      !this._destinationHAP
-    ) {
-      // Fallback to existing algorithm if 3D-HAP not available
-      this.renderWithEdgeBundling(curveSegments);
-      return;
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return geometry;
+}
+
+/**
+ * Calculate position along curve (0 = origin, 1 = destination)
+ */
+private calculateVertexT(vertexPosition: THREE.Vector3, curve: THREE.Curve<THREE.Vector3>): number {
+  const start = curve.getPoint(0);
+  const end = curve.getPoint(1);
+  
+  const lineDirection = new THREE.Vector3().subVectors(end, start).normalize();
+  const vertexDirection = new THREE.Vector3().subVectors(vertexPosition, start);
+  
+  const projectedLength = vertexDirection.dot(lineDirection);
+  const totalLength = start.distanceTo(end);
+  
+  return Math.min(1, Math.max(0, projectedLength / totalLength));
+}
+
+  /**
+   * Get or create shared geometry for identical curves
+   */
+  private getSharedGeometry(curve: THREE.Curve<THREE.Vector3>, segments: number): THREE.BufferGeometry {
+    const key = this.generateGeometryKey(curve, segments);
+    
+    if (!ClazzCommunicationMesh.sharedGeometries.has(key)) {
+      const geometry = new THREE.TubeGeometry(curve, segments, this.layout.lineThickness);
+      ClazzCommunicationMesh.sharedGeometries.set(key, geometry);
+      ClazzCommunicationMesh.geometryUsageCount.set(key, 1);
+    } else {
+      const count = ClazzCommunicationMesh.geometryUsageCount.get(key) || 0;
+      ClazzCommunicationMesh.geometryUsageCount.set(key, count + 1);
+    }
+    
+    return ClazzCommunicationMesh.sharedGeometries.get(key)!;
+  }
+
+    /**
+   * Generate unique key for geometry caching
+   */
+  private generateGeometryKey(curve: THREE.Curve<THREE.Vector3>, segments: number): string {
+    if (this._use3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
+      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${segments}_${this.layout.lineThickness}`;
+    } else {
+      const start = curve.getPoint(0);
+      const end = curve.getPoint(1);
+      const mid = curve.getPoint(0.5);
+      
+      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_${segments}_${this.layout.lineThickness}`;
+    }
+  }
+
+private releaseSharedGeometry(geometry: THREE.BufferGeometry): void {
+  let foundKey: string | null = null;
+  ClazzCommunicationMesh.sharedGeometries.forEach((geo, key) => {
+    if (geo === geometry) {
+      foundKey = key;
+    }
+  });
+
+  if (foundKey) {
+    const count = ClazzCommunicationMesh.geometryUsageCount.get(foundKey) || 0;
+    if (count <= 1) {
+      ClazzCommunicationMesh.sharedGeometries.delete(foundKey);
+      ClazzCommunicationMesh.geometryUsageCount.delete(foundKey);
+    } else {
+      ClazzCommunicationMesh.geometryUsageCount.set(foundKey, count - 1);
+    }
+  }
+}
+    /**
+   * Modified render methods that use shared geometries
+   */
+    private renderWith3DHAPGradient(curveSegments: number): void {
+      const bundledLayout = this.getBundledLayout();
+      if (!bundledLayout || !this._hapSystem || !this._originHAP || !this._destinationHAP) {
+        this.renderWithEdgeBundling(curveSegments);
+        return;
+      }
+
+      bundledLayout.setHAPNodes(this._originHAP, this._destinationHAP);
+      bundledLayout.setBeta(this._beta);
+
+      const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
+
+      // Use shared geometry instead of creating new one
+      const sharedGeometry = this.getSharedGeometry(curve, curveSegments);
+      
+      // Create vertex colors on the shared geometry
+      this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
+
+      this.material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+      });
     }
 
-    // Ensure HAP information is up to date
-    bundledLayout.setHAPNodes(this._originHAP, this._destinationHAP);
-    bundledLayout.setBeta(this._beta);
-
-    const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
-
-    // Use gradient-colored geometry
-    this.geometry = this.createGradientColoredGeometry(curve, curveSegments);
-
-    // Use vertex color material
-    this.material = new THREE.MeshBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.8,
-    });
-  }
-
-  // Render with existing edge bundling algorithm (fallback)
-  private renderWithEdgeBundling(curveSegments: number): void {
+    private renderWithEdgeBundling(curveSegments: number): void {
     const bundledLayout = this.getBundledLayout();
     if (!bundledLayout) return;
 
     const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
-    this.geometry = new THREE.TubeGeometry(
-      curve,
-      curveSegments,
-      this.layout.lineThickness
-    );
+    
+    // Use shared geometry
+    this.geometry = this.getSharedGeometry(curve, curveSegments);
 
-    // Apply custom material for bundled edges
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
       transparent: true,
@@ -481,6 +564,17 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         this.render();
       }
     }
+  }
+
+    /**
+   * Static method to clear all shared geometries
+   */
+  public static clearSharedGeometries(): void {
+    ClazzCommunicationMesh.sharedGeometries.forEach(geometry => {
+      geometry.dispose();
+    });
+    ClazzCommunicationMesh.sharedGeometries.clear();
+    ClazzCommunicationMesh.geometryUsageCount.clear();
   }
 
   // Get HAP information for debugging
@@ -688,7 +782,7 @@ declare module '@react-three/fiber' {
         iterations: number;
         stepSize: number;
       };
-      // New 3D-HAP properties
+      // 3D-HAP properties
       beta?: number;
       use3DHAPAlgorithm?: boolean;
       hapSystem?: HierarchicalAttractionSystem;
