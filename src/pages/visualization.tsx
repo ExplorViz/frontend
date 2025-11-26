@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ChevronUpIcon } from '@primer/octicons-react';
+import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
@@ -996,6 +996,22 @@ export default function Visualization() {
 
               {isCommitTreeSelected && (
                 <>
+                  <Button
+                    className="commit-tree-refresh-button"
+                    variant="outline-secondary"
+                    onClick={refreshCommitTreeData}
+                    disabled={isCommitTreeRefreshing}
+                    title={
+                      isCommitTreeRefreshing
+                        ? 'Refreshing...'
+                        : 'Refresh commit data'
+                    }
+                  >
+                    <SyncIcon
+                      size="small"
+                      className={isCommitTreeRefreshing ? 'spinning' : ''}
+                    />
+                  </Button>
                   <div className="row justify-content-md-center">
                     <div className="row justify-content-md-center align-items-center">
                       <CommitTreeApplicationSelection
@@ -1004,17 +1020,6 @@ export default function Visualization() {
                         }
                         selectedAppName={currentSelectedApplicationName}
                       />
-                      <div className="col-md-auto d-flex align-items-center">
-                        <Button
-                          variant="outline-secondary"
-                          onClick={refreshCommitTreeData}
-                          disabled={isCommitTreeRefreshing}
-                        >
-                          {isCommitTreeRefreshing
-                            ? 'Refreshing...'
-                            : 'Refresh commit data'}
-                        </Button>
-                      </div>
                     </div>
                     <EvolutionRenderingButtons />
                   </div>

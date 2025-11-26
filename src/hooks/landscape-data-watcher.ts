@@ -65,9 +65,6 @@ export default function useLandscapeDataWatcher(
     log('handleUpdateLandscape');
     await Promise.resolve();
     if (!structureLandscapeData || !dynamicLandscapeData) {
-      useModelStore.getState().clearAll();
-      useLayoutStore.getState().clearLayouts();
-      setApplicationModels([]);
       return;
     }
 

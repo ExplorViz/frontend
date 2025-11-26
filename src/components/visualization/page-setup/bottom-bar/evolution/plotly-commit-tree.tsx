@@ -54,17 +54,29 @@ export default function PlotlyCommitTree({
 
   // #region useEffect & useRef
   const plotlyCommitDivRef = useRef(null);
-  const plotlyDivNoTimestampsRef = useRef(null);
 
   useEffect(() => {
-    setupPlotlyCommitTreeChart();
-  }, [appNameCommitTreeMap]);
+    // Only setup chart if we have valid data
+    if (
+      appNameCommitTreeMap &&
+      selectedAppName &&
+      appNameCommitTreeMap.get(selectedAppName)?.branches
+    ) {
+      setupPlotlyCommitTreeChart();
+    }
+  }, [appNameCommitTreeMap, selectedAppName]);
 
   useEffect(() => {
-    if (plotlyCommitDivRef.current) {
+    // Only update chart if we have valid data and the div exists
+    if (
+      plotlyCommitDivRef.current &&
+      appNameCommitTreeMap &&
+      selectedAppName &&
+      appNameCommitTreeMap.get(selectedAppName)?.branches
+    ) {
       updatePlotlyCommitTree();
     }
-  }, [selectedAppName, _appNameCommitTreeMap]);
+  }, [selectedAppName, _appNameCommitTreeMap, appNameCommitTreeMap]);
 
   // #endregion useEffect & useRef
 
@@ -587,19 +599,13 @@ export default function PlotlyCommitTree({
       ) : (
         appNameCommitTreeMap &&
         appNameCommitTreeMap.size > 0 && (
-          <>
-            <div className="timeline-no-timestamps-outer">
-              <div className="timeline-no-timestamps-inner">
-                {selectedAppName
-                  ? 'No commit tree data available!'
-                  : 'No application selected!'}
-              </div>
+          <div className="commit-tree-no-data-container">
+            <div className="commit-tree-no-data-message">
+              {selectedAppName
+                ? 'No commit tree data available!'
+                : 'No application selected!'}
             </div>
-            <div
-              ref={plotlyDivNoTimestampsRef}
-              className="plotlyDiv timeline-blur-effect"
-            ></div>
-          </>
+          </div>
         )
       )}
     </>
