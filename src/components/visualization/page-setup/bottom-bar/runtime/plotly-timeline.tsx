@@ -15,6 +15,7 @@ export interface IMarkerStates {
 
 interface PlotlyTimelineArgs {
   timelineDataObject: TimelineDataObject;
+  timelineUpdateVersion?: number;
   clicked(
     timelineDataObject: TimelineDataObject,
     selectedTimestamps: Map<string, Timestamp[]>
@@ -23,6 +24,7 @@ interface PlotlyTimelineArgs {
 
 export default function PlotlyTimeline({
   timelineDataObject,
+  timelineUpdateVersion,
   clicked,
 }: PlotlyTimelineArgs) {
   // variable used for output when clicked
@@ -56,7 +58,7 @@ export default function PlotlyTimeline({
   const numberOfTimelines = useRef(timelineDataObject.size ?? 0);
 
   const showDummyTimeline = (() => {
-    if (!timelineDataObject) {
+    if (!timelineDataObject || timelineDataObject.size === 0) {
       return true;
     }
 
@@ -73,18 +75,30 @@ export default function PlotlyTimeline({
   const plotlyDivDummyRef = useRef(null);
 
   useEffect(() => {
-    if (plotlyDivRef.current) {
-      setupPlotlyTimelineChart(plotlyDivRef.current);
-    } else if (plotlyDivDummyRef) {
-      setupPlotlyTimelineChart(plotlyDivDummyRef.current);
+    // Initialize chart when div is available
+    if (!showDummyTimeline && plotlyDivRef.current) {
+      if (!timelineDiv.current || timelineDiv.current !== plotlyDivRef.current) {
+        setupPlotlyTimelineChart(plotlyDivRef.current);
+      }
+    } else if (showDummyTimeline && plotlyDivDummyRef.current) {
+      if (!timelineDiv.current || timelineDiv.current !== plotlyDivDummyRef.current) {
+        setupPlotlyTimelineChart(plotlyDivDummyRef.current);
+      }
     }
-  }, []);
+  }, [showDummyTimeline]);
 
   useEffect(() => {
-    if (plotlyDivRef.current) {
+    // Update chart when data changes, but only if chart is already initialized
+    if (
+      plotlyDivRef.current &&
+      timelineDiv.current &&
+      !showDummyTimeline &&
+      timelineDataObject &&
+      timelineDataObject.size > 0
+    ) {
       updatePlotlyTimelineChart();
     }
-  }, [timelineDataObject]);
+  }, [timelineDataObject, timelineUpdateVersion, showDummyTimeline]);
 
   // #endregion
 
@@ -374,6 +388,16 @@ export default function PlotlyTimeline({
 
   const updatePlotlyTimelineChart = () => {
     if (!timelineDataObject || timelineDataObject.size == 0) {
+      return;
+    }
+
+    // If chart hasn't been initialized yet, initialize it first
+    if (!timelineDiv.current && plotlyDivRef.current) {
+      setupPlotlyTimelineChart(plotlyDivRef.current);
+      return;
+    }
+
+    if (!timelineDiv.current) {
       return;
     }
 

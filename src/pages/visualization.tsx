@@ -989,6 +989,9 @@ export default function Visualization() {
                     timelineDataObject={
                       timelineDataObjectHandler.timelineDataObject!
                     }
+                    timelineUpdateVersion={
+                      timelineDataObjectHandler.updateVersion
+                    }
                     clicked={timelineDataObjectHandler.timelineClicked}
                   />
                 </>

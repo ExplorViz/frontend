@@ -43,7 +43,7 @@ export default function CommitTreeApplicationSelection({
       const container = containerRef.current;
       const buttonsContainer = buttonsContainerRef.current;
       const containerWidth = container.offsetWidth;
-      
+
       // If container width is 0, it's not ready yet, skip calculation
       if (containerWidth === 0) {
         return;
@@ -53,10 +53,10 @@ export default function CommitTreeApplicationSelection({
       const labelWidth = labelElement?.offsetWidth || 0;
       const moreButtonWidth = 50; // Approximate width of the "..." button
       const buttonGap = 8; // Gap between buttons (from gap-2 class)
-      
+
       let availableWidth = containerWidth - labelWidth - moreButtonWidth - buttonGap - 16; // 16px for padding
       const appNames = Array.from(appNameCommitTreeMap.keys());
-      
+
       // Measure actual button widths by creating temporary buttons
       // Use primary variant to account for maximum width (selected buttons might be wider)
       const tempContainer = document.createElement('div');
@@ -76,10 +76,10 @@ export default function CommitTreeApplicationSelection({
         tempButton.className = 'btn btn-sm btn-primary';
         tempButton.textContent = appName;
         tempContainer.appendChild(tempButton);
-        
+
         // Force layout calculation
         void tempButton.offsetWidth;
-        
+
         const buttonWidth = tempButton.offsetWidth;
         if (totalWidth + buttonWidth + buttonGap <= availableWidth) {
           totalWidth += buttonWidth + buttonGap;
@@ -100,7 +100,7 @@ export default function CommitTreeApplicationSelection({
     // Use multiple delays to ensure DOM is fully ready after refresh
     let timeoutId1: NodeJS.Timeout;
     let timeoutId2: NodeJS.Timeout;
-    
+
     timeoutId1 = setTimeout(() => {
       timeoutId2 = setTimeout(() => {
         calculateVisibleCount();
