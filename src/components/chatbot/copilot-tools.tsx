@@ -63,6 +63,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     setOpenedToolComponent,
     openedSettingComponent,
     setOpenedSettingComponent,
+    entityFilteringControllerRef,
   } = use(ChatbotContext);
 
   useCopilotAction({
@@ -238,6 +239,56 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         component={{ name: args.id }}
         status={status}
         action={args.open ? 'openSettingsComponent' : 'closeSettingsComponent'}
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'filter-entities',
+    description:
+      'Filters entities in the visualization using the existing Entity Filtering panel. Provide one or more thresholds.',
+    parameters: [
+      {
+        name: 'minTraceStartTimestamp',
+        type: 'number',
+        description:
+          'Minimum allowed trace start timestamp. Traces starting earlier will be removed.',
+      },
+      {
+        name: 'minTraceDuration',
+        type: 'number',
+        description:
+          'Minimum allowed trace duration. Traces shorter than this will be removed.',
+      },
+      {
+        name: 'minClassMethodCount',
+        type: 'number',
+        description:
+          'Minimum number of methods required for a class to remain visible.',
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({
+      minTraceStartTimestamp,
+      minTraceDuration,
+      minClassMethodCount,
+    }) => {
+      setShowToolsSidebar(true);
+      setOpenedToolComponent('entity-filtering');
+      setTimeout(() => {
+        entityFilteringControllerRef?.current?.applyFilters({
+          minTraceStartTimestamp,
+          minTraceDuration,
+          minClassMethodCount,
+        });
+      }, 200);
+    },
+    render: ({ status }) => (
+      <ToolCallCard
+        component={{ id: 'entity-filtering', name: 'Entity Filtering' }}
+        status={status}
+        action={'filterEntities'}
       />
     ),
   });

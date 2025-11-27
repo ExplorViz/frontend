@@ -45,7 +45,10 @@ import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
-import { ChatbotProvider } from '../../chatbot/chatbot-context';
+import {
+  ChatbotProvider,
+  EntityFilteringController,
+} from '../../chatbot/chatbot-context';
 import { EditingProvider } from '../../editing/editing-context';
 
 interface BrowserRenderingProps {
@@ -169,6 +172,7 @@ export default function BrowserRendering({
     () =>
       new Worker(new URL('../../../workers/metrics-worker.js', import.meta.url))
   );
+  const entityFilteringRef = useRef<EntityFilteringController | null>(null);
 
   // MARK: Refs
 
@@ -237,6 +241,7 @@ export default function BrowserRendering({
         setOpenedToolComponent={setOpenedToolComponent}
         openedSettingComponent={openedSettingComponent}
         setOpenedSettingComponent={setOpenedSettingComponent}
+        entityFilteringControllerRef={entityFilteringRef}
       >
         <div className="row h-100">
           <div className="d-flex flex-column h-100 col-12">
@@ -328,7 +333,10 @@ export default function BrowserRendering({
                           landscapeData && (
                             <>
                               <h5 className="text-center">Entity Filtering</h5>
-                              <EntityFiltering landscapeData={landscapeData} />
+                              <EntityFiltering
+                                ref={entityFilteringRef}
+                                landscapeData={landscapeData}
+                              />
                             </>
                           )}
                         {openedToolComponent === 'application-search' && (

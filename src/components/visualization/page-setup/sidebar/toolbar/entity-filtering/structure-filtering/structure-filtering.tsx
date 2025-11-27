@@ -1,11 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
-import ClassMethodFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/class-method-filtering';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import ClassMethodFiltering, {
+  ClassMethodFilteringHandle,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/class-method-filtering';
 import {
   Class,
   Package,
-  StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
@@ -17,9 +23,15 @@ interface StructureFilteringProps {
   readonly landscapeData: LandscapeData;
 }
 
-export default function StructureFiltering({
-  landscapeData,
-}: StructureFilteringProps) {
+export type StructureFilteringHandle = {
+  setMinMethodCount: (value: number) => void;
+  reset: () => void;
+};
+
+const StructureFiltering = forwardRef<
+  StructureFilteringHandle,
+  StructureFilteringProps
+>(function StructureFiltering({ landscapeData }: StructureFilteringProps, ref) {
   const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
   );
@@ -40,6 +52,7 @@ export default function StructureFiltering({
   const initialLandscapeData = useRef<LandscapeData>(landscapeData);
   const selectedMinMethodCount = useRef<number>(0);
   const initialClassCount = initialClasses.length;
+  const classMethodRef = useRef<ClassMethodFilteringHandle>(null);
 
   const updateMinMethodCount = (newMinMethodCount: number) => {
     selectedMinMethodCount.current = newMinMethodCount;
@@ -141,6 +154,16 @@ export default function StructureFiltering({
     };
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    setMinMethodCount: (value: number) => {
+      classMethodRef.current?.setValue(value);
+    },
+    reset: () => {
+      classMethodRef.current?.reset();
+      resetState();
+    },
+  }));
+
   return (
     <>
       <h6 className="mb-3 mt-3">
@@ -151,6 +174,7 @@ export default function StructureFiltering({
       </h6>
 
       <ClassMethodFiltering
+        ref={classMethodRef}
         classes={classes}
         updateMinMethodCount={updateMinMethodCount}
         remainingEntityCountAfterFiltering={
@@ -160,4 +184,6 @@ export default function StructureFiltering({
       />
     </>
   );
-}
+});
+
+export default StructureFiltering;

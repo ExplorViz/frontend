@@ -2,6 +2,7 @@ import { CopilotKit } from '@copilotkit/react-core';
 import {
   createContext,
   PropsWithChildren,
+  MutableRefObject,
   useCallback,
   useEffect,
   useState,
@@ -28,6 +29,17 @@ interface Provider {
   models: Model[];
 }
 
+export type EntityFilteringFilters = {
+  minTraceStartTimestamp?: number;
+  minTraceDuration?: number;
+  minClassMethodCount?: number;
+};
+
+export type EntityFilteringController = {
+  applyFilters: (filters: EntityFilteringFilters) => void;
+  reset: () => void;
+};
+
 interface Context {
   providers: Provider[];
   selectedProvider: Provider;
@@ -43,6 +55,7 @@ interface Context {
   setOpenedToolComponent: (component: string | null) => void;
   openedSettingComponent: string | null;
   setOpenedSettingComponent: (component: string | null) => void;
+  entityFilteringControllerRef: MutableRefObject<EntityFilteringController | null> | null;
 }
 
 const defaultContext: Context = {
@@ -60,6 +73,7 @@ const defaultContext: Context = {
   setOpenedToolComponent: () => {},
   openedSettingComponent: null,
   setOpenedSettingComponent: () => {},
+  entityFilteringControllerRef: null,
 };
 
 export const ChatbotContext = createContext(defaultContext);
@@ -74,6 +88,7 @@ interface ChatbotProviderProps extends PropsWithChildren {
   setOpenedToolComponent: (component: string | null) => void;
   openedSettingComponent: string | null;
   setOpenedSettingComponent: (component: string | null) => void;
+  entityFilteringControllerRef: MutableRefObject<EntityFilteringController | null> | null;
 }
 
 export function ChatbotProvider({
@@ -87,6 +102,7 @@ export function ChatbotProvider({
   setOpenedToolComponent,
   openedSettingComponent,
   setOpenedSettingComponent,
+  entityFilteringControllerRef,
 }: ChatbotProviderProps) {
   const [providers, setProviders] = useState(defaultContext.providers);
   const [selectedProvider, setSelectedProvider] = useState(
@@ -160,6 +176,7 @@ export function ChatbotProvider({
         setOpenedToolComponent,
         openedSettingComponent,
         setOpenedSettingComponent,
+        entityFilteringControllerRef,
       }}
     >
       <CopilotKit
