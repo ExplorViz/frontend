@@ -32,7 +32,7 @@ interface EvolutionDataRepositoryState {
   getCommitComparisonByAppName: (
     appName: string
   ) => CommitComparison | undefined;
-  fetchAndStoreApplicationCommitTrees: () => Promise<void>;
+  fetchAndStoreApplicationCommitTrees: () => Promise<boolean>;
   fetchAndStoreEvolutionDataForSelectedCommits: (
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) => Promise<void>;
@@ -129,7 +129,7 @@ export const useEvolutionDataRepositoryStore =
       return commitComparison;
     },
 
-    fetchAndStoreApplicationCommitTrees: async (): Promise<void> => {
+    fetchAndStoreApplicationCommitTrees: async (): Promise<boolean> => {
       try {
         const applicationNames = await useEvolutionDataFetchServiceStore
           .getState()
@@ -138,9 +138,11 @@ export const useEvolutionDataRepositoryStore =
           await get()._buildAppNameCommitTreeMap(applicationNames);
 
         set({ _appNameCommitTreeMap: appNameCommitTreeMap });
+        return true;
       } catch (error) {
         get().resetAppNameCommitTreeMap();
         console.error(`Failed to build AppNameCommitTreeMap, reason: ${error}`);
+        return false;
       }
     },
 

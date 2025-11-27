@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ChevronUpIcon } from '@primer/octicons-react';
+import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
@@ -130,10 +130,12 @@ export default function Visualization() {
   const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
     useState<TimelineDataObjectHandler>(new TimelineDataObjectHandler()); //(null);
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
-    useState<boolean>(true);
+    useState<boolean>(false);
   const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
     useState<boolean>(true);
   const [isCommitTreeSelected, setIsCommitTreeSelected] =
+    useState<boolean>(false);
+  const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] =
     useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(10);
 
@@ -348,6 +350,9 @@ export default function Visualization() {
   const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.setAppNameAndBranchNameToColorMap
   );
+  const resetSelectedCommits = useCommitTreeStateStore(
+    (state) => state.resetSelectedCommits
+  );
   const loadLandscapeByTimestamp = useReloadHandlerStore(
     (state) => state.loadLandscapeByTimestamp
   );
@@ -359,6 +364,9 @@ export default function Visualization() {
   );
   const showInfoToastMessage = useToastHandlerStore(
     (state) => state.showInfoToastMessage
+  );
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
   );
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
   const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
@@ -413,7 +421,6 @@ export default function Visualization() {
 
   const shouldDisplayBottomBar = () => {
     return (
-      renderingServiceLandscapeData &&
       !showAR &&
       !showVR &&
       !isSingleLandscapeMode &&
@@ -785,6 +792,29 @@ export default function Visualization() {
 
   // #endregion
 
+  const refreshCommitTreeData = async () => {
+    if (isCommitTreeRefreshing) {
+      return;
+    }
+
+    setIsCommitTreeRefreshing(true);
+    try {
+      resetSelectedCommits();
+      setAppNameAndBranchNameToColorMap(new Map());
+      const refreshed = await fetchAndStoreApplicationCommitTrees();
+
+      if (refreshed) {
+        showInfoToastMessage('Commit chart data refreshed');
+      } else {
+        showErrorToastMessage('Could not refresh commit chart data');
+      }
+    } catch (error) {
+      showErrorToastMessage('Could not refresh commit chart data');
+    } finally {
+      setIsCommitTreeRefreshing(false);
+    }
+  };
+
   // #region Template Action
   const toggleBottomChart = () => {
     // Disable keyboard events for button to prevent space bar
@@ -963,6 +993,9 @@ export default function Visualization() {
                     debugSnapshots={useDebugSnapshotRepositoryStore.getState().getDebugSnapshotsByLandscapeToken(
                       landscapeTokenServiceToken!.value
                     )}
+                    timelineUpdateVersion={
+                      timelineDataObjectHandler.updateVersion
+                    }
                     clicked={timelineDataObjectHandler.timelineClicked}
                   />
                 </>
@@ -970,8 +1003,24 @@ export default function Visualization() {
 
               {isCommitTreeSelected && (
                 <>
+                  <Button
+                    className="commit-tree-refresh-button"
+                    variant="outline-secondary"
+                    onClick={refreshCommitTreeData}
+                    disabled={isCommitTreeRefreshing}
+                    title={
+                      isCommitTreeRefreshing
+                        ? 'Refreshing...'
+                        : 'Refresh commit data'
+                    }
+                  >
+                    <SyncIcon
+                      size="small"
+                      className={isCommitTreeRefreshing ? 'spinning' : ''}
+                    />
+                  </Button>
                   <div className="row justify-content-md-center">
-                    <div className="row justify-content-md-center">
+                    <div className="row justify-content-md-center align-items-center">
                       <CommitTreeApplicationSelection
                         appNameCommitTreeMap={
                           appNameCommitTreeMapEvolutionDataRepository

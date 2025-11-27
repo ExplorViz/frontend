@@ -71,14 +71,6 @@ export default function Landscapes() {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const loading = (/* transition, originRoute */) => {
-    return true;
-  };
-
-  const openTokenCreationModal = () => {
-    setTokenCreationModalIsOpen(true);
-  };
-
   const closeTokenCreationModal = () => {
     setTokenCreationModalIsOpen(false);
   };

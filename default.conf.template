@@ -37,6 +37,12 @@ server {
     proxy_set_header Host $host;
   }
 
+  location ~* /v2/landscapes/[0-9a-z-]+/trace-data {
+    proxy_pass ${TRACE_URL};
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
   location ~* /v2/landscapes/[0-9a-z-]+/timestamps {
     proxy_pass ${TIMESTAMPS_URL};
     proxy_http_version 1.1;

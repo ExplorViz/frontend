@@ -89,3 +89,31 @@ export function requestDynamicData(fromTimestamp: number, exactTimestamp: number
       .catch((e) => reject(e));
   });
 }
+
+export function deleteTraceData(): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (useLandscapeTokenStore.getState().token === null) {
+      reject(new Error('No landscape token selected'));
+      return;
+    }
+    fetch(
+      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    )
+      .then(async (response: Response) => {
+        if (response.ok || response.status === 204) {
+          resolve();
+        } else {
+          const errorText = await response.text();
+          reject(new Error(`Failed to delete trace data: ${errorText}`));
+        }
+      })
+      .catch((e) => reject(e));
+  });
+}
