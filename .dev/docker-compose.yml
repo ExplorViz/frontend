@@ -20,6 +20,15 @@ services:
       - ${USER_PORT}:8084
       - ${CODE_PORT}:8085
 
+  kubediagrams:
+    image: philippemerle/kubediagrams
+    container_name: kubediagrams-runner
+    volumes:
+      - ..:/work
+    working_dir: /work/.dev
+    command: ["sh", "kube-connector.sh"]
+
+
 networks:
   default:
     name: explorviz
