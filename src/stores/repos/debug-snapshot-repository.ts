@@ -41,7 +41,7 @@ export const useDebugSnapshotRepositoryStore = create<DebugSnapshotRepositorySta
       const outerMap = get().landscapeTokenToDebugSnapshotMap;
       const snapshots = outerMap.get(landscapeToken) ?? new Map<number, DebugSnapshot>();
 
-      snapshots.set(debugSnapshot.timestamp.epochMilli, debugSnapshot);
+      snapshots.set(debugSnapshot.timestamp.epochNano, debugSnapshot);
       outerMap.set(landscapeToken, snapshots);
     },
 
@@ -50,8 +50,8 @@ export const useDebugSnapshotRepositoryStore = create<DebugSnapshotRepositorySta
       return snapshotsMap ? Array.from(snapshotsMap.values()) : [];
     },
 
-    getDebugSnapshotByLandscapeTokenAndTimestamp: (landscapeToken: string, epochMilli: number) => {
-      return get().landscapeTokenToDebugSnapshotMap.get(landscapeToken)?.get(epochMilli);
+    getDebugSnapshotByLandscapeTokenAndTimestamp: (landscapeToken: string, epochNano: number) => {
+      return get().landscapeTokenToDebugSnapshotMap.get(landscapeToken)?.get(epochNano);
     },
   })
 );

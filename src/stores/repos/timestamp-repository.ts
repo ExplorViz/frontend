@@ -184,7 +184,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         return [
           ...timestampsForCommitId.values(),
           ...timestampsForDebugSnapshots,
-        ].sort((a, b) => a.epochMilli - b.epochMilli);
+        ].sort((a, b) => a.epochNano - b.epochNano);
       }else if (!timestampsForCommitId && includeTimestampsFromDebugSnapshots) {
         return timestampsForDebugSnapshots;
       } else {
@@ -235,7 +235,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
     },
 
     addTimestampForDebugSnapshot: (timestamp: Timestamp) => {
-      get().timestampsForDebugSnapshots.set(timestamp.epochMilli, timestamp);
+      get().timestampsForDebugSnapshots.set(timestamp.epochNano, timestamp);
     },
 
     resetState: () => {

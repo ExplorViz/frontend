@@ -160,7 +160,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
             debugSnapshotTimestampsPromise
               .then((debugSnapshots: DebugSnapshot[]) => {
 
-                //console.log(`Fetched ${debugSnapshots.length} new debug snapshots from VS Code extension.`, debugSnapshots);
+                console.log(`Fetched ${debugSnapshots.length} new debug snapshots from VS Code extension.`, debugSnapshots);
 
                 useDebugSnapshotRepositoryStore.getState().saveDebugSnapshots(
                   useLandscapeTokenStore.getState().token!.value,
@@ -263,8 +263,9 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 
         let url = `${vsCodeService}/savepoints/${useLandscapeTokenStore.getState().token!.value}`;
 
+        console.log("newestLocalTimestamp:", newestLocalTimestamp);
         if (newestLocalTimestamp) {
-          url += `?newest=${newestLocalTimestamp.epochMilli}`;
+          url += `?newest=${newestLocalTimestamp.epochNano}`;
         }
 
         fetch(url, {

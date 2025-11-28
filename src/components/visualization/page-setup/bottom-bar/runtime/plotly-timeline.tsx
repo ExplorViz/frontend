@@ -210,6 +210,8 @@ export default function PlotlyTimeline({
         );
       }
 
+      console.log("selected on setup:", selectedTimestampsForCommit);
+
       data.push(
         getUpdatedPlotlyDataObject(
           timelineDataForCommit.timestamps,
@@ -269,7 +271,7 @@ export default function PlotlyTimeline({
         const selectedTimeline = data.points[0].curveNumber;
         const commitId = getCommitIdBasedForMapIndex(selectedTimeline);
 
-        console.log("selectedCommitTimestampsMap.current", selectedCommitTimestampsMap.current.get(commitId));
+        console.log("onClick => selectedCommitTimestampsMap.current = ", selectedCommitTimestampsMap.current);
 
 
         // reset old selection, since maximum selection value is achieved
@@ -285,9 +287,11 @@ export default function PlotlyTimeline({
 
           // debug snapshot coloring
           if(debugSnapshots) {
+            console.log("debugSnapshots:", debugSnapshots);
             const debugTsSet = new Set(debugSnapshots.map(s => s.timestamp.epochNano));
             data.points[0].data.timestampId.forEach((value, index) => {
               if (debugTsSet.has(value)) {
+                console.log("TREFFER");
                 colors[index] = debugSnapshotMarkerColor.current;
               }
             });
@@ -326,6 +330,8 @@ export default function PlotlyTimeline({
           commitId,
           selectedTimestampsForCommit
         );
+
+        console.log("after click => selectedCommitTimestampsMap.current = ", selectedCommitTimestampsMap.current);
 
 
         // Check if component should pass the selected timestamps
@@ -380,8 +386,7 @@ export default function PlotlyTimeline({
       return;
     }
 
-
-    resetHighlightInStateObjects();
+     // resetHighlightInStateObjects();
 
     for (const [
       commitId,
@@ -398,6 +403,9 @@ export default function PlotlyTimeline({
 
       const selectedTimestampsForCommit =
         timelineDataForCommit.selectedTimestamps;
+
+      console.log("Selected timestamps for commit ", commitId, ": ", selectedTimestampsForCommit);
+      console.log("but what about the ref?", selectedCommitTimestampsMap.current.get(commitId));
 
       selectedTimestampsForCommit.forEach((timestamp) => {
         const timestampId = timestamp.epochNano;
@@ -430,6 +438,18 @@ export default function PlotlyTimeline({
 
     if (!timelineDiv.current) {
       return;
+    }
+
+
+    if(!renderingServiceVisualizationPaused) {
+      // mark new incoming timestamp as the only one selected
+      resetHighlightInStateObjects();
+      for (const [
+        commitId,
+        timelineDataForCommit,
+      ] of timelineDataObject.entries()) {
+        selectedCommitTimestampsMap.current.set(commitId, timelineDataForCommit.selectedTimestamps);
+      }
     }
 
     updateMarkerStates();
@@ -784,11 +804,13 @@ export default function PlotlyTimeline({
   };
 
   const resetHighlightInStateObjects = () => {
+    console.log("Resetting");
     selectedCommitTimestampsMap.current = new Map();
     markerStateMap.current = new Map();
   };
 
   const removeAllSelections = (commitId: string) => {
+    console.log("Removing all selections");
     const selectedTimestamps = selectedCommitTimestampsMap.current.get(commitId);
 
     const markerState = markerStateMap.current.get(commitId);
