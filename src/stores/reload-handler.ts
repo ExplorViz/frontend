@@ -19,7 +19,7 @@ interface ReloadHandlerState {
   ) => Promise<[StructureLandscapeData, DynamicLandscapeData]>;
   findLastIndexPolyfill: <T>(
     array: T[],
-    predicate: (value: T, index: number, array: T[]) => boolean
+    predicate: (value: T) => boolean
   ) => number;
 
 }
@@ -35,6 +35,8 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     timestampTo?: number
   ) => {
     try {
+
+      console.log("timestampFrom:", timestampFrom, " timestampTo:", timestampTo);
 
       const getTimestampsForCommitId =
         useTimestampRepositoryStore.getState().getTimestampsForCommitId;
@@ -134,10 +136,10 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
 
   findLastIndexPolyfill: <T>(
     array: T[],
-    predicate: (value: T, index: number, array: T[]) => boolean
+    predicate: (value: T) => boolean
   ) => {
     for (let i = array.length - 1; i >= 0; i--) {
-      if (predicate(array[i], i, array)) {
+      if (predicate(array[i])) {
         return i;
       }
     }

@@ -5,6 +5,8 @@ import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-
 import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { nanosecondsToMilliseconds } from '../../../../../utils/landscape-http-request-util';
+import { ConversionHtmlNode } from '@react-three/uikit';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -31,7 +33,6 @@ export default function PlotlyTimeline({
   timelineUpdateVersion,
   clicked,
 }: PlotlyTimelineArgs) {
-  console.log("debugSnapshots in PlotlyTimeline:", debugSnapshots);
   // variable used for output when clicked
   const selectedCommitTimestampsMap = useRef<Map<string, Timestamp[]>>(
     new Map()
@@ -63,6 +64,10 @@ export default function PlotlyTimeline({
   const timelineColors = useRef([undefined, undefined]);
   const numberOfTimelines = useRef(timelineDataObject.size ?? 0);
 
+  const renderingServiceVisualizationPaused = useRenderingServiceStore(
+      (state) => state._visualizationPaused
+    );
+
   const showDummyTimeline = (() => {
     if (!timelineDataObject || timelineDataObject.size === 0) {
       return true;
@@ -84,12 +89,12 @@ export default function PlotlyTimeline({
     // Initialize chart when div is available
     if (!showDummyTimeline && plotlyDivRef.current) {
       if (!timelineDiv.current || timelineDiv.current !== plotlyDivRef.current) {
-      setupPlotlyTimelineChart(plotlyDivRef.current);
+        setupPlotlyTimelineChart(plotlyDivRef.current);
       }
     } else if (showDummyTimeline && plotlyDivDummyRef.current) {
       if (!timelineDiv.current || timelineDiv.current !== plotlyDivDummyRef.current) {
-      setupPlotlyTimelineChart(plotlyDivDummyRef.current);
-    }
+        setupPlotlyTimelineChart(plotlyDivDummyRef.current);
+      }
     }
   }, [showDummyTimeline]);
 
@@ -135,7 +140,6 @@ export default function PlotlyTimeline({
   };
 
   const getCommitIdBasedForMapIndex = (index: number) => {
-    console.log("Array.from(timelineDataObject.keys()):", Array.from(timelineDataObject.keys()));
     return Array.from(timelineDataObject.keys())[index];
   };
 
@@ -199,8 +203,6 @@ export default function PlotlyTimeline({
       const selectedTimestampsForCommit =
         timelineDataForCommit.selectedTimestamps;
 
-      console.log("selectedTimestampsForCommit:", selectedTimestampsForCommit);
-
       if (selectedTimestampsForCommit.length) {
         selectedCommitTimestampsMap.current.set(
           gitCommitId,
@@ -257,7 +259,7 @@ export default function PlotlyTimeline({
 
         const pn = data.points[0].pointNumber;
 
-        console.log("data.points[0]:", data.points[0]);
+        //console.log("data.points[0]:", data.points[0]);
 
         const numberOfPoints = data.points[0].fullData.x.length;
 
@@ -267,19 +269,23 @@ export default function PlotlyTimeline({
         const selectedTimeline = data.points[0].curveNumber;
         const commitId = getCommitIdBasedForMapIndex(selectedTimeline);
 
+        console.log("selectedCommitTimestampsMap.current", selectedCommitTimestampsMap.current.get(commitId));
+
+
         // reset old selection, since maximum selection value is achieved
         // and user clicked on a new point
         if (
           selectedCommitTimestampsMap.current.get(commitId)?.length === selectionCount.current
         ) {
-          resetSelectionInStateObjects();
+          console.log("max selection reached");
+          removeAllSelections(commitId);
           colors = Array(numberOfPoints).fill(
-            defaultMarkerColor.current
+            timelineColors.current[selectedTimeline]
           );
 
           // debug snapshot coloring
           if(debugSnapshots) {
-            const debugTsSet = new Set(debugSnapshots.map(s => s.timestamp.epochMilli));
+            const debugTsSet = new Set(debugSnapshots.map(s => s.timestamp.epochNano));
             data.points[0].data.timestampId.forEach((value, index) => {
               if (debugTsSet.has(value)) {
                 colors[index] = debugSnapshotMarkerColor.current;
@@ -321,20 +327,21 @@ export default function PlotlyTimeline({
           selectedTimestampsForCommit
         );
 
+
         // Check if component should pass the selected timestamps
         // to its parent
-        if (selectionCount.current > 1) {
-          if (
-            selectedCommitTimestampsMap.current.size === selectionCount.current
-          ) {
-            // closure action
-            if (clicked)
-              clicked(timelineDataObject, selectedCommitTimestampsMap.current);
-          }
-        } else if (clicked) {
+        // if (selectionCount.current > 1) {
+        //   if (
+        //     selectedCommitTimestampsMap.current.get(commitId)?.length === selectionCount.current
+        //   ) {
+        //     // closure action
+        //     if (clicked)
+        //       clicked(timelineDataObject, selectedCommitTimestampsMap.current);
+        //   }
+        // } else if (clicked) {
           // closure action
           clicked(timelineDataObject, selectedCommitTimestampsMap.current);
-        }
+        //}
       });
 
       // double click
@@ -369,10 +376,10 @@ export default function PlotlyTimeline({
   };
 
   const updateMarkerStates = () => {
-    console.log("updateMarkerStates");
     if (timelineDataObject.size == 0) {
       return;
     }
+
 
     resetHighlightInStateObjects();
 
@@ -410,6 +417,7 @@ export default function PlotlyTimeline({
   // #region Plot Logic
 
   const updatePlotlyTimelineChart = () => {
+    console.log("Updating Plotly Timeline Chart");
     if (!timelineDataObject || timelineDataObject.size == 0) {
       return;
     }
@@ -424,7 +432,7 @@ export default function PlotlyTimeline({
       return;
     }
 
-    //updateMarkerStates();
+    updateMarkerStates();
 
     const data: any[] = [];
     const shapez: any[] = [];
@@ -723,7 +731,7 @@ export default function PlotlyTimeline({
           sizes.push(markerState.size);
         } else {
           const defaultColor = debugSnapshots?.some(ds =>
-            ds.timestamp.epochMilli === timestamp.epochMilli) ?
+            ds.timestamp.epochNano === timestamp.epochNano) ?
             debugSnapshotMarkerColor.current : defaultMarkerColor.current;
           const defaultSize = defaultMarkerSize.current;
 
@@ -776,23 +784,23 @@ export default function PlotlyTimeline({
   };
 
   const resetHighlightInStateObjects = () => {
-    console.log("resetHighlightInStateObjects");
     selectedCommitTimestampsMap.current = new Map();
     markerStateMap.current = new Map();
   };
 
-  const resetSelectionInStateObjects = () => {
-    console.log("resetSelectionInStateObjects");
-    selectedCommitTimestampsMap.current.forEach((timestamps, commit) => {
-      const markerState = markerStateMap.current.get(commit);
-      if (markerState) {
-        timestamps.forEach((t) => {
-          markerState[t.epochNano].color = defaultMarkerColor.current;
-          markerState[t.epochNano].size = defaultMarkerSize.current;
-        });
-      }
-    });
-    selectedCommitTimestampsMap.current = new Map();
+  const removeAllSelections = (commitId: string) => {
+    const selectedTimestamps = selectedCommitTimestampsMap.current.get(commitId);
+
+    const markerState = markerStateMap.current.get(commitId);
+
+    if (markerState) {
+      selectedTimestamps?.forEach((timestamp) => {
+        markerState[timestamp.epochNano].color = defaultMarkerColor.current;
+        markerState[timestamp.epochNano].size = defaultMarkerSize.current;
+      });
+    }
+
+    selectedCommitTimestampsMap.current.set(commitId, []);
   };
 
   const getPlotlyOptionsObject = () => {

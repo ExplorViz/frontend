@@ -21,6 +21,7 @@ import {
 } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { time } from 'console';
 
 export type AnalysisMode = 'evolution' | 'runtime';
 
@@ -219,19 +220,29 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       const commitToRuntimeLandscapeDataMap = new Map<string, LandscapeData>();
 
       for (const [commitId, timestamps] of commitToSelectedTimestampMap) {
-        for (const selectedTimestamp of timestamps) {
-          const [
-            latestFetchedStructureLandscapeData,
-            latestFetchedDynamicLandscapeData,
-          ] = await useReloadHandlerStore
-            .getState()
-            .loadLandscapeByTimestamp(selectedTimestamp.epochNano);
 
-          commitToRuntimeLandscapeDataMap.set(commitId, {
-            structureLandscapeData: latestFetchedStructureLandscapeData,
-            dynamicLandscapeData: latestFetchedDynamicLandscapeData,
-          });
+        const sortedTimestamps = [...timestamps].sort(
+          (a, b) => a.epochNano - b.epochNano
+        );
+
+        const timestampFrom = sortedTimestamps[0].epochNano;
+        let timestampTo = undefined;
+        if(sortedTimestamps.length > 1){
+          timestampTo = sortedTimestamps[sortedTimestamps.length - 1].epochNano;
         }
+
+        const [
+          latestFetchedStructureLandscapeData,
+          latestFetchedDynamicLandscapeData,
+        ] = await useReloadHandlerStore
+          .getState()
+          .loadLandscapeByTimestamp(timestampFrom, timestampTo);
+
+        commitToRuntimeLandscapeDataMap.set(commitId, {
+          structureLandscapeData: latestFetchedStructureLandscapeData,
+          dynamicLandscapeData: latestFetchedDynamicLandscapeData,
+        });
+
       }
       return commitToRuntimeLandscapeDataMap;
     },
