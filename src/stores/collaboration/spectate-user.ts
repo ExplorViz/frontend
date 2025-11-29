@@ -1,4 +1,3 @@
-import { create } from 'zustand';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
@@ -11,20 +10,22 @@ import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
+import { create } from 'zustand';
 // import debugLogger from 'ember-debug-logger';
+import { SELF_DISCONNECTED_EVENT } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
 import * as VrPoses from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import { VrPose } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
-import { useMessageSenderStore } from './message-sender';
-import { SELF_DISCONNECTED_EVENT } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import equal from 'fast-deep-equal';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from '../../utils/event-emitter';
+import { useMessageSenderStore } from './message-sender';
 
 interface SpectateUserState {
   spectatedUser: RemoteUser | null;
   cameraControls: CameraControls | null;
   spectateConfigurationId: string;
+  currentProjectionMatrix: number[] | null; // tracked - projection matrix to apply to camera
   spectatingUsers: Set<string>;
   lastPose?: VrPose;
   _init: () => void;
@@ -62,6 +63,7 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
   spectatedUser: null, // tracked
   cameraControls: null,
   spectateConfigurationId: 'default', // tracked
+  currentProjectionMatrix: null, // tracked - projection matrix to apply to camera
   spectatingUsers: new Set<string>(),
   lastPose: undefined,
 
@@ -186,8 +188,7 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
    * Deactives spectator mode for our user
    */
   deactivate: (sendUpdate = true) => {
-    // Reset possibly changed projection matrix to reflect actual camera parameters
-    useLocalUserStore.getState().defaultCamera.updateProjectionMatrix();
+    set({ currentProjectionMatrix: null, spectateConfigurationId: 'default' });
 
     if (get().cameraControls) {
       let newCC = get().cameraControls;
@@ -331,7 +332,6 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
     const deviceId = new URLSearchParams(window.location.search).get(
       'deviceId'
     );
-    set({ spectateConfigurationId: configuration.id });
     const deviceConfig = configuration.devices.find(
       (device) => device.deviceId === deviceId
     );
@@ -339,10 +339,10 @@ export const useSpectateUserStore = create<SpectateUserState>((set, get) => ({
       return;
     }
 
-    // Apply projection matrix
-    useLocalUserStore
-      .getState()
-      .defaultCamera.projectionMatrix.fromArray(deviceConfig.projectionMatrix);
+    set({
+      spectateConfigurationId: configuration.id,
+      currentProjectionMatrix: deviceConfig.projectionMatrix,
+    });
   },
 
   setCameraControls: (cameraControls: CameraControls) =>
