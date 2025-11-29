@@ -346,25 +346,36 @@ export default function PlotlyTimeline({
       return;
     }
 
-    //if(!renderingServiceVisualizationPaused) {
-    // mark new incoming timestamp as the only one selected
-    //resetHighlightInStateObjects();
+
+
     for (const [
       commitId,
       timelineDataForCommit,
     ] of timelineDataObject.entries()) {
-      console.log(
+
+      const hasNewTimestamp = timelineDataForCommit.selectedTimestamps.some((ts) =>
+        !(
+          selectedCommitTimestampsMap.current.get(commitId) ?? []
+        ).some((ts2) => ts2.epochNano === ts.epochNano)
+      );
+
+      if(
+        !renderingServiceVisualizationPaused &&
+        hasNewTimestamp
+      ) {
+        // mark new incoming timestamp from polling as the only one selected
+        resetHighlightInStateObjects();
+        selectedCommitTimestampsMap.current.set(commitId, timelineDataForCommit.selectedTimestamps)
+      }
+      /*console.log(
         'timelineDataForCommit.selectedTimestamps:',
         timelineDataForCommit.selectedTimestamps
       );
       console.log(
         'selectedCommitTimestampsMap.current.get(commitId)',
         selectedCommitTimestampsMap.current.get(commitId)
-      );
-      //selectedCommitTimestampsMap.current.get(commitId);
-      //selectedCommitTimestampsMap.current.set(commitId, timelineDataForCommit.selectedTimestamps);
+      );*/
     }
-    //}
 
     updateMarkerStates();
 
@@ -704,7 +715,6 @@ export default function PlotlyTimeline({
   };
 
   const resetHighlightInStateObjects = () => {
-    console.log('Resetting');
     selectedCommitTimestampsMap.current = new Map();
     markerStateMap.current = new Map();
   };

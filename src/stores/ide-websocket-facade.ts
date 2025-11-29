@@ -22,7 +22,6 @@ export const useIdeWebsocketFacadeStore = create<IdeWebsocketFacadeState>(
     },
 
     restartConnection: (landscapeToken?: string) => {
-      console.log('restartConnection called in facade');
       eventEmitter.emit('ide-restart-connection', landscapeToken);
     },
 

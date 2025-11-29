@@ -59,19 +59,6 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
           commits,
           get().timestampPollingCallback.bind(get())
         );
-      if (useRenderingServiceStore.getState()._analysisMode === 'runtime') {
-        // reset states when going back to runtime mode
-        get().commitToTimestampMap = new Map();
-        get()._timelineDataObjectHandler?.resetState();
-        useRenderingServiceStore.getState().resumeVisualizationUpdating();
-      }
-      useTimestampPollingStore.getState().resetPolling();
-      useTimestampPollingStore
-        .getState()
-        .initTimestampPollingWithCallback(
-          commits,
-          get().timestampPollingCallback.bind(get())
-        );
     },
 
     stopTimestampPolling: () => {
@@ -134,6 +121,12 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         commitTimestampsToRenderMap.size > 0 &&
         !areArraysEqual(currentlySelectedTimestamps, allNewTimestampsToRender)
       ) {
+        console.log(
+  "[timestampPollingCallback] about to triggerRenderingForGivenTimestamps with:",
+  Array.from(commitTimestampsToRenderMap.entries()).map(
+    ([commitId, ts]) => ({ commitId, count: ts.length })
+  )
+);
         useRenderingServiceStore
           .getState()
           .triggerRenderingForGivenTimestamps(commitTimestampsToRenderMap);
@@ -243,7 +236,9 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
       get().timestampsForDebugSnapshots = new Map();
       useTimestampStore.getState().resetState();
       get()._timelineDataObjectHandler?.resetState();
-      get()._timelineDataObjectHandler?.triggerTimelineUpdate();
+      /*useRenderingServiceStore.setState((state) => ({
+        timelineUpdateVersion: state.timelineUpdateVersion + 1,
+      }));*/
     },
   })
 );

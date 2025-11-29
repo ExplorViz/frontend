@@ -129,6 +129,9 @@ export default function Visualization() {
   const [vrButtonText, setVrButtonText] = useState<string>('');
   const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
     useState<TimelineDataObjectHandler>(new TimelineDataObjectHandler()); //(null);
+  const timelineUpdateVersion = useRenderingServiceStore(
+    (state) => state.timelineUpdateVersion
+  );
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
     useState<boolean>(false);
   const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
@@ -993,9 +996,7 @@ export default function Visualization() {
                     debugSnapshots={useDebugSnapshotRepositoryStore.getState().getDebugSnapshotsByLandscapeToken(
                       landscapeTokenServiceToken!.value
                     )}
-                    timelineUpdateVersion={
-                      timelineDataObjectHandler.updateVersion
-                    }
+                    timelineUpdateVersion={timelineUpdateVersion}
                     clicked={timelineDataObjectHandler.timelineClicked}
                   />
                 </>

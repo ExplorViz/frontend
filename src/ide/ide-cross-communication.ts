@@ -104,8 +104,6 @@ export default class IdeCrossCommunication {
             break;
 
           case 'doubleClickOnMesh':
-            console.log('vizDataOrderTuple:', vizDataOrderTuple);
-            console.log('data: ', data);
             OpenObject(
               this.handleDoubleClickOnMesh,
               data.fqn,

@@ -39,6 +39,7 @@ interface RenderingServiceState {
   _visualizationPaused: boolean;
   _analysisMode: AnalysisMode;
   _userInitiatedStaticDynamicCombination: boolean;
+  timelineUpdateVersion: number;
   triggerRenderingForGivenTimestamps: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => Promise<void>;
@@ -89,6 +90,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _visualizationPaused: false, // tracked
     _analysisMode: 'runtime', // tracked
     _userInitiatedStaticDynamicCombination: false, // private
+    timelineUpdateVersion: 0,
 
     setLandscapeData: (data: LandscapeData | null) => {
       set({ _landscapeData: data });
@@ -312,6 +314,10 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       commitToSelectedTimestampMap: Map<string, Timestamp[]>
     ) => {
       if (commitToSelectedTimestampMap.size > 0) {
+
+
+
+
         for (const [
           commitId,
           selectedTimestamps,
@@ -321,7 +327,11 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             commitId
           );
         }
-        get()._timelineDataObjectHandler?.triggerTimelineUpdate();
+        set((state) => {
+          const next = state.timelineUpdateVersion + 1;
+
+          return { timelineUpdateVersion: next };
+        });
       }
     },
 
@@ -460,22 +470,17 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           false
         );
         animatePlayPauseIcon(false);
-        get()._timelineDataObjectHandler?.triggerTimelineUpdate();
       }
     },
 
-    pauseVisualizationUpdating: (forceTimelineUpdate: boolean = false) => {
+    pauseVisualizationUpdating: () => {
       if (!get()._visualizationPaused) {
-        forceTimelineUpdate = true;
         set({ _visualizationPaused: true });
 
         get()._timelineDataObjectHandler?.updateHighlightedMarkerColorForSelectedCommits(
           true
         );
         animatePlayPauseIcon(true);
-      }
-      if(forceTimelineUpdate) {
-        get()._timelineDataObjectHandler?.triggerTimelineUpdate();
       }
     },
 

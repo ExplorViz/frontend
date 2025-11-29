@@ -37,7 +37,6 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
     if (!socket) return;
 
     const userServiceUrl = import.meta.env.VITE_USER_SERV_URL;
-    console.log("userService URL:", userServiceUrl);
     const accessToken = useAuthStore.getState().accessToken;
 
     // remove old listener before adding new ones
@@ -61,8 +60,6 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
     socket.on(
       'create-landscape',
       async (alias: string, projectName: string, commitId: string, callback) => {
-
-        console.log("create-landscape from VS Code extension", alias, projectName, commitId);
 
         let uId = useAuthStore.getState().user?.sub;
 
@@ -110,7 +107,6 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
       'load-current-debug-room-list-from-frontend',
       async (callback) => {
 
-        console.log('load-current-debug-room-list-from-frontend');
         let uId = useAuthStore.getState().user?.sub;
         if (!uId) {
           if (callback)
@@ -133,7 +129,6 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
           if (callback) callback();
           return;
         }
-        console.log("tokenResponse", tokenResponse);
         const response = (await tokenResponse.json()) as LandscapeToken[];
         const filteredResponse = response.filter(
           (token) => token.isRequestedFromVSCodeExtension
@@ -202,7 +197,6 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
    // ---------- consumer methods ----------
 
   restartAndSetSocket: (landscapeToken?: string) => {
-    console.log("restartAndSetSocket called with landscapeToken:", landscapeToken);
     const url = import.meta.env.VITE_VSCODE_SERV_URL;
     const { socket } = get();
     socket?.disconnect();
@@ -212,7 +206,6 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
 
     get().setupSocketListeners();
 
-    console.log("restartAndSetSocket called with url:", url);
   },
 
   closeConnection: () => {
