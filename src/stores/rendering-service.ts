@@ -465,19 +465,22 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     },
 
     pauseVisualizationUpdating: (forceTimelineUpdate: boolean = false) => {
-      if (forceTimelineUpdate || !get()._visualizationPaused) {
+      if (!get()._visualizationPaused) {
+        forceTimelineUpdate = true;
         set({ _visualizationPaused: true });
 
         get()._timelineDataObjectHandler?.updateHighlightedMarkerColorForSelectedCommits(
           true
         );
         animatePlayPauseIcon(true);
-
+      }
+      if(forceTimelineUpdate) {
         get()._timelineDataObjectHandler?.triggerTimelineUpdate();
       }
     },
 
     resetAllRenderingStates: () => {
+      console.log("resetAllRenderingStates");
       set({
         _userInitiatedStaticDynamicCombination: false,
         _landscapeData: null,

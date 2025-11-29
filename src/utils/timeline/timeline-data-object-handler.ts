@@ -32,22 +32,32 @@ export default class TimelineDataObjectHandler {
   // #region Timeline Click Handler
 
   // @action
-  async timelineClicked(
-    timelineDataObject: TimelineDataObject,
+
+// timelineClicked is defined as an arrow function so that "this" remains bound to
+// the TimelineDataObjectHandler instance. This prevents losing the context when
+// the method is passed as a callback to the PlotlyTimeline component.
+  timelineClicked = async (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
-  ) {
+  ) => {
+
+    console.log("timelineDataObject:", this.timelineDataObject);
+    console.log("commitToSelectedTimestampMap", commitToSelectedTimestampMap);
+
     for (const [
       commitId,
       selectedTimestamps,
     ] of commitToSelectedTimestampMap.entries()) {
-      const timelineData = timelineDataObject.get(commitId);
+      const timelineData = this.timelineDataObject.get(commitId);
 
       if (
-        timelineData &&
-        timelineData.selectedTimestamps.length > 0 &&
-        selectedTimestamps === timelineData.selectedTimestamps // TODO: compare arrays properly, not by reference
+        !timelineData ||
+        timelineData.selectedTimestamps.length == 0 ||
+        selectedTimestamps.length === timelineData.selectedTimestamps.length // Nothing
       ) {
-        return; // TODO: shouldn't we continue instead of return?
+        // No update for this timeline
+        continue;
+      } else {
+        // TODO: Only fetch for data based on changed timestamps for performance improvement
       }
     }
 
