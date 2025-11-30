@@ -40,6 +40,12 @@ export type EntityFilteringController = {
   reset: () => void;
 };
 
+export type ApplicationSearchController = {
+  search: (params: { query: string; selectAll?: boolean }) => void;
+  selectEntities: (ids: string[]) => void;
+  reset: () => void;
+};
+
 interface Context {
   providers: Provider[];
   selectedProvider: Provider;
@@ -56,6 +62,7 @@ interface Context {
   openedSettingComponent: string | null;
   setOpenedSettingComponent: (component: string | null) => void;
   entityFilteringControllerRef: MutableRefObject<EntityFilteringController | null> | null;
+  applicationSearchControllerRef: MutableRefObject<ApplicationSearchController | null> | null;
 }
 
 const defaultContext: Context = {
@@ -74,6 +81,7 @@ const defaultContext: Context = {
   openedSettingComponent: null,
   setOpenedSettingComponent: () => {},
   entityFilteringControllerRef: null,
+  applicationSearchControllerRef: null,
 };
 
 export const ChatbotContext = createContext(defaultContext);
@@ -89,6 +97,7 @@ interface ChatbotProviderProps extends PropsWithChildren {
   openedSettingComponent: string | null;
   setOpenedSettingComponent: (component: string | null) => void;
   entityFilteringControllerRef: MutableRefObject<EntityFilteringController | null> | null;
+  applicationSearchControllerRef: MutableRefObject<ApplicationSearchController | null> | null;
 }
 
 export function ChatbotProvider({
@@ -103,6 +112,7 @@ export function ChatbotProvider({
   openedSettingComponent,
   setOpenedSettingComponent,
   entityFilteringControllerRef,
+  applicationSearchControllerRef,
 }: ChatbotProviderProps) {
   const [providers, setProviders] = useState(defaultContext.providers);
   const [selectedProvider, setSelectedProvider] = useState(
@@ -177,6 +187,7 @@ export function ChatbotProvider({
         openedSettingComponent,
         setOpenedSettingComponent,
         entityFilteringControllerRef,
+        applicationSearchControllerRef,
       }}
     >
       <CopilotKit

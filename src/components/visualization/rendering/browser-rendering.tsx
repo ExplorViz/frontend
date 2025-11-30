@@ -48,6 +48,7 @@ import Popups from './popups/popups';
 import {
   ChatbotProvider,
   EntityFilteringController,
+  ApplicationSearchController,
 } from '../../chatbot/chatbot-context';
 import { EditingProvider } from '../../editing/editing-context';
 
@@ -173,6 +174,7 @@ export default function BrowserRendering({
       new Worker(new URL('../../../workers/metrics-worker.js', import.meta.url))
   );
   const entityFilteringRef = useRef<EntityFilteringController | null>(null);
+  const applicationSearchRef = useRef<ApplicationSearchController | null>(null);
 
   // MARK: Refs
 
@@ -242,6 +244,7 @@ export default function BrowserRendering({
         openedSettingComponent={openedSettingComponent}
         setOpenedSettingComponent={setOpenedSettingComponent}
         entityFilteringControllerRef={entityFilteringRef}
+        applicationSearchControllerRef={applicationSearchRef}
       >
         <div className="row h-100">
           <div className="d-flex flex-column h-100 col-12">
@@ -342,7 +345,7 @@ export default function BrowserRendering({
                         {openedToolComponent === 'application-search' && (
                           <>
                             <h5 className="text-center">Application Search</h5>
-                            <ApplicationSearch />
+                            <ApplicationSearch ref={applicationSearchRef} />
                           </>
                         )}
                         {openedToolComponent === 'Trace-Replayer' &&

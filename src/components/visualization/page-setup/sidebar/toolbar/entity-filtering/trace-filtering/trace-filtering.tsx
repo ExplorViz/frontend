@@ -6,12 +6,12 @@ import {
   useState,
 } from 'react';
 
-import TraceStart from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
-import TraceDuration from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-duration';
-import {
-  TraceDurationHandle,
+import TraceStart, {
   TraceStartHandle,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
+import TraceDuration, {
+  TraceDurationHandle,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-duration';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';

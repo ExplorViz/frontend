@@ -64,6 +64,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     openedSettingComponent,
     setOpenedSettingComponent,
     entityFilteringControllerRef,
+    applicationSearchControllerRef,
   } = use(ChatbotContext);
 
   useCopilotAction({
@@ -289,6 +290,44 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         component={{ id: 'entity-filtering', name: 'Entity Filtering' }}
         status={status}
         action={'filterEntities'}
+      />
+    ),
+  });
+
+  useCopilotAction({
+    name: 'search-application-components',
+    description:
+      'Searches for components by name in the Application Search panel. Optionally selects all results.',
+    parameters: [
+      {
+        name: 'query',
+        type: 'string',
+        description: 'Search term to look for in application components.',
+        required: true,
+      },
+      {
+        name: 'selectAll',
+        type: 'boolean',
+        description: 'Select all search results and ping them.',
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ query, selectAll }) => {
+      setShowToolsSidebar(true);
+      setOpenedToolComponent('application-search');
+      setTimeout(() => {
+        applicationSearchControllerRef?.current?.search({
+          query,
+          selectAll,
+        });
+      }, 200);
+    },
+    render: ({ status }) => (
+      <ToolCallCard
+        component={{ id: 'application-search', name: 'Application Search' }}
+        status={status}
+        action={'searchComponents'}
       />
     ),
   });
