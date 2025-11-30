@@ -14,6 +14,8 @@ import ApplicationSearch from 'explorviz-frontend/src/components/visualization/p
 import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
+import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
+import CodeAnalysisTriggerForm from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-form';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
@@ -309,6 +311,12 @@ export default function BrowserRendering({
                           toggleToolsSidebarComponent
                         }
                       />
+                      <CodeAnalysisTriggerOpener
+                        openedComponent={openedToolComponent}
+                        toggleToolsSidebarComponent={
+                          toggleToolsSidebarComponent
+                        }
+                      />
                     </ul>
                   </div>
                   {openedToolComponent && (
@@ -338,6 +346,12 @@ export default function BrowserRendering({
                               }
                             />
                           )}
+                        {openedToolComponent === 'code-analysis-trigger' && (
+                          <>
+                            <h5 className="text-center">Code Analysis Trigger</h5>
+                            <CodeAnalysisTriggerForm />
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
