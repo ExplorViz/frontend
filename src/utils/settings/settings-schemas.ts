@@ -102,6 +102,7 @@ export type DebugSettings = {
   fullscreen: ButtonSetting;
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
+  clearTraceData: ButtonSetting;
 };
 export type DebugSettingId = keyof DebugSettings;
 
