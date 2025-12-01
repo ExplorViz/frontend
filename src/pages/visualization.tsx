@@ -905,9 +905,6 @@ export default function Visualization() {
         )}
 
         <BrowserRendering
-          // addComponent={addComponent}
-          // applicationArgs={applicationArgs}
-          // closeDataSelection={closeDataSelection}
           components={components}
           componentsToolsSidebar={componentsToolsSidebar}
           id="browser-rendering"
@@ -915,14 +912,11 @@ export default function Visualization() {
           landscapeData={renderingServiceLandscapeData}
           landscapeToken={landscapeTokenServiceToken}
           removeTimestampListener={removeTimestampListener}
-          // restructureLandscape={restructureLandscape}
           snapshot={snapshotSelected}
           snapshotReload={snapshotToken}
-          switchToAR={switchToAR}
           toggleVisualizationUpdating={
             renderingServiceToggleVisualizationUpdating
           }
-          // updateLandscape={updateLandscape}
           userApiTokens={userApiTokens}
           visualizationPaused={visualizationPaused}
         />
