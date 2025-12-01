@@ -10,6 +10,7 @@ import {
   MuteIcon,
   PencilIcon,
   PersonFillIcon,
+  ShareAndroidIcon,
   SyncIcon,
   UnmuteIcon,
   XIcon,
@@ -39,6 +40,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
+import QRCodeModal from './qr-code-modal';
 
 // interface CollaborationControlsProps {}
 
@@ -139,6 +141,7 @@ export default function CollaborationControls() {
   const [spectateConfigDevices, setSpectateConfigDevices] = useState<
     { deviceId: string; projectionMatrix: number[] }[]
   >([]);
+  const [qrCodeModal, setQrCodeModal] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const users = (() => {
@@ -543,9 +546,19 @@ export default function CollaborationControls() {
     <>
       {collabStore.connectionStatus === 'online' && (
         <>
-          <div>
-            <label className="bold me-2">Room:</label>
-            <label>{collabStore.currentRoomId}</label>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <label className="bold me-2">Room:</label>
+              <label>{collabStore.currentRoomId}</label>
+            </div>
+            <Button
+              title="Show QR Code"
+              variant="outline-primary"
+              onClick={() => setQrCodeModal(true)}
+              size="sm"
+            >
+              <ShareAndroidIcon size="small" className="align-middle" />
+            </Button>
           </div>
 
           <div>
@@ -1267,6 +1280,8 @@ export default function CollaborationControls() {
           </Modal.Footer>
         </Modal>
       </div>
+
+      <QRCodeModal show={qrCodeModal} onHide={() => setQrCodeModal(false)} />
     </>
   );
 }
