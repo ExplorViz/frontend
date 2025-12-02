@@ -421,9 +421,9 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         });
       }, 200);
     },
-    render: ({ status }) => (
+    render: ({ status, args }) => (
       <ToolCallCard
-        component={{ id: 'application-search', name: 'Application Search' }}
+        component={{ name: args.query }}
         status={status}
         action={'searchComponents'}
       />
