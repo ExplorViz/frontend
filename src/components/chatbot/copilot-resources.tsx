@@ -4,6 +4,9 @@ import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplac
 import { type Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { EditingContext } from '../editing/editing-context';
 import { use } from 'react';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { ChatbotContext } from './chatbot-context';
 
 interface CopilotResourcesProps {
@@ -19,6 +22,17 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
   } = useVisualizationStore();
 
   const { canGoBack, canGoForward } = use(EditingContext);
+  const visualizationSettings = useUserSettingsStore(
+    (state) => state.visualizationSettings
+  );
+
+  const flattenSettings = (settings: VisualizationSettings) => {
+    const result: Record<string, unknown> = {};
+    Object.entries(settings).forEach(([id, setting]) => {
+      result[id] = (setting as any).value;
+    });
+    return result;
+  };
   const {
     showToolsSidebar,
     showSettingsSidebar,
@@ -61,6 +75,16 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     description:
       'Indicates whether the user can navigate forward in their editing history of the 3D landscape data.',
     value: JSON.stringify(canGoForward),
+  });
+  useCopilotReadable({
+    description:
+      'Get the current visualization settings as a map of setting IDs to their values.',
+    value: JSON.stringify(flattenSettings(visualizationSettings)),
+  });
+  useCopilotReadable({
+    description:
+      'Get the default visualization settings as a map of setting IDs to their default values. Use this to reset settings or reason about valid values.',
+    value: JSON.stringify(flattenSettings(defaultVizSettings)),
   });
   useCopilotReadable({
     description:

@@ -20,6 +20,7 @@ type Action =
   | 'closeSettingsComponent'
   | 'filterEntities'
   | 'searchComponents'
+  | 'updateSettings'
   | 'ping'
   | 'moveCamera'
   | 'resetCamera'
@@ -147,6 +148,10 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
           return 'Filtering entities';
         case 'searchComponents':
           return 'Searching components';
+        case 'updateSettings':
+          return 'Updating settings';
+        case 'updateSettings':
+          return 'Updating settings';
         case 'ping':
           return 'Pinging';
         case 'moveCamera':
@@ -200,6 +205,10 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
           return 'Filtered entities';
         case 'searchComponents':
           return 'Searched components';
+        case 'updateSettings':
+          return 'Updated settings';
+        case 'updateSettings':
+          return 'Updated settings';
         case 'ping':
           return 'Pinged';
         case 'moveCamera':

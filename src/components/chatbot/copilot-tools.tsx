@@ -21,6 +21,9 @@ import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-con
 import { EditingContext } from '../editing/editing-context';
 import * as htmlToImage from 'html-to-image';
 import { ChatbotContext } from './chatbot-context';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 interface CopilotToolsProps {
   applications?: Application[];
@@ -29,6 +32,25 @@ interface CopilotToolsProps {
 function getAllSubPackages(pkg: Package): Package[] {
   return [pkg, ...pkg.subPackages.flatMap(getAllSubPackages)];
 }
+
+function buildSettingsPromptDescription() {
+  return Object.entries(defaultVizSettings)
+    .map(([id, setting]) => {
+      const displayName =
+        (setting as any).displayName && (setting as any).displayName !== id
+          ? `${(setting as any).displayName} (${id})`
+          : id;
+      const description =
+        (setting as any).description &&
+        (setting as any).description.trim().length
+          ? (setting as any).description
+          : 'No description available.';
+      return `${displayName}: ${description}`;
+    })
+    .join('; ');
+}
+
+const settingsPromptDescription = buildSettingsPromptDescription();
 
 export function CopilotTools({ applications }: CopilotToolsProps) {
   const { actions } = useVisualizationStore();
@@ -295,6 +317,73 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   });
 
   useCopilotAction({
+    name: 'update-visualization-settings',
+    description: `Updates visualization settings by setting specific setting IDs to new values. You can also reset settings to their defaults. Available settings (id: description): ${settingsPromptDescription}`,
+    parameters: [
+      {
+        name: 'settings',
+        type: 'object',
+        description:
+          'Key-value pairs of setting IDs to update. Only IDs that exist in the current settings are applied.',
+      },
+      {
+        name: 'resetIds',
+        type: 'string[]',
+        description:
+          'Optional list of setting IDs to reset to their default values before applying updates.',
+      },
+      {
+        name: 'resetAll',
+        type: 'boolean',
+        description:
+          'If true, reset all settings to defaults before applying updates.',
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({ settings, resetIds, resetAll }) => {
+      const { visualizationSettings, updateSetting, applyDefaultSettings } =
+        useUserSettingsStore.getState();
+      if (resetAll) {
+        applyDefaultSettings();
+      } else if (Array.isArray(resetIds) && resetIds.length > 0) {
+        resetIds.forEach((id) => {
+          const defaultSetting = (defaultVizSettings as any)[id];
+          if (defaultSetting) {
+            updateSetting(
+              id as keyof VisualizationSettings,
+              defaultSetting.value
+            );
+          }
+        });
+      }
+
+      if (settings && typeof settings === 'object') {
+        Object.entries(settings as Record<string, unknown>).forEach(
+          ([id, value]) => {
+            if (
+              Object.prototype.hasOwnProperty.call(visualizationSettings, id)
+            ) {
+              updateSetting(id as keyof VisualizationSettings, value);
+            }
+          }
+        );
+      }
+    },
+    render: ({ status }) => (
+      <ToolCallCard
+        component={{ id: 'Settings', name: 'Settings' }}
+        status={status}
+        action={'updateSettings'}
+        onClick={() => {
+          setShowSettingsSidebar(true);
+          setOpenedSettingComponent('Settings');
+        }}
+      />
+    ),
+  });
+
+  useCopilotAction({
     name: 'search-application-components',
     description:
       'Searches for components by name in the Application Search panel. Optionally selects all results.',
@@ -354,7 +443,6 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
-      console.log(packages, id);
       const component = packages.find((pkg) => pkg.id === id);
       if (component) {
         if (open) {
@@ -664,8 +752,6 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
           }
         });
       });
-
-      console.log('Screenshot taken: ', url);
       const [format, bytes] = url
         .split(/data:image\/|;|base64,/)
         .filter(Boolean);
