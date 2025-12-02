@@ -1,7 +1,7 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { XR } from '@react-three/xr';
 import type { XRStore } from '@react-three/xr';
+import { XR } from '@react-three/xr';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -28,6 +28,8 @@ import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/lands
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import CollaborationCameraSync from './collaboration-camera-sync';
+import SpectateCameraController from './spectate-camera-controller';
 
 export default function CanvasWrapper({
   landscapeData,
@@ -279,6 +281,8 @@ export default function CanvasWrapper({
           far={cameraFar}
           makeDefault
         />
+        <SpectateCameraController />
+        <CollaborationCameraSync />
         <LandscapeR3F
           layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
         >

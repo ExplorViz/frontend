@@ -16,6 +16,7 @@ import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { deleteTraceData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   ColorSettingId,
@@ -236,6 +237,30 @@ export default function Settings({
       case 'resetToDefaults':
         resetSettingsAndUpdate();
         showSuccessToastMessage('Settings reset');
+        break;
+      case 'clearTraceData':
+        if (
+          confirm(
+            'Clear Trace Data: This will permanently delete all trace and span data for the current landscape token (structure, traces, and timestamps). This action cannot be undone!\n\nAfter deletion, the page will reload. New data will appear once your application sends new spans. Continue?'
+          )
+        ) {
+          deleteTraceData()
+            .then(() => {
+              showSuccessToastMessage(
+                'Trace data cleared. Reloading page... New data will appear when spans arrive.'
+              );
+              // Reload the page after a short delay to allow the toast to be seen
+              // This ensures the frontend fetches fresh timestamps after deletion
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            })
+            .catch((error) => {
+              showErrorToastMessage(
+                `Failed to clear trace data: ${error.message}`
+              );
+            });
+        }
         break;
       default:
         break;

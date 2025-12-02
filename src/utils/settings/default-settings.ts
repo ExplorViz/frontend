@@ -1000,6 +1000,17 @@ export const defaultVizSettings: VisualizationSettings = {
     buttonText: 'Synchronize',
     isButtonSetting: true,
   },
+  clearTraceData: {
+    level: SettingLevel.EXTENDED,
+    value: false,
+    type: 'danger',
+    group: 'Debugging',
+    displayName: 'Clear Trace Data',
+    description:
+      'Removes all trace and span data from the database for the current landscape token. This action cannot be undone!',
+    buttonText: 'Clear Trace Data',
+    isButtonSetting: true,
+  },
   resetToDefaults: {
     level: SettingLevel.DEFAULT,
     value: false,

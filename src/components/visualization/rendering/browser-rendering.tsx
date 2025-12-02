@@ -71,7 +71,6 @@ export default function BrowserRendering({
   userApiTokens,
   visualizationPaused,
   toggleVisualizationUpdating,
-  switchToAR,
   restructureLandscape,
   removeTimestampListener,
 }: BrowserRenderingProps) {
@@ -115,7 +114,6 @@ export default function BrowserRendering({
       removeAnnotation: state.removeAnnotation,
       clearAnnotations: state.clearAnnotations,
       handleMouseMove: state.handleMouseMove,
-      handleHoverOnMesh: state.handleHoverOnMesh,
       cleanup: state.cleanup,
     }))
   );
@@ -165,11 +163,6 @@ export default function BrowserRendering({
     string | null
   >(null);
 
-  const [worker] = useState<Worker>(
-    () =>
-      new Worker(new URL('../../../workers/metrics-worker.js', import.meta.url))
-  );
-
   // MARK: Refs
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
@@ -200,15 +193,7 @@ export default function BrowserRendering({
 
     // Cleanup on component unmount
     return function cleanup() {
-      worker.terminate();
-      // renderingLoop.current?.stop();
       applicationRepositoryActions.cleanup();
-      // renderer.current?.dispose();
-      // renderer.current?.forceContextLoss();
-
-      // ideWebsocket.dispose();
-
-      // renderingLoop.current?.stop();
       configurationActions.setIsCommRendered(true);
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();
@@ -263,11 +248,6 @@ export default function BrowserRendering({
               <ContextMenu enterVR={() => xrStore.enterVR()}>
                 <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
               </ContextMenu>
-              {/* {loadNewLandscape.isRunning && (
-            <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
-              <LoadingIndicator text="Loading new Landscape" />
-            </div>
-          )} */}
 
               {landscapeData && <Popups landscapeData={landscapeData} />}
 

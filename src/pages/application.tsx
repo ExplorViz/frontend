@@ -1,28 +1,25 @@
-import { useState, useEffect } from 'react';
-import {
-  useSearchParams,
-  Outlet,
-  useNavigate,
-  createSearchParams,
-} from 'react-router-dom';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import Navbar from 'explorviz-frontend/src/components/page-setup/navbar';
 import ToastMessage from 'explorviz-frontend/src/components/page-setup/toast-message';
-import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
-import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
-  LandscapeToken,
-  useLandscapeTokenStore,
+  useLandscapeTokenStore
 } from 'explorviz-frontend/src/stores/landscape-token';
+import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
+import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
+import { useEffect, useState } from 'react';
+import {
+  createSearchParams,
+  Outlet,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 
 export default function Application() {
-  const [tokenId, setTokenId] = useState<string>('');
   const [checkedLandscapeToken, setCheckedLandscapeToken] =
     useState<boolean>(false);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, _] = useSearchParams();
 
   const user = useAuthStore((state) => state.user);
-  const accessToken = useAuthStore((state) => state.accessToken);
   const retrieveToken = useSnapshotTokenStore((state) => state.retrieveToken);
   const setSnapshotToken = useSnapshotTokenStore((state) => state.setToken);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
@@ -35,7 +32,7 @@ export default function Application() {
 
   useInitNavigation();
 
-  // equivalent to old auto-select-landscape
+  // Auto-select landscape
   useEffect(() => {
     const autoSelectLandscape = async () => {
       if (
@@ -91,7 +88,7 @@ export default function Application() {
     if (user) {
       autoSelectLandscape();
     }
-  }, [searchParams]);
+  }, [searchParams, user]);
 
   return (
     <>

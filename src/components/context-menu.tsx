@@ -7,6 +7,7 @@ import { Position2D } from '../hooks/interaction-modifier';
 import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import useLongPress from '../hooks/useLongPress';
 export type ContextMenuItem = {
   title: string;
   action: () => void;
@@ -26,6 +27,14 @@ export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
   const reveal = () => setVisible(true);
 
   const hide = () => setVisible(false);
+
+  const handleLongPress = (pos: Position2D) => {
+    setPosition(pos);
+    reveal();
+  };
+
+  const { onTouchStart, onTouchMove, onTouchEnd } =
+    useLongPress(handleLongPress);
 
   const resetView = async () => {
     useCameraControlsStore.getState().resetCamera();
@@ -128,11 +137,14 @@ export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
       onMouseUp={onMouseUp}
       onMouseDown={onMouseDown}
       onContextMenu={onContextMenu}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       style={{ width: '100%' }}
     >
       {visible && position && (
         <ul
-          className="bg-white shadow border rounded-md w-40"
+          className="bg-white shadow border rounded-md w-40 select-none"
           style={{
             position: 'absolute',
             top: position.y,
@@ -164,7 +176,7 @@ interface ContextMenuItemProps {
 function ContextMenuItem({ title, onSelect }: ContextMenuItemProps) {
   return (
     <li
-      className="context-menu-item"
+      className="context-menu-item select-none"
       style={{ cursor: 'pointer' }}
       onClick={onSelect}
     >
