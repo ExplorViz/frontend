@@ -370,9 +370,18 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         );
       }
     },
-    render: ({ status }) => (
+    render: ({ status, args }) => (
       <ToolCallCard
-        component={{ id: 'Settings', name: 'Settings' }}
+        component={{
+          name:
+            args.settings && Object.keys(args.settings).length
+              ? `Update Settings: ${Object.keys(args.settings).join(', ')}`
+              : args.resetIds && args.resetIds.length
+                ? `Reset Settings: ${args.resetIds.join(', ')}`
+                : args.resetAll
+                  ? 'Reset All Settings'
+                  : undefined,
+        }}
         status={status}
         action={'updateSettings'}
         onClick={() => {
@@ -551,7 +560,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   useCopilotAction({
     name: 'add-application',
     description:
-      'Adds a new application to the current landscape. Look at the existing data first and use frameworks and package structure already present in the project.',
+      'Adds a new application to the current landscape. Classes should include their fully qualified name (FQN) and can optionally include methods.',
     parameters: [
       {
         name: 'name',
@@ -561,10 +570,64 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
       },
       {
         name: 'classes',
-        type: 'string[]',
-        description:
-          'List of fully qualified names (FQNs) of classes that belong to the application.',
+        type: 'object[]',
+        description: 'List of classes for the application.',
         required: true,
+        attributes: [
+          {
+            name: 'fqn',
+            type: 'string',
+            description: 'Fully qualified name of the class.',
+            required: true,
+          },
+          {
+            name: 'methods',
+            type: 'object[]',
+            description:
+              'Optional list of methods for the class. Each method should include name, private (boolean), parameters (array of { name, type }), and returnType (string).',
+            attributes: [
+              {
+                name: 'name',
+                type: 'string',
+                description: 'Name of the method.',
+                required: true,
+              },
+              {
+                name: 'private',
+                type: 'boolean',
+                description: 'Indicates if the method is private.',
+                required: true,
+              },
+              {
+                name: 'parameters',
+                type: 'object[]',
+                description:
+                  'List of parameters for the method. Each parameter should include name and type.',
+                required: true,
+                attributes: [
+                  {
+                    name: 'name',
+                    type: 'string',
+                    description: 'Name of the parameter.',
+                    required: true,
+                  },
+                  {
+                    name: 'type',
+                    type: 'string',
+                    description: 'Type of the parameter.',
+                    required: true,
+                  },
+                ],
+              },
+              {
+                name: 'returnType',
+                type: 'string',
+                description: 'Return type of the method.',
+                required: true,
+              },
+            ],
+          },
+        ],
       },
     ],
     // @ts-ignore
@@ -584,7 +647,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   useCopilotAction({
     name: 'add-classes-to-application',
     description:
-      'Adds new classes to an existing application in the current landscape. Look at the existing data first and use frameworks and package structure already present in the project.',
+      'Adds new classes to an existing application in the current landscape. Classes should include their fully qualified name (FQN) and can optionally include methods.',
     parameters: [
       {
         name: 'applicationId',
@@ -594,10 +657,64 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
       },
       {
         name: 'classes',
-        type: 'string[]',
-        description:
-          'List of fully qualified names (FQNs) of classes to be added to the application.',
+        type: 'object[]',
+        description: 'List of classes to add to the application.',
         required: true,
+        attributes: [
+          {
+            name: 'fqn',
+            type: 'string',
+            description: 'Fully qualified name of the class.',
+            required: true,
+          },
+          {
+            name: 'methods',
+            type: 'object[]',
+            description:
+              'Optional list of methods for the class. Each method should include name, private (boolean), parameters (array of { name, type }), and returnType (string).',
+            attributes: [
+              {
+                name: 'name',
+                type: 'string',
+                description: 'Name of the method.',
+                required: true,
+              },
+              {
+                name: 'private',
+                type: 'boolean',
+                description: 'Indicates if the method is private.',
+                required: true,
+              },
+              {
+                name: 'parameters',
+                type: 'object[]',
+                description:
+                  'List of parameters for the method. Each parameter should include name and type.',
+                required: true,
+                attributes: [
+                  {
+                    name: 'name',
+                    type: 'string',
+                    description: 'Name of the parameter.',
+                    required: true,
+                  },
+                  {
+                    name: 'type',
+                    type: 'string',
+                    description: 'Type of the parameter.',
+                    required: true,
+                  },
+                ],
+              },
+              {
+                name: 'returnType',
+                type: 'string',
+                description: 'Return type of the method.',
+                required: true,
+              },
+            ],
+          },
+        ],
       },
     ],
     // @ts-ignore
