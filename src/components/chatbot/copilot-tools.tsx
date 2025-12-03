@@ -329,7 +329,10 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
         return idMatches && nameMatches;
       });
 
-      const limitedApplications = limitList(filteredApplications, maxApplications);
+      const limitedApplications = limitList(
+        filteredApplications,
+        maxApplications
+      );
 
       const response: {
         detailLevel: DetailLevel;
@@ -388,9 +391,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
             ? limitList(filteredClasses, maxClasses)
             : [];
         const limitedMethods =
-          level === 'methods'
-            ? limitList(filteredMethods, maxMethods)
-            : [];
+          level === 'methods' ? limitList(filteredMethods, maxMethods) : [];
 
         response.applications.push(
           buildApplicationSummary(
@@ -404,10 +405,16 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
           )
         );
 
-        if (level === 'packages' || level === 'classes' || level === 'methods') {
+        if (
+          level === 'packages' ||
+          level === 'classes' ||
+          level === 'methods'
+        ) {
           response.packages ??= [];
           response.packages.push(
-            ...limitedPackages.map((pkg) => toPackageResult(pkg, application.id))
+            ...limitedPackages.map((pkg) =>
+              toPackageResult(pkg, application.id)
+            )
           );
         }
 
@@ -900,7 +907,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
       const position = getWorldPositionOfModel(id);
       if (position) {
         moveCameraTo(
-          [position.x + 5, position.y + 5, position.z + 5],
+          [position.x + 2, position.y + 2, position.z + 2],
           [position.x, position.y, position.z]
         );
       }
