@@ -12,6 +12,8 @@ import {
 import {
   Application,
   Package,
+  Class,
+  Method,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { use, useMemo } from 'react';
 import { ToolCallCard } from './tool-call-card';
@@ -31,6 +33,151 @@ interface CopilotToolsProps {
 
 function getAllSubPackages(pkg: Package): Package[] {
   return [pkg, ...pkg.subPackages.flatMap(getAllSubPackages)];
+}
+
+type DetailLevel = 'summary' | 'packages' | 'classes' | 'methods';
+
+const validDetailLevels: DetailLevel[] = [
+  'summary',
+  'packages',
+  'classes',
+  'methods',
+];
+
+function isValidDetailLevel(level?: string): level is DetailLevel {
+  return !!level && validDetailLevels.includes(level as DetailLevel);
+}
+
+function normalizeText(value?: string) {
+  return (value ?? '').trim().toLowerCase();
+}
+
+function matchesText(target: string | undefined, filter?: string) {
+  const normalizedFilter = normalizeText(filter);
+  if (!normalizedFilter) {
+    return true;
+  }
+  return (target ?? '').toLowerCase().includes(normalizedFilter);
+}
+
+function limitList<T>(list: T[], limit?: number) {
+  if (typeof limit === 'number' && limit > 0) {
+    return list.slice(0, limit);
+  }
+  return list;
+}
+
+function flattenPackages(application: Application) {
+  return application.packages.flatMap(getAllSubPackages);
+}
+
+function classMatchesFilters(
+  clazz: Class,
+  className?: string,
+  methodName?: string
+) {
+  const hasClassFilter = !!normalizeText(className);
+  const hasMethodFilter = !!normalizeText(methodName);
+  if (!hasClassFilter && !hasMethodFilter) {
+    return true;
+  }
+  const classNameMatch =
+    hasClassFilter &&
+    (matchesText(clazz.name, className) ||
+      (clazz.fqn ? matchesText(clazz.fqn, className) : false));
+  const methodMatch =
+    hasMethodFilter &&
+    clazz.methods.some((method) => matchesText(method.name, methodName));
+  return classNameMatch || methodMatch;
+}
+
+function packageMatchesFilters(
+  pkg: Package,
+  packageName?: string,
+  className?: string,
+  methodName?: string
+) {
+  if (normalizeText(packageName)) {
+    return (
+      matchesText(pkg.name, packageName) || matchesText(pkg.fqn, packageName)
+    );
+  }
+  if (normalizeText(className) || normalizeText(methodName)) {
+    return pkg.classes.some((clazz) =>
+      classMatchesFilters(clazz, className, methodName)
+    );
+  }
+  return true;
+}
+
+function buildApplicationSummary(
+  application: Application,
+  packages: Package[],
+  classes: Class[],
+  methods: Method[],
+  limitedPackages: Package[],
+  limitedClasses: Class[],
+  limitedMethods: Method[]
+) {
+  return {
+    id: application.id,
+    name: application.name,
+    language: application.language,
+    originOfData: application.originOfData,
+    instanceId: application.instanceId,
+    packageCount: packages.length,
+    classCount: classes.length,
+    methodCount: methods.length,
+    returnedPackageCount: limitedPackages.length,
+    returnedClassCount: limitedClasses.length,
+    returnedMethodCount: limitedMethods.length,
+  };
+}
+
+function toPackageResult(pkg: Package, applicationId: string) {
+  return {
+    id: pkg.id,
+    name: pkg.name,
+    fqn: pkg.fqn,
+    level: pkg.level,
+    parentPackageId: pkg.parent?.id ?? null,
+    applicationId,
+    originOfData: pkg.originOfData,
+    classCount: pkg.classes.length,
+    editingState: pkg.editingState,
+  };
+}
+
+function toClassResult(clazz: Class, applicationId: string, packageId: string) {
+  return {
+    id: clazz.id,
+    name: clazz.name,
+    fqn: clazz.fqn,
+    level: clazz.level,
+    packageId,
+    applicationId,
+    originOfData: clazz.originOfData,
+    methodCount: clazz.methods.length,
+    editingState: clazz.editingState,
+  };
+}
+
+function toMethodResult(
+  method: Method,
+  identifiers: { applicationId: string; packageId: string; classId: string }
+) {
+  return {
+    id: method.id,
+    name: method.name,
+    type: method.type,
+    private: method.private,
+    parameters: method.parameters,
+    originOfData: method.originOfData,
+    methodHash: method.methodHash,
+    applicationId: identifiers.applicationId,
+    packageId: identifiers.packageId,
+    classId: identifiers.classId,
+  };
 }
 
 function buildSettingsPromptDescription() {
@@ -88,6 +235,231 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     entityFilteringControllerRef,
     applicationSearchControllerRef,
   } = use(ChatbotContext);
+
+  useCopilotAction({
+    name: 'query-landscape-data',
+    description:
+      'Returns 3D landscape data with filters and adjustable level of detail so you can request only the slices you need instead of the full landscape.',
+    parameters: [
+      {
+        name: 'applicationIds',
+        type: 'string[]',
+        description:
+          'Optional list of application IDs to include. If omitted, all applications are considered.',
+      },
+      {
+        name: 'applicationName',
+        type: 'string',
+        description:
+          'Case-insensitive substring to match against application names.',
+      },
+      {
+        name: 'packageName',
+        type: 'string',
+        description:
+          'Case-insensitive substring to match against package names. Only used for detail levels packages/classes/methods.',
+      },
+      {
+        name: 'className',
+        type: 'string',
+        description:
+          'Case-insensitive substring to match against class names. Only used for detail levels classes/methods.',
+      },
+      {
+        name: 'methodName',
+        type: 'string',
+        description:
+          'Case-insensitive substring to match against method names. Only used for detail level methods.',
+      },
+      {
+        name: 'detailLevel',
+        type: 'string',
+        description:
+          "Level of detail for the result. Use 'summary' (default) for per-application counts only, 'packages' for flattened packages, 'classes' for flattened classes, or 'methods' to also include matching methods.",
+      },
+      {
+        name: 'maxApplications',
+        type: 'number',
+        description:
+          'Optional max number of applications to return after filtering.',
+      },
+      {
+        name: 'maxPackages',
+        type: 'number',
+        description:
+          'Optional max number of packages to return (applied per request when detailLevel is packages or higher).',
+      },
+      {
+        name: 'maxClasses',
+        type: 'number',
+        description:
+          'Optional max number of classes to return (applied when detailLevel is classes or methods).',
+      },
+      {
+        name: 'maxMethods',
+        type: 'number',
+        description:
+          'Optional max number of methods to return (applied when detailLevel is methods).',
+      },
+    ],
+    // @ts-ignore
+    _isRenderAndWait: true,
+    handler: async ({
+      applicationIds,
+      applicationName,
+      packageName,
+      className,
+      methodName,
+      detailLevel,
+      maxApplications,
+      maxPackages,
+      maxClasses,
+      maxMethods,
+    }) => {
+      const level: DetailLevel = isValidDetailLevel(detailLevel)
+        ? detailLevel
+        : 'summary';
+      const availableApplications = applications ?? [];
+      const filteredApplications = availableApplications.filter((app) => {
+        const idMatches =
+          !Array.isArray(applicationIds) ||
+          applicationIds.length === 0 ||
+          applicationIds.includes(app.id);
+        const nameMatches = matchesText(app.name, applicationName);
+        return idMatches && nameMatches;
+      });
+
+      const limitedApplications = limitList(filteredApplications, maxApplications);
+
+      const response: {
+        detailLevel: DetailLevel;
+        filters: Record<string, unknown>;
+        applications: ReturnType<typeof buildApplicationSummary>[];
+        packages?: ReturnType<typeof toPackageResult>[];
+        classes?: ReturnType<typeof toClassResult>[];
+        methods?: ReturnType<typeof toMethodResult>[];
+      } = {
+        detailLevel: level,
+        filters: {
+          applicationIds:
+            Array.isArray(applicationIds) && applicationIds.length > 0
+              ? applicationIds
+              : undefined,
+          applicationName: applicationName || undefined,
+          packageName: packageName || undefined,
+          className: className || undefined,
+          methodName: methodName || undefined,
+          maxApplications,
+          maxPackages,
+          maxClasses,
+          maxMethods,
+        },
+        applications: [],
+      };
+
+      limitedApplications.forEach((application) => {
+        const allPackages = flattenPackages(application);
+        const filteredPackages = allPackages.filter((pkg) =>
+          packageMatchesFilters(pkg, packageName, className, methodName)
+        );
+        const filteredClasses = filteredPackages.flatMap((pkg) =>
+          pkg.classes
+            .filter((clazz) =>
+              classMatchesFilters(clazz, className, methodName)
+            )
+            .map((clazz) => ({ clazz, packageId: pkg.id }))
+        );
+
+        const filteredMethods =
+          level === 'methods'
+            ? filteredClasses.flatMap(({ clazz, packageId }) =>
+                clazz.methods
+                  .filter((method) => matchesText(method.name, methodName))
+                  .map((method) => ({ method, classId: clazz.id, packageId }))
+              )
+            : [];
+
+        const limitedPackages =
+          level === 'packages' || level === 'classes' || level === 'methods'
+            ? limitList(filteredPackages, maxPackages)
+            : [];
+        const limitedClasses =
+          level === 'classes' || level === 'methods'
+            ? limitList(filteredClasses, maxClasses)
+            : [];
+        const limitedMethods =
+          level === 'methods'
+            ? limitList(filteredMethods, maxMethods)
+            : [];
+
+        response.applications.push(
+          buildApplicationSummary(
+            application,
+            filteredPackages,
+            filteredClasses.map(({ clazz }) => clazz),
+            filteredMethods.map(({ method }) => method),
+            limitedPackages,
+            limitedClasses.map(({ clazz }) => clazz),
+            limitedMethods.map(({ method }) => method)
+          )
+        );
+
+        if (level === 'packages' || level === 'classes' || level === 'methods') {
+          response.packages ??= [];
+          response.packages.push(
+            ...limitedPackages.map((pkg) => toPackageResult(pkg, application.id))
+          );
+        }
+
+        if (level === 'classes' || level === 'methods') {
+          response.classes ??= [];
+          response.classes.push(
+            ...limitedClasses.map(({ clazz, packageId }) =>
+              toClassResult(clazz, application.id, packageId)
+            )
+          );
+        }
+
+        if (level === 'methods') {
+          response.methods ??= [];
+          response.methods.push(
+            ...limitedMethods.map(({ method, classId, packageId }) =>
+              toMethodResult(method, {
+                applicationId: application.id,
+                packageId,
+                classId,
+              })
+            )
+          );
+        }
+      });
+
+      return response;
+    },
+    render: ({ status, args }) => {
+      const labelParts: string[] = [];
+      if (args.detailLevel) {
+        labelParts.push(args.detailLevel);
+      }
+      if (args.applicationName) {
+        labelParts.push(`app~${args.applicationName}`);
+      } else if (args.packageName) {
+        labelParts.push(`pkg~${args.packageName}`);
+      } else if (args.className) {
+        labelParts.push(`class~${args.className}`);
+      }
+
+      return (
+        <ToolCallCard
+          status={status}
+          action="queryLandscapeData"
+          component={{
+            name: labelParts.length ? labelParts.join(' | ') : 'landscape data',
+          }}
+        />
+      );
+    },
+  });
 
   useCopilotAction({
     name: 'highlight-component',

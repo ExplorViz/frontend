@@ -30,6 +30,7 @@ type Action =
   | 'undoEdit'
   | 'redoEdit'
   | 'screenshot'
+  | 'queryLandscapeData'
   | 'clickOnScreen';
 type Status = 'inProgress' | 'executing' | 'complete';
 
@@ -170,6 +171,8 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
           return 'Redoing edit';
         case 'screenshot':
           return 'Taking screenshot';
+        case 'queryLandscapeData':
+          return 'Querying landscape data';
         case 'clickOnScreen':
           return 'Clicking on screen at';
         default:
@@ -230,6 +233,8 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
             return `Failed to take screenshot: ${errorMessage}`;
           }
           return 'Took screenshot';
+        case 'queryLandscapeData':
+          return 'Fetched landscape data for';
         case 'clickOnScreen':
           return 'Clicked on screen at';
         default:
