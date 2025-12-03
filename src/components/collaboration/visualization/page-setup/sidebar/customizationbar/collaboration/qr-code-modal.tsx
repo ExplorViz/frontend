@@ -1,6 +1,6 @@
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import QRCodeSVG from 'react-qr-code';
+// import QRCodeSVG from 'react-qr-code';
 
 interface QRCodeModalProps {
   show: boolean;
