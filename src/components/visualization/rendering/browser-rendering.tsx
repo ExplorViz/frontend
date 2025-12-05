@@ -78,7 +78,11 @@ export default function BrowserRendering({
   // MARK: Stores
 
   const xrStore = createXRStore({
-    controller: { teleportPointer: { rayModel: { color: "red" } }, rayPointer: { rayModel: { color: "red" } } },
+    controller: {
+      teleportPointer: { rayModel: { color: 'red' } },
+      rayPointer: { rayModel: { color: 'red' } },
+    },
+    offerSession: false,
   });
 
   const applicationRepositoryActions = useApplicationRepositoryStore(
