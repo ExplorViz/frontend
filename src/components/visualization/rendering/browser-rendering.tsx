@@ -77,7 +77,9 @@ export default function BrowserRendering({
 }: BrowserRenderingProps) {
   // MARK: Stores
 
-  const xrStore = createXRStore();
+  const xrStore = createXRStore({
+    controller: { teleportPointer: { rayModel: { color: "red" } }, rayPointer: { rayModel: { color: "red" } } },
+  });
 
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({

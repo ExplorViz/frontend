@@ -123,7 +123,7 @@ export default function Navbar() {
         draggable="false"
         onClick={goToLandscapeSelection}
       />
-      {!isSingleLandscapeMode() && landscapeToken && (
+      {/* {!isSingleLandscapeMode() && landscapeToken && (
         <div className="navbar-middle-row pointer-events-all d-none d-md-block">
           <div className="navbar-token-link text-center">
             <span
@@ -139,7 +139,7 @@ export default function Navbar() {
             {_analysisMode}
           </div>
         </div>
-      )}
+      )} */}
       <div id="navbar-user-options" className="btn-group pointer-events-all">
         <StatusIcons />
         <div className="btn-group" style={{ marginLeft: '1rem' }}>
