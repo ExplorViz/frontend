@@ -674,8 +674,10 @@ export default function CommunicationR3F({
     <clazzCommunicationMesh
       key={`${enableEdgeBundling}-${use3DHAPAlgorithm}`}
       {...pointerStopHandlers}
-      onPointerOver={handleOnPointerOver}
-      onPointerOut={handleOnPointerOut}
+      {...(enableHoverEffects && {
+        onPointerOver: handleOnPointerOver,
+        onPointerOut: handleOnPointerOut,
+      })}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       args={constructorArgs}

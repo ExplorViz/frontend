@@ -342,7 +342,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   enableHoverEffects: {
     level: SettingLevel.DEFAULT,
-    value: true,
+    value: false,
     group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',

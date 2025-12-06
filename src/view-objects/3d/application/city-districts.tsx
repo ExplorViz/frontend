@@ -514,8 +514,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         castShadow={castShadows}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
-        onPointerOver={handleOnPointerOver}
-        onPointerOut={handleOnPointerOut}
+        {...(enableHoverEffects && {
+          onPointerOver: handleOnPointerOver,
+          onPointerOut: handleOnPointerOut,
+        })}
         onDoubleClick={handleDoubleClickWithPrevent}
         {...pointerStopHandlers}
         frustumCulled={false}

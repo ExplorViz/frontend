@@ -116,14 +116,12 @@ export default function CityFoundation({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    if (enableHoverEffects) {
       setHoveredEntityId(application.id);
-    }
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-    setHoveredEntityId(null);
+      setHoveredEntityId(null);
   };
 
   const handleClick = (/*event: any*/) => {
@@ -173,8 +171,10 @@ export default function CityFoundation({
       position={foundationPosition} // Center around application's position
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
-      onPointerOver={handleOnPointerOver}
-      onPointerOut={handleOnPointerOut}
+      {...(enableHoverEffects && {
+        onPointerOver: handleOnPointerOver,
+        onPointerOut: handleOnPointerOut,
+      })}
       {...pointerStopHandlers}
     >
       <meshLambertMaterial color={computeColor()} />
