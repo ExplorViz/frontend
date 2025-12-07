@@ -342,7 +342,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   enableHoverEffects: {
     level: SettingLevel.DEFAULT,
-    value: true,
+    value: false,
     group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
@@ -476,7 +476,7 @@ export const defaultVizSettings: VisualizationSettings = {
   beta: {
     level: SettingLevel.DEFAULT,
     value: 0.8,
-    range: { min: 0.0, max: 1.0, step: 0.1 },
+    range: { min: 0.0, max: 1.0, step: 0.01 },
     group: 'Communication',
     displayName: '3D-HAP Attraction Power (β)',
     description:

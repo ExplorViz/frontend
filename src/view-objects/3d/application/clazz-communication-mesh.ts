@@ -19,6 +19,37 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   _layout: CommunicationLayout | undefined;
 
+  private _needsRender = true; // Nur bei Änderungen true setzen
+  private _lastBeta = 0.8;
+  private _lastHAPNodes: { originId?: string; destinationId?: string } = {};
+
+  // 🎯 STATISCHER CACHE für Hover-Geometrien
+  private static hoverGeometryCache = new Map<
+    string,
+    {
+      geometry: THREE.BufferGeometry;
+      timestamp: number;
+      usageCount: number;
+    }
+  >();
+
+  // 🎯 Cache-Konfiguration
+  private static readonly MAX_HOVER_CACHE_SIZE = 200;
+  private static readonly CACHE_CLEANUP_INTERVAL = 30000; // 30 Sekunden
+  private static lastCacheCleanup = Date.now();
+
+  // 🎯 Zustand vor Hover
+  private _preHoverState: {
+    geometry: THREE.BufferGeometry;
+    material: THREE.Material;
+    lineThickness: number;
+    position: THREE.Vector3;
+    needsRender: boolean;
+  } | null = null;
+
+  // 🎯 Hover-Status
+  private _isInHoverMode = false;
+
   get layout() {
     return this._layout;
   }
@@ -88,15 +119,22 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _originHAP: HAPNode | null = null;
   private _destinationHAP: HAPNode | null = null;
   private _beta: number = 0.8;
-  private _use3DHAPAlgorithm: boolean = true;
+  private _use3DHAPAlgorithm: boolean = false;
+
+  // Shared geometries cache
+  private static sharedGeometries: Map<string, THREE.BufferGeometry> =
+    new Map();
+  private static geometryUsageCount: Map<string, number> = new Map();
 
   get enableEdgeBundling(): boolean {
     return this._enableEdgeBundling;
   }
 
   set enableEdgeBundling(enabled: boolean) {
-    this._enableEdgeBundling = enabled;
-    this.render();
+    if (this._enableEdgeBundling !== enabled) {
+      this._enableEdgeBundling = enabled;
+      this._needsRender = true;
+    }
   }
 
   get bundleGroupId(): string | null {
@@ -113,9 +151,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   set beta(value: number) {
-    this._beta = Math.max(0, Math.min(1, value));
-    if (this._enableEdgeBundling && this.isBundledLayout()) {
-      this.render();
+    if (Math.abs(this._beta - value) > 0.001) {
+      this._beta = Math.max(0, Math.min(1, value));
+      this._lastBeta = this._beta;
+      this._needsRender = true;
     }
   }
 
@@ -124,16 +163,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   set use3DHAPAlgorithm(value: boolean) {
-    this._use3DHAPAlgorithm = value;
-    if (this._enableEdgeBundling && this.isBundledLayout()) {
-      this.render();
+    if (this._use3DHAPAlgorithm !== value) {
+      this._use3DHAPAlgorithm = value;
+      this._needsRender = true;
     }
   }
 
-  constructor(dataModel: ClazzCommuMeshDataModel) {
+  constructor(
+    dataModel: ClazzCommuMeshDataModel,
+    options?: { use3DHAPAlgorithm?: boolean }
+  ) {
     super();
     this.dataModel = dataModel;
-
+    this._use3DHAPAlgorithm = options?.use3DHAPAlgorithm ?? false;
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
     });
@@ -146,10 +188,23 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     originHAP: HAPNode,
     destinationHAP: HAPNode
   ): void {
-    this._hapSystem = hapSystem;
-    this._originHAP = originHAP;
-    this._destinationHAP = destinationHAP;
-    this.render();
+    // Check if changes occured
+    const newHAPIds = {
+      originId: originHAP.id,
+      destinationId: destinationHAP.id,
+    };
+
+    const hasChanged =
+      this._originHAP?.id !== originHAP.id ||
+      this._destinationHAP?.id !== destinationHAP.id;
+
+    if (hasChanged) {
+      this._hapSystem = hapSystem;
+      this._originHAP = originHAP;
+      this._destinationHAP = destinationHAP;
+      this._lastHAPNodes = newHAPIds;
+      this._needsRender = true;
+    }
   }
 
   /**
@@ -275,7 +330,13 @@ export default class ClazzCommunicationMesh extends BaseMesh {
    * @param curveSegments The number of segments (tubes) the geometry persists of. Default 20
    */
   render(curveSegments = 20) {
-    if (!this.layout) return;
+    if (this._isInHoverMode) {
+      return;
+    }
+
+    if (!this._needsRender || !this.layout) {
+      return;
+    }
 
     // Handle recursive communication
     if (this.dataModel.communication.isRecursive) {
@@ -303,24 +364,49 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
 
     this.addArrows();
+    this._needsRender = false;
   }
 
-  // Render using original algorithm (no edge bundling)
+  public requestRender(): void {
+    this._needsRender = true;
+  }
+
   private renderOriginalAlgorithm(curveSegments: number): void {
-    this.geometry = new THREE.TubeGeometry(
-      this.layout.getCurve({ yOffset: this.curveHeight }),
-      this.curveHeight === 0 ? 1 : curveSegments,
-      this.layout.lineThickness
+    const curve = this.layout.getCurve({ yOffset: this.curveHeight });
+
+    this.geometry = this.getSharedGeometry(
+      curve,
+      this.curveHeight === 0 ? 1 : curveSegments
     );
 
-    // Reset to original material
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
       transparent: true,
     });
   }
 
-  // Check if layout is BundledCommunicationLayout
+  /**
+   * Override disposeRecursively to clean up shared geometries
+   * This is called by the parent class disposal mechanism
+   */
+  public disposeRecursively(): void {
+    // Clean up shared geometries
+    if (this.geometry) {
+      this.releaseSharedGeometry(this.geometry);
+    }
+
+    super.disposeRecursively();
+
+    this.clearHAPSystem();
+
+    // Clean up child arrows
+    this.getArrowMeshes().forEach((arrow) => {
+      if (arrow.disposeRecursively) {
+        arrow.disposeRecursively();
+      }
+    });
+  }
+
   private isBundledLayout(): boolean {
     return this.layout instanceof BundledCommunicationLayout;
   }
@@ -332,44 +418,46 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       : null;
   }
 
-  /**
-   * Create gradient-colored geometry for 3D-HAP edges
-   * Implements color scheme: Green (origin) -> Red (destination)
-   */
+  // Directions of Edges is displayed by color
   private createGradientColoredGeometry(
-    curve: THREE.Curve<THREE.Vector3>,
-    segments: number
+    baseGeometry: THREE.BufferGeometry,
+    curve: THREE.Curve<THREE.Vector3>
   ): THREE.BufferGeometry {
-    const tubeGeometry = new THREE.TubeGeometry(
-      curve,
-      segments,
-      this.layout.lineThickness
-    );
-    const geometry = tubeGeometry;
+    const geometry = baseGeometry.clone();
     const positionAttribute = geometry.getAttribute('position');
     const vertexCount = positionAttribute.count;
     const colors = new Float32Array(vertexCount * 3);
 
-    for (let i = 0; i < vertexCount; i++) {
-      const t = i / (vertexCount - 1);
+    const isBidirectional = this.dataModel.communication.isBidirectional;
 
-      if (this.dataModel.communication.isBidirectional) {
-        // Deep purple gradient for bidirectional
-        colors[i * 3] = 0.4 + t * 0.3; // R: 0.4 -> 0.7
-        colors[i * 3 + 1] = 0.2; // G low and constant
-        colors[i * 3 + 2] = 0.6 - t * 0.2; // B: 0.6 -> 0.4
+    for (let i = 0; i < vertexCount; i++) {
+      const vertexPosition = new THREE.Vector3(
+        positionAttribute.getX(i),
+        positionAttribute.getY(i),
+        positionAttribute.getZ(i)
+      );
+
+      const t = this.calculateVertexT(vertexPosition, curve);
+
+      if (isBidirectional) {
+        // Bidirectional: Uniform green (both directions active)
+        colors[i * 3] = 0.0; // R: 0
+        colors[i * 3 + 1] = 0.7; // G: strong green
+        colors[i * 3 + 2] = 0.0; // B: 0
       } else {
-        // Deep Green (0,0.8,0) -> Deep Red (0.9,0,0)
+        // Unidirectional: Green -> Red
         if (t < 0.5) {
-          // Deep green to yellow-green
-          colors[i * 3] = t * 1.0; // R: 0 -> 0.5
-          colors[i * 3 + 1] = 0.8; // G stays very high
-          colors[i * 3 + 2] = 0.1; // B very low
+          // Green origin side
+          const greenIntensity = 0.3 + 0.7 * (1 - t * 2);
+          colors[i * 3] = 0.0;
+          colors[i * 3 + 1] = greenIntensity;
+          colors[i * 3 + 2] = 0.0;
         } else {
-          // Yellow-green to deep red
-          colors[i * 3] = 0.5 + (t - 0.5) * 0.8; // R: 0.5 -> 0.9
-          colors[i * 3 + 1] = 0.8 - (t - 0.5) * 1.6; // G: 0.8 -> 0.0
-          colors[i * 3 + 2] = 0.1; // B very low
+          // Red destination side
+          const redIntensity = 0.3 + 0.7 * ((t - 0.5) * 2);
+          colors[i * 3] = redIntensity;
+          colors[i * 3 + 1] = 0.0;
+          colors[i * 3 + 2] = 0.0;
         }
       }
     }
@@ -378,7 +466,95 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return geometry;
   }
 
-  // Render with 3D Hierarchical Edge Bundling algorithm with gradient coloring
+  /**
+   * Calculate position along curve (0 = origin, 1 = destination)
+   */
+  private calculateVertexT(
+    vertexPosition: THREE.Vector3,
+    curve: THREE.Curve<THREE.Vector3>
+  ): number {
+    const start = curve.getPoint(0);
+    const end = curve.getPoint(1);
+
+    const lineDirection = new THREE.Vector3()
+      .subVectors(end, start)
+      .normalize();
+    const vertexDirection = new THREE.Vector3().subVectors(
+      vertexPosition,
+      start
+    );
+
+    const projectedLength = vertexDirection.dot(lineDirection);
+    const totalLength = start.distanceTo(end);
+
+    return Math.min(1, Math.max(0, projectedLength / totalLength));
+  }
+
+  /**
+   * Get or create shared geometry for identical curves
+   */
+  private getSharedGeometry(
+    curve: THREE.Curve<THREE.Vector3>,
+    segments: number
+  ): THREE.BufferGeometry {
+    const key = this.generateGeometryKey(curve, segments);
+
+    if (!ClazzCommunicationMesh.sharedGeometries.has(key)) {
+      const geometry = new THREE.TubeGeometry(
+        curve,
+        segments,
+        this.layout.lineThickness
+      );
+      ClazzCommunicationMesh.sharedGeometries.set(key, geometry);
+      ClazzCommunicationMesh.geometryUsageCount.set(key, 1);
+    } else {
+      const count = ClazzCommunicationMesh.geometryUsageCount.get(key) || 0;
+      ClazzCommunicationMesh.geometryUsageCount.set(key, count + 1);
+    }
+
+    return ClazzCommunicationMesh.sharedGeometries.get(key)!;
+  }
+
+  /**
+   * Generate unique key for geometry caching
+   */
+  private generateGeometryKey(
+    curve: THREE.Curve<THREE.Vector3>,
+    segments: number
+  ): string {
+    if (this._use3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
+      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${segments}_${this.layout.lineThickness}`;
+    } else {
+      const start = curve.getPoint(0);
+      const end = curve.getPoint(1);
+      const mid = curve.getPoint(0.5);
+
+      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_${segments}_${this.layout.lineThickness}`;
+    }
+  }
+
+  private releaseSharedGeometry(geometry: THREE.BufferGeometry): void {
+    let foundKey: string | null = null;
+    ClazzCommunicationMesh.sharedGeometries.forEach((geo, key) => {
+      if (geo === geometry) {
+        foundKey = key;
+      }
+    });
+
+    if (foundKey) {
+      const count =
+        ClazzCommunicationMesh.geometryUsageCount.get(foundKey) || 0;
+      if (count <= 1) {
+        ClazzCommunicationMesh.sharedGeometries.delete(foundKey);
+        ClazzCommunicationMesh.geometryUsageCount.delete(foundKey);
+      } else {
+        ClazzCommunicationMesh.geometryUsageCount.set(foundKey, count - 1);
+      }
+    }
+  }
+  /**
+   * Modified render methods that use shared geometries
+   */
   private renderWith3DHAPGradient(curveSegments: number): void {
     const bundledLayout = this.getBundledLayout();
     if (
@@ -387,21 +563,21 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       !this._originHAP ||
       !this._destinationHAP
     ) {
-      // Fallback to existing algorithm if 3D-HAP not available
       this.renderWithEdgeBundling(curveSegments);
       return;
     }
 
-    // Ensure HAP information is up to date
     bundledLayout.setHAPNodes(this._originHAP, this._destinationHAP);
     bundledLayout.setBeta(this._beta);
 
     const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
 
-    // Use gradient-colored geometry
-    this.geometry = this.createGradientColoredGeometry(curve, curveSegments);
+    // Use shared geometry instead of creating new one
+    const sharedGeometry = this.getSharedGeometry(curve, curveSegments);
 
-    // Use vertex color material
+    // Create vertex colors on the shared geometry
+    this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
+
     this.material = new THREE.MeshBasicMaterial({
       vertexColors: true,
       transparent: true,
@@ -409,19 +585,15 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     });
   }
 
-  // Render with existing edge bundling algorithm (fallback)
   private renderWithEdgeBundling(curveSegments: number): void {
     const bundledLayout = this.getBundledLayout();
     if (!bundledLayout) return;
 
     const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
-    this.geometry = new THREE.TubeGeometry(
-      curve,
-      curveSegments,
-      this.layout.lineThickness
-    );
 
-    // Apply custom material for bundled edges
+    // Use shared geometry
+    this.geometry = this.getSharedGeometry(curve, curveSegments);
+
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
       transparent: true,
@@ -483,6 +655,17 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   }
 
+  /**
+   * Static method to clear all shared geometries
+   */
+  public static clearSharedGeometries(): void {
+    ClazzCommunicationMesh.sharedGeometries.forEach((geometry) => {
+      geometry.dispose();
+    });
+    ClazzCommunicationMesh.sharedGeometries.clear();
+    ClazzCommunicationMesh.geometryUsageCount.clear();
+  }
+
   // Get HAP information for debugging
   public getHAPInfo(): {
     hasHAPSystem: boolean;
@@ -513,6 +696,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   addArrows() {
     if (!this.layout) return;
 
+    // Remove arrows when edge bundling is active
+    if (this._enableEdgeBundling) {
+      this.removeExistingArrows();
+      return;
+    }
+
     // Remove old arrows which might exist
     for (let i = this.children.length - 1; i >= 0; i--) {
       const arrow = this.children[i];
@@ -541,6 +730,18 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     } else {
       // Save arrow for potential upcoming use
       this.potentialBidirectionalArrow = this.createArrowMesh(end, start);
+    }
+  }
+
+  private removeExistingArrows(): void {
+    for (let i = this.children.length - 1; i >= 0; i--) {
+      const child = this.children[i];
+      if (child instanceof CommunicationArrowMesh) {
+        this.remove(child);
+        if (child.disposeRecursively) {
+          child.disposeRecursively();
+        }
+      }
     }
   }
 
@@ -635,32 +836,256 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   applyHoverEffect(arg?: VisualizationMode | number): void {
     if (arg === 'vr' && !this.isHovered) {
-      this.layout.lineThickness *= 5;
-      this.geometry.dispose();
-      this.render();
+      this.savePreHoverState();
+
+      const originalThickness = this.layout.lineThickness;
+      const hoverThickness = originalThickness * 5;
+
+      const hoverGeometry = this.getHoverGeometry(hoverThickness);
+
+      this.switchToHoverDisplay(hoverGeometry, hoverThickness);
+
       super.applyHoverEffect();
 
       this.getArrowMeshes().forEach((arrowMesh) => {
         arrowMesh.applyHoverEffect(arg);
       });
+
+      this._isInHoverMode = true;
     } else if (!this.isHovered) {
       super.applyHoverEffect();
     }
   }
 
+  private savePreHoverState(): void {
+    this._preHoverState = {
+      geometry: this.geometry,
+      material: this.material,
+      lineThickness: this.layout.lineThickness,
+      position: this.position.clone(),
+      needsRender: this._needsRender,
+    };
+  }
+
+  private getHoverGeometry(hoverThickness: number): THREE.BufferGeometry {
+    const cacheKey = this.generateHoverCacheKey(hoverThickness);
+
+    this.cleanupHoverCacheIfNeeded();
+
+    if (ClazzCommunicationMesh.hoverGeometryCache.has(cacheKey)) {
+      const cacheEntry =
+        ClazzCommunicationMesh.hoverGeometryCache.get(cacheKey)!;
+      cacheEntry.usageCount++;
+      cacheEntry.timestamp = Date.now();
+
+      return cacheEntry.geometry;
+    }
+
+    const geometry = this.createSimpleHoverGeometry(hoverThickness);
+
+    ClazzCommunicationMesh.hoverGeometryCache.set(cacheKey, {
+      geometry,
+      timestamp: Date.now(),
+      usageCount: 1,
+    });
+
+    this.limitHoverCacheSize();
+
+    return geometry;
+  }
+
+  private createSimpleHoverGeometry(
+    hoverThickness: number
+  ): THREE.BufferGeometry {
+    const start = this.layout.startPoint;
+    const end = this.layout.endPoint;
+    const direction = new THREE.Vector3().subVectors(end, start);
+    const length = direction.length();
+
+    if (length < 0.001) {
+      return new THREE.SphereGeometry(hoverThickness * 2, 8, 8);
+    }
+
+    const geometry = new THREE.CylinderGeometry(
+      hoverThickness,
+      hoverThickness,
+      length,
+      12, // Radial segments
+      1, // Hight segments
+      false // closed
+    );
+
+    const orientation = new THREE.Matrix4();
+    orientation.lookAt(start, end, new THREE.Object3D().up);
+    orientation.multiply(
+      new THREE.Matrix4().set(1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1)
+    );
+
+    geometry.applyMatrix4(orientation);
+
+    return geometry;
+  }
+
+  private switchToHoverDisplay(
+    hoverGeometry: THREE.BufferGeometry,
+    hoverThickness: number
+  ): void {
+    this.geometry = hoverGeometry;
+
+    const start = this.layout.startPoint;
+    const end = this.layout.endPoint;
+    this.position.copy(end.add(start).divideScalar(2));
+
+    this.layout.lineThickness = hoverThickness;
+
+    this.material = new THREE.MeshBasicMaterial({
+      color: this.highlightingColor || 0xffff00,
+      transparent: true,
+      opacity: 0.9,
+    });
+
+    this._needsRender = false;
+  }
+
   resetHoverEffect(mode?: VisualizationMode): void {
-    if (this.isHovered) {
-      super.resetHoverEffect();
-      if (mode === 'vr') {
-        this.layout.lineThickness /= 5;
-        this.geometry.dispose();
-        this.render();
+    if (this.isHovered && this._isInHoverMode) {
+      if (mode === 'vr' && this._preHoverState) {
+        this.restorePreHoverState();
       }
+
+      super.resetHoverEffect();
 
       this.getArrowMeshes().forEach((arrowMesh) => {
         arrowMesh.resetHoverEffect(mode);
       });
+
+      this._isInHoverMode = false;
+    } else if (this.isHovered) {
+      super.resetHoverEffect();
     }
+  }
+
+  private restorePreHoverState(): void {
+    if (!this._preHoverState) return;
+
+    this.geometry = this._preHoverState.geometry;
+
+    this.material = this._preHoverState.material;
+
+    this.layout.lineThickness = this._preHoverState.lineThickness;
+
+    this.position.copy(this._preHoverState.position);
+
+    this._needsRender = this._preHoverState.needsRender;
+
+    if (this._needsRender) {
+      requestAnimationFrame(() => {
+        if (this._needsRender && !this._isInHoverMode) {
+          this.render();
+        }
+      });
+    }
+
+    this._preHoverState = null;
+  }
+
+  private generateHoverCacheKey(hoverThickness: number): string {
+    const start = this.layout.startPoint;
+    const end = this.layout.endPoint;
+
+    const round = (val: number) => Math.round(val * 10) / 10;
+
+    return (
+      `hover_${round(start.x)}_${round(start.y)}_${round(start.z)}_` +
+      `${round(end.x)}_${round(end.y)}_${round(end.z)}_` +
+      `${round(hoverThickness)}`
+    );
+  }
+
+  private cleanupHoverCacheIfNeeded(): void {
+    const now = Date.now();
+
+    if (
+      now - ClazzCommunicationMesh.lastCacheCleanup >
+      ClazzCommunicationMesh.CACHE_CLEANUP_INTERVAL
+    ) {
+      let deletedCount = 0;
+      const maxAge = 60000;
+
+      for (const [
+        key,
+        entry,
+      ] of ClazzCommunicationMesh.hoverGeometryCache.entries()) {
+        if (now - entry.timestamp > maxAge && entry.usageCount === 1) {
+          entry.geometry.dispose();
+          ClazzCommunicationMesh.hoverGeometryCache.delete(key);
+          deletedCount++;
+        }
+      }
+
+      ClazzCommunicationMesh.lastCacheCleanup = now;
+    }
+  }
+
+  private limitHoverCacheSize(): void {
+    if (
+      ClazzCommunicationMesh.hoverGeometryCache.size <=
+      ClazzCommunicationMesh.MAX_HOVER_CACHE_SIZE
+    ) {
+      return;
+    }
+
+    const entries = Array.from(
+      ClazzCommunicationMesh.hoverGeometryCache.entries()
+    );
+    entries.sort((a, b) => {
+      const scoreA = a[1].usageCount * 1000 + (Date.now() - a[1].timestamp);
+      const scoreB = b[1].usageCount * 1000 + (Date.now() - b[1].timestamp);
+      return scoreA - scoreB;
+    });
+
+    const toRemove = Math.floor(entries.length / 2);
+    for (let i = 0; i < toRemove; i++) {
+      const [key, entry] = entries[i];
+      entry.geometry.dispose();
+      ClazzCommunicationMesh.hoverGeometryCache.delete(key);
+    }
+  }
+
+  public static clearHoverCache(): void {
+    ClazzCommunicationMesh.hoverGeometryCache.forEach((entry) => {
+      entry.geometry.dispose();
+    });
+
+    ClazzCommunicationMesh.hoverGeometryCache.clear();
+    ClazzCommunicationMesh.lastCacheCleanup = Date.now();
+  }
+
+  public static getHoverCacheStats(): {
+    size: number;
+    totalUsage: number;
+    avgUsage: number;
+  } {
+    let totalUsage = 0;
+    let minUsage = Infinity;
+    let maxUsage = 0;
+
+    ClazzCommunicationMesh.hoverGeometryCache.forEach((entry) => {
+      totalUsage += entry.usageCount;
+      minUsage = Math.min(minUsage, entry.usageCount);
+      maxUsage = Math.max(maxUsage, entry.usageCount);
+    });
+
+    const avgUsage =
+      ClazzCommunicationMesh.hoverGeometryCache.size > 0
+        ? totalUsage / ClazzCommunicationMesh.hoverGeometryCache.size
+        : 0;
+
+    return {
+      size: ClazzCommunicationMesh.hoverGeometryCache.size,
+      totalUsage,
+      avgUsage,
+    };
   }
 
   getArrowMeshes() {
@@ -688,7 +1113,7 @@ declare module '@react-three/fiber' {
         iterations: number;
         stepSize: number;
       };
-      // New 3D-HAP properties
+      // 3D-HAP properties
       beta?: number;
       use3DHAPAlgorithm?: boolean;
       hapSystem?: HierarchicalAttractionSystem;
