@@ -257,7 +257,6 @@ export default function CanvasWrapper({
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={store} />
         <CameraControls
           ref={cameraControlsRef}
           dollySpeed={0.3}
