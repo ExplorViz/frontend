@@ -403,13 +403,22 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   curvyCommHeight: {
     level: SettingLevel.DEFAULT,
-    value: 1.0,
-    range: { min: 0.0, max: 5.0, step: 0.1 },
+    value: 5.0,
+    range: { min: 0.0, max: 25.0, step: 0.1 },
     group: 'Communication',
     displayName: 'Communication Curviness',
     description:
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
+  },
+  commCurveHeightDependsOnDistance: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Communication',
+    displayName: 'Curve Height Depends on Distance',
+    description:
+      'If enabled, communication curve height is calculated based on the distance between source and target',
+    isFlagSetting: true,
   },
   enableEdgeBundling: {
     level: SettingLevel.DEFAULT,

@@ -1,4 +1,3 @@
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -115,7 +114,6 @@ export function getWorldPositionOfCommunication(
   communicationId: string
 ): THREE.Vector3 {
   const modelStore = useModelStore.getState();
-  const configStore = useConfigurationStore.getState();
   const userSettings = useUserSettingsStore.getState().visualizationSettings;
 
   const communication = modelStore.getCommunication(communicationId);
@@ -140,7 +138,8 @@ export function getWorldPositionOfCommunication(
   const midpoint = sourcePos.clone().add(targetPos).multiplyScalar(0.5);
 
   // Calculate height based on distance and settings
-  const { commCurveHeightDependsOnDistance } = configStore;
+  const commCurveHeightDependsOnDistance =
+    userSettings.commCurveHeightDependsOnDistance?.value ?? true;
   const curvyCommHeight = userSettings.curvyCommHeight?.value ?? 1.0;
 
   const horizontalDistance = Math.hypot(
@@ -149,8 +148,8 @@ export function getWorldPositionOfCommunication(
   );
 
   const baseHeight = commCurveHeightDependsOnDistance
-    ? horizontalDistance * 0.25
-    : 20;
+    ? horizontalDistance * 0.1
+    : 50;
 
   // Apply height to midpoint
   midpoint.y = baseHeight * curvyCommHeight;

@@ -1,7 +1,6 @@
 import { ThreeElements, ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -72,6 +71,7 @@ export default function CommunicationR3F({
     // 3D-HAP specific settings
     beta,
     use3DHAPAlgorithm,
+    commCurveHeightDependsOnDistance,
   } = useUserSettingsStore(
     useShallow((state) => {
       // Safe access with fallbacks for migration
@@ -97,6 +97,8 @@ export default function CommunicationR3F({
         // 3D-HAP settings with safe fallbacks
         beta: vizSettings.beta?.value ?? 0.8,
         use3DHAPAlgorithm: vizSettings.use3DHAPAlgorithm?.value ?? false,
+        commCurveHeightDependsOnDistance:
+          vizSettings.commCurveHeightDependsOnDistance?.value ?? true,
       };
     })
   );
@@ -110,12 +112,6 @@ export default function CommunicationR3F({
   );
 
   const { scene } = useThree();
-
-  const { commCurveHeightDependsOnDistance } = useConfigurationStore(
-    useShallow((state) => ({
-      commCurveHeightDependsOnDistance: state.commCurveHeightDependsOnDistance,
-    }))
-  );
 
   const { evoConfig } = useVisibilityServiceStore(
     useShallow((state) => ({
@@ -345,13 +341,13 @@ export default function CommunicationR3F({
   ]);
 
   const computedCurveHeight = useMemo(() => {
-    let baseCurveHeight = 20;
+    let baseCurveHeight = 50;
     if (communicationLayout && commCurveHeightDependsOnDistance) {
       const classDistance = Math.hypot(
         communicationLayout.endX - communicationLayout.startX,
         communicationLayout.endZ - communicationLayout.startZ
       );
-      baseCurveHeight = classDistance * 0.5;
+      baseCurveHeight = classDistance * 0.1;
     }
 
     // Level-based curveHeight for HAP-edges
