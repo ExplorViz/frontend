@@ -31,6 +31,9 @@ interface CopilotToolsProps {
   applications?: Application[];
 }
 
+const SCREENSHOT_MAX_WIDTH = 1280;
+const SCREENSHOT_MAX_HEIGHT = 720;
+
 function getAllSubPackages(pkg: Package): Package[] {
   return [pkg, ...pkg.subPackages.flatMap(getAllSubPackages)];
 }
@@ -1170,82 +1173,48 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   useCopilotAction({
     name: 'take-screenshot',
     description:
-      'Takes a screenshot of the current browser window and appends it as an user message to the chat. You can use this for example to explain other elements of the ExplorViz frontend to the user, that are not part of the 3d landscape. When an error occurs when taking the screenshot, please explain the error message to the user. The screenshot does not include the 3d landscape due to technical limitations, but all other parts of the frontend UI are visible in the screenshot.',
+      'Takes a screenshot of the current browser window, scales it down to a max of 1280x720 if larger, and appends it as an user message to the chat. Use this to explain UI parts outside the 3d landscape. When an error occurs when taking the screenshot, please explain the error message to the user.',
     parameters: [],
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
-      // let track: MediaStreamTrack | undefined;
-      // try {
-      //   const captureStream = await navigator.mediaDevices.getDisplayMedia({
-      //     video: {
-      //       displaySurface: 'browser',
-      //     },
-      //     preferCurrentTab: true,
-      //     selfBrowserSurface: 'include',
-      //     surfaceSwitching: 'include',
-      //     monitorTypeSurfaces: 'exclude',
-      //   } as any);
-      //   track = captureStream.getVideoTracks().find(Boolean);
-      //   if (track) {
-      //     let imageCapture = new ImageCapture(track);
-      //     const screenshot = await imageCapture.grabFrame();
-      //     //track.stop();
-      //     const url = await new Promise<string>((resolve, reject) => {
-      //       const canvas = document.createElement('canvas');
-      //       canvas.width = screenshot.width;
-      //       canvas.height = screenshot.height;
-      //       const context = canvas.getContext('2d');
-      //       if (!context) {
-      //         reject(new Error('Could not get canvas context'));
-      //         return;
-      //       }
-      //       context.drawImage(screenshot, 0, 0);
-      //       canvas.toBlob((blob) => {
-      //         if (blob) {
-      //           const reader = new FileReader();
-      //           reader.onloadend = () => {
-      //             resolve(reader.result as string);
-      //           };
-      //           reader.readAsDataURL(blob);
-      //         } else {
-      //           reject(new Error('Could not convert canvas to blob'));
-      //         }
-      //       }, 'image/png');
-      //     });
-      //     console.log('Screenshot taken: ', url);
-      //     const [format, bytes] = url
-      //       .split(/data:image\/|;|base64,/)
-      //       .filter(Boolean);
-      //     await sendMessage({
-      //       id: 'screenshot-' + Date.now(),
-      //       role: 'user',
-      //       image: {
-      //         format,
-      //         bytes,
-      //       },
-      //       content: '',
-      //     });
-      //     return 'Screenshot taken and appended to the chat.';
-      //   } else {
-      //     throw new Error('No video track available for screenshot.');
-      //   }
-      // } catch (err) {
-      //   track?.stop();
-      //   console.error('Error taking screenshot: ', err);
-      //   return `Error taking screenshot: ${err instanceof Error ? err.message : String(err)}`;
-      // }
-      const url = await htmlToImage.toBlob(document.body).then(function (blob) {
+      const url = await htmlToImage.toBlob(document.body).then((blob) => {
         return new Promise<string>((resolve, reject) => {
-          if (blob) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              resolve(reader.result as string);
-            };
-            reader.readAsDataURL(blob);
-          } else {
+          if (!blob) {
             reject(new Error('Could not convert to blob'));
+            return;
           }
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const img = new Image();
+            img.onload = () => {
+              const { width, height } = img;
+              const scale = Math.min(
+                1,
+                SCREENSHOT_MAX_WIDTH / width,
+                SCREENSHOT_MAX_HEIGHT / height
+              );
+              if (scale < 1) {
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(width * scale);
+                canvas.height = Math.round(height * scale);
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                  reject(new Error('Could not get canvas context'));
+                  return;
+                }
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/png'));
+              } else {
+                resolve(img.src);
+              }
+            };
+            img.onerror = () => reject(new Error('Could not load screenshot'));
+            img.src = reader.result as string;
+          };
+          reader.onerror = () =>
+            reject(new Error('Could not read screenshot data'));
+          reader.readAsDataURL(blob);
         });
       });
       const [format, bytes] = url
