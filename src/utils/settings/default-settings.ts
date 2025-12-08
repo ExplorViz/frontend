@@ -376,7 +376,7 @@ export const defaultVizSettings: VisualizationSettings = {
   commThickness: {
     level: SettingLevel.DEFAULT,
     value: 2.0,
-    range: { min: 0.05, max: 5.0, step: 0.05 },
+    range: { min: 0.05, max: 10.0, step: 0.05 },
     group: 'Communication',
     displayName: 'Communication Line Thickness',
     description: 'Factor that scales thickness of communication lines',

@@ -134,25 +134,27 @@ export function getWorldPositionOfCommunication(
     return new THREE.Vector3();
   }
 
-  // Calculate midpoint between source and target
+  // Calculate midpoint between source and target (same as communication-r3f.tsx)
   const midpoint = sourcePos.clone().add(targetPos).multiplyScalar(0.5);
 
   // Calculate height based on distance and settings
   const commCurveHeightDependsOnDistance =
     userSettings.commCurveHeightDependsOnDistance?.value ?? true;
-  const curvyCommHeight = userSettings.curvyCommHeight?.value ?? 1.0;
+  const curvyCommHeight = userSettings.curvyCommHeight?.value ?? 5.0;
 
   const horizontalDistance = Math.hypot(
     targetPos.x - sourcePos.x,
     targetPos.z - sourcePos.z
   );
 
-  const baseHeight = commCurveHeightDependsOnDistance
-    ? horizontalDistance * 0.1
-    : 50;
+  let baseCurveHeight = 50;
+  if (commCurveHeightDependsOnDistance) {
+    baseCurveHeight = horizontalDistance * 0.1;
+  }
 
-  // Apply height to midpoint
-  midpoint.y = baseHeight * curvyCommHeight;
+  const computedCurveHeight = baseCurveHeight * curvyCommHeight;
+
+  midpoint.y = computedCurveHeight / 2;
 
   return midpoint;
 }
