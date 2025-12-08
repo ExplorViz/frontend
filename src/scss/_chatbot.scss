@@ -1,5 +1,10 @@
 .chatbot {
   margin-top: 2rem;
+  --copilot-kit-background-color: transparent;
+}
+
+.copilotKitMessages::-webkit-scrollbar-track {
+  background-color: transparent !important;
 }
 
 .chatbox-button-area {
