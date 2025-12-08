@@ -7,6 +7,7 @@ import {
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
 import { useEffect, useState } from 'react';
+import { Button } from 'react-bootstrap';
 import {
   createSearchParams,
   Outlet,
@@ -89,6 +90,37 @@ export default function Application() {
       autoSelectLandscape();
     }
   }, [searchParams, user]);
+
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const login = useAuthStore((state) => state.login);
+  if (!isInitialized) {
+    // Zeige Ladebalken, solange Keycloak noch mit dem Server redet
+    return <>
+            <Navbar /> 
+            <div id="landscape-container" style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <span>Connecting to KeyCloak ...</span>
+            </div>;
+          </>
+  }
+
+  if (!isAuthenticated) {
+    return <>
+            <Navbar /> 
+            <div id="landscape-container" style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <h3>There is nothing to see here. Please log in.</h3>
+              <Button onClick={login}> Sign In / Register</Button>
+            </div>
+          </>
+  }
 
   return (
     <>

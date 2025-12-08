@@ -82,6 +82,7 @@
     "html-to-image": "^1.11.13",
     "jquery": "^3.7.1",
     "jszip": "^3.10.1",
+    "keycloak-js": "^26.2.1",
     "loader.js": "4.7.0",
     "meshline": "3.2.0",
     "plotly.js-dist": "^2.29.0",
