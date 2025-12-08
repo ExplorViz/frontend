@@ -95,7 +95,7 @@ export default function Application() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const login = useAuthStore((state) => state.login);
   if (!isInitialized) {
-    // Zeige Ladebalken, solange Keycloak noch mit dem Server redet
+    // Show a loading screen as long as keycloak is not connected
     return <>
             <Navbar /> 
             <div id="landscape-container" style={{

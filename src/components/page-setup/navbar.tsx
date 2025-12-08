@@ -205,7 +205,6 @@ export default function Navbar() {
                   className="dropdown-item"
                   type="button"
                   onClick={() => {
-                    // Hier Ihre Keycloak Account URL eintragen
                     window.location.href = `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}/account/`;
                   }}
                 >
