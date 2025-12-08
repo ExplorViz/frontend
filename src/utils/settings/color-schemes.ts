@@ -53,7 +53,6 @@ export const darkColors = {
 export const desertCity = {
   foundationColor: '#ffffff', // white
   classColor: '#e0e0e0', // light grey
-
-  componentRootLevelColor: '#f2ed59', // dark grey
-  componentDeepestLevelColor: '#afbac2', // light blue-grey
+  componentRootLevelColor: '#afbac2', // light blue-grey
+  componentDeepestLevelColor: '#f2ed59', // sand yellow
 };
