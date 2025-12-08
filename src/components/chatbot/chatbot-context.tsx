@@ -52,6 +52,7 @@ interface Context {
   setSelectedProvider: (provider: Provider) => void;
   selectedModel: Model;
   setSelectedModel: (model: Model) => void;
+  landscapeData: LandscapeData | null;
   pingScreenAtPoint: (x: number, y: number) => void;
   showToolsSidebar: boolean;
   setShowToolsSidebar: (open: boolean) => void;
@@ -71,6 +72,7 @@ const defaultContext: Context = {
   setSelectedProvider: () => {},
   selectedModel: { id: '', name: '' },
   setSelectedModel: () => {},
+  landscapeData: null,
   pingScreenAtPoint: () => {},
   showToolsSidebar: false,
   setShowToolsSidebar: () => {},
@@ -177,6 +179,7 @@ export function ChatbotProvider({
         setSelectedProvider: setSelectedProviderPersistent,
         selectedModel,
         setSelectedModel: setSelectedModelPersistent,
+        landscapeData,
         pingScreenAtPoint,
         showToolsSidebar,
         setShowToolsSidebar,

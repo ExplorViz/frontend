@@ -5,6 +5,7 @@ import { ChatbotChat } from 'explorviz-frontend/src/components/chatbot/chatbot-c
 import { ResetButton } from 'explorviz-frontend/src/components/chatbot/reset-button';
 import { EditingBackButton } from 'explorviz-frontend/src/components/editing/editing-back-button';
 import { EditingForwardButton } from 'explorviz-frontend/src/components/editing/editing-forward-button';
+import { StudyDownloadButton } from 'explorviz-frontend/src/components/chatbot/study-download-button';
 
 export default function ChatbotBox() {
   return (
@@ -14,6 +15,7 @@ export default function ChatbotBox() {
           <EditingBackButton />
           <EditingForwardButton />
           <ResetButton />
+          <StudyDownloadButton />
           <ProviderDropdown />
           <ModelDropdown />
         </div>
