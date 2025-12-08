@@ -7,6 +7,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { calculateLineThickness } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   isApplication,
@@ -57,6 +58,7 @@ export default function CommunicationR3F({
     arrowWidth,
     communicationColor,
     curveHeight,
+    commThickness,
     highlightedEntityColor,
     enableHoverEffects,
 
@@ -82,6 +84,7 @@ export default function CommunicationR3F({
         communicationColor: vizSettings.communicationColor.value,
         highlightedEntityColor: state.colors?.highlightedEntityColor,
         curveHeight: vizSettings.curvyCommHeight.value,
+        commThickness: vizSettings.commThickness.value,
         enableHoverEffects: vizSettings.enableHoverEffects.value,
 
         // Edge Bundling settings
@@ -159,30 +162,6 @@ export default function CommunicationR3F({
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
-
-  const computeCurveHeight = () => {
-    let baseCurveHeight = 20;
-    if (communicationLayout && commCurveHeightDependsOnDistance) {
-      const classDistance = Math.hypot(
-        communicationLayout.endX - communicationLayout.startX,
-        communicationLayout.endZ - communicationLayout.startZ
-      );
-      baseCurveHeight = classDistance * 0.5;
-    }
-
-    // Level-based curveHeight for HAP-edges
-    if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes) {
-      const maxLevel = Math.max(
-        hapNodes.originHAP?.level || 0,
-        hapNodes.destinationHAP?.level || 0
-      );
-      // Higher hierarchy levels = larger curveHeight
-      const levelBasedMultiplier = 1.0 + maxLevel * 0.3;
-      return baseCurveHeight * curveHeight * levelBasedMultiplier;
-    }
-
-    return baseCurveHeight * curveHeight;
-  };
 
   // Edge Bundling config - only for fallback (when use3DHAPAlgorithm = false)
   const edgeBundlingConfig = useMemo<EdgeBundlingConfig>(
@@ -365,6 +344,37 @@ export default function CommunicationR3F({
     communicationModel.targetClass?.id,
   ]);
 
+  const computedCurveHeight = useMemo(() => {
+    let baseCurveHeight = 20;
+    if (communicationLayout && commCurveHeightDependsOnDistance) {
+      const classDistance = Math.hypot(
+        communicationLayout.endX - communicationLayout.startX,
+        communicationLayout.endZ - communicationLayout.startZ
+      );
+      baseCurveHeight = classDistance * 0.5;
+    }
+
+    // Level-based curveHeight for HAP-edges
+    if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes) {
+      const maxLevel = Math.max(
+        hapNodes.originHAP?.level || 0,
+        hapNodes.destinationHAP?.level || 0
+      );
+      // Higher hierarchy levels = larger curveHeight
+      const levelBasedMultiplier = 1.0 + maxLevel * 0.3;
+      return baseCurveHeight * curveHeight * levelBasedMultiplier;
+    }
+
+    return baseCurveHeight * curveHeight;
+  }, [
+    communicationLayout,
+    commCurveHeightDependsOnDistance,
+    enableEdgeBundling,
+    use3DHAPAlgorithm,
+    hapNodes,
+    curveHeight,
+  ]);
+
   const lastValuesRef = useRef({
     beta: 0.8,
     use3DHAPAlgorithm: false,
@@ -420,28 +430,39 @@ export default function CommunicationR3F({
       communicationLayout.endZ
     );
 
+    // Recalculate line thickness based on current commThickness setting
+    const updatedLineThickness = calculateLineThickness(
+      communicationModel,
+      commThickness
+    );
+
     if (!enableEdgeBundling) {
       // Edge-Bundling off -> Original layout
       if (communicationLayout instanceof BundledCommunicationLayout) {
         const normalLayout = new CommunicationLayout(communicationModel);
         normalLayout.startPoint = communicationLayout.startPoint;
         normalLayout.endPoint = communicationLayout.endPoint;
-        normalLayout.lineThickness = communicationLayout.lineThickness;
+        normalLayout.lineThickness = updatedLineThickness;
         return normalLayout;
       }
-      return communicationLayout;
+      // Always create a new copy to ensure new object reference
+      const updatedLayout = communicationLayout.copy();
+      updatedLayout.lineThickness = updatedLineThickness;
+      return updatedLayout;
     }
 
     let bundledLayout: BundledCommunicationLayout;
 
     if (communicationLayout instanceof BundledCommunicationLayout) {
-      bundledLayout = communicationLayout;
+      // Always create a new copy to ensure new object reference
+      bundledLayout = communicationLayout.copy();
+      bundledLayout.lineThickness = updatedLineThickness;
     } else {
       bundledLayout = new BundledCommunicationLayout(
         communicationModel,
         startPoint,
         endPoint,
-        communicationLayout.lineThickness,
+        updatedLineThickness,
         edgeBundlingConfig
       );
     }
@@ -460,6 +481,7 @@ export default function CommunicationR3F({
   }, [
     communicationLayout,
     communicationModel,
+    commThickness,
     edgeBundlingConfig,
     enableEdgeBundling,
     use3DHAPAlgorithm,
@@ -566,6 +588,7 @@ export default function CommunicationR3F({
     meshRef.current.enableEdgeBundling = enableEdgeBundling;
     meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm;
     meshRef.current.beta = beta;
+    meshRef.current.curveHeight = computedCurveHeight;
 
     if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes && hapSystem) {
       meshRef.current.initializeHAPSystem(
@@ -583,6 +606,7 @@ export default function CommunicationR3F({
     hapNodes,
     hapSystem,
     beta,
+    computedCurveHeight,
   ]);
 
   // Initialize HAP system on the mesh when it's created
@@ -685,7 +709,7 @@ export default function CommunicationR3F({
       arrowOffset={arrowOffset}
       layout={finalLayout}
       arrowWidth={arrowWidth}
-      curveHeight={computeCurveHeight()}
+      curveHeight={computedCurveHeight}
       defaultColor={communicationColor}
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}
