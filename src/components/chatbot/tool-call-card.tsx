@@ -35,6 +35,8 @@ type Action =
 type Status = 'inProgress' | 'executing' | 'complete';
 
 interface ToolCallCardProps {
+  message?: string;
+  messageArgs?: Record<string, any>;
   component?: {
     id?: string;
     name?: string;
@@ -53,9 +55,10 @@ export function ToolCallCard({
   action,
   showPopup,
   errorMessage,
+  messageArgs,
+  message = getMessage(status, action, errorMessage, messageArgs),
   onClick,
 }: ToolCallCardProps) {
-  const message = getMessage(status, action, errorMessage);
   const disabled = !component?.id && !onClick;
   const application = component?.id
     ? useModelStore.getState().getApplication(component?.id)
@@ -116,7 +119,12 @@ function AnimatedEllipsis() {
   return '.'.repeat(count);
 }
 
-function getMessage(status: Status, action?: Action, errorMessage?: string) {
+function getMessage(
+  status: Status,
+  action?: Action,
+  errorMessage?: string,
+  messageArgs?: Record<string, string>
+): string {
   switch (status) {
     case 'inProgress':
     case 'executing':
@@ -160,7 +168,7 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
         case 'addApplication':
           return 'Adding application';
         case 'addClasses':
-          return 'Adding classes to';
+          return `Adding ${messageArgs?.classes?.length ?? '?'} classes to`;
         case 'removeComponent':
           return 'Removing component';
         case 'undoEdit':
@@ -217,7 +225,7 @@ function getMessage(status: Status, action?: Action, errorMessage?: string) {
         case 'addApplication':
           return 'Added application';
         case 'addClasses':
-          return 'Added classes to';
+          return `Added ${messageArgs?.classes?.length ?? '?'} classes to`;
         case 'removeComponent':
           return 'Removed component';
         case 'undoEdit':

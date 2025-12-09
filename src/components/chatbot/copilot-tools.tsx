@@ -1108,6 +1108,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
       <ToolCallCard
         status={status}
         action="addClasses"
+        messageArgs={args}
         component={{ id: args.applicationId }}
       />
     ),
