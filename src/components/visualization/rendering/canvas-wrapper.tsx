@@ -1,7 +1,7 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { XR } from '@react-three/xr';
+import { XR, IfInSessionMode } from '@react-three/xr';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -260,80 +260,83 @@ export default function CanvasWrapper({
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={store} />
-        <CameraControls
-          ref={cameraControlsRef}
-          dollySpeed={0.3}
-          draggingSmoothTime={0.05}
-          maxDistance={250}
-          maxPolarAngle={0.5 * Math.PI}
-          makeDefault
-          minDistance={1}
-          mouseButtons={{
-            left: getMouseMapping(leftMouseButtonAction) as any,
-            middle: getMouseMapping(middleMouseButtonAction) as any,
-            wheel: getMouseMapping(mouseWheelAction) as any,
-            right: getMouseMapping(rightMouseButtonAction) as any,
-          }}
-          smoothTime={0.5}
-        />
-        <PerspectiveCamera
-          position={INITIAL_CAMERA_POSITION}
-          fov={cameraFov}
-          near={cameraNear}
-          far={cameraFar}
-          makeDefault
-        />
-        <SpectateCameraController />
-        <CollaborationCameraSync />
-        <LandscapeR3F
-          layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
-        >
-          {applicationModels.map((appModel) => (
-            <CodeCity
-              key={appModel.application.id}
-              applicationData={appModel}
-              layoutMap={layoutMap || appModel.boxLayoutMap}
+        <XR store={store}>
+          <IfInSessionMode deny={['immersive-ar', 'immersive-vr']}>
+            <CameraControls
+              ref={cameraControlsRef}
+              dollySpeed={0.3}
+              draggingSmoothTime={0.05}
+              maxDistance={250}
+              maxPolarAngle={0.5 * Math.PI}
+              makeDefault
+              minDistance={1}
+              mouseButtons={{
+                left: getMouseMapping(leftMouseButtonAction) as any,
+                middle: getMouseMapping(middleMouseButtonAction) as any,
+                wheel: getMouseMapping(mouseWheelAction) as any,
+                right: getMouseMapping(rightMouseButtonAction) as any,
+              }}
+              smoothTime={0.5}
             />
-          ))}
-          {isCommRendered &&
-            interAppCommunications.map((communication) => (
-              <CommunicationR3F
-                key={communication.id}
-                communicationModel={communication}
-                communicationLayout={computeCommunicationLayout(
-                  communication,
-                  applicationModels,
-                  layoutMap || applicationModels[0].boxLayoutMap
-                )}
-                applicationElement={communication.sourceApp}
-                layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+            <PerspectiveCamera
+              position={INITIAL_CAMERA_POSITION}
+              fov={cameraFov}
+              near={cameraNear}
+              far={cameraFar}
+              makeDefault
+            />
+            <SpectateCameraController />
+            <CollaborationCameraSync />
+          </IfInSessionMode>
+          <LandscapeR3F
+            layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
+          >
+            {applicationModels.map((appModel) => (
+              <CodeCity
+                key={appModel.application.id}
+                applicationData={appModel}
+                layoutMap={layoutMap || appModel.boxLayoutMap}
               />
             ))}
-        </LandscapeR3F>
-        <AnimatedPing />
-        <TraceReplayOverlayR3F />
-        <ambientLight />
-        <directionalLight
-          name="DirectionalLight"
-          ref={directionalLightRef}
-          intensity={2}
-          position={[5, 10, -20]}
-          castShadow={castShadows}
-        />
-        {showLightHelper && directionalLightRef.current && (
-          <directionalLightHelper
-            args={[directionalLightRef.current, 2, 0x0000ff]}
+            {isCommRendered &&
+              interAppCommunications.map((communication) => (
+                <CommunicationR3F
+                  key={communication.id}
+                  communicationModel={communication}
+                  communicationLayout={computeCommunicationLayout(
+                    communication,
+                    applicationModels,
+                    layoutMap || applicationModels[0].boxLayoutMap
+                  )}
+                  applicationElement={communication.sourceApp}
+                  layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                />
+              ))}
+          </LandscapeR3F>
+          <AnimatedPing />
+          <TraceReplayOverlayR3F />
+          <ambientLight />
+          <directionalLight
+            name="DirectionalLight"
+            ref={directionalLightRef}
+            intensity={2}
+            position={[5, 10, -20]}
+            castShadow={castShadows}
           />
-        )}
-        {showFpsCounter && (
-          <>
-            <Stats showPanel={0} className="stats0" />
-            <Stats showPanel={1} className="stats1" />
-            <Stats showPanel={2} className="stats2" />
-          </>
-        )}
-        {showAxesHelper && <axesHelper args={[5]} />}
+          {showLightHelper && directionalLightRef.current && (
+            <directionalLightHelper
+              args={[directionalLightRef.current, 2, 0x0000ff]}
+            />
+          )}
+          {showFpsCounter && (
+            <>
+              <Stats showPanel={0} className="stats0" />
+              <Stats showPanel={1} className="stats1" />
+              <Stats showPanel={2} className="stats2" />
+            </>
+          )}
+          {showAxesHelper && <axesHelper args={[5]} />}
+        </XR>
       </Canvas>
     </>
   );

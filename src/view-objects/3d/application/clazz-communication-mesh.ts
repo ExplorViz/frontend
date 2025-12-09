@@ -56,6 +56,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   set layout(layout: CommunicationLayout) {
     this._layout = layout;
+    this._needsRender = true;
     this.render();
   }
 
@@ -66,6 +67,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   }
 
   set curveHeight(curveHeight: number) {
+    // Release old geometry if it exists (curve height affects geometry)
+    if (this.geometry) {
+      this.releaseSharedGeometry(this.geometry);
+    }
     this._curveHeight = curveHeight;
     this.render();
   }
@@ -374,10 +379,17 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private renderOriginalAlgorithm(curveSegments: number): void {
     const curve = this.layout.getCurve({ yOffset: this.curveHeight });
 
+    // Release old geometry before assigning new one
+    const oldGeometry = this.geometry;
     this.geometry = this.getSharedGeometry(
       curve,
       this.curveHeight === 0 ? 1 : curveSegments
     );
+
+    // If geometry changed, release the old one
+    if (oldGeometry && oldGeometry !== this.geometry) {
+      this.releaseSharedGeometry(oldGeometry);
+    }
 
     this.material = new THREE.MeshBasicMaterial({
       color: this.defaultColor,
