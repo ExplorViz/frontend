@@ -92,45 +92,62 @@ export class HAPSystemManager {
 
   public visualizeHAPs(applicationId: string, scene: THREE.Scene): void {
     const system = this.getHAPSystem(applicationId);
-    if (!system) return;
-
-    const hapTree = system.getHAPTree();
-    if (!hapTree) return;
+    if (!system) {
+      return;
+    }
 
     const landscapeGroup = scene.children.find(
       (child) => child.type === 'Group' && child.scale.x < 1
-    );
+    ) as THREE.Group;
 
-    const scale = landscapeGroup ? landscapeGroup.scale.x : 0.01;
+    if (!landscapeGroup) {
+      return;
+    }
+    let hapGroup = landscapeGroup.children.find(
+      (child) => child.name === 'HAP_GROUP'
+    ) as THREE.Group;
+
+    if (!hapGroup) {
+      hapGroup = new THREE.Group();
+      hapGroup.name = 'HAP_GROUP';
+      landscapeGroup.add(hapGroup);
+    } else {
+      while (hapGroup.children.length > 0) {
+        const child = hapGroup.children[0];
+        hapGroup.remove(child);
+        if (child instanceof THREE.Mesh || child instanceof THREE.Line) {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
+        }
+      }
+    }
+
+    const hapTree = system.getHAPTree();
+    if (!hapTree) {
+      return;
+    }
+
+    const scale = landscapeGroup.scale.x;
     const sizeMultiplier = 0.05 / scale;
 
-    const drawLinesFirst = (node: HAPNode) => {
+    const drawHAPTree = (node: HAPNode) => {
       if (node.parent) {
-        const startPos = node.position.clone();
-        const endPos = node.parent.position.clone();
-
         const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-          startPos,
-          endPos,
+          node.position.clone(),
+          node.parent.position.clone(),
         ]);
 
         const lineMaterial = new THREE.LineBasicMaterial({
           color: this.getLevelColor(node.level),
           transparent: true,
           opacity: 0.6,
-          linewidth: 3,
+          linewidth: 2,
         });
 
         const line = new THREE.Line(lineGeometry, lineMaterial);
-
-        (landscapeGroup || scene).add(line);
+        line.name = `HAP_LINE_${node.id}`;
+        hapGroup.add(line);
       }
-
-      node.children.forEach((child) => drawLinesFirst(child));
-    };
-
-    const drawSpheresAfter = (node: HAPNode) => {
-      const position = node.position.clone();
 
       let size: number;
       switch (node.level) {
@@ -154,16 +171,15 @@ export class HAPSystemManager {
         opacity: 0.8,
       });
 
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.copy(position);
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.copy(node.position);
+      sphere.name = `HAP_SPHERE_${node.id}`;
+      hapGroup.add(sphere);
 
-      (landscapeGroup || scene).add(mesh);
-
-      node.children.forEach((child) => drawSpheresAfter(child));
+      node.children.forEach((child) => drawHAPTree(child));
     };
 
-    drawLinesFirst(hapTree);
-    drawSpheresAfter(hapTree);
+    drawHAPTree(hapTree);
   }
 
   private getLevelColor(level: number): THREE.Color {

@@ -509,6 +509,33 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isFlagSetting: true,
   },
+  showHAPTree: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Show HAP Tree',
+    description:
+      'Debug visualization of HAP (Hierarchical Attraction Points) tree',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  scatterRadius: {
+    level: SettingLevel.DEFAULT,
+    value: 0.5,
+    range: { min: 0.0, max: 3.0, step: 0.05 },
+    group: 'Communication',
+    displayName: 'Edge Scatter Radius',
+    description:
+      'Controls how far edges are scattered apart (0 = no scattering)',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
 
   // bundlingBeta: {
   //   value: 0.5,

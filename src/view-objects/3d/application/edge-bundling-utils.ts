@@ -88,12 +88,14 @@ export class HierarchicalAttractionSystem {
     };
   }
 
-  // Scatter the edges around the first 3D-HAP (the one at class level)
   private addScattering(
     points: THREE.Vector3[],
-    scatterRadius: number = 0.3
+    scatteringStrength: number = 0.3,
+    scatterRadius: number = 0.5
   ): void {
-    if (points.length < 3) return;
+    if (points.length < 3 || scatteringStrength <= 0) return;
+
+    const effectiveRadius = scatterRadius * scatteringStrength;
 
     // Scatter the edges around the first 3D-HAP (the one at class level)
     const classLevelIndices: number[] = [];
@@ -108,9 +110,9 @@ export class HierarchicalAttractionSystem {
     // Use scattering only on class-level points
     classLevelIndices.forEach((index) => {
       const scatterVector = new THREE.Vector3(
-        (Math.random() - 0.5) * scatterRadius,
-        (Math.random() - 0.5) * scatterRadius * 0.5,
-        (Math.random() - 0.5) * scatterRadius
+        (Math.random() - 0.5) * effectiveRadius,
+        (Math.random() - 0.5) * effectiveRadius * 0.5,
+        (Math.random() - 0.5) * effectiveRadius
       );
       points[index].add(scatterVector);
     });
@@ -170,14 +172,15 @@ export class HierarchicalAttractionSystem {
     origin: THREE.Vector3,
     destination: THREE.Vector3,
     hapPath: { pathOrigin: HAPNode[]; pathDestination: HAPNode[] },
-    beta: number = 0.8
+    beta: number = 0.8,
+    scatteringStrength: number = 0.3,
+    scatterRadius: number = 30
   ): THREE.Vector3[] {
     const keepOnlyClassLevel = (path: HAPNode[]): HAPNode[] => {
       const classLevelHAPs = path.filter((node) => node.level === 0);
 
       return classLevelHAPs.length > 0 ? [classLevelHAPs[0]] : [];
     };
-    // Vereinfache auf maximal 1 HAP pro Pfad
     hapPath = {
       pathOrigin: hapPath.pathOrigin.length > 0 ? [hapPath.pathOrigin[0]] : [],
       pathDestination:
@@ -188,7 +191,7 @@ export class HierarchicalAttractionSystem {
 
     // hapPath = {
     //   pathOrigin: keepOnlyClassLevel(hapPath.pathOrigin),
-    //   pathDestination: keepOnlyClassLevel(hapPath.pathDestination)
+    //   pathDestination: keepOnlyClassLevel(hapPath.pathDestination),
     // };
 
     if (beta === 0) {
@@ -229,7 +232,8 @@ export class HierarchicalAttractionSystem {
     points.push(destination);
 
     // Apply Scattering to prevent overlapping edges
-    this.addScattering(points);
+    // this.addScattering(points);
+    this.addScattering(points, scatterRadius, scatteringStrength);
 
     return points;
   }

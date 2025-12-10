@@ -74,7 +74,9 @@ export type CommunicationSettingId =
   | 'bundlingStepSize'
   | 'beta'
   | 'use3DHAPAlgorithm'
-  | 'commCurveHeightDependsOnDistance';
+  | 'commCurveHeightDependsOnDistance'
+  | 'showHAPTree'
+  | 'scatterRadius';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -94,6 +96,8 @@ export type CommunicationSettings = {
   bundlingStepSize: RangeSetting;
   beta: RangeSetting;
   use3DHAPAlgorithm: FlagSetting;
+  showHAPTree: FlagSetting;
+  scatterRadius: RangeSetting;
 };
 
 export type DebugSettings = {

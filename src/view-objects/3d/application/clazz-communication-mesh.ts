@@ -19,11 +19,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   _layout: CommunicationLayout | undefined;
 
-  private _needsRender = true; // Nur bei Änderungen true setzen
+  private _needsRender = true;
   private _lastBeta = 0.8;
   private _lastHAPNodes: { originId?: string; destinationId?: string } = {};
 
-  // 🎯 STATISCHER CACHE für Hover-Geometrien
   private static hoverGeometryCache = new Map<
     string,
     {
@@ -33,12 +32,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     }
   >();
 
-  // 🎯 Cache-Konfiguration
   private static readonly MAX_HOVER_CACHE_SIZE = 200;
   private static readonly CACHE_CLEANUP_INTERVAL = 30000; // 30 Sekunden
   private static lastCacheCleanup = Date.now();
 
-  // 🎯 Zustand vor Hover
   private _preHoverState: {
     geometry: THREE.BufferGeometry;
     material: THREE.Material;
@@ -47,7 +44,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     needsRender: boolean;
   } | null = null;
 
-  // 🎯 Hover-Status
   private _isInHoverMode = false;
 
   get layout() {
@@ -125,6 +121,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _destinationHAP: HAPNode | null = null;
   private _beta: number = 0.8;
   private _use3DHAPAlgorithm: boolean = false;
+  private _scatterRadius: number = 0.5;
 
   // Shared geometries cache
   private static sharedGeometries: Map<string, THREE.BufferGeometry> =
@@ -171,6 +168,21 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     if (this._use3DHAPAlgorithm !== value) {
       this._use3DHAPAlgorithm = value;
       this._needsRender = true;
+    }
+  }
+
+  get scatterRadius(): number {
+    return this._scatterRadius;
+  }
+
+  set scatterRadius(value: number) {
+    const oldValue = this._scatterRadius;
+    const newValue = Math.max(0, Math.min(30, value));
+
+    if (Math.abs(oldValue - newValue) > 0.001) {
+      this._scatterRadius = newValue;
+      this._needsRender = true;
+      this.requestRender();
     }
   }
 
@@ -581,6 +593,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
     bundledLayout.setHAPNodes(this._originHAP, this._destinationHAP);
     bundledLayout.setBeta(this._beta);
+    bundledLayout.setScatterRadius(this._scatterRadius);
 
     const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
 
@@ -1131,6 +1144,7 @@ declare module '@react-three/fiber' {
       hapSystem?: HierarchicalAttractionSystem;
       originHAP?: HAPNode;
       destinationHAP?: HAPNode;
+      scatterRadius?: number;
     };
   }
 }

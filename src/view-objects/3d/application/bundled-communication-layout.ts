@@ -15,6 +15,7 @@ export class BundledCommunicationLayout extends CommunicationLayout {
   private _originHAP: HAPNode | null = null;
   private _destinationHAP: HAPNode | null = null;
   private _beta: number = 0.8;
+  private _scatterRadius: number = 0.5;
 
   constructor(
     model: ClassCommunication | ComponentCommunication,
@@ -49,6 +50,17 @@ export class BundledCommunicationLayout extends CommunicationLayout {
     this.updatePathFromHAP();
   }
 
+  public setScatterRadius(radius: number): void {
+    this._scatterRadius = Math.max(0, Math.min(30, radius));
+    if (this._originHAP && this._destinationHAP) {
+      this.updatePathFromHAP();
+    }
+  }
+
+  public getScatterRadius(): number {
+    return this._scatterRadius;
+  }
+
   // Update path using 3D-HAP algorithm
   private updatePathFromHAP(): void {
     if (!this._originHAP || !this._destinationHAP) {
@@ -64,7 +76,8 @@ export class BundledCommunicationLayout extends CommunicationLayout {
       this.startPoint,
       this.endPoint,
       hapPath,
-      this._beta
+      this._beta,
+      this._scatterRadius
     );
 
     // Remove start and end points to get control points only
@@ -156,6 +169,7 @@ export class BundledCommunicationLayout extends CommunicationLayout {
     );
     copy.updateControlPoints(this._controlPoints);
     copy.setBeta(this._beta);
+    copy.setScatterRadius(this._scatterRadius);
     if (this._originHAP && this._destinationHAP) {
       copy.setHAPNodes(this._originHAP, this._destinationHAP);
     }
