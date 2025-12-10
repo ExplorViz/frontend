@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import Button from 'react-bootstrap/Button';
 import { InfoIcon } from '@primer/octicons-react';
+import { useEffect, useRef } from 'react';
+import Button from 'react-bootstrap/Button';
 
 interface PopupButtonArgs {
   handleInfoInteraction(): void;

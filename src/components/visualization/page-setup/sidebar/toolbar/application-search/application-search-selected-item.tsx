@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ApplicationSearchSelectedItemProps {
   option: any;
   onClick: (clickedElement: any) => void;

@@ -31,17 +31,19 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useSceneRepositoryStore } from 'explorviz-frontend/src/stores/repos/scene-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  removeAllHighlighting,
+  toggleHighlightById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { addSpheres } from 'explorviz-frontend/src/utils/application-rendering/spheres';
 import ArZoomHandler from 'explorviz-frontend/src/utils/extended-reality/ar-helpers/ar-zoom-handler';
 import {
   EntityMesh,
+  getIdOfEntity,
   isEntityMesh,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -55,6 +57,7 @@ import { useShallow } from 'zustand/react/shallow';
 import useCollaborativeModifier from '../../hooks/collaborative-modifier';
 import useInteractionModifier from '../../hooks/interaction-modifier';
 import useLandscapeDataWatcher from '../../hooks/landscape-data-watcher';
+import { useSceneRepositoryStore } from '../../stores/repos/scene-repository';
 import ContextMenu from '../context-menu';
 import PopupData from '../visualization/rendering/popups/popup-data';
 
@@ -95,7 +98,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       clearPopups: state.clearPopups,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
-      handleHoverOnMesh: state.handleHoverOnMesh,
       removeUnpinnedPopups: state.removeUnpinnedPopups,
     }))
   );
@@ -112,31 +114,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     }))
   );
 
-  const userSettingsState = useUserSettingsStore(
-    useShallow((state) => ({
-      colors: state.colors,
-    }))
-  );
-
   const userSettingsActions = useUserSettingsStore(
     useShallow((state) => ({
       applyDefaultSettings: state.applyDefaultSettings,
-    }))
-  );
-
-  const configurationState = useConfigurationStore(
-    useShallow((state) => ({
-      isCommRendered: state.isCommRendered,
-    }))
-  );
-
-  const highlightingActions = useHighlightingStore(
-    useShallow((state) => ({
-      updateHighlighting: state.updateHighlighting,
-      removeHighlightingForAllApplications:
-        state.removeHighlightingForAllApplications,
-      toggleHighlight: state.toggleHighlight,
-      toggleHighlightById: state.toggleHighlightById,
     }))
   );
 
@@ -176,7 +156,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   // MARK: State
 
-  const [showToolsSidebar, setShowToolsSiderbar] = useState<boolean>(false);
   const [showSettingsSidebar, setShowSettingsSidebar] =
     useState<boolean>(false);
   const [openedToolComponent, setOpenedToolComponent] = useState<string | null>(
@@ -193,7 +172,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     sceneRepositoryActions.getScene('ar', true)
   );
 
-  const [landscape3D] = useState<Landscape3D>(() => new Landscape3D());
+  const [landscape3D] = useState<THREE.Group>(() => new THREE.Group());
 
   const [mousePosition, setMousePosition] = useState<THREE.Vector3>(
     new THREE.Vector3(0, 0, 0)
@@ -207,21 +186,11 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const currentSession = useRef<XRSession | null>(null);
 
-  const landscapeMarker = useRef<THREE.Group>(new THREE.Group());
-
-  const applicationMarkers = useRef<THREE.Group[]>([]);
-
   const willDestroyController = useRef<AbortController>(new AbortController());
 
   const lastPopupClear = useRef<number>(0);
 
   const lastOpenAllComponents = useRef<number>(0);
-
-  const [showSettings, setShowSettings] = useState<boolean>(false);
-
-  const localPing = useRef<
-    { obj: THREE.Object3D; time: number } | undefined | null
-  >(undefined);
 
   const renderer = useRef<THREE.WebGLRenderer | null>(null);
 
@@ -451,7 +420,7 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     if (intersection) {
       handleSecondaryInputOn(intersection);
     } else {
-      highlightingActions.removeHighlightingForAllApplications(true);
+      removeAllHighlighting(true);
     }
   };
 
@@ -577,7 +546,6 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const tick = (delta: number, frame: XRFrame) => {
     const intersection = raycastCenter();
-    popupHandlerActions.handleHoverOnMesh(intersection?.object);
     if (intersection) {
       const mesh = intersection.object;
       if (isEntityMesh(mesh)) {
@@ -622,13 +590,13 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const { object } = intersection;
 
     if (
-      object instanceof ComponentMesh ||
-      object instanceof ClazzMesh ||
-      object instanceof ClazzCommunicationMesh
+      (object instanceof ComponentMesh ||
+        object instanceof ClazzMesh ||
+        object instanceof ClazzCommunicationMesh) &&
+      isEntityMesh(object)
     ) {
-      highlightingActions.toggleHighlight(object, {
-        sendMessage: true,
-      });
+      const modelId = getIdOfEntity(object);
+      toggleHighlightById(modelId, true);
     }
   };
 
@@ -808,8 +776,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
               structureData={
                 arRenderingArgs.landscapeData.structureLandscapeData
               }
-              toggleHighlightById={highlightingActions.toggleHighlightById}
-              openParents={applicationRendererActions.openParents}
+              toggleHighlightById={toggleHighlightById}
+              openParents={() => {}}
               addAnnotationForPopup={addAnnotationForPopup}
               showApplication={showApplication}
             />
@@ -967,14 +935,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
                     <Settings
                       enterFullscreen={enterFullscreen}
                       popups={popupHandlerState.popupData}
-                      redrawCommunication={
-                        applicationRendererActions.addCommunicationForAllApplications
-                      }
+                      redrawCommunication={() => {}}
                       resetSettings={userSettingsActions.applyDefaultSettings}
                       setGamepadSupport={() => {}}
-                      updateHighlighting={
-                        highlightingActions.updateHighlighting
-                      }
+                      updateHighlighting={() => {}}
                     />
                   )}
                 </SidebarComponent>

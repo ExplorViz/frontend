@@ -1,8 +1,6 @@
-import React from 'react';
-
+import { FlameIcon } from '@primer/octicons-react';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import Button from 'react-bootstrap/Button';
-import { FlameIcon } from '@primer/octicons-react';
 
 interface HeatmapButtonProps {
   toggleHeatmap: () => void;
