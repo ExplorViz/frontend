@@ -146,9 +146,9 @@ export function applyCircleLayoutToClasses(
     }
 
     // Get all classes in this application
-    const classes = getAllClassesInApplication(application).filter(
-      (classModel) => !removedComponentIds.has(classModel.id)
-    );
+    const classes = getAllClassesInApplication(application)
+      .filter((classModel) => !removedComponentIds.has(classModel.id))
+      .sort((classA, classB) => classA.fqn!.localeCompare(classB.fqn!));
 
     if (classes.length === 0) {
       return;
@@ -159,7 +159,7 @@ export function applyCircleLayoutToClasses(
     const appDepth = appLayout.depth;
     const radius =
       Math.min(appWidth, appDepth) * 0.5 -
-      CLASS_FOOTPRINT -
+      CLASS_FOOTPRINT / 2 -
       Math.max(APP_LABEL_MARGIN, APP_MARGIN);
 
     // Arrange classes in a circle with equal angular spacing
@@ -183,7 +183,10 @@ export function applyCircleLayoutToClasses(
 
       const classAngle = index * angleStep;
 
-      const classX = radius * Math.cos(classAngle) + appLayout.width / 2;
+      const classX =
+        radius * Math.cos(classAngle) +
+        appLayout.width / 2 -
+        CLASS_FOOTPRINT / 2;
       const classZ =
         radius * Math.sin(classAngle) + appLayout.depth / 2 + zMarginOffset;
 

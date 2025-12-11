@@ -124,7 +124,7 @@ export default async function layoutLandscape(
     const classCount = getAllClassIdsInApplication(app).length;
     if (useCircleLayout) {
       const circumference =
-        classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 5);
+        classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 2);
       let diameter;
       if (classCount <= 2) {
         diameter = CLASS_FOOTPRINT * 4;
