@@ -634,6 +634,15 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines the layout algorithm for packages',
     isSelectSetting: true,
   },
+  classLayoutAlgorithm: {
+    level: SettingLevel.DEFAULT,
+    value: 'None',
+    options: ['None', 'circle'],
+    group: 'Layout',
+    displayName: 'Class Layout',
+    description: 'Layout algorithm for classes within applications',
+    isSelectSetting: true,
+  },
   landscapeScalar: {
     level: SettingLevel.EXTENDED,
     value: 0.01,

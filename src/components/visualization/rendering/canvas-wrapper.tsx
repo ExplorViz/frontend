@@ -57,6 +57,7 @@ export default function CanvasWrapper({
     castShadows,
     componentLabelPlacement,
     classFootprint,
+    classLayoutAlgorithm,
     classWidthMetric,
     classWidthMetricMultiplier,
     classDepthMetric,
@@ -90,6 +91,7 @@ export default function CanvasWrapper({
       cameraNear: state.visualizationSettings.cameraNear.value,
       castShadows: state.visualizationSettings.castShadows.value,
       classFootprint: state.visualizationSettings.classFootprint,
+      classLayoutAlgorithm: state.visualizationSettings.classLayoutAlgorithm.value,
       classMargin: state.visualizationSettings.classMargin.value,
       classWidthMetric: state.visualizationSettings.classWidthMetric.value,
       classWidthMetricMultiplier:
@@ -231,6 +233,7 @@ export default function CanvasWrapper({
     classDepthMetric,
     classDepthMetricMultiplier,
     classFootprint,
+    classLayoutAlgorithm,
     classMargin,
     classWidthMetric,
     classWidthMetricMultiplier,
