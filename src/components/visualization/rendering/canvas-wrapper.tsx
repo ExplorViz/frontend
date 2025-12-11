@@ -71,6 +71,8 @@ export default function CanvasWrapper({
     showAxesHelper,
     showFpsCounter,
     showLightHelper,
+    spiralCenterOffset,
+    spiralGap,
     leftMouseButtonAction,
     middleMouseButtonAction,
     mouseWheelAction,
@@ -91,7 +93,8 @@ export default function CanvasWrapper({
       cameraNear: state.visualizationSettings.cameraNear.value,
       castShadows: state.visualizationSettings.castShadows.value,
       classFootprint: state.visualizationSettings.classFootprint,
-      classLayoutAlgorithm: state.visualizationSettings.classLayoutAlgorithm.value,
+      classLayoutAlgorithm:
+        state.visualizationSettings.classLayoutAlgorithm.value,
       classMargin: state.visualizationSettings.classMargin.value,
       classWidthMetric: state.visualizationSettings.classWidthMetric.value,
       classWidthMetricMultiplier:
@@ -110,6 +113,8 @@ export default function CanvasWrapper({
       showAxesHelper: state.visualizationSettings.showAxesHelper.value,
       showFpsCounter: state.visualizationSettings.showFpsCounter.value,
       showLightHelper: state.visualizationSettings.showLightHelper.value,
+      spiralCenterOffset: state.visualizationSettings.spiralCenterOffset.value,
+      spiralGap: state.visualizationSettings.spiralGap.value,
       leftMouseButtonAction:
         state.visualizationSettings.leftMouseButtonAction.value,
       mouseWheelAction: state.visualizationSettings.mouseWheelAction.value,
@@ -243,6 +248,8 @@ export default function CanvasWrapper({
     packageLayoutAlgorithm,
     packageMargin,
     removedComponentIds,
+    spiralCenterOffset,
+    spiralGap,
   ]);
 
   useEffect(() => {

@@ -168,6 +168,8 @@ export type LayoutSettings = {
   classMargin: RangeSetting;
   openedComponentHeight: RangeSetting;
   closedComponentHeight: RangeSetting;
+  spiralCenterOffset: RangeSetting;
+  spiralGap: RangeSetting;
 };
 export type LayoutSettingId = keyof LayoutSettings;
 

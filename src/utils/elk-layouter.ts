@@ -13,6 +13,10 @@ import {
   collectApplicationClassesForCircleLayout,
 } from './circle-layouter';
 import {
+  applySpiralLayoutToClasses,
+  calculateSpiralSideLength,
+} from './spiral-layouter';
+import {
   Application,
   K8sDeployment,
   K8sNamespace,
@@ -97,6 +101,8 @@ export default async function layoutLandscape(
   setVisualizationSettings();
 
   const useCircleLayout = CLASS_ALGORITHM === 'circle';
+  const useSpiralLayout = CLASS_ALGORITHM === 'spiral';
+  const useCustomClassLayout = useCircleLayout || useSpiralLayout;
 
   // Initialize landscape graph
   const landscapeGraph: any = {
@@ -122,21 +128,41 @@ export default async function layoutLandscape(
   // Add applications
   applications.forEach((app) => {
     const classCount = getAllClassIdsInApplication(app).length;
-    if (useCircleLayout) {
-      const circumference =
-        classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 2);
-      let diameter;
-      if (classCount <= 2) {
-        diameter = CLASS_FOOTPRINT * 4;
+    if (useCustomClassLayout) {
+      if (useCircleLayout) {
+        const circumference =
+          classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 2);
+        let diameter;
+        if (classCount <= 2) {
+          diameter = CLASS_FOOTPRINT * 4;
+        } else {
+          diameter = circumference / Math.PI;
+        }
+        landscapeGraph.children.push(
+          createdFixedSizeApplication(app, {
+            width: diameter,
+            depth: diameter,
+          })
+        );
       } else {
-        diameter = circumference / Math.PI;
+        // Spiral layout: calculate size based on spiral pattern
+        const { visualizationSettings: vs } = useUserSettingsStore.getState();
+
+        const spiralSideLength = calculateSpiralSideLength(
+          classCount,
+          CLASS_FOOTPRINT,
+          CLASS_MARGIN,
+          vs.spiralGap.value,
+          vs.spiralCenterOffset.value
+        );
+
+        landscapeGraph.children.push(
+          createdFixedSizeApplication(app, {
+            width: spiralSideLength,
+            depth: spiralSideLength,
+          })
+        );
       }
-      landscapeGraph.children.push(
-        createdFixedSizeApplication(app, {
-          width: diameter,
-          depth: diameter,
-        })
-      );
     } else {
       landscapeGraph.children.push(
         createApplicationGraph(app, removedComponentIds)
@@ -151,16 +177,28 @@ export default async function layoutLandscape(
 
   const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
 
-  // Apply circle layout if enabled
-  if (useCircleLayout) {
+  // Apply custom class layout if enabled
+  if (useCustomClassLayout) {
     // Remove package layouts from the map since packages should not be rendered
     // Collect all package IDs from all applications
     getAllPackageIdsInApplications([...applications]).forEach((id) => {
       boxLayoutMap.delete(id);
     });
 
-    // Apply circle layout to classes
-    applyCircleLayoutToClasses(boxLayoutMap, applications, removedComponentIds);
+    // Apply the selected layout algorithm to classes
+    if (useCircleLayout) {
+      applyCircleLayoutToClasses(
+        boxLayoutMap,
+        applications,
+        removedComponentIds
+      );
+    } else if (useSpiralLayout) {
+      applySpiralLayoutToClasses(
+        boxLayoutMap,
+        applications,
+        removedComponentIds
+      );
+    }
   }
 
   return boxLayoutMap;
@@ -277,14 +315,16 @@ function createdFixedSizeApplication(
   application: Application,
   size: { width: number; depth: number }
 ) {
+  // TODO: The fixed sizing does not work correctly
   const appGraph = {
     id: APP_PREFIX + application.id,
     width: size.width,
     height: size.depth,
     children: [],
     layoutOptions: {
-      aspectRatio: ASPECT_RATIO,
       algorithm: PACKAGE_ALGORITHM,
+      'nodeSize.fixedGraphSize': true,
+      'nodeSize.constraints': 'MINIMUM_SIZE',
       'elk.padding': getPaddingForLabelPlacement(
         COMPONENT_LABEL_PLACEMENT,
         APP_LABEL_MARGIN,
@@ -303,12 +343,13 @@ function populateAppGraph(
   application: Application,
   removedComponentIds: Set<string>
 ) {
-  // Check if circle layout is enabled
+  // Check if custom class layout is enabled
   const { visualizationSettings } = useUserSettingsStore.getState();
-  const useCircleLayout =
-    visualizationSettings.classLayoutAlgorithm.value === 'circle';
+  const classLayoutAlgorithm = visualizationSettings.classLayoutAlgorithm.value;
+  const useCustomClassLayout =
+    classLayoutAlgorithm === 'circle' || classLayoutAlgorithm === 'spiral';
 
-  if (useCircleLayout) {
+  if (useCustomClassLayout) {
     const allClassNodes = collectApplicationClassesForCircleLayout(
       application,
       removedComponentIds
