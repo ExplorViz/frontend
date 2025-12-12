@@ -121,7 +121,9 @@ export default function CodeCity({
         />
       )}
       <CodeBuildings
-        classes={applicationData.getClasses()}
+        classes={applicationData
+          .getClasses()
+          .filter((cls) => layoutMap.has(cls.id))}
         appId={applicationData.application.id}
         layoutMap={layoutMap}
         application={applicationData.application}
@@ -141,23 +143,24 @@ export default function CodeCity({
           ) : null
         )}
       <CityDistricts
-        packages={applicationData.getPackages()}
+        packages={applicationData
+          .getPackages()
+          .filter((pkg) => layoutMap.has(pkg.id))}
         layoutMap={layoutMap}
         ref={componentInstanceMeshRef}
         application={applicationData.application}
       />
       {applicationData
         .getPackages()
-        .map((packageData) =>
-          layoutMap.get(packageData.id) ? (
-            <CityDistrictLabel
-              key={packageData.id + '-label'}
-              component={packageData}
-              layout={layoutMap.get(packageData.id)!}
-              isCameraZoomedIn={isCameraZoomedIn}
-            />
-          ) : null
-        )}
+        .filter((packageData) => layoutMap.has(packageData.id))
+        .map((packageData) => (
+          <CityDistrictLabel
+            key={packageData.id + '-label'}
+            component={packageData}
+            layout={layoutMap.get(packageData.id)!}
+            isCameraZoomedIn={isCameraZoomedIn}
+          />
+        ))}
       {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
           <CommunicationR3F

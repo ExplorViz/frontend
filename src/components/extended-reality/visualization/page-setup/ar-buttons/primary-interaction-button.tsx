@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-import Button from 'react-bootstrap/Button';
 import { UnfoldIcon } from '@primer/octicons-react';
+import Button from 'react-bootstrap/Button';
 
 interface PrimaryInteractionButtonArgs {
   handlePrimaryCrosshairInteraction(): void;

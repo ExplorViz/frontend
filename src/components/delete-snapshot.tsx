@@ -1,11 +1,10 @@
-import React from 'react';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { TrashIcon } from '@primer/octicons-react';
-import { Tooltip } from 'react-bootstrap';
 import {
-  useSnapshotTokenStore,
   TinySnapshot,
+  useSnapshotTokenStore,
 } from 'explorviz-frontend/src/stores/snapshot-token';
+import { Tooltip } from 'react-bootstrap';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
 interface DeleteSnapshotProps {
   token: TinySnapshot;
@@ -20,7 +19,6 @@ export default function DeleteSnapshot({
   subscribed,
   reload,
 }: DeleteSnapshotProps) {
-
   const deleteSnapshotInStore = useSnapshotTokenStore(
     (state) => state.deleteSnapshot
   );

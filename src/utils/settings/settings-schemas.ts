@@ -73,7 +73,8 @@ export type CommunicationSettingId =
   | 'bundlingIterations'
   | 'bundlingStepSize'
   | 'beta'
-  | 'use3DHAPAlgorithm';
+  | 'use3DHAPAlgorithm'
+  | 'commCurveHeightDependsOnDistance';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -85,6 +86,7 @@ export type CommunicationSettings = {
   commArrowSize: RangeSetting;
   commArrowOffset: RangeSetting;
   curvyCommHeight: RangeSetting;
+  commCurveHeightDependsOnDistance: FlagSetting;
   enableEdgeBundling: FlagSetting;
   bundleStrength: RangeSetting;
   compatibilityThreshold: RangeSetting;
@@ -144,6 +146,7 @@ export type LabelSettingId = keyof LabelSettings;
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
+  classLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
   landscapePositionX: RangeSetting;
   landscapePositionY: RangeSetting;
@@ -165,6 +168,8 @@ export type LayoutSettings = {
   classMargin: RangeSetting;
   openedComponentHeight: RangeSetting;
   closedComponentHeight: RangeSetting;
+  spiralCenterOffset: RangeSetting;
+  spiralGap: RangeSetting;
 };
 export type LayoutSettingId = keyof LayoutSettings;
 

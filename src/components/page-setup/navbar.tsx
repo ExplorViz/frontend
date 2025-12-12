@@ -136,8 +136,8 @@ export default function Navbar() {
         onClick={goToLandscapeSelection}
       />
       {!isSingleLandscapeMode() && landscapeToken && (
-        <div className="navbar-middle-row pointer-events-all d-none d-md-block">
-          <div className="navbar-token-link text-center">
+        <div className="navbar-middle-row d-none d-md-block">
+          <div className="navbar-token-link pointer-events-all text-center">
             <span
               className="d-flex-center"
               role="button"

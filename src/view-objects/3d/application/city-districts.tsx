@@ -1,15 +1,12 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
-import { log } from 'console';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -514,8 +511,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         castShadow={castShadows}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
-        onPointerOver={handleOnPointerOver}
-        onPointerOut={handleOnPointerOut}
+        {...(enableHoverEffects && {
+          onPointerOver: handleOnPointerOver,
+          onPointerOut: handleOnPointerOut,
+        })}
         onDoubleClick={handleDoubleClickWithPrevent}
         {...pointerStopHandlers}
         frustumCulled={false}

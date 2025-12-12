@@ -57,7 +57,6 @@ export default function useLandscapeDataWatcher(
   };
 
   const handleUpdatedLandscapeData = async () => {
-
     log('handleUpdateLandscape');
     await Promise.resolve();
     if (!structureLandscapeData || !dynamicLandscapeData) {
@@ -71,9 +70,6 @@ export default function useLandscapeDataWatcher(
     const applications = getApplicationsFromNodes(nodes).filter(
       ({ id }) => !removedComponentIds.has(id)
     );
-
-    const removedEntityIds =
-      useVisualizationStore.getState().removedComponentIds;
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(

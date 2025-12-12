@@ -13,7 +13,7 @@ interface RoomListArgs {
   selectToken(token: LandscapeToken): void;
 }
 
-export default function RoomList({ tokens, selectToken }: RoomListArgs) {
+export default function RoomList({ tokens }: RoomListArgs) {
   const { showSuccessToastMessage, showErrorToastMessage } =
     useToastHandlerStore();
   const joinRoom = useCollaborationSessionStore((state) => state.joinRoom);

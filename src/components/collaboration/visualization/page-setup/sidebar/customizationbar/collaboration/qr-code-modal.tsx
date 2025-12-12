@@ -16,8 +16,7 @@ export default function QRCodeModal({ show, onHide }: QRCodeModalProps) {
       <Modal.Body>
         <div className="d-flex flex-column align-items-center">
           <p className="mb-3">Scan this QR code to join the room:</p>
-          <div
-          >
+          <div>
             <QRCodeSVG value={window.location.href} size={256} />
           </div>
           <p className="mt-3 mb-0 text-break" style={{ fontSize: '0.9em' }}>
@@ -33,4 +32,3 @@ export default function QRCodeModal({ show, onHide }: QRCodeModalProps) {
     </Modal>
   );
 }
-

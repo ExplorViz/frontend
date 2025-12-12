@@ -479,8 +479,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         ref={meshRef}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
-        onPointerOver={handleOnPointerOver}
-        onPointerOut={handleOnPointerOut}
+        {...(enableHoverEffects && {
+          onPointerOver: handleOnPointerOver,
+          onPointerOut: handleOnPointerOut,
+        })}
         onDoubleClick={handleDoubleClickWithPrevent}
         {...pointerStopHandlers}
         frustumCulled={false}

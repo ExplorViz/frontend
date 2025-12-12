@@ -224,7 +224,7 @@ export default function VrRendering({
   const [scene, setScene] = useState<THREE.Scene>(() =>
     sceneRepoState.getScene('vr', true)
   );
-  const [landscape3D] = useState<Landscape3D>(() => new Landscape3D()); // readonly
+  const [landscape3D] = useState<THREE.Group>(() => new THREE.Group()); // readonly
   // #endregion states & refs
 
   // #region useEffect

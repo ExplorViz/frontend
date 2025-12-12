@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { Dropdown } from 'react-bootstrap';
 
 interface ArSettingsSelectorArgs {
@@ -29,8 +30,10 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
   const commCurveHeightMultiplier = useConfigurationStore(
     (state) => state.commCurveHeightMultiplier
   );
-  const commCurveHeightDependsOnDistance = useConfigurationStore(
-    (state) => state.commCurveHeightDependsOnDistance
+  const commCurveHeightDependsOnDistance = useUserSettingsStore(
+    (state) =>
+      state.visualizationSettings.commCurveHeightDependsOnDistance?.value ??
+      true
   );
 
   const cameraPresets = [
@@ -77,9 +80,9 @@ export default function ArSettingsSelector(args: ArSettingsSelectorArgs) {
 
   const toggleApplicationDependsOnDistance = () => {
     const oldValue = commCurveHeightDependsOnDistance;
-    useConfigurationStore.setState({
-      commCurveHeightDependsOnDistance: !oldValue,
-    });
+    useUserSettingsStore
+      .getState()
+      .updateSetting('commCurveHeightDependsOnDistance', !oldValue);
   };
 
   const toggleRenderClassCommunication = () => {

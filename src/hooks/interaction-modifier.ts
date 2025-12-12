@@ -3,6 +3,7 @@ import { MutableRefObject, useEffect, useRef } from 'react';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
 import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import * as THREE from 'three';
@@ -68,6 +69,10 @@ export default function useInteractionModifier(
     useShallow((state) => ({
       getUserById: state.getUserById,
     }))
+  );
+
+  const enableHoverEffects = useUserSettingsStore(
+    (state) => state.visualizationSettings.enableHoverEffects.value
   );
 
   // MARK: Refs
@@ -185,15 +190,25 @@ export default function useInteractionModifier(
       } else if (pointers.current.length === 1) {
         handleMouseMovePan(event);
       } else if (makeFullsizeMinimap) {
-        const intersectedViewObj = minimapActions.raycastForObjects(
-          event,
-          minimapCamera,
-          raycastObjects
-        );
-        eventCallbacks?.onMouseMove?.(intersectedViewObj, event);
+        // Skip raycasting for hover when hover effects are disabled
+        if (enableHoverEffects) {
+          const intersectedViewObj = minimapActions.raycastForObjects(
+            event,
+            minimapCamera,
+            raycastObjects
+          );
+          eventCallbacks?.onMouseMove?.(intersectedViewObj, event);
+        } else {
+          eventCallbacks?.onMouseMove?.(null, event);
+        }
       } else {
-        const intersectedViewObj = raycast(event);
-        eventCallbacks?.onMouseMove?.(intersectedViewObj, event);
+        // Skip raycasting for hover when hover effects are disabled
+        if (enableHoverEffects) {
+          const intersectedViewObj = raycast(event);
+          eventCallbacks?.onMouseMove?.(intersectedViewObj, event);
+        } else {
+          eventCallbacks?.onMouseMove?.(null, event);
+        }
       }
     };
 
@@ -205,6 +220,10 @@ export default function useInteractionModifier(
 
     const onPointerStop = (customEvent: CustomEvent<MouseStopEvent>) => {
       if (pointers.current.length > 0) {
+        return;
+      }
+      // Skip raycasting for hover when hover effects are disabled
+      if (!enableHoverEffects) {
         return;
       }
       const event = customEvent.detail.srcEvent;
@@ -636,7 +655,13 @@ export default function useInteractionModifier(
       document.removeEventListener('keydown', keyDown);
       document.removeEventListener('keyup', keyUp);
     };
-  }, [camera, objectsToRaycast, minimapCamera, makeFullsizeMinimap]);
+  }, [
+    camera,
+    objectsToRaycast,
+    minimapCamera,
+    makeFullsizeMinimap,
+    enableHoverEffects,
+  ]);
 }
 
 // MARK: Types

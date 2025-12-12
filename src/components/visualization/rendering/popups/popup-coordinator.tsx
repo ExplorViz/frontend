@@ -240,7 +240,7 @@ export default function PopupCoordinator({
       onPointerOut={onPointerOut}
       ref={element}
     >
-      {popupData.wasMoved ? (
+      {popupData.wasMoved || popupData.isPinned ? (
         <>
           <OverlayTrigger
             placement="top"
