@@ -4,6 +4,7 @@ import { useLandscapeTokenStore } from '../../stores/landscape-token';
 import { useRenderingServiceStore } from '../../stores/rendering-service';
 import { useNavigate } from 'react-router-dom';
 import { useSnapshotTokenStore } from '../../stores/snapshot-token';
+import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
 import {
   GitBranchIcon,
   IdBadgeIcon,
@@ -13,13 +14,24 @@ import {
   UndoIcon,
 } from '@primer/octicons-react';
 import StatusIcons from 'explorviz-frontend/src/components/page-setup/status-icons';
+import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+
+    const restartAndSetSocket = useIdeWebsocketStore(
+      (state) => state.restartAndSetSocket
+    );
+
+    const closeConnection = useIdeWebsocketStore(
+      (state) => state.closeConnection
+    );
+
   const dropdownRef = useRef<HTMLUListElement | null>(null);
 
+  const isConnected = useIdeWebsocketFacadeStore((state) => state.isConnected);
   const user = useAuthStore((state) => state.user);
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
   const _analysisMode = useRenderingServiceStore(
@@ -201,6 +213,25 @@ export default function Navbar() {
                   <GitBranchIcon size="small" />
                   Git API Token
                 </button>
+              </li>
+              <li>
+                {isConnected ? (
+                  <button
+                    className="dropdown-item"
+                    type="button"
+                    onClick={() => closeConnection()}
+                  >
+                    Disconnect from VSCode extension
+                  </button>
+                ) : (
+                  <button
+                    className="dropdown-item"
+                    type="button"
+                    onClick={() => restartAndSetSocket(landscapeToken?.value)}
+                  >
+                    Connect to VSCode extension
+                  </button>
+                )}
               </li>
               <li>
                 <button

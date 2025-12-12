@@ -78,6 +78,7 @@ import {
   highlightById,
   removeAllHighlighting,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 
 const queryParams = [
   'roomId',
@@ -128,6 +129,9 @@ export default function Visualization() {
   const [vrButtonText, setVrButtonText] = useState<string>('');
   const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
     useState<TimelineDataObjectHandler>(new TimelineDataObjectHandler()); //(null);
+  const timelineUpdateVersion = useRenderingServiceStore(
+    (state) => state.timelineUpdateVersion
+  );
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
     useState<boolean>(false);
   const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
@@ -983,9 +987,10 @@ export default function Visualization() {
                     timelineDataObject={
                       timelineDataObjectHandler.timelineDataObject!
                     }
-                    timelineUpdateVersion={
-                      timelineDataObjectHandler.updateVersion
-                    }
+                    debugSnapshots={useDebugSnapshotRepositoryStore.getState().getDebugSnapshotsByLandscapeToken(
+                      landscapeTokenServiceToken!.value
+                    )}
+                    timelineUpdateVersion={timelineUpdateVersion}
                     clicked={timelineDataObjectHandler.timelineClicked}
                   />
                 </>

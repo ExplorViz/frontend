@@ -71,9 +71,6 @@ export default function useLandscapeDataWatcher(
       ({ id }) => !removedComponentIds.has(id)
     );
 
-    const removedEntityIds =
-      useVisualizationStore.getState().removedComponentIds;
-
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
       [],

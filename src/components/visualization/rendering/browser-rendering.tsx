@@ -47,6 +47,7 @@ import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
 import { ChatbotProvider } from '../../chatbot/chatbot-context';
 import { EditingProvider } from '../../editing/editing-context';
+import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -123,6 +124,15 @@ export default function BrowserRendering({
       cleanup: state.cleanup,
     }))
   );
+
+  const restartAndSetSocket = useIdeWebsocketStore(
+    (state) => state.restartAndSetSocket
+  );
+
+  const closeConnection = useIdeWebsocketStore(
+    (state) => state.closeConnection
+  );
+
   // MARK: Event handlers
 
   const removeAnnotation = (annotationId: number) => {
@@ -197,6 +207,9 @@ export default function BrowserRendering({
       handleToggleSettingsSidebarComponentEvent
     );
 
+    // IDE Websocket connection setup
+    restartAndSetSocket(landscapeToken?.value);
+
     // Cleanup on component unmount
     return function cleanup() {
       applicationRepositoryActions.cleanup();
@@ -209,6 +222,9 @@ export default function BrowserRendering({
         'restructureComponent',
         handleToggleSettingsSidebarComponentEvent
       );
+
+      closeConnection();
+
     };
   }, []);
 

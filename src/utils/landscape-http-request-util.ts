@@ -8,7 +8,6 @@ const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 // Helper functions to convert between nanoseconds and milliseconds
 // The backend now uses nanoseconds, but frontend Date objects use milliseconds
 const NANOSECONDS_PER_MILLISECOND = 1_000_000;
-const NANOSECONDS_PER_SECOND = 1_000_000_000;
 
 export function nanosecondsToMilliseconds(nanos: number): number {
   return Math.floor(nanos / NANOSECONDS_PER_MILLISECOND);
@@ -20,14 +19,12 @@ export function millisecondsToNanoseconds(millis: number): number {
 
 export async function requestData(
   startTime: number,
-  intervalInSeconds: number
+  exactTime: number,
+  endTime: number
 ) {
-  // startTime is expected to be in nanoseconds from the backend
-  // Calculate endTime in nanoseconds
-  const endTime = startTime + intervalInSeconds * NANOSECONDS_PER_SECOND;
 
   const structureDataPromise = requestStructureData(/* startTime, endTime */);
-  const dynamicDataPromise = requestDynamicData(startTime, endTime);
+  const dynamicDataPromise = requestDynamicData(startTime, exactTime, endTime);
 
   const landscapeData = Promise.allSettled([
     structureDataPromise,
@@ -66,14 +63,14 @@ export function requestStructureData(/* fromTimestamp: number, toTimestamp: numb
   });
 }
 
-export function requestDynamicData(fromTimestamp: number, toTimestamp: number) {
+export function requestDynamicData(fromTimestamp: number, exactTimestamp: number, toTimestamp: number) {
   return new Promise<DynamicLandscapeData>((resolve, reject) => {
     if (useLandscapeTokenStore.getState().token === null) {
       reject(new Error('No landscape token selected'));
       return;
     }
     fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&to=${toTimestamp}`,
+      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,

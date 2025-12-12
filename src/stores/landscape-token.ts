@@ -23,6 +23,9 @@ export type LandscapeToken = {
   created: number;
   ownerId: string;
   secret?: string;
+  isRequestedFromVSCodeExtension: boolean;
+  projectName: string;
+  commitId: string;
   sharedUsersIds: string[];
   value: string;
 };
