@@ -1,9 +1,18 @@
 import { useEffect, useState, useRef } from "react";
+import { parse } from 'svg-parser';
 
 const svgModules = import.meta.glob("/public/manifest-svgs/*.svg", {
   eager: true,
   import: "default",
 });
+
+const parsed = parse( `
+    <svg viewBox='0 0 100 100'>
+        <!-- stuff goes here... -->
+    </svg>
+` );
+
+console.log(parsed);
 
 export default function KubernetesDiagrams() {
   const [svgs, setSvgs] = useState<{ name: string; url: string }[]>([]);
