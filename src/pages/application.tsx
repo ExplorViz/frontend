@@ -1,13 +1,11 @@
+import LoginPage from 'explorviz-frontend/src/components/page-setup/login-page';
 import Navbar from 'explorviz-frontend/src/components/page-setup/navbar';
 import ToastMessage from 'explorviz-frontend/src/components/page-setup/toast-message';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import {
-  useLandscapeTokenStore
-} from 'explorviz-frontend/src/stores/landscape-token';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
 import { useEffect, useState } from 'react';
-import { Button } from 'react-bootstrap';
 import {
   createSearchParams,
   Outlet,
@@ -93,33 +91,9 @@ export default function Application() {
 
   const isInitialized = useAuthStore((state) => state.isInitialized);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const login = useAuthStore((state) => state.login);
-  if (!isInitialized) {
-    // Show a loading screen as long as keycloak is not connected
-    return <>
-            <Navbar /> 
-            <div id="landscape-container" style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-              <span>Connecting to KeyCloak ...</span>
-            </div>;
-          </>
-  }
 
-  if (!isAuthenticated) {
-    return <>
-            <Navbar /> 
-            <div id="landscape-container" style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-              <h3>There is nothing to see here. Please log in.</h3>
-              <Button onClick={login}> Sign In / Register</Button>
-            </div>
-          </>
+  if (!isInitialized || !isAuthenticated) {
+    return <LoginPage />;
   }
 
   return (
