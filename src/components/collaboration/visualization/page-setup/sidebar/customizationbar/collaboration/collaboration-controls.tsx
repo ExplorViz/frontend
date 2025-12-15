@@ -10,6 +10,7 @@ import {
   MuteIcon,
   PencilIcon,
   PersonFillIcon,
+  ShareAndroidIcon,
   SyncIcon,
   UnmuteIcon,
   XIcon,
@@ -39,6 +40,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
+import QRCodeModal from './qr-code-modal';
 
 // interface CollaborationControlsProps {}
 
@@ -106,14 +108,11 @@ export default function CollaborationControls() {
   const showSuccessToastMessage = useToastHandlerStore(
     (state) => state.showSuccessToastMessage
   );
-  const showInfoToastMessage = useToastHandlerStore(
-    (state) => state.showInfoToastMessage
-  );
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const [rooms, setRooms] = useState<RoomListRecord[]>([]);
   const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -139,6 +138,7 @@ export default function CollaborationControls() {
   const [spectateConfigDevices, setSpectateConfigDevices] = useState<
     { deviceId: string; projectionMatrix: number[] }[]
   >([]);
+  const [qrCodeModal, setQrCodeModal] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const users = (() => {
@@ -543,9 +543,19 @@ export default function CollaborationControls() {
     <>
       {collabStore.connectionStatus === 'online' && (
         <>
-          <div>
-            <label className="bold me-2">Room:</label>
-            <label>{collabStore.currentRoomId}</label>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <label className="bold me-2">Room:</label>
+              <label>{collabStore.currentRoomId}</label>
+            </div>
+            <Button
+              title="Show QR Code"
+              variant="outline-primary"
+              onClick={() => setQrCodeModal(true)}
+              size="sm"
+            >
+              <ShareAndroidIcon size="small" className="align-middle" />
+            </Button>
           </div>
 
           <div>
@@ -680,29 +690,41 @@ export default function CollaborationControls() {
                     Share Settings
                   </Button>
                 )}
-                {user.isMuteable && (
+                {user.isMuteable && 'remoteUserId' in user && (
                   <Button
-                    title={isUserMuted(user) ? 'Unmute User' : 'Mute User'}
+                    title={
+                      isUserMuted({ remoteUserId: user.remoteUserId as string })
+                        ? 'Unmute User'
+                        : 'Mute User'
+                    }
                     variant="outline-primary"
-                    onClick={() => toggleMuteStatus(user)}
+                    onClick={() =>
+                      toggleMuteStatus({
+                        remoteUserId: user.remoteUserId as string,
+                      })
+                    }
                   >
-                    {isUserMuted(user) ? (
+                    {isUserMuted({
+                      remoteUserId: user.remoteUserId as string,
+                    }) ? (
                       <UnmuteIcon size="small" className="align-middle" />
                     ) : (
                       <MuteIcon size="small" className="align-middle" />
                     )}
                   </Button>
                 )}
-                {user.isKickable && (
+                {user.isKickable && 'remoteUserId' in user && (
                   <Button
                     title="Kick User"
                     variant="outline-danger"
-                    onClick={() => kickUser(user)}
+                    onClick={() =>
+                      kickUser({ remoteUserId: user.remoteUserId as string })
+                    }
                   >
                     <PersonFillIcon size="small" className="align-middle" />
                   </Button>
                 )}
-                {user.isSpectatable && (
+                {user.isSpectatable && 'remoteUserId' in user && (
                   <Button
                     title={user.isSpectatedByUs ? 'End Spectating' : 'Spectate'}
                     variant={
@@ -710,7 +732,12 @@ export default function CollaborationControls() {
                         ? 'outline-danger'
                         : 'outline-success'
                     }
-                    onClick={() => toggleSpectate(user)}
+                    onClick={() =>
+                      toggleSpectate({
+                        remoteUserId: user.remoteUserId as string,
+                        isSpectatedByUs: user.isSpectatedByUs,
+                      })
+                    }
                   >
                     <DeviceCameraVideoIcon
                       size="small"
@@ -1267,6 +1294,8 @@ export default function CollaborationControls() {
           </Modal.Footer>
         </Modal>
       </div>
+
+      <QRCodeModal show={qrCodeModal} onHide={() => setQrCodeModal(false)} />
     </>
   );
 }

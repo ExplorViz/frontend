@@ -1,8 +1,12 @@
 import Plotly from 'plotly.js-dist';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
 import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
+import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { nanosecondsToMilliseconds } from '../../../../../utils/landscape-http-request-util';
+import { ConversionHtmlNode } from '@react-three/uikit';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -15,48 +19,48 @@ export interface IMarkerStates {
 
 interface PlotlyTimelineArgs {
   timelineDataObject: TimelineDataObject;
+  debugSnapshots?: DebugSnapshot[];
   timelineUpdateVersion?: number;
-  clicked(
-    timelineDataObject: TimelineDataObject,
-    selectedTimestamps: Map<string, Timestamp[]>
-  ): void;
+  clicked(selectedTimestamps: Map<string, Timestamp[]>): void;
 }
 
 export default function PlotlyTimeline({
   timelineDataObject,
+  debugSnapshots,
   timelineUpdateVersion,
   clicked,
 }: PlotlyTimelineArgs) {
-  // variable used for output when clicked
+  //#region Refs and Effects
+
+  const markerStateMap = useRef<Map<string, IMarkerStates>>(new Map());
   const selectedCommitTimestampsMap = useRef<Map<string, Timestamp[]>>(
     new Map()
   );
 
-  const markerStateMap = useRef<Map<string, IMarkerStates>>(new Map());
-
-  // END template-argument getters for default values
   const oldPlotlySlidingWindow = useRef({ min: 0, max: 0 });
-
   const userSlidingWindow = useRef<any>(null);
 
   const timelineDiv = useRef<any>(null);
+  const plotlyDivRef = useRef(null);
+  const plotlyDivDummyRef = useRef(null);
 
   const plotlyTimestampsWithoutNullValues = useRef<any>(null);
 
   const minRequestFilter = useRef<number>(0);
   const maxRequestFilter = useRef<number>(Number.MAX_SAFE_INTEGER);
 
-  // #region template-argument getters for default values
   const defaultMarkerColor = useRef<string>('#1f77b4');
+  const debugSnapshotMarkerColor = useRef<string>('#000000');
   const defaultMarkerSize = useRef<number>(8);
   const highlightedMarkerSize = useRef<number>(15);
-  const selectionCount = useRef<number>(1);
-  const slidingWindowLowerBoundInMinutes = useRef<number>(4);
-  const slidingWindowUpperBoundInMinutes = useRef<number>(4);
-  const timefstamps = useRef([]);
+  const selectionCount = useRef<number>(2);
   const timelineColors = useRef([undefined, undefined]);
-  const numberOfTimelines = useRef(timelineDataObject.size ?? 0);
 
+  const renderingServiceVisualizationPaused = useRenderingServiceStore(
+    (state) => state._visualizationPaused
+  );
+
+  // would React's useMemo be beneficial here?
   const showDummyTimeline = (() => {
     if (!timelineDataObject || timelineDataObject.size === 0) {
       return true;
@@ -70,20 +74,17 @@ export default function PlotlyTimeline({
     return true;
   })();
 
-  // #region useEffeect & useRef
-  const plotlyDivRef = useRef(null);
-  const plotlyDivDummyRef = useRef(null);
-
   useEffect(() => {
     // Initialize chart when div is available
-    if (!showDummyTimeline && plotlyDivRef.current) {
-      if (!timelineDiv.current || timelineDiv.current !== plotlyDivRef.current) {
-        setupPlotlyTimelineChart(plotlyDivRef.current);
-      }
-    } else if (showDummyTimeline && plotlyDivDummyRef.current) {
-      if (!timelineDiv.current || timelineDiv.current !== plotlyDivDummyRef.current) {
-        setupPlotlyTimelineChart(plotlyDivDummyRef.current);
-      }
+
+    const targetDiv = showDummyTimeline
+      ? plotlyDivDummyRef.current
+      : plotlyDivRef.current;
+
+    if (!targetDiv) return;
+
+    if (!timelineDiv.current || timelineDiv.current !== targetDiv) {
+      setupPlotlyTimelineChart(targetDiv);
     }
   }, [showDummyTimeline]);
 
@@ -104,14 +105,10 @@ export default function PlotlyTimeline({
 
   const getHighlightedMarkerColorForCommitId = (commitId: string) => {
     const timelineDataForCommit = timelineDataObject.get(commitId);
-
     return timelineDataForCommit?.highlightedMarkerColor || 'red';
   };
 
-  const getSelectedTimestampsForCommitId = (commitId: string | undefined) => {
-    if (commitId === null || commitId === undefined) {
-      return [];
-    }
+  const getSelectedTimestampsForCommitId = (commitId: string) => {
     const timelineDataForCommit = timelineDataObject.get(commitId);
     return timelineDataForCommit?.selectedTimestamps;
   };
@@ -120,10 +117,7 @@ export default function PlotlyTimeline({
     return getTimestampsForCommitId(getCommitIdBasedForMapIndex(index));
   };
 
-  const getTimestampsForCommitId = (commitId: string | undefined) => {
-    if (commitId === null || commitId === undefined) {
-      return [];
-    }
+  const getTimestampsForCommitId = (commitId: string) => {
     const timelineDataForCommit = timelineDataObject.get(commitId);
     return timelineDataForCommit?.timestamps;
   };
@@ -132,30 +126,14 @@ export default function PlotlyTimeline({
     return Array.from(timelineDataObject.keys())[index];
   };
 
-  const getCommitToSelectedTimestampsMap = () => {
-    const commitToSelectedTimestampMap = new Map();
-
-    for (const [
-      gitCommitId,
-      timelineDataForCommit,
-    ] of timelineDataObject.entries()) {
-      const selectedTimestampsForCommit =
-        timelineDataForCommit.selectedTimestamps;
-
-      commitToSelectedTimestampMap.set(
-        gitCommitId,
-        selectedTimestampsForCommit
-      );
-    }
-    return commitToSelectedTimestampMap;
-  };
   // #endregion
 
   // #region Div Events
-  const handleMouseEnter = (plotlyDiv: any) => {
+  const handleMouseEnter = () => {
     // if user hovers over plotly, save his
     // sliding window, so that updating the
     // plot won't modify his current viewport
+    const plotlyDiv = timelineDiv.current;
     if (plotlyDiv && plotlyDiv.layout) {
       userSlidingWindow.current = plotlyDiv.layout;
     }
@@ -166,12 +144,13 @@ export default function PlotlyTimeline({
   };
 
   const setupPlotlyTimelineChart = (plotlyDiv: any) => {
+    console.log('setupPlotlyTimelineChart');
     timelineDiv.current = plotlyDiv;
 
     updateMarkerStates();
 
     if (
-      numberOfTimelines.current === 1 &&
+      timelineDataObject.size === 1 &&
       getTimestampsForCommitIndex(0)?.length === 0
     ) {
       createDummyTimeline();
@@ -179,7 +158,7 @@ export default function PlotlyTimeline({
     }
 
     const data: any[] = [];
-    let shapez: any[] = [];
+    let shapes: any[] = [];
     let plotlyTimestampsWithoutNullValuesTemp: number = 0;
 
     for (const [
@@ -188,30 +167,25 @@ export default function PlotlyTimeline({
     ] of timelineDataObject.entries()) {
       // init inner representation of selected timestamps
       // timestamps might be selected upon first rendering
-      const selectedTimestampsForCommit =
-        timelineDataForCommit.selectedTimestamps;
 
-      if (selectedTimestampsForCommit.length) {
-        selectedCommitTimestampsMap.current.set(
-          gitCommitId,
-          selectedTimestampsForCommit
-        );
-      }
-
-      data.push(
-        getUpdatedPlotlyDataObject(
-          timelineDataForCommit.timestamps,
-          markerStateMap.current.get(gitCommitId) || {},
-          gitCommitId
-        )
+      selectedCommitTimestampsMap.current.set(
+        gitCommitId,
+        timelineDataForCommit.selectedTimestamps
       );
 
-      plotlyTimestampsWithoutNullValuesTemp += data
-        .at(-1)
-        .x.filter((x: any) => !!x).length;
+      const trace = buildPlotlyDataObjectForCommit(
+        timelineDataForCommit.timestamps,
+        markerStateMap.current.get(gitCommitId) || {},
+        gitCommitId
+      );
 
-      const { shapes } = data[data.length - 1];
-      shapez = [...shapez, ...shapes];
+      data.push(trace);
+
+      plotlyTimestampsWithoutNullValuesTemp += trace.x.filter(
+        (x: any) => !!x
+      ).length;
+
+      shapes = [...shapes, ...trace.shapes];
     }
 
     plotlyTimestampsWithoutNullValues.current =
@@ -229,7 +203,7 @@ export default function PlotlyTimeline({
       max: plotlyTimestampsWithoutNullValues.current,
     };
 
-    layout = { ...layout, ...{ shapes: shapez } };
+    layout = { ...layout, shapes };
 
     Plotly.newPlot(timelineDiv.current, data, layout, getPlotlyOptionsObject());
 
@@ -238,146 +212,116 @@ export default function PlotlyTimeline({
 
   const setupPlotlyListener = () => {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
+    const plotlyDiv: any = timelineDiv.current;
 
-    const plotlyDiv = timelineDiv.current;
-    if (plotlyDiv && plotlyDiv.layout) {
-      // single click
-      plotlyDiv.on('plotly_click', (data: any) => {
-        // https://plot.ly/javascript/reference/#scatter-marker
+    if (!plotlyDiv || !plotlyDiv.layout) return;
 
-        const pn = data.points[0].pointNumber;
+    // single click
+    plotlyDiv.on('plotly_click', (data: any) => {
+      // https://plot.ly/javascript/reference/#scatter-marker
+      const pn = data.points[0].pointNumber;
 
-        const numberOfPoints = data.points[0].fullData.x.length;
+      const selectedTimeline = data.points[0].curveNumber;
+      const commitId = getCommitIdBasedForMapIndex(selectedTimeline);
 
-        let colors = data.points[0].fullData.marker.color;
-        let sizes = data.points[0].fullData.marker.size;
+      const highlightedMarkerColor =
+        getHighlightedMarkerColorForCommitId(commitId);
 
-        const selectedTimeline = data.points[0].curveNumber;
+      const timestampId = data.points[0].data.timestampId[pn];
 
-        // reset old selection, since maximum selection value is achieved
-        // and user clicked on a new point
-        if (
-          selectedCommitTimestampsMap.current.size === selectionCount.current
-        ) {
-          resetSelectionInStateObjects();
-          colors = Array(numberOfPoints).fill(
-            timelineColors.current![selectedTimeline]
-          );
-          sizes = Array(numberOfPoints).fill(defaultMarkerSize.current);
-        }
-
-        const commitId = getCommitIdBasedForMapIndex(selectedTimeline);
-
-        const highlightedMarkerColor =
-          getHighlightedMarkerColorForCommitId(commitId);
-
-        colors[pn] = highlightedMarkerColor;
-        sizes[pn] = highlightedMarkerSize.current;
-
-        const timestampId = data.points[0].data.timestampId[pn];
-
-        // TODO: Get real commit ID based on plot data, insert commit somewhere else
-
-        markerStateMap.current.get(commitId)![timestampId].color =
-          highlightedMarkerColor;
-        markerStateMap.current.get(commitId)![timestampId].size =
-          highlightedMarkerSize.current;
-
-        const update = { marker: { color: colors, size: sizes } };
-
-        // trace number, necessary for the restyle function
-        const tn = data.points[0].curveNumber;
-        Plotly.restyle(plotlyDiv, update, [tn]);
-
-        const selectedTimestampsForCommit =
-          selectedCommitTimestampsMap.current.get(commitId) || [];
-        selectedTimestampsForCommit.push(
-          markerStateMap.current.get(commitId)![timestampId].emberModel
-        );
-        selectedCommitTimestampsMap.current.set(
-          commitId,
-          selectedTimestampsForCommit
-        );
-
-        // Check if component should pass the selected timestamps
-        // to its parent
-        if (selectionCount.current > 1) {
-          if (
-            selectedCommitTimestampsMap.current.size === selectionCount.current
-          ) {
-            // closure action
-            if (clicked)
-              clicked(timelineDataObject, selectedCommitTimestampsMap.current);
-          }
-        } else if (clicked) {
-          // closure action
-          clicked(timelineDataObject, selectedCommitTimestampsMap.current);
-        }
-      });
-
-      // double click
-      plotlyDiv.on('plotly_doubleclick', () => {
-        userSlidingWindow.current = null;
-        const min = plotlyTimestampsWithoutNullValues.current - 30;
-        const max = plotlyTimestampsWithoutNullValues.current;
-        const update = getPlotlyAxisXObject(min, max);
-        Plotly.relayout(plotlyDiv, update);
-      });
-
-      // Show cursor when hovering data point
-      if (dragLayer) {
-        plotlyDiv.on('plotly_hover', () => {
-          dragLayer.style.cursor = 'pointer';
-        });
-
-        plotlyDiv.on('plotly_unhover', () => {
-          dragLayer.style.cursor = '';
-        });
-
-        plotlyDiv.on('plotly_relayouting', () => {
-          // if user drags the plot, save his
-          // sliding window, so that updating the
-          // plot won't modify his current viewport
-          if (plotlyDiv && plotlyDiv.layout) {
-            userSlidingWindow.current = plotlyDiv.layout;
-          }
-        });
+      if (
+        selectedCommitTimestampsMap.current.get(commitId)?.length ===
+        selectionCount.current
+      ) {
+        removeAllSelections(commitId);
       }
+
+      const markerStatesForCommit = markerStateMap.current.get(commitId) || {};
+      markerStatesForCommit[timestampId].color = highlightedMarkerColor;
+      markerStatesForCommit[timestampId].size = highlightedMarkerSize.current;
+      markerStateMap.current.set(commitId, markerStatesForCommit); // important
+
+      const selectedTimestampsForCommit =
+        selectedCommitTimestampsMap.current.get(commitId) || [];
+      selectedTimestampsForCommit.push(
+        markerStatesForCommit[timestampId].emberModel
+      );
+      selectedCommitTimestampsMap.current.set(
+        commitId,
+        selectedTimestampsForCommit
+      );
+
+      clicked(selectedCommitTimestampsMap.current);
+    });
+
+    // double click
+    plotlyDiv.on('plotly_doubleclick', () => {
+      userSlidingWindow.current = null;
+      const min = plotlyTimestampsWithoutNullValues.current - 30;
+      const max = plotlyTimestampsWithoutNullValues.current;
+      const update = getPlotlyAxisXObject(min, max);
+      Plotly.relayout(plotlyDiv, update);
+    });
+
+    // Show cursor when hovering data point
+    if (dragLayer) {
+      plotlyDiv.on('plotly_hover', () => {
+        dragLayer.style.cursor = 'pointer';
+      });
+
+      plotlyDiv.on('plotly_unhover', () => {
+        dragLayer.style.cursor = '';
+      });
+
+      plotlyDiv.on('plotly_relayouting', () => {
+        // if user drags the plot, save his
+        // sliding window, so that updating the
+        // plot won't modify his current viewport
+        if (plotlyDiv && plotlyDiv.layout) {
+          userSlidingWindow.current = plotlyDiv.layout;
+        }
+      });
     }
   };
 
   const updateMarkerStates = () => {
-    if (timelineDataObject.size == 0) {
-      return;
-    }
-
-    resetHighlightInStateObjects();
+    if (timelineDataObject.size === 0) return;
 
     for (const [
       commitId,
       timelineDataForCommit,
     ] of timelineDataObject.entries()) {
-      // call this to initialize the internal marker state variable
-      getUpdatedPlotlyDataObject(
-        timelineDataForCommit.timestamps,
-        markerStateMap.current.get(commitId) || {},
-        commitId
-      );
+      let markerStates = markerStateMap.current.get(commitId) || {};
 
-      const markerStates = markerStateMap.current.get(commitId) || {};
+      // 1. Create markers for all timestamps
+      for (const timestamp of timelineDataForCommit.timestamps) {
+        const tsId = timestamp.epochNano;
 
-      const selectedTimestampsForCommit =
-        timelineDataForCommit.selectedTimestamps;
+        if (!markerStates[tsId]) {
+          const isDebugTs = debugSnapshots?.some(
+            (ds) => ds.timestamp.epochNano === timestamp.epochNano
+          );
+          const defaultColor = isDebugTs
+            ? debugSnapshotMarkerColor.current
+            : defaultMarkerColor.current;
 
-      selectedTimestampsForCommit.forEach((timestamp) => {
-        const timestampId = timestamp.epochNano;
-        if (markerStates[timestampId]) {
-          markerStates[timestampId].color =
-            timelineDataForCommit.highlightedMarkerColor;
-          markerStates[timestampId].size = highlightedMarkerSize.current;
-          markerStates[timestampId].emberModel = timestamp;
+          markerStates[tsId] = {
+            color: defaultColor,
+            size: defaultMarkerSize.current,
+            emberModel: timestamp,
+          };
         }
-      });
+      }
+
+      // 2. highlight selected timestamps
+      for (const selectedTimestamp of timelineDataForCommit.selectedTimestamps) {
+        const tsId = selectedTimestamp.epochNano;
+        const state = markerStates[tsId];
+        if (state) {
+          state.color = timelineDataForCommit.highlightedMarkerColor;
+          state.size = highlightedMarkerSize.current;
+        }
+      }
       markerStateMap.current.set(commitId, markerStates);
     }
   };
@@ -387,6 +331,7 @@ export default function PlotlyTimeline({
   // #region Plot Logic
 
   const updatePlotlyTimelineChart = () => {
+    console.log('updatePlotlyTimelineChart');
     if (!timelineDataObject || timelineDataObject.size == 0) {
       return;
     }
@@ -401,6 +346,37 @@ export default function PlotlyTimeline({
       return;
     }
 
+
+
+    for (const [
+      commitId,
+      timelineDataForCommit,
+    ] of timelineDataObject.entries()) {
+
+      const hasNewTimestamp = timelineDataForCommit.selectedTimestamps.some((ts) =>
+        !(
+          selectedCommitTimestampsMap.current.get(commitId) ?? []
+        ).some((ts2) => ts2.epochNano === ts.epochNano)
+      );
+
+      if(
+        !renderingServiceVisualizationPaused &&
+        hasNewTimestamp
+      ) {
+        // mark new incoming timestamp from polling as the only one selected
+        resetHighlightInStateObjects();
+        selectedCommitTimestampsMap.current.set(commitId, timelineDataForCommit.selectedTimestamps)
+      }
+      /*console.log(
+        'timelineDataForCommit.selectedTimestamps:',
+        timelineDataForCommit.selectedTimestamps
+      );
+      console.log(
+        'selectedCommitTimestampsMap.current.get(commitId)',
+        selectedCommitTimestampsMap.current.get(commitId)
+      );*/
+    }
+
     updateMarkerStates();
 
     const data: any[] = [];
@@ -412,7 +388,7 @@ export default function PlotlyTimeline({
       timelineDataForCommit,
     ] of timelineDataObject.entries()) {
       data.push(
-        getUpdatedPlotlyDataObject(
+        buildPlotlyDataObjectForCommit(
           timelineDataForCommit.timestamps,
           markerStateMap.current.get(commitId) || {},
           commitId
@@ -567,14 +543,15 @@ export default function PlotlyTimeline({
     };
   };
 
-  const getUpdatedPlotlyDataObject = (
+  const buildPlotlyDataObjectForCommit = (
     unfilteredTimestampsOfOneCommit: Timestamp[],
     markerStatesOfOneCommit: IMarkerStates,
     commitId: string
   ) => {
     function getTimestampTickLabel(timestampEpochNanos: number) {
       // Convert nanoseconds to milliseconds for Date object
-      const timestampEpochMillis = nanosecondsToMilliseconds(timestampEpochNanos);
+      const timestampEpochMillis =
+        nanosecondsToMilliseconds(timestampEpochNanos);
       const timestampDate = new Date(timestampEpochMillis);
       return timestampDate
         .toISOString()
@@ -695,29 +672,16 @@ export default function PlotlyTimeline({
       const markerState = markerStatesOfOneCommit[timestampId];
 
       if (addCurrentTimestampToDataObject) {
-        if (markerState) {
-          colors.push(markerState.color);
-          sizes.push(markerState.size);
-        } else {
-          const defaultColor = defaultMarkerColor.current;
-          const defaultSize = defaultMarkerSize.current;
-
-          colors.push(defaultColor);
-          sizes.push(defaultSize);
-
-          markerStatesOfOneCommit[timestampId] = {
-            color: defaultColor,
-            emberModel: timestamp,
-            size: defaultSize,
-          };
+        if (!markerState) {
+          // Should not happen
+          // console.warn("Missing markerState for timestamp", commitId, timestampId);
+          continue;
         }
+        colors.push(markerState.color);
+        sizes.push(markerState.size);
         timestampIds.push(timestampId);
       }
-      addCurrentTimestampToDataObject = false;
     }
-
-    markerStateMap.current.set(commitId, markerStatesOfOneCommit);
-
     const updatedPlotlyDataObject = {
       ...getPlotlyDataObject(x, y, colors, sizes, timestampIds, commitId),
       ...{ shapes: shapes },
@@ -755,17 +719,24 @@ export default function PlotlyTimeline({
     markerStateMap.current = new Map();
   };
 
-  const resetSelectionInStateObjects = () => {
-    selectedCommitTimestampsMap.current.forEach((timestamps, commit) => {
-      const markerState = markerStateMap.current.get(commit);
-      if (markerState) {
-        timestamps.forEach((t) => {
-          markerState[t.epochNano].color = defaultMarkerColor.current;
-          markerState[t.epochNano].size = defaultMarkerSize.current;
-        });
-      }
-    });
-    selectedCommitTimestampsMap.current = new Map();
+  const removeAllSelections = (commitId: string) => {
+    const selectedTimestamps =
+      selectedCommitTimestampsMap.current.get(commitId);
+
+    const markerState = markerStateMap.current.get(commitId);
+
+    if (markerState) {
+      selectedTimestamps?.forEach((timestamp) => {
+        markerState[timestamp.epochNano].color = debugSnapshots?.some(
+          (ds) => ds.timestamp.epochNano === timestamp.epochNano
+        )
+          ? debugSnapshotMarkerColor.current
+          : defaultMarkerColor.current;
+        markerState[timestamp.epochNano].size = defaultMarkerSize.current;
+      });
+    }
+
+    selectedCommitTimestampsMap.current.set(commitId, []);
   };
 
   const getPlotlyOptionsObject = () => {

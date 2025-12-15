@@ -2,7 +2,6 @@ import { create } from 'zustand';
 
 interface ConfigurationState {
   annotationPosition: Position2D | undefined;
-  commCurveHeightDependsOnDistance: boolean;
   commCurveHeightMultiplier: number;
   commWidthMultiplier: number;
   isCommRendered: boolean;
@@ -17,7 +16,6 @@ interface Position2D {
 
 export const useConfigurationStore = create<ConfigurationState>((set) => ({
   annotationPosition: undefined,
-  commCurveHeightDependsOnDistance: true,
   commCurveHeightMultiplier: 1,
   commWidthMultiplier: 1,
   isCommRendered: true,

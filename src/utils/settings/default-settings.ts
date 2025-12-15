@@ -342,7 +342,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   enableHoverEffects: {
     level: SettingLevel.DEFAULT,
-    value: true,
+    value: false,
     group: 'Effects',
     displayName: 'Enable Hover Effect',
     description: 'Hover effect (flashing entities) for mouse cursor',
@@ -376,7 +376,7 @@ export const defaultVizSettings: VisualizationSettings = {
   commThickness: {
     level: SettingLevel.DEFAULT,
     value: 2.0,
-    range: { min: 0.05, max: 5.0, step: 0.05 },
+    range: { min: 0.05, max: 10.0, step: 0.05 },
     group: 'Communication',
     displayName: 'Communication Line Thickness',
     description: 'Factor that scales thickness of communication lines',
@@ -403,13 +403,22 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   curvyCommHeight: {
     level: SettingLevel.DEFAULT,
-    value: 1.0,
-    range: { min: 0.0, max: 5.0, step: 0.1 },
+    value: 5.0,
+    range: { min: 0.0, max: 25.0, step: 0.1 },
     group: 'Communication',
     displayName: 'Communication Curviness',
     description:
       'If greater 0.0, communication lines are rendered arc-shaped (Straight lines: 0.0)',
     isRangeSetting: true,
+  },
+  commCurveHeightDependsOnDistance: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Communication',
+    displayName: 'Curve Height Depends on Distance',
+    description:
+      'If enabled, communication curve height is calculated based on the distance between source and target',
+    isFlagSetting: true,
   },
   enableEdgeBundling: {
     level: SettingLevel.DEFAULT,
@@ -476,7 +485,7 @@ export const defaultVizSettings: VisualizationSettings = {
   beta: {
     level: SettingLevel.DEFAULT,
     value: 0.8,
-    range: { min: 0.0, max: 1.0, step: 0.1 },
+    range: { min: 0.0, max: 1.0, step: 0.01 },
     group: 'Communication',
     displayName: '3D-HAP Attraction Power (β)',
     description:
@@ -624,6 +633,41 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Package Layout Algorithm',
     description: 'Determines the layout algorithm for packages',
     isSelectSetting: true,
+  },
+  classLayoutAlgorithm: {
+    level: SettingLevel.DEFAULT,
+    value: 'None',
+    options: ['None', 'circle', 'spiral'],
+    group: 'Layout',
+    displayName: 'Class Layout',
+    description: 'Layout algorithm for classes within applications',
+    isSelectSetting: true,
+  },
+  spiralCenterOffset: {
+    level: SettingLevel.DEFAULT,
+    value: 3,
+    range: { min: 0, max: 1000, step: 1 },
+    group: 'Layout',
+    displayName: 'Spiral Center Offset',
+    description: 'Offset from center for spiral layout start position',
+    dependsOn: {
+      settingId: 'classLayoutAlgorithm',
+      value: 'spiral',
+    },
+    isRangeSetting: true,
+  },
+  spiralGap: {
+    level: SettingLevel.DEFAULT,
+    value: 1,
+    range: { min: 0, max: 10, step: 1 },
+    group: 'Layout',
+    displayName: 'Spiral Gap',
+    description: 'Gap between segments in spiral layout',
+    dependsOn: {
+      settingId: 'classLayoutAlgorithm',
+      value: 'spiral',
+    },
+    isRangeSetting: true,
   },
   landscapeScalar: {
     level: SettingLevel.EXTENDED,

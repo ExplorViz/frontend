@@ -49,6 +49,7 @@ import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
 import { ChatbotProvider } from '../../chatbot/chatbot-context';
 import { EditingProvider } from '../../editing/editing-context';
+import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -73,13 +74,18 @@ export default function BrowserRendering({
   userApiTokens,
   visualizationPaused,
   toggleVisualizationUpdating,
-  switchToAR,
   restructureLandscape,
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
 
-  const xrStore = createXRStore();
+  const xrStore = createXRStore({
+    controller: {
+      teleportPointer: { rayModel: { color: 'red' } },
+      rayPointer: { rayModel: { color: 'red' } },
+    },
+    offerSession: false,
+  });
 
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
@@ -117,10 +123,18 @@ export default function BrowserRendering({
       removeAnnotation: state.removeAnnotation,
       clearAnnotations: state.clearAnnotations,
       handleMouseMove: state.handleMouseMove,
-      handleHoverOnMesh: state.handleHoverOnMesh,
       cleanup: state.cleanup,
     }))
   );
+
+  const restartAndSetSocket = useIdeWebsocketStore(
+    (state) => state.restartAndSetSocket
+  );
+
+  const closeConnection = useIdeWebsocketStore(
+    (state) => state.closeConnection
+  );
+
   // MARK: Event handlers
 
   const removeAnnotation = (annotationId: number) => {
@@ -167,11 +181,6 @@ export default function BrowserRendering({
     string | null
   >(null);
 
-  const [worker] = useState<Worker>(
-    () =>
-      new Worker(new URL('../../../workers/metrics-worker.js', import.meta.url))
-  );
-
   // MARK: Refs
 
   const canvas = useRef<HTMLCanvasElement | null>(null);
@@ -200,17 +209,12 @@ export default function BrowserRendering({
       handleToggleSettingsSidebarComponentEvent
     );
 
+    // IDE Websocket connection setup
+    restartAndSetSocket(landscapeToken?.value);
+
     // Cleanup on component unmount
     return function cleanup() {
-      worker.terminate();
-      // renderingLoop.current?.stop();
       applicationRepositoryActions.cleanup();
-      // renderer.current?.dispose();
-      // renderer.current?.forceContextLoss();
-
-      // ideWebsocket.dispose();
-
-      // renderingLoop.current?.stop();
       configurationActions.setIsCommRendered(true);
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();
@@ -220,6 +224,9 @@ export default function BrowserRendering({
         'restructureComponent',
         handleToggleSettingsSidebarComponentEvent
       );
+
+      closeConnection();
+
     };
   }, []);
 
@@ -265,11 +272,6 @@ export default function BrowserRendering({
               <ContextMenu enterVR={() => xrStore.enterVR()}>
                 <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
               </ContextMenu>
-              {/* {loadNewLandscape.isRunning && (
-            <div className="position-absolute mt-6 pt-5 ml-3 pointer-events-none">
-              <LoadingIndicator text="Loading new Landscape" />
-            </div>
-          )} */}
 
               {landscapeData && <Popups landscapeData={landscapeData} />}
 

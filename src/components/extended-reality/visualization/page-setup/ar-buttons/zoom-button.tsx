@@ -1,10 +1,6 @@
-import React from 'react';
-
-import Button from 'react-bootstrap/Button';
 import { SearchIcon } from '@primer/octicons-react';
 import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
-
-interface ZoomButtonArgs {}
+import Button from 'react-bootstrap/Button';
 
 export default function ZoomButton() {
   const zoomEnabled = useARSettingsStore((state) => state.zoomEnabled);

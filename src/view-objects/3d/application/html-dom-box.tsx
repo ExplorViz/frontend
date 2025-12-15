@@ -3,6 +3,7 @@ import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { BoxData } from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -33,6 +34,10 @@ export default function HtmlDomBox({
     useShallow((state) => ({
       addPopup: state.addPopup,
     }))
+  );
+
+  const enableHoverEffects = useUserSettingsStore(
+    (state) => state.visualizationSettings.enableHoverEffects.value
   );
 
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
@@ -68,18 +73,20 @@ export default function HtmlDomBox({
       position={[300, 218, 0]}
       intersectChildren={false}
       visible={visible}
-      onPointerOver={(event) => {
-        if (visible) {
-          event.stopPropagation();
-          setHovered(true);
-        }
-      }}
-      onPointerOut={(event) => {
-        if (visible) {
-          event.stopPropagation();
-        }
-        setHovered(false);
-      }}
+      {...(enableHoverEffects && {
+        onPointerOver: (event) => {
+          if (visible) {
+            event.stopPropagation();
+            setHovered(true);
+          }
+        },
+        onPointerOut: (event) => {
+          if (visible) {
+            event.stopPropagation();
+          }
+          setHovered(false);
+        },
+      })}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       ref={meshRef}

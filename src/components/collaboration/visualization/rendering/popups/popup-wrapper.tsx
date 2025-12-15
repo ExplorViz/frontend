@@ -1,13 +1,13 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import ArPopupCoordinator from 'explorviz-frontend/src/components/extended-reality/visualization/rendering/popups/ar-popup-coordinator';
+import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 import {
   Application,
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 import { Button } from 'react-bootstrap';
-import ArPopupCoordinator from 'explorviz-frontend/src/components/extended-reality/visualization/rendering/popups/ar-popup-coordinator';
 import PopupData from '../../../../visualization/rendering/popups/popup-data';
 
 interface PopupWrapperArgs {
@@ -21,9 +21,6 @@ interface PopupWrapperArgs {
 }
 
 export default function PopupWrapper(args: PopupWrapperArgs) {
-  // Seems not to be used:
-  const [isPinned, setIsPinned] = useState(false);
-
   const [panDeltaX, setPanDeltaX] = useState(0);
   const [panDeltaY, setPanDeltaY] = useState(0);
 

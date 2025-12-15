@@ -44,11 +44,25 @@
 
   &-addon {
     border-radius: 0 !important;
+    cursor: pointer;
+    background-color: var(--colorpicker-color) !important;
   }
 }
 
 .colorpicker-label {
   padding: 5px 0 0 0;
+}
+
+.colorpicker-wrapper {
+  position: relative;
+}
+
+.colorpicker-popup {
+  position: absolute;
+  z-index: 1000;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
 }
 
 .chevron::before {
