@@ -1,8 +1,54 @@
+import { useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth';
+import { useLandscapeTokenStore } from '../../stores/landscape-token';
 
 export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
+  const skipLogin = useAuthStore((state) => state.skipLogin);
   const isInitialized = useAuthStore((state) => state.isInitialized);
+  const setLandscapeToken = useLandscapeTokenStore((state) => state.setToken);
+  const navigate = useNavigate();
+
+  // Check if dev login button is enabled via environment variable
+  const isDevLoginEnabled = import.meta.env.VITE_ENABLE_DEV_LOGIN === 'true';
+
+  // Check if automatic skip login is enabled via environment variable
+  const isAutoSkipLoginEnabled =
+    import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
+
+  const handleSkipLogin = useCallback(() => {
+    skipLogin();
+
+    // Set default token if available
+    // Note: user will be set after skipLogin() is called
+    const defaultToken = import.meta.env.VITE_ONLY_SHOW_TOKEN;
+    if (defaultToken && defaultToken !== 'change-token') {
+      // Get user sub from store or fallback to env variable
+      const ownerId =
+        useAuthStore.getState().user?.sub ||
+        import.meta.env.VITE_DEV_USER_SUB ||
+        '9000';
+      const defaultLandscapeToken = {
+        value: defaultToken,
+        ownerId: ownerId,
+        created: Date.now(),
+        alias: 'Development Token',
+        sharedUsersIds: [],
+      };
+      setLandscapeToken(defaultLandscapeToken);
+      navigate('/visualization');
+    } else {
+      navigate('/landscapes');
+    }
+  }, [skipLogin, setLandscapeToken, navigate]);
+
+  // Automatically skip login if VITE_ENABLE_SKIP_LOGIN is set
+  useEffect(() => {
+    if (isAutoSkipLoginEnabled && isInitialized) {
+      handleSkipLogin();
+    }
+  }, [isAutoSkipLoginEnabled, isInitialized, handleSkipLogin]);
 
   return (
     <div className="login-page-container">
@@ -45,6 +91,18 @@ export default function LoginPage() {
                 </span>
                 <span className="login-page-button-ripple"></span>
               </button>
+              {isDevLoginEnabled && (
+                <button
+                  className="login-page-button login-page-button-secondary"
+                  onClick={handleSkipLogin}
+                  type="button"
+                >
+                  <span className="login-page-button-label">
+                    Skip Login (Dev Mode)
+                  </span>
+                  <span className="login-page-button-ripple"></span>
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -180,6 +180,28 @@
   outline-offset: 2px;
 }
 
+.login-page-button-secondary {
+  background-color: transparent;
+  color: #1976d2;
+  box-shadow: none;
+  border: 1px solid rgba(25, 118, 210, 0.5);
+}
+
+.login-page-button-secondary:hover {
+  background-color: rgba(25, 118, 210, 0.08);
+  box-shadow: none;
+}
+
+.login-page-button-secondary:active {
+  background-color: rgba(25, 118, 210, 0.12);
+  box-shadow: none;
+}
+
+.login-page-button-secondary:focus {
+  outline: 2px solid rgba(25, 118, 210, 0.5);
+  outline-offset: 2px;
+}
+
 // Loading state
 .login-page-card-loading {
   display: flex;

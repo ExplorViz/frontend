@@ -31,6 +31,30 @@ export default function Application() {
 
   useInitNavigation();
 
+  // Handle skip login token setup
+  useEffect(() => {
+    const isSkipLoginEnabled = import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
+
+    if (isSkipLoginEnabled && user) {
+      // Set default token if available
+      const defaultToken = import.meta.env.VITE_ONLY_SHOW_TOKEN;
+      if (defaultToken && defaultToken !== 'change-token') {
+        const defaultLandscapeToken = {
+          value: defaultToken,
+          ownerId: user.sub,
+          created: Date.now(),
+          alias: 'Development Token',
+          sharedUsersIds: [],
+        };
+        setLandscapeToken(defaultLandscapeToken);
+        // Only navigate if we're not already on a route
+        if (window.location.pathname === '/') {
+          navigate('/visualization');
+        }
+      }
+    }
+  }, [user, setLandscapeToken, navigate]);
+
   // Auto-select landscape
   useEffect(() => {
     const autoSelectLandscape = async () => {
