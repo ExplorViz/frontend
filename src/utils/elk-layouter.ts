@@ -324,7 +324,6 @@ function createdFixedSizeApplication(
     layoutOptions: {
       algorithm: PACKAGE_ALGORITHM,
       'nodeSize.fixedGraphSize': true,
-      'nodeSize.constraints': 'MINIMUM_SIZE',
       'elk.padding': getPaddingForLabelPlacement(
         COMPONENT_LABEL_PLACEMENT,
         APP_LABEL_MARGIN,
