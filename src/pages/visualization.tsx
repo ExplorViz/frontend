@@ -948,17 +948,6 @@ export default function Visualization() {
               />
             </Button>
 
-            {/* ! VR Button */}
-            {visualizationSettings.showVrButton.value && !showVR && (
-              <button
-                className="bottom-bar-vr-button"
-                type="button"
-                onClick={switchToVR}
-              >
-                {vrButtonText}
-              </button>
-            )}
-
             {/* ! Runtime / Code Charts */}
             <div
               id="bottom-bar-chart-container"

@@ -107,10 +107,5 @@
     "zod": "^4.1.13",
     "zustand": "^5.0.9"
   },
-  "packageManager": "pnpm@10.25.0",
-  "pnpm": {
-    "overrides": {
-      "three": "latest"
-    }
-  }
+  "packageManager": "pnpm@10.25.0"
 }
