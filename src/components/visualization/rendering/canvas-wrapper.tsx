@@ -1,7 +1,7 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useLoader } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { XR, IfInSessionMode } from '@react-three/xr';
+import { IfInSessionMode, XR } from '@react-three/xr';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -27,6 +27,7 @@ import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/applic
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import CollaborationCameraSync from './collaboration-camera-sync';
 import SpectateCameraController from './spectate-camera-controller';
@@ -41,6 +42,13 @@ export default function CanvasWrapper({
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+
+  const floorTexture = useLoader(
+    THREE.TextureLoader,
+    'extended-reality/images/materials/floor.jpg'
+  );
+  floorTexture.repeat.set(200, 200);
+  floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
 
   const directionalLightRef = useRef(null);
 
@@ -294,6 +302,12 @@ export default function CanvasWrapper({
             />
             <SpectateCameraController />
             <CollaborationCameraSync />
+          </IfInSessionMode>
+          <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
+            <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry attach="geometry" args={[200, 200]} />
+              <meshBasicMaterial attach="material" map={floorTexture} />
+            </mesh>
           </IfInSessionMode>
           <LandscapeR3F
             layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
