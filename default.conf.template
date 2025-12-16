@@ -7,21 +7,21 @@ server {
   # BEGIN User-Service
 
   location /user {
-    set $upstream_user ${USER_URL};
+    set $upstream_user ${USER_SERV_URL};
     proxy_pass $upstream_user;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /token {
-    set $upstream_token ${USER_URL};
+    set $upstream_token ${USER_SERV_URL};
     proxy_pass $upstream_token;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /snapshot {
-    set $upstream_snapshot ${USER_URL};
+    set $upstream_snapshot ${USER_SERV_URL};
     proxy_pass $upstream_snapshot;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
@@ -32,27 +32,27 @@ server {
   # BEGIN Dynamic-Data
 
   location ~* /v2/landscapes/[0-9a-z-]+/structure {
-    set $upstream_landscape ${LANDSCAPE_URL};
+    set $upstream_landscape ${SPAN_SERV_URL};
     proxy_pass $upstream_landscape;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/dynamic {
-    set $upstream_trace ${TRACE_URL};
+    set $upstream_trace ${SPAN_SERV_URL};
     proxy_pass $upstream_trace;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/trace-data {
-    proxy_pass ${TRACE_URL};
+    proxy_pass ${SPAN_SERV_URL};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/timestamps {
-    set $upstream_timestamps ${TIMESTAMPS_URL};
+    set $upstream_timestamps ${SPAN_SERV_URL};
     proxy_pass $upstream_timestamps;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
@@ -74,7 +74,7 @@ server {
   # BEGIN Collab
 
   location /room {
-    set $upstream_room ${COLLABORATION_URL};
+    set $upstream_room ${COLLAB_SERV_URL};
     proxy_pass $upstream_room;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
@@ -82,7 +82,7 @@ server {
   }
 
   location /socket.io {
-    set $upstream_socketio ${COLLABORATION_URL};
+    set $upstream_socketio ${COLLAB_SERV_URL};
     proxy_pass $upstream_socketio;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
