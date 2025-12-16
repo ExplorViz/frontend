@@ -150,6 +150,7 @@ export type LabelSettingId = keyof LabelSettings;
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
+  classLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
   landscapePositionX: RangeSetting;
   landscapePositionY: RangeSetting;
@@ -171,6 +172,8 @@ export type LayoutSettings = {
   classMargin: RangeSetting;
   openedComponentHeight: RangeSetting;
   closedComponentHeight: RangeSetting;
+  spiralCenterOffset: RangeSetting;
+  spiralGap: RangeSetting;
 };
 export type LayoutSettingId = keyof LayoutSettings;
 

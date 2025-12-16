@@ -161,6 +161,9 @@ export default function Landscapes() {
         method: 'POST',
         body: JSON.stringify({
           alias,
+          isRequestedFromVSCodeExtension: false,
+          projectName: '',
+          commitId: '',
         }),
       })
         .then(async (response: Response) => {

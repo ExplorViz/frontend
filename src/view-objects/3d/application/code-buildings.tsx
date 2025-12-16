@@ -381,9 +381,9 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
           return;
         }
         obj.position.set(
-          layout.position.x,
+          layout.center.x,
           layout.position.y - layout.height / 2 + getClassHeight(classData) / 2,
-          layout.position.z
+          layout.center.z
         );
         obj.visible =
           !hiddenClassIds.has(classData.id) &&
@@ -417,10 +417,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         if (!classModel || !layout) return;
 
         const targetHeight = getClassHeight(classModel);
-        const targetPositionX = layout.position.x;
+        const targetPositionX = layout.center.x;
         const targetPositionY =
           layout.position.y - layout.height / 2 + targetHeight / 2;
-        const targetPositionZ = layout.position.z;
+        const targetPositionZ = layout.center.z;
         const targetWidth = layout.width;
         const targetDepth = layout.depth;
 

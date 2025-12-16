@@ -21,6 +21,7 @@ import {
 } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { time } from 'console';
 
 export type AnalysisMode = 'evolution' | 'runtime';
 
@@ -38,6 +39,7 @@ interface RenderingServiceState {
   _visualizationPaused: boolean;
   _analysisMode: AnalysisMode;
   _userInitiatedStaticDynamicCombination: boolean;
+  timelineUpdateVersion: number;
   triggerRenderingForGivenTimestamps: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => Promise<void>;
@@ -88,6 +90,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     _visualizationPaused: false, // tracked
     _analysisMode: 'runtime', // tracked
     _userInitiatedStaticDynamicCombination: false, // private
+    timelineUpdateVersion: 0,
 
     setLandscapeData: (data: LandscapeData | null) => {
       set({ _landscapeData: data });
@@ -219,19 +222,29 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       const commitToRuntimeLandscapeDataMap = new Map<string, LandscapeData>();
 
       for (const [commitId, timestamps] of commitToSelectedTimestampMap) {
-        for (const selectedTimestamp of timestamps) {
-          const [
-            latestFetchedStructureLandscapeData,
-            latestFetchedDynamicLandscapeData,
-          ] = await useReloadHandlerStore
-            .getState()
-            .loadLandscapeByTimestamp(selectedTimestamp.epochNano);
 
-          commitToRuntimeLandscapeDataMap.set(commitId, {
-            structureLandscapeData: latestFetchedStructureLandscapeData,
-            dynamicLandscapeData: latestFetchedDynamicLandscapeData,
-          });
+        const sortedTimestamps = [...timestamps].sort(
+          (a, b) => a.epochNano - b.epochNano
+        );
+
+        const timestampFrom = sortedTimestamps[0].epochNano;
+        let timestampTo = undefined;
+        if(sortedTimestamps.length > 1){
+          timestampTo = sortedTimestamps[sortedTimestamps.length - 1].epochNano;
         }
+
+        const [
+          latestFetchedStructureLandscapeData,
+          latestFetchedDynamicLandscapeData,
+        ] = await useReloadHandlerStore
+          .getState()
+          .loadLandscapeByTimestamp(timestampFrom, timestampTo);
+
+        commitToRuntimeLandscapeDataMap.set(commitId, {
+          structureLandscapeData: latestFetchedStructureLandscapeData,
+          dynamicLandscapeData: latestFetchedDynamicLandscapeData,
+        });
+
       }
       return commitToRuntimeLandscapeDataMap;
     },
@@ -301,6 +314,10 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       commitToSelectedTimestampMap: Map<string, Timestamp[]>
     ) => {
       if (commitToSelectedTimestampMap.size > 0) {
+
+
+
+
         for (const [
           commitId,
           selectedTimestamps,
@@ -310,7 +327,11 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             commitId
           );
         }
-        get()._timelineDataObjectHandler?.triggerTimelineUpdate();
+        set((state) => {
+          const next = state.timelineUpdateVersion + 1;
+
+          return { timelineUpdateVersion: next };
+        });
       }
     },
 
@@ -449,24 +470,22 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           false
         );
         animatePlayPauseIcon(false);
-        get()._timelineDataObjectHandler?.triggerTimelineUpdate();
       }
     },
 
-    pauseVisualizationUpdating: (forceTimelineUpdate: boolean = false) => {
-      if (forceTimelineUpdate || !get()._visualizationPaused) {
+    pauseVisualizationUpdating: () => {
+      if (!get()._visualizationPaused) {
         set({ _visualizationPaused: true });
 
         get()._timelineDataObjectHandler?.updateHighlightedMarkerColorForSelectedCommits(
           true
         );
         animatePlayPauseIcon(true);
-
-        get()._timelineDataObjectHandler?.triggerTimelineUpdate();
       }
     },
 
     resetAllRenderingStates: () => {
+      console.log("resetAllRenderingStates");
       set({
         _userInitiatedStaticDynamicCombination: false,
         _landscapeData: null,

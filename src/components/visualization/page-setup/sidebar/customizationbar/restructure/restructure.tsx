@@ -337,7 +337,6 @@ export default function Restructure({
         headers: { 'Content-Type': 'application/json' },
       })
         .then(async (response: Response) => {
-          console.log(response);
           if (response.ok) {
             const projects = (await response.json()) as {
               id: string;
@@ -352,7 +351,6 @@ export default function Restructure({
           }
         })
         .catch(async (e) => {
-          console.log(e);
           setGitLabProjects([]);
           resolve([]);
           showErrorToastMessage('Network error: Could not load projects.');

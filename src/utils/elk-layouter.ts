@@ -1,9 +1,18 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  getAllClassIdsInApplication,
+  getAllPackageIdsInApplications,
+} from 'explorviz-frontend/src/utils/application-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { applyCircleLayoutToClasses } from './circle-layouter';
+import {
+  applySpiralLayoutToClasses,
+  calculateSpiralSideLength,
+} from './spiral-layouter';
 import {
   Application,
   K8sDeployment,
@@ -28,6 +37,7 @@ const DUMMY_PREFIX = 'dumy-';
 
 let APPLICATION_ALGORITHM: string;
 let PACKAGE_ALGORITHM: string;
+let CLASS_ALGORITHM: string;
 let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
 let CLASS_FOOTPRINT: number;
@@ -46,6 +56,9 @@ let COMPONENT_LABEL_PLACEMENT: string;
 function setVisualizationSettings() {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
 
+  APPLICATION_ALGORITHM = vs.applicationLayoutAlgorithm.value;
+  PACKAGE_ALGORITHM = vs.packageLayoutAlgorithm.value;
+  CLASS_ALGORITHM = vs.classLayoutAlgorithm.value;
   DESIRED_EDGE_LENGTH = vs.applicationDistance.value;
   ASPECT_RATIO = vs.applicationAspectRatio.value;
   CLASS_FOOTPRINT = vs.classFootprint.value;
@@ -60,8 +73,6 @@ function setVisualizationSettings() {
   PACKAGE_MARGIN = vs.packageMargin.value;
   COMPONENT_HEIGHT = vs.openedComponentHeight.value;
   COMPONENT_LABEL_PLACEMENT = vs.componentLabelPlacement.value;
-  APPLICATION_ALGORITHM = vs.applicationLayoutAlgorithm.value;
-  PACKAGE_ALGORITHM = vs.packageLayoutAlgorithm.value;
 }
 
 function getPaddingForLabelPlacement(
@@ -86,6 +97,10 @@ export default async function layoutLandscape(
 
   setVisualizationSettings();
 
+  const useCircleLayout = CLASS_ALGORITHM === 'circle';
+  const useSpiralLayout = CLASS_ALGORITHM === 'spiral';
+  const useCustomClassLayout = useCircleLayout || useSpiralLayout;
+
   // Initialize landscape graph
   const landscapeGraph: any = {
     id: LANDSCAPE_PREFIX + 'landscape',
@@ -109,8 +124,40 @@ export default async function layoutLandscape(
 
   // Add applications
   applications.forEach((app) => {
-    const appGraph = createApplicationGraph(app, removedComponentIds);
-    landscapeGraph.children.push(appGraph);
+    const classCount = getAllClassIdsInApplication(app).length;
+    if (useCustomClassLayout) {
+      let appSideLength = 1;
+      if (useCircleLayout) {
+        const circumference =
+          classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 2);
+        if (classCount <= 2) {
+          appSideLength = CLASS_FOOTPRINT * 4;
+        } else {
+          appSideLength = circumference / Math.PI;
+        }
+      } else {
+        const { visualizationSettings: vs } = useUserSettingsStore.getState();
+
+        appSideLength = calculateSpiralSideLength(
+          classCount,
+          CLASS_FOOTPRINT,
+          CLASS_MARGIN,
+          vs.spiralGap.value,
+          vs.spiralCenterOffset.value
+        );
+      }
+      landscapeGraph.children.push(
+        createdFixedSizeApplication(app, {
+          width: appSideLength,
+          depth: appSideLength,
+        })
+      );
+      // Layout without special class layout algorithm
+    } else {
+      landscapeGraph.children.push(
+        createApplicationGraph(app, removedComponentIds)
+      );
+    }
   });
 
   // Add edges for force layout between applications
@@ -118,7 +165,25 @@ export default async function layoutLandscape(
 
   const layoutedGraph = await elk.layout(landscapeGraph);
 
-  return convertElkToBoxLayout(layoutedGraph);
+  const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
+
+  // Apply custom class layout if enabled
+  if (useCustomClassLayout) {
+    // Remove package layouts from the map since packages should not be rendered
+    // Collect all package IDs from all applications
+    getAllPackageIdsInApplications([...applications]).forEach((id) => {
+      boxLayoutMap.delete(id);
+    });
+
+    // Apply the selected layout algorithm to classes
+    if (useCircleLayout) {
+      applyCircleLayoutToClasses(boxLayoutMap, applications);
+    } else if (useSpiralLayout) {
+      applySpiralLayoutToClasses(boxLayoutMap, applications);
+    }
+  }
+
+  return boxLayoutMap;
 }
 
 function createK8sNodeGraph(k8sNode: K8sNode) {
@@ -228,6 +293,29 @@ function createApplicationGraph(
   return appGraph;
 }
 
+function createdFixedSizeApplication(
+  application: Application,
+  size: { width: number; depth: number }
+) {
+  const appGraph = {
+    id: APP_PREFIX + application.id,
+    width: size.width,
+    height: size.depth,
+    children: [],
+    layoutOptions: {
+      algorithm: PACKAGE_ALGORITHM,
+      'nodeSize.fixedGraphSize': true,
+      'elk.padding': getPaddingForLabelPlacement(
+        COMPONENT_LABEL_PLACEMENT,
+        APP_LABEL_MARGIN,
+        APP_MARGIN
+      ),
+    },
+  };
+
+  return appGraph;
+}
+
 function populateAppGraph(
   appGraph: any,
   application: Application,
@@ -262,13 +350,13 @@ function populatePackage(
   component: Package,
   removedComponentIds: Set<string>
 ) {
-  component.classes.forEach((clazz) => {
+  component.classes.forEach((classModel) => {
     let widthByMetric = 0;
     if (WIDTH_METRIC === SelectedClassMetric.Method) {
       widthByMetric =
         WIDTH_METRIC_MULTIPLIER *
         metricMappingMultipliers['Method Count'] *
-        clazz.methods.length;
+        classModel.methods.length;
     }
 
     let depthByMetric = 0;
@@ -276,11 +364,11 @@ function populatePackage(
       depthByMetric =
         DEPTH_METRIC_MULTIPLIER *
         metricMappingMultipliers['Method Count'] *
-        clazz.methods.length;
+        classModel.methods.length;
     }
 
     const classNode = {
-      id: CLASS_PREFIX + clazz.id,
+      id: CLASS_PREFIX + classModel.id,
       children: [],
       width: CLASS_FOOTPRINT + widthByMetric,
       height: CLASS_FOOTPRINT + depthByMetric,
@@ -374,15 +462,6 @@ export function convertElkToBoxLayout(
     // Add application offset since all components and classes are placed directly in app
     xOffset -= boxLayout.positionX;
     zOffset -= boxLayout.positionZ;
-  }
-
-  if (
-    elkGraph.id.startsWith(PACKAGE_PREFIX) ||
-    elkGraph.id.startsWith(CLASS_PREFIX)
-  ) {
-    // Geometries in three.js are centered around the origin
-    boxLayout.positionX = boxLayout.positionX + boxLayout.width / 2.0;
-    boxLayout.positionZ = boxLayout.positionZ + boxLayout.depth / 2.0;
   }
 
   // Ids in ELK must not start with numbers, therefore we added letters as prefix
