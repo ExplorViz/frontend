@@ -71,35 +71,35 @@ export default function CityDistrictLabel({
       case 'top':
         return isOpen
           ? new THREE.Vector3(
-              layout.positionX,
+              layout.center.x,
               openedPosY,
-              layout.positionZ - layout.depth / 2 + margin
+              layout.center.z - layout.depth / 2 + margin
             )
-          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
       case 'bottom':
         return isOpen
           ? new THREE.Vector3(
-              layout.positionX,
+              layout.center.x,
               openedPosY,
-              layout.positionZ + layout.depth / 2 - margin
+              layout.center.z + layout.depth / 2 - margin
             )
-          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
       case 'left':
         return isOpen
           ? new THREE.Vector3(
-              layout.positionX - layout.width / 2 + margin,
+              layout.center.x - layout.width / 2 + margin,
               openedPosY,
-              layout.positionZ
+              layout.center.z
             )
-          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
       case 'right':
         return isOpen
           ? new THREE.Vector3(
-              layout.positionX + layout.width / 2 - margin,
+              layout.center.x + layout.width / 2 - margin,
               openedPosY,
-              layout.positionZ
+              layout.center.z
             )
-          : new THREE.Vector3(layout.positionX, closedPosY, layout.positionZ);
+          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
       default:
         return new THREE.Vector3(0, 0, 0);
     }

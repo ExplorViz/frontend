@@ -97,14 +97,14 @@ export default function CodeBuildingLabel({
   };
 
   const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3(layout.positionX, layout.positionY, layout.positionZ)
+    new THREE.Vector3(layout.center.x, layout.positionY, layout.center.z)
   );
 
   useEffect(() => {
     const target = new THREE.Vector3(
-      layout.positionX,
+      layout.center.x,
       layout.positionY - layout.height / 2 + getClassHeight() + labelOffset,
-      layout.positionZ
+      layout.center.z
     );
 
     const { enableAnimations, animationDuration } =

@@ -185,7 +185,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             !hiddenComponentIds.has(component.id) &&
             !removedComponentIds.has(component.id);
 
-          const closedPosition = layout.position.clone();
+          const closedPosition = layout.center.clone();
           // Y-Position of layout is center of opened component
           closedPosition.y =
             layout.positionY +
@@ -193,9 +193,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           if (isOpen) {
             obj.position.set(
-              layout.position.x,
+              layout.center.x,
               layout.position.y,
-              layout.position.z
+              layout.center.z
             );
           } else {
             obj.position.set(
@@ -438,12 +438,12 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         const layout = layoutMap.get(componentId);
         if (!layout) return;
 
-        const targetPositionX = layout.position.x;
+        const targetPositionX = layout.center.x;
         const targetPositionY = isOpen
           ? layout.positionY
           : layout.positionY +
             (closedComponentHeight - openedComponentHeight) / 2;
-        const targetPositionZ = layout.position.z;
+        const targetPositionZ = layout.center.z;
         const targetWidth = layout.width;
         const targetDepth = layout.depth;
         const targetHeight = isOpen

@@ -502,15 +502,6 @@ export function convertElkToBoxLayout(
     zOffset -= boxLayout.positionZ;
   }
 
-  if (
-    elkGraph.id.startsWith(PACKAGE_PREFIX) ||
-    elkGraph.id.startsWith(CLASS_PREFIX)
-  ) {
-    // Geometries in three.js are centered around the origin
-    boxLayout.positionX = boxLayout.positionX + boxLayout.width / 2.0;
-    boxLayout.positionZ = boxLayout.positionZ + boxLayout.depth / 2.0;
-  }
-
   // Ids in ELK must not start with numbers, therefore we added letters as prefix
   if (elkGraph.id.substring(APP_PREFIX.length) !== DUMMY_PREFIX) {
     layoutMap.set(elkGraph.id.substring(APP_PREFIX.length), boxLayout);
