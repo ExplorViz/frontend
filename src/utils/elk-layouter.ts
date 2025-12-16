@@ -8,10 +8,7 @@ import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator
 import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import {
-  applyCircleLayoutToClasses,
-  collectApplicationClassesForCircleLayout,
-} from './circle-layouter';
+import { applyCircleLayoutToClasses } from './circle-layouter';
 import {
   applySpiralLayoutToClasses,
   calculateSpiralSideLength,
@@ -129,40 +126,33 @@ export default async function layoutLandscape(
   applications.forEach((app) => {
     const classCount = getAllClassIdsInApplication(app).length;
     if (useCustomClassLayout) {
+      let appSideLength = 1;
       if (useCircleLayout) {
         const circumference =
           classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 2);
-        let diameter;
         if (classCount <= 2) {
-          diameter = CLASS_FOOTPRINT * 4;
+          appSideLength = CLASS_FOOTPRINT * 4;
         } else {
-          diameter = circumference / Math.PI;
+          appSideLength = circumference / Math.PI;
         }
-        landscapeGraph.children.push(
-          createdFixedSizeApplication(app, {
-            width: diameter,
-            depth: diameter,
-          })
-        );
       } else {
-        // Spiral layout: calculate size based on spiral pattern
         const { visualizationSettings: vs } = useUserSettingsStore.getState();
 
-        const spiralSideLength = calculateSpiralSideLength(
+        appSideLength = calculateSpiralSideLength(
           classCount,
           CLASS_FOOTPRINT,
           CLASS_MARGIN,
           vs.spiralGap.value,
           vs.spiralCenterOffset.value
         );
-
-        landscapeGraph.children.push(
-          createdFixedSizeApplication(app, {
-            width: spiralSideLength,
-            depth: spiralSideLength,
-          })
-        );
       }
+      landscapeGraph.children.push(
+        createdFixedSizeApplication(app, {
+          width: appSideLength,
+          depth: appSideLength,
+        })
+      );
+      // Layout without special class layout algorithm
     } else {
       landscapeGraph.children.push(
         createApplicationGraph(app, removedComponentIds)
@@ -187,17 +177,9 @@ export default async function layoutLandscape(
 
     // Apply the selected layout algorithm to classes
     if (useCircleLayout) {
-      applyCircleLayoutToClasses(
-        boxLayoutMap,
-        applications,
-        removedComponentIds
-      );
+      applyCircleLayoutToClasses(boxLayoutMap, applications);
     } else if (useSpiralLayout) {
-      applySpiralLayoutToClasses(
-        boxLayoutMap,
-        applications,
-        removedComponentIds
-      );
+      applySpiralLayoutToClasses(boxLayoutMap, applications);
     }
   }
 
@@ -315,7 +297,6 @@ function createdFixedSizeApplication(
   application: Application,
   size: { width: number; depth: number }
 ) {
-  // TODO: The fixed sizing does not work correctly
   const appGraph = {
     id: APP_PREFIX + application.id,
     width: size.width,
@@ -332,8 +313,6 @@ function createdFixedSizeApplication(
     },
   };
 
-  populateAppGraph(appGraph, application, new Set());
-
   return appGraph;
 }
 
@@ -342,45 +321,28 @@ function populateAppGraph(
   application: Application,
   removedComponentIds: Set<string>
 ) {
-  // Check if custom class layout is enabled
-  const { visualizationSettings } = useUserSettingsStore.getState();
-  const classLayoutAlgorithm = visualizationSettings.classLayoutAlgorithm.value;
-  const useCustomClassLayout =
-    classLayoutAlgorithm === 'circle' || classLayoutAlgorithm === 'spiral';
+  application.packages.forEach((component) => {
+    if (removedComponentIds.has(component.id)) {
+      return;
+    }
+    const packageGraph = {
+      id: PACKAGE_PREFIX + component.id,
+      children: [],
+      layoutOptions: {
+        algorithm: PACKAGE_ALGORITHM,
+        aspectRatio: ASPECT_RATIO,
+        'spacing.nodeNode': CLASS_MARGIN,
+        'elk.padding': getPaddingForLabelPlacement(
+          COMPONENT_LABEL_PLACEMENT,
+          PACKAGE_LABEL_MARGIN,
+          PACKAGE_MARGIN
+        ),
+      },
+    };
+    appGraph.children.push(packageGraph);
 
-  if (useCustomClassLayout) {
-    const allClassNodes = collectApplicationClassesForCircleLayout(
-      application,
-      removedComponentIds
-    );
-
-    // Add all classes directly to the application graph
-    appGraph.children.push(...allClassNodes);
-  } else {
-    // Normal layout: use packages
-    application.packages.forEach((component) => {
-      if (removedComponentIds.has(component.id)) {
-        return;
-      }
-      const packageGraph = {
-        id: PACKAGE_PREFIX + component.id,
-        children: [],
-        layoutOptions: {
-          algorithm: PACKAGE_ALGORITHM,
-          aspectRatio: ASPECT_RATIO,
-          'spacing.nodeNode': CLASS_MARGIN,
-          'elk.padding': getPaddingForLabelPlacement(
-            COMPONENT_LABEL_PLACEMENT,
-            PACKAGE_LABEL_MARGIN,
-            PACKAGE_MARGIN
-          ),
-        },
-      };
-      appGraph.children.push(packageGraph);
-
-      populatePackage(packageGraph.children, component, removedComponentIds);
-    });
-  }
+    populatePackage(packageGraph.children, component, removedComponentIds);
+  });
 }
 
 function populatePackage(

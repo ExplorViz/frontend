@@ -2,11 +2,6 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { getAllClassesInApplication } from './application-helpers';
 import { Application, Package } from './landscape-schemes/structure-data';
-import { metricMappingMultipliers } from './settings/default-settings';
-import { SelectedClassMetric } from './settings/settings-schemas';
-
-// Constants for class node creation (matching elk-layouter.ts)
-const CLASS_PREFIX = 'clss-';
 
 let APP_LABEL_MARGIN: number;
 let APP_MARGIN: number;
@@ -29,76 +24,6 @@ export function setCircleLayoutSettings() {
   DEPTH_METRIC_MULTIPLIER = vs.classDepthMultiplier.value;
   APP_LABEL_MARGIN = vs.appLabelMargin.value;
   APP_MARGIN = vs.appMargin.value;
-}
-
-/**
- * Collects all classes from a package and its sub-packages recursively.
- * Creates ELK graph nodes for each class, skipping packages.
- */
-export function collectAllClassesForCircleLayout(
-  pkg: Package,
-  classNodes: any[],
-  removedComponentIds: Set<string>
-) {
-  pkg.classes.forEach((classModel) => {
-    if (removedComponentIds.has(classModel.id)) {
-      return;
-    }
-    let widthByMetric = 0;
-    if (WIDTH_METRIC === SelectedClassMetric.Method) {
-      widthByMetric =
-        WIDTH_METRIC_MULTIPLIER *
-        metricMappingMultipliers['Method Count'] *
-        classModel.methods.length;
-    }
-
-    let depthByMetric = 0;
-    if (DEPTH_METRIC === SelectedClassMetric.Method) {
-      depthByMetric =
-        DEPTH_METRIC_MULTIPLIER *
-        metricMappingMultipliers['Method Count'] *
-        classModel.methods.length;
-    }
-
-    const classNode = {
-      id: CLASS_PREFIX + classModel.id,
-      children: [],
-      width: CLASS_FOOTPRINT + widthByMetric,
-      height: CLASS_FOOTPRINT + depthByMetric,
-    };
-    classNodes.push(classNode);
-  });
-
-  pkg.subPackages.forEach((subPackage) => {
-    if (!removedComponentIds.has(subPackage.id)) {
-      collectAllClassesForCircleLayout(
-        subPackage,
-        classNodes,
-        removedComponentIds
-      );
-    }
-  });
-}
-
-/**
- * Collects all classes from an application for circle layout.
- * Returns an array of ELK graph nodes for all classes in the application.
- */
-export function collectApplicationClassesForCircleLayout(
-  application: Application,
-  removedComponentIds: Set<string>
-): any[] {
-  const allClassNodes: any[] = [];
-  application.packages.forEach((component) => {
-    if (!removedComponentIds.has(component.id)) {
-      collectAllClassesForCircleLayout(
-        component,
-        allClassNodes,
-        removedComponentIds
-      );
-    }
-  });
-  return allClassNodes;
 }
 
 /**
@@ -130,25 +55,20 @@ export function collectPackageIds(
  */
 export function applyCircleLayoutToClasses(
   boxLayoutMap: Map<string, BoxLayout>,
-  applications: Application[],
-  removedComponentIds: Set<string>
+  applications: Application[]
 ) {
   setCircleLayoutSettings();
   applications.forEach((application) => {
-    if (removedComponentIds.has(application.id)) {
-      return;
-    }
-
     // Get application layout to determine circle size
     const appLayout = boxLayoutMap.get(application.id);
     if (!appLayout) {
       return;
     }
 
-    // Get all classes in this application
-    const classes = getAllClassesInApplication(application)
-      .filter((classModel) => !removedComponentIds.has(classModel.id))
-      .sort((classA, classB) => classA.fqn!.localeCompare(classB.fqn!));
+    // Get all classes in applications and sort by fqn
+    const classes = getAllClassesInApplication(application).sort(
+      (classA, classB) => classA.fqn!.localeCompare(classB.fqn!)
+    );
 
     if (classes.length === 0) {
       return;
@@ -166,10 +86,12 @@ export function applyCircleLayoutToClasses(
     const angleStep = (2 * Math.PI) / classes.length;
 
     classes.forEach((classModel, index) => {
-      const classLayout = boxLayoutMap.get(classModel.id);
-      if (!classLayout) {
-        return;
-      }
+      const classLayout = new BoxLayout();
+
+      classLayout.width = CLASS_FOOTPRINT;
+      classLayout.depth = CLASS_FOOTPRINT;
+      classLayout.height = CLASS_FOOTPRINT;
+      classLayout.positionY = classLayout.height / 2.0; // Place directly on foundation
 
       // As Label and regular margin can differ, we offset by half the label margin difference
       const zMarginOffset = -APP_LABEL_MARGIN / 2 + APP_MARGIN / 2;
@@ -192,6 +114,8 @@ export function applyCircleLayoutToClasses(
 
       classLayout.positionX = classX;
       classLayout.positionZ = classZ;
+
+      boxLayoutMap.set(classModel.id, classLayout);
     });
   });
 }

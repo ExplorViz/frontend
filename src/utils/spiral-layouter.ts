@@ -92,8 +92,7 @@ export function calculateSpiralSideLength(
  */
 export function applySpiralLayoutToClasses(
   boxLayoutMap: Map<string, BoxLayout>,
-  applications: Application[],
-  removedComponentIds: Set<string>
+  applications: Application[]
 ) {
   // Get settings from the store
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
@@ -105,10 +104,6 @@ export function applySpiralLayoutToClasses(
   const SPIRAL_GAP = vs.spiralGap.value;
 
   applications.forEach((application) => {
-    if (removedComponentIds.has(application.id)) {
-      return;
-    }
-
     // Get application layout to determine spiral size
     const appLayout = boxLayoutMap.get(application.id);
     if (!appLayout) {
@@ -116,9 +111,9 @@ export function applySpiralLayoutToClasses(
     }
 
     // Get all classes in this application
-    const classes = getAllClassesInApplication(application)
-      .filter((classModel) => !removedComponentIds.has(classModel.id))
-      .sort((classA, classB) => classA.fqn!.localeCompare(classB.fqn!));
+    const classes = getAllClassesInApplication(application).sort(
+      (classA, classB) => classA.fqn!.localeCompare(classB.fqn!)
+    );
 
     if (classes.length === 0) {
       return;
@@ -177,10 +172,12 @@ export function applySpiralLayoutToClasses(
     );
 
     classes.forEach((classModel, _) => {
-      const classLayout = boxLayoutMap.get(classModel.id);
-      if (!classLayout) {
-        return;
-      }
+      const classLayout = new BoxLayout();
+
+      classLayout.width = CLASS_FOOTPRINT;
+      classLayout.depth = CLASS_FOOTPRINT;
+      classLayout.height = CLASS_FOOTPRINT;
+      classLayout.positionY = classLayout.height / 2.0; // Place directly on foundation
 
       // Calculate position based on current grid coordinates
       const classX = centerX + spiralState.x * spacing - CLASS_FOOTPRINT / 2;
@@ -190,6 +187,8 @@ export function applySpiralLayoutToClasses(
       classLayout.positionZ = classZ;
 
       spiralState = advanceInSpiral(spiralState, spiralConfig);
+
+      boxLayoutMap.set(classModel.id, classLayout);
     });
   });
 }
