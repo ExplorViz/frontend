@@ -1,7 +1,7 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas, useLoader } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { IfInSessionMode, XR } from '@react-three/xr';
+import { IfInSessionMode, XR, TeleportTarget, XROrigin } from '@react-three/xr';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -184,6 +184,8 @@ export default function CanvasWrapper({
     }))
   );
 
+  const [position, setPosition] = useState(new THREE.Vector3());
+
   useEffect(() => {
     if (landscapeData) {
       // Use layout of landscape data watcher
@@ -268,6 +270,7 @@ export default function CanvasWrapper({
 
   return (
     <>
+      {/* <button onClick={() => store.enterVR()}>Enter VR</button> */}
       <Canvas
         id="three-js-canvas"
         className={'webgl'}
@@ -304,10 +307,13 @@ export default function CanvasWrapper({
             <CollaborationCameraSync />
           </IfInSessionMode>
           <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
-            <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry attach="geometry" args={[200, 200]} />
-              <meshBasicMaterial attach="material" map={floorTexture} />
-            </mesh>
+            <XROrigin position={position} />
+            <TeleportTarget onTeleport={setPosition}>
+              <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry attach="geometry" args={[200, 200]} />
+                <meshBasicMaterial attach="material" map={floorTexture} />
+              </mesh>
+            </TeleportTarget>
           </IfInSessionMode>
           <LandscapeR3F
             layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
