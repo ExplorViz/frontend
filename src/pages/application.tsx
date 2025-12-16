@@ -1,9 +1,8 @@
+import LoginPage from 'explorviz-frontend/src/components/page-setup/login-page';
 import Navbar from 'explorviz-frontend/src/components/page-setup/navbar';
 import ToastMessage from 'explorviz-frontend/src/components/page-setup/toast-message';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import {
-  useLandscapeTokenStore
-} from 'explorviz-frontend/src/stores/landscape-token';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useInitNavigation } from 'explorviz-frontend/src/stores/store-router';
 import { useEffect, useState } from 'react';
@@ -31,6 +30,30 @@ export default function Application() {
   const navigate = useNavigate();
 
   useInitNavigation();
+
+  // Handle skip login token setup
+  useEffect(() => {
+    const isSkipLoginEnabled = import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
+
+    if (isSkipLoginEnabled && user) {
+      // Set default token if available
+      const defaultToken = import.meta.env.VITE_ONLY_SHOW_TOKEN;
+      if (defaultToken && defaultToken !== 'change-token') {
+        const defaultLandscapeToken = {
+          value: defaultToken,
+          ownerId: user.sub,
+          created: Date.now(),
+          alias: 'Development Token',
+          sharedUsersIds: [],
+        };
+        setLandscapeToken(defaultLandscapeToken);
+        // Only navigate if we're not already on a route
+        if (window.location.pathname === '/') {
+          navigate('/visualization');
+        }
+      }
+    }
+  }, [user, setLandscapeToken, navigate]);
 
   // Auto-select landscape
   useEffect(() => {
@@ -89,6 +112,13 @@ export default function Application() {
       autoSelectLandscape();
     }
   }, [searchParams, user]);
+
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  if (!isInitialized || !isAuthenticated) {
+    return <LoginPage />;
+  }
 
   return (
     <>

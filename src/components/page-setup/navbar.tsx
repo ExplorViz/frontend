@@ -82,9 +82,7 @@ export default function Navbar() {
     return import.meta.env.VITE_VERSION_TAG;
   };
 
-  const logout = () => {
-    console.log('The logout function is not available at the moment');
-  };
+  const logout = useAuthStore((state) => state.logout);
 
   const goToLandscapeSelection = () => {
     setSnapshotSelected(false);
@@ -237,8 +235,19 @@ export default function Navbar() {
                 <button
                   className="dropdown-item"
                   type="button"
-                  disabled
-                  onClick={() => logout}
+                  onClick={() => {
+                    window.location.href = `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}/account/`;
+                  }}
+                >
+                  <PersonIcon size="small" />
+                  Manage Account
+                </button>
+              </li>
+              <li>
+                <button
+                  className="dropdown-item"
+                  type="button"
+                  onClick={logout}
                 >
                   <SignOutIcon size="small" />
                   Logout
