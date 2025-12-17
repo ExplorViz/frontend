@@ -270,7 +270,6 @@ export default function CanvasWrapper({
 
   return (
     <>
-      {/* <button onClick={() => store.enterVR()}>Enter VR</button> */}
       <Canvas
         id="three-js-canvas"
         className={'webgl'}
@@ -301,7 +300,7 @@ export default function CanvasWrapper({
               fov={cameraFov}
               near={cameraNear}
               far={cameraFar}
-              makeDefault
+              // makeDefault // TODO
             />
             <SpectateCameraController />
             <CollaborationCameraSync />
