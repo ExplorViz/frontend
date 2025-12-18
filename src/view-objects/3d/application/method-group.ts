@@ -1,7 +1,7 @@
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import { MethodMesh } from 'explorviz-frontend/src/view-objects/3d/application/method-mesh';
 import * as THREE from 'three';
-import { MethodMesh } from './method-mesh';
 
 export class MethodGroup extends THREE.Group {
   isHovered: boolean;

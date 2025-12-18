@@ -2,7 +2,6 @@ import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-// import { Span } from './dynamic-data';
 
 export default class MethodCall {
   id: string = '';
