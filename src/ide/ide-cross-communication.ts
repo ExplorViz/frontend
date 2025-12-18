@@ -64,7 +64,7 @@ type OrderTuple = {
 };
 
 // @ts-ignore value is set in listener function of websocket
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 

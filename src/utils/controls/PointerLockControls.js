@@ -13,14 +13,7 @@
 //   MathUtils,
 // } from 'three';
 
-import {
-  EventDispatcher,
-  Euler,
-  Vector3,
-  MOUSE,
-  // Spherical,
-  // Quaternion,
-} from 'three';
+import { Euler, EventDispatcher, MOUSE, Vector3 } from 'three';
 
 const _euler = new Euler(0, 0, 0, 'YXZ');
 const _vector = new Vector3();
@@ -91,7 +84,6 @@ class PointerLockControls extends EventDispatcher {
     this.maxFOV = camera.fov;
     this.scale = 1;
 
-    // eslint-disable-next-line
     //const scope = this;
 
     const onMouseWheel = (event) => {

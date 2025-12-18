@@ -5,7 +5,11 @@
   background-color: var(--bs-white);
 
   thead {
-    background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
+    background: linear-gradient(
+      135deg,
+      var(--bs-primary),
+      var(--bs-primary-dark, #0056b3)
+    );
     color: var(--bs-white);
 
     th {
@@ -32,7 +36,8 @@
         border-bottom: none;
       }
 
-      td, th {
+      td,
+      th {
         padding: 0.875rem 0.75rem;
         border: none;
         vertical-align: middle;
@@ -120,7 +125,8 @@
         }
 
         &:nth-child(2) {
-          font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+          font-family:
+            'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
           font-size: 0.85rem;
           color: var(--bs-secondary);
           word-break: break-all;

@@ -15,6 +15,7 @@ import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualiza
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
+import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -31,23 +32,22 @@ import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
 import { LandscapeToken } from '../../../stores/landscape-token';
 import { ApiToken } from '../../../stores/user-api-token';
 import eventEmitter from '../../../utils/event-emitter';
+import { ChatbotProvider } from '../../chatbot/chatbot-context';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
+import { EditingProvider } from '../../editing/editing-context';
 import ChatBox from '../page-setup/sidebar/customizationbar/chat/chat-box';
+import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
+import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
 import Restructure from '../page-setup/sidebar/customizationbar/restructure/restructure';
 import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
-import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
-import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
 import SidebarComponent from '../page-setup/sidebar/sidebar-component';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
-import { ChatbotProvider } from '../../chatbot/chatbot-context';
-import { EditingProvider } from '../../editing/editing-context';
-import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -224,7 +224,6 @@ export default function BrowserRendering({
       );
 
       closeConnection();
-
     };
   }, []);
 

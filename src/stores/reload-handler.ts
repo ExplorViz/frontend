@@ -1,12 +1,12 @@
-import { create } from 'zustand';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useTimestampRepositoryStore } from './repos/timestamp-repository';
+import { create } from 'zustand';
 import { requestData } from '../utils/landscape-http-request-util';
+import { useTimestampRepositoryStore } from './repos/timestamp-repository';
 
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
@@ -21,7 +21,6 @@ interface ReloadHandlerState {
     array: T[],
     predicate: (value: T) => boolean
   ) => number;
-
 }
 
 export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
@@ -35,8 +34,12 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     timestampTo?: number
   ) => {
     try {
-
-      console.log("timestampFrom:", timestampFrom, " timestampTo:", timestampTo);
+      console.log(
+        'timestampFrom:',
+        timestampFrom,
+        ' timestampTo:',
+        timestampTo
+      );
 
       const getTimestampsForCommitId =
         useTimestampRepositoryStore.getState().getTimestampsForCommitId;
@@ -56,10 +59,9 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
           ? 0
           : listOfAllTimestamps[timestampIndex1].epochNano;
 
-      listOfAllTimestamps = useTimestampRepositoryStore.getState().getTimestampsForCommitId(
-        'cross-commit',
-        true
-      );
+      listOfAllTimestamps = useTimestampRepositoryStore
+        .getState()
+        .getTimestampsForCommitId('cross-commit', true);
 
       const timestampIndex2 = listOfAllTimestamps.findIndex(
         (ts) => ts.epochNano > timestampFrom
@@ -73,12 +75,11 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
         timestampIndex2 === -1
           ? exact + intervalInSeconds * NANOSECONDS_PER_SECOND
           : listOfAllTimestamps[timestampIndex2].epochNano;
-      const [structureDataPromise, dynamicDataPromise] =
-        await requestData(
-          start,
-          exact,
-          timestampTo ?? end
-        );
+      const [structureDataPromise, dynamicDataPromise] = await requestData(
+        start,
+        exact,
+        timestampTo ?? end
+      );
 
       if (
         structureDataPromise.status === 'fulfilled' &&
@@ -134,10 +135,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     ];
   },
 
-  findLastIndexPolyfill: <T>(
-    array: T[],
-    predicate: (value: T) => boolean
-  ) => {
+  findLastIndexPolyfill: <T>(array: T[], predicate: (value: T) => boolean) => {
     for (let i = array.length - 1; i >= 0; i--) {
       if (predicate(array[i])) {
         return i;
@@ -145,5 +143,4 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     }
     return -1;
   },
-
 }));

@@ -21,13 +21,13 @@ const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
 export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
-    const restartAndSetSocket = useIdeWebsocketStore(
-      (state) => state.restartAndSetSocket
-    );
+  const restartAndSetSocket = useIdeWebsocketStore(
+    (state) => state.restartAndSetSocket
+  );
 
-    const closeConnection = useIdeWebsocketStore(
-      (state) => state.closeConnection
-    );
+  const closeConnection = useIdeWebsocketStore(
+    (state) => state.closeConnection
+  );
 
   const dropdownRef = useRef<HTMLUListElement | null>(null);
 

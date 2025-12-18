@@ -10,10 +10,6 @@ import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/setti
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { applyCircleLayoutToClasses } from './circle-layouter';
 import {
-  applySpiralLayoutToClasses,
-  calculateSpiralSideLength,
-} from './spiral-layouter';
-import {
   Application,
   K8sDeployment,
   K8sNamespace,
@@ -21,6 +17,10 @@ import {
   K8sPod,
   Package,
 } from './landscape-schemes/structure-data';
+import {
+  applySpiralLayoutToClasses,
+  calculateSpiralSideLength,
+} from './spiral-layouter';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -454,7 +454,6 @@ export function convertElkToBoxLayout(
 
   // Landscape and applications are on the same level
   if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
-    // eslint-disable-next-line
     depth = depth - 1;
   }
 

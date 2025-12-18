@@ -1,3 +1,5 @@
+import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
+import * as THREE from 'three';
 import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry';
 import {
   Class,
@@ -6,8 +8,6 @@ import {
   Parameters,
   Variable,
 } from './landscape-schemes/structure-data';
-import * as THREE from 'three';
-import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
 
 class ObjectSizeList {
   /**

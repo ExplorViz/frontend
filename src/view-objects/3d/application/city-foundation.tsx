@@ -5,20 +5,20 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { gsap } from 'gsap';
-import { useEffect, useState } from 'react';
-import * as THREE from 'three';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { useShallow } from 'zustand/react/shallow';
-import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import {
   getHighlightingColorForEntity,
   toggleHighlightById,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
+import { gsap } from 'gsap';
+import { useEffect, useState } from 'react';
+import * as THREE from 'three';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function CityFoundation({
   application,
@@ -116,12 +116,12 @@ export default function CityFoundation({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-      setHoveredEntityId(application.id);
+    setHoveredEntityId(application.id);
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-      setHoveredEntityId(null);
+    setHoveredEntityId(null);
   };
 
   const handleClick = (/*event: any*/) => {

@@ -6,8 +6,8 @@ import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
 import * as THREE from 'three';
 
-export default class DetailInfoMesh extends ThreeMeshUI.Block /*implements IntersectableObject*/ {
-  sourceClass: string;
+export default class DetailInfoMesh extends ThreeMeshUI.Block {
+  /*implements IntersectableObject*/ sourceClass: string;
   targetClass: string;
 
   sourceClassId: string;

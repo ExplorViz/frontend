@@ -1,9 +1,9 @@
+import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
 import CrosshairMesh from 'explorviz-frontend/src/view-objects/3d/crosshair-mesh.ts';
-import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
-import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
 
 export function defaultRaycastFilter(
   intersection: THREE.Intersection

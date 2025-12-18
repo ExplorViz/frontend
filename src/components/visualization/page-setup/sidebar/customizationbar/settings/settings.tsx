@@ -20,13 +20,13 @@ import { deleteTraceData } from 'explorviz-frontend/src/utils/landscape-http-req
 import { ColorSchemeId } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
   ColorSettingId,
-  SettingDependency,
   isButtonSetting,
   isColorSetting,
   isFlagSetting,
   isRangeSetting,
   isSelectSetting,
   RangeSetting as RangeSettingSchema,
+  SettingDependency,
   SettingGroup,
   SettingLevel,
   VisualizationSettingId,
@@ -144,7 +144,7 @@ export default function Settings({
     };
 
     let settingId: keyof VisualizationSettings;
-    // eslint-disable-next-line guard-for-in, no-restricted-syntax
+
     for (settingId in visualizationSettings) {
       const setting = visualizationSettings[settingId];
       // Filter settings level

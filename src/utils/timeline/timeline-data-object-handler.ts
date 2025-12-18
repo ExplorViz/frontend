@@ -1,5 +1,5 @@
-import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 
 export type TimelineDataForCommit = {
   timestamps: Timestamp[];
@@ -22,20 +22,18 @@ export default class TimelineDataObjectHandler {
   // @tracked
   timelineDataObject: TimelineDataObject = new Map();
 
-
   // #endregion
 
   // #region Timeline Click Handler
 
   // @action
 
-// timelineClicked is defined as an arrow function so that "this" remains bound to
-// the TimelineDataObjectHandler instance. This prevents losing the context when
-// the method is passed as a callback to the PlotlyTimeline component.
+  // timelineClicked is defined as an arrow function so that "this" remains bound to
+  // the TimelineDataObjectHandler instance. This prevents losing the context when
+  // the method is passed as a callback to the PlotlyTimeline component.
   timelineClicked = async (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => {
-
     //console.log("timelineDataObject:", this.timelineDataObject);
     //console.log("commitToSelectedTimestampMap", commitToSelectedTimestampMap);
 
@@ -60,20 +58,21 @@ export default class TimelineDataObjectHandler {
     useRenderingServiceStore.getState().pauseVisualizationUpdating(true);
 
     if (useRenderingServiceStore.getState()._analysisMode === 'evolution') {
-      useRenderingServiceStore.getState()._userInitiatedStaticDynamicCombination =
-        true;
+      useRenderingServiceStore.getState()._userInitiatedStaticDynamicCombination = true;
     }
 
     useRenderingServiceStore
       .getState()
       .triggerRenderingForGivenTimestamps(commitToSelectedTimestampMap);
-  }
+  };
 
   // #endregion
 
   // #region Timeline Setter
 
-  updateHighlightedMarkerColorForSelectedCommits(isVisualizationPaused: boolean) {
+  updateHighlightedMarkerColorForSelectedCommits(
+    isVisualizationPaused: boolean
+  ) {
     this.timelineDataObject.forEach((dataForCommit) => {
       dataForCommit.highlightedMarkerColor = isVisualizationPaused
         ? PAUSED_COLOR
@@ -154,11 +153,11 @@ export default class TimelineDataObjectHandler {
   // #endregion
 
   //triggerTimelineUpdate() {
-    // Calling this in each update function will multiple renderings,
-    // therefore we manually call it when the updated data object is ready
-    // Additionally, we can manually trigger this update after the gsap
-    // animation of the play/pause icon
+  // Calling this in each update function will multiple renderings,
+  // therefore we manually call it when the updated data object is ready
+  // Additionally, we can manually trigger this update after the gsap
+  // animation of the play/pause icon
 
-    // this.debug('triggerTimelineUpdate');
+  // this.debug('triggerTimelineUpdate');
   //}
 }

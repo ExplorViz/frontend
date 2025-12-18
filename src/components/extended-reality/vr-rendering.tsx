@@ -221,33 +221,34 @@ export default function VrRendering({
   const initDone = useRef<boolean>(false);
   const session = useRef<XRSession | undefined>(undefined);
 
-  const [scene, setScene] = useState<THREE.Scene>(() =>
-    sceneRepoState.getScene('vr', true)
-  );
-  const [landscape3D] = useState<THREE.Group>(() => new THREE.Group()); // readonly
+  const sceneRef = useRef<THREE.Scene>(sceneRepoState.getScene('vr', true));
+  const scene = sceneRef.current;
+  const [sceneState, setSceneState] = useState<THREE.Scene>(sceneRef.current);
+  const landscape3DRef = useRef<THREE.Group>(new THREE.Group());
+  const landscape3D = landscape3DRef.current;
   // #endregion states & refs
 
   // #region useEffect
   useEffect(() => {
-    scene.background = userSettings.colors!.backgroundColor;
+    sceneRef.current.background = userSettings.colors!.backgroundColor;
 
     let newDefaultCamera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000);
     newDefaultCamera.position.set(2, 2, 2);
     localUser.setDefaultCamera(newDefaultCamera);
-    scene.add(newDefaultCamera);
-    scene.add(localUser.userGroup);
+    sceneRef.current.add(newDefaultCamera);
+    sceneRef.current.add(localUser.userGroup);
 
-    scene.add(landscape3D);
+    sceneRef.current.add(landscape3D);
     tickCallbacks.current.push({
       id: 'local-user',
       callback: useLocalUserStore.getState().tick,
     });
 
-    scene.add(detachedMenuGroups.container);
+    sceneRef.current.add(detachedMenuGroups.container);
 
-    vrMenuFactory.setScene(scene);
+    vrMenuFactory.setScene(sceneRef.current);
 
-    setScene(scene);
+    setSceneState(sceneRef.current);
 
     let newVisSettings = userSettings.visualizationSettings;
     newVisSettings.enableMultipleHighlighting.value = true;
@@ -265,13 +266,12 @@ export default function VrRendering({
     // Start main loop.
     renderingLoop.current = new RenderingLoop({
       camera: localUser.defaultCamera,
-      scene: scene,
+      scene: sceneRef.current,
       renderer: renderer.current!,
       tickCallbacks: tickCallbacks.current,
     });
     ImmersiveView.instance.registerRenderingLoop(renderingLoop.current);
-    let newScene = scene;
-    newScene.add(collabSession.remoteUserGroup);
+    sceneRef.current.add(collabSession.remoteUserGroup);
     renderingLoop.current.tickCallbacks.push({
       id: 'vr-rendering',
       callback: tick,
@@ -291,7 +291,7 @@ export default function VrRendering({
   /**
    * Calls all init functions.
    */
-  const initRendering = () => {
+  function initRendering() {
     initHUD();
     initRenderer();
     initInteraction();
@@ -300,11 +300,11 @@ export default function VrRendering({
     initControllers();
     initWebSocket();
     renderer.current!.xr.addEventListener('sessionend', resetLandscape);
-  };
+  }
 
-  const resetLandscape = () => {
+  function resetLandscape() {
     onVrSessionEnded();
-  };
+  }
 
   /**
    * Creates the menu groups that are attached to the user's camera.
@@ -608,7 +608,7 @@ export default function VrRendering({
 
   // #region DESTRUCTION
 
-  const willDestroy = () => {
+  function willDestroy() {
     localUser.setXr(undefined);
 
     eventEmitter.off(USER_CONTROLLER_CONNECT_EVENT, onUserControllerConnect);
@@ -631,7 +631,7 @@ export default function VrRendering({
 
     // Remove event listers.
     willDestroyController.current.abort();
-  };
+  }
 
   // #endregion DESTRUCTION
 
@@ -641,7 +641,7 @@ export default function VrRendering({
    *
    * @param outerDiv HTML element containing the canvas
    */
-  const resize = () => {
+  function resize() {
     if (renderer.current!.xr.isPresenting) {
       return;
     }
@@ -656,7 +656,7 @@ export default function VrRendering({
     newCamera.aspect = width / height;
     newCamera.updateProjectionMatrix();
     localUser.setDefaultCamera(newCamera);
-  };
+  }
 
   const onVrSessionStarted = (session_val: XRSession) => {
     vrSessionActive.current = true;
@@ -754,7 +754,7 @@ export default function VrRendering({
   /**
    * Updates menus, services and all objects in the scene.
    */
-  const tick = (delta: number) => {
+  function tick(delta: number) {
     // Update controllers and menus.
     localUser.updateControllers(delta);
     hintMenuQueue.current!.updateMenu(delta);
@@ -774,7 +774,7 @@ export default function VrRendering({
 
     // Update animations
     gsap.ticker.tick();
-  };
+  }
 
   // #endregion MAIN LOOP
 

@@ -6,7 +6,10 @@ import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timest
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 import { useLandscapeTokenStore } from './landscape-token';
-import { DebugSnapshot, useDebugSnapshotRepositoryStore } from './repos/debug-snapshot-repository';
+import {
+  DebugSnapshot,
+  useDebugSnapshotRepositoryStore,
+} from './repos/debug-snapshot-repository';
 import { useToastHandlerStore } from './toast-handler';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
@@ -150,37 +153,45 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
               .showErrorToastMessage('No timestamp data could be fetched.');
             callback(new Map([[CROSS_COMMIT_IDENTIFIER, []]]));
             return;
-          }).then(() => {
-          // Snapshots are for debug landscapes only. Notice that we do not support the selection of commits at the moment (TODO: future work)
-          // (therefore this code lays within the commits.length === 0 case)
-          if (useLandscapeTokenStore.getState().token?.isRequestedFromVSCodeExtension) {
-            const debugSnapshotTimestampsPromise = get()._httpFetchDebugSnapshots(
-              newestDebugSnapshotTimestamp
-            );
-            debugSnapshotTimestampsPromise
-              .then((debugSnapshots: DebugSnapshot[]) => {
+          })
+          .then(() => {
+            // Snapshots are for debug landscapes only. Notice that we do not support the selection of commits at the moment (TODO: future work)
+            // (therefore this code lays within the commits.length === 0 case)
+            if (
+              useLandscapeTokenStore.getState().token
+                ?.isRequestedFromVSCodeExtension
+            ) {
+              const debugSnapshotTimestampsPromise =
+                get()._httpFetchDebugSnapshots(newestDebugSnapshotTimestamp);
+              debugSnapshotTimestampsPromise
+                .then((debugSnapshots: DebugSnapshot[]) => {
+                  //console.log(`Fetched ${debugSnapshots.length} new debug snapshots from VS Code extension.`, debugSnapshots);
 
-                //console.log(`Fetched ${debugSnapshots.length} new debug snapshots from VS Code extension.`, debugSnapshots);
+                  useDebugSnapshotRepositoryStore
+                    .getState()
+                    .saveDebugSnapshots(
+                      useLandscapeTokenStore.getState().token!.value,
+                      debugSnapshots
+                    );
 
-                useDebugSnapshotRepositoryStore.getState().saveDebugSnapshots(
-                  useLandscapeTokenStore.getState().token!.value,
-                  debugSnapshots
-                );
-
-                const debugSnapshotTimestamps = debugSnapshots.map(ds => ds.timestamp);
-                callback(polledCommitToTimestampMap, debugSnapshotTimestamps);
-              })
-              .catch((error: Error) => {
-                console.error(`Error on fetch of debug snapshot timestamps: ${error}`);
-                callback(polledCommitToTimestampMap);
-              });
-          } else {
-            callback(polledCommitToTimestampMap);
-          }
-        })
-        .catch((error: Error) => {
-          console.error(`Error on fetch of savepoints: ${error}`);
-        });
+                  const debugSnapshotTimestamps = debugSnapshots.map(
+                    (ds) => ds.timestamp
+                  );
+                  callback(polledCommitToTimestampMap, debugSnapshotTimestamps);
+                })
+                .catch((error: Error) => {
+                  console.error(
+                    `Error on fetch of debug snapshot timestamps: ${error}`
+                  );
+                  callback(polledCommitToTimestampMap);
+                });
+            } else {
+              callback(polledCommitToTimestampMap);
+            }
+          })
+          .catch((error: Error) => {
+            console.error(`Error on fetch of savepoints: ${error}`);
+          });
 
         return;
       } else {
@@ -252,9 +263,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           .catch((e) => reject(e));
       });
     },
-    _httpFetchDebugSnapshots: (
-      newestLocalTimestamp?: Timestamp
-    ) => {
+    _httpFetchDebugSnapshots: (newestLocalTimestamp?: Timestamp) => {
       return new Promise<DebugSnapshot[]>((resolve, reject) => {
         if (!useLandscapeTokenStore.getState().token) {
           reject(new Error('No landscape token selected'));

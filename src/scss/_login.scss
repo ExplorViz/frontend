@@ -45,13 +45,15 @@
   width: 100%;
   background: #ffffff;
   border-radius: 16px;
-  box-shadow: 
+  box-shadow:
     0 8px 10px 1px rgba(0, 0, 0, 0.14),
     0 3px 14px 2px rgba(0, 0, 0, 0.12),
     0 5px 5px -3px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   animation: card-enter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 @keyframes card-enter {
@@ -142,7 +144,9 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .login-page-button:active .login-page-button-ripple {
@@ -153,7 +157,7 @@
 .login-page-button-primary {
   background-color: #1976d2;
   color: #ffffff;
-  box-shadow: 
+  box-shadow:
     0 2px 4px -1px rgba(0, 0, 0, 0.2),
     0 4px 5px 0 rgba(0, 0, 0, 0.14),
     0 1px 10px 0 rgba(0, 0, 0, 0.12);
@@ -161,7 +165,7 @@
 
 .login-page-button-primary:hover {
   background-color: #1565c0;
-  box-shadow: 
+  box-shadow:
     0 4px 8px -1px rgba(0, 0, 0, 0.2),
     0 6px 10px 0 rgba(0, 0, 0, 0.14),
     0 2px 16px 0 rgba(0, 0, 0, 0.12);
@@ -169,7 +173,7 @@
 
 .login-page-button-primary:active {
   background-color: #0d47a1;
-  box-shadow: 
+  box-shadow:
     0 1px 3px 0 rgba(0, 0, 0, 0.2),
     0 2px 1px -1px rgba(0, 0, 0, 0.14),
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
@@ -283,4 +287,3 @@
     color: rgba(255, 255, 255, 0.6);
   }
 }
-

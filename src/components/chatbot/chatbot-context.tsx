@@ -1,9 +1,9 @@
 import { CopilotKit } from '@copilotkit/react-core';
-import { createContext, PropsWithChildren, useEffect, useState } from 'react';
-import { CopilotTools } from './copilot-tools';
-import { CopilotResources } from './copilot-resources';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { createContext, PropsWithChildren, useEffect, useState } from 'react';
+import { CopilotResources } from './copilot-resources';
+import { CopilotTools } from './copilot-tools';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
 
@@ -74,7 +74,7 @@ export function ChatbotProvider({
   }, []);
 
   return (
-    <ChatbotContext.Provider
+    <ChatbotContext
       value={{
         providers,
         selectedProvider,
@@ -95,6 +95,6 @@ export function ChatbotProvider({
         <CopilotTools applications={applications} />
         {children}
       </CopilotKit>
-    </ChatbotContext.Provider>
+    </ChatbotContext>
   );
 }

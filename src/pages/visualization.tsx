@@ -13,7 +13,6 @@ import {
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
@@ -38,6 +37,12 @@ import {
   useUserApiTokenStore,
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import {
+  highlightById,
+  removeAllHighlighting,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
@@ -73,11 +78,6 @@ import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/tim
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import {
-  highlightById,
-  removeAllHighlighting,
-} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 
 const queryParams = [
@@ -987,9 +987,11 @@ export default function Visualization() {
                     timelineDataObject={
                       timelineDataObjectHandler.timelineDataObject!
                     }
-                    debugSnapshots={useDebugSnapshotRepositoryStore.getState().getDebugSnapshotsByLandscapeToken(
-                      landscapeTokenServiceToken!.value
-                    )}
+                    debugSnapshots={useDebugSnapshotRepositoryStore
+                      .getState()
+                      .getDebugSnapshotsByLandscapeToken(
+                        landscapeTokenServiceToken!.value
+                      )}
                     timelineUpdateVersion={timelineUpdateVersion}
                     clicked={timelineDataObjectHandler.timelineClicked}
                   />

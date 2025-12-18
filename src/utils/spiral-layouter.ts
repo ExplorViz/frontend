@@ -1,7 +1,7 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { Application } from './landscape-schemes/structure-data';
-import { getAllClassesInApplication } from './application-helpers';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { getAllClassesInApplication } from './application-helpers';
+import { Application } from './landscape-schemes/structure-data';
 
 type SpiralState = {
   x: number;

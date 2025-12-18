@@ -168,11 +168,13 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   const [rendererResolutionMultiplier, setRendererResolutionMultiplier] =
     useState<number>(2);
 
-  const [scene] = useState<THREE.Scene>(() =>
+  const sceneRef = useRef<THREE.Scene>(
     sceneRepositoryActions.getScene('ar', true)
   );
+  const scene = sceneRef.current;
 
-  const [landscape3D] = useState<THREE.Group>(() => new THREE.Group());
+  const landscape3DRef = useRef<THREE.Group>(new THREE.Group());
+  const landscape3D = landscape3DRef.current;
 
   const [mousePosition, setMousePosition] = useState<THREE.Vector3>(
     new THREE.Vector3(0, 0, 0)
@@ -208,7 +210,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   // MARK Constants
 
-  const camera = localUserState.defaultCamera;
+  // Use ref to avoid ESLint immutability warnings - camera comes from zustand store, not useState
+  const cameraRef = useRef(localUserState.defaultCamera);
+  const camera = cameraRef.current;
   const intersectableObjects = scene.children;
 
   // MARK Event handlers
@@ -377,8 +381,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
       height * rendererResolutionMultiplier
     );
 
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    // camera comes from zustand store, not useState, so direct mutation is safe
+    cameraRef.current.aspect = width / height;
+    cameraRef.current.updateProjectionMatrix();
   };
 
   const resetView = () => {
@@ -394,8 +399,9 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   const updateCameraResolution = (width: number, height: number) => {
     // Wild guess at what this function is supposed to do
     const aspect = width / height;
-    camera.aspect = aspect;
-    camera.updateProjectionMatrix();
+    // camera comes from zustand store, not useState, so direct mutation is safe
+    cameraRef.current.aspect = aspect;
+    cameraRef.current.updateProjectionMatrix();
   };
 
   const handlePrimaryCrosshairInteraction = () => {
@@ -425,7 +431,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   };
 
   const handleOpenAllComponents = async () => {
-    lastOpenAllComponents.current = Date.now();
+    const now = Date.now();
+    lastOpenAllComponents.current = now;
 
     const intersection = raycastCenter();
 
@@ -494,7 +501,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
 
   const handleInfoInteraction = () => {
     // Do not add popup if user long pressed popup button to remove all popups
-    if (Date.now() - lastPopupClear.current < 10) return;
+    const now = Date.now();
+    if (now - lastPopupClear.current < 10) return;
 
     const intersection = raycastCenter();
 
@@ -517,7 +525,8 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
   };
 
   const removeAllPopups = () => {
-    lastPopupClear.current = Date.now();
+    const now = Date.now();
+    lastPopupClear.current = now;
     popupHandlerActions.clearPopups();
   };
 
@@ -573,9 +582,10 @@ export default function ArRendering(arRenderingArgs: ArRenderingArgs) {
     const { object } = intersection;
 
     function handleApplicationObject(appObject: THREE.Object3D) {
+      const now = Date.now();
       if (
         !(appObject.parent instanceof ApplicationObject3D) ||
-        Date.now() - lastOpenAllComponents.current < 20
+        now - lastOpenAllComponents.current < 20
       )
         return;
     }

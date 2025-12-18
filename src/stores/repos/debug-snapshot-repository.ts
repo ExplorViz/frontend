@@ -1,12 +1,12 @@
-import { Timestamp } from "explorviz-frontend/src/utils/landscape-schemes/timestamp";
-import { create } from "zustand";
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { create } from 'zustand';
 
 export type DebugSnapshot = {
   timestamp: Timestamp;
 };
 
 interface DebugSnapshotRepositoryState {
-landscapeTokenToDebugSnapshotMap: Map<string, Map<number, DebugSnapshot>>; // landscapeToken -> (timestamp.epochMilli -> DebugSnapshot)
+  landscapeTokenToDebugSnapshotMap: Map<string, Map<number, DebugSnapshot>>; // landscapeToken -> (timestamp.epochMilli -> DebugSnapshot)
 
   saveDebugSnapshots: (
     landscapeToken: string,
@@ -18,7 +18,9 @@ landscapeTokenToDebugSnapshotMap: Map<string, Map<number, DebugSnapshot>>; // la
     debugSnapshot: DebugSnapshot
   ) => void;
 
-  getDebugSnapshotsByLandscapeToken: (landscapeToken: string) => DebugSnapshot[] | undefined;
+  getDebugSnapshotsByLandscapeToken: (
+    landscapeToken: string
+  ) => DebugSnapshot[] | undefined;
 
   getDebugSnapshotByLandscapeTokenAndTimestamp: (
     landscapeToken: string,
@@ -26,32 +28,42 @@ landscapeTokenToDebugSnapshotMap: Map<string, Map<number, DebugSnapshot>>; // la
   ) => DebugSnapshot | undefined;
 }
 
-export const useDebugSnapshotRepositoryStore = create<DebugSnapshotRepositoryState>(
-  (set, get) => ({
+export const useDebugSnapshotRepositoryStore =
+  create<DebugSnapshotRepositoryState>((set, get) => ({
     landscapeTokenToDebugSnapshotMap: new Map(), // tracked
 
-    saveDebugSnapshots:(landscapeToken: string, debugSnapshots: DebugSnapshot[]) => {
+    saveDebugSnapshots: (
+      landscapeToken: string,
+      debugSnapshots: DebugSnapshot[]
+    ) => {
       for (const snapshot of debugSnapshots) {
         get().saveDebugSnapshot(landscapeToken, snapshot);
       }
     },
     saveDebugSnapshot: (
       landscapeToken: string,
-      debugSnapshot: DebugSnapshot) => {
+      debugSnapshot: DebugSnapshot
+    ) => {
       const outerMap = get().landscapeTokenToDebugSnapshotMap;
-      const snapshots = outerMap.get(landscapeToken) ?? new Map<number, DebugSnapshot>();
+      const snapshots =
+        outerMap.get(landscapeToken) ?? new Map<number, DebugSnapshot>();
 
       snapshots.set(debugSnapshot.timestamp.epochNano, debugSnapshot);
       outerMap.set(landscapeToken, snapshots);
     },
 
     getDebugSnapshotsByLandscapeToken: (landscapeToken: string) => {
-      const snapshotsMap = get().landscapeTokenToDebugSnapshotMap.get(landscapeToken);
+      const snapshotsMap =
+        get().landscapeTokenToDebugSnapshotMap.get(landscapeToken);
       return snapshotsMap ? Array.from(snapshotsMap.values()) : [];
     },
 
-    getDebugSnapshotByLandscapeTokenAndTimestamp: (landscapeToken: string, epochNano: number) => {
-      return get().landscapeTokenToDebugSnapshotMap.get(landscapeToken)?.get(epochNano);
+    getDebugSnapshotByLandscapeTokenAndTimestamp: (
+      landscapeToken: string,
+      epochNano: number
+    ) => {
+      return get()
+        .landscapeTokenToDebugSnapshotMap.get(landscapeToken)
+        ?.get(epochNano);
     },
-  })
-);
+  }));

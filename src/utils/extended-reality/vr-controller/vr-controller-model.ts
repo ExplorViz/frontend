@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 /**
  * Adapted from: https://github.com/mrdoob/three.js/blob/master/examples/jsm/webxr/XRControllerModelFactory.js
  */

@@ -1,15 +1,15 @@
 // import { tracked } from '@glimmer/tracking';
+import { FlatData } from 'explorviz-frontend/src/utils/flat-data-schemes/flat-data';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   ApplicationMetrics,
   Metric,
 } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
-import { FlatData } from 'explorviz-frontend/src/utils/flat-data-schemes/flat-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 
 export default class ApplicationData {

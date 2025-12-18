@@ -25,40 +25,6 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
   const [panDeltaY, setPanDeltaY] = useState(0);
 
   const dragElementRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const dragElement = dragElementRef.current;
-    initializePanListener(dragElement!);
-
-    setupInitialPosition(dragElement!);
-
-    if (useARSettingsStore.getState().stackPopups) {
-      args.keepPopupOpen(+args.popupData.entity.id); // original param: args.popupData.id
-    }
-  });
-
-  const initializePanListener = (element: HTMLElement) => {
-    const mc = new Hammer(element);
-
-    mc.get('pan').set({ direction: Hammer.DIRECTION_ALL });
-
-    // Keep track of pan distance since pan start
-    mc.on('panstart', () => {
-      keepPopupOpen();
-      setPanDeltaX(0);
-      setPanDeltaY(0);
-    });
-
-    mc.on('panleft panright panup pandown', (ev) => {
-      // Calculate positional difference since last pan event
-      const currentDeltaX = panDeltaX - ev.deltaX;
-      const currentDeltaY = panDeltaY - ev.deltaY;
-
-      handlePan(currentDeltaX, currentDeltaY);
-
-      setPanDeltaX(ev.deltaX);
-      setPanDeltaY(ev.deltaY);
-    });
-  };
 
   const keepPopupOpen = () => {
     if (!args.popupData.isPinned) {
@@ -66,8 +32,53 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     }
   };
 
-  const closePopup = () => {
-    args.closePopup(+args.popupData.entity.id); // original param: args.popupData.id
+  const handlePan = (deltaX: number, deltaY: number) => {
+    const localDivElement = dragElementRef.current!;
+    const localArgs = args;
+
+    function xPositionInsideWindow(minX: number, maxX: number) {
+      return minX >= 0 && maxX <= window.innerWidth;
+    }
+
+    function yPositionInsideWindow(minY: number, maxY: number) {
+      return minY >= 0 && maxY <= window.innerHeight;
+    }
+
+    function moveElement(xOffset: number, yOffset: number) {
+      // Calculation of old and new coordinates
+      const oldMinX = localDivElement.offsetLeft;
+      const oldMaxX = oldMinX + localDivElement.clientWidth;
+      const oldMinY = localDivElement.offsetTop;
+      const oldMaxY = oldMinY + localDivElement.clientHeight;
+
+      const newMinX = oldMinX - xOffset;
+      const newMaxX = newMinX + localDivElement.clientWidth;
+      const newMinY = oldMinY - yOffset;
+      const newMaxY = newMinY + localDivElement.clientHeight;
+
+      // Set the element's new position:
+      if (
+        !xPositionInsideWindow(oldMinX, oldMaxX) ||
+        xPositionInsideWindow(newMinX, newMaxX)
+      ) {
+        localDivElement.style.left = `${newMinX}px`;
+      }
+
+      if (
+        !yPositionInsideWindow(oldMinY, oldMaxY) ||
+        yPositionInsideWindow(newMinY, newMaxY)
+      ) {
+        localDivElement.style.top = `${newMinY}px`;
+      }
+
+      localArgs.setPopupPosition(
+        +localArgs.popupData.entity.id,
+        newMinX,
+        newMinY
+      );
+    }
+
+    moveElement(deltaX, deltaY);
   };
 
   const setupInitialPosition = (popoverDiv: HTMLElement) => {
@@ -124,7 +135,6 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     }
 
     // Set popup position
-    /* eslint-disable no-param-reassign */
     popoverDiv.style.top = `${popupTopPosition}px`;
     popoverDiv.style.left = `${popupLeftPosition}px`;
 
@@ -135,54 +145,46 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
     );
   };
 
-  const handlePan = (deltaX: number, deltaY: number) => {
-    const localDivElement = dragElementRef.current!;
-    const localArgs = args;
+  const initializePanListener = (element: HTMLElement) => {
+    const mc = new Hammer(element);
 
-    function xPositionInsideWindow(minX: number, maxX: number) {
-      return minX >= 0 && maxX <= window.innerWidth;
-    }
+    mc.get('pan').set({ direction: Hammer.DIRECTION_ALL });
 
-    function yPositionInsideWindow(minY: number, maxY: number) {
-      return minY >= 0 && maxY <= window.innerHeight;
-    }
+    // Keep track of pan distance since pan start
+    mc.on('panstart', () => {
+      keepPopupOpen();
+      setPanDeltaX(0);
+      setPanDeltaY(0);
+    });
 
-    function moveElement(xOffset: number, yOffset: number) {
-      // Calculation of old and new coordinates
-      const oldMinX = localDivElement.offsetLeft;
-      const oldMaxX = oldMinX + localDivElement.clientWidth;
-      const oldMinY = localDivElement.offsetTop;
-      const oldMaxY = oldMinY + localDivElement.clientHeight;
+    mc.on('panleft panright panup pandown', (ev) => {
+      // Calculate positional difference since last pan event
+      const currentDeltaX = panDeltaX - ev.deltaX;
+      const currentDeltaY = panDeltaY - ev.deltaY;
 
-      const newMinX = oldMinX - xOffset;
-      const newMaxX = newMinX + localDivElement.clientWidth;
-      const newMinY = oldMinY - yOffset;
-      const newMaxY = newMinY + localDivElement.clientHeight;
+      handlePan(currentDeltaX, currentDeltaY);
 
-      // Set the element's new position:
-      if (
-        !xPositionInsideWindow(oldMinX, oldMaxX) ||
-        xPositionInsideWindow(newMinX, newMaxX)
-      ) {
-        localDivElement.style.left = `${newMinX}px`;
-      }
-
-      if (
-        !yPositionInsideWindow(oldMinY, oldMaxY) ||
-        yPositionInsideWindow(newMinY, newMaxY)
-      ) {
-        localDivElement.style.top = `${newMinY}px`;
-      }
-
-      localArgs.setPopupPosition(
-        +localArgs.popupData.entity.id,
-        newMinX,
-        newMinY
-      ); // original param: popupData.id
-    }
-
-    moveElement(deltaX, deltaY);
+      setPanDeltaX(ev.deltaX);
+      setPanDeltaY(ev.deltaY);
+    });
   };
+
+  const closePopup = () => {
+    args.closePopup(+args.popupData.entity.id);
+  };
+
+  useEffect(() => {
+    const dragElement = dragElementRef.current;
+    if (!dragElement) return;
+
+    initializePanListener(dragElement);
+    setupInitialPosition(dragElement);
+
+    if (useARSettingsStore.getState().stackPopups) {
+      args.keepPopupOpen(+args.popupData.entity.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     args.popupData && (
