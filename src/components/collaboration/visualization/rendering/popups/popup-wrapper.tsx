@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
+import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import {
   Application,
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Button } from 'react-bootstrap';
-import PopupData from '../../../../visualization/rendering/popups/popup-data';
 
 interface PopupWrapperArgs {
   popupData: PopupData;

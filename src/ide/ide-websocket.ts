@@ -1,8 +1,8 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { Socket, io } from 'socket.io-client';
 import { create } from 'zustand';
-import { LandscapeToken } from '../stores/landscape-token';
 
 interface IdeWebsocketStore {
   socket?: Socket;

@@ -1,8 +1,8 @@
 // Credits: https://medium.com/trabe/prevent-click-events-on-double-click-with-react-with-and-without-hooks-6bf3697abc40
 // Ceci García García
 
-import { useRef } from 'react';
 import { cancelablePromise } from 'explorviz-frontend/src/utils/helpers/promise-helpers';
+import { useRef } from 'react';
 
 const useCancelablePromises = () => {
   const pendingPromises = useRef<ReturnType<typeof cancelablePromise>[]>([]);

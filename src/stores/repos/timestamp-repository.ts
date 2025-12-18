@@ -1,11 +1,11 @@
 import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { create } from 'zustand';
-import { useRenderingServiceStore } from '../rendering-service';
 
 interface TimestampRepositoryState {
   commitToTimestampMap: Map<string, Map<number, Timestamp>>;

@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import Keycloak from 'keycloak-js';
+import { create } from 'zustand';
 
 export type AuthenticatedUser = {
   name: string;

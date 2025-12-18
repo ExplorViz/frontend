@@ -1,10 +1,10 @@
-import { create } from 'zustand';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { findAppNameAndBranchNameForCommit } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   AppNameCommitTreeMap,
   Commit,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import { findAppNameAndBranchNameForCommit } from 'explorviz-frontend/src/utils/evolution-data-helpers';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { create } from 'zustand';
 
 export type SelectedCommit = Commit;
 

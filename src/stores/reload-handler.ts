@@ -1,3 +1,5 @@
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
@@ -5,8 +7,6 @@ import {
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { create } from 'zustand';
-import { requestData } from '../utils/landscape-http-request-util';
-import { useTimestampRepositoryStore } from './repos/timestamp-repository';
 
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (

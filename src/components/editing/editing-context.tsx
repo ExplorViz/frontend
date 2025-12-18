@@ -1,3 +1,11 @@
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import {
+  insertApplicationToLandscape,
+  insertClassesToLandscape,
+  removeComponentFromLandscape,
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import {
   createContext,
   PropsWithChildren,
@@ -6,15 +14,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { LandscapeData } from '../../utils/landscape-schemes/landscape-data';
 import { useShallow } from 'zustand/react/shallow';
-import {
-  insertApplicationToLandscape,
-  insertClassesToLandscape,
-  removeComponentFromLandscape,
-} from '../../utils/landscape-structure-helpers';
-import { useRenderingServiceStore } from '../../stores/rendering-service';
-import { useVisualizationStore } from '../../stores/visualization-store';
 
 interface EditingContextData {
   canGoBack: boolean;
@@ -137,7 +137,6 @@ export function EditingProvider({ children }: PropsWithChildren) {
 
   const removeComponent = useCallback(
     (id: string) => {
-      console.log('remove');
       if (!landscapeData) return;
 
       const [structureLandscapeData, removedIds] = removeComponentFromLandscape(

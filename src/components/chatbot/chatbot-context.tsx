@@ -1,9 +1,9 @@
 import { CopilotKit } from '@copilotkit/react-core';
+import { CopilotResources } from 'explorviz-frontend/src/components/chatbot/copilot-resources';
+import { CopilotTools } from 'explorviz-frontend/src/components/chatbot/copilot-tools';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { createContext, PropsWithChildren, useEffect, useState } from 'react';
-import { CopilotResources } from './copilot-resources';
-import { CopilotTools } from './copilot-tools';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
 

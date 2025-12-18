@@ -1,16 +1,16 @@
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import {
+  DebugSnapshot,
+  useDebugSnapshotRepositoryStore,
+} from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
-import { useAuthStore } from './auth';
-import { useLandscapeTokenStore } from './landscape-token';
-import {
-  DebugSnapshot,
-  useDebugSnapshotRepositoryStore,
-} from './repos/debug-snapshot-repository';
-import { useToastHandlerStore } from './toast-handler';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;

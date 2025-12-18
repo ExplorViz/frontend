@@ -4,6 +4,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from '@primer/octicons-react';
+import AdditionalTokenInfo from 'explorviz-frontend/src/components/additional-token-info';
 import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
@@ -11,7 +12,6 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import JSZip from 'jszip';
 import React, { useState } from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import AdditionalTokenInfo from './additional-token-info';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;

@@ -2,8 +2,10 @@ import {
   SelectedCommit,
   useCommitTreeStateStore,
 } from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
@@ -19,8 +21,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { create } from 'zustand';
-import { useReloadHandlerStore } from './reload-handler';
-import { useTimestampStore } from './timestamp';
 
 export type AnalysisMode = 'evolution' | 'runtime';
 

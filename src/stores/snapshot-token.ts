@@ -1,3 +1,4 @@
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
@@ -7,7 +8,6 @@ import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-s
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
 import { create } from 'zustand';
-import { useAuthStore } from './auth';
 
 export type SnapshotToken = {
   owner: string;

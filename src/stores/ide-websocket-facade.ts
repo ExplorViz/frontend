@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { CommunicationLink } from 'explorviz-frontend/src/ide/ide-websocket';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { create } from 'zustand';
 
 interface IdeWebsocketFacadeState {
   roomName: string;

@@ -1,8 +1,6 @@
-import { createStore } from 'zustand/vanilla';
 import * as THREE from 'three';
-import { MTLLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/MTLLoader';
-import { OBJLoader } from 'three-stdlib'; //'three/examples/jsm/loaders/OBJLoader';
-import { TGALoader } from 'three-stdlib'; //'three/examples/jsm/loaders/TGALoader';
+import { MTLLoader, OBJLoader, TGALoader } from 'three-stdlib'; //'three/examples/jsm/loaders/MTLLoader';
+import { createStore } from 'zustand/vanilla';
 
 interface HMDState {
   headsetModel: Promise<THREE.Group>;

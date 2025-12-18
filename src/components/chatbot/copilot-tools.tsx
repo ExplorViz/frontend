@@ -1,21 +1,21 @@
 import { useCopilotAction } from '@copilotkit/react-core';
+import { ToolCallCard } from 'explorviz-frontend/src/components/chatbot/tool-call-card';
+import { EditingContext } from 'explorviz-frontend/src/components/editing/editing-context';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
-  closeComponent,
-  openComponent,
   closeAllComponentsInApplication,
+  closeComponent,
   openAllComponentsInApplication,
+  openComponent,
 } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import {
   Application,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { use, useMemo } from 'react';
-import { ToolCallCard } from './tool-call-card';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
-import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import { EditingContext } from '../editing/editing-context';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { use, useMemo } from 'react';
 
 interface CopilotToolsProps {
   applications?: Application[];
@@ -102,7 +102,6 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
-      console.log(packages, id);
       const component = packages.find((pkg) => pkg.id === id);
       if (component) {
         if (open) {
