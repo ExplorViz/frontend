@@ -34,13 +34,6 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     timestampTo?: number
   ) => {
     try {
-      console.log(
-        'timestampFrom:',
-        timestampFrom,
-        ' timestampTo:',
-        timestampTo
-      );
-
       const getTimestampsForCommitId =
         useTimestampRepositoryStore.getState().getTimestampsForCommitId;
 
@@ -106,7 +99,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
         ];
       }
       throw Error('No data available.');
-    } catch (e) {
+    } catch (e: any) {
       throw Error(e);
     }
   },

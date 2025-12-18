@@ -377,7 +377,6 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         classIdToClass.set(classData.id, classData);
         const layout = layoutMap.get(classData.id);
         if (!layout) {
-          console.log(`No layout found for component with id ${classData.id}`);
           return;
         }
         obj.position.set(

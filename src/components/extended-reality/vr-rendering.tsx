@@ -661,12 +661,7 @@ export default function VrRendering({
   const onVrSessionStarted = (session_val: XRSession) => {
     vrSessionActive.current = true;
 
-    session_val.addEventListener('inputsourceschange', (event) => {
-      console.log(event);
-      for (const inputSource of event.added) {
-        console.log('Input source:', inputSource);
-      }
-    });
+    session_val.addEventListener('inputsourceschange', (event) => {});
     session.current = session_val;
   };
 

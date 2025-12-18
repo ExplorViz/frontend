@@ -170,9 +170,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           const layout = layoutMap.get(component.id);
           if (!layout) {
-            console.log(
-              `No layout found for component with id ${component.id}`
-            );
             return;
           }
 

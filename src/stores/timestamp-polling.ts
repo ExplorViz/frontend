@@ -165,8 +165,6 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
                 get()._httpFetchDebugSnapshots(newestDebugSnapshotTimestamp);
               debugSnapshotTimestampsPromise
                 .then((debugSnapshots: DebugSnapshot[]) => {
-                  //console.log(`Fetched ${debugSnapshots.length} new debug snapshots from VS Code extension.`, debugSnapshots);
-
                   useDebugSnapshotRepositoryStore
                     .getState()
                     .saveDebugSnapshots(

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
-import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';

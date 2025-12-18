@@ -384,8 +384,6 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
           get().joinRoom(response.roomId);
           return true;
         } catch (e: any) {
-          console.log(e);
-
           // this.connectionStatus = 'offline';
           useToastHandlerStore
             .getState()

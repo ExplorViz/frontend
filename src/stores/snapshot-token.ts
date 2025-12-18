@@ -1,13 +1,13 @@
-import { create } from 'zustand';
-import { useAuthStore } from './auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { reject } from 'rsvp';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { create } from 'zustand';
+import { useAuthStore } from './auth';
 
 export type SnapshotToken = {
   owner: string;
@@ -237,7 +237,6 @@ export const useSnapshotTokenStore = create<SnapshotTokenState>((set, get) => ({
       headers: { 'Content-Type': 'application/json; charset=UTF-8' },
     })
       .then(async (response: Response) => {
-        console.log(response.status);
         if (response.status === 200) {
           useToastHandlerStore
             .getState()

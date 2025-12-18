@@ -76,19 +76,7 @@ export default class ImmsersiveClassScene {
       new THREE.SphereGeometry(1, 15, 15),
       new THREE.MeshNormalMaterial({ wireframe: true })
     );
-    // camera.updateMatrixWorld();
-    // const vector = camera.position.clone();
-    // console.log('Lokal Camera: ');
-    // console.log(vector);
-    // //vector.applyMatrix4(camera.matrixWorld);
-    // camera.localToWorld(vector);
-    // console.log('World Camera: ');
-    // console.log(vector);
     sphere1.position.copy(camera.position);
-    //sphere1.rotation.copy(camera.rotation);
-    //sphere1.position.add(vector);
-    //console.log('Local Sphere: ');
-    //console.log(sphere1.position);
 
     // For debug reasons
     //this.scene.add(sphere1);
@@ -745,7 +733,6 @@ export default class ImmsersiveClassScene {
         sGeo.boundingSphere === null ? 3 : sGeo.boundingSphere.radius + offset,
       phi = THREE.MathUtils.degToRad(p === undefined ? 0 : p),
       theta = THREE.MathUtils.degToRad(t === undefined ? 0 : t);
-    //console.log(radius);
     mesh.position
       .setFromSphericalCoords(radius, phi, theta)
       .add(sphere.position);

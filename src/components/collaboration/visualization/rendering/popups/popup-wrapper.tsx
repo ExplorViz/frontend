@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-import ArPopupCoordinator from 'explorviz-frontend/src/components/extended-reality/visualization/rendering/popups/ar-popup-coordinator';
-import { useARSettingsStore } from 'explorviz-frontend/src/stores/extended-reality/ar-settings';
 import {
   Application,
   Class,
@@ -179,10 +177,6 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
 
     initializePanListener(dragElement);
     setupInitialPosition(dragElement);
-
-    if (useARSettingsStore.getState().stackPopups) {
-      args.keepPopupOpen(+args.popupData.entity.id);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -204,12 +198,6 @@ export default function PopupWrapper(args: PopupWrapperArgs) {
             X
           </Button>
         </div>
-        <ArPopupCoordinator
-          popupData={args.popupData}
-          showApplication={args.showApplication}
-          toggleHighlightById={args.toggleHighlightById}
-          openParents={args.openParents}
-        />
       </div>
     )
   );

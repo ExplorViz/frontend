@@ -102,7 +102,6 @@ class PointerLockControls extends EventDispatcher {
       const minFov = this.minFOV; // Minimum FOV value, for zooming in
       const maxFov = this.maxFOV; // Maximum FOV value, for zooming out
       const target = Math.max(minFov, Math.min(maxFov, fov));
-      //console.log("Target", target);
       if (target == maxFov) {
         this.dispatchEvent(_minimalZoomLimitReached);
       } else if (target == minFov) {

@@ -142,7 +142,6 @@ export default function PlotlyTimeline({
   };
 
   const setupPlotlyTimelineChart = (plotlyDiv: any) => {
-    console.log('setupPlotlyTimelineChart');
     timelineDiv.current = plotlyDiv;
 
     updateMarkerStates();
@@ -329,7 +328,6 @@ export default function PlotlyTimeline({
   // #region Plot Logic
 
   const updatePlotlyTimelineChart = () => {
-    console.log('updatePlotlyTimelineChart');
     if (!timelineDataObject || timelineDataObject.size == 0) {
       return;
     }
@@ -363,14 +361,6 @@ export default function PlotlyTimeline({
           timelineDataForCommit.selectedTimestamps
         );
       }
-      /*console.log(
-        'timelineDataForCommit.selectedTimestamps:',
-        timelineDataForCommit.selectedTimestamps
-      );
-      console.log(
-        'selectedCommitTimestampsMap.current.get(commitId)',
-        selectedCommitTimestampsMap.current.get(commitId)
-      );*/
     }
 
     updateMarkerStates();

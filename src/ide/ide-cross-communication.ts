@@ -336,7 +336,6 @@ function OpenObject(
   orderTuple.forEach((ot) => {
     const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
 
-    console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
     recursivelyOpenObjects(
       doSomethingOnMesh,
       lookAtMesh,
@@ -363,9 +362,7 @@ function recursivelyOpenObjects(
       meshid: element.meshid,
       methods: [],
     };
-    if (element.methods.length != 0) {
-      console.log('Methods elem: ', element);
-    } else if (isInParentOrder(element, toOpen)) {
+    if (element.methods.length == 0 && isInParentOrder(element, toOpen)) {
       doSomethingOnMesh(element.meshid);
       if (toOpen == element.fqn) {
         lookAtMesh(element.meshid);

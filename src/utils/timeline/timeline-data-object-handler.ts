@@ -34,9 +34,6 @@ export default class TimelineDataObjectHandler {
   timelineClicked = async (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => {
-    //console.log("timelineDataObject:", this.timelineDataObject);
-    //console.log("commitToSelectedTimestampMap", commitToSelectedTimestampMap);
-
     for (const [
       commitId,
       selectedTimestamps,

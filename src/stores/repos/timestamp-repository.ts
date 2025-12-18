@@ -127,12 +127,6 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         commitTimestampsToRenderMap.size > 0 &&
         !areArraysEqual(currentlySelectedTimestamps, allNewTimestampsToRender)
       ) {
-        console.log(
-          '[timestampPollingCallback] about to triggerRenderingForGivenTimestamps with:',
-          Array.from(commitTimestampsToRenderMap.entries()).map(
-            ([commitId, ts]) => ({ commitId, count: ts.length })
-          )
-        );
         useRenderingServiceStore
           .getState()
           .triggerRenderingForGivenTimestamps(commitTimestampsToRenderMap);

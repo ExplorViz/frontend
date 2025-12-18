@@ -478,7 +478,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     },
 
     resetAllRenderingStates: () => {
-      console.log('resetAllRenderingStates');
       set({
         _userInitiatedStaticDynamicCombination: false,
         _landscapeData: null,

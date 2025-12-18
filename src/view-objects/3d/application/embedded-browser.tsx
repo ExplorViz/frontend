@@ -3,7 +3,7 @@ import { Container, Root } from '@react-three/uikit';
 import { Button, Input } from '@react-three/uikit-default';
 import { ChevronLeft, SkipBack, Table } from '@react-three/uikit-lucide';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import BabiaHtml from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
+import HtmlVisualizer from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 import { useCallback, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -42,9 +42,9 @@ export default function EmbeddedBrowser({ application }: any) {
   const updateHtml = useCallback(() => {
     let iFrameHtml: HTMLElement | undefined;
     try {
-      iFrameHtml = iFrameRef.current?.contentWindow?.document.getRootNode();
+      iFrameHtml =
+        iFrameRef.current?.contentWindow?.document.getRootNode() as HTMLElement;
     } catch (error) {
-      console.log(error);
       toastHandlerActions.showErrorToastMessage('Could not inspect iFrame');
       setHtml(undefined);
       return;
@@ -121,7 +121,7 @@ export default function EmbeddedBrowser({ application }: any) {
           />
         )}
       </Html>
-      {<BabiaHtml html={html} updateHtml={updateHtml} />}
+      {<HtmlVisualizer html={html} updateHtml={updateHtml} />}
     </>
   );
 }

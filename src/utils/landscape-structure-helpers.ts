@@ -538,7 +538,6 @@ export function insertClassesToLandscape(
   const application = getApplicationInLandscapeById(structure, id);
   if (application) {
     const newPackages = packagesFromFlatClasses(classes, application.packages);
-    console.log(classes, newPackages, application.packages);
     application.packages = newPackages;
   }
   return structure;

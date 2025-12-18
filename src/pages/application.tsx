@@ -123,7 +123,7 @@ export default function Application() {
 
   return (
     <>
-      <div id="ember-right-click-menu-wormhole"></div>
+      <div id="right-click-menu-wormhole"></div>
       <div id="main-container">
         {user && (
           <>
