@@ -1,6 +1,6 @@
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { create } from 'zustand';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useModelStore } from './repos/model-repository';
 
 interface LayoutStoreState {
   // Layouts for different entities

@@ -5,18 +5,22 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   getHighlightingColorForEntity,
   toggleHighlightById,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import {
   Application,
   Class,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   MetricKey,
   metricMappingMultipliers,
@@ -32,10 +36,6 @@ import {
   Vector3,
 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import { useUserSettingsStore } from '../../../stores/user-settings';
-import { useVisualizationStore } from '../../../stores/visualization-store';
-import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
-import BoxLayout from '../../layout-models/box-layout';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });

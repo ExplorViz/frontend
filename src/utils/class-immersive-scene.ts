@@ -1,13 +1,13 @@
 import { ImmersiveView } from 'explorviz-frontend/src/rendering/application/immersive-view';
-import * as THREE from 'three';
-import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry';
 import {
   Class,
   Interface,
   Method,
   Parameters,
   Variable,
-} from './landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import * as THREE from 'three';
+import { TextGeometry } from 'three-stdlib'; //'three/examples/jsm/geometries/TextGeometry';
 
 class ObjectSizeList {
   /**
@@ -15,9 +15,9 @@ class ObjectSizeList {
    */
   object3d: THREE.Object3D;
   angleSize: number;
-  constructor(object3d: THREE.Object3D, anglesize: number) {
+  constructor(object3d: THREE.Object3D, angleSize: number) {
     this.object3d = object3d;
-    this.angleSize = anglesize;
+    this.angleSize = angleSize;
   }
 }
 

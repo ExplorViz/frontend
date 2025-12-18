@@ -1,7 +1,11 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { XR, IfInSessionMode } from '@react-three/xr';
+import { IfInSessionMode, XR } from '@react-three/xr';
+import {
+  default as CollaborationCameraSync,
+  default as SpectateCameraController,
+} from 'explorviz-frontend/src/components/visualization/rendering/collaboration-camera-sync';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -16,20 +20,18 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
-import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import CollaborationCameraSync from './collaboration-camera-sync';
-import SpectateCameraController from './spectate-camera-controller';
 
 export default function CanvasWrapper({
   landscapeData,

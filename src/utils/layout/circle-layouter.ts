@@ -1,7 +1,10 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { getAllClassesInApplication } from './application-helpers';
-import { Application, Package } from './landscape-schemes/structure-data';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import {
+  Application,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 let APP_LABEL_MARGIN: number;
 let APP_MARGIN: number;

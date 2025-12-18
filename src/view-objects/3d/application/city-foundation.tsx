@@ -13,7 +13,7 @@ import {
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import { gsap } from 'gsap';
 import { useEffect, useState } from 'react';

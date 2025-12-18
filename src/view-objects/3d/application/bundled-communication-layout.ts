@@ -1,12 +1,12 @@
-import {
-  EdgeBundlingConfig,
-  HierarchicalAttractionSystem,
-  HAPNode,
-} from './edge-bundling-utils';
-import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import * as THREE from 'three';
+import {
+  EdgeBundlingConfig,
+  HAPNode,
+  HierarchicalAttractionSystem,
+} from './edge-bundling-utils';
 
 export class BundledCommunicationLayout extends CommunicationLayout {
   private _controlPoints: THREE.Vector3[] = [];

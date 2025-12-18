@@ -5,10 +5,6 @@ import {
   getAllPackageIdsInApplications,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { applyCircleLayoutToClasses } from './circle-layouter';
 import {
   Application,
   K8sDeployment,
@@ -16,11 +12,15 @@ import {
   K8sNode,
   K8sPod,
   Package,
-} from './landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import { applyCircleLayoutToClasses } from 'explorviz-frontend/src/utils/layout/circle-layouter';
 import {
   applySpiralLayoutToClasses,
   calculateSpiralSideLength,
-} from './spiral-layouter';
+} from 'explorviz-frontend/src/utils/layout/spiral-layouter';
+import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers

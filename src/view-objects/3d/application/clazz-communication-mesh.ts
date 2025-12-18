@@ -1,10 +1,10 @@
 import { extend, ThreeElement } from '@react-three/fiber';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
-import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout.ts';
 import * as THREE from 'three';
 import { BundledCommunicationLayout } from './bundled-communication-layout';
 import {

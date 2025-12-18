@@ -3,7 +3,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
 import { useEffect, useState } from 'react';

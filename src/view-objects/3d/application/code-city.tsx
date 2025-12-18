@@ -7,18 +7,18 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
+import CityDistricts from 'explorviz-frontend/src/view-objects/3d/application/city-districts';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/application/city-foundation';
 import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/application/code-building-label';
+import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/application/code-buildings';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import CityDistricts from './city-districts';
-import CodeBuildings from './code-buildings';
 
 export default function CodeCity({
   applicationData,

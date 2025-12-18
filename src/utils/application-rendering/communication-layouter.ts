@@ -8,8 +8,8 @@ import {
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import * as THREE from 'three';
 
 export function calculateLineThickness(

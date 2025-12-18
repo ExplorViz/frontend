@@ -6,11 +6,11 @@ import {
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   ApplicationMetrics,
   Metric,
 } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 
 export default class ApplicationData {
   application: Application;

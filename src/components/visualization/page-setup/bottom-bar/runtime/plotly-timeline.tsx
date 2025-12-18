@@ -1,10 +1,10 @@
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { nanosecondsToMilliseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { TimelineDataObject } from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import Plotly from 'plotly.js-dist';
 import { useEffect, useRef } from 'react';
-import { nanosecondsToMilliseconds } from '../../../../../utils/landscape-http-request-util';
-import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
-import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
