@@ -19,9 +19,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
   _layout: CommunicationLayout | undefined;
 
-  private _needsRender = true;
+  public _needsRender = true;
   private _lastBeta = 0.8;
   private _lastHAPNodes: { originId?: string; destinationId?: string } = {};
+  private _streamline: boolean = true;
+  private _leafPackagesOnly: boolean = false;
 
   private static hoverGeometryCache = new Map<
     string,
@@ -62,13 +64,24 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return this._curveHeight;
   }
 
+  // set curveHeight(curveHeight: number) {
+  //   // Release old geometry if it exists (curve height affects geometry)
+  //   if (this.geometry) {
+  //     this.releaseSharedGeometry(this.geometry);
+  //   }
+  //   this._curveHeight = curveHeight;
+  //   this.render();
+  // }
   set curveHeight(curveHeight: number) {
-    // Release old geometry if it exists (curve height affects geometry)
-    if (this.geometry) {
-      this.releaseSharedGeometry(this.geometry);
+    if (Math.abs(this._curveHeight - curveHeight) > 0.001) {
+      if (this.geometry) {
+        this.releaseSharedGeometry(this.geometry);
+      }
+
+      this._curveHeight = curveHeight;
+      this._needsRender = true;
+      this.requestRender();
     }
-    this._curveHeight = curveHeight;
-    this.render();
   }
 
   _arrowColor = new THREE.Color('black');
@@ -105,6 +118,30 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   set arrowOffset(offset: number) {
     this._arrowOffset = offset;
     this.addArrows();
+  }
+
+  get streamline(): boolean {
+    return this._streamline;
+  }
+
+  set streamline(value: boolean) {
+    if (this._streamline !== value) {
+      this._streamline = value;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  get leafPackagesOnly(): boolean {
+    return this._leafPackagesOnly;
+  }
+
+  set leafPackagesOnly(value: boolean) {
+    if (this._leafPackagesOnly !== value) {
+      this._leafPackagesOnly = value;
+      this._needsRender = true;
+      this.requestRender();
+    }
   }
 
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
@@ -203,7 +240,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   public initializeHAPSystem(
     hapSystem: HierarchicalAttractionSystem,
     originHAP: HAPNode,
-    destinationHAP: HAPNode
+    destinationHAP: HAPNode,
+    streamline?: boolean
   ): void {
     // Check if changes occured
     const newHAPIds = {
@@ -222,6 +260,12 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this._lastHAPNodes = newHAPIds;
       this._needsRender = true;
     }
+
+    if (streamline !== undefined) {
+      this._streamline = streamline;
+    }
+
+    this._needsRender = true;
   }
 
   /**
@@ -547,17 +591,17 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     segments: number
   ): string {
     if (this._use3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
-      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${segments}_${this.layout.lineThickness}`;
+      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_H${this._curveHeight.toFixed(2)}_${segments}_${this.layout.lineThickness}`;
     } else {
       const start = curve.getPoint(0);
       const end = curve.getPoint(1);
       const mid = curve.getPoint(0.5);
 
-      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_${segments}_${this.layout.lineThickness}`;
+      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_H${this._curveHeight.toFixed(2)}_${segments}_${this.layout.lineThickness}`;
     }
   }
 
-  private releaseSharedGeometry(geometry: THREE.BufferGeometry): void {
+  public releaseSharedGeometry(geometry: THREE.BufferGeometry): void {
     let foundKey: string | null = null;
     ClazzCommunicationMesh.sharedGeometries.forEach((geo, key) => {
       if (geo === geometry) {
@@ -594,6 +638,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     bundledLayout.setHAPNodes(this._originHAP, this._destinationHAP);
     bundledLayout.setBeta(this._beta);
     bundledLayout.setScatterRadius(this._scatterRadius);
+    bundledLayout.setStreamline(this._streamline);
 
     const curve = bundledLayout.getCurveWithHeight(this.curveHeight);
 

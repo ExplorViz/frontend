@@ -67,17 +67,20 @@ export default function CommunicationR3F({
     compatibilityThreshold,
     bundlingIterations,
     bundlingStepSize,
-    showHAPTree,
 
     // 3D-HAP specific settings
+    showHAPTree,
     beta,
     use3DHAPAlgorithm,
     commCurveHeightDependsOnDistance,
     scatterRadius,
+    edgeBundlingStreamline,
+    leafPackagesOnly,
   } = useUserSettingsStore(
     useShallow((state) => {
       // Safe access with fallbacks for migration
       const vizSettings = state.visualizationSettings as any;
+      const streamlineSetting = vizSettings.edgeBundlingStreamline;
 
       return {
         arrowColor: vizSettings.communicationArrowColor.value,
@@ -95,14 +98,17 @@ export default function CommunicationR3F({
         compatibilityThreshold: vizSettings.compatibilityThreshold.value,
         bundlingIterations: vizSettings.bundlingIterations.value,
         bundlingStepSize: vizSettings.bundlingStepSize.value,
-        showHAPTree: vizSettings.showHAPTree?.value ?? false,
-        scatterRadius: state.visualizationSettings.scatterRadius?.value ?? 0.5,
 
         // 3D-HAP settings with safe fallbacks
         beta: vizSettings.beta?.value ?? 0.8,
         use3DHAPAlgorithm: vizSettings.use3DHAPAlgorithm?.value ?? false,
         commCurveHeightDependsOnDistance:
           vizSettings.commCurveHeightDependsOnDistance?.value ?? true,
+        showHAPTree: vizSettings.showHAPTree?.value ?? false,
+        scatterRadius: state.visualizationSettings.scatterRadius?.value ?? 0.5,
+        edgeBundlingStreamline:
+          vizSettings.edgeBundlingStreamline?.value ?? true,
+        leafPackagesOnly: vizSettings.leafPackagesOnly?.value ?? false,
       };
     })
   );
@@ -116,6 +122,16 @@ export default function CommunicationR3F({
   );
 
   const { scene } = useThree();
+
+  const [streamlineHash, setStreamlineHash] = useState('');
+
+  // Conditionally apply streamline based on dependencies
+  const effectiveStreamline = useMemo(() => {
+    if (!enableEdgeBundling || !use3DHAPAlgorithm) {
+      return false; // Streamline nur relevant wenn beides aktiv
+    }
+    return edgeBundlingStreamline;
+  }, [enableEdgeBundling, use3DHAPAlgorithm, edgeBundlingStreamline]);
 
   const { evoConfig } = useVisibilityServiceStore(
     useShallow((state) => ({
@@ -190,33 +206,27 @@ export default function CommunicationR3F({
   // Use effective layout map from prop or global
   const effectiveLayoutMap = layoutMap || globalLayoutMap;
 
-  // HAP position calculation
   const getExactHAPPosition = (
     element: any,
     layout: BoxLayout
   ): THREE.Vector3 => {
     const buildingCenter = layout.center.clone();
-
     const level = getLevel(element);
 
     let elevation = 0;
     switch (level) {
       case 0:
-        elevation = 3;
-        break; // Class
-      case 1:
-        elevation = 18;
-        break; // Package
-      case 2:
-        elevation = 35;
-        break; // Application
+        elevation = 15; // Class
+        break;
+      case 1: // Package
+        elevation = 30;
+        break;
+      case 2: // Application
+        elevation = 50;
+        break;
     }
 
-    return new THREE.Vector3(
-      buildingCenter.x,
-      buildingCenter.y + elevation,
-      buildingCenter.z
-    );
+    return new THREE.Vector3(buildingCenter.x, elevation, buildingCenter.z);
   };
 
   // Helper functions for position calculation
@@ -318,10 +328,16 @@ export default function CommunicationR3F({
         applicationElement,
         getChildren,
         getCorrectedPosition,
-        getLevel
+        getLevel,
+        leafPackagesOnly
       );
     }
-  }, [applicationElement?.id, enableEdgeBundling, effectiveLayoutMap]);
+  }, [
+    applicationElement?.id,
+    enableEdgeBundling,
+    effectiveLayoutMap,
+    leafPackagesOnly,
+  ]);
 
   const hapNodes = useMemo(() => {
     if (
@@ -382,6 +398,9 @@ export default function CommunicationR3F({
     layoutHash: '',
     hapNodesHash: '',
     scatterRadius: 0.5,
+    edgeBundlingStreamline: true,
+    leafPackagesOnly: false,
+    curveHeight: 0,
   });
 
   const layoutHash = useMemo(() => {
@@ -476,6 +495,10 @@ export default function CommunicationR3F({
         bundledLayout.setHAPNodes(hapNodes.originHAP, hapNodes.destinationHAP);
         bundledLayout.setBeta(beta);
         bundledLayout.setScatterRadius(scatterRadius);
+        bundledLayout.setStreamline(edgeBundlingStreamline);
+        bundledLayout.setLeafPackagesOnly(leafPackagesOnly);
+
+        const cacheKey = `HAP_${hapNodes.originHAP.id}_${hapNodes.destinationHAP.id}_${beta}_${scatterRadius}_${edgeBundlingStreamline}`;
       }
     }
 
@@ -491,6 +514,8 @@ export default function CommunicationR3F({
     beta,
     applicationElement,
     scatterRadius,
+    edgeBundlingStreamline,
+    leafPackagesOnly,
   ]);
 
   // Only update if change occured
@@ -504,6 +529,9 @@ export default function CommunicationR3F({
       layoutHash,
       hapNodesHash,
       scatterRadius,
+      edgeBundlingStreamline,
+      leafPackagesOnly,
+      curveHeight,
     };
 
     const lastValues = lastValuesRef.current;
@@ -512,9 +540,13 @@ export default function CommunicationR3F({
       Math.abs(currentValues.beta - lastValues.beta) > 0.001 ||
       Math.abs(currentValues.scatterRadius - lastValues.scatterRadius) >
         0.001 ||
+      Math.abs(currentValues.curveHeight - lastValues.curveHeight) > 0.001 ||
       currentValues.use3DHAPAlgorithm !== lastValues.use3DHAPAlgorithm ||
       currentValues.enableEdgeBundling !== lastValues.enableEdgeBundling ||
       currentValues.layoutHash !== lastValues.layoutHash ||
+      currentValues.edgeBundlingStreamline !==
+        lastValues.edgeBundlingStreamline ||
+      currentValues.leafPackagesOnly !== lastValues.leafPackagesOnly ||
       currentValues.hapNodesHash !== lastValues.hapNodesHash;
 
     if (!hasChanged) {
@@ -527,15 +559,18 @@ export default function CommunicationR3F({
     meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm;
     meshRef.current.beta = beta;
     meshRef.current.scatterRadius = scatterRadius;
+    meshRef.current.leafPackagesOnly = leafPackagesOnly;
+    meshRef.current.curveHeight = curveHeight;
 
     if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes && hapSystem) {
       meshRef.current.initializeHAPSystem(
         hapSystem,
         hapNodes.originHAP,
-        hapNodes.destinationHAP
+        hapNodes.destinationHAP,
+        edgeBundlingStreamline
       );
     }
-
+    ClazzCommunicationMesh.clearSharedGeometries();
     meshRef.current.requestRender();
 
     lastValuesRef.current = currentValues;
@@ -549,6 +584,9 @@ export default function CommunicationR3F({
     layoutHash,
     hapNodesHash,
     scatterRadius,
+    edgeBundlingStreamline,
+    leafPackagesOnly,
+    computedCurveHeight,
   ]);
 
   const [layoutMapHash, setLayoutMapHash] = useState('');
@@ -598,6 +636,8 @@ export default function CommunicationR3F({
     meshRef.current.beta = beta;
     meshRef.current.curveHeight = computedCurveHeight;
     meshRef.current.scatterRadius = scatterRadius;
+    meshRef.current.streamline = edgeBundlingStreamline;
+    meshRef.current.leafPackagesOnly = leafPackagesOnly;
 
     if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes && hapSystem) {
       meshRef.current.initializeHAPSystem(
@@ -675,14 +715,6 @@ export default function CommunicationR3F({
     }
   }, [applicationElement?.id]);
 
-  // // Visualize HAPs
-  // useEffect(() => {
-  //   if (applicationElement?.id) {
-  //     const landscapeScalar = 0.01;
-  //     hapSystemManager.visualizeHAPs(applicationElement.id, scene);
-  //   }
-  // }, [applicationElement?.id, scene]);
-
   useEffect(() => {
     if (effectiveLayoutMap) {
       effectiveLayoutMap.forEach((layout, id) => {});
@@ -725,52 +757,69 @@ export default function CommunicationR3F({
   }, [applicationElement?.id, scene, showHAPTree]);
 
   useEffect(() => {
-    if (!applicationElement?.id) return;
+    if (!enableEdgeBundling || !use3DHAPAlgorithm) return;
 
-    removeHAPGroupFromScene(scene);
+    const newStreamlineHash = `${edgeBundlingStreamline}_${beta}_${scatterRadius}`;
 
-    const shouldShowHAPs =
-      showHAPTree && enableEdgeBundling && use3DHAPAlgorithm;
+    if (newStreamlineHash !== streamlineHash) {
+      if (meshRef.current) {
+        if (meshRef.current.geometry) {
+          meshRef.current.releaseSharedGeometry(meshRef.current.geometry);
+        }
+        meshRef.current.streamline = edgeBundlingStreamline;
+        meshRef.current._needsRender = true;
+        meshRef.current.requestRender();
+      }
 
-    if (shouldShowHAPs) {
-      hapSystemManager.visualizeHAPs(applicationElement.id, scene);
+      setStreamlineHash(newStreamlineHash);
     }
   }, [
-    applicationElement?.id,
-    scene,
-    showHAPTree,
+    edgeBundlingStreamline,
+    beta,
+    scatterRadius,
     enableEdgeBundling,
     use3DHAPAlgorithm,
   ]);
 
-  const removeHAPGroupFromScene = (scene: THREE.Scene) => {
-    const landscapeGroup = scene.children.find(
-      (child) => child.type === 'Group' && child.scale.x < 1
-    );
+  useEffect(() => {
+    const handleRebuildHAPTree = (event: CustomEvent) => {
+      const { leafPackagesOnly } = event.detail;
 
-    if (!landscapeGroup) return;
+      if (applicationElement && enableEdgeBundling) {
+        hapSystemManager.rebuildHAPTreeWithLeafSetting(
+          applicationElement.id,
+          applicationElement,
+          (element: any) => {
+            if (isPackage(element))
+              return [...element.subPackages, ...element.classes];
+            if (isApplication(element)) return element.packages;
+            return [];
+          },
+          getPosition,
+          getLevel,
+          leafPackagesOnly
+        );
 
-    const hapGroup = landscapeGroup.children.find(
-      (child) => child.name === 'HAP_GROUP'
-    );
-
-    if (hapGroup) {
-      landscapeGroup.remove(hapGroup);
-
-      hapGroup.traverse((obj) => {
-        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) {
-          if (obj.geometry) obj.geometry.dispose();
-          if (obj.material) {
-            if (Array.isArray(obj.material)) {
-              obj.material.forEach((m) => m.dispose());
-            } else {
-              obj.material.dispose();
-            }
-          }
+        if (showHAPTree) {
+          hapSystemManager.visualizeHAPs(applicationElement.id, scene);
         }
-      });
-    }
-  };
+
+        ClazzCommunicationMesh.clearSharedGeometries();
+      }
+    };
+
+    window.addEventListener(
+      'rebuildHAPTree',
+      handleRebuildHAPTree as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        'rebuildHAPTree',
+        handleRebuildHAPTree as EventListener
+      );
+    };
+  }, [applicationElement?.id, enableEdgeBundling, showHAPTree, scene]);
 
   const constructorArgs = useMemo<
     ThreeElements['clazzCommunicationMesh']['args']

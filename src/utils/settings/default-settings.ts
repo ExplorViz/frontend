@@ -536,17 +536,31 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isRangeSetting: true,
   },
-
-  // bundlingBeta: {
-  //   value: 0.5,
-  //   range: { min: 0.0, max: 1.0, step: 0.01 },
-  //   group: 'Communication',
-  //   displayName: 'Edge Bundling β',
-  //   description: 'Controls the bundling strength (higher = stronger bundling)',
-  //   level: SettingLevel.DEFAULT,
-  //   isRangeSetting: true,
-  // },
-
+  leafPackagesOnly: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Leaf Packages Only',
+    description: 'Only create HAPs for packages that contain no sub-packages',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  edgeBundlingStreamline: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Communication',
+    displayName: 'Streamline Edge Paths',
+    description:
+      'Simplify edge paths by keeping only class-level and highest-level HAPs (reduces detours)',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
   // Label settings
   appLabelMargin: {
     level: SettingLevel.DEFAULT,

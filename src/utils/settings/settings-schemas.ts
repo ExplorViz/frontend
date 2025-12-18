@@ -76,7 +76,9 @@ export type CommunicationSettingId =
   | 'use3DHAPAlgorithm'
   | 'commCurveHeightDependsOnDistance'
   | 'showHAPTree'
-  | 'scatterRadius';
+  | 'scatterRadius'
+  | 'edgeBundlingStreamline'
+  | 'leafPackagesOnly';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -98,6 +100,8 @@ export type CommunicationSettings = {
   use3DHAPAlgorithm: FlagSetting;
   showHAPTree: FlagSetting;
   scatterRadius: RangeSetting;
+  edgeBundlingStreamline: FlagSetting;
+  leafPackagesOnly: FlagSetting;
 };
 
 export type DebugSettings = {

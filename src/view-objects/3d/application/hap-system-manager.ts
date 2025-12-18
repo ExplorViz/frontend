@@ -15,24 +15,144 @@ export class HAPSystemManager {
     return HAPSystemManager.instance;
   }
 
-  // Build HAP tree for an application
+  /**
+   * Build HAP tree with optional leaf packages only filter
+   */
   public buildApplicationHAPTree(
     applicationId: string,
     rootElement: any,
     getChildren: (element: any) => any[],
     getPosition: (element: any) => THREE.Vector3,
-    getLevel: (element: any) => number
+    getLevel: (element: any) => number,
+    leafPackagesOnly: boolean = false
   ): void {
+    // Clear existing system
+    this.clearHAPSystem(applicationId);
+
     const hapSystem = new HierarchicalAttractionSystem();
-    const rootHAP = hapSystem.buildHAPTree(
+
+    // Modified build function that respects leafPackagesOnly
+    const buildTree = (
+      element: any,
+      parent: HAPNode | null,
+      depth: number = 0
+    ): HAPNode | null => {
+      // Determine if HAP for this element should be created
+      const shouldCreateHAP = this.shouldCreateHAPForElement(
+        element,
+        getChildren,
+        leafPackagesOnly,
+        depth
+      );
+
+      if (!shouldCreateHAP && element !== rootElement) {
+        // Skip this element, but process its children
+        const children = getChildren(element);
+        children.forEach((child) => {
+          buildTree(child, parent, depth + 1);
+        });
+        return null;
+      }
+
+      // Create HAP node
+      const node: HAPNode = {
+        id: element.id || Math.random().toString(),
+        position: getPosition(element),
+        level: getLevel(element),
+        children: [],
+        parent: parent,
+        element: element,
+      };
+
+      // Process children
+      const children = getChildren(element);
+      children.forEach((child) => {
+        const childNode = buildTree(child, node, depth + 1);
+        if (childNode) {
+          node.children.push(childNode);
+        }
+      });
+
+      return node;
+    };
+
+    const rootHAP = buildTree(rootElement, null, 0);
+
+    if (rootHAP) {
+      hapSystem.setHAPTree(rootHAP);
+      this.hapSystems.set(applicationId, hapSystem);
+      this.registerHAPNodes(rootHAP);
+    }
+  }
+
+  /**
+   * Determine if HAP should be created for element
+   */
+  private shouldCreateHAPForElement(
+    element: any,
+    getChildren: (element: any) => any[],
+    leafPackagesOnly: boolean,
+    depth: number
+  ): boolean {
+    // Always create HAPs for:
+    // 1. Root application
+    // 2. Classes (level 0)
+    // 3. Packages at level 1 (if not filtering)
+
+    const children = getChildren(element);
+    const hasSubPackages = children.some(
+      (child) => child.type === 'package' || child.type === 'Package'
+    );
+
+    const isPackage = element.type === 'package' || element.type === 'Package';
+    const isClass = element.type === 'class' || element.type === 'Class';
+    const isApplication =
+      element.type === 'application' || element.type === 'Application';
+
+    // Always include root application
+    if (depth === 0 && isApplication) {
+      return true;
+    }
+
+    // Always include classes
+    if (isClass) {
+      return true;
+    }
+
+    // For packages:
+    if (isPackage) {
+      if (leafPackagesOnly) {
+        // Only include leaf packages (no sub-packages)
+        return !hasSubPackages;
+      } else {
+        // Include all packages
+        return true;
+      }
+    }
+
+    // Default: include other elements
+    return true;
+  }
+
+  /**
+   * Rebuild HAP tree with leafPackagesOnly setting
+   */
+  public rebuildHAPTreeWithLeafSetting(
+    applicationId: string,
+    rootElement: any,
+    getChildren: (element: any) => any[],
+    getPosition: (element: any) => THREE.Vector3,
+    getLevel: (element: any) => number,
+    leafPackagesOnly: boolean
+  ): void {
+    this.buildApplicationHAPTree(
+      applicationId,
       rootElement,
       getChildren,
       getPosition,
-      getLevel
+      getLevel,
+      leafPackagesOnly
     );
-
-    this.hapSystems.set(applicationId, hapSystem);
-    this.registerHAPNodes(rootHAP);
   }
 
   // Recursively register all HAP nodes
@@ -185,11 +305,11 @@ export class HAPSystemManager {
   private getLevelColor(level: number): THREE.Color {
     switch (level) {
       case 0:
-        return new THREE.Color(0xff0000); // Class - Blue
+        return new THREE.Color(0xff0000); // Application - Red
       case 1:
         return new THREE.Color(0x00ff00); // Package - Green
       case 2:
-        return new THREE.Color(0x0000ff); // Application - Red
+        return new THREE.Color(0x0000ff); // Class - Blue
       default:
         return new THREE.Color(0xffffff);
     }

@@ -49,10 +49,14 @@ export class HierarchicalAttractionSystem {
     return this.hapTree;
   }
 
-  // Symmetric difference between origin and destination paths to root
+  /**
+   * Find HAP path with leaf package optimization
+   */
   public findHAPPath(
     origin: HAPNode,
-    destination: HAPNode
+    destination: HAPNode,
+    streamline: boolean = true,
+    leafPackagesOnly: boolean = false // NEU
   ): {
     pathOrigin: HAPNode[];
     pathDestination: HAPNode[];
@@ -64,7 +68,7 @@ export class HierarchicalAttractionSystem {
         path.push(current);
         current = current.parent;
       }
-      return path.reverse(); // From root to node
+      return path.reverse();
     };
 
     const pathO = pathToRoot(origin);
@@ -80,18 +84,80 @@ export class HierarchicalAttractionSystem {
       commonIndex++;
     }
 
-    // Symmetric difference between those two sets
-    // path(O,D) = path(O,Root) Δ path(D,Root)
+    let originPath = pathO.slice(commonIndex);
+    let destinationPath = pathD.slice(commonIndex);
+
+    // 🔥 Filter out non-leaf packages if needed
+    if (leafPackagesOnly) {
+      originPath = this.filterLeafPackagesOnly(originPath);
+      destinationPath = this.filterLeafPackagesOnly(destinationPath);
+    }
+
+    // Apply streamline if requested
+    if (streamline) {
+      originPath = this.applyStreamline(originPath);
+      destinationPath = this.applyStreamline(destinationPath);
+    }
+
     return {
-      pathOrigin: pathO.slice(commonIndex),
-      pathDestination: pathD.slice(commonIndex),
+      pathOrigin: originPath,
+      pathDestination: destinationPath,
     };
+  }
+
+  /**
+   * Filter to keep only leaf packages (and always keep classes/application)
+   */
+  private filterLeafPackagesOnly(path: HAPNode[]): HAPNode[] {
+    return path.filter((node) => {
+      // Always keep:
+      // - Application (level 2)
+      // - Classes (level 0)
+      // - Packages that are leaves (no children with level 1)
+      if (node.level === 2 || node.level === 0) {
+        return true;
+      }
+
+      if (node.level === 1) {
+        // Package level
+        // Check if this package has any child packages
+        const hasChildPackages = node.children.some(
+          (child) => child.level === 1
+        );
+
+        // Keep only if no child packages (leaf package)
+        return !hasChildPackages;
+      }
+
+      return true;
+    });
+  }
+
+  /**
+   * Apply streamline (keep only first and last)
+   */
+  private applyStreamline(path: HAPNode[]): HAPNode[] {
+    if (path.length <= 2) return path;
+
+    const streamlined: HAPNode[] = [];
+
+    if (path.length > 0) {
+      // First point (highest level)
+      streamlined.push(path[0]);
+    }
+
+    if (path.length > 1) {
+      // Last point (class level)
+      streamlined.push(path[path.length - 1]);
+    }
+
+    return streamlined;
   }
 
   private addScattering(
     points: THREE.Vector3[],
     scatteringStrength: number = 0.3,
-    scatterRadius: number = 0.5
+    scatterRadius: number = 15
   ): void {
     if (points.length < 3 || scatteringStrength <= 0) return;
 
@@ -173,52 +239,48 @@ export class HierarchicalAttractionSystem {
     destination: THREE.Vector3,
     hapPath: { pathOrigin: HAPNode[]; pathDestination: HAPNode[] },
     beta: number = 0.8,
-    scatteringStrength: number = 0.3,
-    scatterRadius: number = 30
+    scatterRadius: number = 0.5,
+    streamline: boolean = true
   ): THREE.Vector3[] {
-    const keepOnlyClassLevel = (path: HAPNode[]): HAPNode[] => {
-      const classLevelHAPs = path.filter((node) => node.level === 0);
+    let allHAPs = [...hapPath.pathOrigin, ...hapPath.pathDestination.reverse()];
 
-      return classLevelHAPs.length > 0 ? [classLevelHAPs[0]] : [];
-    };
-    hapPath = {
-      pathOrigin: hapPath.pathOrigin.length > 0 ? [hapPath.pathOrigin[0]] : [],
-      pathDestination:
-        hapPath.pathDestination.length > 0
-          ? [hapPath.pathDestination[hapPath.pathDestination.length - 1]]
-          : [],
-    };
+    if (streamline && allHAPs.length > 2) {
+      const simplifiedHAPs: HAPNode[] = [];
 
-    // hapPath = {
-    //   pathOrigin: keepOnlyClassLevel(hapPath.pathOrigin),
-    //   pathDestination: keepOnlyClassLevel(hapPath.pathDestination),
-    // };
+      if (allHAPs.length > 0) {
+        simplifiedHAPs.push(allHAPs[0]);
+      }
 
-    if (beta === 0) {
+      if (allHAPs.length > 1) {
+        simplifiedHAPs.push(allHAPs[allHAPs.length - 1]);
+      }
+
+      allHAPs = simplifiedHAPs;
+    }
+
+    if (allHAPs.length === 0 || beta === 0) {
       return [origin, destination];
     }
 
-    if (beta === 1) {
-      const points = [origin];
-      const allHAPs = [...hapPath.pathOrigin, ...hapPath.pathDestination];
-      allHAPs.forEach((hap) => points.push(hap.position.clone()));
-      points.push(destination);
-      return points;
-    }
-
     const points: THREE.Vector3[] = [origin];
-    const allHAPs = [...hapPath.pathOrigin, ...hapPath.pathDestination];
 
     allHAPs.forEach((hap, index) => {
-      const Pn = hap.position.clone();
+      const Pn = hap.position.clone(); // Original HAP Position
+
+      if (hap.level === 0) {
+        points.push(Pn);
+        return;
+      }
+
       const levelBasedBeta = this.calculateLevelBasedBeta(hap.level, beta);
 
       const OD = new THREE.Vector3().subVectors(destination, origin);
       const OPn = new THREE.Vector3().subVectors(Pn, origin);
+
+      // t = (OPn · OD) / ||OD||²
       let t = OPn.dot(OD) / OD.lengthSq();
-
       t = Math.max(0, Math.min(1, t));
-
+      // P′n = O + t * OD
       const P_prime = origin.clone().add(OD.multiplyScalar(t));
 
       const P_final = new THREE.Vector3();
@@ -231,27 +293,33 @@ export class HierarchicalAttractionSystem {
 
     points.push(destination);
 
-    // Apply Scattering to prevent overlapping edges
-    // this.addScattering(points);
-    this.addScattering(points, scatterRadius, scatteringStrength);
-
+    this.addScattering(points, scatterRadius);
     return points;
   }
 
-  // Level-based beta calculation
-  // Deeper levels (higher level number) = stronger attraction
-  private calculateLevelBasedBeta(level: number, baseBeta: number): number {
-    if (level === 0) {
-      // Class Level
-      return 0.0;
-    }
-    const levelMultiplier = 1.0 - level * 0.2;
-    return baseBeta * levelMultiplier;
+  public setHAPTree(tree: HAPNode): void {
+    this.hapTree = tree;
   }
 
   // Get HAP tree for debugging
   public getHAPTree(): HAPNode | null {
     return this.hapTree;
+  }
+
+  private calculateLevelBasedBeta(level: number, baseBeta: number): number {
+    if (level === 0) {
+      return 0.0;
+    }
+
+    // switch (level) {
+    //   case 1: // Package-Level
+    //     return baseBeta * 0.8;
+    //   case 2: // Application-Level
+    //     return baseBeta * 1.0;
+    //   default:
+    //     return baseBeta * 0.5; // Fallback
+    // }
+    return baseBeta;
   }
 }
 
