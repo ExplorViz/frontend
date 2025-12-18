@@ -187,16 +187,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           const closedPosition = layout.center.clone();
           // Y-Position of layout is center of opened component
-          closedPosition.y =
-            layout.positionY +
-            (closedComponentHeight - openedComponentHeight) / 2;
+          closedPosition.y = layout.positionY + closedComponentHeight / 2;
 
           if (isOpen) {
-            obj.position.set(
-              layout.center.x,
-              layout.position.y,
-              layout.center.z
-            );
+            obj.position.set(layout.center.x, layout.center.y, layout.center.z);
           } else {
             obj.position.set(
               closedPosition.x,
@@ -440,9 +434,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
         const targetPositionX = layout.center.x;
         const targetPositionY = isOpen
-          ? layout.positionY
-          : layout.positionY +
-            (closedComponentHeight - openedComponentHeight) / 2;
+          ? layout.center.y
+          : layout.positionY + closedComponentHeight / 2;
         const targetPositionZ = layout.center.z;
         const targetWidth = layout.width;
         const targetDepth = layout.depth;

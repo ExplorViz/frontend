@@ -1,8 +1,8 @@
 import { Text } from '@react-three/drei';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
@@ -59,14 +59,9 @@ export default function CityDistrictLabel({
     isOpen: boolean
   ): THREE.Vector3 => {
     const margin = packageLabelMargin / 2;
-    const openedPosY =
-      layout.positionY + layout.height / 2 + labelOffset + 0.01;
+    const openedPosY = layout.positionY + layout.height + labelOffset + 0.01;
     const closedPosY =
-      layout.positionY -
-      layout.height / 2 +
-      closedComponentHeight +
-      labelOffset +
-      0.01;
+      layout.positionY + closedComponentHeight + labelOffset + 0.01;
     switch (placement) {
       case 'top':
         return isOpen

@@ -447,15 +447,10 @@ export function convertElkToBoxLayout(
   boxLayout.height = height;
 
   boxLayout.positionX = xOffset + elkGraph.x!;
-  boxLayout.positionY = COMPONENT_HEIGHT * (depth - 1) + height / 2.0;
+  boxLayout.positionY = COMPONENT_HEIGHT * (depth - 1);
   boxLayout.positionZ = zOffset + elkGraph.y!;
 
   boxLayout.level = depth;
-
-  // Landscape and applications are on the same level
-  if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
-    depth = depth - 1;
-  }
 
   if (elkGraph.id.startsWith(APP_PREFIX)) {
     // Add application offset since all components and classes are placed directly in app

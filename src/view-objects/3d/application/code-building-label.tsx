@@ -3,20 +3,20 @@ import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/r
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import {
   MetricKey,
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
 import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useShallow } from 'zustand/react/shallow';
+import gsap from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
-import gsap from 'gsap';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeBuildingLabel({
   dataModel,
@@ -103,7 +103,7 @@ export default function CodeBuildingLabel({
   useEffect(() => {
     const target = new THREE.Vector3(
       layout.center.x,
-      layout.positionY - layout.height / 2 + getClassHeight() + labelOffset,
+      layout.positionY + getClassHeight() + labelOffset,
       layout.center.z
     );
 

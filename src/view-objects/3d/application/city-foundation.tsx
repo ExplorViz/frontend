@@ -40,7 +40,7 @@ export default function CityFoundation({
       };
       gsap.to(gsapValues, {
         positionX: layout.width / 2,
-        positionY: layout.positionY,
+        positionY: layout.center.y,
         positionZ: layout.depth / 2,
         duration: 0.25,
         onUpdate: () => {
@@ -55,7 +55,7 @@ export default function CityFoundation({
       });
     } else {
       setFoundationPosition(
-        new THREE.Vector3(layout.width / 2, layout.positionY, layout.depth / 2)
+        new THREE.Vector3(layout.width / 2, layout.center.y, layout.depth / 2)
       );
     }
   }, [layout.width, layout.positionY, layout.depth]);
@@ -96,7 +96,6 @@ export default function CityFoundation({
     enableHoverEffects,
     foundationColor,
     foundationTextColor,
-    highlightedEntityColor,
     componentLabelPlacement,
   } = useUserSettingsStore(
     useShallow((state) => ({
@@ -104,8 +103,6 @@ export default function CityFoundation({
       castShadows: state.visualizationSettings.castShadows.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       foundationColor: state.visualizationSettings.foundationColor.value,
-      highlightedEntityColor:
-        state.visualizationSettings.highlightedEntityColor.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,

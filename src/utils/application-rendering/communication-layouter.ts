@@ -105,18 +105,18 @@ export function computeCommunicationLayout(
 
   let start = new THREE.Vector3()
     .copy(sourceAppLayout.position)
-    .add(sourceClassLayout.position);
+    .add(sourceClassLayout.center);
 
   const targetAppLayout = layoutMap.get(targetApp.getId());
   const targetClassLayout = layoutMap.get(targetClass.id);
   if (!targetAppLayout || !targetClassLayout) return;
   let end = new THREE.Vector3()
     .copy(targetAppLayout.position)
-    .add(targetClassLayout.position);
+    .add(targetClassLayout.center);
 
   if (sourceApp.getId() === targetApp.getId()) {
-    start = sourceClassLayout.position;
-    end = targetClassLayout.position;
+    start = sourceClassLayout.center;
+    end = targetClassLayout.center;
   }
 
   const commLayout = new CommunicationLayout(communication);
