@@ -447,7 +447,7 @@ export function convertElkToBoxLayout(
   boxLayout.height = height;
 
   boxLayout.positionX = xOffset + elkGraph.x!;
-  boxLayout.positionY = COMPONENT_HEIGHT * (depth - 1);
+  boxLayout.positionY = COMPONENT_HEIGHT * depth;
   boxLayout.positionZ = zOffset + elkGraph.y!;
 
   boxLayout.level = depth;

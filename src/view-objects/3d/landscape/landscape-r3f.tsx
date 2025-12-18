@@ -37,7 +37,14 @@ export default function LandscapeR3F({
     if (layout) {
       setPosition(getLandscapeCenterPosition());
     }
-  }, [layout, scalar, positionX, positionY, positionZ]);
+  }, [
+    layout,
+    settings.openedComponentHeight.value,
+    scalar,
+    positionX,
+    positionY,
+    positionZ,
+  ]);
 
   const raycaster = useThree((state) => state.raycaster);
 
@@ -54,7 +61,7 @@ export default function LandscapeR3F({
 
   return (
     <group
-      position={position}
+      position={[position.x, position.y, position.z]}
       scale={scalar}
       rotation={[rotationX, rotationY, rotationZ]}
       onPointerDown={(e) => {

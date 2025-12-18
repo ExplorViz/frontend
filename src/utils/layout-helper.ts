@@ -30,6 +30,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
     landscapePositionX,
     landscapePositionY,
     landscapePositionZ,
+    openedComponentHeight,
   } = settings;
 
   const landscapeOffset = new THREE.Vector3(
@@ -40,7 +41,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
 
   const landscapeCenter = new THREE.Vector3(
     -landscapeLayout.width / 2,
-    0,
+    -openedComponentHeight.value * 2, // due to elk-layouting
     -landscapeLayout.depth / 2
   );
 
@@ -102,7 +103,7 @@ export function getWorldPositionOfModel(
   } else {
     const modelLayout = layoutMap.get(modelId);
     if (!modelLayout) return undefined;
-    modelPosition = modelLayout.position
+    modelPosition = modelLayout.center
       .clone()
       .multiplyScalar(landscapeScalar.value);
   }
