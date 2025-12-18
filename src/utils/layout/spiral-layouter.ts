@@ -98,6 +98,7 @@ export function applySpiralLayoutToClasses(
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
   const CLASS_FOOTPRINT = vs.classFootprint.value;
   const CLASS_MARGIN = vs.classMargin.value;
+  const COMPONENT_HEIGHT = vs.openedComponentHeight.value;
   const APP_LABEL_MARGIN = vs.appLabelMargin.value;
   const APP_MARGIN = vs.appMargin.value;
   const SPIRAL_CENTER_OFFSET = vs.spiralCenterOffset.value;
@@ -177,7 +178,7 @@ export function applySpiralLayoutToClasses(
       classLayout.width = CLASS_FOOTPRINT;
       classLayout.depth = CLASS_FOOTPRINT;
       classLayout.height = CLASS_FOOTPRINT;
-      classLayout.positionY = classLayout.height / 2.0; // Place directly on foundation
+      classLayout.positionY = COMPONENT_HEIGHT * 2; // Place directly on foundation
 
       // Calculate position based on current grid coordinates
       const classX = centerX + spiralState.x * spacing - CLASS_FOOTPRINT / 2;

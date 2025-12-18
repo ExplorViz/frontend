@@ -1,10 +1,10 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import ScrollUpButton from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/scroll-up-button';
-import ScrollDownButton from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/scroll-down-button';
-import OpenEntityButton from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/open-entity-button';
-import ThreeMeshUI from 'three-mesh-ui';
 import DetailInfoScrollarea from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/detail-info-scrollarea';
+import OpenEntityButton from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/open-entity-button';
+import ScrollDownButton from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/scroll-down-button';
+import ScrollUpButton from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/scroll-up-button';
 import * as THREE from 'three';
+import ThreeMeshUI from 'three-mesh-ui';
 
 export default class DetailInfoMesh extends ThreeMeshUI.Block {
   /*implements IntersectableObject*/ sourceClass: string;
