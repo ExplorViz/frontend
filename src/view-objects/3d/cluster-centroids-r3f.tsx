@@ -8,7 +8,7 @@ import {
   getAllPackageIdsInApplications,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { clusterEntities } from 'explorviz-frontend/src/utils/clustering/k-means';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -22,22 +22,36 @@ const CLUSTER_BALL_SEGMENTS = 16;
  */
 export default function ClusterCentroidsR3F() {
   const [positions, setPositions] = useState<THREE.Vector3[]>([]);
-  const { clusterCount, displayClusters, enableClustering } =
-    useUserSettingsStore(
-      useShallow((state) => ({
-        enableClustering: state.visualizationSettings.enableClustering.value,
-        clusterCount: state.visualizationSettings.clusterCount.value,
-        displayClusters: state.visualizationSettings.displayClusters.value,
-      }))
-    );
+  const {
+    clusterCount,
+    displayClusters,
+    enableClustering,
+    distanceUpdateFrequency,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      enableClustering: state.visualizationSettings.enableClustering.value,
+      clusterCount: state.visualizationSettings.clusterCount.value,
+      displayClusters: state.visualizationSettings.displayClusters.value,
+      distanceUpdateFrequency:
+        state.visualizationSettings.distanceUpdateFrequency.value,
+    }))
+  );
 
   const classLayouts = useLayoutStore((state) => state.classLayouts);
   const { camera } = useThree();
+  const lastUpdateTimeRef = useRef<number>(0);
 
-  // Calculate distances to camera every frame
+  // Calculate distances to camera at configured frequency
   useFrame(() => {
-    if (enableClustering) {
-      useClusterStore.getState().calculateDistanceToCamera(camera.position);
+    if (enableClustering && distanceUpdateFrequency > 0) {
+      const now = performance.now();
+      const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+      const updateInterval = 1000.0 / distanceUpdateFrequency; // Convert Hz to milliseconds
+
+      if (timeSinceLastUpdate >= updateInterval) {
+        useClusterStore.getState().calculateDistanceToCamera(camera.position);
+        lastUpdateTimeRef.current = now;
+      }
     }
   });
 

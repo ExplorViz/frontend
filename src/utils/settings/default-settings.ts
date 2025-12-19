@@ -887,7 +887,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Semantic Zoom Settings
   enableClustering: {
     level: SettingLevel.DEFAULT,
-    value: false,
+    value: true,
     group: 'Semantic Zoom',
     displayName: 'Enable Clustering',
     description: 'Enable clustering of classes and packages for semantic zoom',
@@ -927,6 +927,20 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Label Distance Threshold',
     description:
       'Maximum distance from camera to cluster centroid for labels to be visible',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  distanceUpdateFrequency: {
+    level: SettingLevel.DEFAULT,
+    value: 10.0,
+    range: { min: 1.0, max: 30.0, step: 1.0 },
+    group: 'Semantic Zoom',
+    displayName: 'Distance Update Frequency',
+    description:
+      'How often per second the camera distance to cluster centroids is recalculated',
     dependsOn: {
       settingId: 'enableClustering',
       value: true,
