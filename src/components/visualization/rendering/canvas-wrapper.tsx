@@ -12,6 +12,7 @@ import {
   useCameraControls,
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -29,6 +30,7 @@ import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
+import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -225,6 +227,7 @@ export default function CanvasWrapper({
       ).filter((app) => !removedComponentIds.has(app.id)),
       useVisualizationStore.getState().removedComponentIds ?? new Set<string>()
     );
+    useLayoutStore.getState().updateLayouts(layoutMap);
     setLayoutMap(layoutMap);
   };
 
@@ -322,6 +325,7 @@ export default function CanvasWrapper({
                 />
               ))}
           </LandscapeR3F>
+          <ClusterCentroidsR3F />
           <AnimatedPing />
           <TraceReplayOverlayR3F />
           <ambientLight />

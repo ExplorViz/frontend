@@ -106,6 +106,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       unchangedClassColor,
       enableAnimations,
       animationDuration,
+      entityOpacity,
     } = useUserSettingsStore(
       useShallow((state) => ({
         addedClassColor: state.visualizationSettings.addedClassColor.value,
@@ -124,6 +125,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
           state.visualizationSettings.unchangedClassColor.value,
         enableAnimations: state.visualizationSettings.enableAnimations.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
+        entityOpacity: state.visualizationSettings.entityOpacity.value,
       }))
     );
 
@@ -292,6 +294,12 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       selectedHeatmapGradient,
       heatmapActive,
     ]);
+
+    useEffect(() => {
+      material.transparent = entityOpacity < 1.0;
+      material.opacity = entityOpacity;
+      material.needsUpdate = true;
+    }, [entityOpacity, material]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
       if (meshRef === null || typeof meshRef === 'function') {

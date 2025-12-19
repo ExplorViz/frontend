@@ -603,7 +603,6 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 'stress',
     options: [
       'box',
-      'disco',
       'force',
       'layered',
       'random',
@@ -621,7 +620,6 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 'rectpacking',
     options: [
       'box',
-      'disco',
       'force',
       'layered',
       'random',
@@ -886,6 +884,41 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines how many seconds popups stay on screen',
     isRangeSetting: true,
   },
+  // Semantic Zoom Settings
+  enableClustering: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Semantic Zoom',
+    displayName: 'Enable Clustering',
+    description: 'Enable clustering of classes and packages for semantic zoom',
+    isFlagSetting: true,
+  },
+  clusterCount: {
+    level: SettingLevel.DEFAULT,
+    value: 0.3,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Semantic Zoom',
+    displayName: 'Cluster Count',
+    description:
+      'Number of clusters: 0 = 1 cluster (all entities), 1 = one cluster per entity',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  displayClusters: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Semantic Zoom',
+    displayName: 'Display Clusters',
+    description: 'Visualize cluster centroids as balls in the visualization',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.EXTENDED,
@@ -1022,6 +1055,16 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Show Light Helper',
     description: 'Visualizes the Directional Light',
     isFlagSetting: true,
+  },
+  entityOpacity: {
+    level: SettingLevel.EXTENDED,
+    value: 1.0,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Debugging',
+    displayName: 'Entity Opacity',
+    description:
+      'Controls the opacity of city foundation, city districts, and code buildings',
+    isRangeSetting: true,
   },
   fullscreen: {
     level: SettingLevel.DEFAULT,

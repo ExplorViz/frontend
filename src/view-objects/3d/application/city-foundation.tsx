@@ -97,6 +97,7 @@ export default function CityFoundation({
     foundationColor,
     foundationTextColor,
     componentLabelPlacement,
+    entityOpacity,
   } = useUserSettingsStore(
     useShallow((state) => ({
       appLabelMargin: state.visualizationSettings.appLabelMargin.value,
@@ -108,6 +109,7 @@ export default function CityFoundation({
         state.visualizationSettings.foundationTextColor.value,
       componentLabelPlacement:
         state.visualizationSettings.componentLabelPlacement.value,
+      entityOpacity: state.visualizationSettings.entityOpacity.value,
     }))
   );
 
@@ -174,7 +176,11 @@ export default function CityFoundation({
       })}
       {...pointerStopHandlers}
     >
-      <meshLambertMaterial color={computeColor()} />
+      <meshBasicMaterial
+        color={computeColor()}
+        transparent={entityOpacity < 1.0}
+        opacity={entityOpacity}
+      />
       <boxGeometry />
       {appLabelMargin > 1.5 && (
         <Text

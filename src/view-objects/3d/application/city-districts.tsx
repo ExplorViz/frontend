@@ -98,6 +98,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       removedComponentColor,
       unChangedComponentColor,
       animationDuration,
+      entityOpacity,
     } = useUserSettingsStore(
       useShallow((state) => ({
         castShadows: state.visualizationSettings.castShadows.value,
@@ -121,6 +122,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         unChangedComponentColor:
           state.visualizationSettings.unchangedComponentColor.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
+        entityOpacity: state.visualizationSettings.entityOpacity.value,
       }))
     );
 
@@ -247,6 +249,12 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       // only compute the bvh on mount
       meshRef.current.computeBVH();
     }, []);
+
+    useEffect(() => {
+      material.transparent = entityOpacity < 1.0;
+      material.opacity = entityOpacity;
+      material.needsUpdate = true;
+    }, [entityOpacity, material]);
 
     const computeColor = (componentId: string) => {
       const component = componentIdToPackage.get(componentId);

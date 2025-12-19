@@ -138,6 +138,7 @@ export default function Settings({
       Layout: [],
       Minimap: [],
       Popups: [],
+      'Semantic Zoom': [],
       'Virtual Reality': [],
       Misc: [],
       Debugging: [],
