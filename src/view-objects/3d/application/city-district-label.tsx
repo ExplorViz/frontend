@@ -1,4 +1,5 @@
 import { Text } from '@react-three/drei';
+import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
@@ -27,6 +28,7 @@ export default function CityDistrictLabel({
     enableAnimations,
     animationDuration,
     componentLabelPlacement,
+    labelDistanceThreshold,
   } = useUserSettingsStore(
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
@@ -38,6 +40,15 @@ export default function CityDistrictLabel({
       animationDuration: state.visualizationSettings.animationDuration.value,
       componentLabelPlacement:
         state.visualizationSettings.componentLabelPlacement.value,
+      labelDistanceThreshold:
+        state.visualizationSettings.labelDistanceThreshold.value,
+    }))
+  );
+
+  const { centroidDistances, getCentroidDistance } = useClusterStore(
+    useShallow((state) => ({
+      centroidDistances: state.centroidDistances,
+      getCentroidDistance: state.getCentroidDistance,
     }))
   );
 
@@ -53,6 +64,29 @@ export default function CityDistrictLabel({
   const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
     new THREE.Vector3()
   );
+
+  // Track distance to cluster centroid for label visibility
+  const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
+
+  useEffect(() => {
+    const distance = getCentroidDistance(component.id);
+    if (distance !== undefined) {
+      // Larger Labels of larger districts should be visible from a greater distance
+      const sizeMultiplier =
+        1.0 + layout.area / 100000.0 + getFontSize() / 10.0;
+      const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
+      setIsWithinDistance(distance <= adjustedThreshold);
+    } else {
+      // Default: show label
+      setIsWithinDistance(true);
+    }
+  }, [
+    centroidDistances,
+    labelDistanceThreshold,
+    getCentroidDistance,
+    component.id,
+    layout.area,
+  ]);
 
   const getLabelPositionForPlacement = (
     placement: string,
@@ -100,6 +134,12 @@ export default function CityDistrictLabel({
     }
   };
 
+  const getFontSize = () => {
+    return isOpen
+      ? packageLabelMargin * 0.5
+      : Math.max(layout.width * 0.1, packageLabelMargin * 0.5);
+  };
+
   useEffect(() => {
     const target = getLabelPositionForPlacement(
       componentLabelPlacement,
@@ -135,20 +175,16 @@ export default function CityDistrictLabel({
     componentLabelPlacement,
   ]);
 
-  return (
+  return isWithinDistance ? (
     <Text
       color={componentTextColor}
       visible={isVisible && (isCameraZoomedIn || !isOpen)}
       position={labelPosition}
       rotation={getLabelRotation(componentLabelPlacement)}
-      fontSize={
-        isOpen
-          ? packageLabelMargin * 0.5
-          : Math.max(layout.width * 0.1, packageLabelMargin * 0.5)
-      }
+      fontSize={getFontSize()}
       raycast={() => null}
     >
       {getEntityDisplayName(component.name, component.id)}
     </Text>
-  );
+  ) : null;
 }

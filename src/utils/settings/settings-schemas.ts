@@ -197,6 +197,7 @@ export type SemanticZoomSettings = {
   enableClustering: FlagSetting;
   displayClusters: FlagSetting;
   clusterCount: RangeSetting;
+  labelDistanceThreshold: RangeSetting;
 };
 export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 

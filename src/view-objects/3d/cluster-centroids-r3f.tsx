@@ -22,25 +22,27 @@ const CLUSTER_BALL_SEGMENTS = 16;
  */
 export default function ClusterCentroidsR3F() {
   const [positions, setPositions] = useState<THREE.Vector3[]>([]);
-  const { clusterCount, displayClusters } = useUserSettingsStore(
-    useShallow((state) => ({
-      clusterCount: state.visualizationSettings.clusterCount.value,
-      displayClusters: state.visualizationSettings.displayClusters.value,
-    }))
-  );
+  const { clusterCount, displayClusters, enableClustering } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        enableClustering: state.visualizationSettings.enableClustering.value,
+        clusterCount: state.visualizationSettings.clusterCount.value,
+        displayClusters: state.visualizationSettings.displayClusters.value,
+      }))
+    );
 
   const classLayouts = useLayoutStore((state) => state.classLayouts);
   const { camera } = useThree();
 
   // Calculate distances to camera every frame
   useFrame(() => {
-    if (displayClusters) {
+    if (enableClustering) {
       useClusterStore.getState().calculateDistanceToCamera(camera.position);
     }
   });
 
   useEffect(() => {
-    if (displayClusters) {
+    if (enableClustering) {
       const applications = useModelStore.getState().getAllApplications();
       const classIds = getAllClassIdsInApplications(applications);
       const packageIds = getAllPackageIdsInApplications(applications);
@@ -53,7 +55,12 @@ export default function ClusterCentroidsR3F() {
       clusteringResult.centroids.forEach((centroid) => {
         positions.push(centroid.position.clone());
       });
-      setPositions(positions);
+
+      if (displayClusters) {
+        setPositions(positions);
+      } else {
+        setPositions([]);
+      }
 
       useClusterStore
         .getState()
@@ -61,11 +68,11 @@ export default function ClusterCentroidsR3F() {
           clusteringResult.entityToCluster,
           clusteringResult.centroids
         );
-    } else {
+    } else if (!enableClustering) {
       // Clear clusters if clustering is disabled
       useClusterStore.getState().clearClusters();
     }
-  }, [classLayouts, clusterCount, displayClusters]);
+  }, [classLayouts, clusterCount, displayClusters, enableClustering]);
 
   if (!displayClusters) {
     return null;

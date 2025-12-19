@@ -919,6 +919,20 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isFlagSetting: true,
   },
+  labelDistanceThreshold: {
+    level: SettingLevel.DEFAULT,
+    value: 5.0,
+    range: { min: 0.0, max: 100.0, step: 0.5 },
+    group: 'Semantic Zoom',
+    displayName: 'Label Distance Threshold',
+    description:
+      'Maximum distance from camera to cluster centroid for labels to be visible',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.EXTENDED,
