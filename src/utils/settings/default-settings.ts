@@ -567,16 +567,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines distance between class/component and its label',
     isRangeSetting: true,
   },
-  maxCamHeightForCamera: {
-    level: SettingLevel.EXTENDED,
-    value: 25,
-    range: { min: 0, max: 50, step: 0.5 },
-    group: 'Label',
-    displayName: 'Max Camera Height',
-    description:
-      'Determines when labels (except of closed components) are rendered in relation to camera`s y-position.',
-    isRangeSetting: true,
-  },
   packageLabelMargin: {
     level: SettingLevel.DEFAULT,
     value: 13.0,

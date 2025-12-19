@@ -14,11 +14,9 @@ import { useShallow } from 'zustand/react/shallow';
 export default function CityDistrictLabel({
   component,
   layout,
-  isCameraZoomedIn,
 }: {
   component: Package;
   layout: BoxLayout;
-  isCameraZoomedIn: boolean;
 }) {
   const {
     labelOffset,
@@ -178,7 +176,7 @@ export default function CityDistrictLabel({
   return isWithinDistance ? (
     <Text
       color={componentTextColor}
-      visible={isVisible && (isCameraZoomedIn || !isOpen)}
+      visible={isVisible}
       position={labelPosition}
       rotation={getLabelRotation(componentLabelPlacement)}
       fontSize={getFontSize()}

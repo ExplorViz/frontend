@@ -1,4 +1,3 @@
-import { useFrame, useThree } from '@react-three/fiber';
 import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
@@ -27,27 +26,15 @@ export default function CodeCity({
   applicationData: ApplicationData;
   layoutMap: Map<string, BoxLayout>;
 }) {
-  const [isCameraZoomedIn, setIsCameraZoomedIn] = useState(false);
-  const { camera } = useThree();
-
-  const {
-    animationDuration,
-    enableAnimations,
-    zoomDistance,
-    showEmbeddedBrowserIcon,
-  } = useUserSettingsStore(
-    useShallow((state) => ({
-      animationDuration: state.visualizationSettings.animationDuration.value,
-      enableAnimations: state.visualizationSettings.enableAnimations.value,
-      zoomDistance: state.visualizationSettings.maxCamHeightForCamera.value,
-      showEmbeddedBrowserIcon:
-        state.visualizationSettings.showEmbeddedBrowserIcon.value,
-    }))
-  );
-
-  useFrame(() => {
-    setIsCameraZoomedIn(camera.position.y < zoomDistance);
-  });
+  const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        animationDuration: state.visualizationSettings.animationDuration.value,
+        enableAnimations: state.visualizationSettings.enableAnimations.value,
+        showEmbeddedBrowserIcon:
+          state.visualizationSettings.showEmbeddedBrowserIcon.value,
+      }))
+    );
 
   const [appPosition, setAppPosition] = useState<THREE.Vector3 | undefined>(
     layoutMap.get(applicationData.getId())?.position
@@ -138,7 +125,6 @@ export default function CodeCity({
               dataModel={classData}
               application={applicationData.application}
               layout={layoutMap.get(classData.id)!}
-              isCameraZoomedIn={isCameraZoomedIn}
             />
           ) : null
         )}
@@ -158,7 +144,6 @@ export default function CodeCity({
             key={packageData.id + '-label'}
             component={packageData}
             layout={layoutMap.get(packageData.id)!}
-            isCameraZoomedIn={isCameraZoomedIn}
           />
         ))}
       {isCommRendered &&

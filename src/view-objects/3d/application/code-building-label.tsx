@@ -23,12 +23,10 @@ export default function CodeBuildingLabel({
   dataModel,
   layout,
   application,
-  isCameraZoomedIn,
 }: {
   dataModel: Class;
   layout: BoxLayout;
   application: Application;
-  isCameraZoomedIn: boolean;
 }) {
   const {
     isClassHovered,
@@ -181,7 +179,7 @@ export default function CodeBuildingLabel({
       key={dataModel.id + '-label'}
       position={labelPosition}
       color={classTextColor}
-      visible={isClassVisible && isCameraZoomedIn}
+      visible={isClassVisible}
       rotation={[1.5 * Math.PI, 0, labelRotation]}
       fontSize={classLabelFontSize * Math.min(layout.width, layout.depth) * 0.5}
       raycast={() => null}

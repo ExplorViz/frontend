@@ -139,7 +139,6 @@ export type LabelSettings = {
   classLabelLength: RangeSetting;
   classLabelOrientation: RangeSetting;
   labelOffset: RangeSetting;
-  maxCamHeightForCamera: RangeSetting;
   packageLabelMargin: RangeSetting;
   componentLabelPlacement: SelectSetting<string>;
 };
