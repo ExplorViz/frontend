@@ -947,6 +947,33 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isRangeSetting: true,
   },
+  autoOpenCloseComponents: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Semantic Zoom',
+    displayName: 'Auto Open/Close Components',
+    description:
+      'Automatically open components when camera is close to cluster centroid, and close when far away.',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  componentOpenCloseDistanceThreshold: {
+    level: SettingLevel.DEFAULT,
+    value: 15.0,
+    range: { min: 0.0, max: 100.0, step: 0.5 },
+    group: 'Semantic Zoom',
+    displayName: 'Component Open/Close Distance Threshold',
+    description:
+      'Maximum distance from camera to cluster centroid for components to be automatically opened/closed.',
+    dependsOn: {
+      settingId: 'autoOpenCloseComponents',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.EXTENDED,

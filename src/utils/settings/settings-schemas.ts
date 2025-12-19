@@ -199,6 +199,8 @@ export type SemanticZoomSettings = {
   clusterCount: RangeSetting;
   labelDistanceThreshold: RangeSetting;
   distanceUpdateFrequency: RangeSetting;
+  autoOpenCloseComponents: FlagSetting;
+  componentOpenCloseDistanceThreshold: RangeSetting;
 };
 export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 
