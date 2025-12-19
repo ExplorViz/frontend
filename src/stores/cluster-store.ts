@@ -18,6 +18,9 @@ interface ClusterStoreState {
   // Centroids for each cluster
   centroids: Map<number, ClusterCentroid>;
 
+  // Distance from camera to each centroid
+  centroidDistances: Map<number, number>;
+
   // Actions
   setClusters: (
     entityToCluster: Map<string, number>,
@@ -30,18 +33,24 @@ interface ClusterStoreState {
   getAllClusters: () => Map<number, ClusterCentroid>;
   getEntitiesInCluster: (clusterId: number) => string[];
   clearClusters: () => void;
+  calculateDistanceToCamera: (cameraPosition: THREE.Vector3) => void;
+  getCentroidDistance: (entityId: string) => number | undefined;
+  getAllCentroidDistances: () => Map<number, number>;
 }
 
 export const useClusterStore = create<ClusterStoreState>()(
   devtools(
     (set, get) => ({
-      entityToCluster: new Map<string, number>(),
+      entityIdToCluster: new Map<string, number>(),
       centroids: new Map<number, ClusterCentroid>(),
+      centroidDistances: new Map<number, number>(),
 
       setClusters: (entityToCluster, centroids) => {
         set({
           entityIdToCluster: entityToCluster,
           centroids,
+          // Reset distances when clusters change
+          centroidDistances: new Map<number, number>(),
         });
       },
 
@@ -79,7 +88,32 @@ export const useClusterStore = create<ClusterStoreState>()(
         set({
           entityIdToCluster: new Map<string, number>(),
           centroids: new Map<number, ClusterCentroid>(),
+          centroidDistances: new Map<number, number>(),
         });
+      },
+
+      calculateDistanceToCamera: (cameraPosition: THREE.Vector3) => {
+        const distances = new Map<number, number>();
+        const centroids = get().centroids;
+
+        centroids.forEach((centroid, clusterId) => {
+          const distance = cameraPosition.distanceTo(centroid.position);
+          distances.set(clusterId, distance);
+        });
+
+        set({ centroidDistances: distances });
+      },
+
+      getCentroidDistance: (entityId: string) => {
+        const clusterId = get().entityIdToCluster.get(entityId);
+        if (clusterId === undefined) {
+          return undefined;
+        }
+        return get().centroidDistances.get(clusterId);
+      },
+
+      getAllCentroidDistances: () => {
+        return get().centroidDistances;
       },
     }),
     {

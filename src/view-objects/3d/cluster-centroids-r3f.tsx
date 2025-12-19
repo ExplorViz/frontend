@@ -1,3 +1,4 @@
+import { useFrame, useThree } from '@react-three/fiber';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -29,6 +30,14 @@ export default function ClusterCentroidsR3F() {
   );
 
   const classLayouts = useLayoutStore((state) => state.classLayouts);
+  const { camera } = useThree();
+
+  // Calculate distances to camera every frame
+  useFrame(() => {
+    if (displayClusters) {
+      useClusterStore.getState().calculateDistanceToCamera(camera.position);
+    }
+  });
 
   useEffect(() => {
     if (displayClusters) {
