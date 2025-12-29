@@ -30,6 +30,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import CollaborationCameraSync from './collaboration-camera-sync';
 import SpectateCameraController from './spectate-camera-controller';
+<<<<<<< Updated upstream
+=======
+import SecondCameraView from './SecondCameraView';
+>>>>>>> Stashed changes
 
 export default function CanvasWrapper({
   landscapeData,
@@ -248,6 +252,11 @@ export default function CanvasWrapper({
     };
   }, []);
 
+<<<<<<< Updated upstream
+=======
+  const minimapEnabled = useUserSettingsStore((state) => state.visualizationSettings.minimap.value);
+
+>>>>>>> Stashed changes
   return (
     <>
       <Canvas
@@ -280,6 +289,10 @@ export default function CanvasWrapper({
           far={cameraFar}
           makeDefault
         />
+<<<<<<< Updated upstream
+=======
+        {minimapEnabled && <SecondCameraView mainCameraControls={cameraControlsRef}/> }
+>>>>>>> Stashed changes
         <SpectateCameraController />
         <CollaborationCameraSync />
         <LandscapeR3F
