@@ -1,5 +1,9 @@
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { SELF_DISCONNECTED_EVENT } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
@@ -10,16 +14,11 @@ import {
   SPECTATING_UPDATE_EVENT,
   SpectatingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
-import { create } from 'zustand';
-// import debugLogger from 'ember-debug-logger';
-import { SELF_DISCONNECTED_EVENT } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import CameraControls from 'explorviz-frontend/src/utils/application-rendering/camera-controls';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import * as VrPoses from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import { VrPose } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import equal from 'fast-deep-equal';
-import eventEmitter from '../../utils/event-emitter';
-import { useMessageSenderStore } from './message-sender';
+import { create } from 'zustand';
 
 interface SpectateUserState {
   spectatedUser: RemoteUser | null;

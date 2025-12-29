@@ -1,15 +1,12 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
-import { log } from 'console';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -24,7 +21,7 @@ import {
   Package,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import gsap from 'gsap';
 import { forwardRef, useEffect, useMemo, useRef } from 'react';
 import {
@@ -101,6 +98,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       removedComponentColor,
       unChangedComponentColor,
       animationDuration,
+      entityOpacity,
     } = useUserSettingsStore(
       useShallow((state) => ({
         castShadows: state.visualizationSettings.castShadows.value,
@@ -124,6 +122,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         unChangedComponentColor:
           state.visualizationSettings.unchangedComponentColor.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
+        entityOpacity: state.visualizationSettings.entityOpacity.value,
       }))
     );
 
@@ -173,9 +172,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           const layout = layoutMap.get(component.id);
           if (!layout) {
-            console.log(
-              `No layout found for component with id ${component.id}`
-            );
             return;
           }
 
@@ -188,18 +184,12 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             !hiddenComponentIds.has(component.id) &&
             !removedComponentIds.has(component.id);
 
-          const closedPosition = layout.position.clone();
+          const closedPosition = layout.center.clone();
           // Y-Position of layout is center of opened component
-          closedPosition.y =
-            layout.positionY +
-            (closedComponentHeight - openedComponentHeight) / 2;
+          closedPosition.y = layout.positionY + closedComponentHeight / 2;
 
           if (isOpen) {
-            obj.position.set(
-              layout.position.x,
-              layout.position.y,
-              layout.position.z
-            );
+            obj.position.set(layout.center.x, layout.center.y, layout.center.z);
           } else {
             obj.position.set(
               closedPosition.x,
@@ -259,6 +249,12 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       // only compute the bvh on mount
       meshRef.current.computeBVH();
     }, []);
+
+    useEffect(() => {
+      material.transparent = entityOpacity < 1.0;
+      material.opacity = entityOpacity;
+      material.needsUpdate = true;
+    }, [entityOpacity, material]);
 
     const computeColor = (componentId: string) => {
       const component = componentIdToPackage.get(componentId);
@@ -441,12 +437,11 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         const layout = layoutMap.get(componentId);
         if (!layout) return;
 
-        const targetPositionX = layout.position.x;
+        const targetPositionX = layout.center.x;
         const targetPositionY = isOpen
-          ? layout.positionY
-          : layout.positionY +
-            (closedComponentHeight - openedComponentHeight) / 2;
-        const targetPositionZ = layout.position.z;
+          ? layout.center.y
+          : layout.positionY + closedComponentHeight / 2;
+        const targetPositionZ = layout.center.z;
         const targetWidth = layout.width;
         const targetDepth = layout.depth;
         const targetHeight = isOpen

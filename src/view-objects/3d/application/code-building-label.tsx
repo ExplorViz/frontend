@@ -1,22 +1,23 @@
 import { Text } from '@react-three/drei';
+import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   MetricKey,
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useShallow } from 'zustand/react/shallow';
+import gsap from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
-import gsap from 'gsap';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeBuildingLabel({
   dataModel,
@@ -67,6 +68,7 @@ export default function CodeBuildingLabel({
     labelOffset,
     labelRotation,
     showAllClassLabels,
+    labelDistanceThreshold,
   } = useUserSettingsStore(
     useShallow((state) => ({
       classFootprint: state.visualizationSettings.classFootprint.value,
@@ -79,6 +81,15 @@ export default function CodeBuildingLabel({
       labelOffset: state.visualizationSettings.labelOffset.value,
       labelRotation: state.visualizationSettings.classLabelOrientation.value,
       showAllClassLabels: state.visualizationSettings.showAllClassLabels.value,
+      labelDistanceThreshold:
+        state.visualizationSettings.labelDistanceThreshold.value,
+    }))
+  );
+
+  const { centroidDistances, getCentroidDistance } = useClusterStore(
+    useShallow((state) => ({
+      centroidDistances: state.centroidDistances,
+      getCentroidDistance: state.getCentroidDistance,
     }))
   );
 
@@ -97,14 +108,34 @@ export default function CodeBuildingLabel({
   };
 
   const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
-    new THREE.Vector3(layout.positionX, layout.positionY, layout.positionZ)
+    new THREE.Vector3(layout.center.x, layout.positionY, layout.center.z)
   );
+
+  // Track distance to cluster centroid for label visibility
+  const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
+
+  useEffect(() => {
+    const distance = getCentroidDistance(dataModel.id);
+    if (distance !== undefined) {
+      // Larger Labels of larger districts should be visible from a greater distance
+      const sizeMultiplier = 1.0 + layout.area / 10000.0;
+      setIsWithinDistance(distance <= labelDistanceThreshold * sizeMultiplier);
+    } else {
+      // Show label by default
+      setIsWithinDistance(true);
+    }
+  }, [
+    centroidDistances,
+    labelDistanceThreshold,
+    getCentroidDistance,
+    dataModel.id,
+  ]);
 
   useEffect(() => {
     const target = new THREE.Vector3(
-      layout.positionX,
-      layout.positionY - layout.height / 2 + getClassHeight() + labelOffset,
-      layout.positionZ
+      layout.center.x,
+      layout.positionY + getClassHeight() + labelOffset,
+      layout.center.z
     );
 
     const { enableAnimations, animationDuration } =
@@ -137,11 +168,15 @@ export default function CodeBuildingLabel({
     labelOffset,
   ]);
 
-  return showAllClassLabels ||
-    isClassHovered ||
-    isParentHovered ||
-    isClassHighlighted ||
-    isParentHighlighted ? (
+  const shouldShowLabel =
+    (showAllClassLabels ||
+      isClassHovered ||
+      isParentHovered ||
+      isClassHighlighted ||
+      isParentHighlighted) &&
+    isWithinDistance;
+
+  return shouldShowLabel ? (
     <Text
       key={dataModel.id + '-label'}
       position={labelPosition}

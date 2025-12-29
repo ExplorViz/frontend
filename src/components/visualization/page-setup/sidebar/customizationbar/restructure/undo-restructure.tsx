@@ -1,10 +1,6 @@
-import React from 'react';
-
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { ReplyIcon } from '@primer/octicons-react';
-
-interface UndoRestructureProps {}
+import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 
 export default function UndoRestructure() {
   const canUndo = useLandscapeRestructureStore(

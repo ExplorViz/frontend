@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
-import EvolutionRenderingButtons from 'explorviz-frontend/src/components/extended-reality/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
@@ -13,7 +13,6 @@ import {
   VisualizationMode,
 } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
@@ -38,6 +37,12 @@ import {
   useUserApiTokenStore,
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import {
+  highlightById,
+  removeAllHighlighting,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
@@ -73,11 +78,7 @@ import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/tim
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import {
-  highlightById,
-  removeAllHighlighting,
-} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 
 const queryParams = [
   'roomId',
@@ -128,6 +129,9 @@ export default function Visualization() {
   const [vrButtonText, setVrButtonText] = useState<string>('');
   const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
     useState<TimelineDataObjectHandler>(new TimelineDataObjectHandler()); //(null);
+  const timelineUpdateVersion = useRenderingServiceStore(
+    (state) => state.timelineUpdateVersion
+  );
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
     useState<boolean>(false);
   const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
@@ -983,9 +987,12 @@ export default function Visualization() {
                     timelineDataObject={
                       timelineDataObjectHandler.timelineDataObject!
                     }
-                    timelineUpdateVersion={
-                      timelineDataObjectHandler.updateVersion
-                    }
+                    debugSnapshots={useDebugSnapshotRepositoryStore
+                      .getState()
+                      .getDebugSnapshotsByLandscapeToken(
+                        landscapeTokenServiceToken!.value
+                      )}
+                    timelineUpdateVersion={timelineUpdateVersion}
                     clicked={timelineDataObjectHandler.timelineClicked}
                   />
                 </>

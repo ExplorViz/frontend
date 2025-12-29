@@ -1,6 +1,6 @@
-import * as THREE from 'three';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { MeshLineMaterial } from 'meshline';
+import * as THREE from 'three';
 
 export default abstract class BaseMesh<
   TGeometry extends THREE.BufferGeometry = THREE.BufferGeometry,

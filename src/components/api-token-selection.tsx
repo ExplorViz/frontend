@@ -29,8 +29,12 @@ export default function ApiTokenSelection({
   const [saveBtnDisabled, setSaveBtnDisabled] = useState<boolean>(true);
 
   const sortedApiTokens = [...apiTokens].sort((a, b) => {
-    const aValue = a[sortProperty];
-    const bValue = b[sortProperty];
+    const aValue = a[sortProperty as keyof ApiToken];
+    const bValue = b[sortProperty as keyof ApiToken];
+
+    if (aValue === undefined || bValue === undefined) {
+      return 0;
+    }
 
     return sortOrder === 'asc'
       ? aValue > bValue
@@ -65,10 +69,6 @@ export default function ApiTokenSelection({
       }
     }
     refreshRoute();
-  };
-
-  const openMenu = () => {
-    setCreateToken(true);
   };
 
   const closeMenu = () => {
@@ -267,7 +267,7 @@ export default function ApiTokenSelection({
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="outline-danger" onClick={() => reset}>
+            <Button variant="outline-danger" onClick={() => reset()}>
               Cancel
             </Button>
             <Button

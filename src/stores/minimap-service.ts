@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import Raycaster from 'explorviz-frontend/src/utils/raycaster';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
+import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import * as THREE from 'three';
+import { create } from 'zustand';
 
 export enum SceneLayers {
   Default = 0,

@@ -1,8 +1,6 @@
-import React from 'react';
-
+import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -24,7 +22,6 @@ export default function VscodeExtensionSettings() {
   );
 
   const connectToIDE = () => {
-    console.log('connectToIDE');
     showInfoToastMessage('Connect to IDE');
     restartConnection();
   };

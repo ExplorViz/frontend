@@ -13,17 +13,13 @@ interface RoomListArgs {
   selectToken(token: LandscapeToken): void;
 }
 
-export default function RoomList({ tokens, selectToken }: RoomListArgs) {
+export default function RoomList({ tokens }: RoomListArgs) {
   const { showSuccessToastMessage, showErrorToastMessage } =
     useToastHandlerStore();
   const joinRoom = useCollaborationSessionStore((state) => state.joinRoom);
   const listRooms = useRoomServiceStore((state) => state.listRooms);
 
   const [rooms, setRooms] = useState<RoomListRecord[]>([]);
-
-  useEffect(() => {
-    loadRooms(false);
-  }, []);
 
   const loadRooms = async (alert = true) => {
     let rooms: RoomListRecord[] = [];
@@ -50,6 +46,10 @@ export default function RoomList({ tokens, selectToken }: RoomListArgs) {
       showSuccessToastMessage('Updated room list');
     }
   };
+
+  useEffect(() => {
+    loadRooms(false);
+  }, [loadRooms]);
 
   return (
     <div className="d-flex flex-row justify-content-center selection-table">

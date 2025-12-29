@@ -1,27 +1,16 @@
-import React, { useRef } from 'react';
-import { Tooltip, Popover } from 'react-bootstrap';
+import { InfoIcon } from '@primer/octicons-react';
 import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { InfoIcon } from '@primer/octicons-react';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { Popover, Tooltip } from 'react-bootstrap';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
 export default function AdditionalTokenInfo({
   token,
 }: {
   token: LandscapeToken;
 }) {
-  const focusedClicks = useRef<number>(0);
-
   const user = useAuthStore.getInitialState().user;
-
-  const hidePopover = (event: React.FormEvent) => {
-    // Clicks enable us to differentiate between opened and closed popovers
-    if (focusedClicks.current % 2 === 1) {
-      event.target?.dispatchEvent(new Event('click'));
-    }
-    focusedClicks.current = 0;
-  };
 
   const handleClick = (event: any) => {
     event.stopPropagation();

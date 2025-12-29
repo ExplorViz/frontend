@@ -1,11 +1,11 @@
-import { create } from 'zustand';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import {
   EntityMesh,
   isEntityMesh,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
 import { Texture, TextureLoader } from 'three';
+import { create } from 'zustand';
 
 export enum TextureNameConstants {
   ADDED = 'plus',

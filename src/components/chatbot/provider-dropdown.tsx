@@ -1,7 +1,7 @@
-import { use } from 'react';
-import { ChatbotContext } from './chatbot-context';
 import { useCopilotChat } from '@copilotkit/react-core';
-import { Dropdown } from '../visualization/page-setup/dropdown';
+import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { Dropdown } from 'explorviz-frontend/src/components/visualization/page-setup/dropdown';
+import { use } from 'react';
 
 export function ProviderDropdown() {
   const {

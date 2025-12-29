@@ -55,49 +55,8 @@ export default function PlotlyCommitTree({
   // #region useEffect & useRef
   const plotlyCommitDivRef = useRef(null);
 
-  useEffect(() => {
-    // Only setup chart if we have valid data
-    if (
-      appNameCommitTreeMap &&
-      selectedAppName &&
-      appNameCommitTreeMap.get(selectedAppName)?.branches
-    ) {
-      setupPlotlyCommitTreeChart();
-    }
-  }, [appNameCommitTreeMap, selectedAppName]);
-
-  useEffect(() => {
-    // Only update chart if we have valid data and the div exists
-    if (
-      plotlyCommitDivRef.current &&
-      appNameCommitTreeMap &&
-      selectedAppName &&
-      appNameCommitTreeMap.get(selectedAppName)?.branches
-    ) {
-      updatePlotlyCommitTree();
-    }
-  }, [selectedAppName, _appNameCommitTreeMap, appNameCommitTreeMap]);
-
-  // #endregion useEffect & useRef
-
-  // #region Ember Div Events
-  const handleMouseEnter = (plotlyDiv: any) => {
-    // if user hovers over plotly, save his
-    // sliding window, so that updating the
-    // plot won't modify his current viewport
-    if (plotlyDiv && plotlyDiv.layout) {
-      userSlidingWindow = plotlyDiv.layout;
-    }
-  };
-
-  const handleMouseLeave = () => {
-    userSlidingWindow = null;
-  };
-  // #endregion
-
   // #region Plot Setup
-
-  const setupPlotlyCommitTreeChart = () => {
+  function setupPlotlyCommitTreeChart() {
     // deep copy attributes (Map and Object is passed via reference, therefore changes in this component would actually be executed on the original element) -> nasty bugs
     setAppNameCommitTreeMap(structuredClone(appNameCommitTreeMap));
 
@@ -106,7 +65,17 @@ export default function PlotlyCommitTree({
     if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
       updatePlotlyCommitTree();
     }
-  };
+  }
+
+  function updatePlotlyCommitTree() {
+    if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
+      createPlotlyCommitTreeChart(
+        _appNameCommitTreeMap,
+        selectedAppName,
+        selectedCommits
+      );
+    }
+  }
 
   const setupPlotlyListener = () => {
     const dragLayer: any = document.getElementsByClassName('nsewdrag')[0];
@@ -241,19 +210,47 @@ export default function PlotlyCommitTree({
 
   // #endregion
 
-  // #region Plot Update
+  // #endregion Plot Setup
 
-  const updatePlotlyCommitTree = () => {
-    if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
-      createPlotlyCommitTreeChart(
-        _appNameCommitTreeMap,
-        selectedAppName,
-        selectedCommits
-      );
+  // #region Ember Div Events
+  const handleMouseEnter = (plotlyDiv: any) => {
+    // if user hovers over plotly, save his
+    // sliding window, so that updating the
+    // plot won't modify his current viewport
+    if (plotlyDiv && plotlyDiv.layout) {
+      userSlidingWindow = plotlyDiv.layout;
     }
   };
 
+  const handleMouseLeave = () => {
+    userSlidingWindow = null;
+  };
   // #endregion
+
+  useEffect(() => {
+    // Only setup chart if we have valid data
+    if (
+      appNameCommitTreeMap &&
+      selectedAppName &&
+      appNameCommitTreeMap.get(selectedAppName)?.branches
+    ) {
+      setupPlotlyCommitTreeChart();
+    }
+  }, [appNameCommitTreeMap, selectedAppName]);
+
+  useEffect(() => {
+    // Only update chart if we have valid data and the div exists
+    if (
+      plotlyCommitDivRef.current &&
+      appNameCommitTreeMap &&
+      selectedAppName &&
+      appNameCommitTreeMap.get(selectedAppName)?.branches
+    ) {
+      updatePlotlyCommitTree();
+    }
+  }, [selectedAppName, _appNameCommitTreeMap, appNameCommitTreeMap]);
+
+  // #endregion useEffect & useRef
 
   // #region Helper functions
 

@@ -2,30 +2,30 @@ import {
   useCopilotAction,
   useCopilotChatInternal,
 } from '@copilotkit/react-core';
+import { ToolCallCard } from 'explorviz-frontend/src/components/chatbot/tool-call-card';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
-  closeComponent,
-  openComponent,
   closeAllComponentsInApplication,
+  closeComponent,
   openAllComponentsInApplication,
+  openComponent,
 } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import {
   Application,
-  Package,
   Class,
   Method,
+  Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { use, useMemo } from 'react';
-import { ToolCallCard } from './tool-call-card';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
-import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
-import { EditingContext } from '../editing/editing-context';
-import * as htmlToImage from 'html-to-image';
-import { ChatbotContext } from './chatbot-context';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import * as htmlToImage from 'html-to-image';
+import { use, useMemo } from 'react';
+import { EditingContext } from '../editing/editing-context';
+import { ChatbotContext } from './chatbot-context';
 
 interface CopilotToolsProps {
   applications?: Application[];

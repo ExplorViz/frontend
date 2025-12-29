@@ -1,33 +1,32 @@
-import { create } from 'zustand';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import * as THREE from 'three';
+import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
+import { useVrAssetRepoStore } from 'explorviz-frontend/src/stores/extended-reality/vr-asset-repo';
+import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import ActionIcon from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/action-icon';
-import HeatmapMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/heatmap-menu';
 import CloseIcon from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/close-icon';
 import { DetachableMenu } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
 import DetachedMenuGroup from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detached-menu-group';
-import { useVrAssetRepoStore } from './vr-asset-repo';
 import SpectateViewMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/connection/spectate-view-menu';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import {
-  MENU_DETACHED_EVENT,
-  MenuDetachedMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import HeatmapMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/heatmap-menu';
 import {
   MenuDetachedResponse,
   isMenuDetachedResponse,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import {
+  ObjectClosedResponse,
+  isObjectClosedResponse,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
+import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
-  ObjectClosedResponse,
-  isObjectClosedResponse,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
-import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+  MENU_DETACHED_EVENT,
+  MenuDetachedMessage,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import * as THREE from 'three';
+import { create } from 'zustand';
 
 interface DetachedMenuGroupsState {
   detachedMenuGroups: Set<DetachedMenuGroup>;

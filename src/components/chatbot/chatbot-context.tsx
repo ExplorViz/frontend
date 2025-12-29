@@ -1,16 +1,16 @@
 import { CopilotKit } from '@copilotkit/react-core';
+import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   createContext,
-  PropsWithChildren,
   MutableRefObject,
+  PropsWithChildren,
   useCallback,
   useEffect,
   useState,
 } from 'react';
-import { CopilotTools } from './copilot-tools';
 import { CopilotResources } from './copilot-resources';
-import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { CopilotTools } from './copilot-tools';
 import { PingIndicator } from './ping-indicator';
 
 const copilotUrl: string = import.meta.env.VITE_COPILOT_SERV_URL;
@@ -172,7 +172,7 @@ export function ChatbotProvider({
   }, []);
 
   return (
-    <ChatbotContext.Provider
+    <ChatbotContext
       value={{
         providers,
         selectedProvider,
@@ -206,6 +206,6 @@ export function ChatbotProvider({
         {children}
         {activePing && <PingIndicator x={activePing.x} y={activePing.y} />}
       </CopilotKit>
-    </ChatbotContext.Provider>
+    </ChatbotContext>
   );
 }

@@ -1,5 +1,5 @@
-import * as THREE from 'three';
 import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import * as THREE from 'three';
 
 export interface GrabbableObject extends IntersectableObject {
   getGrabId(): string | null;
@@ -17,7 +17,6 @@ export class GrabbableObjectWrapper
     this.add(object);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canBeIntersected(_intersection: THREE.Intersection) {
     return true;
   }

@@ -6,19 +6,18 @@ import {
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Application,
-  Node,
+  BaseModel,
   Class,
   isApplication,
-  StructureLandscapeData,
   Method,
+  Node,
   Package,
+  StructureLandscapeData,
   TypeOfAnalysis,
-  BaseModel,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAncestorPackages,
   getPackageById,
-  packageContainsClass,
 } from 'explorviz-frontend/src/utils/package-helpers';
 import {
   getTraceIdToSpanTree,
@@ -77,13 +76,13 @@ export function getApplicationFromSubPackage(
 
 export function getApplicationFromClass(
   structureData: StructureLandscapeData,
-  clazz: Class
+  cls: Class
 ): Application | undefined {
   let matchingApplication: Application | undefined;
 
   structureData.nodes.forEach((node) => {
     const possibleMatch = node.applications.find((application) =>
-      applicationHasClass(application, clazz)
+      applicationHasClass(application, cls)
     );
 
     if (possibleMatch) {
@@ -145,9 +144,9 @@ export function getHashCodeToClassMap(
       .flat(2);
   }
 
-  classList.forEach((clazz) => {
-    clazz.methods.forEach(({ methodHash }) => {
-      hashCodeToClassMap.set(methodHash, clazz);
+  classList.forEach((cls) => {
+    cls.methods.forEach(({ methodHash }) => {
+      hashCodeToClassMap.set(methodHash, cls);
     });
   });
 
@@ -175,10 +174,10 @@ export function getSpanIdToClassMap(
   trace.spanList.forEach((span) => {
     const { methodHash, spanId } = span;
 
-    const clazz = hashCodeToClassMap.get(methodHash);
+    const cls = hashCodeToClassMap.get(methodHash);
 
-    if (clazz !== undefined) {
-      spanIdToClassMap.set(spanId, clazz);
+    if (cls !== undefined) {
+      spanIdToClassMap.set(spanId, cls);
     }
   });
 

@@ -12,6 +12,7 @@ export type SettingGroup =
   | 'Minimap'
   | 'Misc'
   | 'Popups'
+  | 'Semantic Zoom'
   | 'Virtual Reality';
 
 export type CameraSettings = {
@@ -101,6 +102,7 @@ export type DebugSettings = {
   showFpsCounter: FlagSetting;
   showAxesHelper: FlagSetting;
   showLightHelper: FlagSetting;
+  entityOpacity: RangeSetting;
   fullscreen: ButtonSetting;
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
@@ -146,6 +148,7 @@ export type LabelSettingId = keyof LabelSettings;
 export type LayoutSettings = {
   applicationLayoutAlgorithm: SelectSetting<string>;
   packageLayoutAlgorithm: SelectSetting<string>;
+  classLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
   landscapePositionX: RangeSetting;
   landscapePositionY: RangeSetting;
@@ -167,6 +170,8 @@ export type LayoutSettings = {
   classMargin: RangeSetting;
   openedComponentHeight: RangeSetting;
   closedComponentHeight: RangeSetting;
+  spiralCenterOffset: RangeSetting;
+  spiralGap: RangeSetting;
 };
 export type LayoutSettingId = keyof LayoutSettings;
 
@@ -187,6 +192,17 @@ export type PopupSettings = {
   hidePopupDelay: RangeSetting;
 };
 export type PopupSettingId = keyof PopupSettings;
+
+export type SemanticZoomSettings = {
+  enableClustering: FlagSetting;
+  displayClusters: FlagSetting;
+  clusterCount: RangeSetting;
+  labelDistanceThreshold: RangeSetting;
+  distanceUpdateFrequency: RangeSetting;
+  autoOpenCloseComponents: FlagSetting;
+  componentOpenCloseDistanceThreshold: RangeSetting;
+};
+export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 
 export type MiscSettings = {
   showEmbeddedBrowserIcon: FlagSetting;
@@ -210,6 +226,7 @@ export type VisualizationSettingId =
   | MinimapSettingId
   | MiscSettingId
   | PopupSettingId
+  | SemanticZoomSettingId
   | XrSettingId;
 
 export type VisualizationSettings = CameraSettings &
@@ -224,6 +241,7 @@ export type VisualizationSettings = CameraSettings &
   MinimapSettings &
   MiscSettings &
   PopupSettings &
+  SemanticZoomSettings &
   XrSettings &
   ColorSettings;
 

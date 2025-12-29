@@ -15,6 +15,7 @@ import {
   UnmuteIcon,
   XIcon,
 } from '@primer/octicons-react';
+import QRCodeModal from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/qr-code-modal';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
@@ -40,7 +41,6 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import QRCodeModal from './qr-code-modal';
 
 // interface CollaborationControlsProps {}
 
@@ -108,14 +108,11 @@ export default function CollaborationControls() {
   const showSuccessToastMessage = useToastHandlerStore(
     (state) => state.showSuccessToastMessage
   );
-  const showInfoToastMessage = useToastHandlerStore(
-    (state) => state.showInfoToastMessage
-  );
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const [rooms, setRooms] = useState<RoomListRecord[]>([]);
   const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -693,29 +690,41 @@ export default function CollaborationControls() {
                     Share Settings
                   </Button>
                 )}
-                {user.isMuteable && (
+                {user.isMuteable && 'remoteUserId' in user && (
                   <Button
-                    title={isUserMuted(user) ? 'Unmute User' : 'Mute User'}
+                    title={
+                      isUserMuted({ remoteUserId: user.remoteUserId as string })
+                        ? 'Unmute User'
+                        : 'Mute User'
+                    }
                     variant="outline-primary"
-                    onClick={() => toggleMuteStatus(user)}
+                    onClick={() =>
+                      toggleMuteStatus({
+                        remoteUserId: user.remoteUserId as string,
+                      })
+                    }
                   >
-                    {isUserMuted(user) ? (
+                    {isUserMuted({
+                      remoteUserId: user.remoteUserId as string,
+                    }) ? (
                       <UnmuteIcon size="small" className="align-middle" />
                     ) : (
                       <MuteIcon size="small" className="align-middle" />
                     )}
                   </Button>
                 )}
-                {user.isKickable && (
+                {user.isKickable && 'remoteUserId' in user && (
                   <Button
                     title="Kick User"
                     variant="outline-danger"
-                    onClick={() => kickUser(user)}
+                    onClick={() =>
+                      kickUser({ remoteUserId: user.remoteUserId as string })
+                    }
                   >
                     <PersonFillIcon size="small" className="align-middle" />
                   </Button>
                 )}
-                {user.isSpectatable && (
+                {user.isSpectatable && 'remoteUserId' in user && (
                   <Button
                     title={user.isSpectatedByUs ? 'End Spectating' : 'Spectate'}
                     variant={
@@ -723,7 +732,12 @@ export default function CollaborationControls() {
                         ? 'outline-danger'
                         : 'outline-success'
                     }
-                    onClick={() => toggleSpectate(user)}
+                    onClick={() =>
+                      toggleSpectate({
+                        remoteUserId: user.remoteUserId as string,
+                        isSpectatedByUs: user.isSpectatedByUs,
+                      })
+                    }
                   >
                     <DeviceCameraVideoIcon
                       size="small"

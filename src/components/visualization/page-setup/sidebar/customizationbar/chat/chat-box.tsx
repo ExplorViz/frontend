@@ -1,25 +1,23 @@
 import React, { useEffect, useState } from 'react';
 
-import Button from 'react-bootstrap/Button';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import * as THREE from 'three';
 import {
   DownloadIcon,
   GearIcon,
   LogIcon,
   TrashIcon,
 } from '@primer/octicons-react';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import Button from 'react-bootstrap/Button';
+import * as THREE from 'three';
 
 interface ChatUser {
   id: string;
   name: string;
 }
-
-interface ChatBoxProps {}
 
 export default function ChatBox() {
   const connectionStatus = useCollaborationSessionStore(
@@ -421,7 +419,9 @@ export default function ChatBox() {
                         onChange={updateFilterValue}
                       >
                         {usersInChat.map((user) => (
-                          <option value={user.name} key={user.id}>{user.name}</option>
+                          <option value={user.name} key={user.id}>
+                            {user.name}
+                          </option>
                         ))}
                       </select>
                     </label>

@@ -1,8 +1,8 @@
+import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 import { getPoses } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import * as THREE from 'three';
 import { create } from 'zustand';
-import { useMessageSenderStore } from './message-sender';
 
 export type VisualizationMode = 'browser' | 'ar' | 'vr';
 

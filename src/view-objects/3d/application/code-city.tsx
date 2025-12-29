@@ -7,18 +7,18 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
+import CityDistricts from 'explorviz-frontend/src/view-objects/3d/application/city-districts';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/application/city-foundation';
 import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/application/code-building-label';
+import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/application/code-buildings';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import CityDistricts from './city-districts';
-import CodeBuildings from './code-buildings';
 
 export default function CodeCity({
   applicationData,
@@ -121,7 +121,9 @@ export default function CodeCity({
         />
       )}
       <CodeBuildings
-        classes={applicationData.getClasses()}
+        classes={applicationData
+          .getClasses()
+          .filter((cls) => layoutMap.has(cls.id))}
         appId={applicationData.application.id}
         layoutMap={layoutMap}
         application={applicationData.application}
@@ -141,23 +143,24 @@ export default function CodeCity({
           ) : null
         )}
       <CityDistricts
-        packages={applicationData.getPackages()}
+        packages={applicationData
+          .getPackages()
+          .filter((pkg) => layoutMap.has(pkg.id))}
         layoutMap={layoutMap}
         ref={componentInstanceMeshRef}
         application={applicationData.application}
       />
       {applicationData
         .getPackages()
-        .map((packageData) =>
-          layoutMap.get(packageData.id) ? (
-            <CityDistrictLabel
-              key={packageData.id + '-label'}
-              component={packageData}
-              layout={layoutMap.get(packageData.id)!}
-              isCameraZoomedIn={isCameraZoomedIn}
-            />
-          ) : null
-        )}
+        .filter((packageData) => layoutMap.has(packageData.id))
+        .map((packageData) => (
+          <CityDistrictLabel
+            key={packageData.id + '-label'}
+            component={packageData}
+            layout={layoutMap.get(packageData.id)!}
+            isCameraZoomedIn={isCameraZoomedIn}
+          />
+        ))}
       {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
           <CommunicationR3F
