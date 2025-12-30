@@ -3,6 +3,7 @@ import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/d
 import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
 import * as THREE from 'three';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 export default class CommunicationArrowMesh extends BaseMesh {
   dataModel: ClassCommunication | ComponentCommunication;
@@ -37,6 +38,7 @@ export default class CommunicationArrowMesh extends BaseMesh {
 
     this.setDirection(dir);
     this.setLength(length, headLength, headWidth);
+    this.layers.set(SceneLayers.Communication);
   }
 
   setDirection(dir: THREE.Vector3) {

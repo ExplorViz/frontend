@@ -27,6 +27,7 @@ import {
 } from './edge-bundling-utils';
 import { HAPSystemManager } from './hap-system-manager';
 import { useThree } from '@react-three/fiber';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -672,6 +673,7 @@ export default function CommunicationR3F({
 
   return (
     <clazzCommunicationMesh
+      layers={SceneLayers.Communication}
       key={`${enableEdgeBundling}-${use3DHAPAlgorithm}`}
       {...pointerStopHandlers}
       {...(enableHoverEffects && {

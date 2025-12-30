@@ -36,6 +36,7 @@ import {
   getHighlightingColorForEntity,
   toggleHighlightById,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -476,6 +477,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     return (
       <instancedMesh2
+        layers={SceneLayers.Clazz}
         ref={meshRef}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}

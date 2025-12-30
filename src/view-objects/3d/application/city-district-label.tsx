@@ -9,6 +9,7 @@ import gsap from 'gsap';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 export default function CityDistrictLabel({
   component,
@@ -142,6 +143,7 @@ export default function CityDistrictLabel({
 
   return (
     <Text
+      layers={SceneLayers.Label}
       color={componentTextColor}
       visible={isVisible && (isCameraZoomedIn || !isOpen)}
       position={labelPosition}

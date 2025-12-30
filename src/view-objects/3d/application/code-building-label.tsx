@@ -17,6 +17,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 export default function CodeBuildingLabel({
   dataModel,
@@ -143,6 +144,7 @@ export default function CodeBuildingLabel({
     isClassHighlighted ||
     isParentHighlighted ? (
     <Text
+      layers={SceneLayers.Label}
       key={dataModel.id + '-label'}
       position={labelPosition}
       color={classTextColor}

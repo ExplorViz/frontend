@@ -170,10 +170,7 @@ export type LayoutSettingId = keyof LayoutSettings;
 
 export type MinimapSettings = {
   minimap: FlagSetting;
-<<<<<<< Updated upstream
-=======
   bg_color: ColorSetting;
->>>>>>> Stashed changes
   zoom: RangeSetting;
   useCameraPosition: FlagSetting;
   layer1: FlagSetting;

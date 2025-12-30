@@ -1,6 +1,7 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { log } from 'console';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
@@ -510,6 +511,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     return (
       <instancedMesh2
+        layers={SceneLayers.Component}
         ref={meshRef}
         castShadow={castShadows}
         args={[geometry, material]}

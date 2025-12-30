@@ -1,7 +1,6 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber'; // Added useThree
 import type { XRStore } from '@react-three/xr';
-import { XR } from '@react-three/xr';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -30,10 +29,34 @@ import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import CollaborationCameraSync from './collaboration-camera-sync';
 import SpectateCameraController from './spectate-camera-controller';
-<<<<<<< Updated upstream
-=======
 import SecondCameraView from './SecondCameraView';
->>>>>>> Stashed changes
+
+
+export enum SceneLayers {
+  Default = 0,
+  Foundation = 1,
+  Component = 2,
+  Clazz = 3,
+  Communication = 4,
+  Ping = 5,
+  Label = 6,
+}
+
+
+/**
+ * Helper component to configure the main camera's layers.
+ * Must be placed inside the Canvas to access the R3F state.
+ */
+function CameraLayerHandler() {
+  const camera = useThree((state) => state.camera);
+
+  useEffect(() => {
+    // The main camera should be able to see all labels
+    camera.layers.enableAll();
+  }, [camera]);
+
+  return null;
+}
 
 export default function CanvasWrapper({
   landscapeData,
@@ -252,11 +275,8 @@ export default function CanvasWrapper({
     };
   }, []);
 
-<<<<<<< Updated upstream
-=======
   const minimapEnabled = useUserSettingsStore((state) => state.visualizationSettings.minimap.value);
 
->>>>>>> Stashed changes
   return (
     <>
       <Canvas
@@ -289,10 +309,10 @@ export default function CanvasWrapper({
           far={cameraFar}
           makeDefault
         />
-<<<<<<< Updated upstream
-=======
+        {/* Insert Layer Handler here inside the Canvas */}
+        <CameraLayerHandler />
+        
         {minimapEnabled && <SecondCameraView mainCameraControls={cameraControlsRef}/> }
->>>>>>> Stashed changes
         <SpectateCameraController />
         <CollaborationCameraSync />
         <LandscapeR3F

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import LocalUserMarker from './LocalUserMarker';
+import { SceneLayers } from './canvas-wrapper';
 
 interface SecondCameraViewProps {
   mainCameraControls: React.RefObject<CameraControls>;
@@ -12,7 +13,6 @@ interface SecondCameraViewProps {
 }
 
 const MINIMAP_HEIGHT = 100;
-const MINIMAP_BACKGROUND_COLOR = 0xd3d3d3;
 // The fallback bounds are used to compute the minimap logic when no scene is loaded yet.
 // (Without a scene no bounds of a scene can be computed)
 const FALLBACK_BOUNDS = new THREE.Box3(
@@ -31,8 +31,15 @@ export default function SecondCameraView({
   // Get the minimap zoom and set up a store for minimap fullscreen
   const zoom = useUserSettingsStore((state) => state.visualizationSettings.zoom);
   const minimap_bg_color = useUserSettingsStore((state) => state.visualizationSettings.bg_color);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Get the minimap layer visibility settings
+  const showFoundation  = useUserSettingsStore((state) => state.visualizationSettings.layer1.value);
+  const showComponent = useUserSettingsStore((state) => state.visualizationSettings.layer2.value);
+  const showClazz = useUserSettingsStore((state) => state.visualizationSettings.layer3.value);
+  const showCommunication = useUserSettingsStore ((state) => state.visualizationSettings.layer4.value);
+  const showLabels = useUserSettingsStore((state) => state.visualizationSettings.layer6.value);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
   // Stores physical WebGL coordinates of the minimap
   const minimapRectRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
@@ -183,13 +190,28 @@ export default function SecondCameraView({
     boundsReady.current = false;
   }, [landscapeData]);
 
+  // Whenever the settings for layer visibility change, update the camera settings
   useEffect(() => {
-    console.log("Layers: ");
-    console.log(cameraRef.current?.layers);
-    cameraRef.current?.layers.enable(1);
-    console.log(cameraRef.current?.layers);
-  })
+    if (cameraRef.current) {
+      const cam = cameraRef.current;
+      const toggleLayer = (layerId: number, isEnabled: boolean) => {
+        if (isEnabled) cam.layers.enable(layerId);
+        else cam.layers.disable(layerId);
+      };
 
+      toggleLayer(SceneLayers.Foundation, showFoundation);
+      toggleLayer(SceneLayers.Component, showComponent);
+      toggleLayer(SceneLayers.Clazz, showClazz);
+      toggleLayer(SceneLayers.Communication, showCommunication);
+      toggleLayer(SceneLayers.Label, showLabels);
+    }
+  }, [
+    showFoundation,
+    showComponent,
+    showClazz,
+    showCommunication,
+    showLabels
+  ]);
   // RENDER LOOP (Manual rendering overwrites default R3F rendering)
   useFrame(() => {
     if (!cameraRef.current || !mainCameraControls.current || gl.xr.isPresenting)

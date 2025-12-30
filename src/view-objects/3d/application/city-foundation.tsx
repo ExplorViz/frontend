@@ -19,6 +19,7 @@ import {
   getHighlightingColorForEntity,
   toggleHighlightById,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
 export default function CityFoundation({
   application,
@@ -166,6 +167,7 @@ export default function CityFoundation({
 
   return (
     <mesh
+      layers={SceneLayers.Foundation}
       castShadow={castShadows}
       scale={[layout.width, layout.height, layout.depth]}
       position={foundationPosition} // Center around application's position
@@ -181,6 +183,7 @@ export default function CityFoundation({
       <boxGeometry />
       {appLabelMargin > 1.5 && (
         <Text
+          layers={SceneLayers.Label}
           color={foundationTextColor}
           outlineColor={'white'}
           position={getLabelPosition()}
