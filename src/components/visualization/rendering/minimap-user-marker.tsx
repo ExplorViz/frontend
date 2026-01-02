@@ -9,13 +9,21 @@ interface LocalUserMarkerProps {
   mainCameraControls: React.RefObject<CameraControls>;
 }
 
-export default function LocalUserMarker({ minimapScene, mainCameraControls }: LocalUserMarkerProps) {
+export default function LocalUserMarker({
+  minimapScene,
+  mainCameraControls,
+}: LocalUserMarkerProps) {
   const markerRef = useRef<THREE.Mesh>(null);
-  const zoom = useUserSettingsStore((state) => state.visualizationSettings.zoom);
+  const zoom = useUserSettingsStore(
+    (state) => state.visualizationSettings.zoom
+  );
 
-  const scratch = useMemo(() => ({
-    userTarget: new THREE.Vector3(),
-  }), []);
+  const scratch = useMemo(
+    () => ({
+      userTarget: new THREE.Vector3(),
+    }),
+    []
+  );
 
   useFrame(() => {
     if (!markerRef.current || !mainCameraControls.current) return;
@@ -23,19 +31,19 @@ export default function LocalUserMarker({ minimapScene, mainCameraControls }: Lo
     // Get Position
     mainCameraControls.current.getTarget(scratch.userTarget);
 
-    // force visibility
+    // Ensure visibility
     markerRef.current.visible = true;
 
     // Update Scale (so the dot stays the same size in the minimap visualization)
     const dist = zoom.value || 1;
-    const scaleFactor = 0.5 / dist; 
+    const scaleFactor = 0.5 / dist;
     markerRef.current.scale.setScalar(scaleFactor);
 
     // Update Position
     markerRef.current.position.set(
-        scratch.userTarget.x,
-        1.0, 
-        scratch.userTarget.z
+      scratch.userTarget.x,
+      1.0,
+      scratch.userTarget.z
     );
   });
 

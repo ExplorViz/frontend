@@ -29,8 +29,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import CollaborationCameraSync from './collaboration-camera-sync';
 import SpectateCameraController from './spectate-camera-controller';
-import SecondCameraView from './SecondCameraView';
-
+import MinimapView from './minimap-view';
 
 export enum SceneLayers {
   Default = 0,
@@ -41,7 +40,6 @@ export enum SceneLayers {
   Ping = 5,
   Label = 6,
 }
-
 
 /**
  * Helper component to configure the main camera's layers.
@@ -275,7 +273,9 @@ export default function CanvasWrapper({
     };
   }, []);
 
-  const minimapEnabled = useUserSettingsStore((state) => state.visualizationSettings.minimap.value);
+  const minimapEnabled = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimap.value
+  );
 
   return (
     <>
@@ -311,8 +311,10 @@ export default function CanvasWrapper({
         />
         {/* Insert Layer Handler here inside the Canvas */}
         <CameraLayerHandler />
-        
-        {minimapEnabled && <SecondCameraView mainCameraControls={cameraControlsRef}/> }
+
+        {minimapEnabled && (
+          <MinimapView mainCameraControls={cameraControlsRef} />
+        )}
         <SpectateCameraController />
         <CollaborationCameraSync />
         <LandscapeR3F

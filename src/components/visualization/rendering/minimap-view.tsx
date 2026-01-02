@@ -4,10 +4,10 @@ import { useEffect, useRef, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import LocalUserMarker from './LocalUserMarker';
-import { SceneLayers } from './canvas-wrapper';
+import LocalUserMarker from 'explorviz-frontend/src/components/visualization/rendering/minimap-user-marker';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 
-interface SecondCameraViewProps {
+interface MinimapViewProps {
   mainCameraControls: React.RefObject<CameraControls>;
   landscapeData: LandscapeData | null;
 }
@@ -20,37 +20,51 @@ const FALLBACK_BOUNDS = new THREE.Box3(
   new THREE.Vector3(100, 0, 100)
 );
 
-export default function SecondCameraView({
+export default function MinimapView({
   mainCameraControls,
   landscapeData,
-}: SecondCameraViewProps) {
+}: MinimapViewProps) {
   // Get the scene and cameras etc.
   const cameraRef = useRef<THREE.OrthographicCamera>(null); // Minimap Camera
   const { scene: mainScene, gl, camera: mainCamera } = useThree(); // mainCamera
 
   // Get the minimap zoom and set up a store for minimap fullscreen
-  const zoom = useUserSettingsStore((state) => state.visualizationSettings.zoom);
-  const minimap_bg_color = useUserSettingsStore((state) => state.visualizationSettings.bg_color);
+  const zoom = useUserSettingsStore(
+    (state) => state.visualizationSettings.zoom
+  );
+  const minimap_bg_color = useUserSettingsStore(
+    (state) => state.visualizationSettings.bg_color
+  );
 
   // Get the minimap layer visibility settings
-  const showFoundation  = useUserSettingsStore((state) => state.visualizationSettings.layer1.value);
-  const showComponent = useUserSettingsStore((state) => state.visualizationSettings.layer2.value);
-  const showClazz = useUserSettingsStore((state) => state.visualizationSettings.layer3.value);
-  const showCommunication = useUserSettingsStore ((state) => state.visualizationSettings.layer4.value);
-  const showLabels = useUserSettingsStore((state) => state.visualizationSettings.layer6.value);
+  const showFoundation = useUserSettingsStore(
+    (state) => state.visualizationSettings.layer1.value
+  );
+  const showDistricts = useUserSettingsStore(
+    (state) => state.visualizationSettings.layer2.value
+  );
+  const showBuildings = useUserSettingsStore(
+    (state) => state.visualizationSettings.layer3.value
+  );
+  const showCommunication = useUserSettingsStore(
+    (state) => state.visualizationSettings.layer4.value
+  );
+  const showLabels = useUserSettingsStore(
+    (state) => state.visualizationSettings.layer6.value
+  );
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   // Stores physical WebGL coordinates of the minimap
   const minimapRectRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
 
-  // A scene to store the usermarker (only minimapCam will be rendered with it)
+  // A scene to store the user marker (only minimap cam will be rendered with it)
   const minimapScene = useMemo(() => new THREE.Scene(), []);
 
   // the bounds of the (loaded) landscape (used so that the minimap does not go out of the bounds, even if the user does)
   const landscapeBoundsRef = useRef<THREE.Box3>(FALLBACK_BOUNDS.clone());
   const boundsReady = useRef(false);
 
-  // Important vectors that should not be reinstantiated in every pass of useFrame
+  // Important vectors that should not be re-instantiated in every pass of useFrame
   // instead only the value is changed when necessary
   const scratch = useMemo(
     () => ({
@@ -70,13 +84,13 @@ export default function SecondCameraView({
     }
   }, [isFullscreen, mainCameraControls]);
 
-  // Add eventlisteners for minimap interaction
+  // Add event listeners for minimap interaction
   useEffect(() => {
     const canvas = gl.domElement;
 
     // Handles pointer down event:
-    // When clicked on small minimap make fullsize
-    // When clicked on fullsize minimap teleport to click target
+    // When clicked on small minimap make full size
+    // When clicked on full size minimap teleport to click target
     const handlePointerDown = (event: PointerEvent) => {
       // At first check wether the click was inside the minimap
       const pixelRatio = gl.getPixelRatio();
@@ -87,12 +101,9 @@ export default function SecondCameraView({
       const { x, y, w, h } = minimapRectRef.current;
 
       const isInsideMinimap =
-        clientX >= x &&
-        clientX <= x + w &&
-        clientY >= y &&
-        clientY <= y + h;
+        clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
 
-      // If the map is in fullscreen a cklick inside the map should teleport the user
+      // If the map is in fullscreen a click inside the map should teleport the user,
       // otherwise a click inside the map should put it into fullscreen
       if (isFullscreen) {
         if (!isInsideMinimap) {
@@ -108,8 +119,10 @@ export default function SecondCameraView({
             const u = (clientX - x) / w;
             const v = (clientY - y) / h;
 
-            const localX = minimapCam.left + u * (minimapCam.right - minimapCam.left);
-            const localY = minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
+            const localX =
+              minimapCam.left + u * (minimapCam.right - minimapCam.left);
+            const localY =
+              minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
 
             const worldX = minimapCam.position.x + localX;
             const worldZ = minimapCam.position.z - localY;
@@ -120,8 +133,8 @@ export default function SecondCameraView({
             controls.getTarget(currentTarget);
             controls.getPosition(currentPosition);
 
-            // Calculate the Shift of the camera 
-            // (When only cahnging the target, the camera rotates what we don't want)
+            // Calculate the Shift of the camera
+            // (When only changing the target, the camera rotates what we don't want)
             const deltaX = worldX - currentTarget.x;
             const deltaZ = worldZ - currentTarget.z;
 
@@ -129,14 +142,18 @@ export default function SecondCameraView({
             // This ensures the "Camera Vector" stays frozen
             const newPosX = currentPosition.x + deltaX;
             const newPosZ = currentPosition.z + deltaZ;
-            
+
             // Keep the old Y (height) for both position and target
             controls.setLookAt(
-              newPosX, currentPosition.y, newPosZ,
-              worldX, currentTarget.y, worldZ,
+              newPosX,
+              currentPosition.y,
+              newPosZ,
+              worldX,
+              currentTarget.y,
+              worldZ,
               true
             );
-            // After teleporting, exit the minimap
+            // After teleportation, exit the minimap
             setIsFullscreen(false);
           }
         }
@@ -160,30 +177,30 @@ export default function SecondCameraView({
       const { x, y, w, h } = minimapRectRef.current;
 
       const isInsideMinimap =
-        clientX >= x &&
-        clientX <= x + w &&
-        clientY >= y &&
-        clientY <= y + h;
+        clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
 
       // When he mouse wheel event was inside the minimap (small screen), then adjust the zoom
-      if (isInsideMinimap && !isFullscreen){
+      if (isInsideMinimap && !isFullscreen) {
         event.stopPropagation();
-        const currentZoom = useUserSettingsStore.getState().visualizationSettings.zoom.value;
-        useUserSettingsStore.getState().updateSetting('zoom', currentZoom + -Math.sign(event.deltaY) * 0.05);
+        const currentZoom =
+          useUserSettingsStore.getState().visualizationSettings.zoom.value;
+        useUserSettingsStore
+          .getState()
+          .updateSetting('zoom', currentZoom + -Math.sign(event.deltaY) * 0.05);
       }
     };
 
     canvas.addEventListener('pointerdown', handlePointerDown);
     canvas.addEventListener('wheel', handleWheel);
 
-    // A cleanup function for when the compnent is unmounted (minimap disabled)
+    // Clean up function for when the component is unmounted (minimap disabled)
     return () => {
       canvas.removeEventListener('pointerdown', handlePointerDown);
       canvas.removeEventListener('wheel', handleWheel);
       gl.setScissorTest(false);
       gl.setViewport(0, 0, canvas.width, canvas.height);
     };
-  }, [gl, isFullscreen]); 
+  }, [gl, isFullscreen]);
 
   // Whenever the landscape changes boundsReady is set to zero so they are recomputed in useFrame loop
   useEffect(() => {
@@ -200,18 +217,19 @@ export default function SecondCameraView({
       };
 
       toggleLayer(SceneLayers.Foundation, showFoundation);
-      toggleLayer(SceneLayers.Component, showComponent);
-      toggleLayer(SceneLayers.Clazz, showClazz);
+      toggleLayer(SceneLayers.Component, showDistricts);
+      toggleLayer(SceneLayers.Clazz, showBuildings);
       toggleLayer(SceneLayers.Communication, showCommunication);
       toggleLayer(SceneLayers.Label, showLabels);
     }
   }, [
     showFoundation,
-    showComponent,
-    showClazz,
+    showDistricts,
+    showBuildings,
     showCommunication,
-    showLabels
+    showLabels,
   ]);
+
   // RENDER LOOP (Manual rendering overwrites default R3F rendering)
   useFrame(() => {
     if (!cameraRef.current || !mainCameraControls.current || gl.xr.isPresenting)
@@ -233,20 +251,20 @@ export default function SecondCameraView({
     const pixelRatio = gl.getPixelRatio();
     let viewX, viewY, viewW, viewH;
     if (isFullscreen) {
-        const dim = Math.min(totalWidth, totalHeight) * 0.9;
-        viewW = dim;
-        viewH = dim;
-        viewX = (totalWidth - viewW) / 2;
-        viewY = (totalHeight - viewH) / 2;
+      const dim = Math.min(totalWidth, totalHeight) * 0.9;
+      viewW = dim;
+      viewH = dim;
+      viewX = (totalWidth - viewW) / 2;
+      viewY = (totalHeight - viewH) / 2;
     } else {
-        const defaultSize = 300 * pixelRatio; 
-        const maxSize = Math.min(totalWidth, totalHeight) / 3; 
-        const size = Math.min(defaultSize, maxSize);
-        const margin = 20 * pixelRatio;
-        viewW = size;
-        viewH = size;
-        viewX = totalWidth - viewW - margin;
-        viewY = margin;
+      const defaultSize = 300 * pixelRatio;
+      const maxSize = Math.min(totalWidth, totalHeight) / 3;
+      const size = Math.min(defaultSize, maxSize);
+      const margin = 20 * pixelRatio;
+      viewW = size;
+      viewH = size;
+      viewX = totalWidth - viewW - margin;
+      viewY = margin;
     }
     minimapRectRef.current = { x: viewX, y: viewY, w: viewW, h: viewH };
 
@@ -270,7 +288,7 @@ export default function SecondCameraView({
     const maxDim = Math.max(scratch.size.x, scratch.size.z);
     const validMaxDim = maxDim > 0 ? maxDim : 200;
 
-    const dist = isFullscreen ? 1 : (zoom.value || 1);
+    const dist = isFullscreen ? 1 : zoom.value || 1;
     const cameraViewRadius = validMaxDim / 2 / dist;
 
     minimapCam.left = -cameraViewRadius;
@@ -279,24 +297,32 @@ export default function SecondCameraView({
     minimapCam.bottom = -cameraViewRadius;
     minimapCam.updateProjectionMatrix();
 
-    // Set the camera position based on wether the camrea is zoomed or not
+    // Set the camera position based on wether the camera is zoomed or not
     if (dist !== 1) {
-      minimapCam.position.set(scratch.clampedPos.x, MINIMAP_HEIGHT, scratch.clampedPos.z);
+      minimapCam.position.set(
+        scratch.clampedPos.x,
+        MINIMAP_HEIGHT,
+        scratch.clampedPos.z
+      );
     } else {
       bounds.getCenter(scratch.center);
-      minimapCam.position.set(scratch.center.x, MINIMAP_HEIGHT, scratch.center.z);
+      minimapCam.position.set(
+        scratch.center.x,
+        MINIMAP_HEIGHT,
+        scratch.center.z
+      );
     }
-    
+
     //Rendering
 
-    // Render Main Scene
+    // Render main scene
     gl.setViewport(0, 0, totalWidth, totalHeight);
     gl.setScissorTest(false);
-    gl.autoClear = true; 
+    gl.autoClear = true;
     gl.render(mainScene, mainCamera);
 
-    // Render minimap with mainscene
-    gl.autoClear = false; 
+    // Render minimap with main scene
+    gl.autoClear = false;
     gl.setViewport(viewX, viewY, viewW, viewH);
     gl.setScissor(viewX, viewY, viewW, viewH);
     gl.setScissorTest(true);
@@ -307,17 +333,16 @@ export default function SecondCameraView({
 
     gl.setClearColor(minimap_bg_color.value, 1);
     gl.clear(true, true);
-    
+
     gl.clearDepth();
     gl.render(mainScene, minimapCam);
 
-    // Render minimap with user marker 
-    gl.clearDepth(); 
+    // Render minimap with user marker
+    gl.clearDepth();
     gl.render(minimapScene, minimapCam);
 
     gl.setClearColor(originalClearColor, originalClearAlpha);
     gl.setScissorTest(false);
-
   }, 1);
 
   return (
