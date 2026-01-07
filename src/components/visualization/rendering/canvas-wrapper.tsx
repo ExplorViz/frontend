@@ -31,6 +31,7 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import CollaborationCameraSync from './collaboration-camera-sync';
 import SpectateCameraController from './spectate-camera-controller';
+import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu-r3f';
 
 export default function CanvasWrapper({
   landscapeData,
@@ -313,6 +314,8 @@ export default function CanvasWrapper({
                 <meshBasicMaterial attach="material" map={floorTexture} />
               </mesh>
             </TeleportTarget>
+            <ControllerMenu handedness='left'/>
+            <ControllerMenu handedness='right'/>
           </IfInSessionMode>
           <LandscapeR3F
             layout={applicationModels[0]?.boxLayoutMap.get('landscape')}

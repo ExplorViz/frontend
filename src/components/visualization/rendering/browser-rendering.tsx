@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
 import { createXRStore } from '@react-three/xr';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';

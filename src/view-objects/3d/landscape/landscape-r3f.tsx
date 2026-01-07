@@ -1,4 +1,3 @@
-// import { useThree } from '@react-three/fiber';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
 import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
@@ -28,29 +27,12 @@ export default function LandscapeR3F({
     settings.landscapeRotationY.value,
     settings.landscapeRotationZ.value,
   ];
-  // const raycastEnabled = settings.raycastEnabled.value;
-  // const raycastFirstHit = settings.raycastFirstHit.value;
-  // const raycastNear = settings.raycastNear.value;
-  // const raycastFar = settings.raycastFar.value;
 
   useEffect(() => {
     if (layout) {
       setPosition(getLandscapeCenterPosition());
     }
   }, [layout, scalar, positionX, positionY, positionZ]);
-
-  // const raycaster = useThree((state) => state.raycaster);
-
-  // useEffect(() => {
-  //   raycaster.near = raycastNear;
-  //   raycaster.far = raycastFar;
-  //   raycaster.firstHitOnly = raycastFirstHit;
-  //   if (raycastEnabled) {
-  //     raycaster.layers.enableAll();
-  //   } else {
-  //     raycaster.layers.disableAll();
-  //   }
-  // }, [raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
 
   return (
     <group
