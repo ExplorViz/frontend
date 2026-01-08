@@ -16,7 +16,9 @@ const useClickPreventionOnDoubleClick = (
 ) => {
   const api = useCancelablePromises();
 
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+  const handleClick = (
+    e: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>
+  ) => {
     e.stopPropagation();
     api.clearPendingPromises();
     const waitForClick = cancelablePromise(delay(delayInMs));
@@ -25,7 +27,14 @@ const useClickPreventionOnDoubleClick = (
     return waitForClick.promise
       .then(() => {
         api.removePendingPromise(waitForClick);
-        if (e.delta < allowedDelta) {
+        // Check if mouse/pointer stayed in the allowed delta range throughout the click
+        // Getting delta may throw an error in XR as there are no pointer event properties
+        try {
+          if (e.delta < allowedDelta) {
+            onClick(e);
+          }
+          // Always execute click event if delta cannot be determined
+        } catch {
           onClick(e);
         }
       })
