@@ -1,21 +1,26 @@
-import { create } from 'zustand';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { create } from 'zustand';
 
 interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
-    timestamp: number,
-    interval?: number
+    timestampFrom: number,
+    timestampTo?: number
   ) => Promise<[StructureLandscapeData, DynamicLandscapeData]>;
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ) => Promise<[StructureLandscapeData, DynamicLandscapeData]>;
+  findLastIndexPolyfill: <T>(
+    array: T[],
+    predicate: (value: T) => boolean
+  ) => number;
 }
 
 export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
@@ -25,13 +30,48 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
    * @param {*} timestamp
    */
   loadLandscapeByTimestamp: async (
-    timestamp: number,
-    interval: number = 10
+    timestampFrom: number,
+    timestampTo?: number
   ) => {
     try {
+      const getTimestampsForCommitId =
+        useTimestampRepositoryStore.getState().getTimestampsForCommitId;
+
+      let listOfAllTimestamps = getTimestampsForCommitId(
+        'cross-commit',
+        false // we are interested for the newest timestamp that is not from a debug snapshot and that is equal to or comes before timestampFrom
+      );
+
+      const timestampIndex1 = get().findLastIndexPolyfill(
+        listOfAllTimestamps,
+        (timestamp) => timestamp.epochNano <= timestampFrom
+      );
+
+      const tenSecondBucketEpochNano =
+        timestampIndex1 === -1
+          ? 0
+          : listOfAllTimestamps[timestampIndex1].epochNano;
+
+      listOfAllTimestamps = useTimestampRepositoryStore
+        .getState()
+        .getTimestampsForCommitId('cross-commit', true);
+
+      const timestampIndex2 = listOfAllTimestamps.findIndex(
+        (ts) => ts.epochNano > timestampFrom
+      );
+
+      const start = tenSecondBucketEpochNano;
+      const exact = timestampFrom;
+      const intervalInSeconds = 10;
+      const NANOSECONDS_PER_SECOND = 1_000_000_000;
+      const end =
+        timestampIndex2 === -1
+          ? exact + intervalInSeconds * NANOSECONDS_PER_SECOND
+          : listOfAllTimestamps[timestampIndex2].epochNano;
       const [structureDataPromise, dynamicDataPromise] = await requestData(
-        timestamp,
-        interval
+        start,
+        exact,
+        timestampTo ?? end
       );
 
       if (
@@ -59,7 +99,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
         ];
       }
       throw Error('No data available.');
-    } catch (e) {
+    } catch (e: any) {
       throw Error(e);
     }
   },
@@ -86,5 +126,14 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
       StructureLandscapeData,
       DynamicLandscapeData,
     ];
+  },
+
+  findLastIndexPolyfill: <T>(array: T[], predicate: (value: T) => boolean) => {
+    for (let i = array.length - 1; i >= 0; i--) {
+      if (predicate(array[i])) {
+        return i;
+      }
+    }
+    return -1;
   },
 }));

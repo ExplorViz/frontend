@@ -1,4 +1,6 @@
-import InteractiveItem, { InteractiveItemArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/interactive-item';
+import InteractiveItem, {
+  InteractiveItemArgs,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/interactive-item';
 
 export const DEFAULT_CHECKBOX_COLOR = '#ffc338';
 export const DEFAULT_CHECKMARK_COLOR = '#ffffff';

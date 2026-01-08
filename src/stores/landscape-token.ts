@@ -1,6 +1,6 @@
-import { create } from 'zustand';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { create } from 'zustand';
 
 const userService = import.meta.env.VITE_USER_SERV_URL;
 const tokenToShow = import.meta.env.VITE_ONLY_SHOW_TOKEN;
@@ -23,6 +23,9 @@ export type LandscapeToken = {
   created: number;
   ownerId: string;
   secret?: string;
+  isRequestedFromVSCodeExtension: boolean;
+  projectName: string;
+  commitId: string;
   sharedUsersIds: string[];
   value: string;
 };

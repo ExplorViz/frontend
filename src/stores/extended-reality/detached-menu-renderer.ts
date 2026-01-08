@@ -1,18 +1,12 @@
-import { create } from 'zustand';
-import {
-  getTypeOfEntity,
-  isEntityMesh,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/detail-info-composer';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { SPECTATE_VIEW_ENTITY_TYPE } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import {
   SerializedAnnotation,
   SerializedDetachedMenu,
   SerializedPopup,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import { SPECTATE_VIEW_ENTITY_TYPE } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
-import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
+import { create } from 'zustand';
 
 interface DetachedMenuRendererState {
   restore: (

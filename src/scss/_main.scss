@@ -60,7 +60,7 @@ body {
   }
 
   &:active {
-    transform:scale(1.02);
+    transform: scale(1.02);
   }
 
   &:hover svg {
@@ -70,11 +70,19 @@ body {
 
 .main-button--primary {
   @extend .main-button;
-  background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
+  background: linear-gradient(
+    135deg,
+    var(--bs-primary),
+    var(--bs-primary-dark, #0056b3)
+  );
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
 
   &:hover {
-    background: linear-gradient(135deg, var(--bs-primary-dark, #0056b3), var(--bs-primary));
+    background: linear-gradient(
+      135deg,
+      var(--bs-primary-dark, #0056b3),
+      var(--bs-primary)
+    );
     box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
   }
 
@@ -87,11 +95,19 @@ body {
 
 .main-button--success {
   @extend .main-button;
-  background: linear-gradient(135deg, var(--bs-success), var(--bs-success-dark, #198754));
+  background: linear-gradient(
+    135deg,
+    var(--bs-success),
+    var(--bs-success-dark, #198754)
+  );
   box-shadow: 0 2px 8px rgba(25, 135, 84, 0.2);
 
   &:hover {
-    background: linear-gradient(135deg, var(--bs-success-dark, #198754), var(--bs-success));
+    background: linear-gradient(
+      135deg,
+      var(--bs-success-dark, #198754),
+      var(--bs-success)
+    );
     box-shadow: 0 6px 20px rgba(25, 135, 84, 0.3);
   }
 

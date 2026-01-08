@@ -1,7 +1,7 @@
-import * as THREE from 'three';
-import { Method } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BaseMesh from '../base-mesh';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { Method } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
+import * as THREE from 'three';
 
 export class MethodMesh extends BaseMesh {
   dataModel: Method;

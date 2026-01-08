@@ -25,7 +25,6 @@ Listening for Events:
     const ComponentB = () => {
     useEffect(() => {
         const eventHandler = (data) => {
-        console.log('Event received with data:', data);
         };
 
         eventEmitter.on('eventName', eventHandler);

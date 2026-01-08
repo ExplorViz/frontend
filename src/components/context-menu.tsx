@@ -1,13 +1,13 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
+import useLongPress from 'explorviz-frontend/src/hooks/useLongPress';
+import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { Position2D } from '../hooks/interaction-modifier';
 import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
-import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import useLongPress from '../hooks/useLongPress';
 export type ContextMenuItem = {
   title: string;
   action: () => void;

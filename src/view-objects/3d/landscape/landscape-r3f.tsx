@@ -1,7 +1,7 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 
@@ -32,11 +32,18 @@ export default function LandscapeR3F({
     if (layout) {
       setPosition(getLandscapeCenterPosition());
     }
-  }, [layout, scalar, positionX, positionY, positionZ]);
+  }, [
+    layout,
+    settings.openedComponentHeight.value,
+    scalar,
+    positionX,
+    positionY,
+    positionZ,
+  ]);
 
   return (
     <group
-      position={position}
+      position={[position.x, position.y, position.z]}
       scale={scalar}
       rotation={[rotationX, rotationY, rotationZ]}
       onPointerDown={(e) => {

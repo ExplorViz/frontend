@@ -3,7 +3,6 @@ import { create } from 'zustand';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { CHAT_MESSAGE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/chat-message';
-import { CHAT_SYNC_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/chat-syncronization';
 import { INITIAL_LANDSCAPE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/landscape';
 import { ANNOTATION_EDIT_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/response/annotation-edit-response';
 import { ANNOTATION_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/receivable/response/annotation-response';
@@ -28,7 +27,9 @@ import { SPECTATING_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaborat
 import { SYNC_ROOM_STATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/synchronize-room-state';
 import { TIMESTAMP_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/timestamp-update';
 import { Nonce } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/types/nonce';
+import { CHAT_SYNC_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-synchronization';
 import { RESET_HIGHLIGHTING_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { MENU_DETACHED_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
 import { OBJECT_CLOSED_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import { OBJECT_GRABBED_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-grabbed';
@@ -40,7 +41,6 @@ import { USER_CONTROLLER_CONNECT_EVENT } from 'explorviz-frontend/src/utils/exte
 import { USER_CONTROLLER_DISCONNECT_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-controller-disconnect';
 import { USER_POSITIONS_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import { io, Socket } from 'socket.io-client';
-import eventEmitter from '../../utils/event-emitter';
 
 type ResponseHandler<T> = (msg: T) => void;
 

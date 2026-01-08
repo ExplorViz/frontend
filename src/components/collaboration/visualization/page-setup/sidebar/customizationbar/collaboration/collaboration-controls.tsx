@@ -15,6 +15,7 @@ import {
   UnmuteIcon,
   XIcon,
 } from '@primer/octicons-react';
+import QRCodeModal from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/qr-code-modal';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
@@ -40,7 +41,6 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import QRCodeModal from './qr-code-modal';
 
 // interface CollaborationControlsProps {}
 

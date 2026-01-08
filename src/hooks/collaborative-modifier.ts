@@ -37,6 +37,10 @@ import {
   HIGHLIGHTING_UPDATE_EVENT,
   HighlightingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/highlighting-update';
+import {
+  PING_UPDATE_EVENT,
+  PingUpdateMessage,
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/ping-update';
 import { RESET_HIGHLIGHTING_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import {
   RESTRUCTURE_COMMUNICATION_EVENT,
@@ -70,7 +74,6 @@ import {
   ShareSettingsMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/share-settings';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import WaypointIndicator from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/waypoint-indicator';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
@@ -81,16 +84,12 @@ import {
 import { getApplicationInLandscapeById } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { getPackageById } from 'explorviz-frontend/src/utils/package-helpers';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import * as THREE from 'three';
-import { useShallow } from 'zustand/react/shallow';
-import {
-  PING_UPDATE_EVENT,
-  PingUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/ping-update';
 import {
   pingByModelId,
   pingPosition,
 } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import * as THREE from 'three';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function useCollaborativeModifier() {
   // MARK: Stores

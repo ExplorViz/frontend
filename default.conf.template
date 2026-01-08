@@ -1,22 +1,28 @@
+resolver ${RESOLVER} valid=30s ipv6=off;
+resolver_timeout 5s;
+
 server {
   listen 80;
 
   # BEGIN User-Service
 
   location /user {
-    proxy_pass ${USER_URL};
+    set $upstream_user ${USER_SERV_URL};
+    proxy_pass $upstream_user;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /token {
-    proxy_pass ${USER_URL};
+    set $upstream_token ${USER_SERV_URL};
+    proxy_pass $upstream_token;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location /snapshot {
-    proxy_pass ${USER_URL};
+    set $upstream_snapshot ${USER_SERV_URL};
+    proxy_pass $upstream_snapshot;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
@@ -26,25 +32,29 @@ server {
   # BEGIN Dynamic-Data
 
   location ~* /v2/landscapes/[0-9a-z-]+/structure {
-    proxy_pass ${LANDSCAPE_URL};
+    set $upstream_landscape ${SPAN_SERV_URL};
+    proxy_pass $upstream_landscape;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/dynamic {
-    proxy_pass ${TRACE_URL};
+    set $upstream_trace ${SPAN_SERV_URL};
+    proxy_pass $upstream_trace;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/trace-data {
-    proxy_pass ${TRACE_URL};
+    set $upstream_landscapes  ${SPAN_SERV_URL};
+    proxy_pass $upstream_landscapes;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/timestamps {
-    proxy_pass ${TIMESTAMPS_URL};
+    set $upstream_timestamps ${SPAN_SERV_URL};
+    proxy_pass $upstream_timestamps;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
@@ -54,7 +64,8 @@ server {
   # BEGIN Static-Data
 
   location /v2/code {
-    proxy_pass ${CODE_SERV_URL};
+    set $upstream_code ${CODE_SERV_URL};
+    proxy_pass $upstream_code;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
@@ -64,14 +75,16 @@ server {
   # BEGIN Collab
 
   location /room {
-    proxy_pass ${COLLABORATION_URL};
+    set $upstream_room ${COLLAB_SERV_URL};
+    proxy_pass $upstream_room;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
   }
 
   location /socket.io {
-    proxy_pass ${COLLABORATION_URL};
+    set $upstream_socketio ${COLLAB_SERV_URL};
+    proxy_pass $upstream_socketio;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
@@ -84,8 +97,8 @@ server {
   location /v2/ide/ {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $host;
-
-    proxy_pass ${VSCODE_SERV_URL};
+    set $upstream_vscode ${VSCODE_SERV_URL};
+    proxy_pass $upstream_vscode;
 
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
@@ -93,6 +106,22 @@ server {
   }
 
   # END VSCode
+
+  # BEGIN Keycloak
+
+  location /realms {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $host;
+
+    set $upstream_keycloak ${KEYCLOAK_URL};
+    proxy_pass $upstream_keycloak;
+
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+
+  # END Keycloak
 
   # BEGIN Frontend
 

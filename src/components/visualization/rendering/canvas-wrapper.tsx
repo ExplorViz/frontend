@@ -1,13 +1,18 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas, useLoader } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { IfInSessionMode, XR, TeleportTarget, XROrigin } from '@react-three/xr';
+import { IfInSessionMode, TeleportTarget, XR, XROrigin } from '@react-three/xr';
+import {
+  default as CollaborationCameraSync,
+  default as SpectateCameraController,
+} from 'explorviz-frontend/src/components/visualization/rendering/collaboration-camera-sync';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
   useCameraControls,
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -16,22 +21,22 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
-import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
+import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu-r3f';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
+import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
+import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import CollaborationCameraSync from './collaboration-camera-sync';
-import SpectateCameraController from './spectate-camera-controller';
-import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu-r3f';
 
 export default function CanvasWrapper({
   landscapeData,
@@ -234,6 +239,7 @@ export default function CanvasWrapper({
       ).filter((app) => !removedComponentIds.has(app.id)),
       useVisualizationStore.getState().removedComponentIds ?? new Set<string>()
     );
+    useLayoutStore.getState().updateLayouts(layoutMap);
     setLayoutMap(layoutMap);
   };
 
@@ -314,8 +320,8 @@ export default function CanvasWrapper({
                 <meshBasicMaterial attach="material" map={floorTexture} />
               </mesh>
             </TeleportTarget>
-            <ControllerMenu handedness='left'/>
-            <ControllerMenu handedness='right'/>
+            <ControllerMenu handedness="left" />
+            <ControllerMenu handedness="right" />
           </IfInSessionMode>
           <LandscapeR3F
             layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
@@ -342,6 +348,8 @@ export default function CanvasWrapper({
                 />
               ))}
           </LandscapeR3F>
+          <ClusterCentroidsR3F />
+          <AutoComponentOpenerR3F />
           <AnimatedPing />
           <TraceReplayOverlayR3F />
           <ambientLight />

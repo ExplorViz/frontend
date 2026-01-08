@@ -6,8 +6,8 @@ import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handle
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { BoxData } from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 import { useRef, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 import * as THREE from 'three';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function HtmlDomBox({
   box,

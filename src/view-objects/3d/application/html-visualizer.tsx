@@ -10,7 +10,7 @@ export default function HtmlVisualizer({
   html,
   updateHtml,
 }: {
-  html: HTMLElement | null;
+  html: HTMLElement | null | undefined;
   updateHtml: () => void;
 }) {
   const [boxes, setBoxes] = useState<BoxData[]>([]);

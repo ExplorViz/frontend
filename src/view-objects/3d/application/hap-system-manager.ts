@@ -1,4 +1,7 @@
-import { HierarchicalAttractionSystem, HAPNode } from './edge-bundling-utils';
+import {
+  HAPNode,
+  HierarchicalAttractionSystem,
+} from 'explorviz-frontend/src/view-objects/3d/application/edge-bundling-utils';
 import * as THREE from 'three';
 
 export class HAPSystemManager {

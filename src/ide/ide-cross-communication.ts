@@ -64,7 +64,7 @@ type OrderTuple = {
 };
 
 // @ts-ignore value is set in listener function of websocket
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 let vizDataOrderTupleGlobal: OrderTuple[] = [];
 let foundationCommunicationLinksGlobal: CommunicationLink[] = [];
 
@@ -104,8 +104,6 @@ export default class IdeCrossCommunication {
             break;
 
           case 'doubleClickOnMesh':
-            console.log('vizDataOrderTuple:', vizDataOrderTuple);
-            console.log('data: ', data);
             OpenObject(
               this.handleDoubleClickOnMesh,
               data.fqn,
@@ -338,7 +336,6 @@ function OpenObject(
   orderTuple.forEach((ot) => {
     const occurrenceName = occurrenceID == -1 ? '.' : '.' + occurrenceID + '.';
 
-    console.log('ot.hierarchyModel.fqn', ot.hierarchyModel.fqn);
     recursivelyOpenObjects(
       doSomethingOnMesh,
       lookAtMesh,
@@ -365,9 +362,7 @@ function recursivelyOpenObjects(
       meshid: element.meshid,
       methods: [],
     };
-    if (element.methods.length != 0) {
-      console.log('Methods elem: ', element);
-    } else if (isInParentOrder(element, toOpen)) {
+    if (element.methods.length == 0 && isInParentOrder(element, toOpen)) {
       doSomethingOnMesh(element.meshid);
       if (toOpen == element.fqn) {
         lookAtMesh(element.meshid);

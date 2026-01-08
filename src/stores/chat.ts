@@ -9,7 +9,7 @@ import {
 import {
   CHAT_SYNC_EVENT,
   ChatSynchronizeMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-syncronization';
+} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-synchronization';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   MESSAGE_DELETE_EVENT,

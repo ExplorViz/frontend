@@ -1,6 +1,4 @@
-import { defaultRaycastFilter } from 'explorviz-frontend/src/utils/raycaster';
-import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
-import * as THREE from 'three';
+import { ControllerId } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
 import { canIntersectAllParentObjects } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import TeleportMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/teleport-mesh';
 import VRControllerBindingsList from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-bindings-list';
@@ -12,7 +10,9 @@ import {
   displayAsWireframe,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/wireframe';
 import MenuGroup from 'explorviz-frontend/src/utils/extended-reality/vr-menus/menu-group';
-import { ControllerId } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
+import { defaultRaycastFilter } from 'explorviz-frontend/src/utils/raycaster';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
+import * as THREE from 'three';
 /**
  * Length of the controller's ray when there is no intersection point.
  */

@@ -7,7 +7,6 @@ You will need the following things properly installed on your computer.
 - [pnpm](https://pnpm.io/installation)
 - [Docker](https://www.docker.com) for (mocked) backend
 
-
 ## Installation
 
 - `git clone <repository-url>` this repository
@@ -24,7 +23,6 @@ You will need the following things properly installed on your computer.
 ### IDE Setup
 
 - We use Visual Studio Code (VSC)
-- We recommend to install the [Ember.js Extension Pack](https://marketplace.visualstudio.com/items?itemName=EmberTooling.emberjs)
 - Husky enables pre-commit hooks for linting and testing, see [Husky Documentation](https://typicode.github.io/husky/get-started.html) for more details. The pre-commit hooks can be configured in `.husky/pre-commit`
 
 ### React

@@ -18,7 +18,6 @@ export default function HeatmapInfo() {
     document.onpointermove = elementDrag;
   };
 
-  // eslint-disable-next-line class-methods-use-this
   const closeDragElement = () => {
     /* stop moving when mouse button is released: */
     document.onpointerup = null;

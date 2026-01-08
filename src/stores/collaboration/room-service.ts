@@ -1,16 +1,16 @@
-import { create } from 'zustand';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useRoomSerializerStore } from './room-serializer';
-import {
-  RoomListRecord,
-  isRoomListRecord,
-} from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
-import { RoomCreatedResponse } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-created';
-import { InitialRoomPayload } from 'explorviz-frontend/src/utils/collaboration/room-payload/sendable/initial-room';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import {
   LobbyJoinedResponse,
   isLobbyJoinedResponse,
 } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/lobby-joined';
+import { RoomCreatedResponse } from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-created';
+import {
+  RoomListRecord,
+  isRoomListRecord,
+} from 'explorviz-frontend/src/utils/collaboration/room-payload/receivable/room-list';
+import { InitialRoomPayload } from 'explorviz-frontend/src/utils/collaboration/room-payload/sendable/initial-room';
+import { create } from 'zustand';
 
 const collaborationService = import.meta.env.VITE_COLLAB_SERV_URL;
 

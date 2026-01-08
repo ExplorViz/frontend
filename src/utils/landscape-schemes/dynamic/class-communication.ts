@@ -1,8 +1,8 @@
+import MethodCall from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/method-call';
 import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import MethodCall from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/method-call';
 
 export default class ClassCommunication {
   id: string = '';
