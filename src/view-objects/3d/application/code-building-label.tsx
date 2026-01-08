@@ -177,6 +177,7 @@ export default function CodeBuildingLabel({
   return shouldShowLabel ? (
     <Text
       key={dataModel.id + '-label'}
+      name={'Code building label of ' + dataModel.name}
       position={labelPosition}
       color={classTextColor}
       visible={isClassVisible}

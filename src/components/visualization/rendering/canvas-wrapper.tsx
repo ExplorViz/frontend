@@ -315,7 +315,11 @@ export default function CanvasWrapper({
           <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
             <XROrigin position={position} />
             <TeleportTarget onTeleport={setPosition}>
-              <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <mesh
+                name="floor"
+                position={[0, -0.1, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+              >
                 <planeGeometry attach="geometry" args={[200, 200]} />
                 <meshBasicMaterial attach="material" map={floorTexture} />
               </mesh>

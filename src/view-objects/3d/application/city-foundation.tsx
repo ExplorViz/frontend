@@ -166,6 +166,7 @@ export default function CityFoundation({
   return (
     <mesh
       castShadow={castShadows}
+      name={'Foundation of ' + application.name}
       scale={[layout.width, layout.height, layout.depth]}
       position={foundationPosition} // Center around application's position
       onClick={handleClickWithPrevent}

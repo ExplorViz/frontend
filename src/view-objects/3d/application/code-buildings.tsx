@@ -483,6 +483,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     return (
       <instancedMesh2
         ref={meshRef}
+        name={'Buildings of ' + application.name}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
         {...(enableHoverEffects && {

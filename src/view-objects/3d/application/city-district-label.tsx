@@ -176,6 +176,7 @@ export default function CityDistrictLabel({
   return isWithinDistance ? (
     <Text
       color={componentTextColor}
+      name={'City district label of ' + component.name}
       visible={isVisible}
       position={labelPosition}
       rotation={getLabelRotation(componentLabelPlacement)}

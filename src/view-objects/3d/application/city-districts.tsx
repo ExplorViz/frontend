@@ -506,6 +506,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     return (
       <instancedMesh2
         ref={meshRef}
+        name={'Districts of ' + application.name}
         castShadow={castShadows}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
