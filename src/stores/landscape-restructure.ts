@@ -462,7 +462,8 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           set({ commModelColorMappings: newCommModelColorMappings });
           const commMesh = get()._getCommMesh(commMapping!);
           const commColor = new THREE.Color(
-            useUserSettingsStore.getState().visualizationSettings.communicationColor.value
+            useUserSettingsStore.getState().visualizationSettings
+              .communicationColor.value
           );
 
           commMesh?.changeColor(commColor);

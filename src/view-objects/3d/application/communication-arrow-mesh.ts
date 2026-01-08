@@ -1,8 +1,8 @@
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
-import * as THREE from 'three';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
+import * as THREE from 'three';
 
 export default class CommunicationArrowMesh extends BaseMesh {
   dataModel: ClassCommunication | ComponentCommunication;

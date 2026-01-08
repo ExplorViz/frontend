@@ -1,10 +1,10 @@
 import { extend, ThreeElement } from '@react-three/fiber';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh.ts';
-import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout.ts';
 import * as THREE from 'three';
 import { BundledCommunicationLayout } from './bundled-communication-layout';
 import {
@@ -395,6 +395,27 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       return;
     }
 
+    if (!this.layout || !this.layout.startPoint || !this.layout.endPoint) {
+      this.cleanupIfNeeded();
+      this._needsRender = false;
+      return;
+    }
+
+    const start = this.layout.startPoint;
+    const end = this.layout.endPoint;
+    if (isNaN(start.x) || isNaN(end.x)) {
+      this.cleanupIfNeeded();
+      this._needsRender = false;
+      return;
+    }
+
+    if (this._enableEdgeBundling && this._use3DHAPAlgorithm) {
+      if (!this._hapSystem || !this._originHAP || !this._destinationHAP) {
+        this.renderWithEdgeBundling(curveSegments); // Fallback
+        return;
+      }
+    }
+
     if (!this._needsRender || !this.layout) {
       return;
     }
@@ -409,23 +430,27 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       // Original algorithm
       this.renderOriginalAlgorithm(curveSegments);
     } else {
-      // Edge Bundling is active
       if (
         this._use3DHAPAlgorithm &&
         this._hapSystem &&
         this._originHAP &&
         this._destinationHAP
       ) {
-        // Use 3D-HAP algorithm with color gradients
         this.renderWith3DHAPGradient(curveSegments);
       } else {
-        // Fallback to existing edge bundling algorithm
         this.renderWithEdgeBundling(curveSegments);
       }
     }
 
     this.addArrows();
     this._needsRender = false;
+  }
+
+  private cleanupIfNeeded(): void {
+    if (this.geometry && this.geometry.getAttribute('position')?.count > 0) {
+      this.releaseSharedGeometry(this.geometry);
+      this.geometry = new THREE.BufferGeometry();
+    }
   }
 
   public requestRender(): void {
@@ -491,9 +516,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     baseGeometry: THREE.BufferGeometry,
     curve: THREE.Curve<THREE.Vector3>
   ): THREE.BufferGeometry {
+    if (!baseGeometry || !baseGeometry.getAttribute) {
+      return new THREE.BufferGeometry();
+    }
+
     const geometry = baseGeometry.clone();
     const positionAttribute = geometry.getAttribute('position');
+    if (!positionAttribute) {
+      return baseGeometry.clone();
+    }
     const vertexCount = positionAttribute.count;
+    if (vertexCount === 0) {
+      return baseGeometry.clone();
+    }
     const colors = new Float32Array(vertexCount * 3);
 
     const isBidirectional = this.dataModel.communication.isBidirectional;
@@ -565,19 +600,44 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     curve: THREE.Curve<THREE.Vector3>,
     segments: number
   ): THREE.BufferGeometry {
+    if (!curve) {
+      return new THREE.BufferGeometry();
+    }
+
+    try {
+      const start = curve.getPoint(0);
+      const end = curve.getPoint(1);
+
+      if (
+        !start ||
+        !end ||
+        isNaN(start.x) ||
+        isNaN(start.y) ||
+        isNaN(start.z) ||
+        isNaN(end.x) ||
+        isNaN(end.y) ||
+        isNaN(end.z)
+      ) {
+        return new THREE.BufferGeometry();
+      }
+    } catch (error) {
+      return new THREE.BufferGeometry();
+    }
+
     const key = this.generateGeometryKey(curve, segments);
 
     if (!ClazzCommunicationMesh.sharedGeometries.has(key)) {
-      const geometry = new THREE.TubeGeometry(
-        curve,
-        segments,
-        this.layout.lineThickness
-      );
-      ClazzCommunicationMesh.sharedGeometries.set(key, geometry);
-      ClazzCommunicationMesh.geometryUsageCount.set(key, 1);
-    } else {
-      const count = ClazzCommunicationMesh.geometryUsageCount.get(key) || 0;
-      ClazzCommunicationMesh.geometryUsageCount.set(key, count + 1);
+      try {
+        const geometry = new THREE.TubeGeometry(
+          curve,
+          segments,
+          this.layout.lineThickness
+        );
+        ClazzCommunicationMesh.sharedGeometries.set(key, geometry);
+        ClazzCommunicationMesh.geometryUsageCount.set(key, 1);
+      } catch (geometryError) {
+        return new THREE.BufferGeometry();
+      }
     }
 
     return ClazzCommunicationMesh.sharedGeometries.get(key)!;
@@ -591,13 +651,13 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     segments: number
   ): string {
     if (this._use3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
-      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_H${this._curveHeight.toFixed(2)}_${segments}_${this.layout.lineThickness}`;
+      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
     } else {
       const start = curve.getPoint(0);
       const end = curve.getPoint(1);
       const mid = curve.getPoint(0.5);
 
-      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_H${this._curveHeight.toFixed(2)}_${segments}_${this.layout.lineThickness}`;
+      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
     }
   }
 
@@ -620,11 +680,40 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       }
     }
   }
+
+  private isLayoutValid(
+    layout: CommunicationLayout | BundledCommunicationLayout | null
+  ): boolean {
+    if (!layout) return false;
+
+    if (!layout.startPoint || !layout.endPoint) return false;
+
+    const start = layout.startPoint;
+    const end = layout.endPoint;
+
+    return (
+      !isNaN(start.x) &&
+      !isNaN(start.y) &&
+      !isNaN(start.z) &&
+      !isNaN(end.x) &&
+      !isNaN(end.y) &&
+      !isNaN(end.z)
+    );
+  }
   /**
    * Modified render methods that use shared geometries
    */
   private renderWith3DHAPGradient(curveSegments: number): void {
+    if (!this._hapSystem || !this._originHAP || !this._destinationHAP) {
+      this.renderWithEdgeBundling(curveSegments); // Fallback
+      return;
+    }
+
     const bundledLayout = this.getBundledLayout();
+    if (!bundledLayout || !this.isLayoutValid(bundledLayout)) {
+      return;
+    }
+    // const bundledLayout = this.getBundledLayout();
     if (
       !bundledLayout ||
       !this._hapSystem ||

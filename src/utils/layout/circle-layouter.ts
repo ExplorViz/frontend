@@ -1,7 +1,10 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { getAllClassesInApplication } from './application-helpers';
-import { Application, Package } from './landscape-schemes/structure-data';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import {
+  Application,
+  Package,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 let APP_LABEL_MARGIN: number;
 let APP_MARGIN: number;
@@ -10,7 +13,7 @@ let WIDTH_METRIC: string;
 let WIDTH_METRIC_MULTIPLIER: number;
 let DEPTH_METRIC: string;
 let DEPTH_METRIC_MULTIPLIER: number;
-
+let COMPONENT_HEIGHT: number;
 /**
  * Sets the visualization settings needed for circle layout.
  * This should be called before using circle layout functions.
@@ -24,6 +27,7 @@ export function setCircleLayoutSettings() {
   DEPTH_METRIC_MULTIPLIER = vs.classDepthMultiplier.value;
   APP_LABEL_MARGIN = vs.appLabelMargin.value;
   APP_MARGIN = vs.appMargin.value;
+  COMPONENT_HEIGHT = vs.openedComponentHeight.value;
 }
 
 /**
@@ -91,7 +95,7 @@ export function applyCircleLayoutToClasses(
       classLayout.width = CLASS_FOOTPRINT;
       classLayout.depth = CLASS_FOOTPRINT;
       classLayout.height = CLASS_FOOTPRINT;
-      classLayout.positionY = classLayout.height / 2.0; // Place directly on foundation
+      classLayout.positionY = COMPONENT_HEIGHT * 2; // Place directly on foundation
 
       // As Label and regular margin can differ, we offset by half the label margin difference
       const zMarginOffset = -APP_LABEL_MARGIN / 2 + APP_MARGIN / 2;

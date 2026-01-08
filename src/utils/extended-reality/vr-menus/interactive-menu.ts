@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
 import AnimatedMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/animated-menu';
+import * as THREE from 'three';
 
 export default abstract class InteractiveMenu
   extends AnimatedMenu

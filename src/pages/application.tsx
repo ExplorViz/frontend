@@ -33,7 +33,8 @@ export default function Application() {
 
   // Handle skip login token setup
   useEffect(() => {
-    const isSkipLoginEnabled = import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
+    const isSkipLoginEnabled =
+      import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
 
     if (isSkipLoginEnabled && user) {
       // Set default token if available
@@ -122,7 +123,7 @@ export default function Application() {
 
   return (
     <>
-      <div id="ember-right-click-menu-wormhole"></div>
+      <div id="right-click-menu-wormhole"></div>
       <div id="main-container">
         {user && (
           <>

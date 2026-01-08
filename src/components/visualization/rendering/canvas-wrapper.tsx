@@ -1,13 +1,18 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { XR, IfInSessionMode } from '@react-three/xr';
+import { IfInSessionMode, XR } from '@react-three/xr';
+import {
+  default as CollaborationCameraSync,
+  default as SpectateCameraController,
+} from 'explorviz-frontend/src/components/visualization/rendering/collaboration-camera-sync';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
   useCameraControls,
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -16,20 +21,22 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
-import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
+import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
+import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import CollaborationCameraSync from './collaboration-camera-sync';
-import SpectateCameraController from './spectate-camera-controller';
+import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
+import * as THREE from 'three';
 
 export default function CanvasWrapper({
   landscapeData,
@@ -41,6 +48,9 @@ export default function CanvasWrapper({
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+
+  const [isHAPTreeReady, setIsHAPTreeReady] = useState(false);
+  const hapSystemManager = HAPSystemManager.getInstance();
 
   const directionalLightRef = useRef(null);
 
@@ -127,6 +137,50 @@ export default function CanvasWrapper({
   );
 
   const { removedComponentIds } = useVisualizationStore();
+
+  const allApplications = useMemo(() => {
+    if (!landscapeData) return [];
+    return getAllApplicationsInLandscape(
+      landscapeData.structureLandscapeData
+    ).filter((app) => !removedComponentIds.has(app.id));
+  }, [landscapeData, removedComponentIds]);
+
+  useEffect(() => {
+    if (!layoutMap || allApplications.length === 0) {
+      setIsHAPTreeReady(false);
+      return;
+    }
+
+    const getHAPPosition = (element: any): THREE.Vector3 => {
+      if (!layoutMap.has(element.id)) {
+        return new THREE.Vector3(0, 0, 0);
+      }
+
+      const layout = layoutMap.get(element.id)!;
+      const level =
+        element.type === 'application' ? 2 : element.type === 'package' ? 1 : 0;
+
+      return new THREE.Vector3(
+        layout.center.x,
+        layout.center.y + level * 20,
+        layout.center.z
+      );
+    };
+
+    const getLevel = (element: any): number => {
+      if (element.type === 'application') return 2;
+      if (element.type === 'package') return 1;
+      if (element.type === 'class') return 0;
+      return 0;
+    };
+
+    // Build tree
+    hapSystemManager.buildLandscapeHAPTree(
+      allApplications,
+      getHAPPosition,
+      getLevel
+    );
+  }, [layoutMap, allApplications]);
 
   const cameraControlsRef = useRef<CameraControls>(null);
 
@@ -223,6 +277,7 @@ export default function CanvasWrapper({
       ).filter((app) => !removedComponentIds.has(app.id)),
       useVisualizationStore.getState().removedComponentIds ?? new Set<string>()
     );
+    useLayoutStore.getState().updateLayouts(layoutMap);
     setLayoutMap(layoutMap);
   };
 
@@ -306,6 +361,7 @@ export default function CanvasWrapper({
               />
             ))}
             {isCommRendered &&
+              isHAPTreeReady &&
               interAppCommunications.map((communication) => (
                 <CommunicationR3F
                   key={communication.id}
@@ -320,6 +376,8 @@ export default function CanvasWrapper({
                 />
               ))}
           </LandscapeR3F>
+          <ClusterCentroidsR3F />
+          <AutoComponentOpenerR3F />
           <AnimatedPing />
           <TraceReplayOverlayR3F />
           <ambientLight />

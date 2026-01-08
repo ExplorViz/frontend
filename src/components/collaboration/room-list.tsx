@@ -21,10 +21,6 @@ export default function RoomList({ tokens }: RoomListArgs) {
 
   const [rooms, setRooms] = useState<RoomListRecord[]>([]);
 
-  useEffect(() => {
-    loadRooms(false);
-  }, []);
-
   const loadRooms = async (alert = true) => {
     let rooms: RoomListRecord[] = [];
     try {
@@ -50,6 +46,10 @@ export default function RoomList({ tokens }: RoomListArgs) {
       showSuccessToastMessage('Updated room list');
     }
   };
+
+  useEffect(() => {
+    loadRooms(false);
+  }, [loadRooms]);
 
   return (
     <div className="d-flex flex-row justify-content-center selection-table">

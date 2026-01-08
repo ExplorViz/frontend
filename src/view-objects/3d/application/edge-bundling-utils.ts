@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { HAPSystemManager } from './hap-system-manager';
 
 export interface EdgeBundlingConfig {
   bundleStrength: number;
@@ -19,6 +20,7 @@ export interface HAPNode {
 export class HierarchicalAttractionSystem {
   private hapTree: HAPNode | null = null;
   private beta: number = 0.8;
+  private hapManager = HAPSystemManager.getInstance();
 
   /**
    * Builds the HAP tree from the software hierarchy
@@ -49,10 +51,66 @@ export class HierarchicalAttractionSystem {
     return this.hapTree;
   }
 
+  // /**
+  //  * Find HAP path with leaf package optimization
+  //  */
+  // public findHAPPath(
+  //   origin: HAPNode,
+  //   destination: HAPNode,
+  //   streamline: boolean = true,
+  //   leafPackagesOnly: boolean = false // NEU
+  // ): {
+  //   pathOrigin: HAPNode[];
+  //   pathDestination: HAPNode[];
+  // } {
+  //   const pathToRoot = (node: HAPNode): HAPNode[] => {
+  //     const path: HAPNode[] = [];
+  //     let current: HAPNode | null = node;
+  //     while (current) {
+  //       path.push(current);
+  //       current = current.parent;
+  //     }
+  //     return path.reverse();
+  //   };
+
+  //   const pathO = pathToRoot(origin);
+  //   const pathD = pathToRoot(destination);
+
+  //   // Find common ancestor
+  //   let commonIndex = 0;
+  //   const minLength = Math.min(pathO.length, pathD.length);
+  //   while (
+  //     commonIndex < minLength &&
+  //     pathO[commonIndex].id === pathD[commonIndex].id
+  //   ) {
+  //     commonIndex++;
+  //   }
+
+  //   let originPath = pathO.slice(commonIndex);
+  //   let destinationPath = pathD.slice(commonIndex);
+
+  //
+  //   if (leafPackagesOnly) {
+  //     originPath = this.filterLeafPackagesOnly(originPath);
+  //     destinationPath = this.filterLeafPackagesOnly(destinationPath);
+  //   }
+
+  //   // Apply streamline if requested
+  //   if (streamline) {
+  //     originPath = this.applyStreamline(originPath);
+  //     destinationPath = this.applyStreamline(destinationPath);
+  //   }
+
+  //   return {
+  //     pathOrigin: originPath,
+  //     pathDestination: destinationPath,
+  //   };
+  // }
+
   /**
    * Find HAP path with leaf package optimization
    */
-  public findHAPPath(
+  public findLocalHAPPath(
     origin: HAPNode,
     destination: HAPNode,
     streamline: boolean = true,
@@ -102,6 +160,79 @@ export class HierarchicalAttractionSystem {
     return {
       pathOrigin: originPath,
       pathDestination: destinationPath,
+    };
+  }
+
+  public findHAPPath(
+    origin: HAPNode,
+    destination: HAPNode,
+    streamline: boolean = true,
+    leafPackagesOnly: boolean = false
+  ): {
+    pathOrigin: HAPNode[];
+    pathDestination: HAPNode[];
+  } {
+    // 1. Get GLOBAL landscape root
+    const landscapeRoot = this.hapManager.getLandscapeRoot();
+
+    if (!landscapeRoot) {
+      return this.findLocalHAPPath(
+        origin,
+        destination,
+        streamline,
+        leafPackagesOnly
+      );
+    }
+
+    // 2. Calculate paths to GLOBAL root
+    const pathToGlobalRoot = (node: HAPNode): HAPNode[] => {
+      const path: HAPNode[] = [];
+      let current: HAPNode | null = node;
+
+      while (current && current !== landscapeRoot) {
+        path.push(current);
+        current = current.parent;
+      }
+
+      if (current === landscapeRoot) {
+        path.push(landscapeRoot);
+      }
+
+      return path.reverse(); // From root to node
+    };
+
+    const pathO = pathToGlobalRoot(origin);
+    const pathD = pathToGlobalRoot(destination);
+
+    // 3. Find common ancestor (will be landscape root or below)
+    let commonIndex = 0;
+    const minLength = Math.min(pathO.length, pathD.length);
+
+    while (
+      commonIndex < minLength &&
+      pathO[commonIndex].id === pathD[commonIndex].id
+    ) {
+      commonIndex++;
+    }
+
+    // 4. Split paths
+    let originPath = pathO.slice(commonIndex);
+    let destinationPath = pathD.slice(commonIndex);
+
+    // 5. Apply filters
+    if (leafPackagesOnly) {
+      originPath = this.filterLeafPackagesOnly(originPath);
+      destinationPath = this.filterLeafPackagesOnly(destinationPath);
+    }
+
+    if (streamline) {
+      originPath = this.applyStreamline(originPath);
+      destinationPath = this.applyStreamline(destinationPath);
+    }
+
+    return {
+      pathOrigin: originPath,
+      pathDestination: destinationPath.reverse(), // Reverse for correct order
     };
   }
 

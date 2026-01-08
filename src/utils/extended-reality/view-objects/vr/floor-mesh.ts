@@ -34,7 +34,6 @@ export default class FloorMesh
     this.receiveShadow = true;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canBeIntersected(_intersection: THREE.Intersection) {
     return true;
   }

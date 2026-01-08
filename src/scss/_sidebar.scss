@@ -104,6 +104,11 @@
   z-index: 10000001;
 }
 
+.sidebar.left {
+  left: 0;
+  right: auto;
+}
+
 .sidebar-card-container {
   overflow: auto;
   width: 100%;

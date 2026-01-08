@@ -1,13 +1,13 @@
-import { create } from 'zustand';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import revertKey from 'explorviz-frontend/src/utils/heatmap/heatmap-generator';
 import {
   ApplicationMetrics,
   Metric,
 } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import revertKey from 'explorviz-frontend/src/utils/heatmap/heatmap-generator';
+import { create } from 'zustand';
 
-import { getColorGradient as getSimpleDefaultGradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { getColorGradient as getSimpleDefaultGradient } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 
 export type HeatmapMode =
   | 'snapshotHeatmap'

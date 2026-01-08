@@ -13,7 +13,6 @@
 @use '_annotation';
 @use '_play_pause';
 @use '_landscapes';
-@use '_augmented_reality';
 @use '_virtual_reality';
 @use '_heatmap';
 @use '_collaboration.scss';
@@ -49,6 +48,6 @@ h6,
   font-weight: 400;
 }
 
-#ember-right-click-menu-wormhole>ul {
+#right-click-menu-wormhole > ul {
   z-index: 100000;
 }

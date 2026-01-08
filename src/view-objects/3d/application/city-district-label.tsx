@@ -1,9 +1,10 @@
 import { Text } from '@react-three/drei';
+import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
 import { useEffect, useState } from 'react';
@@ -13,11 +14,9 @@ import { useShallow } from 'zustand/react/shallow';
 export default function CityDistrictLabel({
   component,
   layout,
-  isCameraZoomedIn,
 }: {
   component: Package;
   layout: BoxLayout;
-  isCameraZoomedIn: boolean;
 }) {
   const {
     labelOffset,
@@ -27,6 +26,7 @@ export default function CityDistrictLabel({
     enableAnimations,
     animationDuration,
     componentLabelPlacement,
+    labelDistanceThreshold,
   } = useUserSettingsStore(
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
@@ -38,6 +38,15 @@ export default function CityDistrictLabel({
       animationDuration: state.visualizationSettings.animationDuration.value,
       componentLabelPlacement:
         state.visualizationSettings.componentLabelPlacement.value,
+      labelDistanceThreshold:
+        state.visualizationSettings.labelDistanceThreshold.value,
+    }))
+  );
+
+  const { centroidDistances, getCentroidDistance } = useClusterStore(
+    useShallow((state) => ({
+      centroidDistances: state.centroidDistances,
+      getCentroidDistance: state.getCentroidDistance,
     }))
   );
 
@@ -54,19 +63,37 @@ export default function CityDistrictLabel({
     new THREE.Vector3()
   );
 
+  // Track distance to cluster centroid for label visibility
+  const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
+
+  useEffect(() => {
+    const distance = getCentroidDistance(component.id);
+    if (distance !== undefined) {
+      // Larger Labels of larger districts should be visible from a greater distance
+      const sizeMultiplier =
+        1.0 + layout.area / 100000.0 + getFontSize() / 10.0;
+      const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
+      setIsWithinDistance(distance <= adjustedThreshold);
+    } else {
+      // Default: show label
+      setIsWithinDistance(true);
+    }
+  }, [
+    centroidDistances,
+    labelDistanceThreshold,
+    getCentroidDistance,
+    component.id,
+    layout.area,
+  ]);
+
   const getLabelPositionForPlacement = (
     placement: string,
     isOpen: boolean
   ): THREE.Vector3 => {
     const margin = packageLabelMargin / 2;
-    const openedPosY =
-      layout.positionY + layout.height / 2 + labelOffset + 0.01;
+    const openedPosY = layout.positionY + layout.height + labelOffset + 0.01;
     const closedPosY =
-      layout.positionY -
-      layout.height / 2 +
-      closedComponentHeight +
-      labelOffset +
-      0.01;
+      layout.positionY + closedComponentHeight + labelOffset + 0.01;
     switch (placement) {
       case 'top':
         return isOpen
@@ -105,6 +132,12 @@ export default function CityDistrictLabel({
     }
   };
 
+  const getFontSize = () => {
+    return isOpen
+      ? packageLabelMargin * 0.5
+      : Math.max(layout.width * 0.1, packageLabelMargin * 0.5);
+  };
+
   useEffect(() => {
     const target = getLabelPositionForPlacement(
       componentLabelPlacement,
@@ -140,20 +173,16 @@ export default function CityDistrictLabel({
     componentLabelPlacement,
   ]);
 
-  return (
+  return isWithinDistance ? (
     <Text
       color={componentTextColor}
-      visible={isVisible && (isCameraZoomedIn || !isOpen)}
+      visible={isVisible}
       position={labelPosition}
       rotation={getLabelRotation(componentLabelPlacement)}
-      fontSize={
-        isOpen
-          ? packageLabelMargin * 0.5
-          : Math.max(layout.width * 0.1, packageLabelMargin * 0.5)
-      }
+      fontSize={getFontSize()}
       raycast={() => null}
     >
       {getEntityDisplayName(component.name, component.id)}
     </Text>
-  );
+  ) : null;
 }

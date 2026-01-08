@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import * as THREE from 'three';
 
 interface VrButtonArgs {
   renderer: THREE.WebGLRenderer;
@@ -16,10 +17,9 @@ export default function VrButton(args: VrButtonArgs) {
 
   const updateVrStatus = async () => {
     if ('xr' in navigator) {
-      const isVrSupported = await navigator.xr?.isSessionSupported('immersive-vr') || false
-      setVrSupported(
-        isVrSupported
-      );
+      const isVrSupported =
+        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
+      setVrSupported(isVrSupported);
 
       if (isVrSupported) {
         setButtonText('Enter VR');

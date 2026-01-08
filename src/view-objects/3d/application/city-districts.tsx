@@ -21,7 +21,7 @@ import {
   Package,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import gsap from 'gsap';
 import { forwardRef, useEffect, useMemo, useRef } from 'react';
 import {
@@ -98,6 +98,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       removedComponentColor,
       unChangedComponentColor,
       animationDuration,
+      entityOpacity,
     } = useUserSettingsStore(
       useShallow((state) => ({
         castShadows: state.visualizationSettings.castShadows.value,
@@ -121,6 +122,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         unChangedComponentColor:
           state.visualizationSettings.unchangedComponentColor.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
+        entityOpacity: state.visualizationSettings.entityOpacity.value,
       }))
     );
 
@@ -170,9 +172,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           const layout = layoutMap.get(component.id);
           if (!layout) {
-            console.log(
-              `No layout found for component with id ${component.id}`
-            );
             return;
           }
 
@@ -187,16 +186,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           const closedPosition = layout.center.clone();
           // Y-Position of layout is center of opened component
-          closedPosition.y =
-            layout.positionY +
-            (closedComponentHeight - openedComponentHeight) / 2;
+          closedPosition.y = layout.positionY + closedComponentHeight / 2;
 
           if (isOpen) {
-            obj.position.set(
-              layout.center.x,
-              layout.position.y,
-              layout.center.z
-            );
+            obj.position.set(layout.center.x, layout.center.y, layout.center.z);
           } else {
             obj.position.set(
               closedPosition.x,
@@ -256,6 +249,12 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       // only compute the bvh on mount
       meshRef.current.computeBVH();
     }, []);
+
+    useEffect(() => {
+      material.transparent = entityOpacity < 1.0;
+      material.opacity = entityOpacity;
+      material.needsUpdate = true;
+    }, [entityOpacity, material]);
 
     const computeColor = (componentId: string) => {
       const component = componentIdToPackage.get(componentId);
@@ -440,9 +439,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
         const targetPositionX = layout.center.x;
         const targetPositionY = isOpen
-          ? layout.positionY
-          : layout.positionY +
-            (closedComponentHeight - openedComponentHeight) / 2;
+          ? layout.center.y
+          : layout.positionY + closedComponentHeight / 2;
         const targetPositionZ = layout.center.z;
         const targetWidth = layout.width;
         const targetDepth = layout.depth;

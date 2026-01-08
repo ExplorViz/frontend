@@ -1,26 +1,26 @@
+import sha256 from 'crypto-js/sha256';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
-  StructureLandscapeData,
-  Node,
   Application,
-  Package,
   Class,
+  getNodeById,
+  isApplication,
   isPackage,
   Method,
-  isApplication,
-  getNodeById,
+  Node,
+  Package,
+  StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getApplicationFromPackage } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import sha256 from 'crypto-js/sha256';
 import {
   getAncestorPackages,
   getClassesInPackage,
   getSubPackagesOfPackage,
 } from 'explorviz-frontend/src/utils/package-helpers';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 
 export enum EntityType {
   App = 'APP',

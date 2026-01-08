@@ -2,6 +2,7 @@ import RoomList from 'explorviz-frontend/src/components/collaboration/room-list'
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
 import TokenCreationModal from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
+import LandscapeLoader from 'explorviz-frontend/src/pages/landscapes-loading';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import {
   LandscapeToken,
@@ -16,7 +17,6 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import React, { useEffect, useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import { createSearchParams, useNavigate } from 'react-router-dom';
-import LandscapeLoader from './landscapes-loading';
 
 export default function Landscapes() {
   const [data, setData] = useState<{

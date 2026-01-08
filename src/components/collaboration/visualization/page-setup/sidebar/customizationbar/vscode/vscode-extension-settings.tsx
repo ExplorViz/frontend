@@ -22,7 +22,6 @@ export default function VscodeExtensionSettings() {
   );
 
   const connectToIDE = () => {
-    console.log('connectToIDE');
     showInfoToastMessage('Connect to IDE');
     restartConnection();
   };

@@ -608,16 +608,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines distance between class/component and its label',
     isRangeSetting: true,
   },
-  maxCamHeightForCamera: {
-    level: SettingLevel.EXTENDED,
-    value: 25,
-    range: { min: 0, max: 50, step: 0.5 },
-    group: 'Label',
-    displayName: 'Max Camera Height',
-    description:
-      'Determines when labels (except of closed components) are rendered in relation to camera`s y-position.',
-    isRangeSetting: true,
-  },
   packageLabelMargin: {
     level: SettingLevel.DEFAULT,
     value: 13.0,
@@ -644,7 +634,6 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 'stress',
     options: [
       'box',
-      'disco',
       'force',
       'layered',
       'random',
@@ -662,7 +651,6 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 'rectpacking',
     options: [
       'box',
-      'disco',
       'force',
       'layered',
       'random',
@@ -927,6 +915,96 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines how many seconds popups stay on screen',
     isRangeSetting: true,
   },
+  // Semantic Zoom Settings
+  enableClustering: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Semantic Zoom',
+    displayName: 'Enable Clustering',
+    description: 'Enable clustering of classes and packages for semantic zoom',
+    isFlagSetting: true,
+  },
+  clusterCount: {
+    level: SettingLevel.DEFAULT,
+    value: 0.3,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Semantic Zoom',
+    displayName: 'Cluster Count',
+    description:
+      'Number of clusters: 0 = 1 cluster (all entities), 1 = one cluster per entity',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  displayClusters: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Semantic Zoom',
+    displayName: 'Display Clusters',
+    description: 'Visualize cluster centroids as balls in the visualization',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  labelDistanceThreshold: {
+    level: SettingLevel.DEFAULT,
+    value: 5.0,
+    range: { min: 0.0, max: 100.0, step: 0.5 },
+    group: 'Semantic Zoom',
+    displayName: 'Label Distance Threshold',
+    description:
+      'Maximum distance from camera to cluster centroid for labels to be visible',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  distanceUpdateFrequency: {
+    level: SettingLevel.DEFAULT,
+    value: 10.0,
+    range: { min: 1.0, max: 30.0, step: 1.0 },
+    group: 'Semantic Zoom',
+    displayName: 'Distance Update Frequency',
+    description:
+      'How often per second the camera distance to cluster centroids is recalculated',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  autoOpenCloseComponents: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Semantic Zoom',
+    displayName: 'Auto Open/Close Components',
+    description:
+      'Automatically open components when camera is close to cluster centroid, and close when far away.',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  componentOpenCloseDistanceThreshold: {
+    level: SettingLevel.DEFAULT,
+    value: 15.0,
+    range: { min: 0.0, max: 100.0, step: 0.5 },
+    group: 'Semantic Zoom',
+    displayName: 'Component Open/Close Distance Threshold',
+    description:
+      'Maximum distance from camera to cluster centroid for components to be automatically opened/closed.',
+    dependsOn: {
+      settingId: 'autoOpenCloseComponents',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.EXTENDED,
@@ -1063,6 +1141,16 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Show Light Helper',
     description: 'Visualizes the Directional Light',
     isFlagSetting: true,
+  },
+  entityOpacity: {
+    level: SettingLevel.EXTENDED,
+    value: 1.0,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Debugging',
+    displayName: 'Entity Opacity',
+    description:
+      'Controls the opacity of city foundation, city districts, and code buildings',
+    isRangeSetting: true,
   },
   fullscreen: {
     level: SettingLevel.DEFAULT,

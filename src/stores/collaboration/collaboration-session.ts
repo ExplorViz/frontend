@@ -2,12 +2,15 @@ import { create } from 'zustand';
 
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useRoomServiceStore } from 'explorviz-frontend/src/stores/collaboration/room-service';
+import { useUserFactoryStore } from 'explorviz-frontend/src/stores/collaboration/user-factory';
 import {
   SELF_DISCONNECTED_EVENT,
   useWebSocketStore,
 } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
+import { useRouterStore } from 'explorviz-frontend/src/stores/store-router';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import RemoteUser from 'explorviz-frontend/src/utils/collaboration/remote-user';
@@ -32,16 +35,13 @@ import {
   CONTROLLER_1_ID,
   CONTROLLER_2_ID,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/controller-id';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
   USER_POSITIONS_EVENT,
   UserPositionsMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/user-positions';
 import { createSearchParams } from 'react-router-dom';
 import * as THREE from 'three';
-import eventEmitter from '../../utils/event-emitter';
-import { useRouterStore } from '../store-router';
-import { useRoomServiceStore } from './room-service';
-import { useUserFactoryStore } from './user-factory';
 
 export type ConnectionStatus = 'offline' | 'connecting' | 'online';
 
@@ -384,8 +384,6 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
           get().joinRoom(response.roomId);
           return true;
         } catch (e: any) {
-          console.log(e);
-
           // this.connectionStatus = 'offline';
           useToastHandlerStore
             .getState()

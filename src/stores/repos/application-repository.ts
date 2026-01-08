@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
+import { create } from 'zustand';
 
 interface ApplicationRepositoryState {
   applications: Map<string, ApplicationData>; // tracked

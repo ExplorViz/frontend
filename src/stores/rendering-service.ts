@@ -1,27 +1,26 @@
-import { create } from 'zustand';
+import {
+  SelectedCommit,
+  useCommitTreeStateStore,
+} from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
+import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
+import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
   getAllMethodHashesOfLandscapeStructureData,
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
-import { useReloadHandlerStore } from './reload-handler';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useTimestampStore } from './timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
-import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
-import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import {
-  SelectedCommit,
-  useCommitTreeStateStore,
-} from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { time } from 'console';
+import { create } from 'zustand';
 
 export type AnalysisMode = 'evolution' | 'runtime';
 
@@ -222,14 +221,13 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       const commitToRuntimeLandscapeDataMap = new Map<string, LandscapeData>();
 
       for (const [commitId, timestamps] of commitToSelectedTimestampMap) {
-
         const sortedTimestamps = [...timestamps].sort(
           (a, b) => a.epochNano - b.epochNano
         );
 
         const timestampFrom = sortedTimestamps[0].epochNano;
         let timestampTo = undefined;
-        if(sortedTimestamps.length > 1){
+        if (sortedTimestamps.length > 1) {
           timestampTo = sortedTimestamps[sortedTimestamps.length - 1].epochNano;
         }
 
@@ -244,7 +242,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           structureLandscapeData: latestFetchedStructureLandscapeData,
           dynamicLandscapeData: latestFetchedDynamicLandscapeData,
         });
-
       }
       return commitToRuntimeLandscapeDataMap;
     },
@@ -314,10 +311,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       commitToSelectedTimestampMap: Map<string, Timestamp[]>
     ) => {
       if (commitToSelectedTimestampMap.size > 0) {
-
-
-
-
         for (const [
           commitId,
           selectedTimestamps,
@@ -485,7 +478,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     },
 
     resetAllRenderingStates: () => {
-      console.log("resetAllRenderingStates");
       set({
         _userInitiatedStaticDynamicCombination: false,
         _landscapeData: null,

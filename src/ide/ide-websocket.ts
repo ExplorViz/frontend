@@ -1,23 +1,8 @@
-import { create } from 'zustand';
-import { Socket, io } from 'socket.io-client';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import {
-  Application,
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
 import { useIdeWebsocketFacadeStore } from 'explorviz-frontend/src/stores/ide-websocket-facade';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { DefaultEventsMap } from '@socket.io/component-emitter';
-import { Object3DEventMap } from 'three';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { useAuthStore } from '../stores/auth';
-import { LandscapeToken } from '../stores/landscape-token';
-import { is } from '@react-three/fiber/dist/declarations/src/core/utils';
-
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import { Socket, io } from 'socket.io-client';
+import { create } from 'zustand';
 
 interface IdeWebsocketStore {
   socket?: Socket;
@@ -52,42 +37,47 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
 
     // Disconnect-Event from a frontend client
     socket.on('disconnect', (err) => {
-      if(err === "transport close") {
+      if (err === 'transport close') {
         useIdeWebsocketFacadeStore.setState({ isConnected: false });
       }
     });
 
     socket.on(
       'create-landscape',
-      async (alias: string, projectName: string, commitId: string, callback) => {
-
+      async (
+        alias: string,
+        projectName: string,
+        commitId: string,
+        callback
+      ) => {
         let uId = useAuthStore.getState().user?.sub;
 
         if (!uId) {
-          if (callback)
-            callback();
+          if (callback) callback();
           return;
         }
 
         uId = encodeURI(uId);
 
-        const tokenResponse = await fetch(`${userServiceUrl}/user/${uId}/token`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          method: 'POST',
-          body: JSON.stringify({
-            alias,
-            isRequestedFromVSCodeExtension: true,
-            projectName: projectName,
-            commitId: commitId,
-          }),
-        });
+        const tokenResponse = await fetch(
+          `${userServiceUrl}/user/${uId}/token`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({
+              alias,
+              isRequestedFromVSCodeExtension: true,
+              projectName: projectName,
+              commitId: commitId,
+            }),
+          }
+        );
 
         if (!tokenResponse.ok) {
-          if (callback)
-            callback();
+          if (callback) callback();
           return;
         }
 
@@ -101,16 +91,15 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
         if (callback) {
           callback(payload);
         }
-    });
+      }
+    );
 
     socket.on(
       'load-current-debug-room-list-from-frontend',
       async (callback) => {
-
         let uId = useAuthStore.getState().user?.sub;
         if (!uId) {
-          if (callback)
-            callback();
+          if (callback) callback();
           return;
         }
         uId = encodeURI(uId);
@@ -136,7 +125,8 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
         if (callback) {
           callback(filteredResponse);
         }
-    });
+      }
+    );
 
     socket.on(
       'frontend-create-landscape',
@@ -148,8 +138,7 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
       ) => {
         let uId = useAuthStore.getState().user?.sub;
         if (!uId) {
-          if (callback)
-            callback();
+          if (callback) callback();
           return;
         }
         uId = encodeURI(uId);
@@ -172,8 +161,7 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
         );
 
         if (!tokenResponse.ok) {
-          if (callback)
-            callback();
+          if (callback) callback();
           return;
         }
 
@@ -190,22 +178,22 @@ export const useIdeWebsocketStore = create<IdeWebsocketStore>((set, get) => ({
         }
       }
     );
-
-
   },
 
-   // ---------- consumer methods ----------
+  // ---------- consumer methods ----------
 
   restartAndSetSocket: (landscapeToken?: string) => {
     const url = import.meta.env.VITE_VSCODE_SERV_URL;
     const { socket } = get();
     socket?.disconnect();
 
-    const newSocket = io(url, { path: '/v2/ide/', query: { client: 'frontend', landscapeToken: landscapeToken } });
+    const newSocket = io(url, {
+      path: '/v2/ide/',
+      query: { client: 'frontend', landscapeToken: landscapeToken },
+    });
     set({ socket: newSocket });
 
     get().setupSocketListeners();
-
   },
 
   closeConnection: () => {

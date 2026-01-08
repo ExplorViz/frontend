@@ -1,5 +1,6 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
 import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';
 
 export default class ScrollUpButton
@@ -18,7 +19,6 @@ export default class ScrollUpButton
     this.add(scrollText);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canBeIntersected(_intersection: THREE.Intersection) {
     return true;
   }

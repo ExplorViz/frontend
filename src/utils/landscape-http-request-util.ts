@@ -1,7 +1,7 @@
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 
@@ -22,7 +22,6 @@ export async function requestData(
   exactTime: number,
   endTime: number
 ) {
-
   const structureDataPromise = requestStructureData(/* startTime, endTime */);
   const dynamicDataPromise = requestDynamicData(startTime, exactTime, endTime);
 
@@ -63,7 +62,11 @@ export function requestStructureData(/* fromTimestamp: number, toTimestamp: numb
   });
 }
 
-export function requestDynamicData(fromTimestamp: number, exactTimestamp: number, toTimestamp: number) {
+export function requestDynamicData(
+  fromTimestamp: number,
+  exactTimestamp: number,
+  toTimestamp: number
+) {
   return new Promise<DynamicLandscapeData>((resolve, reject) => {
     if (useLandscapeTokenStore.getState().token === null) {
       reject(new Error('No landscape token selected'));

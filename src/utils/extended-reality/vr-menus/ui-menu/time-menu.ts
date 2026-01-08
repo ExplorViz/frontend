@@ -10,7 +10,10 @@ import UiMenu, {
   UiMenuArgs,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
-import { nanosecondsToMilliseconds, millisecondsToNanoseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import {
+  nanosecondsToMilliseconds,
+  millisecondsToNanoseconds,
+} from 'explorviz-frontend/src/utils/landscape-http-request-util';
 
 const MS_PER_SECOND = 1000;
 const TIMESTAMP_INTERVAL_MS = 10 * MS_PER_SECOND;
@@ -44,9 +47,12 @@ export default class TimeMenu extends UiMenu {
         timestampNanos = firstEntry[firstEntry.length - 1];
       }
     }
-    
+
     // Convert nanoseconds to milliseconds for Date object
-    const timestampMillis = timestampNanos > 0 ? nanosecondsToMilliseconds(timestampNanos) : Date.now();
+    const timestampMillis =
+      timestampNanos > 0
+        ? nanosecondsToMilliseconds(timestampNanos)
+        : Date.now();
     this.date = new Date(timestampMillis);
 
     const title = new TitleItem({

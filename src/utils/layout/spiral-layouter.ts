@@ -1,7 +1,7 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { Application } from './landscape-schemes/structure-data';
-import { getAllClassesInApplication } from './application-helpers';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 type SpiralState = {
   x: number;
@@ -98,6 +98,7 @@ export function applySpiralLayoutToClasses(
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
   const CLASS_FOOTPRINT = vs.classFootprint.value;
   const CLASS_MARGIN = vs.classMargin.value;
+  const COMPONENT_HEIGHT = vs.openedComponentHeight.value;
   const APP_LABEL_MARGIN = vs.appLabelMargin.value;
   const APP_MARGIN = vs.appMargin.value;
   const SPIRAL_CENTER_OFFSET = vs.spiralCenterOffset.value;
@@ -177,7 +178,7 @@ export function applySpiralLayoutToClasses(
       classLayout.width = CLASS_FOOTPRINT;
       classLayout.depth = CLASS_FOOTPRINT;
       classLayout.height = CLASS_FOOTPRINT;
-      classLayout.positionY = classLayout.height / 2.0; // Place directly on foundation
+      classLayout.positionY = COMPONENT_HEIGHT * 2; // Place directly on foundation
 
       // Calculate position based on current grid coordinates
       const classX = centerX + spiralState.x * spacing - CLASS_FOOTPRINT / 2;

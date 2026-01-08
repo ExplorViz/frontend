@@ -1,10 +1,16 @@
-import { HierarchicalAttractionSystem, HAPNode } from './edge-bundling-utils';
+import {
+  HAPNode,
+  HierarchicalAttractionSystem,
+} from 'explorviz-frontend/src/view-objects/3d/application/edge-bundling-utils';
 import * as THREE from 'three';
 
 export class HAPSystemManager {
   private static instance: HAPSystemManager;
   private hapSystems: Map<string, HierarchicalAttractionSystem> = new Map();
   private elementToHAP: Map<string, HAPNode> = new Map();
+
+  private landscapeHAPTree: HAPNode | null = null;
+  private isTreeBuilding: boolean = false;
 
   private constructor() {}
 
@@ -13,6 +19,53 @@ export class HAPSystemManager {
       HAPSystemManager.instance = new HAPSystemManager();
     }
     return HAPSystemManager.instance;
+  }
+
+  public buildLandscapeHAPTree(
+    applications: any[],
+    getPosition: (element: any) => THREE.Vector3,
+    getLevel: (element: any) => number
+  ): void {
+    this.clearAllHAPSystems();
+    this.isTreeBuilding = true;
+
+    // 1. Create virtual landscape root (Level 3)
+    const landscapeRoot: HAPNode = {
+      id: 'LANDSCAPE_ROOT',
+      position: new THREE.Vector3(0, 200, 0),
+      level: 3,
+      children: [],
+      parent: null,
+      element: { type: 'landscape', name: 'Complete Landscape' },
+    };
+
+    // 2. Create HAP for each application (arranged in a circle)
+    applications.forEach((app, index) => {
+      const angle = (index / applications.length) * Math.PI * 2;
+      const radius = 150;
+
+      const appNode: HAPNode = {
+        id: `APP_${app.id}`,
+        position: new THREE.Vector3(
+          Math.cos(angle) * radius,
+          60, // Fixed height for all applications
+          Math.sin(angle) * radius
+        ),
+        level: 2, // Application level
+        children: [],
+        parent: landscapeRoot,
+        element: app,
+      };
+
+      landscapeRoot.children.push(appNode);
+
+      // 3. Build hierarchy for this application
+      this.buildApplicationHierarchy(app, appNode, getPosition, getLevel);
+    });
+
+    this.landscapeHAPTree = landscapeRoot;
+    this.registerHAPNodes(landscapeRoot);
+    this.isTreeBuilding = false;
   }
 
   /**
@@ -163,10 +216,10 @@ export class HAPSystemManager {
     node.children.forEach((child) => this.registerHAPNodes(child));
   }
 
-  // Get HAP node for a software element
-  public getHAPNode(elementId: string): HAPNode | null {
-    return this.elementToHAP.get(elementId) || null;
-  }
+  // // Get HAP node for a software element
+  // public getHAPNode(elementId: string): HAPNode | null {
+  //   return this.elementToHAP.get(elementId) || null;
+  // }
 
   // Get HAP system for an application
   public getHAPSystem(
@@ -313,5 +366,89 @@ export class HAPSystemManager {
       default:
         return new THREE.Color(0xffffff);
     }
+  }
+
+  private buildApplicationHierarchy(
+    element: any,
+    parentHAP: HAPNode,
+    getPosition: (element: any) => THREE.Vector3,
+    getLevel: (element: any) => number
+  ): void {
+    // Safe way to get children
+    let children: any[] = [];
+
+    if (element.packages) children = element.packages;
+    else if (element.subPackages) children = element.subPackages;
+    else if (element.classes) children = element.classes;
+
+    if (element.classes && element.subPackages) {
+      children = [...element.subPackages, ...element.classes];
+    }
+
+    children.forEach((child) => {
+      const childLevel = getLevel(child);
+      const childPos = getPosition(child);
+
+      const childNode: HAPNode = {
+        id: child.id || `node_${Math.random().toString(36).substr(2, 9)}`,
+        position: new THREE.Vector3(
+          parentHAP.position.x + childPos.x * 0.3,
+          childLevel * 15,
+          parentHAP.position.z + childPos.z * 0.3
+        ),
+        level: childLevel,
+        children: [],
+        parent: parentHAP,
+        element: child,
+      };
+
+      parentHAP.children.push(childNode);
+
+      // Recursive for non-class elements
+      if (childLevel > 0) {
+        this.buildApplicationHierarchy(child, childNode, getPosition, getLevel);
+      }
+    });
+  }
+
+  public getHAPNode(elementId: string): HAPNode | null {
+    // Check cache first
+    if (this.elementToHAP.has(elementId)) {
+      return this.elementToHAP.get(elementId)!;
+    }
+
+    // Search in global tree
+    if (this.landscapeHAPTree) {
+      const findNode = (node: HAPNode): HAPNode | null => {
+        if (node.element?.id === elementId) {
+          return node;
+        }
+
+        for (const child of node.children) {
+          const found = findNode(child);
+          if (found) return found;
+        }
+
+        return null;
+      };
+
+      const found = findNode(this.landscapeHAPTree);
+      if (found) {
+        this.elementToHAP.set(elementId, found);
+        return found;
+      }
+    }
+
+    return null;
+  }
+
+  public getLandscapeRoot(): HAPNode | null {
+    return this.landscapeHAPTree;
+  }
+
+  public clearAllHAPSystems(): void {
+    this.hapSystems.clear();
+    this.elementToHAP.clear();
+    this.landscapeHAPTree = null;
   }
 }

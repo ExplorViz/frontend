@@ -5,14 +5,6 @@ import {
   getAllPackageIdsInApplications,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { applyCircleLayoutToClasses } from './circle-layouter';
-import {
-  applySpiralLayoutToClasses,
-  calculateSpiralSideLength,
-} from './spiral-layouter';
 import {
   Application,
   K8sDeployment,
@@ -20,7 +12,15 @@ import {
   K8sNode,
   K8sPod,
   Package,
-} from './landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import { applyCircleLayoutToClasses } from 'explorviz-frontend/src/utils/layout/circle-layouter';
+import {
+  applySpiralLayoutToClasses,
+  calculateSpiralSideLength,
+} from 'explorviz-frontend/src/utils/layout/spiral-layouter';
+import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -447,16 +447,10 @@ export function convertElkToBoxLayout(
   boxLayout.height = height;
 
   boxLayout.positionX = xOffset + elkGraph.x!;
-  boxLayout.positionY = COMPONENT_HEIGHT * (depth - 1) + height / 2.0;
+  boxLayout.positionY = COMPONENT_HEIGHT * depth;
   boxLayout.positionZ = zOffset + elkGraph.y!;
 
   boxLayout.level = depth;
-
-  // Landscape and applications are on the same level
-  if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
-    // eslint-disable-next-line
-    depth = depth - 1;
-  }
 
   if (elkGraph.id.startsWith(APP_PREFIX)) {
     // Add application offset since all components and classes are placed directly in app

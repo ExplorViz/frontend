@@ -1,11 +1,11 @@
-import {
-  EdgeBundlingConfig,
-  HierarchicalAttractionSystem,
-  HAPNode,
-} from './edge-bundling-utils';
-import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
+import {
+  EdgeBundlingConfig,
+  HAPNode,
+  HierarchicalAttractionSystem,
+} from 'explorviz-frontend/src/view-objects/3d/application/edge-bundling-utils';
 import * as THREE from 'three';
 
 export class BundledCommunicationLayout extends CommunicationLayout {
