@@ -14,5 +14,7 @@ for file in "$INPUT_DIR"/*.y*ml; do
     filename=$(basename "$file")
     name="${filename%.*}"
 
-    kube-diagrams --embed-all-icons -o "$OUTPUT_DIR/$name.svg" "$file"
+    kube-diagrams -o "$OUTPUT_DIR/$name.svg" "$file"
+    sed -i 's|https://raw.githubusercontent.com/mingrammer/diagrams/refs/heads/master/resources|/kubeDiagrams-icons|g' "$OUTPUT_DIR/$name.svg"
+
 done

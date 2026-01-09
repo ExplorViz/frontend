@@ -30,6 +30,7 @@
     "@types/hammerjs": "2.0.46",
     "@types/node": "24.10.2",
     "@types/rsvp": "4.0.9",
+    "@types/svg-parser": "^2.0.6",
     "@types/three": "0.181.0",
     "@typescript-eslint/eslint-plugin": "8.49.0",
     "@typescript-eslint/parser": "8.49.0",

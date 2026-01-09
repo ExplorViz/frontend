@@ -213,6 +213,9 @@ importers:
       '@types/rsvp':
         specifier: 4.0.9
         version: 4.0.9
+      '@types/svg-parser':
+        specifier: ^2.0.6
+        version: 2.0.6
       '@types/three':
         specifier: 0.181.0
         version: 0.181.0
@@ -1448,6 +1451,9 @@ packages:
 
   '@types/stylis@4.2.5':
     resolution: {integrity: sha512-1Xve+NMN7FWjY14vLoY5tL3BVEQ/n42YLwaqJIPYhotZ9uBHt87VceMwWQpzmdEt2TNXIorIFG+YeCUUW7RInw==}
+
+  '@types/svg-parser@2.0.6':
+    resolution: {integrity: sha512-xrXwOltwMcLrKy79rv4MoalnD82oYLyXAVeeSyrkvR7XdCH4i7YqLNQWxyZ8KPpawtQShiKOse+pmtLeSLtCfQ==}
 
   '@types/three@0.181.0':
     resolution: {integrity: sha512-MLF1ks8yRM2k71D7RprFpDb9DOX0p22DbdPqT/uAkc6AtQXjxWCVDjCy23G9t1o8HcQPk7woD2NIyiaWcWPYmA==}
@@ -6176,6 +6182,8 @@ snapshots:
   '@types/stats.js@0.17.3': {}
 
   '@types/stylis@4.2.5': {}
+
+  '@types/svg-parser@2.0.6': {}
 
   '@types/three@0.181.0':
     dependencies:
