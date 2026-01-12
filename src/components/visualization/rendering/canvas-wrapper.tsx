@@ -23,7 +23,10 @@ import {
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import {
+  getAllApplicationsInLandscape,
+  getApplicationFromPackage,
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
@@ -34,7 +37,7 @@ import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/applic
 import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -145,28 +148,81 @@ export default function CanvasWrapper({
     ).filter((app) => !removedComponentIds.has(app.id));
   }, [landscapeData, removedComponentIds]);
 
-  const getHAPPosition = (element: any): THREE.Vector3 => {
-    if (!layoutMap || !layoutMap.has(element.id)) {
-      return new THREE.Vector3(0, 0, 0);
-    }
+  const getHAPPosition = useCallback(
+    (element: any): THREE.Vector3 => {
+      if (!layoutMap || !layoutMap.has(element.id)) {
+        return new THREE.Vector3(0, 0, 0);
+      }
 
-    const layout = layoutMap.get(element.id)!;
-    const level =
-      element.type === 'application' ? 2 : element.type === 'package' ? 1 : 0;
+      const layout = layoutMap.get(element.id)!;
+      const level =
+        element.type === 'application' ? 2 : element.type === 'package' ? 1 : 0;
 
-    return new THREE.Vector3(
-      layout.center.x,
-      layout.center.y + level * 20,
-      layout.center.z
-    );
-  };
+      const isApplication = element.type === 'application';
 
-  const getLevel = (element: any): number => {
+      // Following the pattern from layout-helper.ts:getLandscapePositionOfModel
+      // but without landscapeScalar since we're rendering inside the scaled landscape group
+
+      if (isApplication) {
+        // For applications: use position + (width/2, 0, depth/2) as center
+        const modelPosition = new THREE.Vector3(
+          layout.position.x + layout.width / 2,
+          layout.position.y + level * 20,
+          layout.position.z + layout.depth / 2
+        );
+        return modelPosition;
+      }
+
+      // For classes and packages: need to add application position offset
+      // Check if application context was provided (via _tempApp)
+      let application = element._tempApp;
+
+      if (!application) {
+        // Try to find the parent application by traversing up the parent chain
+        let currentElement = element;
+        while (currentElement.parent) {
+          currentElement = currentElement.parent;
+        }
+
+        // If we found a top-level package, try to find its application by ID pattern
+        if (currentElement.id && currentElement.id.includes('.component-')) {
+          application = getApplicationFromPackage(
+            landscapeData!.structureLandscapeData,
+            currentElement.id
+          );
+        }
+      }
+
+      // Get application layout if we found the application
+      const appLayout = application ? layoutMap.get(application.id) : null;
+      if (!appLayout) {
+        // Fallback: use layout center
+        return new THREE.Vector3(
+          layout.center.x,
+          layout.position.y + level * 20,
+          layout.center.z
+        );
+      }
+
+      // For classes/packages: appPosition + modelCenter
+      const appPosition = appLayout.position.clone();
+      const modelPosition = layout.center.clone();
+
+      return new THREE.Vector3(
+        appPosition.x + modelPosition.x,
+        modelPosition.y + level * 20,
+        appPosition.z + modelPosition.z
+      );
+    },
+    [layoutMap]
+  );
+
+  const getLevel = useCallback((element: any): number => {
     if (element.type === 'application') return 2;
     if (element.type === 'package') return 1;
     if (element.type === 'class') return 0;
     return 0;
-  };
+  }, []);
 
   // Build HAP tree with optimized debouncing
   useEffect(() => {
@@ -187,7 +243,7 @@ export default function CanvasWrapper({
     });
 
     return () => cancelAnimationFrame(handle);
-  }, [layoutMap, allApplications, getHAPPosition, getLevel, hapSystemManager]);
+  }, [layoutMap, allApplications, getHAPPosition, getLevel]);
 
   const cameraControlsRef = useRef<CameraControls>(null);
 
@@ -368,7 +424,6 @@ export default function CanvasWrapper({
               />
             ))}
             {isCommRendered &&
-              isHAPTreeReady &&
               interAppCommunications.map((communication) => (
                 <CommunicationR3F
                   key={communication.id}

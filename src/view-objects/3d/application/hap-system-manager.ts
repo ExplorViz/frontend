@@ -49,19 +49,15 @@ export class HAPSystemManager {
       element: { type: 'landscape', name: 'Complete Landscape' },
     };
 
-    // 2. Create HAP for each application (arranged in a circle)
-    applications.forEach((app, index) => {
-      const angle = (index / applications.length) * Math.PI * 2;
-      const radius = 150;
+    // 2. Create HAP for each application using actual layout positions
+    applications.forEach((app) => {
+      const appPosition = getPosition(app);
+      const appLevel = getLevel(app);
 
       const appNode: HAPNode = {
         id: `APP_${app.id}`,
-        position: new THREE.Vector3(
-          Math.cos(angle) * radius,
-          60, // Fixed height for all applications
-          Math.sin(angle) * radius
-        ),
-        level: 2, // Application level
+        position: appPosition,
+        level: appLevel,
         children: [],
         parent: landscapeRoot,
         element: app,
@@ -70,11 +66,41 @@ export class HAPSystemManager {
       landscapeRoot.children.push(appNode);
 
       // 3. Build hierarchy for this application
-      this.buildApplicationHierarchy(app, appNode, getPosition, getLevel);
+      // Create a wrapper for getPosition that includes application context
+      const getPositionWithApp = (element: any) => {
+        // If element is the application itself, use getPosition directly
+        if (element.type === 'application' || element === app) {
+          return getPosition(element);
+        }
+        // For packages and classes, we need to add the app's position offset
+        // Store app reference temporarily on element for position calculation
+        const originalApp = element._tempApp;
+        element._tempApp = app;
+        const pos = getPosition(element);
+        // Restore original
+        if (originalApp !== undefined) {
+          element._tempApp = originalApp;
+        } else {
+          delete element._tempApp;
+        }
+        return pos;
+      };
+      this.buildApplicationHierarchy(
+        app,
+        appNode,
+        getPositionWithApp,
+        getLevel,
+        app
+      );
     });
 
     this.landscapeHAPTree = landscapeRoot;
     this.registerHAPNodes(landscapeRoot);
+
+    // 4. Create a HierarchicalAttractionSystem for the landscape
+    const landscapeHAPSystem = new HierarchicalAttractionSystem();
+    landscapeHAPSystem.setHAPTree(landscapeRoot);
+    this.hapSystems.set('LANDSCAPE', landscapeHAPSystem);
   }
 
   /**
@@ -284,7 +310,11 @@ export class HAPSystemManager {
     return false;
   }
 
-  public visualizeHAPs(applicationId: string, scene: THREE.Scene): void {
+  public visualizeHAPs(
+    applicationId: string,
+    scene: THREE.Scene,
+    layoutMap?: Map<string, any>
+  ): void {
     const system = this.getHAPSystem(applicationId);
     if (!system) {
       return;
@@ -297,13 +327,16 @@ export class HAPSystemManager {
     if (!landscapeGroup) {
       return;
     }
+
+    // Use unique group name based on applicationId to avoid conflicts
+    const groupName = `HAP_GROUP_${applicationId}`;
     let hapGroup = landscapeGroup.children.find(
-      (child) => child.name === 'HAP_GROUP'
+      (child) => child.name === groupName
     ) as THREE.Group;
 
     if (!hapGroup) {
       hapGroup = new THREE.Group();
-      hapGroup.name = 'HAP_GROUP';
+      hapGroup.name = groupName;
       landscapeGroup.add(hapGroup);
     } else {
       // Clear existing children more efficiently
@@ -328,10 +361,33 @@ export class HAPSystemManager {
     const scale = landscapeGroup.scale.x;
     const sizeMultiplier = 0.05 / scale;
 
+    // For application-level HAP trees, we need to transform relative coordinates to world coordinates
+    // The root node (application) is in landscape coordinates, children have relative coordinates to the application
+    const isApplicationTree = applicationId !== 'LANDSCAPE';
+
+    // Get application corner position for coordinate transformation
+    let appCornerPosition = new THREE.Vector3(0, 0, 0);
+    if (isApplicationTree && hapTree.element?.id && layoutMap) {
+      const appLayout = layoutMap.get(hapTree.element.id);
+      if (appLayout) {
+        appCornerPosition = appLayout.position.clone();
+      }
+    }
+
+    // Helper function to get visualization position (transforms relative to world for app trees)
+    const getVisPosition = (node: HAPNode): THREE.Vector3 => {
+      if (!isApplicationTree || node === hapTree) {
+        // Landscape tree or application root: use position as-is
+        return node.position.clone();
+      }
+      // Application tree children: add application corner position to convert relative to world coords
+      return node.position.clone().add(appCornerPosition);
+    };
+
     // Collect nodes by level for instancing
     const nodesByLevel: Map<
       number,
-      Array<{ node: HAPNode; size: number }>
+      Array<{ node: HAPNode; size: number; position: THREE.Vector3 }>
     > = new Map();
     const linesToAdd: THREE.Line[] = [];
 
@@ -340,11 +396,15 @@ export class HAPSystemManager {
     while (stack.length > 0) {
       const node = stack.pop()!;
 
+      // Get visualization position for this node
+      const nodeVisPos = getVisPosition(node);
+
       // Create line to parent if exists
       if (node.parent) {
+        const parentVisPos = getVisPosition(node.parent);
         const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-          node.position,
-          node.parent.position,
+          nodeVisPos,
+          parentVisPos,
         ]);
 
         const line = new THREE.Line(
@@ -375,7 +435,7 @@ export class HAPSystemManager {
       if (!nodesByLevel.has(node.level)) {
         nodesByLevel.set(node.level, []);
       }
-      nodesByLevel.get(node.level)!.push({ node, size });
+      nodesByLevel.get(node.level)!.push({ node, size, position: nodeVisPos });
 
       // Add children to stack
       for (let i = node.children.length - 1; i >= 0; i--) {
@@ -402,8 +462,8 @@ export class HAPSystemManager {
       instancedMesh.name = `HAP_INSTANCED_LEVEL_${level}`;
 
       // Set positions for all instances
-      nodes.forEach(({ node }, index) => {
-        dummy.position.copy(node.position);
+      nodes.forEach(({ position }, index) => {
+        dummy.position.copy(position);
         dummy.updateMatrix();
         instancedMesh.setMatrixAt(index, dummy.matrix);
       });
@@ -465,7 +525,8 @@ export class HAPSystemManager {
     element: any,
     parentHAP: HAPNode,
     getPosition: (element: any) => THREE.Vector3,
-    getLevel: (element: any) => number
+    getLevel: (element: any) => number,
+    application: any
   ): void {
     // Safe way to get children - optimized to avoid array spread when not needed
     let children: any[] = [];
@@ -493,11 +554,7 @@ export class HAPSystemManager {
 
       const childNode: HAPNode = {
         id: child.id || `node_${Math.random().toString(36).substr(2, 9)}`,
-        position: new THREE.Vector3(
-          parentHAP.position.x + childPos.x * 0.3,
-          childLevel * 15,
-          parentHAP.position.z + childPos.z * 0.3
-        ),
+        position: childPos, // Use the position directly from getPosition (already in world coordinates)
         level: childLevel,
         children: [],
         parent: parentHAP,
@@ -508,7 +565,13 @@ export class HAPSystemManager {
 
       // Recursive for non-class elements
       if (childLevel > 0) {
-        this.buildApplicationHierarchy(child, childNode, getPosition, getLevel);
+        this.buildApplicationHierarchy(
+          child,
+          childNode,
+          getPosition,
+          getLevel,
+          application
+        );
       }
     }
   }
