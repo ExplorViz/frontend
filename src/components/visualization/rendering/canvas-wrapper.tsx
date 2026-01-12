@@ -1,3 +1,4 @@
+import { Magnify } from '@malte-hansen/magnify-r3f';
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
@@ -46,6 +47,8 @@ export default function CanvasWrapper({
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+  const [isMagnifierActive, setIsMagnifierActive] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const directionalLightRef = useRef(null);
 
@@ -218,6 +221,18 @@ export default function CanvasWrapper({
     }
   }, [landscapeData, interAppCommunications]);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: e.clientX,
+        y: window.innerHeight - e.clientY,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   const updateLayout = async () => {
     if (!landscapeData) return;
 
@@ -263,6 +278,29 @@ export default function CanvasWrapper({
       resetVisualizationState();
     };
   }, []);
+
+  // Keyboard handler for magnifier toggle
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Ignore if typing in an input field
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
+    // Toggle magnifier on M key press
+    if (event.key === 'M' || event.key === 'm') {
+      setIsMagnifierActive((prev) => !prev);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <>
@@ -326,6 +364,12 @@ export default function CanvasWrapper({
                 />
               ))}
           </LandscapeR3F>
+          <Magnify
+            position={mousePos}
+            zoom={3}
+            radius={240}
+            enabled={isMagnifierActive}
+          />
           <ClusterCentroidsR3F />
           <AutoComponentOpenerR3F />
           <AnimatedPing />
