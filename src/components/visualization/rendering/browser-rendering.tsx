@@ -146,11 +146,51 @@ export default function BrowserRendering({
   };
 
   const enterFullscreen = () => {
-    if (!canvas.current) {
-      console.error('Unable to enter fullscreen: Canvas ref is not set');
+    // Find the canvas element by ID (set in CanvasWrapper)
+    // The Canvas component from @react-three/fiber renders a canvas element
+    let canvasElement: HTMLCanvasElement | null = document.getElementById(
+      'three-js-canvas'
+    ) as HTMLCanvasElement;
+
+    // If not found by ID, try to find the canvas element within the element with that ID
+    // or find any canvas element in the rendering container
+    if (!canvasElement || canvasElement.tagName !== 'CANVAS') {
+      const container = document.getElementById('three-js-canvas');
+      if (container) {
+        canvasElement = container.querySelector('canvas');
+      }
+      // Last resort: find any canvas in the rendering container
+      if (!canvasElement) {
+        const renderingContainer = document.getElementById('rendering');
+        canvasElement = renderingContainer?.querySelector('canvas') || null;
+      }
+    }
+
+    if (!canvasElement) {
+      console.error('Unable to enter fullscreen: Canvas element not found');
       return;
     }
-    canvas.current.requestFullscreen();
+
+    // Try standard fullscreen API first
+    if (canvasElement.requestFullscreen) {
+      canvasElement.requestFullscreen().catch((error) => {
+        console.error('Error entering fullscreen:', error);
+      });
+    }
+    // Fallback for WebKit browsers (Safari)
+    else if ((canvasElement as any).webkitRequestFullscreen) {
+      (canvasElement as any).webkitRequestFullscreen();
+    }
+    // Fallback for Mozilla browsers
+    else if ((canvasElement as any).mozRequestFullScreen) {
+      (canvasElement as any).mozRequestFullScreen();
+    }
+    // Fallback for MS browsers
+    else if ((canvasElement as any).msRequestFullscreen) {
+      (canvasElement as any).msRequestFullscreen();
+    } else {
+      console.error('Fullscreen API is not supported in this browser');
+    }
   };
 
   const toggleToolsSidebarComponent = (component: string): boolean => {
@@ -181,7 +221,6 @@ export default function BrowserRendering({
 
   // MARK: Refs
 
-  const canvas = useRef<HTMLCanvasElement | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
