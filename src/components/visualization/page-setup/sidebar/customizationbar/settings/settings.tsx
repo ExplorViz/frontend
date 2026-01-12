@@ -136,6 +136,7 @@ export default function Settings({
       Highlighting: [],
       Label: [],
       Layout: [],
+      Magnifier: [],
       Minimap: [],
       Popups: [],
       'Semantic Zoom': [],

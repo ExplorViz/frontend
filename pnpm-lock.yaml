@@ -18,8 +18,8 @@ importers:
         specifier: ^1.10.6
         version: 1.10.6(@types/react@19.2.1)(graphql@16.11.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@malte-hansen/magnify-r3f':
-        specifier: ^2.0.1
-        version: 2.0.1(@react-three/fiber@9.4.2(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2)
+        specifier: ^2.0.2
+        version: 2.0.2(@react-three/fiber@9.4.2(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2)
       '@primer/octicons-react':
         specifier: ^19.21.1
         version: 19.21.1(react@19.2.1)
@@ -862,8 +862,8 @@ packages:
     resolution: {integrity: sha512-qC72D4+CDdjGqJvkFMMEAtancHUQ7/d/tAiHf64z8MopFDmcrtbcJuerDtFceuAfQJ2pDSfCKCtbqoGBNnwg0w==}
     engines: {node: '>=8'}
 
-  '@malte-hansen/magnify-r3f@2.0.1':
-    resolution: {integrity: sha512-qjzd4R78Nqqle6nZueXtsldMHzCoboXxf0tjgIClnsQ8HFGcidBLiZYo7NioOgUYTl8uZMaUuz+SoyJahPg0Bw==}
+  '@malte-hansen/magnify-r3f@2.0.2':
+    resolution: {integrity: sha512-/jf4EHHNDPC4H1UB09mlV4q8h1NtEFU5cZnTsLaiBQI7ZgrQbIQn/uGEkeJJ108GrZeXQlxE0dKMXE6C8GqZfA==}
     peerDependencies:
       '@react-three/fiber': '>=8.0.0'
       react: '>=18.0.0'
@@ -5492,7 +5492,7 @@ snapshots:
     dependencies:
       '@lukeed/csprng': 1.1.0
 
-  '@malte-hansen/magnify-r3f@2.0.1(@react-three/fiber@9.4.2(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2)':
+  '@malte-hansen/magnify-r3f@2.0.2(@react-three/fiber@9.4.2(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2)':
     dependencies:
       '@react-three/fiber': 9.4.2(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(three@0.181.2)
       react: 19.2.1

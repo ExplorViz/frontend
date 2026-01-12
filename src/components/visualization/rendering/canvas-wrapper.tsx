@@ -47,7 +47,6 @@ export default function CanvasWrapper({
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
-  const [isMagnifierActive, setIsMagnifierActive] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const directionalLightRef = useRef(null);
@@ -85,6 +84,13 @@ export default function CanvasWrapper({
     middleMouseButtonAction,
     mouseWheelAction,
     rightMouseButtonAction,
+    isMagnifierActive,
+    magnifierZoom,
+    magnifierExponent,
+    magnifierRadius,
+    magnifierOutlineColor,
+    magnifierOutlineThickness,
+    magnifierAntialias,
   } = useUserSettingsStore(
     useShallow((state) => ({
       applicationLayoutAlgorithm:
@@ -130,6 +136,15 @@ export default function CanvasWrapper({
         state.visualizationSettings.rightMouseButtonAction.value,
       middleMouseButtonAction:
         state.visualizationSettings.middleMouseButtonAction.value,
+      isMagnifierActive: state.visualizationSettings.isMagnifierActive.value,
+      magnifierZoom: state.visualizationSettings.magnifierZoom.value,
+      magnifierExponent: state.visualizationSettings.magnifierExponent.value,
+      magnifierRadius: state.visualizationSettings.magnifierRadius.value,
+      magnifierOutlineColor:
+        state.visualizationSettings.magnifierOutlineColor.value,
+      magnifierOutlineThickness:
+        state.visualizationSettings.magnifierOutlineThickness.value,
+      magnifierAntialias: state.visualizationSettings.magnifierAntialias.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
@@ -291,7 +306,9 @@ export default function CanvasWrapper({
 
     // Toggle magnifier on M key press
     if (event.key === 'M' || event.key === 'm') {
-      setIsMagnifierActive((prev) => !prev);
+      useUserSettingsStore
+        .getState()
+        .updateSetting('isMagnifierActive', !isMagnifierActive);
     }
   };
 
@@ -300,7 +317,7 @@ export default function CanvasWrapper({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleKeyDown]);
+  }, [isMagnifierActive]);
 
   return (
     <>
@@ -365,10 +382,14 @@ export default function CanvasWrapper({
               ))}
           </LandscapeR3F>
           <Magnify
-            position={mousePos}
-            zoom={3}
-            radius={240}
             enabled={isMagnifierActive}
+            position={mousePos}
+            zoom={magnifierZoom}
+            exp={magnifierExponent}
+            radius={magnifierRadius}
+            outlineColor={parseInt(magnifierOutlineColor.replace('#', ''), 16)}
+            outlineThickness={magnifierOutlineThickness}
+            antialias={magnifierAntialias}
           />
           <ClusterCentroidsR3F />
           <AutoComponentOpenerR3F />
