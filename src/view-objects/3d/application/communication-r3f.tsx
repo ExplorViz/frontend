@@ -294,33 +294,33 @@ export default function CommunicationR3F({
     return system || null;
   }, [applicationElement?.id, enableEdgeBundling, effectiveLayoutMap]);
 
+  // Memoize helper functions to prevent recreating on each render
+  const getChildren = (element: any): any[] => {
+    if (isPackage(element)) return [...element.subPackages, ...element.classes];
+    if (isApplication(element)) return element.packages;
+    return [];
+  };
+
+  const getCorrectedPosition = (element: any): THREE.Vector3 => {
+    if (effectiveLayoutMap && effectiveLayoutMap.has(element.id)) {
+      const layout = effectiveLayoutMap.get(element.id)!;
+      const level = getLevel(element);
+
+      const elevationY = level * 15; // Class=0, Package=15, Application=30
+
+      return new THREE.Vector3(
+        layout.center.x,
+        layout.center.y + elevationY,
+        layout.center.z
+      );
+    }
+    return getFallbackPosition(element);
+  };
+
   // Initialize HAP system for the application
   useEffect(() => {
     if (applicationElement && enableEdgeBundling) {
       hapSystemManager.clearHAPSystem(applicationElement.id);
-
-      const getChildren = (element: any): any[] => {
-        if (isPackage(element))
-          return [...element.subPackages, ...element.classes];
-        if (isApplication(element)) return element.packages;
-        return [];
-      };
-
-      const getCorrectedPosition = (element: any): THREE.Vector3 => {
-        if (effectiveLayoutMap && effectiveLayoutMap.has(element.id)) {
-          const layout = effectiveLayoutMap.get(element.id)!;
-          const level = getLevel(element);
-
-          const elevationY = level * 15; // Class=0, Package=15, Application=30
-
-          return new THREE.Vector3(
-            layout.center.x,
-            layout.center.y + elevationY,
-            layout.center.z
-          );
-        }
-        return getFallbackPosition(element);
-      };
 
       hapSystemManager.buildApplicationHAPTree(
         applicationElement.id,
@@ -334,7 +334,7 @@ export default function CommunicationR3F({
   }, [
     applicationElement?.id,
     enableEdgeBundling,
-    effectiveLayoutMap,
+    getCorrectedPosition,
     leafPackagesOnly,
   ]);
 

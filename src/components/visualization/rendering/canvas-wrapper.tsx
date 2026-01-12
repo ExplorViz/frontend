@@ -29,14 +29,14 @@ import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
+import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
-import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
 import * as THREE from 'three';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
   landscapeData,
@@ -145,42 +145,49 @@ export default function CanvasWrapper({
     ).filter((app) => !removedComponentIds.has(app.id));
   }, [landscapeData, removedComponentIds]);
 
+  const getHAPPosition = (element: any): THREE.Vector3 => {
+    if (!layoutMap || !layoutMap.has(element.id)) {
+      return new THREE.Vector3(0, 0, 0);
+    }
+
+    const layout = layoutMap.get(element.id)!;
+    const level =
+      element.type === 'application' ? 2 : element.type === 'package' ? 1 : 0;
+
+    return new THREE.Vector3(
+      layout.center.x,
+      layout.center.y + level * 20,
+      layout.center.z
+    );
+  };
+
+  const getLevel = (element: any): number => {
+    if (element.type === 'application') return 2;
+    if (element.type === 'package') return 1;
+    if (element.type === 'class') return 0;
+    return 0;
+  };
+
+  // Build HAP tree with optimized debouncing
   useEffect(() => {
     if (!layoutMap || allApplications.length === 0) {
       setIsHAPTreeReady(false);
       return;
     }
 
-    const getHAPPosition = (element: any): THREE.Vector3 => {
-      if (!layoutMap.has(element.id)) {
-        return new THREE.Vector3(0, 0, 0);
-      }
-
-      const layout = layoutMap.get(element.id)!;
-      const level =
-        element.type === 'application' ? 2 : element.type === 'package' ? 1 : 0;
-
-      return new THREE.Vector3(
-        layout.center.x,
-        layout.center.y + level * 20,
-        layout.center.z
+    // Use requestAnimationFrame to defer HAP tree building
+    // This prevents blocking the main thread during initial render
+    const handle = requestAnimationFrame(() => {
+      hapSystemManager.buildLandscapeHAPTree(
+        allApplications,
+        getHAPPosition,
+        getLevel
       );
-    };
+      setIsHAPTreeReady(true);
+    });
 
-    const getLevel = (element: any): number => {
-      if (element.type === 'application') return 2;
-      if (element.type === 'package') return 1;
-      if (element.type === 'class') return 0;
-      return 0;
-    };
-
-    // Build tree
-    hapSystemManager.buildLandscapeHAPTree(
-      allApplications,
-      getHAPPosition,
-      getLevel
-    );
-  }, [layoutMap, allApplications]);
+    return () => cancelAnimationFrame(handle);
+  }, [layoutMap, allApplications, getHAPPosition, getLevel, hapSystemManager]);
 
   const cameraControlsRef = useRef<CameraControls>(null);
 
