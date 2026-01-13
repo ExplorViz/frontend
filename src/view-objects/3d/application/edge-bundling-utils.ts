@@ -114,7 +114,7 @@ export class HierarchicalAttractionSystem {
     origin: HAPNode,
     destination: HAPNode,
     streamline: boolean = true,
-    leafPackagesOnly: boolean = false // NEU
+    leafPackagesOnly: boolean = false
   ): {
     pathOrigin: HAPNode[];
     pathDestination: HAPNode[];
@@ -126,7 +126,17 @@ export class HierarchicalAttractionSystem {
         path.push(current);
         current = current.parent;
       }
-      return path.reverse();
+      // Reverse path in place for better performance
+      let left = 0;
+      let right = path.length - 1;
+      while (left < right) {
+        const temp = path[left];
+        path[left] = path[right];
+        path[right] = temp;
+        left++;
+        right--;
+      }
+      return path;
     };
 
     const pathO = pathToRoot(origin);
@@ -145,7 +155,7 @@ export class HierarchicalAttractionSystem {
     let originPath = pathO.slice(commonIndex);
     let destinationPath = pathD.slice(commonIndex);
 
-    // 🔥 Filter out non-leaf packages if needed
+    // Filter out non-leaf packages if needed
     if (leafPackagesOnly) {
       originPath = this.filterLeafPackagesOnly(originPath);
       destinationPath = this.filterLeafPackagesOnly(destinationPath);
@@ -198,7 +208,17 @@ export class HierarchicalAttractionSystem {
         path.push(landscapeRoot);
       }
 
-      return path.reverse(); // From root to node
+      // Reverse path in place for better performance
+      let left = 0;
+      let right = path.length - 1;
+      while (left < right) {
+        const temp = path[left];
+        path[left] = path[right];
+        path[right] = temp;
+        left++;
+        right--;
+      }
+      return path;
     };
 
     const pathO = pathToGlobalRoot(origin);

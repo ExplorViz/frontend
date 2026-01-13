@@ -17,7 +17,7 @@ import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { BundledCommunicationLayout } from './bundled-communication-layout';
@@ -195,85 +195,121 @@ export default function CommunicationR3F({
   );
 
   // The deeper into the hierarchy tree, the closer the 3D-HAP is to its geometric element
-  const getLevel = (element: any): number => {
+  const getHapLevel = useCallback((element: any): number => {
     if (isClass(element)) return 0; // LOWEST level - closest to geometry
     if (isPackage(element)) return 1; // Middle level
     if (isApplication(element)) return 2; // HIGHEST level - farthest from geometry
     return 0;
-  };
+  }, []);
 
   // Use effective layout map from prop or global
   const effectiveLayoutMap = layoutMap || globalLayoutMap;
 
-  const getExactHAPPosition = (
-    element: any,
-    layout: BoxLayout
-  ): THREE.Vector3 => {
-    const buildingCenter = layout.center.clone();
-    const level = getLevel(element);
+  const getExactHAPPosition = useCallback(
+    (element: any, layout: BoxLayout): THREE.Vector3 => {
+      const level = getHapLevel(element);
 
-    let elevation = 0;
-    switch (level) {
-      case 0:
-        elevation = 15; // Class
-        break;
-      case 1: // Package
-        elevation = 30;
-        break;
-      case 2: // Application
-        elevation = 50;
-        break;
-    }
+      let elevation = 0;
+      switch (level) {
+        case 0:
+          elevation = 15; // Class
+          break;
+        case 1: // Package
+          elevation = 30;
+          break;
+        case 2: // Application
+          elevation = 50;
+          break;
+      }
 
-    return new THREE.Vector3(buildingCenter.x, elevation, buildingCenter.z);
-  };
+      // For application-level HAP trees (used for intra-app communications),
+      // use relative coordinates (matching computeCommunicationLayout behavior)
+
+      if (isApplication(element)) {
+        // For applications: use position + (width/2, 0, depth/2) as center
+        return new THREE.Vector3(
+          layout.position.x + layout.width / 2,
+          layout.position.y + elevation,
+          layout.position.z + layout.depth / 2
+        );
+      }
+
+      // For classes/packages in application HAP trees: use relative coordinates
+      // This matches how computeCommunicationLayout works for intra-app communications
+      // (line 118-119: start = sourceClassLayout.center, end = targetClassLayout.center)
+      const buildingCenter = layout.center.clone();
+      return new THREE.Vector3(
+        buildingCenter.x,
+        buildingCenter.y + elevation,
+        buildingCenter.z
+      );
+    },
+    [getHapLevel]
+  );
+
+  const getPosition = useCallback(
+    (element: any): THREE.Vector3 => {
+      if (!effectiveLayoutMap || !effectiveLayoutMap.has(element.id)) {
+        throw new Error(
+          `NO LAYOUT for ${element.type} "${element.name || element.id}"`
+        );
+      }
+
+      const layout = effectiveLayoutMap.get(element.id)!;
+      return getExactHAPPosition(element, layout);
+    },
+    [effectiveLayoutMap, getExactHAPPosition]
+  );
 
   // Helper functions for position calculation
-  const getFallbackPosition = (element: any): THREE.Vector3 => {
-    const level = getLevel(element);
+  const getFallbackPosition = useCallback(
+    (element: any): THREE.Vector3 => {
+      const level = getHapLevel(element);
 
-    if (isApplication(element)) {
-      return new THREE.Vector3(
-        (Math.random() - 0.5) * 5,
-        0 + level * 10, // Application (Level 2) = 20
-        (Math.random() - 0.5) * 5
-      );
-    } else if (isPackage(element) && element.parent) {
-      const parentPos = getPosition(element.parent);
-      return new THREE.Vector3(
-        parentPos.x + (Math.random() - 0.5) * 30,
-        0 + level * 10, // Package (Level 1) = 10
-        parentPos.z + (Math.random() - 0.5) * 30
-      );
-    } else if (isClass(element) && element.parent) {
-      const parentPos = getPosition(element.parent);
-      return new THREE.Vector3(
-        parentPos.x + (Math.random() - 0.5) * 10,
-        0 + level * 10, // Class (Level 0) = 0
-        parentPos.z + (Math.random() - 0.5) * 10
-      );
-    }
+      if (isApplication(element)) {
+        return new THREE.Vector3(
+          (Math.random() - 0.5) * 5,
+          0 + level * 10, // Application (Level 2) = 20
+          (Math.random() - 0.5) * 5
+        );
+      } else if (isPackage(element) && element.parent) {
+        const parentPos = getPosition(element.parent);
+        return new THREE.Vector3(
+          parentPos.x + (Math.random() - 0.5) * 30,
+          0 + level * 10, // Package (Level 1) = 10
+          parentPos.z + (Math.random() - 0.5) * 30
+        );
+      } else if (isClass(element) && element.parent) {
+        const parentPos = getPosition(element.parent);
+        return new THREE.Vector3(
+          parentPos.x + (Math.random() - 0.5) * 10,
+          0 + level * 10, // Class (Level 0) = 0
+          parentPos.z + (Math.random() - 0.5) * 10
+        );
+      }
 
-    return new THREE.Vector3(0, 0, 0);
-  };
+      return new THREE.Vector3(0, 0, 0);
+    },
+    [getHapLevel, getPosition]
+  );
 
-  const getPosition = (element: any): THREE.Vector3 => {
-    if (!effectiveLayoutMap || !effectiveLayoutMap.has(element.id)) {
-      throw new Error(
-        `NO LAYOUT for ${element.type} "${element.name || element.id}"`
-      );
-    }
-
-    const layout = effectiveLayoutMap.get(element.id)!;
-    return getExactHAPPosition(element, layout);
-  };
+  // Detect if this is an inter-app communication
+  const isInterAppCommunication =
+    communicationModel.sourceApp.id !== communicationModel.targetApp.id;
 
   const hapSystem = useMemo<HierarchicalAttractionSystem | null>(() => {
     if (!applicationElement || !enableEdgeBundling) return null;
 
+    // Use landscape HAP system for inter-app communications
+    if (isInterAppCommunication) {
+      const landscapeSystem = hapSystemManager.getHAPSystem('LANDSCAPE');
+      return landscapeSystem || null;
+    }
+
+    // Use application-level HAP system for intra-app communications
     let system = hapSystemManager.getHAPSystem(applicationElement.id);
     if (!system) {
-      const getChildren = (el: any) => {
+      const getChildrenLocal = (el: any) => {
         if (isPackage(el)) return [...el.subPackages, ...el.classes];
         if (isApplication(el)) return el.packages;
         return [];
@@ -282,9 +318,9 @@ export default function CommunicationR3F({
       hapSystemManager.buildApplicationHAPTree(
         applicationElement.id,
         applicationElement,
-        getChildren,
+        getChildrenLocal,
         getPosition,
-        getLevel
+        getHapLevel
       );
 
       // Get HAPSystem
@@ -292,49 +328,90 @@ export default function CommunicationR3F({
     }
 
     return system || null;
-  }, [applicationElement?.id, enableEdgeBundling, effectiveLayoutMap]);
+  }, [
+    applicationElement?.id,
+    enableEdgeBundling,
+    effectiveLayoutMap,
+    getPosition,
+    getHapLevel,
+    isInterAppCommunication,
+  ]);
+
+  // Memoize helper functions to prevent recreating on each render
+  const getChildren = useCallback((element: any): any[] => {
+    if (isPackage(element)) return [...element.subPackages, ...element.classes];
+    if (isApplication(element)) return element.packages;
+    return [];
+  }, []);
+
+  const getCorrectedPosition = useCallback(
+    (element: any): THREE.Vector3 => {
+      if (effectiveLayoutMap && effectiveLayoutMap.has(element.id)) {
+        const layout = effectiveLayoutMap.get(element.id)!;
+        const hapLevel = getHapLevel(element);
+
+        const elevationY = hapLevel * 15; // Class=0, Package=15, Application=30
+
+        // Following the pattern from layout-helper.ts:getLandscapePositionOfModel
+        // but without landscapeScalar since we're rendering inside the scaled landscape group
+
+        if (isApplication(element)) {
+          // For applications: use position + (width/2, 0, depth/2) as center
+          return new THREE.Vector3(
+            layout.position.x + layout.width / 2,
+            layout.position.y + elevationY,
+            layout.position.z + layout.depth / 2
+          );
+        }
+
+        // For classes/packages: need to add application position offset
+        if (
+          applicationElement &&
+          effectiveLayoutMap.has(applicationElement.id)
+        ) {
+          const appLayout = effectiveLayoutMap.get(applicationElement.id)!;
+          const appPosition = appLayout.position.clone();
+          const modelCenter = layout.center.clone();
+
+          return new THREE.Vector3(
+            appPosition.x + modelCenter.x,
+            modelCenter.y + elevationY,
+            appPosition.z + modelCenter.z
+          );
+        }
+
+        // Fallback: use layout center as-is
+        return new THREE.Vector3(
+          layout.center.x,
+          layout.center.y + elevationY,
+          layout.center.z
+        );
+      }
+      return getFallbackPosition(element);
+    },
+    [effectiveLayoutMap, getHapLevel, getFallbackPosition, applicationElement]
+  );
 
   // Initialize HAP system for the application
   useEffect(() => {
     if (applicationElement && enableEdgeBundling) {
       hapSystemManager.clearHAPSystem(applicationElement.id);
 
-      const getChildren = (element: any): any[] => {
-        if (isPackage(element))
-          return [...element.subPackages, ...element.classes];
-        if (isApplication(element)) return element.packages;
-        return [];
-      };
-
-      const getCorrectedPosition = (element: any): THREE.Vector3 => {
-        if (effectiveLayoutMap && effectiveLayoutMap.has(element.id)) {
-          const layout = effectiveLayoutMap.get(element.id)!;
-          const level = getLevel(element);
-
-          const elevationY = level * 15; // Class=0, Package=15, Application=30
-
-          return new THREE.Vector3(
-            layout.center.x,
-            layout.center.y + elevationY,
-            layout.center.z
-          );
-        }
-        return getFallbackPosition(element);
-      };
-
       hapSystemManager.buildApplicationHAPTree(
         applicationElement.id,
         applicationElement,
         getChildren,
         getCorrectedPosition,
-        getLevel,
+        getHapLevel,
         leafPackagesOnly
       );
     }
   }, [
     applicationElement?.id,
     enableEdgeBundling,
-    effectiveLayoutMap,
+    getChildren,
+    getCorrectedPosition,
+    getHapLevel,
     leafPackagesOnly,
   ]);
 
@@ -349,6 +426,22 @@ export default function CommunicationR3F({
     );
 
     if (!originHAP || !destinationHAP) {
+      // Debug: Log missing HAP nodes for troubleshooting
+      if (use3DHAPAlgorithm && enableEdgeBundling) {
+        console.warn(
+          `[HAP] Missing HAP nodes for communication ${communicationModel.id}:`,
+          {
+            sourceClass: communicationModel.sourceClass?.id,
+            targetClass: communicationModel.targetClass?.id,
+            originHAP: !!originHAP,
+            destinationHAP: !!destinationHAP,
+            isInterApp: isInterAppCommunication,
+            hapSystemType: isInterAppCommunication
+              ? 'LANDSCAPE'
+              : applicationElement?.id,
+          }
+        );
+      }
       return null;
     }
 
@@ -357,6 +450,11 @@ export default function CommunicationR3F({
     hapSystem,
     communicationModel.sourceClass?.id,
     communicationModel.targetClass?.id,
+    use3DHAPAlgorithm,
+    enableEdgeBundling,
+    isInterAppCommunication,
+    applicationElement?.id,
+    communicationModel.id,
   ]);
 
   // const hapNodes = useMemo(() => {
@@ -436,12 +534,14 @@ export default function CommunicationR3F({
   useEffect(() => {
     if (!meshRef.current) return;
 
-    meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm;
+    // Only enable 3D-HAP if we have valid HAP nodes
+    meshRef.current.use3DHAPAlgorithm = use3DHAPAlgorithm && !!hapNodes;
 
     if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes) {
-      const hapSystem = hapSystemManager.getHAPSystem(
-        applicationElement?.id || 'default'
-      );
+      const systemId = isInterAppCommunication
+        ? 'LANDSCAPE'
+        : applicationElement?.id || 'default';
+      const hapSystem = hapSystemManager.getHAPSystem(systemId);
       if (hapSystem) {
         meshRef.current.initializeHAPSystem(
           hapSystem,
@@ -449,11 +549,19 @@ export default function CommunicationR3F({
           hapNodes.destinationHAP
         );
       }
+    } else if (meshRef.current.use3DHAPAlgorithm === false) {
+      // Clear HAP system if disabled or nodes not found
+      meshRef.current.clearHAPSystem();
     }
 
     // Force re-render
     if (meshRef.current.render) meshRef.current.render();
-  }, [use3DHAPAlgorithm, enableEdgeBundling, hapNodes]);
+  }, [
+    use3DHAPAlgorithm,
+    enableEdgeBundling,
+    hapNodes,
+    isInterAppCommunication,
+  ]);
 
   // Create appropriate layout based on algorithm selection
   const finalLayout = useMemo(() => {
@@ -508,9 +616,10 @@ export default function CommunicationR3F({
     }
 
     if (use3DHAPAlgorithm && hapNodes) {
-      const hapSystem = hapSystemManager.getHAPSystem(
-        applicationElement?.id || 'default'
-      );
+      const systemId = isInterAppCommunication
+        ? 'LANDSCAPE'
+        : applicationElement?.id || 'default';
+      const hapSystem = hapSystemManager.getHAPSystem(systemId);
       if (hapSystem) {
         bundledLayout.setHAPNodes(hapNodes.originHAP, hapNodes.destinationHAP);
         bundledLayout.setBeta(beta);
@@ -639,7 +748,7 @@ export default function CommunicationR3F({
           applicationElement,
           getChildren,
           getPosition,
-          getLevel
+          getHapLevel
         );
       }
 
@@ -687,9 +796,10 @@ export default function CommunicationR3F({
       use3DHAPAlgorithm &&
       hapNodes
     ) {
-      const hapSystem = hapSystemManager.getHAPSystem(
-        applicationElement?.id || 'default'
-      );
+      const systemId = isInterAppCommunication
+        ? 'LANDSCAPE'
+        : applicationElement?.id || 'default';
+      const hapSystem = hapSystemManager.getHAPSystem(systemId);
       if (hapSystem) {
         meshRef.current.initializeHAPSystem(
           hapSystem,
@@ -742,39 +852,50 @@ export default function CommunicationR3F({
   }, [effectiveLayoutMap]);
 
   useEffect(() => {
-    if (!applicationElement?.id || !showHAPTree) {
-      const landscapeGroup = scene.children.find(
-        (child) => child.type === 'Group' && child.scale.x < 1
-      );
-      const targetScene = landscapeGroup || scene;
+    // Only visualize application-level HAP trees for intra-app communications
+    // Landscape-level HAP tree is visualized by LandscapeHAPVisualizer for inter-app communications
+    if (!applicationElement?.id || !showHAPTree || isInterAppCommunication) {
+      // Clean up application-specific HAP visualization if disabled
+      if (applicationElement?.id && !showHAPTree) {
+        const landscapeGroup = scene.children.find(
+          (child) => child.type === 'Group' && child.scale.x < 1
+        );
+        if (landscapeGroup) {
+          const groupName = `HAP_GROUP_${applicationElement.id}`;
+          const hapGroup = landscapeGroup.children.find(
+            (child: any) => child.name === groupName
+          ) as THREE.Group;
 
-      const hapObjects = targetScene.children.filter(
-        (child) =>
-          child.name?.includes('HAP_') ||
-          child.name?.includes('HAP-Line') ||
-          child.name?.includes('HAP-Label')
-      );
-
-      hapObjects.forEach((obj) => {
-        targetScene.remove(obj);
-        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) {
-          if (obj.geometry) obj.geometry.dispose();
-          if (obj.material) {
-            if (Array.isArray(obj.material)) {
-              obj.material.forEach((m) => m.dispose());
-            } else {
-              obj.material.dispose();
+          if (hapGroup) {
+            landscapeGroup.remove(hapGroup);
+            // Dispose of HAP group children
+            for (let i = hapGroup.children.length - 1; i >= 0; i--) {
+              const child = hapGroup.children[i];
+              if (child instanceof THREE.Line && child.geometry) {
+                child.geometry.dispose();
+              } else if (child instanceof THREE.InstancedMesh) {
+                child.dispose();
+              }
             }
           }
         }
-      });
-
+      }
       return;
     }
 
-    const landscapeScalar = 0.01;
-    hapSystemManager.visualizeHAPs(applicationElement.id, scene);
-  }, [applicationElement?.id, scene, showHAPTree]);
+    // Visualize application-level HAP tree for intra-app communications
+    hapSystemManager.visualizeHAPs(
+      applicationElement.id,
+      scene,
+      effectiveLayoutMap || undefined
+    );
+  }, [
+    applicationElement?.id,
+    scene,
+    showHAPTree,
+    isInterAppCommunication,
+    effectiveLayoutMap,
+  ]);
 
   useEffect(() => {
     if (!enableEdgeBundling || !use3DHAPAlgorithm) return;
@@ -816,12 +937,17 @@ export default function CommunicationR3F({
             return [];
           },
           getPosition,
-          getLevel,
+          getHapLevel,
           leafPackagesOnly
         );
 
-        if (showHAPTree) {
-          hapSystemManager.visualizeHAPs(applicationElement.id, scene);
+        // Only visualize application HAP tree if it's not an inter-app communication
+        if (showHAPTree && !isInterAppCommunication) {
+          hapSystemManager.visualizeHAPs(
+            applicationElement.id,
+            scene,
+            effectiveLayoutMap || undefined
+          );
         }
 
         ClazzCommunicationMesh.clearSharedGeometries();
@@ -839,15 +965,23 @@ export default function CommunicationR3F({
         handleRebuildHAPTree as EventListener
       );
     };
-  }, [applicationElement?.id, enableEdgeBundling, showHAPTree, scene]);
+  }, [
+    applicationElement?.id,
+    enableEdgeBundling,
+    showHAPTree,
+    scene,
+    isInterAppCommunication,
+  ]);
 
   useEffect(() => {
-    if (enableEdgeBundling && applicationElement) {
+    // Only build application-level HAP trees for intra-app communications
+    // Inter-app communications use the landscape HAP system
+    if (enableEdgeBundling && applicationElement && !isInterAppCommunication) {
       ClazzCommunicationMesh.clearSharedGeometries();
 
       hapSystemManager.clearHAPSystem(applicationElement.id);
 
-      const getChildren = (element: any): any[] => {
+      const getChildrenLocal = (element: any): any[] => {
         if (isPackage(element))
           return [...element.subPackages, ...element.classes];
         if (isApplication(element)) return element.packages;
@@ -857,13 +991,20 @@ export default function CommunicationR3F({
       hapSystemManager.buildApplicationHAPTree(
         applicationElement.id,
         applicationElement,
-        getChildren,
+        getChildrenLocal,
         getPosition,
-        getLevel,
+        getHapLevel,
         leafPackagesOnly
       );
     }
-  }, [enableEdgeBundling, applicationElement?.id, leafPackagesOnly]);
+  }, [
+    enableEdgeBundling,
+    applicationElement?.id,
+    leafPackagesOnly,
+    getPosition,
+    getHapLevel,
+    isInterAppCommunication,
+  ]);
 
   useEffect(() => {
     if (meshRef.current && hapNodes && hapSystem) {

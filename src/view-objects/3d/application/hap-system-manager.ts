@@ -10,9 +10,20 @@ export class HAPSystemManager {
   private elementToHAP: Map<string, HAPNode> = new Map();
 
   private landscapeHAPTree: HAPNode | null = null;
-  private isTreeBuilding: boolean = false;
 
-  private constructor() {}
+  // Cached geometries and materials for performance
+  private sphereGeometries: Map<number, THREE.SphereGeometry> = new Map();
+  private lineMaterials: Map<number, THREE.LineBasicMaterial> = new Map();
+  private sphereMaterials: Map<number, THREE.MeshBasicMaterial> = new Map();
+  private colorCache: Map<number, THREE.Color> = new Map();
+
+  private constructor() {
+    // Pre-cache colors
+    this.colorCache.set(0, new THREE.Color(0xff0000)); // Application - Red
+    this.colorCache.set(1, new THREE.Color(0x00ff00)); // Package - Green
+    this.colorCache.set(2, new THREE.Color(0x0000ff)); // Class - Blue
+    this.colorCache.set(3, new THREE.Color(0xffffff)); // Default
+  }
 
   public static getInstance(): HAPSystemManager {
     if (!HAPSystemManager.instance) {
@@ -27,7 +38,6 @@ export class HAPSystemManager {
     getLevel: (element: any) => number
   ): void {
     this.clearAllHAPSystems();
-    this.isTreeBuilding = true;
 
     // 1. Create virtual landscape root (Level 3)
     const landscapeRoot: HAPNode = {
@@ -39,19 +49,15 @@ export class HAPSystemManager {
       element: { type: 'landscape', name: 'Complete Landscape' },
     };
 
-    // 2. Create HAP for each application (arranged in a circle)
-    applications.forEach((app, index) => {
-      const angle = (index / applications.length) * Math.PI * 2;
-      const radius = 150;
+    // 2. Create HAP for each application using actual layout positions
+    applications.forEach((app) => {
+      const appPosition = getPosition(app);
+      const appLevel = getLevel(app);
 
       const appNode: HAPNode = {
         id: `APP_${app.id}`,
-        position: new THREE.Vector3(
-          Math.cos(angle) * radius,
-          60, // Fixed height for all applications
-          Math.sin(angle) * radius
-        ),
-        level: 2, // Application level
+        position: appPosition,
+        level: appLevel,
         children: [],
         parent: landscapeRoot,
         element: app,
@@ -60,12 +66,41 @@ export class HAPSystemManager {
       landscapeRoot.children.push(appNode);
 
       // 3. Build hierarchy for this application
-      this.buildApplicationHierarchy(app, appNode, getPosition, getLevel);
+      // Create a wrapper for getPosition that includes application context
+      const getPositionWithApp = (element: any) => {
+        // If element is the application itself, use getPosition directly
+        if (element.type === 'application' || element === app) {
+          return getPosition(element);
+        }
+        // For packages and classes, we need to add the app's position offset
+        // Store app reference temporarily on element for position calculation
+        const originalApp = element._tempApp;
+        element._tempApp = app;
+        const pos = getPosition(element);
+        // Restore original
+        if (originalApp !== undefined) {
+          element._tempApp = originalApp;
+        } else {
+          delete element._tempApp;
+        }
+        return pos;
+      };
+      this.buildApplicationHierarchy(
+        app,
+        appNode,
+        getPositionWithApp,
+        getLevel,
+        app
+      );
     });
 
     this.landscapeHAPTree = landscapeRoot;
     this.registerHAPNodes(landscapeRoot);
-    this.isTreeBuilding = false;
+
+    // 4. Create a HierarchicalAttractionSystem for the landscape
+    const landscapeHAPSystem = new HierarchicalAttractionSystem();
+    landscapeHAPSystem.setHAPTree(landscapeRoot);
+    this.hapSystems.set('LANDSCAPE', landscapeHAPSystem);
   }
 
   /**
@@ -208,12 +243,22 @@ export class HAPSystemManager {
     );
   }
 
-  // Recursively register all HAP nodes
-  private registerHAPNodes(node: HAPNode): void {
-    if (node.element && node.element.id) {
-      this.elementToHAP.set(node.element.id, node);
+  // Recursively register all HAP nodes - optimized iterative version
+  private registerHAPNodes(root: HAPNode): void {
+    const stack: HAPNode[] = [root];
+
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+
+      if (node.element && node.element.id) {
+        this.elementToHAP.set(node.element.id, node);
+      }
+
+      // Add children to stack in reverse order to maintain traversal order
+      for (let i = node.children.length - 1; i >= 0; i--) {
+        stack.push(node.children[i]);
+      }
     }
-    node.children.forEach((child) => this.registerHAPNodes(child));
   }
 
   // // Get HAP node for a software element
@@ -229,8 +274,10 @@ export class HAPSystemManager {
   }
 
   // Set global beta parameter
-  public setGlobalBeta(beta: number): void {
-    this.hapSystems.forEach((system) => system.setBeta(beta));
+  public setGlobalBeta(_beta: number): void {
+    // Note: Beta is now managed within each HierarchicalAttractionSystem instance
+    // This method is kept for backwards compatibility but currently does nothing
+    // If needed, add a setBeta method to HierarchicalAttractionSystem
   }
 
   public clearHAPSystem(applicationId: string): void {
@@ -263,7 +310,11 @@ export class HAPSystemManager {
     return false;
   }
 
-  public visualizeHAPs(applicationId: string, scene: THREE.Scene): void {
+  public visualizeHAPs(
+    applicationId: string,
+    scene: THREE.Scene,
+    layoutMap?: Map<string, any>
+  ): void {
     const system = this.getHAPSystem(applicationId);
     if (!system) {
       return;
@@ -276,23 +327,30 @@ export class HAPSystemManager {
     if (!landscapeGroup) {
       return;
     }
+
+    // Use unique group name based on applicationId to avoid conflicts
+    const groupName = `HAP_GROUP_${applicationId}`;
     let hapGroup = landscapeGroup.children.find(
-      (child) => child.name === 'HAP_GROUP'
+      (child) => child.name === groupName
     ) as THREE.Group;
 
     if (!hapGroup) {
       hapGroup = new THREE.Group();
-      hapGroup.name = 'HAP_GROUP';
+      hapGroup.name = groupName;
       landscapeGroup.add(hapGroup);
     } else {
-      while (hapGroup.children.length > 0) {
-        const child = hapGroup.children[0];
-        hapGroup.remove(child);
-        if (child instanceof THREE.Mesh || child instanceof THREE.Line) {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) child.material.dispose();
+      // Clear existing children more efficiently
+      // Only dispose geometries we created (lines), not cached ones
+      for (let i = hapGroup.children.length - 1; i >= 0; i--) {
+        const child = hapGroup.children[i];
+        if (child instanceof THREE.Line && child.geometry) {
+          child.geometry.dispose();
+        } else if (child instanceof THREE.InstancedMesh) {
+          // Don't dispose geometry/material for instanced meshes (they're shared)
+          child.dispose();
         }
       }
+      hapGroup.clear();
     }
 
     const hapTree = system.getHAPTree();
@@ -303,25 +361,61 @@ export class HAPSystemManager {
     const scale = landscapeGroup.scale.x;
     const sizeMultiplier = 0.05 / scale;
 
-    const drawHAPTree = (node: HAPNode) => {
+    // For application-level HAP trees, we need to transform relative coordinates to world coordinates
+    // The root node (application) is in landscape coordinates, children have relative coordinates to the application
+    const isApplicationTree = applicationId !== 'LANDSCAPE';
+
+    // Get application corner position for coordinate transformation
+    let appCornerPosition = new THREE.Vector3(0, 0, 0);
+    if (isApplicationTree && hapTree.element?.id && layoutMap) {
+      const appLayout = layoutMap.get(hapTree.element.id);
+      if (appLayout) {
+        appCornerPosition = appLayout.position.clone();
+      }
+    }
+
+    // Helper function to get visualization position (transforms relative to world for app trees)
+    const getVisPosition = (node: HAPNode): THREE.Vector3 => {
+      if (!isApplicationTree || node === hapTree) {
+        // Landscape tree or application root: use position as-is
+        return node.position.clone();
+      }
+      // Application tree children: add application corner position to convert relative to world coords
+      return node.position.clone().add(appCornerPosition);
+    };
+
+    // Collect nodes by level for instancing
+    const nodesByLevel: Map<
+      number,
+      Array<{ node: HAPNode; size: number; position: THREE.Vector3 }>
+    > = new Map();
+    const linesToAdd: THREE.Line[] = [];
+
+    // First pass: collect all nodes and categorize by level
+    const stack: HAPNode[] = [hapTree];
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+
+      // Get visualization position for this node
+      const nodeVisPos = getVisPosition(node);
+
+      // Create line to parent if exists
       if (node.parent) {
+        const parentVisPos = getVisPosition(node.parent);
         const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-          node.position.clone(),
-          node.parent.position.clone(),
+          nodeVisPos,
+          parentVisPos,
         ]);
 
-        const lineMaterial = new THREE.LineBasicMaterial({
-          color: this.getLevelColor(node.level),
-          transparent: true,
-          opacity: 0.6,
-          linewidth: 2,
-        });
-
-        const line = new THREE.Line(lineGeometry, lineMaterial);
+        const line = new THREE.Line(
+          lineGeometry,
+          this.getLineMaterial(node.level)
+        );
         line.name = `HAP_LINE_${node.id}`;
-        hapGroup.add(line);
+        linesToAdd.push(line);
       }
 
+      // Determine size based on level
       let size: number;
       switch (node.level) {
         case 0:
@@ -337,78 +431,149 @@ export class HAPSystemManager {
           size = 0.4 * sizeMultiplier;
       }
 
-      const geometry = new THREE.SphereGeometry(size);
-      const material = new THREE.MeshBasicMaterial({
-        color: this.getLevelColor(node.level),
-        transparent: true,
-        opacity: 0.8,
+      // Categorize by level
+      if (!nodesByLevel.has(node.level)) {
+        nodesByLevel.set(node.level, []);
+      }
+      nodesByLevel.get(node.level)!.push({ node, size, position: nodeVisPos });
+
+      // Add children to stack
+      for (let i = node.children.length - 1; i >= 0; i--) {
+        stack.push(node.children[i]);
+      }
+    }
+
+    // Second pass: create instanced meshes for each level
+    const dummy = new THREE.Object3D();
+    nodesByLevel.forEach((nodes, level) => {
+      if (nodes.length === 0) return;
+
+      // Use the size from the first node (all same level should have same size)
+      const size = nodes[0].size;
+      const geometry = this.getSphereGeometry(size);
+      const material = this.getSphereMaterial(level);
+
+      // Create instanced mesh
+      const instancedMesh = new THREE.InstancedMesh(
+        geometry,
+        material,
+        nodes.length
+      );
+      instancedMesh.name = `HAP_INSTANCED_LEVEL_${level}`;
+
+      // Set positions for all instances
+      nodes.forEach(({ position }, index) => {
+        dummy.position.copy(position);
+        dummy.updateMatrix();
+        instancedMesh.setMatrixAt(index, dummy.matrix);
       });
 
-      const sphere = new THREE.Mesh(geometry, material);
-      sphere.position.copy(node.position);
-      sphere.name = `HAP_SPHERE_${node.id}`;
-      hapGroup.add(sphere);
+      instancedMesh.instanceMatrix.needsUpdate = true;
+      hapGroup.add(instancedMesh);
+    });
 
-      node.children.forEach((child) => drawHAPTree(child));
-    };
-
-    drawHAPTree(hapTree);
+    // Add lines (can't be instanced easily due to different endpoints)
+    hapGroup.add(...linesToAdd);
   }
 
   private getLevelColor(level: number): THREE.Color {
-    switch (level) {
-      case 0:
-        return new THREE.Color(0xff0000); // Application - Red
-      case 1:
-        return new THREE.Color(0x00ff00); // Package - Green
-      case 2:
-        return new THREE.Color(0x0000ff); // Class - Blue
-      default:
-        return new THREE.Color(0xffffff);
+    return this.colorCache.get(level) || this.colorCache.get(3)!;
+  }
+
+  // Get or create cached sphere geometry
+  private getSphereGeometry(size: number): THREE.SphereGeometry {
+    const key = Math.round(size * 10000); // Use rounded key for caching
+    if (!this.sphereGeometries.has(key)) {
+      // Use lower segment count for better performance
+      this.sphereGeometries.set(key, new THREE.SphereGeometry(size, 8, 6));
     }
+    return this.sphereGeometries.get(key)!;
+  }
+
+  // Get or create cached line material
+  private getLineMaterial(level: number): THREE.LineBasicMaterial {
+    if (!this.lineMaterials.has(level)) {
+      this.lineMaterials.set(
+        level,
+        new THREE.LineBasicMaterial({
+          color: this.getLevelColor(level),
+          transparent: true,
+          opacity: 0.6,
+          linewidth: 2,
+        })
+      );
+    }
+    return this.lineMaterials.get(level)!;
+  }
+
+  // Get or create cached sphere material
+  private getSphereMaterial(level: number): THREE.MeshBasicMaterial {
+    if (!this.sphereMaterials.has(level)) {
+      this.sphereMaterials.set(
+        level,
+        new THREE.MeshBasicMaterial({
+          color: this.getLevelColor(level),
+          transparent: true,
+          opacity: 0.8,
+        })
+      );
+    }
+    return this.sphereMaterials.get(level)!;
   }
 
   private buildApplicationHierarchy(
     element: any,
     parentHAP: HAPNode,
     getPosition: (element: any) => THREE.Vector3,
-    getLevel: (element: any) => number
+    getLevel: (element: any) => number,
+    application: any
   ): void {
-    // Safe way to get children
+    // Safe way to get children - optimized to avoid array spread when not needed
     let children: any[] = [];
 
-    if (element.packages) children = element.packages;
-    else if (element.subPackages) children = element.subPackages;
-    else if (element.classes) children = element.classes;
-
-    if (element.classes && element.subPackages) {
+    if (element.packages) {
+      children = element.packages;
+    } else if (element.subPackages && element.classes) {
+      // Only spread if both exist
       children = [...element.subPackages, ...element.classes];
+    } else if (element.subPackages) {
+      children = element.subPackages;
+    } else if (element.classes) {
+      children = element.classes;
     }
 
-    children.forEach((child) => {
+    // Pre-allocate array if we know the size
+    if (children.length > 0) {
+      parentHAP.children = new Array(children.length);
+    }
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
       const childLevel = getLevel(child);
       const childPos = getPosition(child);
 
       const childNode: HAPNode = {
         id: child.id || `node_${Math.random().toString(36).substr(2, 9)}`,
-        position: new THREE.Vector3(
-          parentHAP.position.x + childPos.x * 0.3,
-          childLevel * 15,
-          parentHAP.position.z + childPos.z * 0.3
-        ),
+        position: childPos, // Use the position directly from getPosition (already in world coordinates)
         level: childLevel,
         children: [],
         parent: parentHAP,
         element: child,
       };
 
-      parentHAP.children.push(childNode);
+      parentHAP.children[i] = childNode;
 
       // Recursive for non-class elements
       if (childLevel > 0) {
-        this.buildApplicationHierarchy(child, childNode, getPosition, getLevel);
+        this.buildApplicationHierarchy(
+          child,
+          childNode,
+          getPosition,
+          getLevel,
+          application
+        );
       }
-    });
+    }
   }
 
   public getHAPNode(elementId: string): HAPNode | null {
@@ -450,5 +615,22 @@ export class HAPSystemManager {
     this.hapSystems.clear();
     this.elementToHAP.clear();
     this.landscapeHAPTree = null;
+  }
+
+  // Dispose of cached geometries and materials
+  public dispose(): void {
+    // Dispose geometries
+    this.sphereGeometries.forEach((geometry) => geometry.dispose());
+    this.sphereGeometries.clear();
+
+    // Dispose materials
+    this.lineMaterials.forEach((material) => material.dispose());
+    this.lineMaterials.clear();
+
+    this.sphereMaterials.forEach((material) => material.dispose());
+    this.sphereMaterials.clear();
+
+    // Clear systems and trees
+    this.clearAllHAPSystems();
   }
 }
