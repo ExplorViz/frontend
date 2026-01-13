@@ -1,7 +1,13 @@
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas, useLoader } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { IfInSessionMode, TeleportTarget, XR, XROrigin } from '@react-three/xr';
+import {
+  createXRStore,
+  IfInSessionMode,
+  TeleportTarget,
+  XR,
+  XROrigin,
+} from '@react-three/xr';
 import {
   default as CollaborationCameraSync,
   default as SpectateCameraController,
@@ -40,10 +46,10 @@ import { useShallow } from 'zustand/react/shallow';
 
 export default function CanvasWrapper({
   landscapeData,
-  store,
+  xrStore,
 }: {
   landscapeData: LandscapeData | null;
-  store: XRStore;
+  xrStore?: XRStore | undefined;
 }) {
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
@@ -284,7 +290,7 @@ export default function CanvasWrapper({
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={store}>
+        <XR store={xrStore || createXRStore({})}>
           <IfInSessionMode deny={['immersive-ar', 'immersive-vr']}>
             <CameraControls
               ref={cameraControlsRef}

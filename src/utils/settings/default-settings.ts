@@ -1040,20 +1040,12 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   // VR Settings
-  showVrButton: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Virtual Reality',
-    displayName: 'Show VR Button',
-    description: 'Toggle visibility of VR button',
-    isFlagSetting: true,
-  },
-  showVrOnClick: {
+  autoEnterVr: {
     level: SettingLevel.DEFAULT,
     value: true,
     group: 'Virtual Reality',
-    displayName: 'Show VR in Browser',
-    description: 'Shows the VR room in the browser after joining',
+    displayName: 'Automatically Enter VR',
+    description: 'Automatically enter VR mode when switch to VR mode',
     isFlagSetting: true,
   },
 

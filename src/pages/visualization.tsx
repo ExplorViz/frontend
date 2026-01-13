@@ -7,6 +7,7 @@ import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/pa
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
+import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import {
   useLocalUserStore,
@@ -848,7 +849,7 @@ export default function Visualization() {
     useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
 
     setRoomId(null);
-    useLocalUserStore.setState({ visualizationMode: 'browser' });
+    setVisualizationMode('browser');
 
     if (useWebSocketStore.getState().isWebSocketOpen()) {
       eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
@@ -868,6 +869,19 @@ export default function Visualization() {
 
   // #endregion
 
+  // Use minimal setup for AR/VR
+  if (
+    localUserVisualizationMode === 'vr' ||
+    localUserVisualizationMode === 'ar'
+  ) {
+    return (
+      <div id="vizspace">
+        <XrRendering landscapeData={renderingServiceLandscapeData} />{' '}
+      </div>
+    );
+  }
+
+  // Browser mode
   return (
     <>
       <div id="vizspace">

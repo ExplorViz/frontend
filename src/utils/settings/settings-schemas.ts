@@ -208,7 +208,7 @@ export type MiscSettings = {
 };
 export type MiscSettingId = keyof MiscSettings;
 
-export type XrSettingId = 'showVrButton' | 'showVrOnClick';
+export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type VisualizationSettingId =

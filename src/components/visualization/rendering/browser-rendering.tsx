@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
-import { createXRStore } from '@react-three/xr';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
@@ -29,6 +27,7 @@ import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
 import { ChatbotProvider } from '../../chatbot/chatbot-context';
@@ -75,14 +74,6 @@ export default function BrowserRendering({
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
-
-  const xrStore = createXRStore({
-    controller: {
-      teleportPointer: { rayModel: { color: 'red' } },
-      rayPointer: { rayModel: { color: 'red' } },
-    },
-    offerSession: false,
-  });
 
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
@@ -265,8 +256,8 @@ export default function BrowserRendering({
               {useUserSettingsStore.getState().visualizationSettings
                 .heatmapEnabled.value && <HeatmapInfo />}
 
-              <ContextMenu enterVR={() => xrStore.enterVR()}>
-                <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
+              <ContextMenu>
+                <CanvasWrapper landscapeData={landscapeData} />
               </ContextMenu>
 
               {landscapeData && <Popups landscapeData={landscapeData} />}
