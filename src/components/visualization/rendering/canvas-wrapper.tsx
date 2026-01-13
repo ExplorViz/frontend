@@ -321,7 +321,10 @@ export default function CanvasWrapper({
         )}
         <XR store={xrStore || createXRStore({})}>
           <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
-            <XROrigin position={position} />
+            <XROrigin position={position}>
+              <ControllerMenu handedness="left" />
+              <ControllerMenu handedness="right" />
+            </XROrigin>
             <TeleportTarget onTeleport={setPosition}>
               <mesh
                 name="floor"
@@ -332,8 +335,6 @@ export default function CanvasWrapper({
                 <meshBasicMaterial attach="material" map={floorTexture} />
               </mesh>
             </TeleportTarget>
-            <ControllerMenu handedness="left" />
-            <ControllerMenu handedness="right" />
           </IfInSessionMode>
           <LandscapeR3F
             layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
