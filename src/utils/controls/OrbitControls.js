@@ -1,15 +1,15 @@
 // Copied for modification from: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/controls/OrbitControls.js
 import {
   EventDispatcher,
+  MathUtils,
   MOUSE,
+  Plane,
   Quaternion,
+  Ray,
   Spherical,
   TOUCH,
   Vector2,
   Vector3,
-  Plane,
-  Ray,
-  MathUtils,
 } from 'three';
 
 // OrbitControls performs orbiting, dollying (zooming), and panning.
@@ -416,7 +416,6 @@ class OrbitControls extends EventDispatcher {
     // internals
     //
 
-    // eslint-disable-next-line
     const scope = this;
 
     const STATE = {

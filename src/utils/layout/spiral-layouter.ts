@@ -1,7 +1,7 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { Application } from './landscape-schemes/structure-data';
-import { getAllClassesInApplication } from './application-helpers';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 type SpiralState = {
   x: number;
@@ -92,23 +92,19 @@ export function calculateSpiralSideLength(
  */
 export function applySpiralLayoutToClasses(
   boxLayoutMap: Map<string, BoxLayout>,
-  applications: Application[],
-  removedComponentIds: Set<string>
+  applications: Application[]
 ) {
   // Get settings from the store
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
   const CLASS_FOOTPRINT = vs.classFootprint.value;
   const CLASS_MARGIN = vs.classMargin.value;
+  const COMPONENT_HEIGHT = vs.openedComponentHeight.value;
   const APP_LABEL_MARGIN = vs.appLabelMargin.value;
   const APP_MARGIN = vs.appMargin.value;
   const SPIRAL_CENTER_OFFSET = vs.spiralCenterOffset.value;
   const SPIRAL_GAP = vs.spiralGap.value;
 
   applications.forEach((application) => {
-    if (removedComponentIds.has(application.id)) {
-      return;
-    }
-
     // Get application layout to determine spiral size
     const appLayout = boxLayoutMap.get(application.id);
     if (!appLayout) {
@@ -116,9 +112,9 @@ export function applySpiralLayoutToClasses(
     }
 
     // Get all classes in this application
-    const classes = getAllClassesInApplication(application)
-      .filter((classModel) => !removedComponentIds.has(classModel.id))
-      .sort((classA, classB) => classA.fqn!.localeCompare(classB.fqn!));
+    const classes = getAllClassesInApplication(application).sort(
+      (classA, classB) => classA.fqn!.localeCompare(classB.fqn!)
+    );
 
     if (classes.length === 0) {
       return;
@@ -177,10 +173,12 @@ export function applySpiralLayoutToClasses(
     );
 
     classes.forEach((classModel, _) => {
-      const classLayout = boxLayoutMap.get(classModel.id);
-      if (!classLayout) {
-        return;
-      }
+      const classLayout = new BoxLayout();
+
+      classLayout.width = CLASS_FOOTPRINT;
+      classLayout.depth = CLASS_FOOTPRINT;
+      classLayout.height = CLASS_FOOTPRINT;
+      classLayout.positionY = COMPONENT_HEIGHT * 2; // Place directly on foundation
 
       // Calculate position based on current grid coordinates
       const classX = centerX + spiralState.x * spacing - CLASS_FOOTPRINT / 2;
@@ -190,6 +188,8 @@ export function applySpiralLayoutToClasses(
       classLayout.positionZ = classZ;
 
       spiralState = advanceInSpiral(spiralState, spiralConfig);
+
+      boxLayoutMap.set(classModel.id, classLayout);
     });
   });
 }

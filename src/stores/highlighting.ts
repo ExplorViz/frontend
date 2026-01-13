@@ -15,7 +15,8 @@ export const useHighlightingStore = create<HighlightingState>((set, get) => ({
       return useLocalUserStore.getState().color;
     } else {
       return new THREE.Color(
-        useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value
+        useUserSettingsStore.getState().visualizationSettings
+          .highlightedEntityColor.value
       );
     }
   },

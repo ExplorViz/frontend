@@ -1,5 +1,5 @@
+import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useEffect, useRef } from 'react';
-import { Position2D } from './interaction-modifier';
 
 interface UseLongPressOptions {
   delay?: number;

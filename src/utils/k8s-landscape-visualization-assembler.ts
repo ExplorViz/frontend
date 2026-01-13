@@ -1,5 +1,5 @@
-import { addBoxTextLabel } from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import { ExplorVizColors } from 'explorviz-frontend/src/stores/user-settings';
+import { addBoxTextLabel } from 'explorviz-frontend/src/utils/application-rendering/labeler';
 import { K8sNode } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 export default function visualizeK8sLandscape(

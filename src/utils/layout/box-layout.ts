@@ -24,6 +24,10 @@ export default class BoxLayout {
     return this.width / this.height;
   }
 
+  get area() {
+    return this.width * this.depth;
+  }
+
   // Copy function
   copy(): BoxLayout {
     const copy = new BoxLayout();

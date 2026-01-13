@@ -4,10 +4,13 @@ import { Container, Text } from '@react-three/uikit';
 import { useState } from 'react';
 import { Button } from '@react-three/uikit-default';
 
-export default function ControllerMenu({ handedness = 'right' as 'left' | 'right' }) {
+export default function ControllerMenu({ 
+  handedness = 'right' as 'left' | 'right', 
+}) {
   const [visible, setVisible] = useState(false);
   const controller = useXRInputSourceState('controller', handedness);
-  const gripSpace = controller?.inputSource.gripSpace;
+  const space = 
+    controller?.inputSource.gripSpace ?? controller?.inputSource.targetRaySpace;
   const buttonAX = controller?.gamepad[(handedness === 'right') ? 'a-button' : 'x-button'];
   // const thumbstick = controller?.gamepad['xr-standard-thumbstick'];
   // const numberOfItems = 2;
@@ -28,11 +31,14 @@ export default function ControllerMenu({ handedness = 'right' as 'left' | 'right
     // }
   });
 
-  if (!gripSpace) return null;
+  if (!space) return null;
 
   return (
-    <XRSpace space={gripSpace}>
-      <group position={[0, 0, 0.7]}>
+    <XRSpace space={space}>
+      <group
+        position={[0, 0.15, -0.15]}
+        rotation={[(340 * Math.PI) / 180, 0, 0]}
+      >
         {visible && (
           <Container 
             sizeX={0.2} 
@@ -41,15 +47,13 @@ export default function ControllerMenu({ handedness = 'right' as 'left' | 'right
             backgroundColor="black"
           >
             <Container overflow="scroll">
-              <Text fontSize={22} color="white">Menu</Text>
-              <Button 
-                onClick={() => console.log('Button 1 clicked')} 
-              >
+              <Text fontSize={22} color="white">
+                Menu
+              </Text>
+              <Button onClick={() => console.log('Button 1 clicked')}>
                 <Text>Button 1</Text>
               </Button>
-              <Button
-                onClick={() => console.log('Button 2 clicked')}
-              >
+              <Button onClick={() => console.log('Button 2 clicked')}>
                 <Text>Button 2</Text>
               </Button>
             </Container>

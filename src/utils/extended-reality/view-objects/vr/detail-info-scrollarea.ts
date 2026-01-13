@@ -1,8 +1,9 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
-import ThreeMeshUI from 'three-mesh-ui';
-import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
+import { IntersectableObject } from 'explorviz-frontend/src/utils/extended-reality/view-objects/interfaces/intersectable-object';
+import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
+import * as THREE from 'three';
+import ThreeMeshUI from 'three-mesh-ui';
 
 export default class DetailInfoScrollarea
   extends ThreeMeshUI.Block
@@ -25,7 +26,6 @@ export default class DetailInfoScrollarea
     this.initialY = this.text.position.y;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canBeIntersected(_intersection: THREE.Intersection) {
     return true;
   }

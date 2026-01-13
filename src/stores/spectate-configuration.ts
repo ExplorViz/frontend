@@ -1,6 +1,6 @@
-import { create } from 'zustand';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { create } from 'zustand';
 
 const collaborationServiceApi = import.meta.env.VITE_COLLAB_SERV_URL;
 

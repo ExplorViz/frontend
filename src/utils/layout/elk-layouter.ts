@@ -5,17 +5,6 @@ import {
   getAllPackageIdsInApplications,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import {
-  applyCircleLayoutToClasses,
-  collectApplicationClassesForCircleLayout,
-} from './circle-layouter';
-import {
-  applySpiralLayoutToClasses,
-  calculateSpiralSideLength,
-} from './spiral-layouter';
 import {
   Application,
   K8sDeployment,
@@ -23,7 +12,15 @@ import {
   K8sNode,
   K8sPod,
   Package,
-} from './landscape-schemes/structure-data';
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import { applyCircleLayoutToClasses } from 'explorviz-frontend/src/utils/layout/circle-layouter';
+import {
+  applySpiralLayoutToClasses,
+  calculateSpiralSideLength,
+} from 'explorviz-frontend/src/utils/layout/spiral-layouter';
+import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -129,40 +126,33 @@ export default async function layoutLandscape(
   applications.forEach((app) => {
     const classCount = getAllClassIdsInApplication(app).length;
     if (useCustomClassLayout) {
+      let appSideLength = 1;
       if (useCircleLayout) {
         const circumference =
           classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 2);
-        let diameter;
         if (classCount <= 2) {
-          diameter = CLASS_FOOTPRINT * 4;
+          appSideLength = CLASS_FOOTPRINT * 4;
         } else {
-          diameter = circumference / Math.PI;
+          appSideLength = circumference / Math.PI;
         }
-        landscapeGraph.children.push(
-          createdFixedSizeApplication(app, {
-            width: diameter,
-            depth: diameter,
-          })
-        );
       } else {
-        // Spiral layout: calculate size based on spiral pattern
         const { visualizationSettings: vs } = useUserSettingsStore.getState();
 
-        const spiralSideLength = calculateSpiralSideLength(
+        appSideLength = calculateSpiralSideLength(
           classCount,
           CLASS_FOOTPRINT,
           CLASS_MARGIN,
           vs.spiralGap.value,
           vs.spiralCenterOffset.value
         );
-
-        landscapeGraph.children.push(
-          createdFixedSizeApplication(app, {
-            width: spiralSideLength,
-            depth: spiralSideLength,
-          })
-        );
       }
+      landscapeGraph.children.push(
+        createdFixedSizeApplication(app, {
+          width: appSideLength,
+          depth: appSideLength,
+        })
+      );
+      // Layout without special class layout algorithm
     } else {
       landscapeGraph.children.push(
         createApplicationGraph(app, removedComponentIds)
@@ -187,17 +177,9 @@ export default async function layoutLandscape(
 
     // Apply the selected layout algorithm to classes
     if (useCircleLayout) {
-      applyCircleLayoutToClasses(
-        boxLayoutMap,
-        applications,
-        removedComponentIds
-      );
+      applyCircleLayoutToClasses(boxLayoutMap, applications);
     } else if (useSpiralLayout) {
-      applySpiralLayoutToClasses(
-        boxLayoutMap,
-        applications,
-        removedComponentIds
-      );
+      applySpiralLayoutToClasses(boxLayoutMap, applications);
     }
   }
 
@@ -315,7 +297,6 @@ function createdFixedSizeApplication(
   application: Application,
   size: { width: number; depth: number }
 ) {
-  // TODO: The fixed sizing does not work correctly
   const appGraph = {
     id: APP_PREFIX + application.id,
     width: size.width,
@@ -324,7 +305,6 @@ function createdFixedSizeApplication(
     layoutOptions: {
       algorithm: PACKAGE_ALGORITHM,
       'nodeSize.fixedGraphSize': true,
-      'nodeSize.constraints': 'MINIMUM_SIZE',
       'elk.padding': getPaddingForLabelPlacement(
         COMPONENT_LABEL_PLACEMENT,
         APP_LABEL_MARGIN,
@@ -332,8 +312,6 @@ function createdFixedSizeApplication(
       ),
     },
   };
-
-  populateAppGraph(appGraph, application, new Set());
 
   return appGraph;
 }
@@ -343,45 +321,28 @@ function populateAppGraph(
   application: Application,
   removedComponentIds: Set<string>
 ) {
-  // Check if custom class layout is enabled
-  const { visualizationSettings } = useUserSettingsStore.getState();
-  const classLayoutAlgorithm = visualizationSettings.classLayoutAlgorithm.value;
-  const useCustomClassLayout =
-    classLayoutAlgorithm === 'circle' || classLayoutAlgorithm === 'spiral';
+  application.packages.forEach((component) => {
+    if (removedComponentIds.has(component.id)) {
+      return;
+    }
+    const packageGraph = {
+      id: PACKAGE_PREFIX + component.id,
+      children: [],
+      layoutOptions: {
+        algorithm: PACKAGE_ALGORITHM,
+        aspectRatio: ASPECT_RATIO,
+        'spacing.nodeNode': CLASS_MARGIN,
+        'elk.padding': getPaddingForLabelPlacement(
+          COMPONENT_LABEL_PLACEMENT,
+          PACKAGE_LABEL_MARGIN,
+          PACKAGE_MARGIN
+        ),
+      },
+    };
+    appGraph.children.push(packageGraph);
 
-  if (useCustomClassLayout) {
-    const allClassNodes = collectApplicationClassesForCircleLayout(
-      application,
-      removedComponentIds
-    );
-
-    // Add all classes directly to the application graph
-    appGraph.children.push(...allClassNodes);
-  } else {
-    // Normal layout: use packages
-    application.packages.forEach((component) => {
-      if (removedComponentIds.has(component.id)) {
-        return;
-      }
-      const packageGraph = {
-        id: PACKAGE_PREFIX + component.id,
-        children: [],
-        layoutOptions: {
-          algorithm: PACKAGE_ALGORITHM,
-          aspectRatio: ASPECT_RATIO,
-          'spacing.nodeNode': CLASS_MARGIN,
-          'elk.padding': getPaddingForLabelPlacement(
-            COMPONENT_LABEL_PLACEMENT,
-            PACKAGE_LABEL_MARGIN,
-            PACKAGE_MARGIN
-          ),
-        },
-      };
-      appGraph.children.push(packageGraph);
-
-      populatePackage(packageGraph.children, component, removedComponentIds);
-    });
-  }
+    populatePackage(packageGraph.children, component, removedComponentIds);
+  });
 }
 
 function populatePackage(
@@ -486,30 +447,15 @@ export function convertElkToBoxLayout(
   boxLayout.height = height;
 
   boxLayout.positionX = xOffset + elkGraph.x!;
-  boxLayout.positionY = COMPONENT_HEIGHT * (depth - 1) + height / 2.0;
+  boxLayout.positionY = COMPONENT_HEIGHT * depth;
   boxLayout.positionZ = zOffset + elkGraph.y!;
 
   boxLayout.level = depth;
-
-  // Landscape and applications are on the same level
-  if (elkGraph.id.startsWith(LANDSCAPE_PREFIX)) {
-    // eslint-disable-next-line
-    depth = depth - 1;
-  }
 
   if (elkGraph.id.startsWith(APP_PREFIX)) {
     // Add application offset since all components and classes are placed directly in app
     xOffset -= boxLayout.positionX;
     zOffset -= boxLayout.positionZ;
-  }
-
-  if (
-    elkGraph.id.startsWith(PACKAGE_PREFIX) ||
-    elkGraph.id.startsWith(CLASS_PREFIX)
-  ) {
-    // Geometries in three.js are centered around the origin
-    boxLayout.positionX = boxLayout.positionX + boxLayout.width / 2.0;
-    boxLayout.positionZ = boxLayout.positionZ + boxLayout.depth / 2.0;
   }
 
   // Ids in ELK must not start with numbers, therefore we added letters as prefix

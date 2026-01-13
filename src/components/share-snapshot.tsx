@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { ShareAndroidIcon } from '@primer/octicons-react';
 import { format } from 'date-fns';
 import {
-  useSnapshotTokenStore,
   TinySnapshot,
+  useSnapshotTokenStore,
 } from 'explorviz-frontend/src/stores/snapshot-token';
 import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
-import { ShareAndroidIcon } from '@primer/octicons-react';
+import { useState } from 'react';
 import { Button, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 const today: string = format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd');
@@ -38,7 +38,9 @@ export default function ShareSnapshot(args: ShareSnapshotArgs) {
   const shareSnapshot = async (snapshot: TinySnapshot) => {
     const localExpDate = expDate !== null ? expDate : 0;
 
-    await useSnapshotTokenStore.getState().shareSnapshot(snapshot, localExpDate);
+    await useSnapshotTokenStore
+      .getState()
+      .shareSnapshot(snapshot, localExpDate);
     closeMenu();
     args.reload();
   };

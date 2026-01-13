@@ -177,7 +177,11 @@
 
   // Primary button variant
   &.btn-primary {
-    background: linear-gradient(135deg, var(--bs-primary, #0d6efd) 0%, #0b5ed7 100%);
+    background: linear-gradient(
+      135deg,
+      var(--bs-primary, #0d6efd) 0%,
+      #0b5ed7 100%
+    );
     border-color: var(--bs-primary, #0d6efd);
     color: white;
 
@@ -189,7 +193,11 @@
 
   // Secondary button variant
   &.btn-secondary {
-    background: linear-gradient(135deg, var(--bs-secondary, #6c757d) 0%, #5c636a 100%);
+    background: linear-gradient(
+      135deg,
+      var(--bs-secondary, #6c757d) 0%,
+      #5c636a 100%
+    );
     border-color: var(--bs-secondary, #6c757d);
     color: white;
 
@@ -201,7 +209,11 @@
 
   // Success button variant
   &.btn-success {
-    background: linear-gradient(135deg, var(--bs-success, #198754) 0%, #157347 100%);
+    background: linear-gradient(
+      135deg,
+      var(--bs-success, #198754) 0%,
+      #157347 100%
+    );
     border-color: var(--bs-success, #198754);
     color: white;
 
@@ -213,7 +225,11 @@
 
   // Danger button variant
   &.btn-danger {
-    background: linear-gradient(135deg, var(--bs-danger, #dc3545) 0%, #c82333 100%);
+    background: linear-gradient(
+      135deg,
+      var(--bs-danger, #dc3545) 0%,
+      #c82333 100%
+    );
     border-color: var(--bs-danger, #dc3545);
     color: white;
 

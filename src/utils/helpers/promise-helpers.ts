@@ -6,8 +6,8 @@ export const cancelablePromise = (promise: Promise<any>) => {
 
   const wrappedPromise = new Promise((resolve, reject) => {
     promise.then(
-      value => (isCanceled ? reject({ isCanceled, value }) : resolve(value)),
-      error => reject({ isCanceled, error }),
+      (value) => (isCanceled ? reject({ isCanceled, value }) : resolve(value)),
+      (error) => reject({ isCanceled, error })
     );
   });
 

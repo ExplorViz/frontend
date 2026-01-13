@@ -1,24 +1,24 @@
-import { create } from 'zustand';
-import {
-  CommitTree,
-  AppNameCommitTreeMap,
-  CommitComparison,
-} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import {
-  Class,
-  StructureLandscapeData,
-} from '../../utils/landscape-schemes/structure-data';
-import {
-  combineStructureLandscapeData,
-  createEmptyStructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import { ApplicationMetricsCode } from '../../utils/metric-schemes/metric-data';
 import {
   SelectedCommit,
   useCommitTreeStateStore,
 } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataFetchServiceStore } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
+import {
+  AppNameCommitTreeMap,
+  CommitComparison,
+  CommitTree,
+} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import {
+  Class,
+  StructureLandscapeData,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  combineStructureLandscapeData,
+  createEmptyStructureLandscapeData,
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { ApplicationMetricsCode } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
 import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { create } from 'zustand';
 
 interface EvolutionDataRepositoryState {
   _appNameCommitTreeMap: AppNameCommitTreeMap;

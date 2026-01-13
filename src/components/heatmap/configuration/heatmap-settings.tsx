@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
+import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox';
 import {
-  useHeatmapConfigurationStore,
   HeatmapMode as HeatmapMode2,
-} from '../../../stores/heatmap/heatmap-configuration';
-import HelpTooltip from '../../help-tooltip';
-import Select from 'react-select';
+  useHeatmapConfigurationStore,
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
+import { useEffect, useState } from 'react';
 import { Button, Col, Form, Row } from 'react-bootstrap';
-import WideCheckbox from '../../visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox';
+import Select from 'react-select';
 
 interface HeatmapMode {
   name: string;

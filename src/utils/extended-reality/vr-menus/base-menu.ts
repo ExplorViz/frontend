@@ -1,9 +1,8 @@
-import * as THREE from 'three';
-import { useVrMenuFactoryStore } from 'explorviz-frontend/src/stores/extended-reality/vr-menu-factory';
 import VRControllerBindings from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-bindings';
 import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
 import MenuGroup from 'explorviz-frontend/src/utils/extended-reality/vr-menus/menu-group';
+import * as THREE from 'three';
 
 export enum MenuState {
   /**
@@ -202,7 +201,7 @@ export default abstract class BaseMenu extends THREE.Group {
    *
    * @param delta The time in seconds since the last frame.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   onUpdateMenu(_delta: number) {
     // will be overriden
   }

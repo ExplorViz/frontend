@@ -1,6 +1,6 @@
+import { ChatbotContext } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { Dropdown } from 'explorviz-frontend/src/components/visualization/page-setup/dropdown';
 import { use } from 'react';
-import { ChatbotContext } from './chatbot-context';
-import { Dropdown } from '../visualization/page-setup/dropdown';
 
 export function ModelDropdown() {
   const { selectedProvider, selectedModel, setSelectedModel } =

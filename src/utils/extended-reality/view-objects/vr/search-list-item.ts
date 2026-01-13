@@ -30,7 +30,6 @@ export default class SearchListItem
     this.add(itemText);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canBeIntersected(_intersection: THREE.Intersection) {
     return true;
   }

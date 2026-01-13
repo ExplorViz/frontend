@@ -1,13 +1,25 @@
+import { Magnify } from '@malte-hansen/magnify-r3f';
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas, useLoader } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { IfInSessionMode, XR, TeleportTarget, XROrigin } from '@react-three/xr';
+import {
+  createXRStore,
+  IfInSessionMode,
+  TeleportTarget,
+  XR,
+  XROrigin,
+} from '@react-three/xr';
+import {
+  default as CollaborationCameraSync,
+  default as SpectateCameraController,
+} from 'explorviz-frontend/src/components/visualization/rendering/collaboration-camera-sync';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
   useCameraControls,
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -16,33 +28,34 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
-import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
+import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-vr-menu';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
+import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
+import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import CollaborationCameraSync from './collaboration-camera-sync';
-import SpectateCameraController from './spectate-camera-controller';
-import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-vr-menu';
 
 export default function CanvasWrapper({
   landscapeData,
-  store,
+  xrStore,
 }: {
   landscapeData: LandscapeData | null;
-  store: XRStore;
+  xrStore?: XRStore | undefined;
 }) {
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const floorTexture = useLoader(
     THREE.TextureLoader,
@@ -86,6 +99,13 @@ export default function CanvasWrapper({
     middleMouseButtonAction,
     mouseWheelAction,
     rightMouseButtonAction,
+    isMagnifierActive,
+    magnifierZoom,
+    magnifierExponent,
+    magnifierRadius,
+    magnifierOutlineColor,
+    magnifierOutlineThickness,
+    magnifierAntialias,
   } = useUserSettingsStore(
     useShallow((state) => ({
       applicationLayoutAlgorithm:
@@ -131,6 +151,15 @@ export default function CanvasWrapper({
         state.visualizationSettings.rightMouseButtonAction.value,
       middleMouseButtonAction:
         state.visualizationSettings.middleMouseButtonAction.value,
+      isMagnifierActive: state.visualizationSettings.isMagnifierActive.value,
+      magnifierZoom: state.visualizationSettings.magnifierZoom.value,
+      magnifierExponent: state.visualizationSettings.magnifierExponent.value,
+      magnifierRadius: state.visualizationSettings.magnifierRadius.value,
+      magnifierOutlineColor:
+        state.visualizationSettings.magnifierOutlineColor.value,
+      magnifierOutlineThickness:
+        state.visualizationSettings.magnifierOutlineThickness.value,
+      magnifierAntialias: state.visualizationSettings.magnifierAntialias.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
@@ -224,6 +253,18 @@ export default function CanvasWrapper({
     }
   }, [landscapeData, interAppCommunications]);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: e.clientX,
+        y: window.innerHeight - e.clientY,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   const updateLayout = async () => {
     if (!landscapeData) return;
 
@@ -234,6 +275,7 @@ export default function CanvasWrapper({
       ).filter((app) => !removedComponentIds.has(app.id)),
       useVisualizationStore.getState().removedComponentIds ?? new Set<string>()
     );
+    useLayoutStore.getState().updateLayouts(layoutMap);
     setLayoutMap(layoutMap);
   };
 
@@ -269,6 +311,31 @@ export default function CanvasWrapper({
     };
   }, []);
 
+  // Keyboard handler for magnifier toggle
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Ignore if typing in an input field
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
+    // Toggle magnifier on M key press
+    if (event.key === 'M' || event.key === 'm') {
+      useUserSettingsStore
+        .getState()
+        .updateSetting('isMagnifierActive', !isMagnifierActive);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMagnifierActive]);
+
   return (
     <>
       <Canvas
@@ -278,8 +345,8 @@ export default function CanvasWrapper({
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={store}>
-          <IfInSessionMode deny={['immersive-ar', 'immersive-vr']}>
+        {xrStore ? null : (
+          <>
             <CameraControls
               ref={cameraControlsRef}
               dollySpeed={0.3}
@@ -301,21 +368,41 @@ export default function CanvasWrapper({
               fov={cameraFov}
               near={cameraNear}
               far={cameraFar}
-              // makeDefault // TODO
+              makeDefault
+            />
+            <Magnify
+              enabled={isMagnifierActive}
+              position={mousePos}
+              zoom={magnifierZoom}
+              exp={magnifierExponent}
+              radius={magnifierRadius}
+              outlineColor={parseInt(
+                magnifierOutlineColor.replace('#', ''),
+                16
+              )}
+              outlineThickness={magnifierOutlineThickness}
+              antialias={magnifierAntialias}
             />
             <SpectateCameraController />
             <CollaborationCameraSync />
-          </IfInSessionMode>
+          </>
+        )}
+        <XR store={xrStore || createXRStore({})}>
           <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
-            <XROrigin position={position} />
+            <XROrigin position={position}>
+              <ControllerMenu handedness="left" />
+              <ControllerMenu handedness="right" />
+            </XROrigin>
             <TeleportTarget onTeleport={setPosition}>
-              <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <mesh
+                name="floor"
+                position={[0, -0.1, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+              >
                 <planeGeometry attach="geometry" args={[200, 200]} />
                 <meshBasicMaterial attach="material" map={floorTexture} />
               </mesh>
             </TeleportTarget>
-            <ControllerMenu handedness='left'/>
-            <ControllerMenu handedness='right'/>
           </IfInSessionMode>
           <LandscapeR3F
             layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
@@ -342,6 +429,8 @@ export default function CanvasWrapper({
                 />
               ))}
           </LandscapeR3F>
+          <ClusterCentroidsR3F />
+          <AutoComponentOpenerR3F />
           <AnimatedPing />
           <TraceReplayOverlayR3F />
           <ambientLight />

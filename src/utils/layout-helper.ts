@@ -1,3 +1,4 @@
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -30,6 +31,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
     landscapePositionX,
     landscapePositionY,
     landscapePositionZ,
+    openedComponentHeight,
   } = settings;
 
   const landscapeOffset = new THREE.Vector3(
@@ -40,7 +42,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
 
   const landscapeCenter = new THREE.Vector3(
     -landscapeLayout.width / 2,
-    0,
+    -openedComponentHeight.value * 2, // due to elk-layouting
     -landscapeLayout.depth / 2
   );
 
@@ -62,6 +64,7 @@ export function getWorldPositionOfModel(
   }
   const appRepo = useApplicationRepositoryStore.getState();
   const settings = useUserSettingsStore.getState().visualizationSettings;
+  const layoutStore = useLayoutStore.getState();
 
   const applicationData = appRepo.getByModelId(modelId);
   if (!applicationData) {
@@ -70,15 +73,14 @@ export function getWorldPositionOfModel(
   }
 
   const { landscapeScalar } = settings;
-  const layoutMap = applicationData.boxLayoutMap;
-  const landscapeLayout = layoutMap.get('landscape');
+  const landscapeLayout = layoutStore.landscapeLayout;
 
   if (!landscapeLayout) {
     console.warn(`Landscape layout missing for model ID "${modelId}".`);
     return undefined;
   }
 
-  const appLayout = layoutMap.get(applicationData.getId());
+  const appLayout = layoutStore.getLayout(applicationData.getId());
   if (!appLayout) {
     console.warn(`Application layout missing for model ID "${modelId}".`);
     return undefined;
@@ -92,7 +94,7 @@ export function getWorldPositionOfModel(
   let modelPosition: THREE.Vector3 | undefined;
 
   if (isModelApplication) {
-    const modelLayout = layoutMap.get(modelId);
+    const modelLayout = layoutStore.getLayout(modelId);
     if (!modelLayout) return undefined;
     modelPosition = new THREE.Vector3(
       modelLayout.width / 2,
@@ -100,9 +102,9 @@ export function getWorldPositionOfModel(
       modelLayout.depth / 2
     ).multiplyScalar(landscapeScalar.value);
   } else {
-    const modelLayout = layoutMap.get(modelId);
+    const modelLayout = layoutStore.getLayout(modelId);
     if (!modelLayout) return undefined;
-    modelPosition = modelLayout.position
+    modelPosition = modelLayout.center
       .clone()
       .multiplyScalar(landscapeScalar.value);
   }

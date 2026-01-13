@@ -5,20 +5,20 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import { gsap } from 'gsap';
-import { useEffect, useState } from 'react';
-import * as THREE from 'three';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { useShallow } from 'zustand/react/shallow';
-import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import {
   getHighlightingColorForEntity,
   toggleHighlightById,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
+import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
+import { gsap } from 'gsap';
+import { useEffect, useState } from 'react';
+import * as THREE from 'three';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function CityFoundation({
   application,
@@ -40,7 +40,7 @@ export default function CityFoundation({
       };
       gsap.to(gsapValues, {
         positionX: layout.width / 2,
-        positionY: layout.positionY,
+        positionY: layout.center.y,
         positionZ: layout.depth / 2,
         duration: 0.25,
         onUpdate: () => {
@@ -55,7 +55,7 @@ export default function CityFoundation({
       });
     } else {
       setFoundationPosition(
-        new THREE.Vector3(layout.width / 2, layout.positionY, layout.depth / 2)
+        new THREE.Vector3(layout.width / 2, layout.center.y, layout.depth / 2)
       );
     }
   }, [layout.width, layout.positionY, layout.depth]);
@@ -96,32 +96,31 @@ export default function CityFoundation({
     enableHoverEffects,
     foundationColor,
     foundationTextColor,
-    highlightedEntityColor,
     componentLabelPlacement,
+    entityOpacity,
   } = useUserSettingsStore(
     useShallow((state) => ({
       appLabelMargin: state.visualizationSettings.appLabelMargin.value,
       castShadows: state.visualizationSettings.castShadows.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       foundationColor: state.visualizationSettings.foundationColor.value,
-      highlightedEntityColor:
-        state.visualizationSettings.highlightedEntityColor.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,
       componentLabelPlacement:
         state.visualizationSettings.componentLabelPlacement.value,
+      entityOpacity: state.visualizationSettings.entityOpacity.value,
     }))
   );
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-      setHoveredEntityId(application.id);
+    setHoveredEntityId(application.id);
   };
 
   const handleOnPointerOut = (event: any) => {
     event.stopPropagation();
-      setHoveredEntityId(null);
+    setHoveredEntityId(null);
   };
 
   const handleClick = (/*event: any*/) => {
@@ -167,6 +166,7 @@ export default function CityFoundation({
   return (
     <mesh
       castShadow={castShadows}
+      name={'Foundation of ' + application.name}
       scale={[layout.width, layout.height, layout.depth]}
       position={foundationPosition} // Center around application's position
       onClick={handleClickWithPrevent}
@@ -177,7 +177,11 @@ export default function CityFoundation({
       })}
       {...pointerStopHandlers}
     >
-      <meshLambertMaterial color={computeColor()} />
+      <meshBasicMaterial
+        color={computeColor()}
+        transparent={entityOpacity < 1.0}
+        opacity={entityOpacity}
+      />
       <boxGeometry />
       {appLabelMargin > 1.5 && (
         <Text

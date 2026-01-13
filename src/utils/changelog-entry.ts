@@ -1,4 +1,5 @@
-import { RestructureAction } from 'explorviz-frontend/src/utils/restructure-helper';
+import sha256 from 'crypto-js/sha256';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
@@ -10,9 +11,7 @@ import {
   getApplicationFromPackage,
   getApplicationFromSubPackage,
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import sha256 from 'crypto-js/sha256';
-// import { tracked } from '@glimmer/tracking';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { RestructureAction } from 'explorviz-frontend/src/utils/restructure-helper';
 
 export abstract class BaseChangeLogEntry {
   id: string;

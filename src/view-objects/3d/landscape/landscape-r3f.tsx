@@ -1,7 +1,8 @@
+import { useThree } from '@react-three/fiber';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 
@@ -27,16 +28,40 @@ export default function LandscapeR3F({
     settings.landscapeRotationY.value,
     settings.landscapeRotationZ.value,
   ];
+  const raycastEnabled = settings.raycastEnabled.value;
+  const raycastFirstHit = settings.raycastFirstHit.value;
+  const raycastNear = settings.raycastNear.value;
+  const raycastFar = settings.raycastFar.value;
 
   useEffect(() => {
     if (layout) {
       setPosition(getLandscapeCenterPosition());
     }
-  }, [layout, scalar, positionX, positionY, positionZ]);
+  }, [
+    layout,
+    settings.openedComponentHeight.value,
+    scalar,
+    positionX,
+    positionY,
+    positionZ,
+  ]);
+
+  const raycaster = useThree((state) => state.raycaster);
+
+  useEffect(() => {
+    raycaster.near = raycastNear;
+    raycaster.far = raycastFar;
+    raycaster.firstHitOnly = raycastFirstHit;
+    if (raycastEnabled) {
+      raycaster.layers.enableAll();
+    } else {
+      raycaster.layers.disableAll();
+    }
+  }, [raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
 
   return (
     <group
-      position={position}
+      position={[position.x, position.y, position.z]}
       scale={scalar}
       rotation={[rotationX, rotationY, rotationZ]}
       onPointerDown={(e) => {

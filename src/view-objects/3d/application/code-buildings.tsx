@@ -5,14 +5,22 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import {
+  getHighlightingColorForEntity,
+  toggleHighlightById,
+} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
+import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import {
   Application,
   Class,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   MetricKey,
   metricMappingMultipliers,
@@ -28,14 +36,6 @@ import {
   Vector3,
 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import { useUserSettingsStore } from '../../../stores/user-settings';
-import { useVisualizationStore } from '../../../stores/visualization-store';
-import calculateColorBrightness from '../../../utils/helpers/threejs-helpers';
-import BoxLayout from '../../layout-models/box-layout';
-import {
-  getHighlightingColorForEntity,
-  toggleHighlightById,
-} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
@@ -106,6 +106,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       unchangedClassColor,
       enableAnimations,
       animationDuration,
+      entityOpacity,
     } = useUserSettingsStore(
       useShallow((state) => ({
         addedClassColor: state.visualizationSettings.addedClassColor.value,
@@ -124,6 +125,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
           state.visualizationSettings.unchangedClassColor.value,
         enableAnimations: state.visualizationSettings.enableAnimations.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
+        entityOpacity: state.visualizationSettings.entityOpacity.value,
       }))
     );
 
@@ -293,6 +295,12 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       heatmapActive,
     ]);
 
+    useEffect(() => {
+      material.transparent = entityOpacity < 1.0;
+      material.opacity = entityOpacity;
+      material.needsUpdate = true;
+    }, [entityOpacity, material]);
+
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
       if (meshRef === null || typeof meshRef === 'function') {
         return;
@@ -377,13 +385,12 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         classIdToClass.set(classData.id, classData);
         const layout = layoutMap.get(classData.id);
         if (!layout) {
-          console.log(`No layout found for component with id ${classData.id}`);
           return;
         }
         obj.position.set(
-          layout.position.x,
-          layout.position.y - layout.height / 2 + getClassHeight(classData) / 2,
-          layout.position.z
+          layout.center.x,
+          layout.position.y + getClassHeight(classData) / 2,
+          layout.center.z
         );
         obj.visible =
           !hiddenClassIds.has(classData.id) &&
@@ -417,10 +424,9 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         if (!classModel || !layout) return;
 
         const targetHeight = getClassHeight(classModel);
-        const targetPositionX = layout.position.x;
-        const targetPositionY =
-          layout.position.y - layout.height / 2 + targetHeight / 2;
-        const targetPositionZ = layout.position.z;
+        const targetPositionX = layout.center.x;
+        const targetPositionY = layout.position.y + targetHeight / 2;
+        const targetPositionZ = layout.center.z;
         const targetWidth = layout.width;
         const targetDepth = layout.depth;
 
@@ -477,6 +483,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     return (
       <instancedMesh2
         ref={meshRef}
+        name={'Buildings of ' + application.name}
         args={[geometry, material]}
         onClick={handleClickWithPrevent}
         {...(enableHoverEffects && {
