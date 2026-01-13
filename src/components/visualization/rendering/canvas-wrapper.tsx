@@ -68,6 +68,9 @@ export default function CanvasWrapper({
   floorTexture.repeat.set(200, 200);
   floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
 
+  const [isHAPTreeReady, setIsHAPTreeReady] = useState(false);
+  const hapSystemManager = HAPSystemManager.getInstance();
+
   const directionalLightRef = useRef(null);
 
   const {
