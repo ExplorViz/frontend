@@ -4,6 +4,7 @@ import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import useLongPress from 'explorviz-frontend/src/hooks/useLongPress';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
 import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
@@ -15,10 +16,9 @@ export type ContextMenuItem = {
 
 interface ContextMenuProps {
   children: ReactNode;
-  enterVR: () => void;
 }
 
-export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
+export default function ContextMenu({ children }: ContextMenuProps) {
   const [visible, setVisible] = useState<boolean>(false);
   const [position, setPosition] = useState<Position2D | null>(null);
 
@@ -39,6 +39,10 @@ export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
   const resetView = async () => {
     useCameraControlsStore.getState().resetCamera();
   };
+
+  const setVisualizationMode = useLocalUserStore(
+    (state) => state.setVisualizationMode
+  );
 
   const pingAnnotations = () => {
     const annotationHandlerStore = useAnnotationHandlerStore.getState();
@@ -99,7 +103,12 @@ export default function ContextMenu({ children, enterVR }: ContextMenuProps) {
       title: 'Ping Annotations',
       action: pingAnnotations,
     },
-    { title: 'Enter VR', action: enterVR },
+    {
+      title: 'Enter VR',
+      action: () => {
+        setVisualizationMode('vr');
+      },
+    },
   ];
   const onMouseUp = (event: React.MouseEvent) => {
     if (event.button === 2 && !mouseMoved.current) {

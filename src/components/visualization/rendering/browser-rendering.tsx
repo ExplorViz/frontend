@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
-import { createXRStore } from '@react-three/xr';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
@@ -30,6 +27,7 @@ import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
 import { ChatbotProvider } from '../../chatbot/chatbot-context';
@@ -76,14 +74,6 @@ export default function BrowserRendering({
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
-
-  const xrStore = createXRStore({
-    controller: {
-      teleportPointer: { rayModel: { color: 'red' } },
-      rayPointer: { rayModel: { color: 'red' } },
-    },
-    offerSession: false,
-  });
 
   const applicationRepositoryActions = useApplicationRepositoryStore(
     useShallow((state) => ({
@@ -146,11 +136,51 @@ export default function BrowserRendering({
   };
 
   const enterFullscreen = () => {
-    if (!canvas.current) {
-      console.error('Unable to enter fullscreen: Canvas ref is not set');
+    // Find the canvas element by ID (set in CanvasWrapper)
+    // The Canvas component from @react-three/fiber renders a canvas element
+    let canvasElement: HTMLCanvasElement | null = document.getElementById(
+      'three-js-canvas'
+    ) as HTMLCanvasElement;
+
+    // If not found by ID, try to find the canvas element within the element with that ID
+    // or find any canvas element in the rendering container
+    if (!canvasElement || canvasElement.tagName !== 'CANVAS') {
+      const container = document.getElementById('three-js-canvas');
+      if (container) {
+        canvasElement = container.querySelector('canvas');
+      }
+      // Last resort: find any canvas in the rendering container
+      if (!canvasElement) {
+        const renderingContainer = document.getElementById('rendering');
+        canvasElement = renderingContainer?.querySelector('canvas') || null;
+      }
+    }
+
+    if (!canvasElement) {
+      console.error('Unable to enter fullscreen: Canvas element not found');
       return;
     }
-    canvas.current.requestFullscreen();
+
+    // Try standard fullscreen API first
+    if (canvasElement.requestFullscreen) {
+      canvasElement.requestFullscreen().catch((error) => {
+        console.error('Error entering fullscreen:', error);
+      });
+    }
+    // Fallback for WebKit browsers (Safari)
+    else if ((canvasElement as any).webkitRequestFullscreen) {
+      (canvasElement as any).webkitRequestFullscreen();
+    }
+    // Fallback for Mozilla browsers
+    else if ((canvasElement as any).mozRequestFullScreen) {
+      (canvasElement as any).mozRequestFullScreen();
+    }
+    // Fallback for MS browsers
+    else if ((canvasElement as any).msRequestFullscreen) {
+      (canvasElement as any).msRequestFullscreen();
+    } else {
+      console.error('Fullscreen API is not supported in this browser');
+    }
   };
 
   const toggleToolsSidebarComponent = (component: string): boolean => {
@@ -181,7 +211,6 @@ export default function BrowserRendering({
 
   // MARK: Refs
 
-  const canvas = useRef<HTMLCanvasElement | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
@@ -266,8 +295,8 @@ export default function BrowserRendering({
               {useUserSettingsStore.getState().visualizationSettings
                 .heatmapEnabled.value && <HeatmapInfo />}
 
-              <ContextMenu enterVR={() => xrStore.enterVR()}>
-                <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
+              <ContextMenu>
+                <CanvasWrapper landscapeData={landscapeData} />
               </ContextMenu>
 
               {landscapeData && <Popups landscapeData={landscapeData} />}

@@ -904,6 +904,12 @@ export default function CommunicationR3F({
       })}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
+      name={
+        'Communication between ' +
+        communicationModel.sourceClass.name +
+        ' and ' +
+        communicationModel.targetClass.name
+      }
       args={constructorArgs}
       arrowColor={new THREE.Color(arrowColor)}
       arrowOffset={arrowOffset}

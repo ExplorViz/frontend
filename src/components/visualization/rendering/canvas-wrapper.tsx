@@ -1,7 +1,14 @@
+import { Magnify } from '@malte-hansen/magnify-r3f';
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useLoader } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
-import { IfInSessionMode, XR } from '@react-three/xr';
+import {
+  createXRStore,
+  IfInSessionMode,
+  TeleportTarget,
+  XR,
+  XROrigin,
+} from '@react-three/xr';
 import {
   default as CollaborationCameraSync,
   default as SpectateCameraController,
@@ -21,6 +28,7 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu-r3f';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getAllApplicationsInLandscape } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
@@ -33,24 +41,29 @@ import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/applic
 import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
-import * as THREE from 'three';
 
 export default function CanvasWrapper({
   landscapeData,
-  store,
+  xrStore,
 }: {
   landscapeData: LandscapeData | null;
-  store: XRStore;
+  xrStore?: XRStore | undefined;
 }) {
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const [isHAPTreeReady, setIsHAPTreeReady] = useState(false);
-  const hapSystemManager = HAPSystemManager.getInstance();
+  const floorTexture = useLoader(
+    THREE.TextureLoader,
+    'extended-reality/images/materials/floor.jpg'
+  );
+  floorTexture.repeat.set(200, 200);
+  floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
 
   const directionalLightRef = useRef(null);
 
@@ -87,6 +100,13 @@ export default function CanvasWrapper({
     middleMouseButtonAction,
     mouseWheelAction,
     rightMouseButtonAction,
+    isMagnifierActive,
+    magnifierZoom,
+    magnifierExponent,
+    magnifierRadius,
+    magnifierOutlineColor,
+    magnifierOutlineThickness,
+    magnifierAntialias,
   } = useUserSettingsStore(
     useShallow((state) => ({
       applicationLayoutAlgorithm:
@@ -132,6 +152,15 @@ export default function CanvasWrapper({
         state.visualizationSettings.rightMouseButtonAction.value,
       middleMouseButtonAction:
         state.visualizationSettings.middleMouseButtonAction.value,
+      isMagnifierActive: state.visualizationSettings.isMagnifierActive.value,
+      magnifierZoom: state.visualizationSettings.magnifierZoom.value,
+      magnifierExponent: state.visualizationSettings.magnifierExponent.value,
+      magnifierRadius: state.visualizationSettings.magnifierRadius.value,
+      magnifierOutlineColor:
+        state.visualizationSettings.magnifierOutlineColor.value,
+      magnifierOutlineThickness:
+        state.visualizationSettings.magnifierOutlineThickness.value,
+      magnifierAntialias: state.visualizationSettings.magnifierAntialias.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
@@ -230,6 +259,8 @@ export default function CanvasWrapper({
     }))
   );
 
+  const [position, setPosition] = useState(new THREE.Vector3());
+
   useEffect(() => {
     if (landscapeData) {
       // Use layout of landscape data watcher
@@ -266,6 +297,18 @@ export default function CanvasWrapper({
       useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
   }, [landscapeData, interAppCommunications]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: e.clientX,
+        y: window.innerHeight - e.clientY,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const updateLayout = async () => {
     if (!landscapeData) return;
@@ -313,6 +356,31 @@ export default function CanvasWrapper({
     };
   }, []);
 
+  // Keyboard handler for magnifier toggle
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Ignore if typing in an input field
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
+    // Toggle magnifier on M key press
+    if (event.key === 'M' || event.key === 'm') {
+      useUserSettingsStore
+        .getState()
+        .updateSetting('isMagnifierActive', !isMagnifierActive);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMagnifierActive]);
+
   return (
     <>
       <Canvas
@@ -322,8 +390,8 @@ export default function CanvasWrapper({
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={store}>
-          <IfInSessionMode deny={['immersive-ar', 'immersive-vr']}>
+        {xrStore ? null : (
+          <>
             <CameraControls
               ref={cameraControlsRef}
               dollySpeed={0.3}
@@ -347,8 +415,39 @@ export default function CanvasWrapper({
               far={cameraFar}
               makeDefault
             />
+            <Magnify
+              enabled={isMagnifierActive}
+              position={mousePos}
+              zoom={magnifierZoom}
+              exp={magnifierExponent}
+              radius={magnifierRadius}
+              outlineColor={parseInt(
+                magnifierOutlineColor.replace('#', ''),
+                16
+              )}
+              outlineThickness={magnifierOutlineThickness}
+              antialias={magnifierAntialias}
+            />
             <SpectateCameraController />
             <CollaborationCameraSync />
+          </>
+        )}
+        <XR store={xrStore || createXRStore({})}>
+          <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
+            <XROrigin position={position}>
+              <ControllerMenu handedness="left" />
+              <ControllerMenu handedness="right" />
+            </XROrigin>
+            <TeleportTarget onTeleport={setPosition}>
+              <mesh
+                name="floor"
+                position={[0, -0.1, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+              >
+                <planeGeometry attach="geometry" args={[200, 200]} />
+                <meshBasicMaterial attach="material" map={floorTexture} />
+              </mesh>
+            </TeleportTarget>
           </IfInSessionMode>
           <LandscapeR3F
             layout={applicationModels[0]?.boxLayoutMap.get('landscape')}

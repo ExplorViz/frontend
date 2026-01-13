@@ -9,6 +9,7 @@ export type SettingGroup =
   | 'Highlighting'
   | 'Layout'
   | 'Label'
+  | 'Magnifier'
   | 'Minimap'
   | 'Misc'
   | 'Popups'
@@ -216,7 +217,18 @@ export type MiscSettings = {
 };
 export type MiscSettingId = keyof MiscSettings;
 
-export type XrSettingId = 'showVrButton' | 'showVrOnClick';
+export type MagnifierSettings = {
+  isMagnifierActive: FlagSetting;
+  magnifierZoom: RangeSetting;
+  magnifierExponent: RangeSetting;
+  magnifierRadius: RangeSetting;
+  magnifierOutlineColor: ColorSetting;
+  magnifierOutlineThickness: RangeSetting;
+  magnifierAntialias: FlagSetting;
+};
+export type MagnifierSettingId = keyof MagnifierSettings;
+
+export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type VisualizationSettingId =
@@ -230,6 +242,7 @@ export type VisualizationSettingId =
   | EffectSettingId
   | LayoutSettingId
   | LabelSettingId
+  | MagnifierSettingId
   | MinimapSettingId
   | MiscSettingId
   | PopupSettingId
@@ -245,6 +258,7 @@ export type VisualizationSettings = CameraSettings &
   EffectSettings &
   LayoutSettings &
   LabelSettings &
+  MagnifierSettings &
   MinimapSettings &
   MiscSettings &
   PopupSettings &
