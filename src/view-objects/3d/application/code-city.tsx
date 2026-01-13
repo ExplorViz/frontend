@@ -1,4 +1,3 @@
-import { useFrame, useThree } from '@react-three/fiber';
 import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
@@ -7,18 +6,18 @@ import { useConfigurationStore } from 'explorviz-frontend/src/stores/configurati
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
+import CityDistricts from 'explorviz-frontend/src/view-objects/3d/application/city-districts';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/application/city-foundation';
 import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/application/code-building-label';
+import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/application/code-buildings';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/application/embedded-browser';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import CityDistricts from './city-districts';
-import CodeBuildings from './code-buildings';
 
 export default function CodeCity({
   applicationData,
@@ -27,27 +26,15 @@ export default function CodeCity({
   applicationData: ApplicationData;
   layoutMap: Map<string, BoxLayout>;
 }) {
-  const [isCameraZoomedIn, setIsCameraZoomedIn] = useState(false);
-  const { camera } = useThree();
-
-  const {
-    animationDuration,
-    enableAnimations,
-    zoomDistance,
-    showEmbeddedBrowserIcon,
-  } = useUserSettingsStore(
-    useShallow((state) => ({
-      animationDuration: state.visualizationSettings.animationDuration.value,
-      enableAnimations: state.visualizationSettings.enableAnimations.value,
-      zoomDistance: state.visualizationSettings.maxCamHeightForCamera.value,
-      showEmbeddedBrowserIcon:
-        state.visualizationSettings.showEmbeddedBrowserIcon.value,
-    }))
-  );
-
-  useFrame(() => {
-    setIsCameraZoomedIn(camera.position.y < zoomDistance);
-  });
+  const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
+    useUserSettingsStore(
+      useShallow((state) => ({
+        animationDuration: state.visualizationSettings.animationDuration.value,
+        enableAnimations: state.visualizationSettings.enableAnimations.value,
+        showEmbeddedBrowserIcon:
+          state.visualizationSettings.showEmbeddedBrowserIcon.value,
+      }))
+    );
 
   const [appPosition, setAppPosition] = useState<THREE.Vector3 | undefined>(
     layoutMap.get(applicationData.getId())?.position
@@ -138,7 +125,6 @@ export default function CodeCity({
               dataModel={classData}
               application={applicationData.application}
               layout={layoutMap.get(classData.id)!}
-              isCameraZoomedIn={isCameraZoomedIn}
             />
           ) : null
         )}
@@ -158,7 +144,6 @@ export default function CodeCity({
             key={packageData.id + '-label'}
             component={packageData}
             layout={layoutMap.get(packageData.id)!}
-            isCameraZoomedIn={isCameraZoomedIn}
           />
         ))}
       {isCommRendered &&

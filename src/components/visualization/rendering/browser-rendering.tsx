@@ -17,39 +17,39 @@ import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization
 import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams';
 import KubernetesDiagramsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
+import useCollaborativeModifier from 'explorviz-frontend/src/hooks/collaborative-modifier';
+import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
+import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import GamepadControls from 'explorviz-frontend/src/utils/controls/gamepad/gamepad-controls';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
-import useCollaborativeModifier from '../../../hooks/collaborative-modifier';
-import { LandscapeToken } from '../../../stores/landscape-token';
-import { ApiToken } from '../../../stores/user-api-token';
-import eventEmitter from '../../../utils/event-emitter';
+import { ChatbotProvider } from '../../chatbot/chatbot-context';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
+import { EditingProvider } from '../../editing/editing-context';
 import ChatBox from '../page-setup/sidebar/customizationbar/chat/chat-box';
+import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
+import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
 import Restructure from '../page-setup/sidebar/customizationbar/restructure/restructure';
 import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
-import ChatbotOpener from '../page-setup/sidebar/customizationbar/chatbot/chatbot-opener';
-import ChatbotBox from '../page-setup/sidebar/customizationbar/chatbot/chatbot-box';
 import SidebarComponent from '../page-setup/sidebar/sidebar-component';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
-import { ChatbotProvider } from '../../chatbot/chatbot-context';
-import { EditingProvider } from '../../editing/editing-context';
-import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -148,11 +148,51 @@ export default function BrowserRendering({
   };
 
   const enterFullscreen = () => {
-    if (!canvas.current) {
-      console.error('Unable to enter fullscreen: Canvas ref is not set');
+    // Find the canvas element by ID (set in CanvasWrapper)
+    // The Canvas component from @react-three/fiber renders a canvas element
+    let canvasElement: HTMLCanvasElement | null = document.getElementById(
+      'three-js-canvas'
+    ) as HTMLCanvasElement;
+
+    // If not found by ID, try to find the canvas element within the element with that ID
+    // or find any canvas element in the rendering container
+    if (!canvasElement || canvasElement.tagName !== 'CANVAS') {
+      const container = document.getElementById('three-js-canvas');
+      if (container) {
+        canvasElement = container.querySelector('canvas');
+      }
+      // Last resort: find any canvas in the rendering container
+      if (!canvasElement) {
+        const renderingContainer = document.getElementById('rendering');
+        canvasElement = renderingContainer?.querySelector('canvas') || null;
+      }
+    }
+
+    if (!canvasElement) {
+      console.error('Unable to enter fullscreen: Canvas element not found');
       return;
     }
-    canvas.current.requestFullscreen();
+
+    // Try standard fullscreen API first
+    if (canvasElement.requestFullscreen) {
+      canvasElement.requestFullscreen().catch((error) => {
+        console.error('Error entering fullscreen:', error);
+      });
+    }
+    // Fallback for WebKit browsers (Safari)
+    else if ((canvasElement as any).webkitRequestFullscreen) {
+      (canvasElement as any).webkitRequestFullscreen();
+    }
+    // Fallback for Mozilla browsers
+    else if ((canvasElement as any).mozRequestFullScreen) {
+      (canvasElement as any).mozRequestFullScreen();
+    }
+    // Fallback for MS browsers
+    else if ((canvasElement as any).msRequestFullscreen) {
+      (canvasElement as any).msRequestFullscreen();
+    } else {
+      console.error('Fullscreen API is not supported in this browser');
+    }
   };
 
   const toggleToolsSidebarComponent = (component: string): boolean => {
@@ -183,7 +223,6 @@ export default function BrowserRendering({
 
   // MARK: Refs
 
-  const canvas = useRef<HTMLCanvasElement | null>(null);
   const outerDiv = useRef<HTMLDivElement | null>(null);
   const gamepadControls = useRef<GamepadControls | null>(null);
 
@@ -226,7 +265,6 @@ export default function BrowserRendering({
       );
 
       closeConnection();
-
     };
   }, []);
 

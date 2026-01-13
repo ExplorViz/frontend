@@ -1,19 +1,20 @@
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import {
+  insertApplicationToLandscape,
+  insertClassesToLandscape,
+  removeComponentFromLandscape,
+} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import {
   createContext,
   PropsWithChildren,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
-import { LandscapeData } from '../../utils/landscape-schemes/landscape-data';
 import { useShallow } from 'zustand/react/shallow';
-import {
-  insertApplicationToLandscape,
-  insertClassesToLandscape,
-  removeComponentFromLandscape,
-} from '../../utils/landscape-structure-helpers';
-import { useRenderingServiceStore } from '../../stores/rendering-service';
-import { useVisualizationStore } from '../../stores/visualization-store';
 
 interface EditingContextData {
   canGoBack: boolean;
@@ -47,23 +48,27 @@ export function EditingProvider({ children }: PropsWithChildren) {
 
   // always +1 of the currently rendered element in history
   const [editingCursor, setEditingCursor] = useState(0);
+  const hasInitializedHistory = useRef(false);
 
   const addToHistory = useCallback(
     (landscapeData: LandscapeData, removedIds?: Set<string>) => {
-      setHistory((prevHistory) => [
-        ...prevHistory.slice(0, editingCursor),
-        [
-          structuredClone(landscapeData),
-          removedComponentIds.union(removedIds || new Set<string>()),
-        ],
-      ]);
+      setHistory((prevHistory) => {
+        const currentCursor = editingCursor;
+        return [
+          ...prevHistory.slice(0, currentCursor),
+          [
+            structuredClone(landscapeData),
+            removedComponentIds.union(removedIds || new Set<string>()),
+          ],
+        ];
+      });
       setLandscapeData(landscapeData);
       setEditingCursor((cursor) => cursor + 1);
       if (removedIds) {
         actions.setRemovedComponents(removedIds);
       }
     },
-    [removedComponentIds, editingCursor, actions]
+    [removedComponentIds, editingCursor, actions, setLandscapeData]
   );
 
   const reset = useCallback(() => {
@@ -72,15 +77,22 @@ export function EditingProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    // Initialize history with the current state
-    if (landscapeData && history.length === 0) {
-      addToHistory(landscapeData);
+    // Initialize history with the current state on first render when landscapeData is available
+    if (
+      !hasInitializedHistory.current &&
+      landscapeData &&
+      history.length === 0
+    ) {
+      hasInitializedHistory.current = true;
+      setHistory([[structuredClone(landscapeData), removedComponentIds]]);
+      setEditingCursor(1);
     }
     // Reset history when landscapeData is null
     if (!landscapeData && history.length > 0) {
       reset();
+      hasInitializedHistory.current = false;
     }
-  }, [landscapeData, history, addToHistory, reset]);
+  }, [landscapeData, history.length, reset, removedComponentIds]);
 
   const canGoBack = editingCursor > 1;
   const canGoForward = editingCursor < history.length;
@@ -125,7 +137,6 @@ export function EditingProvider({ children }: PropsWithChildren) {
 
   const removeComponent = useCallback(
     (id: string) => {
-      console.log('remove');
       if (!landscapeData) return;
 
       const [structureLandscapeData, removedIds] = removeComponentFromLandscape(
@@ -161,7 +172,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
   }, [setLandscapeData, actions, editingCursor, history]);
 
   return (
-    <EditingContext.Provider
+    <EditingContext
       value={{
         canGoBack,
         canGoForward,
@@ -174,6 +185,6 @@ export function EditingProvider({ children }: PropsWithChildren) {
       }}
     >
       {children}
-    </EditingContext.Provider>
+    </EditingContext>
   );
 }

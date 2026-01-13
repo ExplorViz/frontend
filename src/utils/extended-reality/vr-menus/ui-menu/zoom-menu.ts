@@ -1,7 +1,10 @@
-import * as THREE from 'three';
 import VRControllerButtonBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-button-binding';
 import VRControllerThumbpadBinding from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import UiMenu, { SIZE_RESOLUTION_FACTOR, UiMenuArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import UiMenu, {
+  SIZE_RESOLUTION_FACTOR,
+  UiMenuArgs,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import * as THREE from 'three';
 
 const CIRCLE_SEGMENTS = 48;
 

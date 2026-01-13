@@ -1,4 +1,6 @@
-import InteractiveItem, { InteractiveItemArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/interactive-item';
+import InteractiveItem, {
+  InteractiveItemArgs,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/items/interactive-item';
 
 export const DEFAULT_BUTTON_COLOR = '#555555';
 export const DEFAULT_BUTTON_TEXT_COLOR = '#ffc338';

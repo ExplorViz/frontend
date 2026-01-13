@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 
 import debug from 'debug';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData, {
   K8sData,
 } from 'explorviz-frontend/src/utils/application-data';
 import computeClassCommunication from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
-import layoutLandscape from 'explorviz-frontend/src/utils/elk-layouter';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
@@ -15,8 +16,7 @@ import {
   getAllPackagesAndClassesFromLandscape,
   getApplicationsFromNodes,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { useLayoutStore } from '../stores/layout-store';
-import { useVisualizationStore } from '../stores/visualization-store';
+import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null

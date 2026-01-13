@@ -567,16 +567,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines distance between class/component and its label',
     isRangeSetting: true,
   },
-  maxCamHeightForCamera: {
-    level: SettingLevel.EXTENDED,
-    value: 25,
-    range: { min: 0, max: 50, step: 0.5 },
-    group: 'Label',
-    displayName: 'Max Camera Height',
-    description:
-      'Determines when labels (except of closed components) are rendered in relation to camera`s y-position.',
-    isRangeSetting: true,
-  },
   packageLabelMargin: {
     level: SettingLevel.DEFAULT,
     value: 13.0,
@@ -603,7 +593,6 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 'stress',
     options: [
       'box',
-      'disco',
       'force',
       'layered',
       'random',
@@ -621,7 +610,6 @@ export const defaultVizSettings: VisualizationSettings = {
     value: 'rectpacking',
     options: [
       'box',
-      'disco',
       'force',
       'layered',
       'random',
@@ -886,6 +874,96 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Determines how many seconds popups stay on screen',
     isRangeSetting: true,
   },
+  // Semantic Zoom Settings
+  enableClustering: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Semantic Zoom',
+    displayName: 'Enable Clustering',
+    description: 'Enable clustering of classes and packages for semantic zoom',
+    isFlagSetting: true,
+  },
+  clusterCount: {
+    level: SettingLevel.DEFAULT,
+    value: 0.3,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Semantic Zoom',
+    displayName: 'Cluster Count',
+    description:
+      'Number of clusters: 0 = 1 cluster (all entities), 1 = one cluster per entity',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  displayClusters: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Semantic Zoom',
+    displayName: 'Display Clusters',
+    description: 'Visualize cluster centroids as balls in the visualization',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  labelDistanceThreshold: {
+    level: SettingLevel.DEFAULT,
+    value: 5.0,
+    range: { min: 0.0, max: 100.0, step: 0.5 },
+    group: 'Semantic Zoom',
+    displayName: 'Label Distance Threshold',
+    description:
+      'Maximum distance from camera to cluster centroid for labels to be visible',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  distanceUpdateFrequency: {
+    level: SettingLevel.DEFAULT,
+    value: 10.0,
+    range: { min: 1.0, max: 30.0, step: 1.0 },
+    group: 'Semantic Zoom',
+    displayName: 'Distance Update Frequency',
+    description:
+      'How often per second the camera distance to cluster centroids is recalculated',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  autoOpenCloseComponents: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Semantic Zoom',
+    displayName: 'Auto Open/Close Components',
+    description:
+      'Automatically open components when camera is close to cluster centroid, and close when far away.',
+    dependsOn: {
+      settingId: 'enableClustering',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  componentOpenCloseDistanceThreshold: {
+    level: SettingLevel.DEFAULT,
+    value: 15.0,
+    range: { min: 0.0, max: 100.0, step: 0.5 },
+    group: 'Semantic Zoom',
+    displayName: 'Component Open/Close Distance Threshold',
+    description:
+      'Maximum distance from camera to cluster centroid for components to be automatically opened/closed.',
+    dependsOn: {
+      settingId: 'autoOpenCloseComponents',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
   // Camera settings
   cameraNear: {
     level: SettingLevel.EXTENDED,
@@ -990,6 +1068,94 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
 
+  // Magnifier Settings
+  isMagnifierActive: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Magnifier',
+    displayName: 'Enable Magnifier',
+    description:
+      'Toggle the magnifying glass effect. Can also be toggled with the M key.',
+    isFlagSetting: true,
+  },
+  magnifierZoom: {
+    level: SettingLevel.DEFAULT,
+    value: 2.0,
+    range: { min: 1.0, max: 15.0, step: 0.1 },
+    group: 'Magnifier',
+    displayName: 'Zoom Factor',
+    description: 'Magnification level of the magnifying glass',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierExponent: {
+    level: SettingLevel.EXTENDED,
+    value: 100.0,
+    range: { min: 1.0, max: 100.0, step: 1.0 },
+    group: 'Magnifier',
+    displayName: 'Glass Shape Exponent',
+    description:
+      'Controls the shape of the magnifying glass (higher = flatter)',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierRadius: {
+    level: SettingLevel.DEFAULT,
+    value: 200.0,
+    range: { min: 50.0, max: 500.0, step: 10.0 },
+    group: 'Magnifier',
+    displayName: 'Radius',
+    description: 'Size of the magnifying glass in pixels',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierOutlineColor: {
+    level: SettingLevel.DEFAULT,
+    value: '#cccccc',
+    group: 'Magnifier',
+    displayName: 'Outline Color',
+    description: 'Color of the magnifying glass outline',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isColorSetting: true,
+  },
+  magnifierOutlineThickness: {
+    level: SettingLevel.DEFAULT,
+    value: 8.0,
+    range: { min: 0.0, max: 20.0, step: 1.0 },
+    group: 'Magnifier',
+    displayName: 'Outline Thickness',
+    description: 'Thickness of the magnifying glass outline (0 = no outline)',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierAntialias: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Magnifier',
+    displayName: 'Enable Anti-aliasing',
+    description: 'Apply FXAA anti-aliasing for smoother edges',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+
   // Debug Settings
   showExtendedSettings: {
     level: SettingLevel.DEFAULT,
@@ -1022,6 +1188,16 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Show Light Helper',
     description: 'Visualizes the Directional Light',
     isFlagSetting: true,
+  },
+  entityOpacity: {
+    level: SettingLevel.EXTENDED,
+    value: 1.0,
+    range: { min: 0.0, max: 1.0, step: 0.01 },
+    group: 'Debugging',
+    displayName: 'Entity Opacity',
+    description:
+      'Controls the opacity of city foundation, city districts, and code buildings',
+    isRangeSetting: true,
   },
   fullscreen: {
     level: SettingLevel.DEFAULT,

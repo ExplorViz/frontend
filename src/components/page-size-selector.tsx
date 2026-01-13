@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Select, { MenuPlacement } from 'react-select';
 
 interface PageSizeSelectorArgs {

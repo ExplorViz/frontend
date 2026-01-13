@@ -1,11 +1,11 @@
-import { create } from 'zustand';
-import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
-import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
-import { useRenderingServiceStore } from '../rendering-service';
+import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
+import { create } from 'zustand';
 
 interface TimestampRepositoryState {
   commitToTimestampMap: Map<string, Map<number, Timestamp>>;
@@ -27,7 +27,10 @@ interface TimestampRepositoryState {
   ) => Timestamp | undefined;
   getLatestTimestamp: (commitId: string) => Timestamp | undefined;
   getLatestDebugSnapshotTimestamp: () => Timestamp | undefined;
-  getTimestampsForCommitId: (commitId: string, includeTimestampsFromDebugSnapshots: boolean) => Timestamp[];
+  getTimestampsForCommitId: (
+    commitId: string,
+    includeTimestampsFromDebugSnapshots: boolean
+  ) => Timestamp[];
   getTimestampsForDebugSnapshots(): Timestamp[];
   addTimestamps: (commitId: string, timestamps: Timestamp[]) => void;
   addTimestampsForDebugSnapshots: (timestamps: Timestamp[]) => void;
@@ -78,7 +81,7 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
       const commitTimestampsToRenderMap = new Map();
       const allNewTimestampsToRender: Timestamp[] = [];
 
-      if(timestampsForDebugSnapshots) {
+      if (timestampsForDebugSnapshots) {
         get().addTimestampsForDebugSnapshots(timestampsForDebugSnapshots);
       }
 
@@ -88,7 +91,10 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
       ] of commitToNewTimestampsMap) {
         get().addTimestamps(commitId, newTimestampsForCommit);
         get()._timelineDataObjectHandler!.updateTimestampsForCommit(
-          get().getTimestampsForCommitId(commitId, !!timestampsForDebugSnapshots),
+          get().getTimestampsForCommitId(
+            commitId,
+            !!timestampsForDebugSnapshots
+          ),
           commitId
         );
 
@@ -121,12 +127,6 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         commitTimestampsToRenderMap.size > 0 &&
         !areArraysEqual(currentlySelectedTimestamps, allNewTimestampsToRender)
       ) {
-        console.log(
-  "[timestampPollingCallback] about to triggerRenderingForGivenTimestamps with:",
-  Array.from(commitTimestampsToRenderMap.entries()).map(
-    ([commitId, ts]) => ({ commitId, count: ts.length })
-  )
-);
         useRenderingServiceStore
           .getState()
           .triggerRenderingForGivenTimestamps(commitTimestampsToRenderMap);
@@ -167,18 +167,25 @@ export const useTimestampRepositoryStore = create<TimestampRepositoryState>(
         : undefined;
     },
 
-    getTimestampsForCommitId: (commitId: string, includeTimestampsFromDebugSnapshots: boolean = false) => {
+    getTimestampsForCommitId: (
+      commitId: string,
+      includeTimestampsFromDebugSnapshots: boolean = false
+    ) => {
       const timestampsForCommitId = get().commitToTimestampMap.get(commitId);
-      const timestampsForDebugSnapshots = get().getTimestampsForDebugSnapshots();
+      const timestampsForDebugSnapshots =
+        get().getTimestampsForDebugSnapshots();
 
-      if(timestampsForCommitId && !includeTimestampsFromDebugSnapshots) {
+      if (timestampsForCommitId && !includeTimestampsFromDebugSnapshots) {
         return [...timestampsForCommitId.values()];
-      }else if (timestampsForCommitId && includeTimestampsFromDebugSnapshots) {
+      } else if (timestampsForCommitId && includeTimestampsFromDebugSnapshots) {
         return [
           ...timestampsForCommitId.values(),
           ...timestampsForDebugSnapshots,
         ].sort((a, b) => a.epochNano - b.epochNano);
-      }else if (!timestampsForCommitId && includeTimestampsFromDebugSnapshots) {
+      } else if (
+        !timestampsForCommitId &&
+        includeTimestampsFromDebugSnapshots
+      ) {
         return timestampsForDebugSnapshots;
       } else {
         return [];

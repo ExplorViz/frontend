@@ -605,7 +605,7 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
     if (!room) {
       return;
     }
-    
+
     useWebSocketStore
       .getState()
       .send<SyncRoomStateMessage>(SYNC_ROOM_STATE_EVENT, {

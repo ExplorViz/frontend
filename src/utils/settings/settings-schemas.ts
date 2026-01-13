@@ -9,9 +9,11 @@ export type SettingGroup =
   | 'Highlighting'
   | 'Layout'
   | 'Label'
+  | 'Magnifier'
   | 'Minimap'
   | 'Misc'
   | 'Popups'
+  | 'Semantic Zoom'
   | 'Virtual Reality';
 
 export type CameraSettings = {
@@ -101,6 +103,7 @@ export type DebugSettings = {
   showFpsCounter: FlagSetting;
   showAxesHelper: FlagSetting;
   showLightHelper: FlagSetting;
+  entityOpacity: RangeSetting;
   fullscreen: ButtonSetting;
   syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
@@ -137,7 +140,6 @@ export type LabelSettings = {
   classLabelLength: RangeSetting;
   classLabelOrientation: RangeSetting;
   labelOffset: RangeSetting;
-  maxCamHeightForCamera: RangeSetting;
   packageLabelMargin: RangeSetting;
   componentLabelPlacement: SelectSetting<string>;
 };
@@ -191,10 +193,32 @@ export type PopupSettings = {
 };
 export type PopupSettingId = keyof PopupSettings;
 
+export type SemanticZoomSettings = {
+  enableClustering: FlagSetting;
+  displayClusters: FlagSetting;
+  clusterCount: RangeSetting;
+  labelDistanceThreshold: RangeSetting;
+  distanceUpdateFrequency: RangeSetting;
+  autoOpenCloseComponents: FlagSetting;
+  componentOpenCloseDistanceThreshold: RangeSetting;
+};
+export type SemanticZoomSettingId = keyof SemanticZoomSettings;
+
 export type MiscSettings = {
   showEmbeddedBrowserIcon: FlagSetting;
 };
 export type MiscSettingId = keyof MiscSettings;
+
+export type MagnifierSettings = {
+  isMagnifierActive: FlagSetting;
+  magnifierZoom: RangeSetting;
+  magnifierExponent: RangeSetting;
+  magnifierRadius: RangeSetting;
+  magnifierOutlineColor: ColorSetting;
+  magnifierOutlineThickness: RangeSetting;
+  magnifierAntialias: FlagSetting;
+};
+export type MagnifierSettingId = keyof MagnifierSettings;
 
 export type XrSettingId = 'showVrButton' | 'showVrOnClick';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
@@ -210,9 +234,11 @@ export type VisualizationSettingId =
   | EffectSettingId
   | LayoutSettingId
   | LabelSettingId
+  | MagnifierSettingId
   | MinimapSettingId
   | MiscSettingId
   | PopupSettingId
+  | SemanticZoomSettingId
   | XrSettingId;
 
 export type VisualizationSettings = CameraSettings &
@@ -224,9 +250,11 @@ export type VisualizationSettings = CameraSettings &
   EffectSettings &
   LayoutSettings &
   LabelSettings &
+  MagnifierSettings &
   MinimapSettings &
   MiscSettings &
   PopupSettings &
+  SemanticZoomSettings &
   XrSettings &
   ColorSettings;
 

@@ -1,10 +1,10 @@
-import { create } from 'zustand';
 import {
-  NavigateFunction,
-  useNavigate,
-  useLocation,
   Location,
+  NavigateFunction,
+  useLocation,
+  useNavigate,
 } from 'react-router-dom';
+import { create } from 'zustand';
 
 interface RouterStoreState {
   navigateTo: NavigateFunction | undefined;

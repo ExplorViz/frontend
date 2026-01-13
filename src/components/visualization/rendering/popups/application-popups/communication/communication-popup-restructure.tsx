@@ -9,6 +9,7 @@ import {
 import EditCommMesh from 'explorviz-frontend/src/components/visualization/rendering/popups/interactable-properties/edit-comm-mesh.tsx';
 import EditOperationName from 'explorviz-frontend/src/components/visualization/rendering/popups/interactable-properties/edit-operation-name.tsx';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
 import {
   Class,
@@ -16,7 +17,6 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import ClassCommunication from '../../../../../../utils/landscape-schemes/dynamic/class-communication';
 
 interface CommunicationPopupRestructureProps {
   communication: ClassCommunication;

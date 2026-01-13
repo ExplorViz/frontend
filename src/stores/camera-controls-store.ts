@@ -1,6 +1,6 @@
-import { create } from 'zustand';
 import { CameraControls } from '@react-three/drei';
 import { useEffect } from 'react';
+import { create } from 'zustand';
 
 interface CameraControlsState {
   cameraControlsRef: React.RefObject<CameraControls | null> | null;

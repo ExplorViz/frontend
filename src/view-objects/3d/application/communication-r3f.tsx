@@ -1,22 +1,22 @@
-import { ThreeElements, ThreeEvent } from '@react-three/fiber';
+import { ThreeElements, ThreeEvent, useThree } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { calculateLineThickness } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   isApplication,
   isClass,
   isPackage,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
 import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
-import CommunicationLayout from 'explorviz-frontend/src/view-objects/layout-models/communication-layout';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
@@ -26,7 +26,6 @@ import {
   HierarchicalAttractionSystem,
 } from './edge-bundling-utils';
 import { HAPSystemManager } from './hap-system-manager';
-import { useThree } from '@react-three/fiber';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();

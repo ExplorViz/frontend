@@ -1,6 +1,6 @@
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/view-objects/layout-models/box-layout';
+import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 export default class LandscapeModel {
   id = 'landscape';

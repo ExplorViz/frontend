@@ -1,5 +1,5 @@
 import { ThreeEvent } from '@react-three/fiber';
-import { useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 type PointerStopCallback = (event: ThreeEvent<PointerEvent>) => void;
 

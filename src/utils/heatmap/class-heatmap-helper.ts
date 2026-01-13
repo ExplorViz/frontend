@@ -1,5 +1,6 @@
 import {
   ClassMetric,
+  ClassMetricIds,
   SelectedClassHeatmapMetric,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import {
@@ -36,12 +37,14 @@ export function getMetricValues(
   classHeatmapMetric: ClassMetric
 ): { min: number; max: number; current: number } {
   switch (classHeatmapMetric.name) {
+    case ClassMetricIds.Methods:
     case SelectedClassHeatmapMetric.Methods:
       return {
         min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,
         current: dataModel.methods.length,
       };
+    case ClassMetricIds.DynamicMethods:
     case SelectedClassHeatmapMetric.DynamicMethods:
       return {
         min: classHeatmapMetric.min,
@@ -52,6 +55,7 @@ export function getMetricValues(
             m.originOfData === TypeOfAnalysis.StaticAndDynamic
         ).length,
       };
+    case ClassMetricIds.StaticMethods:
     case SelectedClassHeatmapMetric.StaticMethods:
       return {
         min: classHeatmapMetric.min,
@@ -61,6 +65,13 @@ export function getMetricValues(
             m.originOfData === TypeOfAnalysis.Static ||
             m.originOfData === TypeOfAnalysis.StaticAndDynamic
         ).length,
+      };
+    case ClassMetricIds.LoC:
+    case SelectedClassHeatmapMetric.LoC:
+      return {
+        min: classHeatmapMetric.min,
+        max: classHeatmapMetric.max,
+        current: dataModel.linesOfCode || 0,
       };
     default:
       return {

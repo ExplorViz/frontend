@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import {
@@ -82,5 +82,11 @@ export default function InteractiveHeader({
     save();
   };
 
-  return <>{restructureMode && <EditMesh entity={entity} appId={appId !== undefined ? appId : ''} />}</>;
+  return (
+    <>
+      {restructureMode && (
+        <EditMesh entity={entity} appId={appId !== undefined ? appId : ''} />
+      )}
+    </>
+  );
 }

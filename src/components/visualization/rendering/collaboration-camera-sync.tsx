@@ -3,7 +3,10 @@ import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/coll
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import { getPoses, VrPose } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
+import {
+  getPoses,
+  VrPose,
+} from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import equal from 'fast-deep-equal';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -73,4 +76,3 @@ export default function CollaborationCameraSync() {
 
   return null;
 }
-

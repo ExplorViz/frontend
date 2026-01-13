@@ -3,6 +3,7 @@ import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/coll
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { AnnotationForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
 import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
@@ -51,7 +52,6 @@ import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/appl
 import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 type Position2D = {
   x: number;

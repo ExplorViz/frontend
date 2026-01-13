@@ -1,12 +1,10 @@
-import Plotly from 'plotly.js-dist';
-import { useEffect, useMemo, useRef } from 'react';
-import { Timestamp } from '../../../../../utils/landscape-schemes/timestamp';
-import { TimelineDataObject } from '../../../../../utils/timeline/timeline-data-object-handler';
-import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { nanosecondsToMilliseconds } from '../../../../../utils/landscape-http-request-util';
-import { ConversionHtmlNode } from '@react-three/uikit';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { nanosecondsToMilliseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
+import { TimelineDataObject } from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
+import Plotly from 'plotly.js-dist';
+import { useEffect, useRef } from 'react';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -144,7 +142,6 @@ export default function PlotlyTimeline({
   };
 
   const setupPlotlyTimelineChart = (plotlyDiv: any) => {
-    console.log('setupPlotlyTimelineChart');
     timelineDiv.current = plotlyDiv;
 
     updateMarkerStates();
@@ -331,7 +328,6 @@ export default function PlotlyTimeline({
   // #region Plot Logic
 
   const updatePlotlyTimelineChart = () => {
-    console.log('updatePlotlyTimelineChart');
     if (!timelineDataObject || timelineDataObject.size == 0) {
       return;
     }
@@ -346,35 +342,25 @@ export default function PlotlyTimeline({
       return;
     }
 
-
-
     for (const [
       commitId,
       timelineDataForCommit,
     ] of timelineDataObject.entries()) {
-
-      const hasNewTimestamp = timelineDataForCommit.selectedTimestamps.some((ts) =>
-        !(
-          selectedCommitTimestampsMap.current.get(commitId) ?? []
-        ).some((ts2) => ts2.epochNano === ts.epochNano)
+      const hasNewTimestamp = timelineDataForCommit.selectedTimestamps.some(
+        (ts) =>
+          !(selectedCommitTimestampsMap.current.get(commitId) ?? []).some(
+            (ts2) => ts2.epochNano === ts.epochNano
+          )
       );
 
-      if(
-        !renderingServiceVisualizationPaused &&
-        hasNewTimestamp
-      ) {
+      if (!renderingServiceVisualizationPaused && hasNewTimestamp) {
         // mark new incoming timestamp from polling as the only one selected
         resetHighlightInStateObjects();
-        selectedCommitTimestampsMap.current.set(commitId, timelineDataForCommit.selectedTimestamps)
+        selectedCommitTimestampsMap.current.set(
+          commitId,
+          timelineDataForCommit.selectedTimestamps
+        );
       }
-      /*console.log(
-        'timelineDataForCommit.selectedTimestamps:',
-        timelineDataForCommit.selectedTimestamps
-      );
-      console.log(
-        'selectedCommitTimestampsMap.current.get(commitId)',
-        selectedCommitTimestampsMap.current.get(commitId)
-      );*/
     }
 
     updateMarkerStates();
