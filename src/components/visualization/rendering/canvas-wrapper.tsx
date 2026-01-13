@@ -1,3 +1,4 @@
+import { Magnify } from '@malte-hansen/magnify-r3f';
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas, useLoader } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
@@ -54,6 +55,7 @@ export default function CanvasWrapper({
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const floorTexture = useLoader(
     THREE.TextureLoader,
@@ -97,6 +99,13 @@ export default function CanvasWrapper({
     middleMouseButtonAction,
     mouseWheelAction,
     rightMouseButtonAction,
+    isMagnifierActive,
+    magnifierZoom,
+    magnifierExponent,
+    magnifierRadius,
+    magnifierOutlineColor,
+    magnifierOutlineThickness,
+    magnifierAntialias,
   } = useUserSettingsStore(
     useShallow((state) => ({
       applicationLayoutAlgorithm:
@@ -142,6 +151,15 @@ export default function CanvasWrapper({
         state.visualizationSettings.rightMouseButtonAction.value,
       middleMouseButtonAction:
         state.visualizationSettings.middleMouseButtonAction.value,
+      isMagnifierActive: state.visualizationSettings.isMagnifierActive.value,
+      magnifierZoom: state.visualizationSettings.magnifierZoom.value,
+      magnifierExponent: state.visualizationSettings.magnifierExponent.value,
+      magnifierRadius: state.visualizationSettings.magnifierRadius.value,
+      magnifierOutlineColor:
+        state.visualizationSettings.magnifierOutlineColor.value,
+      magnifierOutlineThickness:
+        state.visualizationSettings.magnifierOutlineThickness.value,
+      magnifierAntialias: state.visualizationSettings.magnifierAntialias.value,
       visualizationSettings: state.visualizationSettings,
     }))
   );
@@ -235,6 +253,18 @@ export default function CanvasWrapper({
     }
   }, [landscapeData, interAppCommunications]);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: e.clientX,
+        y: window.innerHeight - e.clientY,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   const updateLayout = async () => {
     if (!landscapeData) return;
 
@@ -281,6 +311,31 @@ export default function CanvasWrapper({
     };
   }, []);
 
+  // Keyboard handler for magnifier toggle
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Ignore if typing in an input field
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
+    // Toggle magnifier on M key press
+    if (event.key === 'M' || event.key === 'm') {
+      useUserSettingsStore
+        .getState()
+        .updateSetting('isMagnifierActive', !isMagnifierActive);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMagnifierActive]);
+
   return (
     <>
       <Canvas
@@ -314,6 +369,19 @@ export default function CanvasWrapper({
               near={cameraNear}
               far={cameraFar}
               makeDefault
+            />
+            <Magnify
+              enabled={isMagnifierActive}
+              position={mousePos}
+              zoom={magnifierZoom}
+              exp={magnifierExponent}
+              radius={magnifierRadius}
+              outlineColor={parseInt(
+                magnifierOutlineColor.replace('#', ''),
+                16
+              )}
+              outlineThickness={magnifierOutlineThickness}
+              antialias={magnifierAntialias}
             />
             <SpectateCameraController />
             <CollaborationCameraSync />

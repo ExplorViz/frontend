@@ -1,3 +1,4 @@
+import { useThree } from '@react-three/fiber';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
@@ -27,6 +28,10 @@ export default function LandscapeR3F({
     settings.landscapeRotationY.value,
     settings.landscapeRotationZ.value,
   ];
+  const raycastEnabled = settings.raycastEnabled.value;
+  const raycastFirstHit = settings.raycastFirstHit.value;
+  const raycastNear = settings.raycastNear.value;
+  const raycastFar = settings.raycastFar.value;
 
   useEffect(() => {
     if (layout) {
@@ -40,6 +45,19 @@ export default function LandscapeR3F({
     positionY,
     positionZ,
   ]);
+
+  const raycaster = useThree((state) => state.raycaster);
+
+  useEffect(() => {
+    raycaster.near = raycastNear;
+    raycaster.far = raycastFar;
+    raycaster.firstHitOnly = raycastFirstHit;
+    if (raycastEnabled) {
+      raycaster.layers.enableAll();
+    } else {
+      raycaster.layers.disableAll();
+    }
+  }, [raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
 
   return (
     <group

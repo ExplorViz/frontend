@@ -1060,6 +1060,94 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
 
+  // Magnifier Settings
+  isMagnifierActive: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Magnifier',
+    displayName: 'Enable Magnifier',
+    description:
+      'Toggle the magnifying glass effect. Can also be toggled with the M key.',
+    isFlagSetting: true,
+  },
+  magnifierZoom: {
+    level: SettingLevel.DEFAULT,
+    value: 2.0,
+    range: { min: 1.0, max: 15.0, step: 0.1 },
+    group: 'Magnifier',
+    displayName: 'Zoom Factor',
+    description: 'Magnification level of the magnifying glass',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierExponent: {
+    level: SettingLevel.EXTENDED,
+    value: 100.0,
+    range: { min: 1.0, max: 100.0, step: 1.0 },
+    group: 'Magnifier',
+    displayName: 'Glass Shape Exponent',
+    description:
+      'Controls the shape of the magnifying glass (higher = flatter)',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierRadius: {
+    level: SettingLevel.DEFAULT,
+    value: 200.0,
+    range: { min: 50.0, max: 500.0, step: 10.0 },
+    group: 'Magnifier',
+    displayName: 'Radius',
+    description: 'Size of the magnifying glass in pixels',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierOutlineColor: {
+    level: SettingLevel.DEFAULT,
+    value: '#cccccc',
+    group: 'Magnifier',
+    displayName: 'Outline Color',
+    description: 'Color of the magnifying glass outline',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isColorSetting: true,
+  },
+  magnifierOutlineThickness: {
+    level: SettingLevel.DEFAULT,
+    value: 8.0,
+    range: { min: 0.0, max: 20.0, step: 1.0 },
+    group: 'Magnifier',
+    displayName: 'Outline Thickness',
+    description: 'Thickness of the magnifying glass outline (0 = no outline)',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  magnifierAntialias: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Magnifier',
+    displayName: 'Enable Anti-aliasing',
+    description: 'Apply FXAA anti-aliasing for smoother edges',
+    dependsOn: {
+      settingId: 'isMagnifierActive',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+
   // Debug Settings
   showExtendedSettings: {
     level: SettingLevel.DEFAULT,
