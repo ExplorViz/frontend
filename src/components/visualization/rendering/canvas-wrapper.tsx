@@ -290,8 +290,8 @@ export default function CanvasWrapper({
         style={{ background: sceneBackgroundColor }}
         onMouseMove={popupHandlerActions.handleMouseMove}
       >
-        <XR store={xrStore || createXRStore({})}>
-          <IfInSessionMode deny={['immersive-ar', 'immersive-vr']}>
+        {xrStore ? null : (
+          <>
             <CameraControls
               ref={cameraControlsRef}
               dollySpeed={0.3}
@@ -313,11 +313,13 @@ export default function CanvasWrapper({
               fov={cameraFov}
               near={cameraNear}
               far={cameraFar}
-              // makeDefault // TODO
+              makeDefault
             />
             <SpectateCameraController />
             <CollaborationCameraSync />
-          </IfInSessionMode>
+          </>
+        )}
+        <XR store={xrStore || createXRStore({})}>
           <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
             <XROrigin position={position} />
             <TeleportTarget onTeleport={setPosition}>
