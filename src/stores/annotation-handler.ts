@@ -61,9 +61,6 @@ type Position2D = {
 interface AnnotationHandlerState {
   annotationData: AnnotationData[]; // tracked
   minimizedAnnotations: AnnotationData[];
-  latestMousePosition: { timestamp: number; x: number; y: number };
-  isShiftPressed: boolean;
-  handleMouseMove: (event: MouseEvent) => void;
   clearAnnotations: () => void;
   removeUnmovedAnnotations: () => void;
   editAnnotation: (annotationData: AnnotationData) => void;
@@ -148,8 +145,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
   (set, get) => ({
     annotationData: [],
     minimizedAnnotations: [],
-    latestMousePosition: { timestamp: 0, x: 0, y: 0 },
-    isShiftPressed: false,
 
     init: () => {
       eventEmitter.on(ANNOTATION_OPENED_EVENT, get().onAnnotation);
@@ -164,17 +159,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
 
     setMinimizedAnnotationData: (annotations: AnnotationData[]) => {
       set({ minimizedAnnotations: annotations });
-    },
-
-    handleMouseMove: (event: MouseEvent) => {
-      set({
-        latestMousePosition: {
-          timestamp: Date.now(),
-          x: event.pageX,
-          y: event.pageY,
-        },
-        isShiftPressed: event.shiftKey,
-      });
     },
 
     clearAnnotations: () => {
@@ -436,8 +420,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     removeAnnotationAfterTimeout: (annotation: AnnotationData) => {
-      const latestMousePosition = get().latestMousePosition;
-      // Store popup position
+      // Store annotation position
       const mouseX = annotation.mouseX;
       const mouseY = annotation.mouseY;
 
@@ -446,18 +429,8 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           (ad) => ad.annotationId === annotation.annotationId
         );
 
-        // Popup no longer available
+        // Annotation no longer available
         if (!maybeAnnotation || maybeAnnotation.wasMoved) {
-          return;
-        }
-
-        // Do not remove popup when mouse stayed (recently) on target entity or shift is pressed
-        if (
-          get().isShiftPressed ||
-          (latestMousePosition.x == get().latestMousePosition.x &&
-            latestMousePosition.y == get().latestMousePosition.y)
-        ) {
-          get().removeAnnotationAfterTimeout(annotation);
           return;
         }
 
