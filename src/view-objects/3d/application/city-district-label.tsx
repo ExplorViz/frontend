@@ -66,6 +66,12 @@ export default function CityDistrictLabel({
   // Track distance to cluster centroid for label visibility
   const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
 
+  const getFontSize = () => {
+    return isOpen
+      ? packageLabelMargin * 0.5
+      : Math.max(layout.width * 0.1, packageLabelMargin * 0.5);
+  };
+
   useEffect(() => {
     const distance = getCentroidDistance(component.id);
     if (distance !== undefined) {
@@ -130,12 +136,6 @@ export default function CityDistrictLabel({
       default:
         return new THREE.Vector3(0, 0, 0);
     }
-  };
-
-  const getFontSize = () => {
-    return isOpen
-      ? packageLabelMargin * 0.5
-      : Math.max(layout.width * 0.1, packageLabelMargin * 0.5);
   };
 
   useEffect(() => {

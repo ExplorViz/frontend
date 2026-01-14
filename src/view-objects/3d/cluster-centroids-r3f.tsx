@@ -1,6 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
-import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
@@ -8,7 +7,7 @@ import {
   getAllPackageIdsInApplications,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { clusterEntities } from 'explorviz-frontend/src/utils/clustering/k-means';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -21,7 +20,6 @@ const CLUSTER_BALL_SEGMENTS = 16;
  * automatically transformed by the LandscapeR3F component's scale and position.
  */
 export default function ClusterCentroidsR3F() {
-  const [positions, setPositions] = useState<THREE.Vector3[]>([]);
   const {
     clusterCount,
     displayClusters,
@@ -37,7 +35,6 @@ export default function ClusterCentroidsR3F() {
     }))
   );
 
-  const classLayouts = useLayoutStore((state) => state.classLayouts);
   const { camera } = useThree();
   const lastUpdateTimeRef = useRef<number>(0);
 
@@ -55,47 +52,47 @@ export default function ClusterCentroidsR3F() {
     }
   });
 
-  useEffect(() => {
-    if (enableClustering) {
-      const applications = useModelStore.getState().getAllApplications();
-      const classIds = getAllClassIdsInApplications(applications);
-      const packageIds = getAllPackageIdsInApplications(applications);
-
-      const clusteringResult = clusterEntities(
-        [...classIds, ...packageIds],
-        clusterCount
-      );
-      const positions: THREE.Vector3[] = [];
-      clusteringResult.centroids.forEach((centroid) => {
-        positions.push(centroid.position.clone());
-      });
-
-      if (displayClusters) {
-        setPositions(positions);
-      } else {
-        setPositions([]);
-      }
-
-      useClusterStore
-        .getState()
-        .setClusters(
-          clusteringResult.entityToCluster,
-          clusteringResult.centroids
-        );
-    } else if (!enableClustering) {
-      // Clear clusters if clustering is disabled
+  const getClusters = () => {
+    if (!enableClustering) {
       useClusterStore.getState().clearClusters();
+      return [];
     }
-  }, [classLayouts, clusterCount, displayClusters, enableClustering]);
+    const applications = useModelStore.getState().getAllApplications();
+    const classIds = getAllClassIdsInApplications(applications);
+    const packageIds = getAllPackageIdsInApplications(applications);
 
-  if (!displayClusters) {
-    return null;
-  }
+    const clusteringResult = clusterEntities(
+      [...classIds, ...packageIds],
+      clusterCount
+    );
+    const positions: THREE.Vector3[] = [];
+    clusteringResult.centroids.forEach((centroid) => {
+      positions.push(centroid.position.clone());
+    });
+
+    useClusterStore
+      .getState()
+      .setClusters(
+        clusteringResult.entityToCluster,
+        clusteringResult.centroids
+      );
+
+    if (displayClusters) {
+      return positions;
+    } else {
+      return [];
+    }
+  };
+
+  const positions = getClusters();
 
   return (
     <group>
       {positions.map((position) => (
-        <mesh position={position}>
+        <mesh
+          key={`cluster-centroid-at-${position.x}-${position.y}-${position.z}`}
+          position={position}
+        >
           <sphereGeometry
             args={[
               CLUSTER_BALL_RADIUS,
