@@ -51,9 +51,8 @@ interface Args {
 // eslint-disable-next-line
 const CityDistricts = forwardRef<InstancedMesh2, Args>(
   ({ packages, layoutMap, application }, ref) => {
-    const geometry = new BoxGeometry();
-
-    const material = new MeshLambertMaterial();
+    const geometry = useRef<BoxGeometry>(new BoxGeometry());
+    const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
 
     const instanceIdToComponentId = new Map<number, string>();
     const componentIdToInstanceId = new Map<string, number>();
@@ -232,7 +231,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             !removedComponentIds.has(componentId)
         );
       });
-    }, [hiddenComponentIds, removedComponentIds]);
+    }, [hiddenComponentIds, removedComponentIds, ref, componentIdToInstanceId]);
 
     useEffect(() => {
       if (ref === null || typeof ref === 'function') {
@@ -245,9 +244,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     }, []);
 
     useEffect(() => {
-      material.transparent = entityOpacity < 1.0;
-      material.opacity = entityOpacity;
-      material.needsUpdate = true;
+      material.current.transparent = entityOpacity < 1.0;
+      material.current.opacity = entityOpacity;
+      material.current.needsUpdate = true;
     }, [entityOpacity, material]);
 
     const computeColor = (componentId: string) => {
@@ -366,6 +365,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       selectedClassMetric,
       componentRootLevelColor,
       componentDeepestLevelColor,
+      componentIdToInstanceId,
+      computeColor,
+      ref
     ]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
@@ -502,7 +504,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         ref={meshRef}
         name={'Districts of ' + application.name}
         castShadow={castShadows}
-        args={[geometry, material]}
+        args={[geometry.current, material.current]}
         onClick={handleClickWithPrevent}
         {...(enableHoverEffects && {
           onPointerOver: handleOnPointerOver,
