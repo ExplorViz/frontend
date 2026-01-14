@@ -26,7 +26,7 @@ import {
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
 import gsap from 'gsap';
-import { forwardRef, useEffect, useMemo } from 'react';
+import { forwardRef, useEffect } from 'react';
 import * as THREE from 'three';
 import {
   BoxGeometry,
@@ -56,12 +56,12 @@ interface Args {
 // eslint-disable-next-line
 const CodeBuildings = forwardRef<InstancedMesh2, Args>(
   ({ classes, layoutMap, appId, application }, meshRef) => {
-    const geometry = useMemo(() => new BoxGeometry(), []);
-    const material = useMemo(() => new MeshLambertMaterial(), []);
+    const geometry = new BoxGeometry();
+    const material = new MeshLambertMaterial();
 
-    const instanceIdToClassId = useMemo(() => new Map<number, string>(), []);
-    const classIdToInstanceId = useMemo(() => new Map<string, number>(), []);
-    const classIdToClass = useMemo(() => new Map<string, Class>(), []);
+    const instanceIdToClassId = new Map<number, string>();
+    const classIdToInstanceId = new Map<string, number>();
+    const classIdToClass = new Map<string, Class>();
 
     const {
       hiddenClassIds,

@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { ToastContainer, Toast } from 'react-bootstrap';
 import { Toast as BootstrapToast } from 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
+import { useEffect, useRef, useState } from 'react';
+import { Toast, ToastContainer } from 'react-bootstrap';
 
 export default function ToastMessage() {
   const cssClassesValues: [string, string][] = [
@@ -25,25 +25,21 @@ export default function ToastMessage() {
   >([]);
   const toastRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  const addToastMessage = useCallback(
-    (type: string, message: string, header: string) => {
-      const htmlIdUnique = 'toast-' + generateUuidv4();
+  const addToastMessage = (type: string, message: string, header: string) => {
+    const htmlIdUnique = 'toast-' + generateUuidv4();
 
-      let cssClassesString = cssClasses.get(type) || '';
+    let cssClassesString = cssClasses.get(type) || '';
 
-      setToastMessages((prevMessages: any) => [
-        ...prevMessages,
-        {
-          htmlId: htmlIdUnique,
-          header,
-          message,
-          cssClasses: cssClassesString,
-        },
-      ]);
-    },
-    [cssClasses]
-  );
-
+    setToastMessages((prevMessages: any) => [
+      ...prevMessages,
+      {
+        htmlId: htmlIdUnique,
+        header,
+        message,
+        cssClasses: cssClassesString,
+      },
+    ]);
+  };
   useEffect(() => {
     const showToastCallback = addToastMessage;
 
@@ -54,7 +50,7 @@ export default function ToastMessage() {
     };
   }, [addToastMessage]);
 
-  const toastRenderIsComplete = useCallback((id: string) => {
+  const toastRenderIsComplete = (id: string) => {
     const toastElement = toastRefs.current[id];
 
     if (toastElement) {
@@ -68,7 +64,7 @@ export default function ToastMessage() {
         setToastMessages((prev) => prev.filter((item) => item.htmlId !== id));
       });
     }
-  }, []);
+  };
 
   return (
     <ToastContainer

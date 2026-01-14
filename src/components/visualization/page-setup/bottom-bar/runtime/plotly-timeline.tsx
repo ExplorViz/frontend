@@ -58,7 +58,6 @@ export default function PlotlyTimeline({
     (state) => state._visualizationPaused
   );
 
-  // would React's useMemo be beneficial here?
   const showDummyTimeline = (() => {
     if (!timelineDataObject || timelineDataObject.size === 0) {
       return true;

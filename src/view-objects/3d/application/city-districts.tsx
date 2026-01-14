@@ -23,7 +23,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import gsap from 'gsap';
-import { forwardRef, useEffect, useMemo, useRef } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
 import {
   BoxGeometry,
   Color,
@@ -51,19 +51,13 @@ interface Args {
 // eslint-disable-next-line
 const CityDistricts = forwardRef<InstancedMesh2, Args>(
   ({ packages, layoutMap, application }, ref) => {
-    const geometry = useMemo(() => new BoxGeometry(), []);
+    const geometry = new BoxGeometry();
 
-    const material = useMemo(() => new MeshLambertMaterial(), []);
+    const material = new MeshLambertMaterial();
 
-    const instanceIdToComponentId = useMemo(
-      () => new Map<number, string>(),
-      []
-    );
-    const componentIdToInstanceId = useMemo(
-      () => new Map<string, number>(),
-      []
-    );
-    const componentIdToPackage = useMemo(() => new Map<string, Package>(), []);
+    const instanceIdToComponentId = new Map<number, string>();
+    const componentIdToInstanceId = new Map<string, number>();
+    const componentIdToPackage = new Map<string, Package>();
 
     const meshRef = useRef<InstancedMesh2 | null>(null);
 
