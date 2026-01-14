@@ -64,14 +64,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     return this._curveHeight;
   }
 
-  // set curveHeight(curveHeight: number) {
-  //   // Release old geometry if it exists (curve height affects geometry)
-  //   if (this.geometry) {
-  //     this.releaseSharedGeometry(this.geometry);
-  //   }
-  //   this._curveHeight = curveHeight;
-  //   this.render();
-  // }
   set curveHeight(curveHeight: number) {
     if (Math.abs(this._curveHeight - curveHeight) > 0.001) {
       if (this.geometry) {
@@ -713,7 +705,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     if (!bundledLayout || !this.isLayoutValid(bundledLayout)) {
       return;
     }
-    // const bundledLayout = this.getBundledLayout();
     if (
       !bundledLayout ||
       !this._hapSystem ||

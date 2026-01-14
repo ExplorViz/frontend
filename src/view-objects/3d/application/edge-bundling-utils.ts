@@ -51,62 +51,6 @@ export class HierarchicalAttractionSystem {
     return this.hapTree;
   }
 
-  // /**
-  //  * Find HAP path with leaf package optimization
-  //  */
-  // public findHAPPath(
-  //   origin: HAPNode,
-  //   destination: HAPNode,
-  //   streamline: boolean = true,
-  //   leafPackagesOnly: boolean = false // NEU
-  // ): {
-  //   pathOrigin: HAPNode[];
-  //   pathDestination: HAPNode[];
-  // } {
-  //   const pathToRoot = (node: HAPNode): HAPNode[] => {
-  //     const path: HAPNode[] = [];
-  //     let current: HAPNode | null = node;
-  //     while (current) {
-  //       path.push(current);
-  //       current = current.parent;
-  //     }
-  //     return path.reverse();
-  //   };
-
-  //   const pathO = pathToRoot(origin);
-  //   const pathD = pathToRoot(destination);
-
-  //   // Find common ancestor
-  //   let commonIndex = 0;
-  //   const minLength = Math.min(pathO.length, pathD.length);
-  //   while (
-  //     commonIndex < minLength &&
-  //     pathO[commonIndex].id === pathD[commonIndex].id
-  //   ) {
-  //     commonIndex++;
-  //   }
-
-  //   let originPath = pathO.slice(commonIndex);
-  //   let destinationPath = pathD.slice(commonIndex);
-
-  //
-  //   if (leafPackagesOnly) {
-  //     originPath = this.filterLeafPackagesOnly(originPath);
-  //     destinationPath = this.filterLeafPackagesOnly(destinationPath);
-  //   }
-
-  //   // Apply streamline if requested
-  //   if (streamline) {
-  //     originPath = this.applyStreamline(originPath);
-  //     destinationPath = this.applyStreamline(destinationPath);
-  //   }
-
-  //   return {
-  //     pathOrigin: originPath,
-  //     pathDestination: destinationPath,
-  //   };
-  // }
-
   /**
    * Find HAP path with leaf package optimization
    */

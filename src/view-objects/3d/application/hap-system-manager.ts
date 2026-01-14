@@ -261,11 +261,6 @@ export class HAPSystemManager {
     }
   }
 
-  // // Get HAP node for a software element
-  // public getHAPNode(elementId: string): HAPNode | null {
-  //   return this.elementToHAP.get(elementId) || null;
-  // }
-
   // Get HAP system for an application
   public getHAPSystem(
     applicationId: string

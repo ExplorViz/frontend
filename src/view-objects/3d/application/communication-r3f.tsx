@@ -26,6 +26,7 @@ import {
   HierarchicalAttractionSystem,
 } from './edge-bundling-utils';
 import { HAPSystemManager } from './hap-system-manager';
+import interAppBundlingService from './interapp-bundling-service';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -127,7 +128,7 @@ export default function CommunicationR3F({
   // Conditionally apply streamline based on dependencies
   const effectiveStreamline = useMemo(() => {
     if (!enableEdgeBundling || !use3DHAPAlgorithm) {
-      return false; // Streamline nur relevant wenn beides aktiv
+      return false;
     }
     return edgeBundlingStreamline;
   }, [enableEdgeBundling, use3DHAPAlgorithm, edgeBundlingStreamline]);
@@ -297,6 +298,73 @@ export default function CommunicationR3F({
   const isInterAppCommunication =
     communicationModel.sourceApp.id !== communicationModel.targetApp.id;
 
+  const [updateTrigger, setUpdateTrigger] = useState(0);
+
+  useEffect(() => {
+    if (!isInterAppCommunication || !enableEdgeBundling) return;
+
+    const unsubscribe = interAppBundlingService.subscribe(() => {
+      if (Math.random() < 0.33) {
+        setUpdateTrigger((prev) => prev + 1);
+      }
+    });
+
+    return unsubscribe;
+  }, [isInterAppCommunication, enableEdgeBundling]);
+
+  // Force bundling service onyl for inter-app
+  const interAppBundler = useMemo(() => {
+    if (!enableEdgeBundling || !isInterAppCommunication) return null;
+    return interAppBundlingService.getBundler();
+  }, [enableEdgeBundling, isInterAppCommunication]);
+
+  // Add edge to service
+  useEffect(() => {
+    if (!interAppBundler || !communicationLayout || !isInterAppCommunication)
+      return;
+
+    const startPoint = new THREE.Vector3(
+      communicationLayout.startX,
+      communicationLayout.startY,
+      communicationLayout.startZ
+    );
+    const endPoint = new THREE.Vector3(
+      communicationLayout.endX,
+      communicationLayout.endY,
+      communicationLayout.endZ
+    );
+
+    interAppBundlingService.addInterAppEdge(
+      communicationModel.id,
+      startPoint,
+      endPoint,
+      communicationModel.sourceApp.id,
+      communicationModel.targetApp.id
+    );
+
+    return () => {
+      interAppBundlingService.getBundler().removeEdge(communicationModel.id);
+    };
+  }, [
+    interAppBundler,
+    communicationLayout,
+    isInterAppCommunication,
+    communicationModel.id,
+  ]);
+
+  // Subscribe for updates
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  useEffect(() => {
+    if (!isInterAppCommunication || !enableEdgeBundling) return;
+
+    const unsubscribe = interAppBundlingService.subscribe(() => {
+      setForceUpdate((prev) => prev + 1);
+    });
+
+    return unsubscribe;
+  }, [isInterAppCommunication, enableEdgeBundling]);
+
   const hapSystem = useMemo<HierarchicalAttractionSystem | null>(() => {
     if (!applicationElement || !enableEdgeBundling) return null;
 
@@ -457,27 +525,6 @@ export default function CommunicationR3F({
     communicationModel.id,
   ]);
 
-  // const hapNodes = useMemo(() => {
-  //   if (
-  //     !hapSystem ||
-  //     !communicationModel.sourceClass ||
-  //     !communicationModel.targetClass
-  //   )
-  //     return null;
-  //   const originHAP = hapSystemManager.getHAPNode(
-  //     communicationModel.sourceClass.id
-  //   );
-  //   const destinationHAP = hapSystemManager.getHAPNode(
-  //     communicationModel.targetClass.id
-  //   );
-  //   if (!originHAP || !destinationHAP) return null;
-  //   return { originHAP, destinationHAP };
-  // }, [
-  //   hapSystem,
-  //   communicationModel.sourceClass?.id,
-  //   communicationModel.targetClass?.id,
-  // ]);
-
   const computedCurveHeight = useMemo(() => {
     let baseCurveHeight = 50;
     if (communicationLayout && commCurveHeightDependsOnDistance) {
@@ -599,6 +646,58 @@ export default function CommunicationR3F({
       return updatedLayout;
     }
 
+    if (isInterAppCommunication && enableEdgeBundling) {
+      const bundler = interAppBundlingService.getBundler();
+
+      let bundledLayout: BundledCommunicationLayout;
+      if (communicationLayout instanceof BundledCommunicationLayout) {
+        bundledLayout = communicationLayout.copy();
+        bundledLayout.lineThickness = updatedLineThickness;
+      } else {
+        bundledLayout = new BundledCommunicationLayout(
+          communicationModel,
+          startPoint,
+          endPoint,
+          updatedLineThickness,
+          edgeBundlingConfig
+        );
+      }
+
+      // Hole control points of force bundler
+      if (interAppBundler) {
+        const controlPoints = interAppBundler.getEdgeControlPoints(
+          communicationModel.id
+        );
+
+        if (controlPoints && controlPoints.length > 0) {
+          bundledLayout.updateControlPoints(controlPoints);
+        } else {
+          // Fallback for new edges
+          const midPoint = new THREE.Vector3()
+            .addVectors(startPoint, endPoint)
+            .multiplyScalar(0.5);
+          midPoint.y += startPoint.distanceTo(endPoint) * 0.15;
+
+          bundledLayout.updateControlPoints([midPoint]);
+        }
+      }
+      const controlPoints = bundler.getEdgeControlPoints(communicationModel.id);
+      const stability = bundler.getEdgeStability(communicationModel.id);
+
+      if (controlPoints && controlPoints.length > 0) {
+        bundledLayout.updateControlPoints(controlPoints);
+      } else {
+        // Fallback for new edges
+        const midPoint = new THREE.Vector3()
+          .addVectors(startPoint, endPoint)
+          .multiplyScalar(0.5);
+        midPoint.y += startPoint.distanceTo(endPoint) * 0.15;
+        bundledLayout.updateControlPoints([midPoint]);
+      }
+
+      return bundledLayout;
+    }
+
     let bundledLayout: BundledCommunicationLayout;
 
     if (communicationLayout instanceof BundledCommunicationLayout) {
@@ -615,10 +714,8 @@ export default function CommunicationR3F({
       );
     }
 
-    if (use3DHAPAlgorithm && hapNodes) {
-      const systemId = isInterAppCommunication
-        ? 'LANDSCAPE'
-        : applicationElement?.id || 'default';
+    if (use3DHAPAlgorithm && hapNodes && !isInterAppCommunication) {
+      const systemId = applicationElement?.id || 'default';
       const hapSystem = hapSystemManager.getHAPSystem(systemId);
       if (hapSystem) {
         bundledLayout.setHAPNodes(hapNodes.originHAP, hapNodes.destinationHAP);
@@ -626,8 +723,6 @@ export default function CommunicationR3F({
         bundledLayout.setScatterRadius(scatterRadius);
         bundledLayout.setStreamline(edgeBundlingStreamline);
         bundledLayout.setLeafPackagesOnly(leafPackagesOnly);
-
-        const cacheKey = `HAP_${hapNodes.originHAP.id}_${hapNodes.destinationHAP.id}_${beta}_${scatterRadius}_${edgeBundlingStreamline}`;
       }
     }
 
@@ -645,8 +740,11 @@ export default function CommunicationR3F({
     scatterRadius,
     edgeBundlingStreamline,
     leafPackagesOnly,
+    hapNodes,
+    forceUpdate,
+    updateTrigger,
+    isInterAppCommunication,
   ]);
-
   // Only update if change occured
   useEffect(() => {
     if (!meshRef.current || !finalLayout) return;
