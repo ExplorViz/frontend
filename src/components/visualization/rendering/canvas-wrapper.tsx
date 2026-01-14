@@ -27,7 +27,6 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu-r3f';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -419,13 +418,9 @@ export default function CanvasWrapper({
                 <CommunicationR3F
                   key={communication.id}
                   communicationModel={communication}
-                  communicationLayout={computeCommunicationLayout(
-                    communication,
-                    applicationModels,
-                    layoutMap || applicationModels[0].boxLayoutMap
-                  )}
                   applicationElement={communication.sourceApp}
                   layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                  applicationModels={applicationModels}
                 />
               ))}
           </LandscapeR3F>

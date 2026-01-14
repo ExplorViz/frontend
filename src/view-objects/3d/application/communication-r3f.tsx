@@ -1,11 +1,15 @@
-import { ThreeElements, ThreeEvent, useThree } from '@react-three/fiber';
+import { ThreeElements, ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { calculateLineThickness } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
+import {
+  calculateLineThickness,
+  computeCommunicationLayout,
+} from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
@@ -39,16 +43,14 @@ export function setGlobalLayoutMap(map: Map<string, BoxLayout>) {
 
 export default function CommunicationR3F({
   communicationModel,
-  communicationLayout,
-  allCommunications = [],
   applicationElement,
   layoutMap,
+  applicationModels,
 }: {
   communicationModel: ClassCommunication;
-  communicationLayout: CommunicationLayout | undefined;
-  allCommunications?: any[];
   applicationElement?: any;
   layoutMap?: Map<string, BoxLayout>;
+  applicationModels?: ApplicationData[];
 }) {
   const {
     arrowColor,
@@ -102,15 +104,37 @@ export default function CommunicationR3F({
     })
   );
 
-  const { isHighlighted, isHovered, setHoveredEntity } = useVisualizationStore(
-    useShallow((state) => ({
-      isHighlighted: state.highlightedEntityIds.has(communicationModel.id),
-      isHovered: state.hoveredEntityId === communicationModel.id,
-      setHoveredEntity: state.actions.setHoveredEntityId,
-    }))
-  );
+  const { isHighlighted, isHovered, setHoveredEntity, closedComponentIds } =
+    useVisualizationStore(
+      useShallow((state) => ({
+        isHighlighted: state.highlightedEntityIds.has(communicationModel.id),
+        isHovered: state.hoveredEntityId === communicationModel.id,
+        setHoveredEntity: state.actions.setHoveredEntityId,
+        closedComponentIds: state.closedComponentIds,
+      }))
+    );
 
-  const { scene } = useThree();
+
+  // Compute communication layout internally
+  // This ensures the layout is recomputed when components in the hierarchy are opened/closed
+  const communicationLayout = useMemo(() => {
+    if (applicationModels && layoutMap) {
+      return computeCommunicationLayout(
+        communicationModel,
+        applicationModels,
+        layoutMap
+      );
+    }
+    return undefined;
+    // closedComponentIds is intentionally included as a dependency even though it's not directly used
+    // It triggers recomputation when components are opened/closed, which affects findFirstOpen() inside computeCommunicationLayout
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    communicationModel,
+    applicationModels,
+    layoutMap,
+    closedComponentIds,
+  ]);
 
   const { evoConfig } = useVisibilityServiceStore(
     useShallow((state) => ({
