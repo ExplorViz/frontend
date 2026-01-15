@@ -1159,6 +1159,11 @@ export default function CommunicationR3F({
     return null;
   }
 
+  // Skip rendering recursive communications when edge bundling is active
+  if (enableEdgeBundling && communicationLayout?.startPoint.equals(communicationLayout.endPoint)) {
+    return null;
+  }
+
   return (
     <clazzCommunicationMesh
       key={`${enableEdgeBundling}-${use3DHAPAlgorithm}`}
