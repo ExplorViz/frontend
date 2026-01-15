@@ -1,4 +1,5 @@
 import { ThreeElements, ThreeEvent, useThree } from '@react-three/fiber';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -1166,6 +1167,7 @@ export default function CommunicationR3F({
 
   return (
     <clazzCommunicationMesh
+      layers={SceneLayers.Communication}
       key={`${enableEdgeBundling}-${use3DHAPAlgorithm}`}
       {...pointerStopHandlers}
       {...(enableHoverEffects && {

@@ -1283,6 +1283,18 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Toggle visibility of the minimap',
     isFlagSetting: true,
   },
+  bg_color: {
+    level: SettingLevel.DEFAULT,
+    value: '#d3d3d3',
+    group: 'Minimap',
+    displayName: 'Minimap Background Color',
+    description: 'Set background color of the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
+    isColorSetting: true,
+  },
   zoom: {
     level: SettingLevel.DEFAULT,
     value: 1,

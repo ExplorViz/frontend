@@ -1,6 +1,6 @@
 import { Magnify } from '@malte-hansen/magnify-r3f';
 import { CameraControls, PerspectiveCamera, Stats } from '@react-three/drei';
-import { Canvas, useLoader } from '@react-three/fiber';
+import { Canvas, useLoader, useThree } from '@react-three/fiber';
 import type { XRStore } from '@react-three/xr';
 import {
   createXRStore,
@@ -46,6 +46,32 @@ import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/lands
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import MinimapView from './minimap-view';
+
+export enum SceneLayers {
+  Default = 0,
+  Foundation = 1,
+  Component = 2,
+  Clazz = 3,
+  Communication = 4,
+  Ping = 5,
+  Label = 6,
+}
+
+/**
+ * Helper component to configure the main camera's layers.
+ * Must be placed inside the Canvas to access the R3F state.
+ */
+function CameraLayerHandler() {
+  const camera = useThree((state) => state.camera);
+
+  useEffect(() => {
+    // The main camera should be able to see all labels
+    camera.layers.enableAll();
+  }, [camera]);
+
+  return null;
+}
 
 export default function CanvasWrapper({
   landscapeData,
@@ -426,6 +452,10 @@ export default function CanvasWrapper({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isMagnifierActive]);
+  
+  const minimapEnabled = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimap.value
+  );
 
   return (
     <>
@@ -468,6 +498,12 @@ export default function CanvasWrapper({
               far={cameraFar}
               makeDefault
             />
+                    {/* Insert Layer Handler here inside the Canvas */}
+        <CameraLayerHandler />
+
+        {minimapEnabled  && (
+          <MinimapView mainCameraControls={cameraControlsRef} />
+        )}
             <Magnify
               enabled={isMagnifierActive}
               position={mousePos}
@@ -551,5 +587,6 @@ export default function CanvasWrapper({
         </XR>
       </Canvas>
     </>
+
   );
 }

@@ -1,4 +1,5 @@
 import { Text } from '@react-three/drei';
+import { SceneLayers } from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -158,6 +159,7 @@ export default function CodeBuildingLabel({
 
   return shouldShowLabel ? (
     <Text
+      layers={SceneLayers.Label}
       key={dataModel.id + '-label'}
       name={'Code building label of ' + dataModel.name}
       position={labelPosition}
