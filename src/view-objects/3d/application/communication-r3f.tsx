@@ -1,4 +1,4 @@
-import { ThreeElements, ThreeEvent } from '@react-three/fiber';
+import { ThreeElements, ThreeEvent, useThree } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -146,6 +146,8 @@ export default function CommunicationR3F({
     layoutMap,
     closedComponentIds,
   ]);
+
+  const { scene } = useThree();
 
   const [streamlineHash, setStreamlineHash] = useState('');
 
