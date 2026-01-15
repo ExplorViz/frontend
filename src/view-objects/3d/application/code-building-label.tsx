@@ -108,24 +108,6 @@ export default function CodeBuildingLabel({
     new THREE.Vector3(layout.center.x, layout.positionY, layout.center.z)
   );
 
-  // Track distance to cluster centroid for label visibility
-  const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
-
-  useEffect(() => {
-    if (centroidDistance !== undefined) {
-      // Larger Labels of larger districts should be visible from a greater distance
-      const sizeMultiplier = 1.0 + layout.area / 10000.0;
-      setIsWithinDistance(centroidDistance <= labelDistanceThreshold * sizeMultiplier);
-    } else {
-      // Show label by default
-      setIsWithinDistance(true);
-    }
-  }, [
-    centroidDistance,
-    labelDistanceThreshold,
-    dataModel.id,
-  ]);
-
   useEffect(() => {
     const target = new THREE.Vector3(
       layout.center.x,
@@ -163,13 +145,16 @@ export default function CodeBuildingLabel({
     labelOffset,
   ]);
 
+  const sizeMultiplier = 1.0 + layout.area / 10000.0;
+  const isWithinSemanticZoomDistance = centroidDistance ? centroidDistance <= labelDistanceThreshold * sizeMultiplier : true;
+
   const shouldShowLabel =
     (showAllClassLabels ||
       isClassHovered ||
       isParentHovered ||
       isClassHighlighted ||
       isParentHighlighted) &&
-    isWithinDistance;
+    isWithinSemanticZoomDistance;
 
   return shouldShowLabel ? (
     <Text

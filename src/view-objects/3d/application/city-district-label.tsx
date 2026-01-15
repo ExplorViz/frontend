@@ -42,7 +42,7 @@ export default function CityDistrictLabel({
         state.visualizationSettings.labelDistanceThreshold.value,
     }))
   );
-
+  
   const { centroidDistance } = useClusterStore(
     useShallow((state) => ({
       centroidDistance: state.getCentroidDistance(component.id),
