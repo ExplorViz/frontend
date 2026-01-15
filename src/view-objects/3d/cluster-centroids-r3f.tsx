@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
@@ -7,7 +8,7 @@ import {
   getAllPackageIdsInApplications,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import { clusterEntities } from 'explorviz-frontend/src/utils/clustering/k-means';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -35,16 +36,23 @@ export default function ClusterCentroidsR3F() {
     }))
   );
 
+  const {componentLayouts, classLayouts } = useLayoutStore(
+    useShallow((state) => ({
+      componentLayouts: state.componentLayouts,
+      classLayouts: state.classLayouts,
+    }))
+  );
+
   const { camera } = useThree();
   const lastUpdateTimeRef = useRef<number>(0);
 
-  // Calculate distances to camera at configured frequency
+  // Calculate distances of clusters of to camera at configured frequency
   useFrame(() => {
     if (enableClustering && distanceUpdateFrequency > 0) {
       const now = performance.now();
       const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
       const updateInterval = 1000.0 / distanceUpdateFrequency; // Convert Hz to milliseconds
-
+      
       if (timeSinceLastUpdate >= updateInterval) {
         useClusterStore.getState().calculateDistanceToCamera(camera.position);
         lastUpdateTimeRef.current = now;
@@ -52,7 +60,7 @@ export default function ClusterCentroidsR3F() {
     }
   });
 
-  const getClusters = () => {
+  const computeClusters = () => {
     if (!enableClustering) {
       useClusterStore.getState().clearClusters();
       return [];
@@ -84,7 +92,12 @@ export default function ClusterCentroidsR3F() {
     }
   };
 
-  const positions = getClusters();
+  // Re-compute clusters when cluster settings or layouts change
+  useEffect(() => {
+    computeClusters();
+  }, [enableClustering, clusterCount, displayClusters, componentLayouts, classLayouts]);
+
+  const positions = displayClusters ? useClusterStore.getState().getAllClusters().values().map(c => c.position) : [];
 
   return (
     <group>

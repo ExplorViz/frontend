@@ -43,10 +43,9 @@ export default function CityDistrictLabel({
     }))
   );
 
-  const { centroidDistances, getCentroidDistance } = useClusterStore(
+  const { centroidDistance } = useClusterStore(
     useShallow((state) => ({
-      centroidDistances: state.centroidDistances,
-      getCentroidDistance: state.getCentroidDistance,
+      centroidDistance: state.getCentroidDistance(component.id),
     }))
   );
 
@@ -73,21 +72,19 @@ export default function CityDistrictLabel({
   };
 
   useEffect(() => {
-    const distance = getCentroidDistance(component.id);
-    if (distance !== undefined) {
+    if (centroidDistance !== undefined) {
       // Larger Labels of larger districts should be visible from a greater distance
       const sizeMultiplier =
         1.0 + layout.area / 100000.0 + getFontSize() / 10.0;
       const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
-      setIsWithinDistance(distance <= adjustedThreshold);
+      setIsWithinDistance(centroidDistance <= adjustedThreshold);
     } else {
       // Default: show label
       setIsWithinDistance(true);
     }
   }, [
-    centroidDistances,
+    centroidDistance,
     labelDistanceThreshold,
-    getCentroidDistance,
     component.id,
     layout.area,
   ]);

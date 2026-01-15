@@ -84,10 +84,9 @@ export default function CodeBuildingLabel({
     }))
   );
 
-  const { centroidDistances, getCentroidDistance } = useClusterStore(
+  const { centroidDistance } = useClusterStore(
     useShallow((state) => ({
-      centroidDistances: state.centroidDistances,
-      getCentroidDistance: state.getCentroidDistance,
+      centroidDistance: state.getCentroidDistance(dataModel.id),
     }))
   );
 
@@ -113,19 +112,17 @@ export default function CodeBuildingLabel({
   const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
 
   useEffect(() => {
-    const distance = getCentroidDistance(dataModel.id);
-    if (distance !== undefined) {
+    if (centroidDistance !== undefined) {
       // Larger Labels of larger districts should be visible from a greater distance
       const sizeMultiplier = 1.0 + layout.area / 10000.0;
-      setIsWithinDistance(distance <= labelDistanceThreshold * sizeMultiplier);
+      setIsWithinDistance(centroidDistance <= labelDistanceThreshold * sizeMultiplier);
     } else {
       // Show label by default
       setIsWithinDistance(true);
     }
   }, [
-    centroidDistances,
+    centroidDistance,
     labelDistanceThreshold,
-    getCentroidDistance,
     dataModel.id,
   ]);
 
