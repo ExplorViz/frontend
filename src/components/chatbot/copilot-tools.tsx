@@ -15,7 +15,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import { use, useMemo } from 'react';
+import { use } from 'react';
 
 interface CopilotToolsProps {
   applications?: Application[];
@@ -29,7 +29,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   const { actions } = useVisualizationStore();
   const { moveCameraTo, resetCamera } = useCameraControlsStore();
   const { addApplication, addClasses, removeComponent } = use(EditingContext);
-  const packages = useMemo(() => {
+  const packages = () => {
     const list = [] as Package[];
     applications?.forEach(({ packages }) => {
       packages.forEach((pck) => {
@@ -37,7 +37,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
       });
     });
     return list;
-  }, [applications]);
+  };
 
   useCopilotAction({
     name: 'highlight-component',

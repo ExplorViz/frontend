@@ -94,7 +94,6 @@ export default function BrowserRendering({
       updatePopup: state.updatePopup,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
-      handleMouseMove: state.handleMouseMove,
       cleanup: state.cleanup,
     }))
   );
@@ -110,7 +109,6 @@ export default function BrowserRendering({
       addAnnotation: state.addAnnotation,
       removeAnnotation: state.removeAnnotation,
       clearAnnotations: state.clearAnnotations,
-      handleMouseMove: state.handleMouseMove,
       cleanup: state.cleanup,
     }))
   );

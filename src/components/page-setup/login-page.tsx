@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth';
 import { useLandscapeTokenStore } from '../../stores/landscape-token';
@@ -17,7 +17,7 @@ export default function LoginPage() {
   const isAutoSkipLoginEnabled =
     import.meta.env.VITE_ENABLE_SKIP_LOGIN === 'true';
 
-  const handleSkipLogin = useCallback(() => {
+  const handleSkipLogin = () => {
     skipLogin();
 
     // Set default token if available
@@ -41,7 +41,7 @@ export default function LoginPage() {
     } else {
       navigate('/landscapes');
     }
-  }, [skipLogin, setLandscapeToken, navigate]);
+  };
 
   // Automatically skip login if VITE_ENABLE_SKIP_LOGIN is set
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from 'react';
+import { ReactNode } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
@@ -34,8 +34,6 @@ export default function PopupTabs({
   methodsTabTitle,
   restructureTab,
 }: PopupTabsProps) {
-  const htmlIdUnique = useMemo<string>(generateUuidv4, []);
-
   const defaultActiveKey = (() => {
     if (methodsTab) {
       return 'methods';
@@ -56,7 +54,7 @@ export default function PopupTabs({
     <div className="popover-body">
       <Tabs
         defaultActiveKey={defaultActiveKey}
-        id={`tab-${htmlIdUnique}`}
+        id={`tab-${generateUuidv4}`}
         className="nav-tabs justify-content-center"
       >
         {methodsTab && (

@@ -1,4 +1,3 @@
-import { useFrame } from '@react-three/fiber';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -7,7 +6,7 @@ import {
   closeComponent,
   openComponent,
 } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { useRef } from 'react';
+import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 /**
@@ -37,14 +36,18 @@ export default function AutoComponentOpenerR3F() {
   const closedComponentIds = useVisualizationStore(
     (state) => state.closedComponentIds
   );
-  const getCentroidDistance = useClusterStore(
-    (state) => state.getCentroidDistance
+
+  const { centroidDistances, getCentroidDistance } = useClusterStore(
+    useShallow((state) => ({
+      centroidDistances: state.centroidDistances,
+      getCentroidDistance: state.getCentroidDistance,
+    }))
   );
+
+
   const getAllComponents = useModelStore((state) => state.getAllComponents);
 
-  const lastUpdateTimeRef = useRef<number>(0);
-
-  useFrame(() => {
+  useEffect(() => {
     if (
       !enableClustering ||
       !autoOpenCloseComponents ||
@@ -52,13 +55,7 @@ export default function AutoComponentOpenerR3F() {
     ) {
       return;
     }
-
-    const now = performance.now();
-    const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
-    const updateInterval = 1000.0 / distanceUpdateFrequency;
-
-    if (timeSinceLastUpdate >= updateInterval) {
-      const components = getAllComponents();
+      const components = getAllComponents();      
 
       components.forEach((component) => {
         const distance = getCentroidDistance(component.id);
@@ -93,10 +90,7 @@ export default function AutoComponentOpenerR3F() {
           }
         }
       });
-
-      lastUpdateTimeRef.current = now;
-    }
-  });
+    }, [centroidDistances, getCentroidDistance]);
 
   return null;
 }

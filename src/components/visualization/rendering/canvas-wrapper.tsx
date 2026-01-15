@@ -20,14 +20,12 @@ import {
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu-r3f';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -313,12 +311,6 @@ export default function CanvasWrapper({
   const { applicationModels, interAppCommunications } =
     useLandscapeDataWatcher(landscapeData);
 
-  const popupHandlerActions = usePopupHandlerStore(
-    useShallow((state) => ({
-      handleMouseMove: state.handleMouseMove,
-    }))
-  );
-
   const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
       resetVisualizationState: state.actions.resetVisualizationState,
@@ -363,18 +355,6 @@ export default function CanvasWrapper({
       useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
   }, [landscapeData, interAppCommunications]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({
-        x: e.clientX,
-        y: window.innerHeight - e.clientY,
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   const updateLayout = async () => {
     if (!landscapeData) return;
@@ -454,7 +434,14 @@ export default function CanvasWrapper({
         className={'webgl'}
         gl={{ powerPreference: 'high-performance' }}
         style={{ background: sceneBackgroundColor }}
-        onMouseMove={popupHandlerActions.handleMouseMove}
+        onMouseMove={(e) => {
+          if (isMagnifierActive) {
+            setMousePos({
+              x: e.clientX,
+              y: window.innerHeight - e.clientY,
+            });
+          }
+        }}
       >
         {xrStore ? null : (
           <>
@@ -530,13 +517,9 @@ export default function CanvasWrapper({
                 <CommunicationR3F
                   key={communication.id}
                   communicationModel={communication}
-                  communicationLayout={computeCommunicationLayout(
-                    communication,
-                    applicationModels,
-                    layoutMap || applicationModels[0].boxLayoutMap
-                  )}
                   applicationElement={communication.sourceApp}
                   layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                  applicationModels={applicationModels}
                 />
               ))}
           </LandscapeR3F>
