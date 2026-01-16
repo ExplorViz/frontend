@@ -1290,11 +1290,11 @@ export const defaultVizSettings: VisualizationSettings = {
       'top-left',
       'top-middle',
       'top-right',
-      'right-middle',
+      'middle-right',
       'bottom-right',
       'bottom-middle',
       'bottom-left',
-      'left-middle',
+      'middle-left',
     ],
     group: 'Minimap',
     displayName: 'Minimap Corner',
@@ -1307,7 +1307,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   minimapZoom: {
     level: SettingLevel.DEFAULT,
-    value: 1,
+    value: 0.5,
     range: { min: 0.1, max: 5, step: 0.05 },
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
@@ -1331,39 +1331,52 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isSelectSetting: true,
   },
-  minimapSize: {
+  minimapWidth: {
     level: SettingLevel.DEFAULT,
     value: 300,
-    range: { min: 50, max: 500, step: 5 },
+    range: { min: 50, max: 1000, step: 5 },
     group: 'Minimap',
-    displayName: 'Minimap Size',
-    description: 'Size (width and height) of the minimap',
+    displayName: 'Minimap Width',
+    description: 'Width of the minimap',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,
     },
     isRangeSetting: true,
   },
-  minimapPaddingX: {
+  minimapHeight: {
     level: SettingLevel.DEFAULT,
-    value: 35,
-    range: { min: 0, max: 100, step: 1 },
+    value: 300,
+    range: { min: 50, max: 1000, step: 5 },
     group: 'Minimap',
-    displayName: 'Minimap Padding X',
-    description: 'Padding in x-direction to the edge of the viewport',
+    displayName: 'Minimap Height',
+    description: 'Height of the minimap',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,
     },
     isRangeSetting: true,
   },
-  minimapPaddingY: {
+  minimapMarginX: {
     level: SettingLevel.DEFAULT,
     value: 35,
     range: { min: 0, max: 100, step: 1 },
     group: 'Minimap',
-    displayName: 'Minimap Padding Y',
-    description: 'Padding in y-direction to the edge of the viewport',
+    displayName: 'Margin Padding X',
+    description: 'Margin in x-direction to the edge of the viewport',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  minimapMarginY: {
+    level: SettingLevel.DEFAULT,
+    value: 35,
+    range: { min: 0, max: 100, step: 1 },
+    group: 'Minimap',
+    displayName: 'Minimap Margin Y',
+    description: 'Margin in y-direction to the edge of the viewport',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,
@@ -1382,13 +1395,27 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isColorSetting: true,
   },
-  useCameraPosition: {
+  minimapMode: {
+    level: SettingLevel.DEFAULT,
+    value: 'camera',
+    options: ['camera', 'target', 'landscape'],
+    group: 'Minimap',
+    displayName: 'Minimap Tracking Mode',
+    description:
+      'Determines what the minimap tracks (Camera, Target, or fixed Landscape)',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isSelectSetting: true,
+  },
+  minimapRotate: {
     level: SettingLevel.DEFAULT,
     value: true,
     group: 'Minimap',
-    displayName: 'Use Camera Position',
+    displayName: 'Rotate Minimap',
     description:
-      'If off, calculate minimap position via intersection of camera with ground plane.',
+      'If on, the minimap rotates with the main camera. If off, it stays north-oriented.',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,

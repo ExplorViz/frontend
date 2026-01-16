@@ -187,12 +187,14 @@ export type MinimapSettings = {
   isMinimapEnabled: FlagSetting;
   minimapBgColor: ColorSetting;
   minimapZoom: RangeSetting;
-  useCameraPosition: FlagSetting;
+  minimapMode: SelectSetting<string>;
   minimapCorner: SelectSetting<string>;
-  minimapPaddingX: RangeSetting;
-  minimapPaddingY: RangeSetting;
-  minimapSize: RangeSetting;
+  minimapMarginX: RangeSetting;
+  minimapMarginY: RangeSetting;
+  minimapWidth: RangeSetting;
+  minimapHeight: RangeSetting;
   minimapShape: SelectSetting<string>;
+  minimapRotate: FlagSetting;
   layer1: FlagSetting;
   layer2: FlagSetting;
   layer3: FlagSetting;

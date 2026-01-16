@@ -13,13 +13,15 @@ export default function LocalUserMarker({
   minimapScene,
   mainCameraControls,
 }: LocalUserMarkerProps) {
-  const markerRef = useRef<THREE.Mesh>(null);
+  const markerRef = useRef<THREE.Group>(null);
   const zoom = useUserSettingsStore(
     (state) => state.visualizationSettings.minimapZoom
   );
-  const useCameraPosition = useUserSettingsStore(
-    (state) => state.visualizationSettings.useCameraPosition.value
+
+  const minimapMode = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapMode.value
   );
+
   const { camera: mainCamera } = useThree();
 
   const scratch = useMemo(
@@ -33,7 +35,11 @@ export default function LocalUserMarker({
     if (!markerRef.current || !mainCameraControls.current) return;
 
     // Get Position
-    if (useCameraPosition) {
+    if (minimapMode === 'camera') {
+      scratch.userTarget.copy(mainCamera.position);
+    } else if (minimapMode === 'target') {
+      mainCameraControls.current.getTarget(scratch.userTarget);
+    } else if (minimapMode === 'landscape') {
       scratch.userTarget.copy(mainCamera.position);
     } else {
       mainCameraControls.current.getTarget(scratch.userTarget);
@@ -44,8 +50,8 @@ export default function LocalUserMarker({
 
     // Update Scale (so the dot stays the same size in the minimap visualization)
     const dist = zoom.value || 1;
-    const scaleFactor = 0.5 / dist;
-    markerRef.current.scale.setScalar(scaleFactor);
+    const scaleFactor = 0.25 / dist;
+    markerRef.current.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
     // Update Position
     markerRef.current.position.set(
@@ -53,13 +59,28 @@ export default function LocalUserMarker({
       1.0,
       scratch.userTarget.z
     );
+
+    markerRef.current.rotation.set(
+      -Math.PI / 2,
+      mainCameraControls.current.azimuthAngle,
+      0,
+      'YXZ'
+    );
   });
 
   return createPortal(
-    <mesh ref={markerRef}>
-      <sphereGeometry args={[0.5, 16, 16]} />
-      <meshBasicMaterial color="red" toneMapped={false} />
-    </mesh>,
+    <group ref={markerRef}>
+      {minimapMode !== 'target' && (
+        <mesh position={[0, 0, 0]}>
+          <coneGeometry args={[0.3, 0.7, 32]} />
+          <meshBasicMaterial color="red" toneMapped={false} />
+        </mesh>
+      )}
+      <mesh position={[0, -0.25, 0]}>
+        <circleGeometry args={[0.3, 32]} />
+        <meshBasicMaterial color="red" toneMapped={false} />
+      </mesh>
+    </group>,
     minimapScene as any
   );
 }

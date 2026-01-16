@@ -25,7 +25,8 @@ export default function MinimapView({
   landscapeData,
 }: MinimapViewProps) {
   // Get the scene and cameras etc.
-  const cameraRef = useRef<THREE.OrthographicCamera>(null); // Minimap Camera
+  const orthoRef = useRef<THREE.OrthographicCamera>(null);
+  // We can just pick the one we need in the render loop.
   const { scene: mainScene, gl, camera: mainCamera } = useThree(); // mainCamera
 
   // Get the minimap corner, padding, size and shape
@@ -39,19 +40,25 @@ export default function MinimapView({
     (state) => state.visualizationSettings.minimapCorner.value
   );
   const minimapPaddingX = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapPaddingX
+    (state) => state.visualizationSettings.minimapMarginX
   );
   const minimapPaddingY = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapPaddingY
+    (state) => state.visualizationSettings.minimapMarginY
   );
-  const minimapSize = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimapSize
+  const minimapWidth: number = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapWidth.value
+  );
+  const minimapHeight: number = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapHeight.value
   );
   const minimapShape = useUserSettingsStore(
     (state) => state.visualizationSettings.minimapShape.value
   );
-  const useCameraPosition = useUserSettingsStore(
-    (state) => state.visualizationSettings.useCameraPosition.value
+  const minimapMode = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapMode.value
+  );
+  const minimapRotate = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapRotate.value
   );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
@@ -171,21 +178,26 @@ export default function MinimapView({
         } else {
           event.stopPropagation();
 
-          if (cameraRef.current && mainCameraControls.current) {
-            const minimapCam = cameraRef.current;
+          if (orthoRef.current && mainCameraControls.current) {
+            const minimapCam = orthoRef.current!;
             const controls = mainCameraControls.current;
 
             // Calculate Destination
             const u = (clientX - x) / w;
             const v = (clientY - y) / h;
 
-            const localX =
-              minimapCam.left + u * (minimapCam.right - minimapCam.left);
-            const localY =
-              minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
+            let worldX = 0;
+            let worldZ = 0;
 
-            const worldX = minimapCam.position.x + localX;
-            const worldZ = minimapCam.position.z - localY;
+            if (minimapCam instanceof THREE.OrthographicCamera) {
+              const localX =
+                minimapCam.left + u * (minimapCam.right - minimapCam.left);
+              const localY =
+                minimapCam.bottom + v * (minimapCam.top - minimapCam.bottom);
+
+              worldX = minimapCam.position.x + localX;
+              worldZ = minimapCam.position.z - localY;
+            }
 
             // Get Current State
             const currentTarget = new THREE.Vector3();
@@ -275,7 +287,7 @@ export default function MinimapView({
       gl.setScissorTest(false);
       gl.setViewport(0, 0, canvas.width, canvas.height);
     };
-  }, [gl, isFullscreen, mainCameraControls, minimapShape]);
+  }, [gl, isFullscreen, mainCameraControls, minimapShape, minimapRotate]);
 
   // Whenever the landscape changes boundsReady is set to zero so they are recomputed in useFrame loop
   useEffect(() => {
@@ -284,8 +296,8 @@ export default function MinimapView({
 
   // Whenever the settings for layer visibility change, update the camera settings
   useEffect(() => {
-    if (cameraRef.current) {
-      const cam = cameraRef.current;
+    if (orthoRef.current) {
+      const cam = orthoRef.current;
       const toggleLayer = (layerId: number, isEnabled: boolean) => {
         if (isEnabled) cam.layers.enable(layerId);
         else cam.layers.disable(layerId);
@@ -308,13 +320,18 @@ export default function MinimapView({
 
   // RENDER LOOP (Manual rendering overwrites default R3F rendering)
   useFrame(() => {
-    if (!cameraRef.current || !mainCameraControls.current || gl.xr.isPresenting)
+    const minimapCam = orthoRef.current;
+
+    if (!minimapCam || !mainCameraControls.current || gl.xr.isPresenting)
       return;
 
-    if (useCameraPosition) {
-      scratch.userTarget.copy(mainCamera.position);
-    } else {
+    if (minimapMode === 'target') {
       mainCameraControls.current.getTarget(scratch.userTarget);
+    } else if (minimapMode === 'landscape') {
+      landscapeBoundsRef.current.getCenter(scratch.userTarget);
+    } else {
+      // Use camera position by default
+      scratch.userTarget.copy(mainCamera.position);
     }
 
     // When the landscape is changed or not yet loaded, (re)compute the bounds
@@ -337,11 +354,12 @@ export default function MinimapView({
       viewX = (totalWidth - viewW) / 2;
       viewY = (totalHeight - viewH) / 2;
     } else {
-      const size = minimapSize.value * pixelRatio;
+      const w = minimapWidth * pixelRatio;
+      const h = minimapHeight * pixelRatio;
       const padX = minimapPaddingX.value * pixelRatio;
       const padY = minimapPaddingY.value * pixelRatio;
-      viewW = size;
-      viewH = size;
+      viewW = w;
+      viewH = h;
 
       switch (minimapCorner) {
         case 'top-left':
@@ -356,7 +374,7 @@ export default function MinimapView({
           viewX = totalWidth - viewW - padX;
           viewY = totalHeight - viewH - padY;
           break;
-        case 'right-middle':
+        case 'middle-right':
           viewX = totalWidth - viewW - padX;
           viewY = (totalHeight - viewH) / 2;
           break;
@@ -372,7 +390,7 @@ export default function MinimapView({
           viewX = totalWidth - viewW - padX;
           viewY = padY;
           break;
-        case 'left-middle':
+        case 'middle-left':
           viewX = padX;
           viewY = (totalHeight - viewH) / 2;
           break;
@@ -384,50 +402,64 @@ export default function MinimapView({
     }
     minimapRectRef.current = { x: viewX, y: viewY, w: viewW, h: viewH };
 
-    // Care for the minimap camera to not get out of landscape bounds
-    const minimapCam = cameraRef.current;
+    // --- Update Camera Rotation/Zoom ---
     const bounds = landscapeBoundsRef.current;
-    scratch.clampedPos.copy(scratch.userTarget);
-    scratch.clampedPos.x = THREE.MathUtils.clamp(
-      scratch.clampedPos.x,
-      bounds.min.x,
-      bounds.max.x
-    );
-    scratch.clampedPos.z = THREE.MathUtils.clamp(
-      scratch.clampedPos.z,
-      bounds.min.z,
-      bounds.max.z
-    );
 
-    // Compute the frustum of the orthographic camera
+    if (minimapMode !== 'landscape' && !isFullscreen) {
+      scratch.clampedPos.copy(scratch.userTarget);
+      scratch.clampedPos.x = THREE.MathUtils.clamp(
+        scratch.clampedPos.x,
+        bounds.min.x,
+        bounds.max.x
+      );
+      scratch.clampedPos.z = THREE.MathUtils.clamp(
+        scratch.clampedPos.z,
+        bounds.min.z,
+        bounds.max.z
+      );
+    } else {
+      // In landscape mode OR fullscreen, always center
+      bounds.getCenter(scratch.clampedPos);
+    }
+
+    // Zoom / Size
     bounds.getSize(scratch.size);
     const maxDim = Math.max(scratch.size.x, scratch.size.z);
     const validMaxDim = maxDim > 0 ? maxDim : 200;
 
+    const aspect = viewW / viewH;
     const dist = isFullscreen ? 1 : zoom.value || 1;
-    const cameraViewRadius = validMaxDim / 2 / dist;
 
-    minimapCam.left = -cameraViewRadius;
-    minimapCam.right = cameraViewRadius;
-    minimapCam.top = cameraViewRadius;
-    minimapCam.bottom = -cameraViewRadius;
-    minimapCam.updateProjectionMatrix();
+    let viewSize = validMaxDim / dist;
 
-    // Set the camera position based on wether the camera is zoomed or not
-    if (dist !== 1) {
+    if (isFullscreen) {
+      viewSize = validMaxDim * 1.1;
+    }
+
+    // We set top/bottom/left/right to match aspect ratio
+    if (minimapCam instanceof THREE.OrthographicCamera) {
+      minimapCam.left = (-viewSize * aspect) / 2;
+      minimapCam.right = (viewSize * aspect) / 2;
+      minimapCam.top = viewSize / 2;
+      minimapCam.bottom = -viewSize / 2;
+      minimapCam.updateProjectionMatrix();
+
       minimapCam.position.set(
         scratch.clampedPos.x,
         MINIMAP_HEIGHT,
         scratch.clampedPos.z
       );
-    } else {
-      bounds.getCenter(scratch.center);
-      minimapCam.position.set(
-        scratch.center.x,
-        MINIMAP_HEIGHT,
-        scratch.center.z
-      );
     }
+
+    // Standard rotation: look down (-PI/2 around X)
+    minimapCam.rotation.set(-Math.PI / 2, 0, 0);
+
+    if (!isFullscreen && minimapRotate) {
+      minimapCam.rotation.z = mainCameraControls.current.azimuthAngle;
+    }
+    minimapCam.updateMatrixWorld();
+
+    // End Camera Update
 
     //Rendering
 
@@ -493,19 +525,9 @@ export default function MinimapView({
     if (mesh && mesh.material instanceof THREE.MeshBasicMaterial) {
       mesh.material.map = fbo.texture;
       mesh.material.color.set(0xffffff); // White so texture colors show
-      // We need to flip the texture because FBOs are usually upside down relative to plane UVs
-      // or we can adjust texture.flipY. R3F/Three often handles this, but let's check visual.
-      // Usually rendering to texture results in inverted Y when mapped to a standard plane.
-      // Let's rely on standard mapping first.
       fbo.texture.colorSpace = gl.outputColorSpace; // Match encoding
     }
 
-    // We should NOT clear the screen area here blindly, because we want transparency outside the circle.
-    // But we DO need to blend the circle on top of the main scene?
-    // No, `MinimapView`'s loop renders the main scene to the full screen FIRST (lines 387-390).
-    // So here we are just drawing the overlay.
-    // We don't need to clear color.
-    // Ensure depth test/write is handled? We are drawing 2D overlay on top.
     gl.clearDepth(); // Clear depth of the scissor area so overlay is on top
 
     gl.render(stencilScene, stencilCamera);
@@ -526,7 +548,7 @@ export default function MinimapView({
   return (
     <>
       <OrthographicCamera
-        ref={cameraRef}
+        ref={orthoRef}
         makeDefault={false}
         position={[0, MINIMAP_HEIGHT, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
