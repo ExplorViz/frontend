@@ -1275,7 +1275,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isButtonSetting: true,
   },
   // Minimap Settings
-  minimap: {
+  isMinimapEnabled: {
     level: SettingLevel.DEFAULT,
     value: false,
     group: 'Minimap',
@@ -1285,18 +1285,27 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   minimapCorner: {
     level: SettingLevel.DEFAULT,
-    value: 'bottom-right',
-    options: ['top-left', 'top-right', 'bottom-right', 'bottom-left'],
+    value: 'top-left',
+    options: [
+      'top-left',
+      'top-middle',
+      'top-right',
+      'right-middle',
+      'bottom-right',
+      'bottom-middle',
+      'bottom-left',
+      'left-middle',
+    ],
     group: 'Minimap',
     displayName: 'Minimap Corner',
     description: 'Corner in which the minimap should be placed',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isSelectSetting: true,
   },
-    minimapZoom: {
+  minimapZoom: {
     level: SettingLevel.DEFAULT,
     value: 1,
     range: { min: 0.1, max: 5, step: 0.05 },
@@ -1304,25 +1313,25 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Zoom of Minimap',
     description: 'Set zoom of the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isRangeSetting: true,
   },
-    minimapShape: {
+  minimapShape: {
     level: SettingLevel.DEFAULT,
-    value: 'rectangle',
+    value: 'round',
     options: ['rectangle', 'round'],
     group: 'Minimap',
     displayName: 'Minimap Shape',
     description: 'Shape of the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isSelectSetting: true,
   },
-    minimapSize: {
+  minimapSize: {
     level: SettingLevel.DEFAULT,
     value: 300,
     range: { min: 50, max: 500, step: 5 },
@@ -1330,45 +1339,45 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Minimap Size',
     description: 'Size (width and height) of the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isRangeSetting: true,
   },
   minimapPaddingX: {
     level: SettingLevel.DEFAULT,
-    value: 20,
+    value: 35,
     range: { min: 0, max: 100, step: 1 },
     group: 'Minimap',
     displayName: 'Minimap Padding X',
     description: 'Padding in x-direction to the edge of the viewport',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isRangeSetting: true,
   },
   minimapPaddingY: {
     level: SettingLevel.DEFAULT,
-    value: 20,
+    value: 35,
     range: { min: 0, max: 100, step: 1 },
     group: 'Minimap',
     displayName: 'Minimap Padding Y',
     description: 'Padding in y-direction to the edge of the viewport',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isRangeSetting: true,
   },
-    minimapBgColor: {
+  minimapBgColor: {
     level: SettingLevel.DEFAULT,
     value: '#d3d3d3',
     group: 'Minimap',
     displayName: 'Minimap Background Color',
     description: 'Set background color of the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isColorSetting: true,
@@ -1381,7 +1390,7 @@ export const defaultVizSettings: VisualizationSettings = {
     description:
       'If off, calculate minimap position via intersection of camera with ground plane.',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1393,7 +1402,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable foundation visibility',
     description: 'Toggle foundation visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1405,7 +1414,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable component visibility',
     description: 'Toggle component visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1417,7 +1426,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable clazz visibility',
     description: 'Toggle clazz visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1429,7 +1438,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1441,7 +1450,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1454,7 +1463,7 @@ export const defaultVizSettings: VisualizationSettings = {
     description:
       'Toggle the different users position markers visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,

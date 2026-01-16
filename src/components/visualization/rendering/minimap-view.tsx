@@ -50,6 +50,9 @@ export default function MinimapView({
   const minimapShape = useUserSettingsStore(
     (state) => state.visualizationSettings.minimapShape.value
   );
+  const useCameraPosition = useUserSettingsStore(
+    (state) => state.visualizationSettings.useCameraPosition.value
+  );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
@@ -308,7 +311,11 @@ export default function MinimapView({
     if (!cameraRef.current || !mainCameraControls.current || gl.xr.isPresenting)
       return;
 
-    mainCameraControls.current.getTarget(scratch.userTarget);
+    if (useCameraPosition) {
+      scratch.userTarget.copy(mainCamera.position);
+    } else {
+      mainCameraControls.current.getTarget(scratch.userTarget);
+    }
 
     // When the landscape is changed or not yet loaded, (re)compute the bounds
     if (!boundsReady.current) {
@@ -341,15 +348,34 @@ export default function MinimapView({
           viewX = padX;
           viewY = totalHeight - viewH - padY;
           break;
+        case 'top-middle':
+          viewX = (totalWidth - viewW) / 2;
+          viewY = totalHeight - viewH - padY;
+          break;
         case 'top-right':
           viewX = totalWidth - viewW - padX;
           viewY = totalHeight - viewH - padY;
+          break;
+        case 'right-middle':
+          viewX = totalWidth - viewW - padX;
+          viewY = (totalHeight - viewH) / 2;
           break;
         case 'bottom-left':
           viewX = padX;
           viewY = padY;
           break;
+        case 'bottom-middle':
+          viewX = (totalWidth - viewW) / 2;
+          viewY = padY;
+          break;
         case 'bottom-right':
+          viewX = totalWidth - viewW - padX;
+          viewY = padY;
+          break;
+        case 'left-middle':
+          viewX = padX;
+          viewY = (totalHeight - viewH) / 2;
+          break;
         default:
           viewX = totalWidth - viewW - padX;
           viewY = padY;

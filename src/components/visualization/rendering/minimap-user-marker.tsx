@@ -1,8 +1,8 @@
 import { CameraControls } from '@react-three/drei';
-import { createPortal, useFrame } from '@react-three/fiber';
+import { createPortal, useFrame, useThree } from '@react-three/fiber';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 
 interface LocalUserMarkerProps {
   minimapScene: THREE.Scene;
@@ -17,6 +17,10 @@ export default function LocalUserMarker({
   const zoom = useUserSettingsStore(
     (state) => state.visualizationSettings.minimapZoom
   );
+  const useCameraPosition = useUserSettingsStore(
+    (state) => state.visualizationSettings.useCameraPosition.value
+  );
+  const { camera: mainCamera } = useThree();
 
   const scratch = useMemo(
     () => ({
@@ -29,7 +33,11 @@ export default function LocalUserMarker({
     if (!markerRef.current || !mainCameraControls.current) return;
 
     // Get Position
-    mainCameraControls.current.getTarget(scratch.userTarget);
+    if (useCameraPosition) {
+      scratch.userTarget.copy(mainCamera.position);
+    } else {
+      mainCameraControls.current.getTarget(scratch.userTarget);
+    }
 
     // Ensure visibility
     markerRef.current.visible = true;
@@ -52,6 +60,6 @@ export default function LocalUserMarker({
       <sphereGeometry args={[0.5, 16, 16]} />
       <meshBasicMaterial color="red" toneMapped={false} />
     </mesh>,
-    minimapScene
+    minimapScene as any
   );
 }

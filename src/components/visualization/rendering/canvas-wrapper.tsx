@@ -451,7 +451,7 @@ export default function CanvasWrapper({
   }, [isMagnifierActive]);
 
   const minimapEnabled = useUserSettingsStore(
-    (state) => state.visualizationSettings.minimap.value
+    (state) => state.visualizationSettings.isMinimapEnabled.value
   );
 
   return (

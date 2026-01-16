@@ -184,7 +184,7 @@ export type LayoutSettings = {
 export type LayoutSettingId = keyof LayoutSettings;
 
 export type MinimapSettings = {
-  minimap: FlagSetting;
+  isMinimapEnabled: FlagSetting;
   minimapBgColor: ColorSetting;
   minimapZoom: RangeSetting;
   useCameraPosition: FlagSetting;
