@@ -185,9 +185,14 @@ export type LayoutSettingId = keyof LayoutSettings;
 
 export type MinimapSettings = {
   minimap: FlagSetting;
-  bg_color: ColorSetting;
-  zoom: RangeSetting;
+  minimapBgColor: ColorSetting;
+  minimapZoom: RangeSetting;
   useCameraPosition: FlagSetting;
+  minimapCorner: SelectSetting<string>;
+  minimapPaddingX: RangeSetting;
+  minimapPaddingY: RangeSetting;
+  minimapSize: RangeSetting;
+  minimapShape: SelectSetting<string>;
   layer1: FlagSetting;
   layer2: FlagSetting;
   layer3: FlagSetting;

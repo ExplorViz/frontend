@@ -112,7 +112,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
 
   addZoomDelta: (zoomDelta: number) => {
     const zoomSetting =
-      useUserSettingsStore.getState().visualizationSettings.zoom;
+      useUserSettingsStore.getState().visualizationSettings.minimapZoom;
     const newZoom = zoomSetting.value + zoomDelta;
     if (newZoom < zoomSetting.range.min) {
       useUserSettingsStore
@@ -434,7 +434,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     } else {
       set({
         distance:
-          useUserSettingsStore.getState().visualizationSettings.zoom.value,
+          useUserSettingsStore.getState().visualizationSettings.minimapZoom.value,
       });
     }
 
@@ -451,7 +451,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     minimapCamera.bottom = -cameraAngle;
 
     if (
-      useUserSettingsStore.getState().visualizationSettings.zoom.value != 1 &&
+      useUserSettingsStore.getState().visualizationSettings.minimapZoom.value != 1 &&
       !get().makeFullsizeMinimap
     ) {
       minimapCamera.position.set(
@@ -470,7 +470,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
 
   calculateDistanceFactor: () => {
     return (
-      0.2 / useUserSettingsStore.getState().visualizationSettings.zoom.value
+      0.2 / useUserSettingsStore.getState().visualizationSettings.minimapZoom.value
     );
   },
 

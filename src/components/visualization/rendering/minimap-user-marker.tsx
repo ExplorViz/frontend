@@ -15,7 +15,7 @@ export default function LocalUserMarker({
 }: LocalUserMarkerProps) {
   const markerRef = useRef<THREE.Mesh>(null);
   const zoom = useUserSettingsStore(
-    (state) => state.visualizationSettings.zoom
+    (state) => state.visualizationSettings.minimapZoom
   );
 
   const scratch = useMemo(

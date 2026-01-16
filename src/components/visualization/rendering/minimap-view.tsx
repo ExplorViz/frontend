@@ -28,12 +28,27 @@ export default function MinimapView({
   const cameraRef = useRef<THREE.OrthographicCamera>(null); // Minimap Camera
   const { scene: mainScene, gl, camera: mainCamera } = useThree(); // mainCamera
 
-  // Get the minimap zoom and set up a store for minimap fullscreen
+  // Get the minimap corner, padding, size and shape
   const zoom = useUserSettingsStore(
-    (state) => state.visualizationSettings.zoom
+    (state) => state.visualizationSettings.minimapZoom
   );
-  const minimap_bg_color = useUserSettingsStore(
-    (state) => state.visualizationSettings.bg_color
+  const minimap_minimapBgColor = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapBgColor
+  );
+  const minimapCorner = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapCorner.value
+  );
+  const minimapPaddingX = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapPaddingX
+  );
+  const minimapPaddingY = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapPaddingY
+  );
+  const minimapSize = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapSize
+  );
+  const minimapShape = useUserSettingsStore(
+    (state) => state.visualizationSettings.minimapShape.value
   );
 
   // Get the minimap layer visibility settings
@@ -55,7 +70,27 @@ export default function MinimapView({
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   // Stores physical WebGL coordinates of the minimap
-  const minimapRectRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
+  const minimapRectRef = useRef<{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    fbo?: THREE.WebGLRenderTarget;
+  }>({ x: 0, y: 0, w: 0, h: 0 });
+
+  // For round minimap
+  const stencilScene = useMemo(() => {
+    const scene = new THREE.Scene();
+    const geometry = new THREE.CircleGeometry(1, 64);
+    const material = new THREE.MeshBasicMaterial();
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+    return scene;
+  }, []);
+
+  const stencilCamera = useMemo(() => {
+    return new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  }, []);
 
   // A scene to store the user marker (only minimap cam will be rendered with it)
   const minimapScene = useMemo(() => new THREE.Scene(), []);
@@ -100,8 +135,19 @@ export default function MinimapView({
 
       const { x, y, w, h } = minimapRectRef.current;
 
-      const isInsideMinimap =
+      let isInsideMinimap =
         clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
+
+      if (isInsideMinimap && minimapShape === 'round' && !isFullscreen) {
+        const centerX = x + w / 2;
+        const centerY = y + h / 2;
+        const dist = Math.sqrt(
+          Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2)
+        );
+        if (dist > w / 2) {
+          isInsideMinimap = false;
+        }
+      }
 
       // If the map is in fullscreen a click inside the map should teleport the user,
       // otherwise a click inside the map should put it into fullscreen
@@ -176,14 +222,25 @@ export default function MinimapView({
 
       const { x, y, w, h } = minimapRectRef.current;
 
-      const isInsideMinimap =
+      let isInsideMinimap =
         clientX >= x && clientX <= x + w && clientY >= y && clientY <= y + h;
+
+      if (isInsideMinimap && minimapShape === 'round' && !isFullscreen) {
+        const centerX = x + w / 2;
+        const centerY = y + h / 2;
+        const dist = Math.sqrt(
+          Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2)
+        );
+        if (dist > w / 2) {
+          isInsideMinimap = false;
+        }
+      }
 
       // When he mouse wheel event was inside the minimap (small screen), then adjust the zoom
       if (isInsideMinimap && !isFullscreen) {
         event.stopPropagation();
         const currentZoom =
-          useUserSettingsStore.getState().visualizationSettings.zoom.value;
+          useUserSettingsStore.getState().visualizationSettings.minimapZoom.value;
         useUserSettingsStore
           .getState()
           .updateSetting('zoom', currentZoom + -Math.sign(event.deltaY) * 0.05);
@@ -257,14 +314,31 @@ export default function MinimapView({
       viewX = (totalWidth - viewW) / 2;
       viewY = (totalHeight - viewH) / 2;
     } else {
-      const defaultSize = 300 * pixelRatio;
-      const maxSize = Math.min(totalWidth, totalHeight) / 3;
-      const size = Math.min(defaultSize, maxSize);
-      const margin = 20 * pixelRatio;
+      const size = minimapSize.value * pixelRatio;
+      const padX = minimapPaddingX.value * pixelRatio;
+      const padY = minimapPaddingY.value * pixelRatio;
       viewW = size;
       viewH = size;
-      viewX = totalWidth - viewW - margin;
-      viewY = margin;
+
+      switch (minimapCorner) {
+        case 'top-left':
+          viewX = padX;
+          viewY = totalHeight - viewH - padY;
+          break;
+        case 'top-right':
+          viewX = totalWidth - viewW - padX;
+          viewY = totalHeight - viewH - padY;
+          break;
+        case 'bottom-left':
+          viewX = padX;
+          viewY = padY;
+          break;
+        case 'bottom-right':
+        default:
+          viewX = totalWidth - viewW - padX;
+          viewY = padY;
+          break;
+      }
     }
     minimapRectRef.current = { x: viewX, y: viewY, w: viewW, h: viewH };
 
@@ -331,19 +405,94 @@ export default function MinimapView({
     gl.getClearColor(originalClearColor);
     const originalClearAlpha = gl.getClearAlpha();
 
-    gl.setClearColor(minimap_bg_color.value, 1);
-    gl.clear(true, true);
+    // --- FBO Handling for Round Minimap ---
+    // We use a lazy-initialized FBO (render target) attached to the component instance via a ref
+    // to avoid re-creating it every frame.
+    if (!minimapRectRef.current.fbo) {
+       minimapRectRef.current.fbo = new THREE.WebGLRenderTarget(viewW, viewH, {
+          minFilter: THREE.LinearFilter,
+          magFilter: THREE.LinearFilter,
+          format: THREE.RGBAFormat,
+       });
+    }
+    const fbo = minimapRectRef.current.fbo;
 
-    gl.clearDepth();
-    gl.render(mainScene, minimapCam);
+    // Resize FBO if necessary
+    if (fbo.width !== viewW || fbo.height !== viewH) {
+      fbo.setSize(viewW, viewH);
+    }
 
-    // Render minimap with user marker
-    gl.clearDepth();
-    gl.render(minimapScene, minimapCam);
+    if (minimapShape === 'round' && !isFullscreen) {
+      // 1. Render content into FBO
+      gl.setRenderTarget(fbo);
+      gl.setViewport(0, 0, viewW, viewH); // Render to full FBO
+      gl.setScissorTest(false);
+
+      // Clear FBO with background color
+      gl.setClearColor(minimap_minimapBgColor.value, 1);
+      gl.clear(true, true, true);
+
+      // Render Main Scene
+      gl.render(mainScene, minimapCam);
+
+      // Render User Marker
+      gl.clearDepth();
+      gl.render(minimapScene, minimapCam);
+
+      // 2. Render FBO texture marked by Circle to Screen
+      gl.setRenderTarget(null); // Back to screen
+      gl.setViewport(viewX, viewY, viewW, viewH);
+      gl.setScissor(viewX, viewY, viewW, viewH);
+      gl.setScissorTest(true);
+
+      // Prepare Circle Mesh to show FBO texture
+      const circleMesh = stencilScene.children[0] as THREE.Mesh;
+      if (circleMesh.material instanceof THREE.MeshBasicMaterial) {
+        circleMesh.material.map = fbo.texture;
+        circleMesh.material.color.set(0xffffff); // White so texture colors show
+        // We need to flip the texture because FBOs are usually upside down relative to plane UVs
+        // or we can adjust texture.flipY. R3F/Three often handles this, but let's check visual.
+        // Usually rendering to texture results in inverted Y when mapped to a standard plane.
+        // Let's rely on standard mapping first.
+        fbo.texture.colorSpace = gl.outputColorSpace; // Match encoding
+      }
+
+      // We should NOT clear the screen area here blindly, because we want transparency outside the circle.
+      // But we DO need to blend the circle on top of the main scene?
+      // No, `MinimapView`'s loop renders the main scene to the full screen FIRST (lines 387-390).
+      // So here we are just drawing the overlay.
+      // We don't need to clear color.
+      // Ensure depth test/write is handled? We are drawing 2D overlay on top.
+      gl.clearDepth(); // Clear depth of the scissor area so overlay is on top
+
+      gl.render(stencilScene, stencilCamera);
+
+    } else {
+      // Square Minimap: Simple Direct Render
+      gl.setViewport(viewX, viewY, viewW, viewH);
+      gl.setScissor(viewX, viewY, viewW, viewH);
+      gl.setScissorTest(true);
+
+      gl.setClearColor(minimap_minimapBgColor.value, 1);
+      gl.clear(true, true, false);
+      
+      gl.render(mainScene, minimapCam);
+      gl.clearDepth();
+      gl.render(minimapScene, minimapCam);
+    }
 
     gl.setClearColor(originalClearColor, originalClearAlpha);
     gl.setScissorTest(false);
   }, 1);
+
+  // Clean up FBO on unmount
+  useEffect(() => {
+    return () => {
+      if (minimapRectRef.current.fbo) {
+        minimapRectRef.current.fbo.dispose();
+      }
+    };
+  }, []);
 
   return (
     <>
