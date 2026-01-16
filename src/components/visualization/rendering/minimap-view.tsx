@@ -1,11 +1,11 @@
 import { CameraControls, OrthographicCamera } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
+import LocalUserMarker from 'explorviz-frontend/src/components/visualization/rendering/minimap-user-marker';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import LocalUserMarker from 'explorviz-frontend/src/components/visualization/rendering/minimap-user-marker';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 
 interface MinimapViewProps {
   mainCameraControls: React.RefObject<CameraControls>;
@@ -83,15 +83,23 @@ export default function MinimapView({
   // For round minimap
   const stencilScene = useRef(new THREE.Scene()).current;
   useEffect(() => {
-    const geometry = new THREE.CircleGeometry(1, 64);
+    let geometry: THREE.BufferGeometry;
+
+    if (minimapShape === 'round' && !isFullscreen) {
+      geometry = new THREE.CircleGeometry(1, 64);
+    } else {
+      geometry = new THREE.PlaneGeometry(2, 2);
+    }
+
     const material = new THREE.MeshBasicMaterial();
     const mesh = new THREE.Mesh(geometry, material);
     stencilScene.add(mesh);
     return () => {
+      stencilScene.clear();
       geometry.dispose();
       material.dispose();
     };
-  }, [stencilScene]);
+  }, [stencilScene, minimapShape, isFullscreen]);
 
   const stencilCamera = useRef(
     new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
@@ -432,63 +440,49 @@ export default function MinimapView({
       fbo.setSize(viewW, viewH);
     }
 
-    if (minimapShape === 'round' && !isFullscreen) {
-      // 1. Render content into FBO
-      gl.setRenderTarget(fbo);
-      gl.setViewport(0, 0, viewW, viewH); // Render to full FBO
-      gl.setScissorTest(false);
+    // 1. Render content into FBO
+    gl.setRenderTarget(fbo);
+    gl.setViewport(0, 0, viewW, viewH); // Render to full FBO
+    gl.setScissorTest(false);
 
-      // Clear FBO with background color
-      gl.setClearColor(minimap_minimapBgColor.value, 1);
-      gl.clear(true, true, true);
+    // Clear FBO with background color
+    gl.setClearColor(minimap_minimapBgColor.value, 1);
+    gl.clear(true, true, true);
 
-      // Render Main Scene
-      gl.render(mainScene, minimapCam);
+    // Render Main Scene
+    gl.render(mainScene, minimapCam);
 
-      // Render User Marker
-      gl.clearDepth();
-      gl.render(minimapScene, minimapCam);
+    // Render User Marker
+    gl.clearDepth();
+    gl.render(minimapScene, minimapCam);
 
-      // 2. Render FBO texture marked by Circle to Screen
-      gl.setRenderTarget(null); // Back to screen
-      gl.setViewport(viewX, viewY, viewW, viewH);
-      gl.setScissor(viewX, viewY, viewW, viewH);
-      gl.setScissorTest(true);
+    // 2. Render FBO texture marked by Circle to Screen
+    gl.setRenderTarget(null); // Back to screen
+    gl.setViewport(viewX, viewY, viewW, viewH);
+    gl.setScissor(viewX, viewY, viewW, viewH);
+    gl.setScissorTest(true);
 
-      // Prepare Circle Mesh to show FBO texture
-      const circleMesh = stencilScene.children[0] as THREE.Mesh;
-      if (circleMesh.material instanceof THREE.MeshBasicMaterial) {
-        circleMesh.material.map = fbo.texture;
-        circleMesh.material.color.set(0xffffff); // White so texture colors show
-        // We need to flip the texture because FBOs are usually upside down relative to plane UVs
-        // or we can adjust texture.flipY. R3F/Three often handles this, but let's check visual.
-        // Usually rendering to texture results in inverted Y when mapped to a standard plane.
-        // Let's rely on standard mapping first.
-        fbo.texture.colorSpace = gl.outputColorSpace; // Match encoding
-      }
-
-      // We should NOT clear the screen area here blindly, because we want transparency outside the circle.
-      // But we DO need to blend the circle on top of the main scene?
-      // No, `MinimapView`'s loop renders the main scene to the full screen FIRST (lines 387-390).
-      // So here we are just drawing the overlay.
-      // We don't need to clear color.
-      // Ensure depth test/write is handled? We are drawing 2D overlay on top.
-      gl.clearDepth(); // Clear depth of the scissor area so overlay is on top
-
-      gl.render(stencilScene, stencilCamera);
-    } else {
-      // Square Minimap: Simple Direct Render
-      gl.setViewport(viewX, viewY, viewW, viewH);
-      gl.setScissor(viewX, viewY, viewW, viewH);
-      gl.setScissorTest(true);
-
-      gl.setClearColor(minimap_minimapBgColor.value, 1);
-      gl.clear(true, true, false);
-
-      gl.render(mainScene, minimapCam);
-      gl.clearDepth();
-      gl.render(minimapScene, minimapCam);
+    // Prepare Mesh to show FBO texture
+    const mesh = stencilScene.children[0] as THREE.Mesh;
+    if (mesh && mesh.material instanceof THREE.MeshBasicMaterial) {
+      mesh.material.map = fbo.texture;
+      mesh.material.color.set(0xffffff); // White so texture colors show
+      // We need to flip the texture because FBOs are usually upside down relative to plane UVs
+      // or we can adjust texture.flipY. R3F/Three often handles this, but let's check visual.
+      // Usually rendering to texture results in inverted Y when mapped to a standard plane.
+      // Let's rely on standard mapping first.
+      fbo.texture.colorSpace = gl.outputColorSpace; // Match encoding
     }
+
+    // We should NOT clear the screen area here blindly, because we want transparency outside the circle.
+    // But we DO need to blend the circle on top of the main scene?
+    // No, `MinimapView`'s loop renders the main scene to the full screen FIRST (lines 387-390).
+    // So here we are just drawing the overlay.
+    // We don't need to clear color.
+    // Ensure depth test/write is handled? We are drawing 2D overlay on top.
+    gl.clearDepth(); // Clear depth of the scissor area so overlay is on top
+
+    gl.render(stencilScene, stencilCamera);
 
     gl.setClearColor(originalClearColor, originalClearAlpha);
     gl.setScissorTest(false);

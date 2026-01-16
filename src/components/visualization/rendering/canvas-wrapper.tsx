@@ -43,7 +43,14 @@ import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/applic
 import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import MinimapView from './minimap-view';
@@ -442,7 +449,7 @@ export default function CanvasWrapper({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isMagnifierActive]);
-  
+
   const minimapEnabled = useUserSettingsStore(
     (state) => state.visualizationSettings.minimap.value
   );
@@ -488,25 +495,26 @@ export default function CanvasWrapper({
               far={cameraFar}
               makeDefault
             />
-        {/* Insert Layer Handler here inside the Canvas */}
-        <CameraLayerHandler />
+            {/* Insert Layer Handler here inside the Canvas */}
+            <CameraLayerHandler />
 
-        {minimapEnabled  && (
-          <MinimapView mainCameraControls={cameraControlsRef} />
-        )}
-            <Magnify
-              enabled={isMagnifierActive}
-              position={mousePos}
-              zoom={magnifierZoom}
-              exp={magnifierExponent}
-              radius={magnifierRadius}
-              outlineColor={parseInt(
-                magnifierOutlineColor.replace('#', ''),
-                16
-              )}
-              outlineThickness={magnifierOutlineThickness}
-              antialias={magnifierAntialias}
-            />
+            {minimapEnabled && (
+              <MinimapView mainCameraControls={cameraControlsRef} />
+            )}
+            {isMagnifierActive && (
+              <Magnify
+                position={mousePos}
+                zoom={magnifierZoom}
+                exp={magnifierExponent}
+                radius={magnifierRadius}
+                outlineColor={parseInt(
+                  magnifierOutlineColor.replace('#', ''),
+                  16
+                )}
+                outlineThickness={magnifierOutlineThickness}
+                antialias={magnifierAntialias}
+              />
+            )}
             <SpectateCameraController />
             <CollaborationCameraSync />
           </>
@@ -579,6 +587,5 @@ export default function CanvasWrapper({
         </XR>
       </Canvas>
     </>
-
   );
 }
