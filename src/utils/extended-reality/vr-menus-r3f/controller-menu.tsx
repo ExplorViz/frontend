@@ -1,24 +1,25 @@
-import { useXRInputSourceState, XRSpace } from '@react-three/xr';
 import { useFrame } from '@react-three/fiber';
 import { Container, Text } from '@react-three/uikit';
-import { useState } from 'react';
 import { Button } from '@react-three/uikit-default';
+import { useXRInputSourceState, XRSpace } from '@react-three/xr';
+import { useState } from 'react';
 
-export default function ControllerMenu({ 
-  handedness = 'right' as 'left' | 'right', 
+export default function ControllerMenu({
+  handedness = 'right' as 'left' | 'right',
 }) {
   const [visible, setVisible] = useState(false);
   const controller = useXRInputSourceState('controller', handedness);
-  const space = 
+  const space =
     controller?.inputSource.gripSpace ?? controller?.inputSource.targetRaySpace;
-  const buttonAX = controller?.gamepad[(handedness === 'right') ? 'a-button' : 'x-button'];
+  const buttonAX =
+    controller?.gamepad[handedness === 'right' ? 'a-button' : 'x-button'];
   // const thumbstick = controller?.gamepad['xr-standard-thumbstick'];
   // const numberOfItems = 2;
   // let [selectedItem, setSelectedItem] = useState(0);
 
   useFrame(() => {
     // Handle button A/X (toggle visibilty)
-    if (buttonAX?.state === "pressed") {
+    if (buttonAX?.state === 'pressed') {
       setVisible((v) => !v);
     }
 
@@ -40,9 +41,9 @@ export default function ControllerMenu({
         rotation={[(340 * Math.PI) / 180, 0, 0]}
       >
         {visible && (
-          <Container 
-            sizeX={0.2} 
-            sizeY={0.2} 
+          <Container
+            sizeX={0.2}
+            sizeY={0.2}
             pixelSize={0.001}
             backgroundColor="black"
           >
