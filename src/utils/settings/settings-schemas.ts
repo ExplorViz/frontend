@@ -76,7 +76,11 @@ export type CommunicationSettingId =
   | 'bundlingStepSize'
   | 'beta'
   | 'use3DHAPAlgorithm'
-  | 'commCurveHeightDependsOnDistance';
+  | 'commCurveHeightDependsOnDistance'
+  | 'showHAPTree'
+  | 'scatterRadius'
+  | 'edgeBundlingStreamline'
+  | 'leafPackagesOnly';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -96,6 +100,10 @@ export type CommunicationSettings = {
   bundlingStepSize: RangeSetting;
   beta: RangeSetting;
   use3DHAPAlgorithm: FlagSetting;
+  showHAPTree: FlagSetting;
+  scatterRadius: RangeSetting;
+  edgeBundlingStreamline: FlagSetting;
+  leafPackagesOnly: FlagSetting;
 };
 
 export type DebugSettings = {
@@ -177,8 +185,14 @@ export type LayoutSettingId = keyof LayoutSettings;
 
 export type MinimapSettings = {
   minimap: FlagSetting;
-  zoom: RangeSetting;
+  minimapBgColor: ColorSetting;
+  minimapZoom: RangeSetting;
   useCameraPosition: FlagSetting;
+  minimapCorner: SelectSetting<string>;
+  minimapPaddingX: RangeSetting;
+  minimapPaddingY: RangeSetting;
+  minimapSize: RangeSetting;
+  minimapShape: SelectSetting<string>;
   layer1: FlagSetting;
   layer2: FlagSetting;
   layer3: FlagSetting;

@@ -43,10 +43,11 @@ export default function CityDistrictLabel({
     }))
   );
 
-  const { centroidDistances, getCentroidDistance } = useClusterStore(
+  const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
+
+  const { centroidDistance } = useClusterStore(
     useShallow((state) => ({
-      centroidDistances: state.centroidDistances,
-      getCentroidDistance: state.getCentroidDistance,
+      centroidDistance: state.getCentroidDistance(component.id),
     }))
   );
 
@@ -66,25 +67,24 @@ export default function CityDistrictLabel({
   // Track distance to cluster centroid for label visibility
   const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
 
+  const getFontSize = () => {
+    return isOpen
+      ? packageLabelMargin * 0.5
+      : Math.max(layout.width * 0.1, packageLabelMargin * 0.5);
+  };
+
   useEffect(() => {
-    const distance = getCentroidDistance(component.id);
-    if (distance !== undefined) {
+    if (centroidDistance !== undefined) {
       // Larger Labels of larger districts should be visible from a greater distance
       const sizeMultiplier =
         1.0 + layout.area / 100000.0 + getFontSize() / 10.0;
       const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
-      setIsWithinDistance(distance <= adjustedThreshold);
+      setIsWithinDistance(centroidDistance <= adjustedThreshold);
     } else {
       // Default: show label
       setIsWithinDistance(true);
     }
-  }, [
-    centroidDistances,
-    labelDistanceThreshold,
-    getCentroidDistance,
-    component.id,
-    layout.area,
-  ]);
+  }, [centroidDistance, labelDistanceThreshold, component.id, layout.area]);
 
   const getLabelPositionForPlacement = (
     placement: string,
@@ -132,12 +132,6 @@ export default function CityDistrictLabel({
     }
   };
 
-  const getFontSize = () => {
-    return isOpen
-      ? packageLabelMargin * 0.5
-      : Math.max(layout.width * 0.1, packageLabelMargin * 0.5);
-  };
-
   useEffect(() => {
     const target = getLabelPositionForPlacement(
       componentLabelPlacement,
@@ -175,6 +169,7 @@ export default function CityDistrictLabel({
 
   return isWithinDistance ? (
     <Text
+      layers={sceneLayers.Label}
       color={componentTextColor}
       name={'City district label of ' + component.name}
       visible={isVisible}

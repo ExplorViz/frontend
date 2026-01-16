@@ -26,7 +26,7 @@ import {
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
 import gsap from 'gsap';
-import { forwardRef, useEffect, useMemo } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import {
   BoxGeometry,
@@ -56,12 +56,12 @@ interface Args {
 // eslint-disable-next-line
 const CodeBuildings = forwardRef<InstancedMesh2, Args>(
   ({ classes, layoutMap, appId, application }, meshRef) => {
-    const geometry = useMemo(() => new BoxGeometry(), []);
-    const material = useMemo(() => new MeshLambertMaterial(), []);
+    const geometry = useRef<BoxGeometry>(new BoxGeometry());
+    const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
 
-    const instanceIdToClassId = useMemo(() => new Map<number, string>(), []);
-    const classIdToInstanceId = useMemo(() => new Map<string, number>(), []);
-    const classIdToClass = useMemo(() => new Map<string, Class>(), []);
+    const instanceIdToClassId = new Map<number, string>();
+    const classIdToInstanceId = new Map<string, number>();
+    const classIdToClass = new Map<string, Class>();
 
     const {
       hiddenClassIds,
@@ -143,6 +143,8 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         addPopup: state.addPopup,
       }))
     );
+
+    const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
     const getClassHeight = (dataModel: Class) => {
       return (
@@ -296,9 +298,9 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     ]);
 
     useEffect(() => {
-      material.transparent = entityOpacity < 1.0;
-      material.opacity = entityOpacity;
-      material.needsUpdate = true;
+      material.current.transparent = entityOpacity < 1.0;
+      material.current.opacity = entityOpacity;
+      material.current.needsUpdate = true;
     }, [entityOpacity, material]);
 
     const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
@@ -482,9 +484,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     return (
       <instancedMesh2
+        layers={sceneLayers.Building}
         ref={meshRef}
         name={'Buildings of ' + application.name}
-        args={[geometry, material]}
+        args={[geometry.current, material.current]}
         onClick={handleClickWithPrevent}
         {...(enableHoverEffects && {
           onPointerOver: handleOnPointerOver,

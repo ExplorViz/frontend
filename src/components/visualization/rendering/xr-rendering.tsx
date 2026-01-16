@@ -1,5 +1,6 @@
 import { createXRStore, XRStore } from '@react-three/xr';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { useEffect, useState } from 'react';
@@ -53,9 +54,28 @@ export default function XrRendering({
 
     checkXRSupport();
 
+    useVisualizationStore.getState().actions.setSceneLayers({
+      Default: 0,
+      Foundation: 0,
+      District: 0,
+      Building: 0,
+      Communication: 0,
+      Ping: 0,
+      Label: 0,
+    });
+
     // Clean up store on unmount
     return () => {
       xrStore.getState().session?.end();
+      useVisualizationStore.getState().actions.setSceneLayers({
+        Default: 0,
+        Foundation: 1,
+        District: 2,
+        Building: 3,
+        Communication: 4,
+        Ping: 5,
+        Label: 6,
+      });
     };
   }, [xrStore]);
 

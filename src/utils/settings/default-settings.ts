@@ -509,17 +509,58 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isFlagSetting: true,
   },
-
-  // bundlingBeta: {
-  //   value: 0.5,
-  //   range: { min: 0.0, max: 1.0, step: 0.01 },
-  //   group: 'Communication',
-  //   displayName: 'Edge Bundling β',
-  //   description: 'Controls the bundling strength (higher = stronger bundling)',
-  //   level: SettingLevel.DEFAULT,
-  //   isRangeSetting: true,
-  // },
-
+  showHAPTree: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Show HAP Tree',
+    description:
+      'Debug visualization of HAP (Hierarchical Attraction Points) tree',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  scatterRadius: {
+    level: SettingLevel.DEFAULT,
+    value: 0.5,
+    range: { min: 0.0, max: 3.0, step: 0.05 },
+    group: 'Communication',
+    displayName: 'Edge Scatter Radius',
+    description:
+      'Controls how far edges are scattered apart (0 = no scattering)',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  leafPackagesOnly: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Leaf Packages Only',
+    description: 'Only create HAPs for packages that contain no sub-packages',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  edgeBundlingStreamline: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Communication',
+    displayName: 'Streamline Edge Paths',
+    description:
+      'Simplify edge paths by keeping only class-level and highest-level HAPs (reduces detours)',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
   // Label settings
   appLabelMargin: {
     level: SettingLevel.DEFAULT,
@@ -1242,7 +1283,20 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Toggle visibility of the minimap',
     isFlagSetting: true,
   },
-  zoom: {
+  minimapCorner: {
+    level: SettingLevel.DEFAULT,
+    value: 'bottom-right',
+    options: ['top-left', 'top-right', 'bottom-right', 'bottom-left'],
+    group: 'Minimap',
+    displayName: 'Minimap Corner',
+    description: 'Corner in which the minimap should be placed',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
+    isSelectSetting: true,
+  },
+    minimapZoom: {
     level: SettingLevel.DEFAULT,
     value: 1,
     range: { min: 0.1, max: 5, step: 0.05 },
@@ -1254,6 +1308,70 @@ export const defaultVizSettings: VisualizationSettings = {
       value: true,
     },
     isRangeSetting: true,
+  },
+    minimapShape: {
+    level: SettingLevel.DEFAULT,
+    value: 'rectangle',
+    options: ['rectangle', 'round'],
+    group: 'Minimap',
+    displayName: 'Minimap Shape',
+    description: 'Shape of the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
+    isSelectSetting: true,
+  },
+    minimapSize: {
+    level: SettingLevel.DEFAULT,
+    value: 300,
+    range: { min: 50, max: 500, step: 5 },
+    group: 'Minimap',
+    displayName: 'Minimap Size',
+    description: 'Size (width and height) of the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  minimapPaddingX: {
+    level: SettingLevel.DEFAULT,
+    value: 20,
+    range: { min: 0, max: 100, step: 1 },
+    group: 'Minimap',
+    displayName: 'Minimap Padding X',
+    description: 'Padding in x-direction to the edge of the viewport',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  minimapPaddingY: {
+    level: SettingLevel.DEFAULT,
+    value: 20,
+    range: { min: 0, max: 100, step: 1 },
+    group: 'Minimap',
+    displayName: 'Minimap Padding Y',
+    description: 'Padding in y-direction to the edge of the viewport',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+    minimapBgColor: {
+    level: SettingLevel.DEFAULT,
+    value: '#d3d3d3',
+    group: 'Minimap',
+    displayName: 'Minimap Background Color',
+    description: 'Set background color of the minimap',
+    dependsOn: {
+      settingId: 'minimap',
+      value: true,
+    },
+    isColorSetting: true,
   },
   useCameraPosition: {
     level: SettingLevel.DEFAULT,
@@ -1306,7 +1424,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer4: {
     level: SettingLevel.EXTENDED,
-    value: true,
+    value: false,
     group: 'Minimap',
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
@@ -1318,7 +1436,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   layer6: {
     level: SettingLevel.EXTENDED,
-    value: true,
+    value: false,
     group: 'Minimap',
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',

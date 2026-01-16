@@ -81,8 +81,6 @@ function getEntityTypeForPopup(
 interface PopupHandlerState {
   popupData: PopupData[];
   deactivated: boolean;
-  latestMousePosition: { timestamp: number; x: number; y: number };
-  isShiftPressed: boolean;
   _constructor: () => void;
   setDeactivated: (value: boolean) => void;
   clearPopups: () => void;
@@ -91,7 +89,6 @@ interface PopupHandlerState {
   sharePopup: (popup: PopupData) => void;
   pinPopup: (popup: PopupData) => void;
   removePopup: (entityId: string) => Promise<void>;
-  handleMouseMove: (event: any) => void;
   addPopup: ({
     entityId,
     position,
@@ -136,8 +133,6 @@ interface PopupHandlerState {
 export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   popupData: [],
   deactivated: false,
-  latestMousePosition: { timestamp: 0, x: 0, y: 0 },
-  isShiftPressed: false,
 
   _constructor: () => {
     eventEmitter.on(MENU_DETACHED_EVENT, get().onMenuDetached);
@@ -236,16 +231,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
   },
 
-  handleMouseMove: (event: any) => {
-    set({
-      latestMousePosition: {
-        timestamp: Date.now(),
-        x: event.pageX,
-        y: event.pageY,
-      },
-      isShiftPressed: event.shiftKey,
-    });
-  },
   addPopup: ({
     entityId,
     entity,
@@ -330,7 +315,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   },
 
   _removePopupAfterTimeout: (popup: PopupData) => {
-    const latestMousePosition = get().latestMousePosition;
     // Store popup position
     const mouseX = popup.mouseX;
     const mouseY = popup.mouseY;
@@ -345,13 +329,8 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
         return;
       }
 
-      // Do not remove popup when mouse is on the popup, stayed (recently) on target entity or shift is pressed
-      if (
-        maybePopup.hovered ||
-        get().isShiftPressed ||
-        (latestMousePosition.x == get().latestMousePosition.x &&
-          latestMousePosition.y == get().latestMousePosition.y)
-      ) {
+      // Do not remove popup when mouse is on the popup
+      if (maybePopup.hovered) {
         get()._removePopupAfterTimeout(popup);
         return;
       }

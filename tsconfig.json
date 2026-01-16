@@ -26,13 +26,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": [
-    ".eslintrc.js",
-    "vite.config.ts",
-    "**/.eslintrc.js",
-    ".template-lintrc.js",
-    "src",
-    "config",
-    "types"
-  ]
+  "include": ["vite.config.ts", ".template-lintrc.js", "src", "config", "types"]
 }

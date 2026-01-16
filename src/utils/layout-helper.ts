@@ -112,6 +112,117 @@ export function getWorldPositionOfModel(
   return getLandscapeCenterPosition().add(appPosition).add(modelPosition);
 }
 
+/**
+ * Computes the landscape-space position of a specific model (application, package, or class)
+ * based on the current layout and landscape settings. Unlike getWorldPositionOfModel,
+ * this returns the position relative to the landscape coordinate system (without the landscape center offset).
+ */
+export function getLandscapePositionOfModel(
+  modelId: string
+): THREE.Vector3 | undefined {
+  // Check is model is a communication
+  if (modelId.indexOf('_') !== -1) {
+    return getLandscapePositionOfCommunication(modelId);
+  }
+  const appRepo = useApplicationRepositoryStore.getState();
+  const settings = useUserSettingsStore.getState().visualizationSettings;
+  const layoutStore = useLayoutStore.getState();
+
+  const applicationData = appRepo.getByModelId(modelId);
+  if (!applicationData) {
+    console.warn(`No application found for model ID "${modelId}".`);
+    return undefined;
+  }
+
+  const { landscapeScalar } = settings;
+  const landscapeLayout = layoutStore.landscapeLayout;
+
+  if (!landscapeLayout) {
+    console.warn(`Landscape layout missing for model ID "${modelId}".`);
+    return undefined;
+  }
+
+  const appLayout = layoutStore.getLayout(applicationData.getId());
+  if (!appLayout) {
+    console.warn(`Application layout missing for model ID "${modelId}".`);
+    return undefined;
+  }
+
+  const appPosition = appLayout.position
+    .clone()
+    .multiplyScalar(landscapeScalar.value);
+
+  const isModelApplication = modelId === applicationData.getId();
+  let modelPosition: THREE.Vector3 | undefined;
+
+  if (isModelApplication) {
+    const modelLayout = layoutStore.getLayout(modelId);
+    if (!modelLayout) return undefined;
+    modelPosition = new THREE.Vector3(
+      modelLayout.width / 2,
+      0,
+      modelLayout.depth / 2
+    ).multiplyScalar(landscapeScalar.value);
+  } else {
+    const modelLayout = layoutStore.getLayout(modelId);
+    if (!modelLayout) return undefined;
+    modelPosition = modelLayout.center
+      .clone()
+      .multiplyScalar(landscapeScalar.value);
+  }
+
+  return appPosition.add(modelPosition);
+}
+
+export function getLandscapePositionOfCommunication(
+  communicationId: string
+): THREE.Vector3 {
+  const modelStore = useModelStore.getState();
+  const userSettings = useUserSettingsStore.getState().visualizationSettings;
+
+  const communication = modelStore.getCommunication(communicationId);
+  if (!(communication instanceof ClassCommunication)) {
+    console.warn(
+      `[getLandscapePositionOfCommunication] Invalid communication ID: ${communicationId}`
+    );
+    return new THREE.Vector3();
+  }
+
+  const sourcePos = getLandscapePositionOfModel(communication.sourceClass.id);
+  const targetPos = getLandscapePositionOfModel(communication.targetClass.id);
+
+  if (!sourcePos || !targetPos) {
+    console.warn(
+      `[getLandscapePositionOfCommunication] Missing source or target model position for communication: ${communicationId}`
+    );
+    return new THREE.Vector3();
+  }
+
+  // Calculate midpoint between source and target (same as communication-r3f.tsx)
+  const midpoint = sourcePos.clone().add(targetPos).multiplyScalar(0.5);
+
+  // Calculate height based on distance and settings
+  const commCurveHeightDependsOnDistance =
+    userSettings.commCurveHeightDependsOnDistance?.value ?? true;
+  const curvyCommHeight = userSettings.curvyCommHeight?.value ?? 5.0;
+
+  const horizontalDistance = Math.hypot(
+    targetPos.x - sourcePos.x,
+    targetPos.z - sourcePos.z
+  );
+
+  let baseCurveHeight = 50;
+  if (commCurveHeightDependsOnDistance) {
+    baseCurveHeight = horizontalDistance * 0.1;
+  }
+
+  const computedCurveHeight = baseCurveHeight * curvyCommHeight;
+
+  midpoint.y = computedCurveHeight / 2;
+
+  return midpoint;
+}
+
 export function getWorldPositionOfCommunication(
   communicationId: string
 ): THREE.Vector3 {

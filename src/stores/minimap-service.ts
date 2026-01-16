@@ -5,17 +5,7 @@ import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import * as THREE from 'three';
 import { create } from 'zustand';
 
-export enum SceneLayers {
-  Default = 0,
-  Foundation = 1,
-  Component = 2,
-  Clazz = 3,
-  Communication = 4,
-  Ping = 5,
-  MinimapLabel = 6,
-  MinimapMarkers = 7,
-  LocalMinimapMarker = 8,
-}
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 
 const MARKER_HEIGHT = 101;
 
@@ -112,7 +102,7 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
 
   addZoomDelta: (zoomDelta: number) => {
     const zoomSetting =
-      useUserSettingsStore.getState().visualizationSettings.zoom;
+      useUserSettingsStore.getState().visualizationSettings.minimapZoom;
     const newZoom = zoomSetting.value + zoomDelta;
     if (newZoom < zoomSetting.range.min) {
       useUserSettingsStore
@@ -167,15 +157,17 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     minimapCamera.position.set(0, MINIMAP_HEIGHT, 0);
     minimapCamera.lookAt(new THREE.Vector3(0, -1, 0));
 
-    minimapCamera.layers.disable(SceneLayers.Default);
-    minimapCamera.layers.enable(SceneLayers.Foundation);
-    minimapCamera.layers.enable(SceneLayers.Component);
-    minimapCamera.layers.enable(SceneLayers.Clazz);
-    minimapCamera.layers.enable(SceneLayers.Communication);
-    minimapCamera.layers.enable(SceneLayers.Ping);
-    minimapCamera.layers.enable(SceneLayers.MinimapLabel);
-    minimapCamera.layers.enable(SceneLayers.MinimapMarkers);
-    minimapCamera.layers.enable(SceneLayers.LocalMinimapMarker);
+    const sceneLayers = useVisualizationStore.getState().sceneLayers;
+
+    minimapCamera.layers.disable(sceneLayers.Default);
+    minimapCamera.layers.enable(sceneLayers.Foundation);
+    minimapCamera.layers.enable(sceneLayers.District);
+    minimapCamera.layers.enable(sceneLayers.Building);
+    minimapCamera.layers.enable(sceneLayers.Communication);
+    minimapCamera.layers.enable(sceneLayers.Ping);
+    minimapCamera.layers.enable(sceneLayers.MinimapLabel);
+    minimapCamera.layers.enable(sceneLayers.MinimapMarkers);
+    minimapCamera.layers.enable(sceneLayers.LocalMinimapMarker);
 
     useLocalUserStore.setState({
       minimapCamera: minimapCamera,
@@ -194,12 +186,14 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
 
     const newMinimapUserMarkers = get().minimapUserMarkers;
     const newScene = get().scene;
+    const sceneLayers = useVisualizationStore.getState().sceneLayers;
+
     newMinimapUserMarkers
       .get('localUser')!
-      .layers.enable(SceneLayers.LocalMinimapMarker);
+      .layers.enable(sceneLayers.LocalMinimapMarker);
     newMinimapUserMarkers
       .get('localUser')!
-      .layers.disable(SceneLayers.MinimapMarkers);
+      .layers.disable(sceneLayers.MinimapMarkers);
 
     // TODO: Update scene
     if (!newScene) return;
@@ -268,8 +262,9 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     });
     const minimapMarker = new THREE.Mesh(geometry, material);
     minimapMarker.position.set(position.x, MARKER_HEIGHT, position.z);
-    minimapMarker.layers.enable(SceneLayers.MinimapMarkers);
-    minimapMarker.layers.disable(SceneLayers.Default);
+    const sceneLayers = useVisualizationStore.getState().sceneLayers;
+    minimapMarker.layers.enable(sceneLayers.MinimapMarkers);
+    minimapMarker.layers.disable(sceneLayers.Default);
     minimapMarker.name = name;
     get().minimapUserMarkers.set(name, minimapMarker);
     // TODO: Scene is not available anymore
@@ -434,7 +429,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     } else {
       set({
         distance:
-          useUserSettingsStore.getState().visualizationSettings.zoom.value,
+          useUserSettingsStore.getState().visualizationSettings.minimapZoom
+            .value,
       });
     }
 
@@ -451,7 +447,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     minimapCamera.bottom = -cameraAngle;
 
     if (
-      useUserSettingsStore.getState().visualizationSettings.zoom.value != 1 &&
+      useUserSettingsStore.getState().visualizationSettings.minimapZoom.value !=
+        1 &&
       !get().makeFullsizeMinimap
     ) {
       minimapCamera.position.set(
@@ -470,7 +467,8 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
 
   calculateDistanceFactor: () => {
     return (
-      0.2 / useUserSettingsStore.getState().visualizationSettings.zoom.value
+      0.2 /
+      useUserSettingsStore.getState().visualizationSettings.minimapZoom.value
     );
   },
 

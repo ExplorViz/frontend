@@ -1,5 +1,3 @@
-import React, { useCallback } from 'react';
-
 export default function ComponentOpener({
   openedComponent,
   componentTitle,
@@ -8,9 +6,9 @@ export default function ComponentOpener({
 }: ComponentOpenerProps) {
   const isOpen = openedComponent === componentId;
 
-  const handleToggleComponent = useCallback(() => {
+  const handleToggleComponent = () => {
     toggleComponent(componentId);
-  }, [componentId, toggleComponent]);
+  };
 
   return (
     <li className="nav-item">

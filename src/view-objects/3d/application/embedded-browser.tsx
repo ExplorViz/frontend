@@ -4,7 +4,7 @@ import { Button, Input } from '@react-three/uikit-default';
 import { ChevronLeft, SkipBack, Table } from '@react-three/uikit-lucide';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import HtmlVisualizer from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function EmbeddedBrowser({ application }: any) {
@@ -30,16 +30,16 @@ export default function EmbeddedBrowser({ application }: any) {
     }))
   );
 
-  const triggerHtmlVisualizer = useCallback(() => {
+  const triggerHtmlVisualizer = () => {
     if (html) {
       setHtml(undefined);
       return;
     }
 
     updateHtml();
-  }, [html]);
+  };
 
-  const updateHtml = useCallback(() => {
+  const updateHtml = () => {
     let iFrameHtml: HTMLElement | undefined;
     try {
       iFrameHtml =
@@ -50,7 +50,7 @@ export default function EmbeddedBrowser({ application }: any) {
       return;
     }
     setHtml(iFrameHtml);
-  }, [html]);
+  };
 
   return (
     <>

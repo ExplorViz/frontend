@@ -57,7 +57,7 @@ export default function LandscapeR3F({
     } else {
       raycaster.layers.disableAll();
     }
-  }, [raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
+  }, [raycaster, raycastEnabled, raycastFirstHit, raycastNear, raycastFar]);
 
   return (
     <group
