@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
@@ -13,12 +19,16 @@ interface TraceDurationProps {
   updateDuration(newMinDuration: number): void;
 }
 
-export default function TraceDuration({
-  traces,
-  remainingTraceCount,
-  initialTraceCount,
-  updateDuration,
-}: TraceDurationProps) {
+export type TraceDurationHandle = {
+  setValue: (value: number) => void;
+  reset: () => void;
+};
+
+const TraceDuration = forwardRef<TraceDurationHandle, TraceDurationProps>(
+  function TraceDuration(
+    { traces, remainingTraceCount, initialTraceCount, updateDuration },
+    ref
+  ) {
   const pauseVisualizationUpdating = useRenderingServiceStore(
     (state) => state.pauseVisualizationUpdating
   );
@@ -73,6 +83,17 @@ export default function TraceDuration({
     max.current = -1;
   };
 
+  useImperativeHandle(ref, () => ({
+    setValue: (value: number) => {
+      setSelected(value);
+      updateDuration(value);
+    },
+    reset: () => {
+      onTimestampUpdate();
+      updateDuration(durations.min);
+    },
+  }));
+
   return (
     <div className="mb-3">
       <HelpTooltip title="bla" />
@@ -104,4 +125,6 @@ export default function TraceDuration({
       </div>
     </div>
   );
-}
+});
+
+export default TraceDuration;

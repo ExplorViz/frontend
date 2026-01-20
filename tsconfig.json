@@ -6,11 +6,9 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-
     "paths": {
       "explorviz-frontend/*": ["./*"]
     },
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -18,13 +16,21 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "types": ["w3c-image-capture"]
   },
-  "include": ["vite.config.ts", ".template-lintrc.js", "src", "config", "types"]
+  "include": [
+    ".eslintrc.js",
+    "vite.config.ts",
+    "**/.eslintrc.js",
+    ".template-lintrc.js",
+    "src",
+    "config",
+    "types"
+  ]
 }

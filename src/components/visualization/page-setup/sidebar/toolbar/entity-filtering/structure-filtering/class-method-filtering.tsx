@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 import HelpTooltip from 'explorviz-frontend/src/components/help-tooltip';
 import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -13,12 +19,23 @@ interface ClassMethodFilteringProps {
   updateMinMethodCount(newValue: number): void;
 }
 
-export default function ClassMethodFiltering({
-  classes,
-  remainingEntityCountAfterFiltering,
-  initialEntityCount,
-  updateMinMethodCount,
-}: ClassMethodFilteringProps) {
+export type ClassMethodFilteringHandle = {
+  setValue: (value: number) => void;
+  reset: () => void;
+};
+
+const ClassMethodFiltering = forwardRef<
+  ClassMethodFilteringHandle,
+  ClassMethodFilteringProps
+>(function ClassMethodFiltering(
+  {
+    classes,
+    remainingEntityCountAfterFiltering,
+    initialEntityCount,
+    updateMinMethodCount,
+  },
+  ref
+) {
   const pauseVisualizationUpdating = useRenderingServiceStore(
     (state) => state.pauseVisualizationUpdating
   );
@@ -72,6 +89,17 @@ export default function ClassMethodFiltering({
     };
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    setValue: (value: number) => {
+      setSelected(value);
+      updateMinMethodCount(value);
+    },
+    reset: () => {
+      onTimestampUpdate();
+      updateMinMethodCount(classesStats.min);
+    },
+  }));
+
   return (
     <div className="mb-3">
       <HelpTooltip title="bla" />
@@ -104,4 +132,6 @@ export default function ClassMethodFiltering({
       </div>
     </div>
   );
-}
+});
+
+export default ClassMethodFiltering;

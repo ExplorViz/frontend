@@ -30,7 +30,11 @@ import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-s
 import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
-import { ChatbotProvider } from '../../chatbot/chatbot-context';
+import {
+  ApplicationSearchController,
+  ChatbotProvider,
+  EntityFilteringController,
+} from '../../chatbot/chatbot-context';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
@@ -207,6 +211,9 @@ export default function BrowserRendering({
     string | null
   >(null);
 
+  const entityFilteringRef = useRef<EntityFilteringController | null>(null);
+  const applicationSearchRef = useRef<ApplicationSearchController | null>(null);
+
   // MARK: Refs
 
   const outerDiv = useRef<HTMLDivElement | null>(null);
@@ -260,7 +267,19 @@ export default function BrowserRendering({
 
   return (
     <EditingProvider>
-      <ChatbotProvider landscapeData={landscapeData}>
+      <ChatbotProvider
+        landscapeData={landscapeData}
+        showToolsSidebar={showToolsSidebar}
+        setShowToolsSidebar={setShowToolsSidebar}
+        showSettingsSidebar={showSettingsSidebar}
+        setShowSettingsSidebar={setShowSettingsSidebar}
+        openedToolComponent={openedToolComponent}
+        setOpenedToolComponent={setOpenedToolComponent}
+        openedSettingComponent={openedSettingComponent}
+        setOpenedSettingComponent={setOpenedSettingComponent}
+        entityFilteringControllerRef={entityFilteringRef}
+        applicationSearchControllerRef={applicationSearchRef}
+      >
         <div className="row h-100">
           <div className="d-flex flex-column h-100 col-12">
             <div id="rendering" ref={outerDiv}>
@@ -346,13 +365,16 @@ export default function BrowserRendering({
                           landscapeData && (
                             <>
                               <h5 className="text-center">Entity Filtering</h5>
-                              <EntityFiltering landscapeData={landscapeData} />
+                              <EntityFiltering
+                                ref={entityFilteringRef}
+                                landscapeData={landscapeData}
+                              />
                             </>
                           )}
                         {openedToolComponent === 'application-search' && (
                           <>
                             <h5 className="text-center">Application Search</h5>
-                            <ApplicationSearch />
+                            <ApplicationSearch ref={applicationSearchRef} />
                           </>
                         )}
                         {openedToolComponent === 'Trace-Replayer' &&

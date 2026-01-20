@@ -1,11 +1,4 @@
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import {
-  insertApplicationToLandscape,
-  insertClassesToLandscape,
-  removeComponentFromLandscape,
-} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import {
   createContext,
   PropsWithChildren,
@@ -14,12 +7,20 @@ import {
   useState,
 } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useRenderingServiceStore } from '../../stores/rendering-service';
+import { useVisualizationStore } from '../../stores/visualization-store';
+import {
+  insertApplicationToLandscape,
+  insertClassesToLandscape,
+  removeComponentFromLandscape,
+  SimpleClass,
+} from '../../utils/landscape-structure-helpers';
 
 interface EditingContextData {
   canGoBack: boolean;
   canGoForward: boolean;
-  addApplication: (name: string, classes: string[]) => string | undefined;
-  addClasses: (id: string, classes: string[]) => void;
+  addApplication: (name: string, classes: SimpleClass[]) => string | undefined;
+  addClasses: (id: string, classes: SimpleClass[]) => void;
   removeComponent: (id: string) => void;
   goBack: () => void;
   goForward: () => void;
@@ -96,7 +97,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
   const canGoBack = editingCursor > 1;
   const canGoForward = editingCursor < history.length;
 
-  const addApplication = (name: string, classes: string[]) => {
+  const addApplication = (name: string, classes: SimpleClass[]) => {
     if (!landscapeData) return;
 
     const [structureLandscapeData, id] = insertApplicationToLandscape(
@@ -113,7 +114,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
     return id;
   };
 
-  const addClasses = (id: string, classes: string[]) => {
+  const addClasses = (id: string, classes: SimpleClass[]) => {
     if (!landscapeData) return;
 
     const structureLandscapeData = insertClassesToLandscape(

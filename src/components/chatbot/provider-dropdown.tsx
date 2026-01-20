@@ -4,12 +4,20 @@ import { Dropdown } from 'explorviz-frontend/src/components/visualization/page-s
 import { use } from 'react';
 
 export function ProviderDropdown() {
-  const { providers, selectedProvider, setSelectedProvider } =
-    use(ChatbotContext);
+  const {
+    providers,
+    selectedProvider,
+    selectedModel,
+    setSelectedProvider,
+    setSelectedModel,
+  } = use(ChatbotContext);
   const { reset } = useCopilotChat();
 
   function onSelect(provider: typeof selectedProvider) {
     setSelectedProvider(provider);
+    if (!provider.models.some((model) => model.id === selectedModel.id)) {
+      setSelectedModel(provider.models[0]);
+    }
     reset(); // Reset the chat when a new provider is selected
   }
 
