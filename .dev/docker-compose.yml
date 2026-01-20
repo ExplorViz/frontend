@@ -21,12 +21,16 @@ services:
       - ${CODE_PORT}:8085
 
   kubediagrams:
-    image: philippemerle/kubediagrams
-    container_name: kubediagrams-runner
+    build:
+      context: ..
+      dockerfile: .dev/Dockerfile.kubediagrams-api
+    container_name: kubediagrams-api
     volumes:
       - ..:/work
-    working_dir: /work/.dev
-    command: ["sh", "kube-connector.sh"]
+    working_dir: /work
+    ports:
+      - "9123:9123"
+    command: ["node", "server/index.js"]
 
 
 networks:
