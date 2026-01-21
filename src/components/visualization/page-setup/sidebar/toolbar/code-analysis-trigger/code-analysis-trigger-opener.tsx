@@ -1,5 +1,5 @@
-import ComponentOpener from "../../component-opener";
-import { ToolbarOpenerProps } from "../../types";
+import ComponentOpener from '../../component-opener';
+import { ToolbarOpenerProps } from '../../types';
 
 export default function CodeAnalysisTriggerOpener({
   openedComponent,
@@ -8,7 +8,7 @@ export default function CodeAnalysisTriggerOpener({
   return (
     <ComponentOpener
       openedComponent={openedComponent}
-      componentTitle="Code Analysis Trigger"
+      componentTitle="Repo Analysis"
       componentId="code-analysis-trigger"
       toggleComponent={toggleToolsSidebarComponent}
     />
