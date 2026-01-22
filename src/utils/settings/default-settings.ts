@@ -1308,7 +1308,7 @@ export const defaultVizSettings: VisualizationSettings = {
   minimapZoom: {
     level: SettingLevel.DEFAULT,
     value: 0.5,
-    range: { min: 0.1, max: 5, step: 0.05 },
+    range: { min: 0, max: 5, step: 0.05 },
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
     description: 'Set zoom of the minimap',

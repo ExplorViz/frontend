@@ -265,15 +265,18 @@ export default function MinimapView({
       // When he mouse wheel event was inside the minimap (small screen), then adjust the zoom
       if (isInsideMinimap && !isFullscreen) {
         event.stopPropagation();
-        const currentZoom =
-          useUserSettingsStore.getState().visualizationSettings.minimapZoom
-            .value;
+        const minimapZoomSetting =
+          useUserSettingsStore.getState().visualizationSettings.minimapZoom;
+        const currentZoom = minimapZoomSetting.value;
+        const { min, max } = minimapZoomSetting.range;
+
+        // Calculate new zoom and clamp it to the range
+        const newZoom = currentZoom + -Math.sign(event.deltaY) * 0.05;
+        const clampedZoom = Math.max(min, Math.min(max, newZoom));
+
         useUserSettingsStore
           .getState()
-          .updateSetting(
-            'minimapZoom',
-            currentZoom + -Math.sign(event.deltaY) * 0.05
-          );
+          .updateSetting('minimapZoom', clampedZoom);
       }
     };
 
