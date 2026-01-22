@@ -35,8 +35,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   >();
 
   private static readonly MAX_HOVER_CACHE_SIZE = 200;
-  private static readonly CACHE_CLEANUP_INTERVAL = 30000; // 30 Sekunden
+  private static readonly CACHE_CLEANUP_INTERVAL = 30000;
   private static lastCacheCleanup = Date.now();
+  private static currentLayoutAlgorithm: string = '';
 
   private _preHoverState: {
     geometry: THREE.BufferGeometry;
@@ -47,6 +48,14 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   } | null = null;
 
   private _isInHoverMode = false;
+
+  public static setCurrentLayoutAlgorithm(algorithm: string): void {
+    if (this.currentLayoutAlgorithm !== algorithm) {
+      this.currentLayoutAlgorithm = algorithm;
+      this.clearSharedGeometries();
+      this.clearHoverCache();
+    }
+  }
 
   get layout() {
     return this._layout;

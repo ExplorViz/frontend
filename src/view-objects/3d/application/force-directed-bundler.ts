@@ -5,8 +5,9 @@ export interface CommunicationEdge {
   startPoint: THREE.Vector3;
   endPoint: THREE.Vector3;
   controlPoints: THREE.Vector3[];
-  appPair: string;
+  groupId?: string;
   stability: number;
+  type: 'inter-app' | 'intra-app';
 }
 
 export class ForceDirectedBundler {
@@ -15,13 +16,16 @@ export class ForceDirectedBundler {
   private repulsion: number = 0.03;
   private damping: number = 0.88;
   private compatibilityThreshold: number = 0.25;
+  private bundleStrength: number = 1.8;
 
   // Stability tracking
   private movementHistory: number[] = [];
-  private readonly stabilityThreshold = 0.008; // Movement < 0.005 units = stable
-  private readonly minStableFrames = 8; // Min. 8 stable Frames
+  private readonly stabilityThreshold = 0.008;
+  private readonly minStableFrames = 8;
 
-  private bundleStrengthMultiplier: number = 1.8; // higher attraction
+  private groupingEnabled: boolean = true;
+  private groupByApplication: boolean = true;
+  private groupBySourceTarget: boolean = true;
 
   constructor(
     config?: Partial<{
@@ -31,9 +35,67 @@ export class ForceDirectedBundler {
       compatibilityThreshold: number;
       stabilityThreshold: number;
       bundleStrength: number;
+      groupingEnabled: boolean;
+      groupByApplication: boolean;
+      groupBySourceTarget: boolean;
     }>
   ) {
     Object.assign(this, config);
+  }
+
+  public addEdge(
+    id: string,
+    startPoint: THREE.Vector3,
+    endPoint: THREE.Vector3,
+    type: 'inter-app' | 'intra-app' = 'intra-app',
+    app1Id?: string,
+    app2Id?: string,
+    sourceId?: string,
+    targetId?: string
+  ): void {
+    const groupId = this.generateGroupId(
+      type,
+      app1Id,
+      app2Id,
+      sourceId,
+      targetId
+    );
+
+    const controlPoints = this.createInitialControlPoints(startPoint, endPoint);
+
+    this.edges.set(id, {
+      id,
+      startPoint: startPoint.clone(),
+      endPoint: endPoint.clone(),
+      controlPoints,
+      groupId,
+      stability: 0,
+      type,
+    });
+  }
+
+  private generateGroupId(
+    type: 'inter-app' | 'intra-app',
+    app1Id?: string,
+    app2Id?: string,
+    sourceId?: string,
+    targetId?: string
+  ): string | undefined {
+    if (!this.groupingEnabled) return undefined;
+
+    const parts: string[] = [];
+
+    if (this.groupByApplication && type === 'inter-app' && app1Id && app2Id) {
+      parts.push(`APP_${[app1Id, app2Id].sort().join('_')}`);
+    }
+
+    if (this.groupBySourceTarget && sourceId && targetId) {
+      parts.push(`SRC_${[sourceId, targetId].sort().join('_')}`);
+    }
+
+    parts.push(`TYPE_${type}`);
+
+    return parts.length > 0 ? parts.join('|') : undefined;
   }
 
   public addInterAppEdge(
@@ -43,19 +105,27 @@ export class ForceDirectedBundler {
     app1Id: string,
     app2Id: string
   ): void {
-    if (app1Id === app2Id) return;
+    this.addEdge(id, startPoint, endPoint, 'inter-app', app1Id, app2Id);
+  }
 
-    const appPair = [app1Id, app2Id].sort().join('_');
-    const controlPoints = this.createInitialControlPoints(startPoint, endPoint);
-
-    this.edges.set(id, {
+  public addIntraAppEdge(
+    id: string,
+    startPoint: THREE.Vector3,
+    endPoint: THREE.Vector3,
+    sourceId: string,
+    targetId: string,
+    appId: string
+  ): void {
+    this.addEdge(
       id,
-      startPoint: startPoint.clone(),
-      endPoint: endPoint.clone(),
-      controlPoints,
-      appPair,
-      stability: 0,
-    });
+      startPoint,
+      endPoint,
+      'intra-app',
+      appId,
+      appId,
+      sourceId,
+      targetId
+    );
   }
 
   private createInitialControlPoints(
@@ -73,7 +143,9 @@ export class ForceDirectedBundler {
         .copy(start)
         .add(direction.clone().multiplyScalar(t));
 
-      point.y += length * 0.12;
+      const heightMultiplier = length * 0.12;
+      point.y += heightMultiplier;
+
       points.push(point);
     }
 
@@ -84,13 +156,20 @@ export class ForceDirectedBundler {
     edge1: CommunicationEdge,
     edge2: CommunicationEdge
   ): number {
-    // 1. APP-PAIR BONUS
-    let appPairBonus = 1.0;
-    if (edge1.appPair === edge2.appPair) {
-      appPairBonus = 2.5;
+    let groupBonus = 1.0;
+    if (
+      this.groupingEnabled &&
+      edge1.groupId &&
+      edge1.groupId === edge2.groupId
+    ) {
+      groupBonus = 2.5;
     }
 
-    // 2. ANGLE-COMPATIBILITY
+    let typeBonus = 1.0;
+    if (edge1.type === edge2.type) {
+      typeBonus = 1.5;
+    }
+
     const dir1 = new THREE.Vector3()
       .subVectors(edge1.endPoint, edge1.startPoint)
       .normalize();
@@ -100,7 +179,6 @@ export class ForceDirectedBundler {
     const angleComp = Math.max(0, dir1.dot(dir2));
     const angleCompSquared = angleComp * angleComp;
 
-    // 3. POSITION-COMPATIBILITY
     const mid1 = new THREE.Vector3()
       .addVectors(edge1.startPoint, edge1.endPoint)
       .multiplyScalar(0.5);
@@ -113,24 +191,23 @@ export class ForceDirectedBundler {
         edge2.startPoint.distanceTo(edge2.endPoint)) /
       2;
 
-    // More compatibility for larger distances
     const positionComp = Math.exp(-dist / (avgLength * 1.5));
 
-    // Compatibility sum
-    return angleCompSquared * positionComp * appPairBonus;
+    return (
+      angleCompSquared *
+      positionComp *
+      groupBonus *
+      typeBonus *
+      this.bundleStrength
+    );
   }
-  /**
-   * Returns after on interation if there is still movement
-   * @returns true = still movement, false = system is stable
-   */
+
   public update(): boolean {
     if (this.edges.size === 0) return false;
 
     const edgesArray = Array.from(this.edges.values());
     let totalMovement = 0;
-    let maxMovement = 0;
 
-    // Save old positions for movement detection
     const oldPositions = new Map<string, THREE.Vector3[]>();
     edgesArray.forEach((edge) => {
       oldPositions.set(
@@ -152,9 +229,8 @@ export class ForceDirectedBundler {
 
           if (compatibility > this.compatibilityThreshold) {
             const otherPoint = otherEdge.controlPoints[pointIndex];
+            const attractionStrength = this.stiffness * compatibility;
 
-            const attractionStrength =
-              this.stiffness * compatibility * this.bundleStrengthMultiplier;
             const attraction = new THREE.Vector3()
               .subVectors(otherPoint, point)
               .multiplyScalar(attractionStrength);
@@ -165,7 +241,23 @@ export class ForceDirectedBundler {
           }
         });
 
-        // Group attraction
+        if (this.repulsion > 0) {
+          edgesArray.forEach((otherEdge, j) => {
+            if (i === j || pointIndex >= otherEdge.controlPoints.length) return;
+
+            const otherPoint = otherEdge.controlPoints[pointIndex];
+            const distVec = new THREE.Vector3().subVectors(point, otherPoint);
+            const distance = distVec.length();
+
+            if (distance > 0 && distance < 5) {
+              const repulsionForce = distVec
+                .normalize()
+                .multiplyScalar(this.repulsion / (distance * distance));
+              force.add(repulsionForce);
+            }
+          });
+        }
+
         if (compatibleEdges > 0) {
           const avgAttraction = compatibilitySum / compatibleEdges;
           force.multiplyScalar(0.7 + 0.3 * avgAttraction);
@@ -191,17 +283,6 @@ export class ForceDirectedBundler {
       });
     });
 
-    // Calculate average movement
-    const totalPoints = edgesArray.length * 3; // 3 control points per Edge
-    const avgMovement = totalMovement / totalPoints;
-
-    // Save movement history
-    this.movementHistory.push(avgMovement);
-    if (this.movementHistory.length > 20) {
-      this.movementHistory.shift();
-    }
-
-    // Update stability for every edge
     edgesArray.forEach((edge) => {
       const oldPoints = oldPositions.get(edge.id)!;
       let edgeMovement = 0;
@@ -209,57 +290,45 @@ export class ForceDirectedBundler {
         edgeMovement += point.distanceTo(oldPoints[i]);
       });
 
+      totalMovement += edgeMovement;
+
       edge.stability = Math.max(
         0,
-        1 - edgeMovement / 3 / this.stabilityThreshold
+        1 - edgeMovement / edge.controlPoints.length / this.stabilityThreshold
       );
       edge.stability = Math.min(1, edge.stability);
     });
 
-    // Check global stability
-    const isStable = this.checkStability();
+    const avgMovement = totalMovement / (edgesArray.length * 3);
+    this.movementHistory.push(avgMovement);
+    if (this.movementHistory.length > 20) {
+      this.movementHistory.shift();
+    }
 
-    return !isStable;
+    return !this.checkStability();
   }
 
   private checkStability(): boolean {
     if (this.movementHistory.length < this.minStableFrames) return false;
 
-    // Check last frames
     const recentHistory = this.movementHistory.slice(-this.minStableFrames);
     const avgRecent =
       recentHistory.reduce((a, b) => a + b, 0) / recentHistory.length;
     const maxRecent = Math.max(...recentHistory);
 
-    // Stable if average and max under threshold
-    const isStable =
+    return (
       avgRecent < this.stabilityThreshold &&
-      maxRecent < this.stabilityThreshold * 2;
-
-    return isStable;
+      maxRecent < this.stabilityThreshold * 2
+    );
   }
 
   public getEdgeControlPoints(edgeId: string): THREE.Vector3[] | null {
     const edge = this.edges.get(edgeId);
-    if (!edge) return null;
-
-    return edge.controlPoints.map((p) => p.clone());
+    return edge ? edge.controlPoints.map((p) => p.clone()) : null;
   }
 
-  public getEdgeStability(edgeId: string): number {
-    const edge = this.edges.get(edgeId);
-    return edge?.stability || 0;
-  }
-
-  public getGlobalStability(): number {
-    if (this.edges.size === 0) return 1;
-
-    const edgesArray = Array.from(this.edges.values());
-    const avgStability =
-      edgesArray.reduce((sum, edge) => sum + edge.stability, 0) /
-      edgesArray.length;
-
-    return avgStability;
+  public getEdges(): Map<string, CommunicationEdge> {
+    return this.edges;
   }
 
   public removeEdge(edgeId: string): void {
@@ -273,18 +342,49 @@ export class ForceDirectedBundler {
 
   public getStats(): {
     edgeCount: number;
+    interAppCount: number;
+    intraAppCount: number;
     avgStability: number;
     isStable: boolean;
     recentMovement: number;
   } {
-    const edgeCount = this.edges.size;
-    const avgStability = this.getGlobalStability();
+    const edgesArray = Array.from(this.edges.values());
+    const interAppCount = edgesArray.filter(
+      (e) => e.type === 'inter-app'
+    ).length;
+    const intraAppCount = edgesArray.filter(
+      (e) => e.type === 'intra-app'
+    ).length;
+    const avgStability =
+      edgesArray.length > 0
+        ? edgesArray.reduce((sum, edge) => sum + edge.stability, 0) /
+          edgesArray.length
+        : 1;
     const isStable = this.checkStability();
     const recentMovement =
       this.movementHistory.length > 0
         ? this.movementHistory[this.movementHistory.length - 1]
         : 0;
 
-    return { edgeCount, avgStability, isStable, recentMovement };
+    return {
+      edgeCount: edgesArray.length,
+      interAppCount,
+      intraAppCount,
+      avgStability,
+      isStable,
+      recentMovement,
+    };
+  }
+
+  public setGroupingOptions(options: {
+    enabled?: boolean;
+    byApplication?: boolean;
+    bySourceTarget?: boolean;
+  }): void {
+    if (options.enabled !== undefined) this.groupingEnabled = options.enabled;
+    if (options.byApplication !== undefined)
+      this.groupByApplication = options.byApplication;
+    if (options.bySourceTarget !== undefined)
+      this.groupBySourceTarget = options.bySourceTarget;
   }
 }

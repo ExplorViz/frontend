@@ -30,7 +30,7 @@ import {
   HierarchicalAttractionSystem,
 } from './edge-bundling-utils';
 import { HAPSystemManager } from './hap-system-manager';
-import interAppBundlingService from './interapp-bundling-service';
+import globalBundlingService from './global-bundling-service';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -69,6 +69,7 @@ export default function CommunicationR3F({
     compatibilityThreshold,
     bundlingIterations,
     bundlingStepSize,
+    classLayoutAlgorithm,
 
     // 3D-HAP specific settings
     showHAPTree,
@@ -99,6 +100,8 @@ export default function CommunicationR3F({
         compatibilityThreshold: vizSettings.compatibilityThreshold.value,
         bundlingIterations: vizSettings.bundlingIterations.value,
         bundlingStepSize: vizSettings.bundlingStepSize.value,
+        classLayoutAlgorithm:
+          state.visualizationSettings.classLayoutAlgorithm.value,
 
         // 3D-HAP settings with safe fallbacks
         beta: vizSettings.beta?.value ?? 0.8,
@@ -261,18 +264,179 @@ export default function CommunicationR3F({
     [getHapLevel]
   );
 
+  // const getPosition = useCallback(
+  //   (element: any): THREE.Vector3 => {
+  //     if (!effectiveLayoutMap || !effectiveLayoutMap.has(element.id)) {
+  //       throw new Error(
+  //         `NO LAYOUT for ${element.type} "${element.name || element.id}"`
+  //       );
+  //     }
+
+  //     const layout = effectiveLayoutMap.get(element.id)!;
+  //     return getExactHAPPosition(element, layout);
+  //   },
+  //   [effectiveLayoutMap, getExactHAPPosition]
+  // );
+
+  // Detect if this is an inter-app communication
+  const isInterAppCommunication =
+    communicationModel.sourceApp.id !== communicationModel.targetApp.id;
+
+  const [updateTrigger, setUpdateTrigger] = useState(0);
+
+  useEffect(() => {
+    if (enableEdgeBundling) {
+      globalBundlingService.configure({
+        enableEdgeBundling,
+        use3DHAPAlgorithm,
+        bundleStrength,
+        compatibilityThreshold,
+        bundlingIterations,
+        bundlingStepSize,
+      });
+    }
+  }, [
+    enableEdgeBundling,
+    use3DHAPAlgorithm,
+    bundleStrength,
+    compatibilityThreshold,
+  ]);
+
+  // Memoize helper functions to prevent recreating on each render
+  const getChildren = useCallback((element: any): any[] => {
+    if (isPackage(element)) return [...element.subPackages, ...element.classes];
+    if (isApplication(element)) return element.packages;
+    return [];
+  }, []);
+
+  const packageCentroidsCache = useRef<Map<string, THREE.Vector3>>(new Map());
+
   const getPosition = useCallback(
     (element: any): THREE.Vector3 => {
-      if (!effectiveLayoutMap || !effectiveLayoutMap.has(element.id)) {
-        throw new Error(
-          `NO LAYOUT for ${element.type} "${element.name || element.id}"`
+      // Fallback für ungültige Elemente
+      if (!element || typeof element !== 'object') {
+        return new THREE.Vector3(0, 0, 0);
+      }
+
+      const isCircle = classLayoutAlgorithm === 'circle';
+
+      if (isApplication(element)) {
+        if (!effectiveLayoutMap?.has(element.id)) {
+          return new THREE.Vector3(0, 50, 0);
+        }
+        const layout = effectiveLayoutMap.get(element.id)!;
+        return new THREE.Vector3(
+          layout.position.x + layout.width / 2,
+          layout.position.y + 50,
+          layout.position.z + layout.depth / 2
         );
       }
 
-      const layout = effectiveLayoutMap.get(element.id)!;
-      return getExactHAPPosition(element, layout);
+      if (isCircle && isPackage(element)) {
+        if (packageCentroidsCache.current.has(element.id)) {
+          const centroid = packageCentroidsCache.current.get(element.id)!;
+
+          return centroid.clone();
+        }
+
+        const children = getChildren(element);
+        const allClasses: any[] = [];
+
+        const collectClasses = (el: any) => {
+          if (isClass(el)) {
+            allClasses.push(el);
+          } else if (isPackage(el)) {
+            getChildren(el).forEach(collectClasses);
+          }
+        };
+
+        children.forEach(collectClasses);
+
+        if (allClasses.length > 0) {
+          let totalX = 0;
+          let totalY = 0;
+          let totalZ = 0;
+
+          allClasses.forEach((cls) => {
+            if (effectiveLayoutMap?.has(cls.id)) {
+              const layout = effectiveLayoutMap.get(cls.id)!;
+              const pos = getExactHAPPosition(cls, layout);
+              totalX += pos.x;
+              totalY += pos.y;
+              totalZ += pos.z;
+            }
+          });
+
+          const centroid = new THREE.Vector3(
+            totalX / allClasses.length,
+            totalY / allClasses.length + 25,
+            totalZ / allClasses.length
+          );
+
+          packageCentroidsCache.current.set(element.id, centroid.clone());
+
+          return centroid;
+        }
+
+        return new THREE.Vector3(
+          (Math.random() - 0.5) * 80,
+          40,
+          (Math.random() - 0.5) * 80
+        );
+      }
+
+      if (isClass(element)) {
+        if (!effectiveLayoutMap?.has(element.id)) {
+          if (element.parent) {
+            const parentPos = getPosition(element.parent);
+            return new THREE.Vector3(
+              parentPos.x + (Math.random() - 0.5) * 10,
+              parentPos.y - 15,
+              parentPos.z + (Math.random() - 0.5) * 10
+            );
+          }
+          return new THREE.Vector3(
+            (Math.random() - 0.5) * 20,
+            0,
+            (Math.random() - 0.5) * 20
+          );
+        }
+
+        const layout = effectiveLayoutMap.get(element.id)!;
+        const level = getHapLevel(element);
+        return new THREE.Vector3(
+          layout.center.x,
+          layout.center.y + level * 15,
+          layout.center.z
+        );
+      }
+
+      if (isPackage(element)) {
+        if (!effectiveLayoutMap?.has(element.id)) {
+          if (element.parent) {
+            const parentPos = getPosition(element.parent);
+            const level = getHapLevel(element);
+            return new THREE.Vector3(
+              parentPos.x + (Math.random() - 0.5) * 20,
+              parentPos.y + level * 15,
+              parentPos.z + (Math.random() - 0.5) * 20
+            );
+          }
+        } else {
+          const layout = effectiveLayoutMap.get(element.id)!;
+          const level = getHapLevel(element);
+          return new THREE.Vector3(
+            layout.center.x,
+            layout.center.y + level * 15,
+            layout.center.z
+          );
+        }
+      }
+
+      // Fallback
+      return new THREE.Vector3(0, 0, 0);
     },
-    [effectiveLayoutMap, getExactHAPPosition]
+    [effectiveLayoutMap, getHapLevel, getChildren, classLayoutAlgorithm]
   );
 
   // Helper functions for position calculation
@@ -307,76 +471,8 @@ export default function CommunicationR3F({
     [getHapLevel, getPosition]
   );
 
-  // Detect if this is an inter-app communication
-  const isInterAppCommunication =
-    communicationModel.sourceApp.id !== communicationModel.targetApp.id;
-
-  const [updateTrigger, setUpdateTrigger] = useState(0);
-
-  useEffect(() => {
-    if (!isInterAppCommunication || !enableEdgeBundling) return;
-
-    const unsubscribe = interAppBundlingService.subscribe(() => {
-      if (Math.random() < 0.33) {
-        setUpdateTrigger((prev) => prev + 1);
-      }
-    });
-
-    return unsubscribe;
-  }, [isInterAppCommunication, enableEdgeBundling]);
-
-  // Force bundling service onyl for inter-app
-  const interAppBundler = useMemo(() => {
-    if (!enableEdgeBundling || !isInterAppCommunication) return null;
-    return interAppBundlingService.getBundler();
-  }, [enableEdgeBundling, isInterAppCommunication]);
-
-  // Add edge to service
-  useEffect(() => {
-    if (!interAppBundler || !communicationLayout || !isInterAppCommunication)
-      return;
-
-    const startPoint = new THREE.Vector3(
-      communicationLayout.startX,
-      communicationLayout.startY,
-      communicationLayout.startZ
-    );
-    const endPoint = new THREE.Vector3(
-      communicationLayout.endX,
-      communicationLayout.endY,
-      communicationLayout.endZ
-    );
-
-    interAppBundlingService.addInterAppEdge(
-      communicationModel.id,
-      startPoint,
-      endPoint,
-      communicationModel.sourceApp.id,
-      communicationModel.targetApp.id
-    );
-
-    return () => {
-      interAppBundlingService.getBundler().removeEdge(communicationModel.id);
-    };
-  }, [
-    interAppBundler,
-    communicationLayout,
-    isInterAppCommunication,
-    communicationModel.id,
-  ]);
-
   // Subscribe for updates
   const [forceUpdate, setForceUpdate] = useState(0);
-
-  useEffect(() => {
-    if (!isInterAppCommunication || !enableEdgeBundling) return;
-
-    const unsubscribe = interAppBundlingService.subscribe(() => {
-      setForceUpdate((prev) => prev + 1);
-    });
-
-    return unsubscribe;
-  }, [isInterAppCommunication, enableEdgeBundling]);
 
   const hapSystem = useMemo<HierarchicalAttractionSystem | null>(() => {
     if (!applicationElement || !enableEdgeBundling) return null;
@@ -418,26 +514,17 @@ export default function CommunicationR3F({
     isInterAppCommunication,
   ]);
 
-  // Memoize helper functions to prevent recreating on each render
-  const getChildren = useCallback((element: any): any[] => {
-    if (isPackage(element)) return [...element.subPackages, ...element.classes];
-    if (isApplication(element)) return element.packages;
-    return [];
-  }, []);
-
   const getCorrectedPosition = useCallback(
     (element: any): THREE.Vector3 => {
+      const isCircleLayout = classLayoutAlgorithm === 'circle';
+
       if (effectiveLayoutMap && effectiveLayoutMap.has(element.id)) {
         const layout = effectiveLayoutMap.get(element.id)!;
         const hapLevel = getHapLevel(element);
 
-        const elevationY = hapLevel * 15; // Class=0, Package=15, Application=30
-
-        // Following the pattern from layout-helper.ts:getLandscapePositionOfModel
-        // but without landscapeScalar since we're rendering inside the scaled landscape group
+        const elevationY = hapLevel * 15;
 
         if (isApplication(element)) {
-          // For applications: use position + (width/2, 0, depth/2) as center
           return new THREE.Vector3(
             layout.position.x + layout.width / 2,
             layout.position.y + elevationY,
@@ -445,7 +532,19 @@ export default function CommunicationR3F({
           );
         }
 
-        // For classes/packages: need to add application position offset
+        if (isCircleLayout && isPackage(element)) {
+          if (element.parent && effectiveLayoutMap.has(element.parent.id)) {
+            const parentLayout = effectiveLayoutMap.get(element.parent.id)!;
+            const parentPosition = parentLayout.position.clone();
+
+            return new THREE.Vector3(
+              parentPosition.x,
+              parentPosition.y + elevationY,
+              parentPosition.z
+            );
+          }
+        }
+
         if (
           applicationElement &&
           effectiveLayoutMap.has(applicationElement.id)
@@ -461,40 +560,24 @@ export default function CommunicationR3F({
           );
         }
 
-        // Fallback: use layout center as-is
+        // Fallback: use layout center
         return new THREE.Vector3(
           layout.center.x,
           layout.center.y + elevationY,
           layout.center.z
         );
       }
+
       return getFallbackPosition(element);
     },
-    [effectiveLayoutMap, getHapLevel, getFallbackPosition, applicationElement]
+    [
+      effectiveLayoutMap,
+      getHapLevel,
+      getFallbackPosition,
+      applicationElement,
+      classLayoutAlgorithm,
+    ]
   );
-
-  // Initialize HAP system for the application
-  useEffect(() => {
-    if (applicationElement && enableEdgeBundling) {
-      hapSystemManager.clearHAPSystem(applicationElement.id);
-
-      hapSystemManager.buildApplicationHAPTree(
-        applicationElement.id,
-        applicationElement,
-        getChildren,
-        getCorrectedPosition,
-        getHapLevel,
-        leafPackagesOnly
-      );
-    }
-  }, [
-    applicationElement?.id,
-    enableEdgeBundling,
-    getChildren,
-    getCorrectedPosition,
-    getHapLevel,
-    leafPackagesOnly,
-  ]);
 
   const hapNodes = useMemo(() => {
     if (!hapSystem) return null;
@@ -507,22 +590,6 @@ export default function CommunicationR3F({
     );
 
     if (!originHAP || !destinationHAP) {
-      // Debug: Log missing HAP nodes for troubleshooting
-      if (use3DHAPAlgorithm && enableEdgeBundling) {
-        console.warn(
-          `[HAP] Missing HAP nodes for communication ${communicationModel.id}:`,
-          {
-            sourceClass: communicationModel.sourceClass?.id,
-            targetClass: communicationModel.targetClass?.id,
-            originHAP: !!originHAP,
-            destinationHAP: !!destinationHAP,
-            isInterApp: isInterAppCommunication,
-            hapSystemType: isInterAppCommunication
-              ? 'LANDSCAPE'
-              : applicationElement?.id,
-          }
-        );
-      }
       return null;
     }
 
@@ -536,6 +603,7 @@ export default function CommunicationR3F({
     isInterAppCommunication,
     applicationElement?.id,
     communicationModel.id,
+    classLayoutAlgorithm,
   ]);
 
   const computedCurveHeight = useMemo(() => {
@@ -623,7 +691,193 @@ export default function CommunicationR3F({
     isInterAppCommunication,
   ]);
 
-  // Create appropriate layout based on algorithm selection
+  const calculatePackageCentroids = useCallback(() => {
+    if (!applicationElement || classLayoutAlgorithm !== 'circle') {
+      packageCentroidsCache.current.clear();
+      return;
+    }
+
+    const newCache = new Map<string, THREE.Vector3>();
+
+    const calculateForPackage = (pkg: any): THREE.Vector3 => {
+      if (newCache.has(pkg.id)) {
+        return newCache.get(pkg.id)!.clone();
+      }
+
+      const children = getChildren(pkg);
+      let totalX = 0;
+      let totalY = 0;
+      let totalZ = 0;
+      let validCount = 0;
+
+      const directClasses = children.filter(isClass);
+      directClasses.forEach((cls) => {
+        if (effectiveLayoutMap?.has(cls.id)) {
+          const layout = effectiveLayoutMap.get(cls.id)!;
+          const pos = getExactHAPPosition(cls, layout);
+          totalX += pos.x;
+          totalY += pos.y;
+          totalZ += pos.z;
+          validCount++;
+        }
+      });
+
+      const subPackages = children.filter(isPackage);
+      subPackages.forEach((subPkg) => {
+        const subPos = calculateForPackage(subPkg);
+        if (subPos.lengthSq() > 0) {
+          totalX += subPos.x;
+          totalY += subPos.y;
+          totalZ += subPos.z;
+          validCount++;
+        }
+      });
+
+      let centroid: THREE.Vector3;
+      if (validCount > 0) {
+        centroid = new THREE.Vector3(
+          totalX / validCount,
+          totalY / validCount + 20,
+          totalZ / validCount
+        );
+      } else {
+        const hash = (pkg.name || pkg.id)
+          .split('')
+          .reduce((acc: number, char: string) => {
+            return char.charCodeAt(0) + ((acc << 5) - acc);
+          }, 0);
+
+        const angle = (hash % 360) * (Math.PI / 180);
+        const radius = 50 + (hash % 30);
+        centroid = new THREE.Vector3(
+          Math.cos(angle) * radius,
+          40,
+          Math.sin(angle) * radius
+        );
+      }
+
+      newCache.set(pkg.id, centroid.clone());
+      return centroid;
+    };
+
+    const appPackages = getChildren(applicationElement).filter(isPackage);
+    appPackages.forEach((pkg) => calculateForPackage(pkg));
+
+    packageCentroidsCache.current = newCache;
+  }, [
+    applicationElement,
+    classLayoutAlgorithm,
+    effectiveLayoutMap,
+    getChildren,
+    getExactHAPPosition,
+  ]);
+
+  useEffect(() => {
+    calculatePackageCentroids();
+  }, [calculatePackageCentroids]);
+
+  useEffect(() => {
+    if (applicationElement && enableEdgeBundling && use3DHAPAlgorithm) {
+      const isCircle = classLayoutAlgorithm === 'circle';
+      packageCentroidsCache.current.clear();
+      hapSystemManager.clearHAPSystem(applicationElement.id);
+      const getPackageCentroid = isCircle
+        ? (pkg: any): THREE.Vector3 => {
+            if (packageCentroidsCache.current.has(pkg.id)) {
+              return packageCentroidsCache.current.get(pkg.id)!.clone();
+            }
+            const children = getChildren(pkg);
+            const allClasses: any[] = [];
+
+            const collectClasses = (el: any) => {
+              if (isClass(el)) allClasses.push(el);
+              else if (isPackage(el)) getChildren(el).forEach(collectClasses);
+            };
+
+            children.forEach(collectClasses);
+
+            if (allClasses.length > 0) {
+              let total = new THREE.Vector3(0, 0, 0);
+              let count = 0;
+
+              allClasses.forEach((cls) => {
+                if (effectiveLayoutMap?.has(cls.id)) {
+                  const layout = effectiveLayoutMap.get(cls.id)!;
+                  const pos = getExactHAPPosition(cls, layout);
+                  total.add(pos);
+                  count++;
+                }
+              });
+
+              if (count > 0) {
+                const centroid = total.divideScalar(count);
+                centroid.y += 25;
+                return centroid;
+              }
+            }
+
+            return new THREE.Vector3(0, 40, 0);
+          }
+        : undefined;
+
+      hapSystemManager.buildApplicationHAPTree(
+        applicationElement.id,
+        applicationElement,
+        getChildren,
+        getCorrectedPosition,
+        getHapLevel,
+        leafPackagesOnly,
+        isCircle,
+        getPackageCentroid
+      );
+      ClazzCommunicationMesh.clearSharedGeometries();
+    }
+  }, [
+    applicationElement?.id,
+    enableEdgeBundling,
+    use3DHAPAlgorithm,
+    getChildren,
+    getCorrectedPosition,
+    getHapLevel,
+    leafPackagesOnly,
+    classLayoutAlgorithm,
+    packageCentroidsCache,
+    effectiveLayoutMap,
+    getExactHAPPosition,
+  ]);
+
+  useEffect(() => {
+    const handleLayoutChange = (event: CustomEvent) => {
+      const { layoutAlgorithm } = event.detail;
+
+      if (applicationElement?.id) {
+        hapSystemManager.clearHAPSystem(applicationElement.id);
+      }
+
+      packageCentroidsCache.current.clear();
+
+      if (meshRef.current) {
+        meshRef.current.clearHAPSystem();
+      }
+
+      setForceUpdate((prev) => prev + 1);
+
+      ClazzCommunicationMesh.clearSharedGeometries();
+    };
+
+    window.addEventListener(
+      'hapLayoutChanged',
+      handleLayoutChange as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        'hapLayoutChanged',
+        handleLayoutChange as EventListener
+      );
+    };
+  }, [applicationElement?.id]);
+
   const finalLayout = useMemo(() => {
     if (!communicationLayout) return undefined;
 
@@ -638,7 +892,6 @@ export default function CommunicationR3F({
       communicationLayout.endZ
     );
 
-    // Recalculate line thickness based on current commThickness setting
     const updatedLineThickness = calculateLineThickness(
       communicationModel,
       commThickness
@@ -653,67 +906,19 @@ export default function CommunicationR3F({
         normalLayout.lineThickness = updatedLineThickness;
         return normalLayout;
       }
-      // Always create a new copy to ensure new object reference
       const updatedLayout = communicationLayout.copy();
       updatedLayout.lineThickness = updatedLineThickness;
       return updatedLayout;
     }
 
-    if (isInterAppCommunication && enableEdgeBundling) {
-      const bundler = interAppBundlingService.getBundler();
-
-      let bundledLayout: BundledCommunicationLayout;
-      if (communicationLayout instanceof BundledCommunicationLayout) {
-        bundledLayout = communicationLayout.copy();
-        bundledLayout.lineThickness = updatedLineThickness;
-      } else {
-        bundledLayout = new BundledCommunicationLayout(
-          communicationModel,
-          startPoint,
-          endPoint,
-          updatedLineThickness,
-          edgeBundlingConfig
-        );
-      }
-
-      // Hole control points of force bundler
-      if (interAppBundler) {
-        const controlPoints = interAppBundler.getEdgeControlPoints(
-          communicationModel.id
-        );
-
-        if (controlPoints && controlPoints.length > 0) {
-          bundledLayout.updateControlPoints(controlPoints);
-        } else {
-          // Fallback for new edges
-          const midPoint = new THREE.Vector3()
-            .addVectors(startPoint, endPoint)
-            .multiplyScalar(0.5);
-          midPoint.y += startPoint.distanceTo(endPoint) * 0.15;
-
-          bundledLayout.updateControlPoints([midPoint]);
-        }
-      }
-      const controlPoints = bundler.getEdgeControlPoints(communicationModel.id);
-
-      if (controlPoints && controlPoints.length > 0) {
-        bundledLayout.updateControlPoints(controlPoints);
-      } else {
-        // Fallback for new edges
-        const midPoint = new THREE.Vector3()
-          .addVectors(startPoint, endPoint)
-          .multiplyScalar(0.5);
-        midPoint.y += startPoint.distanceTo(endPoint) * 0.15;
-        bundledLayout.updateControlPoints([midPoint]);
-      }
-
-      return bundledLayout;
-    }
+    const shouldUseForceDirected = globalBundlingService.shouldUseForceDirected(
+      communicationModel,
+      use3DHAPAlgorithm
+    );
 
     let bundledLayout: BundledCommunicationLayout;
 
     if (communicationLayout instanceof BundledCommunicationLayout) {
-      // Always create a new copy to ensure new object reference
       bundledLayout = communicationLayout.copy();
       bundledLayout.lineThickness = updatedLineThickness;
     } else {
@@ -726,16 +931,58 @@ export default function CommunicationR3F({
       );
     }
 
-    if (use3DHAPAlgorithm && hapNodes && !isInterAppCommunication) {
+    if (shouldUseForceDirected) {
+      // Force-directed Bundling
+      bundledLayout.setUseForceDirected(true);
+
+      const isCircleLayout = classLayoutAlgorithm === 'circle';
+
+      const isInterApp =
+        communicationModel.sourceApp.id !== communicationModel.targetApp.id;
+      const type = isInterApp ? 'inter-app' : 'intra-app';
+
+      globalBundlingService.addEdge(
+        communicationModel.id,
+        startPoint,
+        endPoint,
+        {
+          type,
+          app1Id: communicationModel.sourceApp.id,
+          app2Id: communicationModel.targetApp.id,
+          sourceId: communicationModel.sourceClass?.id,
+          targetId: communicationModel.targetClass?.id,
+          use3DHAP: use3DHAPAlgorithm,
+          isCircleLayout: isCircleLayout,
+        }
+      );
+
+      const controlPoints = globalBundlingService
+        .getBundler()
+        .getEdgeControlPoints(communicationModel.id);
+      if (controlPoints && controlPoints.length > 0) {
+        bundledLayout.updateControlPoints(controlPoints);
+      } else {
+        // Fallback
+        const midPoint = new THREE.Vector3()
+          .addVectors(startPoint, endPoint)
+          .multiplyScalar(0.5);
+        midPoint.y += startPoint.distanceTo(endPoint) * 0.15;
+        bundledLayout.updateControlPoints([midPoint]);
+      }
+    } else if (use3DHAPAlgorithm && hapNodes) {
       const systemId = applicationElement?.id || 'default';
       const hapSystem = hapSystemManager.getHAPSystem(systemId);
+
       if (hapSystem) {
         bundledLayout.setHAPNodes(hapNodes.originHAP, hapNodes.destinationHAP);
         bundledLayout.setBeta(beta);
         bundledLayout.setScatterRadius(scatterRadius);
         bundledLayout.setStreamline(edgeBundlingStreamline);
         bundledLayout.setLeafPackagesOnly(leafPackagesOnly);
+        bundledLayout.setUseForceDirected(false);
       }
+    } else {
+      bundledLayout.setBundlingConfig(edgeBundlingConfig);
     }
 
     return bundledLayout;
@@ -752,12 +999,20 @@ export default function CommunicationR3F({
     scatterRadius,
     edgeBundlingStreamline,
     leafPackagesOnly,
-    hapNodes,
     forceUpdate,
-    updateTrigger,
-    isInterAppCommunication,
+    classLayoutAlgorithm,
   ]);
-  // Only update if change occured
+
+  useEffect(() => {
+    if (!enableEdgeBundling) return;
+
+    const unsubscribe = globalBundlingService.subscribe(() => {
+      setForceUpdate((prev) => prev + 1);
+    });
+
+    return unsubscribe;
+  }, [enableEdgeBundling]);
+
   useEffect(() => {
     if (!meshRef.current || !finalLayout) return;
 

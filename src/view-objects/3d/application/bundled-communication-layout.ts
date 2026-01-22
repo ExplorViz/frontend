@@ -10,6 +10,7 @@ import * as THREE from 'three';
 
 export class BundledCommunicationLayout extends CommunicationLayout {
   private _controlPoints: THREE.Vector3[] = [];
+  private _useForceDirected: boolean = false;
   private _bundlingConfig: EdgeBundlingConfig;
   private _hapSystem: HierarchicalAttractionSystem;
   private _originHAP: HAPNode | null = null;
@@ -153,7 +154,9 @@ export class BundledCommunicationLayout extends CommunicationLayout {
       ),
     ];
   }
-
+  public setUseForceDirected(use: boolean): void {
+    this._useForceDirected = use;
+  }
   public updateControlPoints(points: THREE.Vector3[]): void {
     this._controlPoints = points.map((p) => p.clone());
   }
