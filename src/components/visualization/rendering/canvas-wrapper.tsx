@@ -502,7 +502,10 @@ export default function CanvasWrapper({
             <CameraLayerHandler />
 
             {minimapEnabled && (
-              <MinimapView mainCameraControls={cameraControlsRef} />
+              <MinimapView
+                mainCameraControls={cameraControlsRef}
+                landscapeData={landscapeData}
+              />
             )}
             {isMagnifierActive && (
               <Magnify

@@ -536,14 +536,26 @@ export default function MinimapView({
     gl.setScissorTest(false);
   }, 1);
 
-  // Clean up FBO on unmount
+  // Clean up FBO and GL state on unmount
   useEffect(() => {
     return () => {
+      // Dispose FBO
       if (minimapRectRef.current.fbo) {
         minimapRectRef.current.fbo.dispose();
+        minimapRectRef.current.fbo = undefined;
       }
+
+      // Clear scenes
+      stencilScene.clear();
+      minimapScene.clear();
+
+      // Ensure GL state is fully reset
+      gl.setScissorTest(false);
+      const canvas = gl.domElement;
+      gl.setViewport(0, 0, canvas.width, canvas.height);
+      gl.autoClear = true;
     };
-  }, []);
+  }, [gl, stencilScene, minimapScene]);
 
   return (
     <>
