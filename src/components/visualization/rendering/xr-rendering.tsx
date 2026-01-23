@@ -1,7 +1,7 @@
 import { createXRStore, XRStore } from '@react-three/xr';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -62,6 +62,9 @@ export default function XrRendering({
       Communication: 0,
       Ping: 0,
       Label: 0,
+      MinimapLabel: 0,
+      LocalMinimapMarker: 0,
+      MinimapMarkers: 0,
     });
 
     // Clean up store on unmount
@@ -75,6 +78,9 @@ export default function XrRendering({
         Communication: 4,
         Ping: 5,
         Label: 6,
+        MinimapLabel: 7,
+        LocalMinimapMarker: 8,
+        MinimapMarkers: 9,
       });
     };
   }, [xrStore]);

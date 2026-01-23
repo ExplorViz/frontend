@@ -67,8 +67,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       Ping: 5,
       Label: 6,
       MinimapLabel: 7,
-      MinimapMarkers: 8,
-      LocalMinimapMarker: 9,
+      LocalMinimapMarker: 8,
+      MinimapMarkers: 9,
     },
     actions: {
       // Shared entity states
