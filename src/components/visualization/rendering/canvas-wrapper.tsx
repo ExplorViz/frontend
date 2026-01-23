@@ -115,6 +115,8 @@ export default function CanvasWrapper({
     classMargin,
     closedComponentHeight,
     openedComponentHeight,
+    enableClustering,
+    autoOpenCloseComponents,
     packageLabelMargin,
     packageMargin,
     sceneBackgroundColor,
@@ -164,6 +166,9 @@ export default function CanvasWrapper({
         state.visualizationSettings.componentLabelPlacement.value,
       colors: state.colors,
       openedComponentHeight: state.visualizationSettings.openedComponentHeight,
+      enableClustering: state.visualizationSettings.enableClustering.value,
+      autoOpenCloseComponents:
+        state.visualizationSettings.autoOpenCloseComponents.value,
       packageLabelMargin: state.visualizationSettings.packageLabelMargin,
       packageMargin: state.visualizationSettings.packageMargin,
       sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
@@ -565,8 +570,10 @@ export default function CanvasWrapper({
                 />
               ))}
           </LandscapeR3F>
-          <ClusterCentroidsR3F />
-          <AutoComponentOpenerR3F />
+          {enableClustering && <ClusterCentroidsR3F />}
+          {enableClustering && autoOpenCloseComponents && (
+            <AutoComponentOpenerR3F />
+          )}
           <AnimatedPing />
           <TraceReplayOverlayR3F />
           <ambientLight />

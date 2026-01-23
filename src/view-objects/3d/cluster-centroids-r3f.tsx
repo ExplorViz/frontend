@@ -36,7 +36,7 @@ export default function ClusterCentroidsR3F() {
     }))
   );
 
-  const {componentLayouts, classLayouts } = useLayoutStore(
+  const { componentLayouts, classLayouts } = useLayoutStore(
     useShallow((state) => ({
       componentLayouts: state.componentLayouts,
       classLayouts: state.classLayouts,
@@ -52,7 +52,7 @@ export default function ClusterCentroidsR3F() {
       const now = performance.now();
       const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
       const updateInterval = 1000.0 / distanceUpdateFrequency; // Convert Hz to milliseconds
-      
+
       if (timeSinceLastUpdate >= updateInterval) {
         useClusterStore.getState().calculateDistanceToCamera(camera.position);
         lastUpdateTimeRef.current = now;
@@ -95,9 +95,22 @@ export default function ClusterCentroidsR3F() {
   // Re-compute clusters when cluster settings or layouts change
   useEffect(() => {
     computeClusters();
-  }, [enableClustering, clusterCount, displayClusters, componentLayouts, classLayouts]);
+  }, [
+    enableClustering,
+    clusterCount,
+    displayClusters,
+    classLayouts,
+    componentLayouts,
+    classLayouts,
+  ]);
 
-  const positions = displayClusters ? useClusterStore.getState().getAllClusters().values().map(c => c.position) : [];
+  const positions = displayClusters
+    ? useClusterStore
+        .getState()
+        .getAllClusters()
+        .values()
+        .map((c) => c.position)
+    : [];
 
   return (
     <group>
