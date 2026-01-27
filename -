@@ -1,0 +1,29 @@
+digraph {
+	graph [fontcolor="#2D3436" fontname="Sans-Serif" fontsize=15 label="" nodesep=0.60 pad=2.0 rankdir=TB ranksep=0.75 splines=ortho]
+	node [fixedsize=true fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 height=1.4 imagescale=true labelloc=b shape=box style=rounded width=1.4]
+	edge [color="#7B8894"]
+	"1c4eba953a0b4ca580a0e66b33f2bcca" [label=fast height=1.9 image="/root/.local/share/pipx/venvs/kubediagrams/lib/python3.12/site-packages/resources/k8s/storage/sc.png" shape=none tooltip="kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: fast
+..."]
+	subgraph "cluster_Namespace: default" {
+		graph [bgcolor=white fontname="Sans-Serif" fontsize=12 label=<<table border="0" width="100%"><tr><td fixedsize="true" width="64" height="64"><img src="/root/.local/share/pipx/venvs/kubediagrams/lib/python3.12/site-packages/resources/k8s/group/ns.png" /></td></tr><tr><td>default</td></tr></table>> labeljust=l pencolor=black rankdir=LR shape=box style="rounded,dashed" tooltip="Namespace: default"]
+		subgraph "cluster_Application: cassandra" {
+			graph [bgcolor="#ECE8F6" fontname="Sans-Serif" fontsize=12 label="Application: cassandra" labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded tooltip="Application: cassandra"]
+			"184e4b59909a4ab0b73546c9791a9c04" [label=cassandra height=1.9 image="/root/.local/share/pipx/venvs/kubediagrams/lib/python3.12/site-packages/resources/k8s/compute/sts.png" shape=none tooltip="kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: cassandra
+..."]
+			"864d040e9e11489cbb875c5c54c58666" [label="cassandra-data
+-cassandra" height=2.3 image="/root/.local/share/pipx/venvs/kubediagrams/lib/python3.12/site-packages/resources/k8s/storage/pvc.png" shape=none tooltip="kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: cassandra-data-cassandra
+..."]
+		}
+	}
+	"184e4b59909a4ab0b73546c9791a9c04" -> "864d040e9e11489cbb875c5c54c58666" [color=black dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 tooltip="spec.volumeClaimTemplates[0]"]
+	"864d040e9e11489cbb875c5c54c58666" -> "1c4eba953a0b4ca580a0e66b33f2bcca" [color=black dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 tooltip="spec.storageClassName: fast"]
+}

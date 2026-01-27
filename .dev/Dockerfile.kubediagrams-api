@@ -7,7 +7,8 @@ RUN apk add --no-cache \
     git \
     python3 \
     py3-pip \
-    pipx
+    pipx \
+    graphviz
 
 ENV PATH="/root/.local/bin:${PATH}"
 
