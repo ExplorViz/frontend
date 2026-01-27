@@ -62,6 +62,8 @@ export function getWorldPositionOfModel(
   if (modelId.indexOf('_') !== -1) {
     return getWorldPositionOfCommunication(modelId);
   }
+
+  // TODO: This should work on the model store
   const appRepo = useApplicationRepositoryStore.getState();
   const settings = useUserSettingsStore.getState().visualizationSettings;
   const layoutStore = useLayoutStore.getState();

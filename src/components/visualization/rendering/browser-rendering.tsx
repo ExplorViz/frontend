@@ -20,7 +20,6 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -80,12 +79,6 @@ export default function BrowserRendering({
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
-
-  const applicationRepositoryActions = useApplicationRepositoryStore(
-    useShallow((state) => ({
-      cleanup: state.cleanup,
-    }))
-  );
 
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
@@ -248,7 +241,6 @@ export default function BrowserRendering({
 
     // Cleanup on component unmount
     return function cleanup() {
-      applicationRepositoryActions.cleanup();
       configurationActions.setIsCommRendered(true);
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();

@@ -36,7 +36,7 @@ interface ModelRepositoryState {
   // Actions for adding individual models
   addApplication: (id: string, application: Application) => void;
   addComponent: (id: string, component: Package) => void;
-  addClass: (id: string, clazz: Class) => void;
+  addClass: (id: string, classModel: Class) => void;
   addCommunication: (id: string, communication: ClassCommunication) => void;
 
   // Actions for setting (overwriting) models
@@ -110,9 +110,9 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       components: { ...state.components, [id]: component },
     })),
 
-  addClass: (id, clazz) =>
+  addClass: (id, classModel) =>
     set((state) => ({
-      classes: { ...state.classes, [id]: clazz },
+      classes: { ...state.classes, [id]: classModel },
     })),
 
   addCommunication: (id, communication) =>
