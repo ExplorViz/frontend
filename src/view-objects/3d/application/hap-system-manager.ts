@@ -728,4 +728,177 @@ export class HAPSystemManager {
     // Clear systems and trees
     this.clearAllHAPSystems();
   }
+
+  public updateHAPTreeElevations(
+    applicationId: string,
+    getPosition: (element: any) => THREE.Vector3,
+    getPackageCentroid?: (packageElement: any) => THREE.Vector3
+  ): boolean {
+    const system = this.getHAPSystem(applicationId);
+    if (!system) {
+      return false;
+    }
+
+    const hapTree = system.getHAPTree();
+    if (!hapTree) {
+      return false;
+    }
+
+    let updateCount = 0;
+    let packageUpdates = 0;
+    let classUpdates = 0;
+    let appUpdates = 0;
+
+    const updateNodePositions = (node: HAPNode) => {
+      if (!node.element) return;
+
+      let newPosition: THREE.Vector3;
+
+      // Packages with centroid function
+      if (
+        getPackageCentroid &&
+        (node.element.type === 'package' || node.element.type === 'Package')
+      ) {
+        newPosition = getPackageCentroid(node.element);
+        packageUpdates++;
+      } else {
+        newPosition = getPosition(node.element);
+      }
+
+      if (
+        !newPosition ||
+        isNaN(newPosition.x) ||
+        isNaN(newPosition.y) ||
+        isNaN(newPosition.z)
+      ) {
+        return;
+      }
+
+      const distance = node.position.distanceTo(newPosition);
+      if (distance > 0.1) {
+        const oldY = node.position.y;
+        node.position.copy(newPosition);
+        updateCount++;
+
+        if (node.element.type === 'class' || node.element.type === 'Class')
+          classUpdates++;
+        else if (
+          node.element.type === 'package' ||
+          node.element.type === 'Package'
+        )
+          packageUpdates++;
+        else if (
+          node.element.type === 'application' ||
+          node.element.type === 'Application'
+        )
+          appUpdates++;
+      }
+
+      node.children.forEach(updateNodePositions);
+    };
+
+    updateNodePositions(hapTree);
+
+    if (updateCount > 0) {
+      window.dispatchEvent(
+        new CustomEvent('hapTreeUpdated', {
+          detail: {
+            applicationId,
+            updateCount,
+            classUpdates,
+            packageUpdates,
+            appUpdates,
+          },
+        })
+      );
+
+      this.forceVisualizationUpdate(applicationId);
+
+      return true;
+    }
+
+    return false;
+  }
+
+  private forceVisualizationUpdate(applicationId: string): void {
+    window.dispatchEvent(
+      new CustomEvent('forceHAPVisualizationUpdate', {
+        detail: {
+          applicationId,
+          timestamp: Date.now(),
+        },
+      })
+    );
+  }
+
+  public rebuildHAPSystemForLayoutChange(
+    applicationId: string,
+    rootElement: any,
+    getChildren: (element: any) => any[],
+    getPosition: (element: any) => THREE.Vector3,
+    getLevel: (element: any) => number,
+    layoutAlgorithm: string,
+    leafPackagesOnly: boolean = false
+  ): void {
+    this.clearHAPSystem(applicationId);
+
+    const elementsToRemove: string[] = [];
+    this.elementToHAP.forEach((node, elementId) => {
+      if (
+        node.element &&
+        this.isElementInApplication(node.element, applicationId)
+      ) {
+        elementsToRemove.push(elementId);
+      }
+    });
+    elementsToRemove.forEach((elementId) => {
+      this.elementToHAP.delete(elementId);
+    });
+
+    const getPackageCentroid =
+      layoutAlgorithm === 'circle'
+        ? (pkg: any): THREE.Vector3 => {
+            const position = getPosition(pkg);
+
+            if (position.lengthSq() < 1) {
+              const hash = pkg.id
+                .split('')
+                .reduce((acc: number, char: string) => {
+                  return char.charCodeAt(0) + ((acc << 5) - acc);
+                }, 0);
+
+              const angle = (hash % 360) * (Math.PI / 180);
+              const radius = 50 + (hash % 30);
+              return new THREE.Vector3(
+                Math.cos(angle) * radius,
+                getLevel(pkg) * 20 + 30,
+                Math.sin(angle) * radius
+              );
+            }
+
+            return position;
+          }
+        : undefined;
+
+    this.buildApplicationHAPTree(
+      applicationId,
+      rootElement,
+      getChildren,
+      getPosition,
+      getLevel,
+      leafPackagesOnly,
+      layoutAlgorithm === 'circle',
+      getPackageCentroid
+    );
+
+    window.dispatchEvent(
+      new CustomEvent('hapSystemRebuilt', {
+        detail: {
+          applicationId,
+          layoutAlgorithm,
+          timestamp: Date.now(),
+        },
+      })
+    );
+  }
 }

@@ -69,18 +69,21 @@ export type CommunicationSettingId =
   | 'commArrowSize'
   | 'commArrowOffset'
   | 'curvyCommHeight'
-  | 'enableEdgeBundling'
   | 'bundleStrength'
   | 'compatibilityThreshold'
   | 'bundlingIterations'
   | 'bundlingStepSize'
   | 'beta'
-  | 'use3DHAPAlgorithm'
   | 'commCurveHeightDependsOnDistance'
   | 'showHAPTree'
   | 'scatterRadius'
   | 'edgeBundlingStreamline'
-  | 'leafPackagesOnly';
+  | 'leafPackagesOnly'
+  | 'hapClassElevation'
+  | 'hapPackageElevation'
+  | 'hapApplicationElevation'
+  | 'hapUseRelativeElevation'
+  | 'edgeBundlingAlgorithm';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -93,17 +96,20 @@ export type CommunicationSettings = {
   commArrowOffset: RangeSetting;
   curvyCommHeight: RangeSetting;
   commCurveHeightDependsOnDistance: FlagSetting;
-  enableEdgeBundling: FlagSetting;
   bundleStrength: RangeSetting;
   compatibilityThreshold: RangeSetting;
   bundlingIterations: RangeSetting;
   bundlingStepSize: RangeSetting;
   beta: RangeSetting;
-  use3DHAPAlgorithm: FlagSetting;
   showHAPTree: FlagSetting;
   scatterRadius: RangeSetting;
   edgeBundlingStreamline: FlagSetting;
   leafPackagesOnly: FlagSetting;
+  hapClassElevation: RangeSetting;
+  hapPackageElevation: RangeSetting;
+  hapApplicationElevation: RangeSetting;
+  hapUseRelativeElevation: FlagSetting;
+  edgeBundlingAlgorithm: SelectSetting<string>;
 };
 
 export type DebugSettings = {

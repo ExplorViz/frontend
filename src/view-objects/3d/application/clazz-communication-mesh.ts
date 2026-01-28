@@ -24,6 +24,10 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _lastHAPNodes: { originId?: string; destinationId?: string } = {};
   private _streamline: boolean = true;
   private _leafPackagesOnly: boolean = false;
+  private _hapClassElevation: number = 15;
+  private _hapPackageElevation: number = 30;
+  private _hapApplicationElevation: number = 50;
+  private _hapUseRelativeElevation: boolean = true;
 
   private static hoverGeometryCache = new Map<
     string,
@@ -143,6 +147,122 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this._needsRender = true;
       this.requestRender();
     }
+  }
+
+  get hapClassElevation(): number {
+    return this._hapClassElevation;
+  }
+
+  get hapPackageElevation(): number {
+    return this._hapPackageElevation;
+  }
+
+  get hapApplicationElevation(): number {
+    return this._hapApplicationElevation;
+  }
+
+  get hapUseRelativeElevation(): boolean {
+    return this._hapUseRelativeElevation;
+  }
+
+  set hapClassElevation(value: number) {
+    const newValue = Math.max(0, Math.min(5000, value)); // Clamp value
+    if (Math.abs(this._hapClassElevation - newValue) > 0.1) {
+      this._hapClassElevation = newValue;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  set hapPackageElevation(value: number) {
+    const newValue = Math.max(0, Math.min(5000, value));
+    if (Math.abs(this._hapPackageElevation - newValue) > 0.1) {
+      this._hapPackageElevation = newValue;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  set hapApplicationElevation(value: number) {
+    const newValue = Math.max(0, Math.min(5000, value));
+    if (Math.abs(this._hapApplicationElevation - newValue) > 0.1) {
+      this._hapApplicationElevation = newValue;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  set hapUseRelativeElevation(value: boolean) {
+    if (this._hapUseRelativeElevation !== value) {
+      this._hapUseRelativeElevation = value;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  /**
+   * Set all HAP elevation settings at once
+   * @param settings Object containing all elevation settings
+   */
+  public setHAPElevationSettings(settings: {
+    class: number;
+    package: number;
+    application: number;
+    useRelative: boolean;
+  }): void {
+    let needsUpdate = false;
+
+    // Class elevation
+    const newClass = Math.max(0, Math.min(5000, settings.class));
+    if (Math.abs(this._hapClassElevation - newClass) > 0.1) {
+      this._hapClassElevation = newClass;
+      needsUpdate = true;
+    }
+
+    // Package elevation
+    const newPackage = Math.max(0, Math.min(5000, settings.package));
+    if (Math.abs(this._hapPackageElevation - newPackage) > 0.1) {
+      this._hapPackageElevation = newPackage;
+      needsUpdate = true;
+    }
+
+    // Application elevation
+    const newApp = Math.max(0, Math.min(5000, settings.application));
+    if (Math.abs(this._hapApplicationElevation - newApp) > 0.1) {
+      this._hapApplicationElevation = newApp;
+      needsUpdate = true;
+    }
+
+    // Relative/absolute
+    if (this._hapUseRelativeElevation !== settings.useRelative) {
+      this._hapUseRelativeElevation = settings.useRelative;
+      needsUpdate = true;
+    }
+
+    if (needsUpdate) {
+      this._needsRender = true;
+      this.requestRender();
+
+      this.releaseSharedGeometry(this.geometry);
+      ClazzCommunicationMesh.clearSharedGeometries();
+    }
+  }
+
+  /**
+   * Get current HAP elevation settings
+   */
+  public getHAPElevationSettings(): {
+    class: number;
+    package: number;
+    application: number;
+    useRelative: boolean;
+  } {
+    return {
+      class: this._hapClassElevation,
+      package: this._hapPackageElevation,
+      application: this._hapApplicationElevation,
+      useRelative: this._hapUseRelativeElevation,
+    };
   }
 
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
@@ -654,14 +774,16 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     segments: number
   ): string {
     if (this._use3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
-      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
-    } else {
-      const start = curve.getPoint(0);
-      const end = curve.getPoint(1);
-      const mid = curve.getPoint(0.5);
+      const elevationKey = `C${Math.round(this._hapClassElevation)}_P${Math.round(this._hapPackageElevation)}_A${Math.round(this._hapApplicationElevation)}_R${this._hapUseRelativeElevation ? 1 : 0}`;
 
-      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
+      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_${elevationKey}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
     }
+
+    const start = curve.getPoint(0);
+    const end = curve.getPoint(1);
+    const mid = curve.getPoint(0.5);
+
+    return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
   }
 
   public releaseSharedGeometry(geometry: THREE.BufferGeometry): void {
