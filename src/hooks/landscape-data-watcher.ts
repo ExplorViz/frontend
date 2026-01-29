@@ -10,6 +10,7 @@ import ApplicationData, {
 } from 'explorviz-frontend/src/utils/application-data';
 import computeClassCommunication from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
@@ -63,6 +64,7 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
+    console.log(convertToFlatLandscape(structureLandscapeData));
     const { nodes } = structureLandscapeData;
     // TODO: Handle k8s nodes
 
