@@ -4,11 +4,11 @@ interface VisualizationStoreState {
   // State for all entities
   highlightedEntityIds: Set<string>;
   hoveredEntityId: string | null;
-  // State for components (store ids of components that have no default state)
-  closedComponentIds: Set<string>;
-  hiddenComponentIds: Set<string>; // Usually components in closed components
-  // State for classes
-  hiddenClassIds: Set<string>; // Usually classes in hidden components
+  // State for districts (store ids of districts that have no default state)
+  closedDistrictIds: Set<string>;
+  hiddenDistrictIds: Set<string>; // Usually districts inside closed districts
+  // State for buildings
+  hiddenBuildingIds: Set<string>; // Usually buildings inside closed districts
   removedDistrictIds: Set<string>;
   sceneLayers: layersType;
   actions: {
@@ -18,16 +18,16 @@ interface VisualizationStoreState {
     removeAllHighlightedEntityIds: () => void;
     resetVisualizationState: () => void;
     filterEntityIds: (validEntityIds: Set<string>) => void;
-    // Components
-    openComponents: (ids: string[]) => void;
-    closeComponents: (ids: string[]) => void;
-    showComponents: (ids: string[]) => void;
-    hideComponents: (ids: string[]) => void;
-    resetComponentStates: () => void;
-    // Classes
-    showClasses: (ids: string[]) => void;
-    hideClasses: (ids: string[]) => void;
-    resetClassStates: () => void;
+    // Districts
+    openDistricts: (ids: string[]) => void;
+    closeDistricts: (ids: string[]) => void;
+    showDistricts: (ids: string[]) => void;
+    hideDistricts: (ids: string[]) => void;
+    resetDistrictState: () => void;
+    // Buildings
+    showBuildings: (ids: string[]) => void;
+    hideBuildings: (ids: string[]) => void;
+    resetBuildingStates: () => void;
     removeDistricts: (ids: Set<string>) => void;
     setRemovedDistricts: (ids: Set<string>) => void;
     setSceneLayers: (layers: layersType) => void;
@@ -52,11 +52,11 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     // Shared entity states
     hoveredEntityId: null,
     highlightedEntityIds: new Set(),
-    // Component state
-    closedComponentIds: new Set(),
-    hiddenComponentIds: new Set(),
-    // Class state
-    hiddenClassIds: new Set(),
+    // District state
+    closedDistrictIds: new Set(),
+    hiddenDistrictIds: new Set(),
+    // Building state
+    hiddenBuildingIds: new Set(),
     removedDistrictIds: new Set(),
     sceneLayers: {
       Default: 0,
@@ -105,9 +105,9 @@ export const useVisualizationStore = create<VisualizationStoreState>(
         set({
           hoveredEntityId: null,
           highlightedEntityIds: new Set(),
-          closedComponentIds: new Set(),
-          hiddenComponentIds: new Set(),
-          hiddenClassIds: new Set(),
+          closedDistrictIds: new Set(),
+          hiddenDistrictIds: new Set(),
+          hiddenBuildingIds: new Set(),
         });
       },
       filterEntityIds: (validEntityIds: Set<string>) => {
@@ -122,60 +122,62 @@ export const useVisualizationStore = create<VisualizationStoreState>(
             validEntityIds.has(prevState.hoveredEntityId)
               ? prevState.hoveredEntityId
               : null,
-          closedComponentIds: new Set(
-            [...prevState.closedComponentIds].filter((id) =>
+          closedDistrictIds: new Set(
+            [...prevState.closedDistrictIds].filter((id) =>
               validEntityIds.has(id)
             )
           ),
-          hiddenComponentIds: new Set(
-            [...prevState.hiddenComponentIds].filter((id) =>
+          hiddenDistrictIds: new Set(
+            [...prevState.hiddenDistrictIds].filter((id) =>
               validEntityIds.has(id)
             )
           ),
-          hiddenClassIds: new Set(
-            [...prevState.hiddenClassIds].filter((id) => validEntityIds.has(id))
+          hiddenBuildingIds: new Set(
+            [...prevState.hiddenBuildingIds].filter((id) =>
+              validEntityIds.has(id)
+            )
           ),
         }));
       },
-      // Components
-      openComponents: (ids: string[]) => {
-        const newSet = get().closedComponentIds.difference(new Set(ids));
+      // Districts
+      openDistricts: (ids: string[]) => {
+        const newSet = get().closedDistrictIds.difference(new Set(ids));
         set({
-          closedComponentIds: newSet,
+          closedDistrictIds: newSet,
         });
       },
-      closeComponents: (ids: string[]) => {
+      closeDistricts: (ids: string[]) => {
         set({
-          closedComponentIds: get().closedComponentIds.union(new Set(ids)),
+          closedDistrictIds: get().closedDistrictIds.union(new Set(ids)),
         });
       },
-      showComponents: (ids: string[]) => {
-        const newSet = get().hiddenComponentIds.difference(new Set(ids));
+      showDistricts: (ids: string[]) => {
+        const newSet = get().hiddenDistrictIds.difference(new Set(ids));
         set({
-          hiddenComponentIds: newSet,
+          hiddenDistrictIds: newSet,
         });
       },
-      hideComponents: (ids: string[]) => {
+      hideDistricts: (ids: string[]) => {
         set({
-          hiddenComponentIds: get().hiddenComponentIds.union(new Set(ids)),
+          hiddenDistrictIds: get().hiddenDistrictIds.union(new Set(ids)),
         });
       },
-      resetComponentStates: () => {
+      resetDistrictState: () => {
         set({
-          closedComponentIds: new Set(),
-          hiddenComponentIds: new Set(),
+          closedDistrictIds: new Set(),
+          hiddenDistrictIds: new Set(),
         });
       },
-      // Classes
-      showClasses: (ids: string[]) => {
-        const newSet = get().hiddenClassIds.difference(new Set(ids));
+      // Buildings
+      showBuildings: (ids: string[]) => {
+        const newSet = get().hiddenBuildingIds.difference(new Set(ids));
         set({
-          hiddenClassIds: newSet,
+          hiddenBuildingIds: newSet,
         });
       },
-      hideClasses: (ids: string[]) => {
+      hideBuildings: (ids: string[]) => {
         set({
-          hiddenClassIds: get().hiddenClassIds.union(new Set(ids)),
+          hiddenBuildingIds: get().hiddenBuildingIds.union(new Set(ids)),
         });
       },
       removeDistricts: (ids: Set<string>) => {
@@ -188,8 +190,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
           removedDistrictIds: ids,
         });
       },
-      resetClassStates: () => {
-        set({ hiddenClassIds: new Set() });
+      resetBuildingStates: () => {
+        set({ hiddenBuildingIds: new Set() });
       },
       setSceneLayers: (layers: layersType) => {
         set({ sceneLayers: layers });

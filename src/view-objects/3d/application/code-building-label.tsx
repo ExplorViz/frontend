@@ -29,26 +29,26 @@ export default function CodeBuildingLabel({
   application: Application;
 }) {
   const {
-    isClassHovered,
+    isBuildingHovered,
     isParentHovered,
-    isClassHighlighted,
+    isBuildingHighlighted,
     isParentHighlighted,
-    isClassVisible,
+    isBuildingVisible,
   } = useVisualizationStore(
     useShallow((state) => ({
-      isClassHovered: state.hoveredEntityId === dataModel.id,
-      isClassVisible:
-        !state.hiddenClassIds.has(dataModel.id) &&
+      isBuildingHovered: state.hoveredEntityId === dataModel.id,
+      isBuildingVisible:
+        !state.hiddenBuildingIds.has(dataModel.id) &&
         !state.removedDistrictIds.has(dataModel.id),
       isParentHovered: state.hoveredEntityId === dataModel.parent.id,
-      isClassHighlighted: state.highlightedEntityIds.has(dataModel.id),
+      isBuildingHighlighted: state.highlightedEntityIds.has(dataModel.id),
       isParentHighlighted: state.highlightedEntityIds.has(dataModel.parent.id),
     }))
   );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
-  const getMetricForClass = useEvolutionDataRepositoryStore(
+  const getMetricForBuilding = useEvolutionDataRepositoryStore(
     (state) => state.getMetricForClass
   );
 
@@ -59,28 +59,31 @@ export default function CodeBuildingLabel({
   );
 
   const {
-    classFootprint,
-    classHeightMultiplier,
-    classLabelFontSize,
-    classLabelLength,
-    classTextColor,
+    buildingFootprint,
+    buildingHeightMultiplier,
+    buildingLabelFontSize,
+    buildingLabelLength,
+    buildingTextColor,
     heightMetric,
     labelOffset,
     labelRotation,
-    showAllClassLabels,
+    showAllBuildingLabels,
     labelDistanceThreshold,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      classFootprint: state.visualizationSettings.classFootprint.value,
-      classHeightMultiplier:
-        state.visualizationSettings.classHeightMultiplier.value,
-      classLabelFontSize: state.visualizationSettings.classLabelFontSize.value,
-      classLabelLength: state.visualizationSettings.classLabelLength.value,
-      classTextColor: state.visualizationSettings.classTextColor.value,
-      heightMetric: state.visualizationSettings.classHeightMetric.value,
+      buildingFootprint: state.visualizationSettings.buildingFootprint.value,
+      buildingHeightMultiplier:
+        state.visualizationSettings.buildingHeightMultiplier.value,
+      buildingLabelFontSize:
+        state.visualizationSettings.buildingLabelFontSize.value,
+      buildingLabelLength:
+        state.visualizationSettings.buildingLabelLength.value,
+      buildingTextColor: state.visualizationSettings.buildingTextColor.value,
+      heightMetric: state.visualizationSettings.buildingHeightMetric.value,
       labelOffset: state.visualizationSettings.labelOffset.value,
-      labelRotation: state.visualizationSettings.classLabelOrientation.value,
-      showAllClassLabels: state.visualizationSettings.showAllClassLabels.value,
+      labelRotation: state.visualizationSettings.buildingLabelOrientation.value,
+      showAllBuildingLabels:
+        state.visualizationSettings.showAllBuildingLabels.value,
       labelDistanceThreshold:
         state.visualizationSettings.labelDistanceThreshold.value,
     }))
@@ -92,12 +95,12 @@ export default function CodeBuildingLabel({
     }))
   );
 
-  const getClassHeight = () => {
+  const getbuildingHeight = () => {
     return (
-      classFootprint +
+      buildingFootprint +
       metricMappingMultipliers[heightMetric as MetricKey] *
-        classHeightMultiplier *
-        getMetricForClass(
+        buildingHeightMultiplier *
+        getMetricForBuilding(
           dataModel,
           application.name,
           heightMetric,
@@ -113,7 +116,7 @@ export default function CodeBuildingLabel({
   useEffect(() => {
     const target = new THREE.Vector3(
       layout.center.x,
-      layout.positionY + getClassHeight() + labelOffset,
+      layout.positionY + getbuildingHeight() + labelOffset,
       layout.center.z
     );
 
@@ -144,8 +147,8 @@ export default function CodeBuildingLabel({
   }, [
     layout,
     heightMetric,
-    classFootprint,
-    classHeightMultiplier,
+    buildingFootprint,
+    buildingHeightMultiplier,
     labelOffset,
   ]);
 
@@ -155,10 +158,10 @@ export default function CodeBuildingLabel({
     : true;
 
   const shouldShowLabel =
-    (showAllClassLabels ||
-      isClassHovered ||
+    (showAllBuildingLabels ||
+      isBuildingHovered ||
       isParentHovered ||
-      isClassHighlighted ||
+      isBuildingHighlighted ||
       isParentHighlighted) &&
     isWithinSemanticZoomDistance;
 
@@ -168,13 +171,19 @@ export default function CodeBuildingLabel({
       key={dataModel.id + '-label'}
       name={'Code building label of ' + dataModel.name}
       position={labelPosition}
-      color={classTextColor}
-      visible={isClassVisible}
+      color={buildingTextColor}
+      visible={isBuildingVisible}
       rotation={[1.5 * Math.PI, 0, labelRotation]}
-      fontSize={classLabelFontSize * Math.min(layout.width, layout.depth) * 0.5}
+      fontSize={
+        buildingLabelFontSize * Math.min(layout.width, layout.depth) * 0.5
+      }
       raycast={() => null}
     >
-      {getTruncatedDisplayName(dataModel.name, dataModel.id, classLabelLength)}
+      {getTruncatedDisplayName(
+        dataModel.name,
+        dataModel.id,
+        buildingLabelLength
+      )}
     </Text>
   ) : null;
 }

@@ -14,7 +14,7 @@ interface CopilotResourcesProps {
 
 export function CopilotResources({ applications }: CopilotResourcesProps) {
   const {
-    closedComponentIds,
+    closedDistrictIds: closedComponentIds,
     highlightedEntityIds,
     hoveredEntityId,
     removedDistrictIds: removedComponentIds,

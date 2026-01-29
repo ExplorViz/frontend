@@ -39,7 +39,7 @@ export default function LandscapeR3F({
     }
   }, [
     layout,
-    settings.openedComponentHeight.value,
+    settings.openedDistrictHeight.value,
     scalar,
     positionX,
     positionY,

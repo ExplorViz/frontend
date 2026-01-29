@@ -27,7 +27,7 @@ function flattenSettings(settings: VisualizationSettings) {
 export function StudyDownloadButton() {
   const { messages } = useCopilotChatInternal();
   const {
-    closedComponentIds,
+    closedDistrictIds: closedComponentIds,
     highlightedEntityIds,
     hoveredEntityId,
     removedDistrictIds: removedComponentIds,

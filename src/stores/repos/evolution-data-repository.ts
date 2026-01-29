@@ -17,7 +17,7 @@ import {
   createEmptyStructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { ApplicationMetricsCode } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { create } from 'zustand';
 
 interface EvolutionDataRepositoryState {
@@ -358,8 +358,8 @@ export const useEvolutionDataRepositoryStore =
       metricKey: string,
       getDiff = false
     ) => {
-      if (metricKey === SelectedClassMetric.None) return 0;
-      if (metricKey === SelectedClassMetric.Method)
+      if (metricKey === SelectedBuildingMetric.None) return 0;
+      if (metricKey === SelectedBuildingMetric.Method)
         return dataModel.methods.length;
 
       const selectedCommitToApplicationMetricsCodeMap =

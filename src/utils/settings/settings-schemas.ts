@@ -29,23 +29,23 @@ export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
-  | 'classColor'
-  | 'classTextColor'
+  | 'buildingColor'
+  | 'buildingTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
-  | 'componentRootLevelColor'
-  | 'componentDeepestLevelColor'
-  | 'componentTextColor'
+  | 'districtRootLevelColor'
+  | 'districtDeepestLevelColor'
+  | 'districtTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
   | 'highlightedEntityColor'
-  | 'addedComponentColor'
-  | 'removedComponentColor'
-  | 'unchangedComponentColor'
-  | 'addedClassColor'
-  | 'modifiedClassColor'
-  | 'removedClassColor'
-  | 'unchangedClassColor'
+  | 'addedDistrictColor'
+  | 'removedDistrictColor'
+  | 'unchangedDistrictColor'
+  | 'addedBuildingColor'
+  | 'modifiedBuildingColor'
+  | 'removedBuildingColor'
+  | 'unchangedBuildingColor'
   | 'k8sNodeColor'
   | 'k8sNamespaceColor'
   | 'k8sDeploymentColor'
@@ -81,11 +81,6 @@ export type CommunicationSettingId =
   | 'scatterRadius'
   | 'edgeBundlingStreamline'
   | 'leafPackagesOnly';
-
-// export type CommunicationSettings = Record<
-//   CommunicationSettingId,
-//   RangeSetting
-// >;
 
 export type CommunicationSettings = {
   commThickness: RangeSetting;
@@ -137,26 +132,26 @@ export type EffectSettings = {
   castShadows: FlagSetting;
   enableAnimations: FlagSetting;
   enableHoverEffects: FlagSetting;
-  showAllClassLabels: FlagSetting;
+  showAllBuildingLabels: FlagSetting;
   showOutlines: FlagSetting;
 };
 export type EffectSettingId = keyof EffectSettings;
 
 export type LabelSettings = {
-  appLabelMargin: RangeSetting;
-  classLabelFontSize: RangeSetting;
-  classLabelLength: RangeSetting;
-  classLabelOrientation: RangeSetting;
+  cityLabelMargin: RangeSetting;
+  buildingLabelFontSize: RangeSetting;
+  buildingLabelLength: RangeSetting;
+  buildingLabelOrientation: RangeSetting;
   labelOffset: RangeSetting;
-  packageLabelMargin: RangeSetting;
-  componentLabelPlacement: SelectSetting<string>;
+  districtLabelMargin: RangeSetting;
+  districtLabelPlacement: SelectSetting<string>;
 };
 export type LabelSettingId = keyof LabelSettings;
 
 export type LayoutSettings = {
-  applicationLayoutAlgorithm: SelectSetting<string>;
-  packageLayoutAlgorithm: SelectSetting<string>;
-  classLayoutAlgorithm: SelectSetting<string>;
+  cityLayoutAlgorithm: SelectSetting<string>;
+  districtLayoutAlgorithm: SelectSetting<string>;
+  buildingLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
   landscapePositionX: RangeSetting;
   landscapePositionY: RangeSetting;
@@ -164,20 +159,20 @@ export type LayoutSettings = {
   landscapeRotationX: RangeSetting;
   landscapeRotationY: RangeSetting;
   landscapeRotationZ: RangeSetting;
-  applicationDistance: RangeSetting;
-  applicationAspectRatio: RangeSetting;
-  appMargin: RangeSetting;
-  packageMargin: RangeSetting;
-  classFootprint: RangeSetting;
-  classWidthMetric: SelectSetting<string>;
-  classWidthMultiplier: RangeSetting;
-  classDepthMetric: SelectSetting<string>;
-  classDepthMultiplier: RangeSetting;
-  classHeightMetric: SelectSetting<string>;
-  classHeightMultiplier: RangeSetting;
-  classMargin: RangeSetting;
-  openedComponentHeight: RangeSetting;
-  closedComponentHeight: RangeSetting;
+  cityDistance: RangeSetting;
+  cityAspectRatio: RangeSetting;
+  cityMargin: RangeSetting;
+  districtMargin: RangeSetting;
+  buildingFootprint: RangeSetting;
+  buildingWidthMetric: SelectSetting<string>;
+  buildingWidthMultiplier: RangeSetting;
+  buildingDepthMetric: SelectSetting<string>;
+  buildingDepthMultiplier: RangeSetting;
+  buildingHeightMetric: SelectSetting<string>;
+  buildingHeightMultiplier: RangeSetting;
+  buildingMargin: RangeSetting;
+  openedDistrictHeight: RangeSetting;
+  closedDistrictHeight: RangeSetting;
   spiralCenterOffset: RangeSetting;
   spiralGap: RangeSetting;
 };
@@ -215,8 +210,8 @@ export type SemanticZoomSettings = {
   clusterCount: RangeSetting;
   labelDistanceThreshold: RangeSetting;
   distanceUpdateFrequency: RangeSetting;
-  autoOpenCloseComponents: FlagSetting;
-  componentOpenCloseDistanceThreshold: RangeSetting;
+  autoOpenCloseDistricts: FlagSetting;
+  districtOpenCloseDistanceThreshold: RangeSetting;
 };
 export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 
@@ -358,7 +353,7 @@ export interface ButtonSetting extends Setting<boolean> {
   readonly isButtonSetting: true;
 }
 
-export enum SelectedClassMetric {
+export enum SelectedBuildingMetric {
   None = 'None',
   Method = 'Function Count',
   LoC = 'LoC',

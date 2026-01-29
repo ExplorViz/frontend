@@ -10,31 +10,31 @@ import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 /**
- * Component that automatically opens and closes components based on
+ * Component that automatically opens and closes districts based on
  * the distance from the camera to their cluster centroids.
- * Components can only be automatically opened if the parent component is already opened.
- * Components can only be automatically closed if all subpackages are already closed.
+ * Districts can only be automatically opened if the parent district is already opened.
+ * Districts can only be automatically closed if all nested districts are already closed.
  */
 export default function AutoComponentOpenerR3F() {
   const {
     enableClustering,
-    autoOpenCloseComponents,
-    componentOpenCloseDistanceThreshold,
+    autoOpenCloseDistricts,
+    districtOpenCloseDistanceThreshold,
     distanceUpdateFrequency,
   } = useUserSettingsStore(
     useShallow((state) => ({
       enableClustering: state.visualizationSettings.enableClustering.value,
-      autoOpenCloseComponents:
-        state.visualizationSettings.autoOpenCloseComponents.value,
-      componentOpenCloseDistanceThreshold:
-        state.visualizationSettings.componentOpenCloseDistanceThreshold.value,
+      autoOpenCloseDistricts:
+        state.visualizationSettings.autoOpenCloseDistricts.value,
+      districtOpenCloseDistanceThreshold:
+        state.visualizationSettings.districtOpenCloseDistanceThreshold.value,
       distanceUpdateFrequency:
         state.visualizationSettings.distanceUpdateFrequency.value,
     }))
   );
 
   const closedComponentIds = useVisualizationStore(
-    (state) => state.closedComponentIds
+    (state) => state.closedDistrictIds
   );
 
   const { centroidDistances, getCentroidDistance } = useClusterStore(
@@ -44,53 +44,51 @@ export default function AutoComponentOpenerR3F() {
     }))
   );
 
-
   const getAllComponents = useModelStore((state) => state.getAllComponents);
 
   useEffect(() => {
     if (
       !enableClustering ||
-      !autoOpenCloseComponents ||
+      !autoOpenCloseDistricts ||
       distanceUpdateFrequency <= 0
     ) {
       return;
     }
-      const components = getAllComponents();      
+    const components = getAllComponents();
 
-      components.forEach((component) => {
-        const distance = getCentroidDistance(component.id);
-        if (distance === undefined) {
-          // No cluster assignment, skip
-          return;
+    components.forEach((component) => {
+      const distance = getCentroidDistance(component.id);
+      if (distance === undefined) {
+        // No cluster assignment, skip
+        return;
+      }
+
+      const isCurrentlyOpen = !closedComponentIds.has(component.id);
+      const isWithinThreshold = distance <= districtOpenCloseDistanceThreshold;
+
+      if (isWithinThreshold && !isCurrentlyOpen) {
+        // Open component when close to cluster centroid
+        // But only if parent component is already opened (or component has no parent)
+        const parentIsOpen =
+          component.parent === undefined ||
+          !closedComponentIds.has(component.parent.id);
+
+        if (parentIsOpen) {
+          openComponent(component.id, false);
         }
+      } else if (!isWithinThreshold && isCurrentlyOpen) {
+        // Close component when far from cluster centroid
+        // But only if all subpackages are already closed
+        const allSubPackagesClosed = component.subPackages.every((subPackage) =>
+          closedComponentIds.has(subPackage.id)
+        );
 
-        const isCurrentlyOpen = !closedComponentIds.has(component.id);
-        const isWithinThreshold =
-          distance <= componentOpenCloseDistanceThreshold;
-
-        if (isWithinThreshold && !isCurrentlyOpen) {
-          // Open component when close to cluster centroid
-          // But only if parent component is already opened (or component has no parent)
-          const parentIsOpen =
-            component.parent === undefined ||
-            !closedComponentIds.has(component.parent.id);
-
-          if (parentIsOpen) {
-            openComponent(component.id, false);
-          }
-        } else if (!isWithinThreshold && isCurrentlyOpen) {
-          // Close component when far from cluster centroid
-          // But only if all subpackages are already closed
-          const allSubPackagesClosed = component.subPackages.every(
-            (subPackage) => closedComponentIds.has(subPackage.id)
-          );
-
-          if (allSubPackagesClosed) {
-            closeComponent(component.id, false, false);
-          }
+        if (allSubPackagesClosed) {
+          closeComponent(component.id, false, false);
         }
-      });
-    }, [centroidDistances, getCentroidDistance]);
+      }
+    });
+  }, [centroidDistances, getCentroidDistance]);
 
   return null;
 }

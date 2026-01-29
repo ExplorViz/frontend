@@ -23,7 +23,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import gsap from 'gsap';
-import { forwardRef, useEffect, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   BoxGeometry,
   Color,
@@ -33,6 +33,7 @@ import {
   Vector3,
 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
+
 // add InstancedMesh2 to the jsx catalog i.e use it as a jsx component
 extend({ InstancedMesh2 });
 
@@ -54,9 +55,15 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     const geometry = useRef<BoxGeometry>(new BoxGeometry());
     const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
 
-    const instanceIdToComponentId = new Map<number, string>();
-    const componentIdToInstanceId = new Map<string, number>();
-    const componentIdToPackage = new Map<string, Package>();
+    const instanceIdToComponentId = useMemo(
+      () => new Map<number, string>(),
+      []
+    );
+    const componentIdToInstanceId = useMemo(
+      () => new Map<string, number>(),
+      []
+    );
+    const componentIdToPackage = useMemo(() => new Map<string, Package>(), []);
 
     const meshRef = useRef<InstancedMesh2 | null>(null);
 
@@ -69,8 +76,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       setHoveredEntity,
     } = useVisualizationStore(
       useShallow((state) => ({
-        closedComponentIds: state.closedComponentIds,
-        hiddenComponentIds: state.hiddenComponentIds,
+        closedComponentIds: state.closedDistrictIds,
+        hiddenComponentIds: state.hiddenDistrictIds,
         highlightedEntityIds: state.highlightedEntityIds,
         hoveredEntityId: state.hoveredEntityId,
         removedComponentIds: state.removedDistrictIds,
@@ -80,16 +87,16 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const {
       castShadows,
-      closedComponentHeight,
-      componentRootLevelColor,
-      componentDeepestLevelColor,
+      closedDistrictHeight,
+      districtRootLevelColor,
+      districtDeepestLevelColor,
       enableAnimations,
       enableHoverEffects,
       highlightedEntityColor,
-      openedComponentHeight,
-      addedComponentColor,
-      removedComponentColor,
-      unChangedComponentColor,
+      openedDistrictHeight,
+      addedDistrictColor,
+      removedDistrictColor,
+      unchangedDistrictColor,
       animationDuration,
       entityOpacity,
     } = useUserSettingsStore(
@@ -97,23 +104,23 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         castShadows: state.visualizationSettings.castShadows.value,
         highlightedEntityColor:
           state.visualizationSettings.highlightedEntityColor.value,
-        componentRootLevelColor:
-          state.visualizationSettings.componentRootLevelColor.value,
-        componentDeepestLevelColor:
-          state.visualizationSettings.componentDeepestLevelColor.value,
-        closedComponentHeight:
-          state.visualizationSettings.closedComponentHeight.value,
-        openedComponentHeight:
-          state.visualizationSettings.openedComponentHeight.value,
+        districtRootLevelColor:
+          state.visualizationSettings.districtRootLevelColor.value,
+        districtDeepestLevelColor:
+          state.visualizationSettings.districtDeepestLevelColor.value,
+        closedDistrictHeight:
+          state.visualizationSettings.closedDistrictHeight.value,
+        openedDistrictHeight:
+          state.visualizationSettings.openedDistrictHeight.value,
         enableAnimations: state.visualizationSettings.enableAnimations.value,
         enableHoverEffects:
           state.visualizationSettings.enableHoverEffects.value,
-        addedComponentColor:
-          state.visualizationSettings.addedComponentColor.value,
-        removedComponentColor:
-          state.visualizationSettings.removedComponentColor.value,
-        unChangedComponentColor:
-          state.visualizationSettings.unchangedComponentColor.value,
+        addedDistrictColor:
+          state.visualizationSettings.addedDistrictColor.value,
+        removedDistrictColor:
+          state.visualizationSettings.removedDistrictColor.value,
+        unchangedDistrictColor:
+          state.visualizationSettings.unchangedDistrictColor.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
         entityOpacity: state.visualizationSettings.entityOpacity.value,
       }))
@@ -146,7 +153,83 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
-    const computeInstances = () => {
+    const computeColor = useCallback(
+      (componentId: string) => {
+        const component = componentIdToPackage.get(componentId);
+        if (!component) return new Color('white');
+
+        if (heatmapActive) {
+          return new Color('white');
+        }
+
+        if (
+          evoConfig.renderOnlyDifferences &&
+          commitComparison &&
+          component.fqn
+        ) {
+          if (commitComparison.addedPackages.includes(component.fqn)) {
+            return new Color(addedDistrictColor);
+          } else if (commitComparison.deletedPackages.includes(component.fqn)) {
+            return new Color(removedDistrictColor);
+          } else {
+            return new Color(unchangedDistrictColor);
+          }
+        }
+
+        if (component.originOfData === TypeOfAnalysis.Editing) {
+          return new Color(addedDistrictColor);
+        }
+
+        const isHovered = hoveredEntityId === componentId;
+        const isHighlighted = highlightedEntityIds.has(componentId);
+
+        const layout = layoutMap.get(componentId);
+        if (!layout) return new Color('white');
+
+        let baseColor: Color;
+        if (isHighlighted) {
+          baseColor = getHighlightingColorForEntity(componentId);
+        } else {
+          // Calculate gradient color based on level
+          const rootLevel = 1;
+          const deepestLevel = useLayoutStore.getState().maxDistrictDepth ?? 20;
+          if (rootLevel === deepestLevel) {
+            // All components are at the same level, use top level color
+            baseColor = new Color(districtRootLevelColor);
+          } else {
+            // Interpolate between top and deepest level colors
+            const alpha =
+              (layout.level - rootLevel) / (deepestLevel - rootLevel); // 0.0 to 1.0
+            const rootLevelColor = new Color(districtRootLevelColor);
+            const deepestLevelColor = new Color(districtDeepestLevelColor);
+            baseColor = rootLevelColor.clone().lerp(deepestLevelColor, alpha);
+          }
+        }
+
+        if (enableHoverEffects && isHovered) {
+          return calculateColorBrightness(baseColor, 1.1);
+        } else {
+          return baseColor;
+        }
+      },
+      [
+        addedDistrictColor,
+        removedDistrictColor,
+        unchangedDistrictColor,
+        districtRootLevelColor,
+        districtDeepestLevelColor,
+        enableHoverEffects,
+        hoveredEntityId,
+        highlightedEntityIds,
+        heatmapActive,
+        layoutMap,
+        evoConfig.renderOnlyDifferences,
+        commitComparison,
+        componentIdToPackage,
+      ]
+    );
+
+    const computeInstances = useCallback(() => {
       // Early return
       if (ref === null || typeof ref === 'function') {
         return;
@@ -181,7 +264,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           const closedPosition = layout.center.clone();
           // Y-Position of layout is center of opened component
-          closedPosition.y = layout.positionY + closedComponentHeight / 2;
+          closedPosition.y = layout.positionY + closedDistrictHeight / 2;
 
           if (isOpen) {
             obj.position.set(layout.center.x, layout.center.y, layout.center.z);
@@ -195,7 +278,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
           obj.scale.set(
             layout.width,
-            isOpen ? openedComponentHeight : closedComponentHeight,
+            isOpen ? openedDistrictHeight : closedDistrictHeight,
             layout.depth
           );
           obj.visible = isVisible;
@@ -204,220 +287,22 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         }
       );
       mesh.computeBVH();
-    };
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !meshRef.current) {
-        return;
-      }
-
-      if (
-        componentIdToInstanceId.size > 0 &&
-        componentIdToInstanceId.size === packages.length &&
-        enableAnimations
-      ) {
-        animateComponentChange();
-      } else {
-        computeInstances();
-      }
-    }, [[], closedComponentIds, layoutMap, packages]);
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !meshRef.current) {
-        return;
-      }
-      componentIdToInstanceId.forEach((instanceId, componentId) => {
-        meshRef.current?.setVisibilityAt(
-          instanceId,
-          !hiddenComponentIds.has(componentId) &&
-            !removedComponentIds.has(componentId)
-        );
-      });
-    }, [hiddenComponentIds, removedComponentIds, ref, componentIdToInstanceId]);
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-
-      // only compute the bvh on mount
-      meshRef.current.computeBVH();
-    }, []);
-
-    useEffect(() => {
-      material.current.transparent = entityOpacity < 1.0;
-      material.current.opacity = entityOpacity;
-      material.current.needsUpdate = true;
-    }, [entityOpacity, material]);
-
-    const computeColor = (componentId: string) => {
-      const component = componentIdToPackage.get(componentId);
-      if (!component) return new Color('white');
-
-      if (heatmapActive) {
-        return new Color('white');
-      }
-
-      if (
-        evoConfig.renderOnlyDifferences &&
-        commitComparison &&
-        component.fqn
-      ) {
-        if (commitComparison.addedPackages.includes(component.fqn)) {
-          return new Color(addedComponentColor);
-        } else if (commitComparison.deletedPackages.includes(component.fqn)) {
-          return new Color(removedComponentColor);
-        } else {
-          return new Color(unChangedComponentColor);
-        }
-      }
-
-      if (component.originOfData === TypeOfAnalysis.Editing) {
-        return new Color(addedComponentColor);
-      }
-
-      const isHovered = hoveredEntityId === componentId;
-      const isHighlighted = highlightedEntityIds.has(componentId);
-
-      const layout = layoutMap.get(componentId);
-      if (!layout) return new Color('white');
-
-      let baseColor: Color;
-      if (isHighlighted) {
-        baseColor = getHighlightingColorForEntity(componentId);
-      } else {
-        // Calculate gradient color based on level
-        const rootLevel = 1;
-        const deepestLevel = useLayoutStore.getState().maxDistrictDepth ?? 20;
-        if (rootLevel === deepestLevel) {
-          // All components are at the same level, use top level color
-          baseColor = new Color(componentRootLevelColor);
-        } else {
-          // Interpolate between top and deepest level colors
-          const alpha = (layout.level - rootLevel) / (deepestLevel - rootLevel); // 0.0 to 1.0
-          const rootLevelColor = new Color(componentRootLevelColor);
-          const deepestLevelColor = new Color(componentDeepestLevelColor);
-          baseColor = rootLevelColor.clone().lerp(deepestLevelColor, alpha);
-        }
-      }
-
-      if (enableHoverEffects && isHovered) {
-        return calculateColorBrightness(baseColor, 1.1);
-      } else {
-        return baseColor;
-      }
-    };
-
-    const handleClick = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      e.stopPropagation();
-      const componentId = instanceIdToComponentId.get(instanceId);
-      if (!componentId) return;
-      // Toggle highlighting
-      toggleHighlightById(componentId);
-    };
-
-    const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) {
-        return;
-      }
-      const { instanceId } = e;
-
-      if (instanceId === undefined) {
-        return;
-      }
-      e.stopPropagation();
-      const componentId = instanceIdToComponentId.get(instanceId);
-      if (!componentId) {
-        return;
-      }
-
-      // Toggle open/close state
-      if (closedComponentIds.has(componentId)) {
-        EntityManipulation.openComponent(componentId);
-      } else {
-        EntityManipulation.closeComponent(componentId);
-      }
-    };
-
-    useEffect(() => {
-      if (ref === null || typeof ref === 'function' || !meshRef.current) {
-        return;
-      }
-      componentIdToInstanceId.forEach((instanceId, componentId) => {
-        meshRef.current?.setColorAt(instanceId, computeColor(componentId));
-      });
     }, [
-      highlightedEntityIds,
-      highlightedEntityColor,
-      isOnline,
-      hoveredEntityId,
-      heatmapActive,
-      selectedClassMetric,
-      componentRootLevelColor,
-      componentDeepestLevelColor,
-      componentIdToInstanceId,
-      computeColor,
       ref,
+      packages,
+      layoutMap,
+      closedComponentIds,
+      hiddenComponentIds,
+      removedComponentIds,
+      closedDistrictHeight,
+      openedDistrictHeight,
+      computeColor,
+      componentIdToPackage,
+      componentIdToInstanceId,
+      instanceIdToComponentId,
     ]);
 
-    const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      e.stopPropagation();
-
-      const componentId = instanceIdToComponentId.get(instanceId);
-      if (!componentId) return;
-
-      setHoveredEntity(componentId);
-    };
-
-    const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
-      event.stopPropagation();
-      setHoveredEntity(null);
-    };
-
-    const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      e.stopPropagation();
-
-      const componentId = instanceIdToComponentId.get(instanceId);
-      if (!componentId) return;
-      const component = componentIdToPackage.get(componentId);
-      addPopup({
-        entityId: componentId,
-        entity: component,
-        position: {
-          x: e.clientX,
-          y: e.clientY,
-        },
-      });
-    };
-
-    const pointerStopHandlers = usePointerStop(handlePointerStop);
-
-    const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
-      useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
-
-    const animateComponentChange = () => {
+    const animateComponentChange = useCallback(() => {
       const currentMeshRef = meshRef.current;
       if (!currentMeshRef) return;
 
@@ -436,13 +321,13 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         const targetPositionX = layout.center.x;
         const targetPositionY = isOpen
           ? layout.center.y
-          : layout.positionY + closedComponentHeight / 2;
+          : layout.positionY + closedDistrictHeight / 2;
         const targetPositionZ = layout.center.z;
         const targetWidth = layout.width;
         const targetDepth = layout.depth;
         const targetHeight = isOpen
-          ? openedComponentHeight
-          : closedComponentHeight;
+          ? openedDistrictHeight
+          : closedDistrictHeight;
 
         try {
           currentMeshRef.getMatrixAt(instanceId, tempMatrix);
@@ -497,7 +382,174 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           },
         });
       });
+    }, [
+      closedComponentIds,
+      layoutMap,
+      closedDistrictHeight,
+      openedDistrictHeight,
+      animationDuration,
+      instanceIdToComponentId,
+    ]);
+
+    useEffect(() => {
+      if (ref === null || typeof ref === 'function' || !meshRef.current) {
+        return;
+      }
+
+      if (
+        componentIdToInstanceId.size > 0 &&
+        componentIdToInstanceId.size === packages.length &&
+        enableAnimations
+      ) {
+        animateComponentChange();
+      } else {
+        computeInstances();
+      }
+    }, [
+      packages.length,
+      enableAnimations,
+      animateComponentChange,
+      computeInstances,
+      ref,
+      componentIdToInstanceId.size,
+    ]);
+
+    useEffect(() => {
+      if (ref === null || typeof ref === 'function' || !meshRef.current) {
+        return;
+      }
+      componentIdToInstanceId.forEach((instanceId, componentId) => {
+        meshRef.current?.setVisibilityAt(
+          instanceId,
+          !hiddenComponentIds.has(componentId) &&
+            !removedComponentIds.has(componentId)
+        );
+      });
+    }, [hiddenComponentIds, removedComponentIds, ref, componentIdToInstanceId]);
+
+    useEffect(() => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!meshRef.current) return;
+
+      // only compute the bvh on mount
+      meshRef.current.computeBVH();
+    }, [ref]);
+
+    useEffect(() => {
+      material.current.transparent = entityOpacity < 1.0;
+      material.current.opacity = entityOpacity;
+      material.current.needsUpdate = true;
+    }, [entityOpacity, material]);
+
+    useEffect(() => {
+      if (ref === null || typeof ref === 'function' || !meshRef.current) {
+        return;
+      }
+      componentIdToInstanceId.forEach((instanceId, componentId) => {
+        meshRef.current?.setColorAt(instanceId, computeColor(componentId));
+      });
+    }, [
+      highlightedEntityIds,
+      highlightedEntityColor,
+      isOnline,
+      hoveredEntityId,
+      heatmapActive,
+      selectedClassMetric,
+      districtRootLevelColor,
+      districtDeepestLevelColor,
+      componentIdToInstanceId,
+      computeColor,
+      ref,
+    ]);
+
+    const handleClick = (e: ThreeEvent<MouseEvent>) => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!meshRef.current) return;
+      const { instanceId } = e;
+      if (instanceId === undefined) return;
+      e.stopPropagation();
+      const componentId = instanceIdToComponentId.get(instanceId);
+      if (!componentId) return;
+      // Toggle highlighting
+      toggleHighlightById(componentId);
     };
+
+    const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!meshRef.current) {
+        return;
+      }
+      const { instanceId } = e;
+
+      if (instanceId === undefined) {
+        return;
+      }
+      e.stopPropagation();
+      const componentId = instanceIdToComponentId.get(instanceId);
+      if (!componentId) {
+        return;
+      }
+
+      // Toggle open/close state
+      if (closedComponentIds.has(componentId)) {
+        EntityManipulation.openComponent(componentId);
+      } else {
+        EntityManipulation.closeComponent(componentId);
+      }
+    };
+
+    const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!meshRef.current) return;
+      const { instanceId } = e;
+      if (instanceId === undefined) return;
+      e.stopPropagation();
+
+      const componentId = instanceIdToComponentId.get(instanceId);
+      if (!componentId) return;
+
+      setHoveredEntity(componentId);
+    };
+
+    const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
+      event.stopPropagation();
+      setHoveredEntity(null);
+    };
+
+    const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!meshRef.current) return;
+      const { instanceId } = e;
+      if (instanceId === undefined) return;
+      e.stopPropagation();
+
+      const componentId = instanceIdToComponentId.get(instanceId);
+      if (!componentId) return;
+      const component = componentIdToPackage.get(componentId);
+      addPopup({
+        entityId: componentId,
+        entity: component,
+        position: {
+          x: e.clientX,
+          y: e.clientY,
+        },
+      });
+    };
+
+    const pointerStopHandlers = usePointerStop(handlePointerStop);
+
+    const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
+      useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
     return (
       <instancedMesh2

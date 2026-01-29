@@ -97,25 +97,25 @@ export default function CityFoundation({
   const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const {
-    appLabelMargin,
+    cityLabelMargin,
     castShadows,
     enableAnimations,
     enableHoverEffects,
     foundationColor,
     foundationTextColor,
-    componentLabelPlacement,
+    districtLabelPlacement,
     entityOpacity,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      appLabelMargin: state.visualizationSettings.appLabelMargin.value,
+      cityLabelMargin: state.visualizationSettings.cityLabelMargin.value,
       castShadows: state.visualizationSettings.castShadows.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       foundationColor: state.visualizationSettings.foundationColor.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       foundationTextColor:
         state.visualizationSettings.foundationTextColor.value,
-      componentLabelPlacement:
-        state.visualizationSettings.componentLabelPlacement.value,
+      districtLabelPlacement:
+        state.visualizationSettings.districtLabelPlacement.value,
       entityOpacity: state.visualizationSettings.entityOpacity.value,
     }))
   );
@@ -154,9 +154,9 @@ export default function CityFoundation({
   };
 
   const getLabelPosition = (): [number, number, number] => {
-    const margin = appLabelMargin / layout.depth / 2;
+    const margin = cityLabelMargin / layout.depth / 2;
     const yPos = 0.51; // Just above the foundation
-    switch (componentLabelPlacement) {
+    switch (districtLabelPlacement) {
       case 'top':
         return [0, yPos, -0.5 + margin];
       case 'bottom':
@@ -191,14 +191,14 @@ export default function CityFoundation({
         opacity={entityOpacity}
       />
       <boxGeometry />
-      {appLabelMargin > 1.5 && (
+      {cityLabelMargin > 1.5 && (
         <Text
           layers={sceneLayers.Label}
           color={foundationTextColor}
           outlineColor={'white'}
           position={getLabelPosition()}
-          rotation={getLabelRotation(componentLabelPlacement)}
-          fontSize={(appLabelMargin * 0.9) / layout.depth}
+          rotation={getLabelRotation(districtLabelPlacement)}
+          fontSize={(cityLabelMargin * 0.9) / layout.depth}
           raycast={() => null}
         >
           {getEntityDisplayName(application.name, application.id)}

@@ -31,7 +31,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
     landscapePositionX,
     landscapePositionY,
     landscapePositionZ,
-    openedComponentHeight,
+    openedDistrictHeight,
   } = settings;
 
   const landscapeOffset = new THREE.Vector3(
@@ -42,7 +42,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
 
   const landscapeCenter = new THREE.Vector3(
     -landscapeLayout.width / 2,
-    -openedComponentHeight.value * 2, // due to elk-layouting
+    -openedDistrictHeight.value * 2, // due to elk-layouting
     -landscapeLayout.depth / 2
   );
 

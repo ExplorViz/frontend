@@ -7,7 +7,7 @@ import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structur
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -20,24 +20,25 @@ export default function CityDistrictLabel({
 }) {
   const {
     labelOffset,
-    componentTextColor,
-    closedComponentHeight,
-    packageLabelMargin,
+    districtTextColor,
+    closedDistrictHeight,
+    districtLabelMargin,
     enableAnimations,
     animationDuration,
-    componentLabelPlacement,
+    districtLabelPlacement,
     labelDistanceThreshold,
   } = useUserSettingsStore(
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
-      componentTextColor: state.visualizationSettings.componentTextColor.value,
-      closedComponentHeight:
-        state.visualizationSettings.closedComponentHeight.value,
-      packageLabelMargin: state.visualizationSettings.packageLabelMargin.value,
+      districtTextColor: state.visualizationSettings.districtTextColor.value,
+      closedDistrictHeight:
+        state.visualizationSettings.closedDistrictHeight.value,
+      districtLabelMargin:
+        state.visualizationSettings.districtLabelMargin.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
-      componentLabelPlacement:
-        state.visualizationSettings.componentLabelPlacement.value,
+      districtLabelPlacement:
+        state.visualizationSettings.districtLabelPlacement.value,
       labelDistanceThreshold:
         state.visualizationSettings.labelDistanceThreshold.value,
     }))
@@ -53,9 +54,9 @@ export default function CityDistrictLabel({
 
   const { isOpen, isVisible } = useVisualizationStore(
     useShallow((state) => ({
-      isOpen: !state.closedComponentIds.has(component.id),
+      isOpen: !state.closedDistrictIds.has(component.id),
       isVisible:
-        !state.hiddenComponentIds.has(component.id) &&
+        !state.hiddenDistrictIds.has(component.id) &&
         !state.removedDistrictIds.has(component.id),
     }))
   );
@@ -64,36 +65,33 @@ export default function CityDistrictLabel({
     new THREE.Vector3()
   );
 
-  // Track distance to cluster centroid for label visibility
-  const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
-
-  const getFontSize = () => {
+  const getFontSize = useCallback(() => {
     return isOpen
-      ? packageLabelMargin * 0.5
-      : Math.max(layout.width * 0.1, packageLabelMargin * 0.5);
-  };
+      ? districtLabelMargin * 0.5
+      : Math.max(layout.width * 0.1, districtLabelMargin * 0.5);
+  }, [isOpen, districtLabelMargin, layout.width]);
 
-  useEffect(() => {
+  // Track distance to cluster centroid for label visibility
+  const isWithinDistance = useMemo(() => {
     if (centroidDistance !== undefined) {
       // Larger Labels of larger districts should be visible from a greater distance
       const sizeMultiplier =
         1.0 + layout.area / 100000.0 + getFontSize() / 10.0;
       const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
-      setIsWithinDistance(centroidDistance <= adjustedThreshold);
-    } else {
-      // Default: show label
-      setIsWithinDistance(true);
+      return centroidDistance <= adjustedThreshold;
     }
-  }, [centroidDistance, labelDistanceThreshold, component.id, layout.area]);
+    // Default: show label
+    return true;
+  }, [centroidDistance, layout.area, labelDistanceThreshold, getFontSize]);
 
   const getLabelPositionForPlacement = (
     placement: string,
     isOpen: boolean
   ): THREE.Vector3 => {
-    const margin = packageLabelMargin / 2;
+    const margin = districtLabelMargin / 2;
     const openedPosY = layout.positionY + layout.height + labelOffset + 0.01;
     const closedPosY =
-      layout.positionY + closedComponentHeight + labelOffset + 0.01;
+      layout.positionY + closedDistrictHeight + labelOffset + 0.01;
     switch (placement) {
       case 'top':
         return isOpen
@@ -133,10 +131,7 @@ export default function CityDistrictLabel({
   };
 
   useEffect(() => {
-    const target = getLabelPositionForPlacement(
-      componentLabelPlacement,
-      isOpen
-    );
+    const target = getLabelPositionForPlacement(districtLabelPlacement, isOpen);
 
     if (enableAnimations) {
       const values = {
@@ -160,21 +155,25 @@ export default function CityDistrictLabel({
     layout,
     isOpen,
     labelOffset,
-    packageLabelMargin,
-    closedComponentHeight,
+    districtLabelMargin,
+    closedDistrictHeight,
     enableAnimations,
     animationDuration,
-    componentLabelPlacement,
+    districtLabelPlacement,
+    getLabelPositionForPlacement,
+    labelPosition.x,
+    labelPosition.y,
+    labelPosition.z,
   ]);
 
   return isWithinDistance ? (
     <Text
       layers={sceneLayers.Label}
-      color={componentTextColor}
+      color={districtTextColor}
       name={'City district label of ' + component.name}
       visible={isVisible}
       position={labelPosition}
-      rotation={getLabelRotation(componentLabelPlacement)}
+      rotation={getLabelRotation(districtLabelPlacement)}
       fontSize={getFontSize()}
       raycast={() => null}
     >

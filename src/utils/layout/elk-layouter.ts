@@ -9,7 +9,7 @@ import {
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { calculateSpiralSideLength } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -41,23 +41,23 @@ let DISTRICT_LABEL_PLACEMENT: string;
 function setVisualizationSettings() {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
 
-  CITY_ALGORITHM = vs.applicationLayoutAlgorithm.value;
-  DISTRICT_ALGORITHM = vs.packageLayoutAlgorithm.value;
-  BUILDING_ALGORITHM = vs.classLayoutAlgorithm.value;
-  DESIRED_EDGE_LENGTH = vs.applicationDistance.value;
-  ASPECT_RATIO = vs.applicationAspectRatio.value;
-  BUILDING_FOOTPRINT = vs.classFootprint.value;
-  WIDTH_METRIC = vs.classWidthMetric.value;
-  WIDTH_METRIC_MULTIPLIER = vs.classWidthMultiplier.value;
-  DEPTH_METRIC = vs.classDepthMetric.value;
-  DEPTH_METRIC_MULTIPLIER = vs.classDepthMultiplier.value;
-  BUILDING_MARGIN = vs.classMargin.value;
-  CITY_LABEL_MARGIN = vs.appLabelMargin.value;
-  CITY_MARGIN = vs.appMargin.value;
-  DISTRICT_LABEL_MARGIN = vs.packageLabelMargin.value;
-  DISTRICT_MARGIN = vs.packageMargin.value;
-  DISTRICT_HEIGHT = vs.openedComponentHeight.value;
-  DISTRICT_LABEL_PLACEMENT = vs.componentLabelPlacement.value;
+  CITY_ALGORITHM = vs.cityLayoutAlgorithm.value;
+  DISTRICT_ALGORITHM = vs.districtLayoutAlgorithm.value;
+  BUILDING_ALGORITHM = vs.buildingLayoutAlgorithm.value;
+  DESIRED_EDGE_LENGTH = vs.cityDistance.value;
+  ASPECT_RATIO = vs.cityAspectRatio.value;
+  BUILDING_FOOTPRINT = vs.buildingFootprint.value;
+  WIDTH_METRIC = vs.buildingWidthMetric.value;
+  WIDTH_METRIC_MULTIPLIER = vs.buildingWidthMultiplier.value;
+  DEPTH_METRIC = vs.buildingDepthMetric.value;
+  DEPTH_METRIC_MULTIPLIER = vs.buildingDepthMultiplier.value;
+  BUILDING_MARGIN = vs.buildingMargin.value;
+  CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
+  CITY_MARGIN = vs.cityMargin.value;
+  DISTRICT_LABEL_MARGIN = vs.districtLabelMargin.value;
+  DISTRICT_MARGIN = vs.districtMargin.value;
+  DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
+  DISTRICT_LABEL_PLACEMENT = vs.districtLabelPlacement.value;
 }
 
 function getPaddingForLabelPlacement(
@@ -253,7 +253,7 @@ function populateDistrict(
       return;
     }
     let widthByMetric = 0;
-    if (WIDTH_METRIC === SelectedClassMetric.Method) {
+    if (WIDTH_METRIC === SelectedBuildingMetric.Method) {
       widthByMetric = building.functionIds
         ? WIDTH_METRIC_MULTIPLIER *
           metricMappingMultipliers['Function Count'] *
@@ -262,7 +262,7 @@ function populateDistrict(
     }
 
     let depthByMetric = 0;
-    if (DEPTH_METRIC === SelectedClassMetric.Method) {
+    if (DEPTH_METRIC === SelectedBuildingMetric.Method) {
       depthByMetric = building.functionIds
         ? DEPTH_METRIC_MULTIPLIER *
           metricMappingMultipliers['Function Count'] *

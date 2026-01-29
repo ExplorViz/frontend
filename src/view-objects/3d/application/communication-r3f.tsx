@@ -120,7 +120,7 @@ export default function CommunicationR3F({
         isHighlighted: state.highlightedEntityIds.has(communicationModel.id),
         isHovered: state.hoveredEntityId === communicationModel.id,
         setHoveredEntity: state.actions.setHoveredEntityId,
-        closedComponentIds: state.closedComponentIds,
+        closedComponentIds: state.closedDistrictIds,
       }))
     );
 

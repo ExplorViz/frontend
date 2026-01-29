@@ -72,7 +72,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       highlightedEntityIds,
     } = useVisualizationStore(
       useShallow((state) => ({
-        hiddenBuildingIds: state.hiddenClassIds,
+        hiddenBuildingIds: state.hiddenBuildingIds,
         removedDistrictIds: state.removedDistrictIds,
         hoveredEntityId: state.hoveredEntityId,
         setHoveredEntity: state.actions.setHoveredEntityId,
@@ -110,21 +110,22 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       entityOpacity,
     } = useUserSettingsStore(
       useShallow((state) => ({
-        addedBuildingColor: state.visualizationSettings.addedClassColor.value,
-        buildingColor: state.visualizationSettings.classColor.value,
-        buildingFootprint: state.visualizationSettings.classFootprint.value,
+        addedBuildingColor:
+          state.visualizationSettings.addedBuildingColor.value,
+        buildingColor: state.visualizationSettings.buildingColor.value,
+        buildingFootprint: state.visualizationSettings.buildingFootprint.value,
         buildingHeightMultiplier:
-          state.visualizationSettings.classHeightMultiplier.value,
+          state.visualizationSettings.buildingHeightMultiplier.value,
         enableHoverEffects:
           state.visualizationSettings.enableHoverEffects.value,
-        heightMetric: state.visualizationSettings.classHeightMetric.value,
+        heightMetric: state.visualizationSettings.buildingHeightMetric.value,
         highlightedEntityColor: state.colors?.highlightedEntityColor,
         modifiedBuildingColor:
-          state.visualizationSettings.modifiedClassColor.value,
+          state.visualizationSettings.modifiedBuildingColor.value,
         removedBuildingColor:
-          state.visualizationSettings.removedClassColor.value,
+          state.visualizationSettings.removedBuildingColor.value,
         unchangedBuildingColor:
-          state.visualizationSettings.unchangedClassColor.value,
+          state.visualizationSettings.unchangedBuildingColor.value,
         enableAnimations: state.visualizationSettings.enableAnimations.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
         entityOpacity: state.visualizationSettings.entityOpacity.value,

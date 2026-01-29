@@ -12,12 +12,12 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 const {
-  closeComponents,
-  hideClasses,
-  hideComponents,
-  openComponents,
-  showClasses,
-  showComponents,
+  closeDistricts: closeComponents,
+  hideBuildings: hideClasses,
+  hideDistricts: hideComponents,
+  openDistricts: openComponents,
+  showBuildings: showClasses,
+  showDistricts: showComponents,
 } = useVisualizationStore.getState().actions;
 
 /**
@@ -107,7 +107,7 @@ export function openComponent(componentId: string, sendMessage = true) {
 
   const isOpen = !useVisualizationStore
     .getState()
-    .closedComponentIds.has(component.id);
+    .closedDistrictIds.has(component.id);
   if (isOpen) {
     return;
   }
@@ -137,7 +137,7 @@ export function closeComponent(
 
   const isOpen = !useVisualizationStore
     .getState()
-    .closedComponentIds.has(component.id);
+    .closedDistrictIds.has(component.id);
   if (hide) {
     hideComponents([component.id]);
   }

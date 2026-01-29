@@ -45,7 +45,7 @@ export function findFirstOpen(
   // Check open status in corresponding component mesh
   const isParentOpen = !useVisualizationStore
     .getState()
-    .closedComponentIds.has(parentComponent.id);
+    .closedDistrictIds.has(parentComponent.id);
   if (isParentOpen) {
     return entity;
   }

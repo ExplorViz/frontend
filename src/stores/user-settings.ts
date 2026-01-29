@@ -187,21 +187,23 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             foundationColor: new THREE.Color(
               visualizationSettings.foundationColor.value
             ),
-            componentRootLevelColor: new THREE.Color(
-              visualizationSettings.componentRootLevelColor.value
+            districtRootLevelColor: new THREE.Color(
+              visualizationSettings.districtRootLevelColor.value
             ),
-            componentDeepestLevelColor: new THREE.Color(
-              visualizationSettings.componentDeepestLevelColor.value
+            districtDeepestLevelColor: new THREE.Color(
+              visualizationSettings.districtDeepestLevelColor.value
             ),
-            classColor: new THREE.Color(visualizationSettings.classColor.value),
+            buildingColor: new THREE.Color(
+              visualizationSettings.buildingColor.value
+            ),
             highlightedEntityColor: new THREE.Color(
               visualizationSettings.highlightedEntityColor.value
             ),
-            componentTextColor: new THREE.Color(
-              visualizationSettings.componentTextColor.value
+            districtTextColor: new THREE.Color(
+              visualizationSettings.districtTextColor.value
             ),
-            classTextColor: new THREE.Color(
-              visualizationSettings.classTextColor.value
+            buildingTextColor: new THREE.Color(
+              visualizationSettings.buildingTextColor.value
             ),
             foundationTextColor: new THREE.Color(
               visualizationSettings.foundationTextColor.value
@@ -215,26 +217,26 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             backgroundColor: new THREE.Color(
               visualizationSettings.backgroundColor.value
             ),
-            addedComponentColor: new THREE.Color(
-              visualizationSettings.addedComponentColor.value
+            addedDistrictColor: new THREE.Color(
+              visualizationSettings.addedDistrictColor.value
             ),
-            removedComponentColor: new THREE.Color(
-              visualizationSettings.removedComponentColor.value
+            removedDistrictColor: new THREE.Color(
+              visualizationSettings.removedDistrictColor.value
             ),
-            unchangedComponentColor: new THREE.Color(
-              visualizationSettings.unchangedComponentColor.value
+            unchangedDistrictColor: new THREE.Color(
+              visualizationSettings.unchangedDistrictColor.value
             ),
-            addedClassColor: new THREE.Color(
-              visualizationSettings.addedClassColor.value
+            addedBuildingColor: new THREE.Color(
+              visualizationSettings.addedBuildingColor.value
             ),
-            modifiedClassColor: new THREE.Color(
-              visualizationSettings.modifiedClassColor.value
+            modifiedBuildingColor: new THREE.Color(
+              visualizationSettings.modifiedBuildingColor.value
             ),
-            removedClassColor: new THREE.Color(
-              visualizationSettings.removedClassColor.value
+            removedBuildingColor: new THREE.Color(
+              visualizationSettings.removedBuildingColor.value
             ),
-            unchangedClassColor: new THREE.Color(
-              visualizationSettings.unchangedClassColor.value
+            unchangedBuildingColor: new THREE.Color(
+              visualizationSettings.unchangedBuildingColor.value
             ),
             k8sNodeColor: new THREE.Color(
               visualizationSettings.k8sNodeColor.value
