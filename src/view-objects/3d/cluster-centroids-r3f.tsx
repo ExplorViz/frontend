@@ -38,8 +38,8 @@ export default function ClusterCentroidsR3F() {
 
   const { componentLayouts, classLayouts } = useLayoutStore(
     useShallow((state) => ({
-      componentLayouts: state.componentLayouts,
-      classLayouts: state.classLayouts,
+      componentLayouts: state.districtLayouts,
+      classLayouts: state.buildingLayouts,
     }))
   );
 

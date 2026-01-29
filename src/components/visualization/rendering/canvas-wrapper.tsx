@@ -392,8 +392,7 @@ export default function CanvasWrapper({
     );
 
     const layoutMap = await layoutLandscape(
-      landscapeData.structureLandscapeData.k8sNodes!,
-      Object.values(flatStructure.buildings),
+      flatStructure,
       useVisualizationStore.getState().removedDistrictIds ?? new Set<string>()
     );
     useLayoutStore.getState().updateLayouts(layoutMap);
@@ -551,9 +550,7 @@ export default function CanvasWrapper({
               </Suspense>
             </TeleportTarget>
           </IfInSessionMode>
-          <LandscapeR3F
-            layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
-          >
+          <LandscapeR3F>
             {applicationModels.map((appModel) => (
               <CodeCity
                 key={appModel.application.id}

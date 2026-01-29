@@ -3,8 +3,10 @@ import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -15,12 +17,11 @@ import {
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
+import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
-  Application,
   Class,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   MetricKey,
   metricMappingMultipliers,
@@ -47,45 +48,45 @@ declare module '@react-three/fiber' {
 }
 
 interface Args {
-  appId: string;
-  classes: Class[];
-  layoutMap: Map<string, BoxLayout>;
-  application: Application;
+  buildingIds: string[];
+  city: City;
 }
 
 // eslint-disable-next-line
 const CodeBuildings = forwardRef<InstancedMesh2, Args>(
-  ({ classes, layoutMap, appId, application }, meshRef) => {
+  ({ buildingIds, city }, meshRef) => {
     const geometry = useRef<BoxGeometry>(new BoxGeometry());
     const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
 
-    const instanceIdToClassId = new Map<number, string>();
-    const classIdToInstanceId = new Map<string, number>();
-    const classIdToClass = new Map<string, Class>();
+    const instanceIdToBuildingId = new Map<number, string>();
+    const buildingIdToInstanceId = new Map<string, number>();
+    const buildingIdToClass = new Map<string, Class>();
+
+    const layoutMap = useLayoutStore.getState().getBuildingLayouts();
 
     const {
-      hiddenClassIds,
-      removedComponentIds,
+      hiddenBuildingIds,
+      removedDistrictIds,
       hoveredEntityId,
       setHoveredEntity,
       highlightedEntityIds,
     } = useVisualizationStore(
       useShallow((state) => ({
-        hiddenClassIds: state.hiddenClassIds,
-        removedComponentIds: state.removedDistrictIds,
+        hiddenBuildingIds: state.hiddenClassIds,
+        removedDistrictIds: state.removedDistrictIds,
         hoveredEntityId: state.hoveredEntityId,
         setHoveredEntity: state.actions.setHoveredEntityId,
         highlightedEntityIds: state.highlightedEntityIds,
       }))
     );
 
-    const getMetricForClass = useEvolutionDataRepositoryStore(
+    const getMetricForBuilding = useEvolutionDataRepositoryStore(
       (state) => state.getMetricForClass
     );
 
     const commitComparison = useEvolutionDataRepositoryStore
       .getState()
-      .getCommitComparisonByAppName(application.name);
+      .getCommitComparisonByAppName(city.name);
 
     const { evoConfig } = useVisibilityServiceStore(
       useShallow((state) => ({
@@ -94,34 +95,35 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     );
 
     const {
-      addedClassColor,
-      classColor,
-      classFootprint,
-      classHeightMultiplier,
+      addedBuildingColor,
+      buildingColor,
+      buildingFootprint,
+      buildingHeightMultiplier,
       enableHoverEffects,
       heightMetric,
       highlightedEntityColor,
-      modifiedClassColor,
-      removedClassColor,
-      unchangedClassColor,
+      modifiedBuildingColor,
+      removedBuildingColor,
+      unchangedBuildingColor,
       enableAnimations,
       animationDuration,
       entityOpacity,
     } = useUserSettingsStore(
       useShallow((state) => ({
-        addedClassColor: state.visualizationSettings.addedClassColor.value,
-        classColor: state.visualizationSettings.classColor.value,
-        classFootprint: state.visualizationSettings.classFootprint.value,
-        classHeightMultiplier:
+        addedBuildingColor: state.visualizationSettings.addedClassColor.value,
+        buildingColor: state.visualizationSettings.classColor.value,
+        buildingFootprint: state.visualizationSettings.classFootprint.value,
+        buildingHeightMultiplier:
           state.visualizationSettings.classHeightMultiplier.value,
         enableHoverEffects:
           state.visualizationSettings.enableHoverEffects.value,
         heightMetric: state.visualizationSettings.classHeightMetric.value,
         highlightedEntityColor: state.colors?.highlightedEntityColor,
-        modifiedClassColor:
+        modifiedBuildingColor:
           state.visualizationSettings.modifiedClassColor.value,
-        removedClassColor: state.visualizationSettings.removedClassColor.value,
-        unchangedClassColor:
+        removedBuildingColor:
+          state.visualizationSettings.removedClassColor.value,
+        unchangedBuildingColor:
           state.visualizationSettings.unchangedClassColor.value,
         enableAnimations: state.visualizationSettings.enableAnimations.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
@@ -129,11 +131,11 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const { heatmapActive, selectedClassMetric, selectedHeatmapGradient } =
+    const { heatmapActive, selectedBuildingMetric, selectedHeatmapGradient } =
       useHeatmapStore(
         useShallow((state) => ({
           heatmapActive: state.isActive(),
-          selectedClassMetric: state.getSelectedClassMetric(),
+          selectedBuildingMetric: state.getSelectedClassMetric(),
           selectedHeatmapGradient: state.getSelectedGradient(),
         }))
       );
@@ -146,14 +148,14 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
-    const getClassHeight = (dataModel: Class) => {
+    const getBuildingHeight = (dataModel: Class) => {
       return (
-        classFootprint +
+        buildingFootprint +
         metricMappingMultipliers[heightMetric as MetricKey] *
-          classHeightMultiplier *
-          getMetricForClass(
+          buildingHeightMultiplier *
+          getMetricForBuilding(
             dataModel,
-            application.name,
+            city.name,
             heightMetric,
             evoConfig.renderOnlyDifferences
           )
@@ -171,15 +173,15 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }
 
       if (
-        classIdToInstanceId.size > 0 &&
-        classIdToClass.size === classes.length &&
+        buildingIdToInstanceId.size > 0 &&
+        buildingIdToClass.size === buildingIds.length &&
         enableAnimations
       ) {
         animateMeshInstanceChanges();
       } else {
         computeMeshInstances();
       }
-    }, [[], classes, layoutMap, heightMetric]);
+    }, [[], buildingIds, layoutMap, heightMetric]);
 
     // React on changes of color
     useEffect(() => {
@@ -190,18 +192,21 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       ) {
         return;
       }
-      classIdToInstanceId.forEach((instanceId, classId) => {
-        meshRef.current?.setColorAt(instanceId, computeColor(classId));
+      buildingIdToInstanceId.forEach((instanceId, buildingId) => {
+        meshRef.current?.setColorAt(instanceId, computeColor(buildingId));
       });
-    }, [classColor, highlightedEntityColor]);
+    }, [buildingColor, highlightedEntityColor]);
 
-    const computeColor = (classId: string) => {
-      const dataModel = classIdToClass.get(classId);
+    const computeColor = (buildingId: string) => {
+      const dataModel = buildingIdToClass.get(buildingId);
       if (!dataModel) {
         return new THREE.Color('red');
       }
       if (heatmapActive) {
-        const metricValues = getMetricValues(dataModel, selectedClassMetric!);
+        const metricValues = getMetricValues(
+          dataModel,
+          selectedBuildingMetric!
+        );
         return new THREE.Color(
           getSimpleHeatmapColor(metricValues.current, metricValues.max)
         );
@@ -212,18 +217,18 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         dataModel.fqn
       ) {
         if (commitComparison.added.includes(dataModel.fqn)) {
-          return new THREE.Color(addedClassColor);
+          return new THREE.Color(addedBuildingColor);
         } else if (commitComparison.deleted.includes(dataModel.fqn)) {
-          return new THREE.Color(removedClassColor);
+          return new THREE.Color(removedBuildingColor);
         } else if (commitComparison.modified.includes(dataModel.fqn)) {
-          return new THREE.Color(modifiedClassColor);
+          return new THREE.Color(modifiedBuildingColor);
         } else {
-          return new THREE.Color(unchangedClassColor);
+          return new THREE.Color(unchangedBuildingColor);
         }
       }
 
       if (dataModel.originOfData === TypeOfAnalysis.Editing) {
-        return new THREE.Color(addedClassColor);
+        return new THREE.Color(addedBuildingColor);
       }
 
       const isHovered = hoveredEntityId === dataModel.id;
@@ -231,7 +236,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
       const baseColor = isHighlighted
         ? getHighlightingColorForEntity(dataModel.id)
-        : new THREE.Color(classColor);
+        : new THREE.Color(buildingColor);
 
       if (enableHoverEffects && isHovered) {
         return calculateColorBrightness(baseColor, 1.1);
@@ -240,7 +245,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }
     };
 
-    // React on changes of class visibility
+    // React on changes of building visibility
     useEffect(() => {
       if (meshRef === null || typeof meshRef === 'function') {
         return;
@@ -248,14 +253,15 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       if (!meshRef.current) return;
 
       // Update the visibility of the instances based on classData
-      instanceIdToClassId.forEach((classId, instanceId) => {
+      instanceIdToBuildingId.forEach((buildingId, instanceId) => {
         // Set visibility based on classData
         meshRef.current?.setVisibilityAt(
           instanceId,
-          !hiddenClassIds.has(classId) && !removedComponentIds.has(classId)
+          !hiddenBuildingIds.has(buildingId) &&
+            !removedDistrictIds.has(buildingId)
         );
       });
-    }, [hiddenClassIds, removedComponentIds]);
+    }, [hiddenBuildingIds, removedDistrictIds]);
 
     const handleClick = (e: ThreeEvent<MouseEvent>) => {
       if (meshRef === null || typeof meshRef === 'function') {
@@ -265,15 +271,11 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
-      const classId = instanceIdToClassId.get(instanceId);
-      if (!classId) return;
+      const buildingId = instanceIdToBuildingId.get(instanceId);
+      if (!buildingId) return;
 
-      // getLoC(classIdToClass.get(classId)!);
       // Toggle highlighting
-      toggleHighlightById(classId);
-
-      // const classInfo = classData[classId];
-      // updateClassState(classId, { isHighlighted: !classInfo?.isHighlighted });
+      toggleHighlightById(buildingId);
     };
 
     useEffect(() => {
@@ -285,14 +287,14 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         return;
       }
 
-      classIdToInstanceId.forEach((instanceId, classId) => {
+      buildingIdToInstanceId.forEach((instanceId, classId) => {
         meshRef.current?.setColorAt(instanceId, computeColor(classId));
       });
     }, [
       highlightedEntityIds,
       hoveredEntityId,
       evoConfig.renderOnlyDifferences,
-      selectedClassMetric,
+      selectedBuildingMetric,
       selectedHeatmapGradient,
       heatmapActive,
     ]);
@@ -312,10 +314,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       if (instanceId === undefined) return;
       e.stopPropagation();
 
-      const classId = instanceIdToClassId.get(instanceId);
-      if (!classId) return;
+      const buildingId = instanceIdToBuildingId.get(instanceId);
+      if (!buildingId) return;
 
-      setHoveredEntity(classId);
+      setHoveredEntity(buildingId);
     };
 
     const handleOnPointerOut = (e: ThreeEvent<MouseEvent>) => {
@@ -327,8 +329,8 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       if (instanceId === undefined) return;
       e.stopPropagation();
 
-      const classId = instanceIdToClassId.get(instanceId);
-      if (!classId) return;
+      const buildingId = instanceIdToBuildingId.get(instanceId);
+      if (!buildingId) return;
       setHoveredEntity(null);
     };
 
@@ -343,11 +345,11 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       if (instanceId === undefined) return;
       e.stopPropagation();
 
-      const classId = instanceIdToClassId.get(instanceId);
-      if (!classId) return;
-      const classModel = classIdToClass.get(classId);
+      const buildingId = instanceIdToBuildingId.get(instanceId);
+      if (!buildingId) return;
+      const classModel = buildingIdToClass.get(buildingId);
       addPopup({
-        entityId: classId,
+        entityId: buildingId,
         entity: classModel,
         position: {
           x: e.clientX,
@@ -371,33 +373,32 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }
 
       meshRef.current.clearInstances();
-      instanceIdToClassId.clear();
-      classIdToInstanceId.clear();
-      classIdToClass.clear();
+      instanceIdToBuildingId.clear();
+      buildingIdToInstanceId.clear();
+      buildingIdToClass.clear();
 
       let i = 0;
-      meshRef.current.addInstances(classes.length, (obj) => {
-        const classData = classes[i];
+      meshRef.current.addInstances(buildingIds.length, (obj) => {
+        const classData = useModelStore.getState().getClass(buildingIds[i]);
         if (!classData) {
           return;
         }
-
-        instanceIdToClassId.set(obj.id, classData.id);
-        classIdToInstanceId.set(classData.id, obj.id);
-        classIdToClass.set(classData.id, classData);
+        instanceIdToBuildingId.set(obj.id, classData.id);
+        buildingIdToInstanceId.set(classData.id, obj.id);
+        buildingIdToClass.set(classData.id, classData);
         const layout = layoutMap.get(classData.id);
         if (!layout) {
           return;
         }
         obj.position.set(
           layout.center.x,
-          layout.position.y + getClassHeight(classData) / 2,
+          layout.position.y + getBuildingHeight(classData) / 2,
           layout.center.z
         );
         obj.visible =
-          !hiddenClassIds.has(classData.id) &&
-          !removedComponentIds.has(classData.id);
-        obj.scale.set(layout.width, getClassHeight(classData), layout.depth);
+          !hiddenBuildingIds.has(classData.id) &&
+          !removedDistrictIds.has(classData.id);
+        obj.scale.set(layout.width, getBuildingHeight(classData), layout.depth);
         obj.color = computeColor(classData.id);
         obj.updateMatrix();
         i++;
@@ -415,17 +416,17 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }
       const mesh = meshRef.current;
 
-      classIdToInstanceId.forEach((instanceId, classId) => {
+      buildingIdToInstanceId.forEach((instanceId, buildingId) => {
         const tempMatrix = new Matrix4();
         const pos = new Vector3();
         const quat = new Quaternion();
         const scale = new Vector3();
 
-        const classModel = classIdToClass.get(classId);
-        const layout = layoutMap.get(classId);
+        const classModel = buildingIdToClass.get(buildingId);
+        const layout = layoutMap.get(buildingId);
         if (!classModel || !layout) return;
 
-        const targetHeight = getClassHeight(classModel);
+        const targetHeight = getBuildingHeight(classModel);
         const targetPositionX = layout.center.x;
         const targetPositionY = layout.position.y + targetHeight / 2;
         const targetPositionZ = layout.center.z;
@@ -486,7 +487,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       <instancedMesh2
         layers={sceneLayers.Building}
         ref={meshRef}
-        name={'Buildings of ' + application.name}
+        name={'Buildings of ' + city.name}
         args={[geometry.current, material.current]}
         onClick={handleClickWithPrevent}
         {...(enableHoverEffects && {

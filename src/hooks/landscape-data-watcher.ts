@@ -64,7 +64,9 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
-    const flatStructure = convertToFlatLandscape(structureLandscapeData);
+    const flatLandscapeStructure = convertToFlatLandscape(
+      structureLandscapeData
+    );
 
     const { nodes } = structureLandscapeData;
 
@@ -75,7 +77,7 @@ export default function useLandscapeDataWatcher(
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
-      flatStructure,
+      flatLandscapeStructure,
       removedDistrictIds
     );
     log('Layouted landscape: ', boxLayoutMap);
@@ -131,8 +133,15 @@ export default function useLandscapeDataWatcher(
     modelRepository.setApplications(
       applicationModels.map((app) => app.application)
     );
+    modelRepository.setCities(Object.values(flatLandscapeStructure.cities));
     modelRepository.setComponents(packages);
+    modelRepository.setDistricts(
+      Object.values(flatLandscapeStructure.districts)
+    );
     modelRepository.setClasses(classes);
+    modelRepository.setBuildings(
+      Object.values(flatLandscapeStructure.buildings)
+    );
     modelRepository.setCommunications(classCommunications);
 
     // Update layout store after model repository is populated

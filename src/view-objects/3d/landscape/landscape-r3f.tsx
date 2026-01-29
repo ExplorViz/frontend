@@ -1,7 +1,7 @@
 import { useThree } from '@react-three/fiber';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
-import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
@@ -9,10 +9,8 @@ import * as THREE from 'three';
 const MOUSE_MIDDLE_BUTTON = 1;
 
 export default function LandscapeR3F({
-  layout,
   children,
 }: {
-  layout: BoxLayout | undefined;
   children: React.ReactNode;
 }) {
   const [position, setPosition] = useState<THREE.Vector3>(new THREE.Vector3());
@@ -32,6 +30,8 @@ export default function LandscapeR3F({
   const raycastFirstHit = settings.raycastFirstHit.value;
   const raycastNear = settings.raycastNear.value;
   const raycastFar = settings.raycastFar.value;
+
+  const layout = useLayoutStore().getLandscapeLayout();
 
   useEffect(() => {
     if (layout) {

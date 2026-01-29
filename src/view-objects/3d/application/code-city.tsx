@@ -3,6 +3,7 @@ import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
@@ -34,6 +35,8 @@ export default function CodeCity({
           state.visualizationSettings.showEmbeddedBrowserIcon.value,
       }))
     );
+
+  const city = useModelStore.getState().getCity(applicationData.application.id);
 
   const [appPosition, setAppPosition] = useState<THREE.Vector3 | undefined>(
     layoutMap.get(applicationData.getId())?.position
@@ -106,15 +109,16 @@ export default function CodeCity({
           layout={layoutMap.get(applicationData.getId())!}
         />
       )}
-      <CodeBuildings
-        classes={applicationData
-          .getClasses()
-          .filter((cls) => layoutMap.has(cls.id))}
-        appId={applicationData.application.id}
-        layoutMap={layoutMap}
-        application={applicationData.application}
-        ref={classInstanceMeshRef}
-      />
+      {city && (
+        <CodeBuildings
+          buildingIds={applicationData
+            .getClasses()
+            .filter((cls) => layoutMap.has(cls.id))
+            .map((cls) => cls.id)}
+          city={city}
+          ref={classInstanceMeshRef}
+        />
+      )}
       {applicationData
         .getClasses()
         .map((classData) =>

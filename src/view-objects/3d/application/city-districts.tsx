@@ -289,7 +289,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       } else {
         // Calculate gradient color based on level
         const rootLevel = 1;
-        const deepestLevel = useLayoutStore.getState().maxComponentLevel ?? 20;
+        const deepestLevel = useLayoutStore.getState().maxDistrictDepth ?? 20;
         if (rootLevel === deepestLevel) {
           // All components are at the same level, use top level color
           baseColor = new Color(componentRootLevelColor);
