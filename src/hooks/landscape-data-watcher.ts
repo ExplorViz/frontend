@@ -27,7 +27,7 @@ export default function useLandscapeDataWatcher(
 } {
   const log = debug('app:hooks:useLandscapeWatcher');
 
-  const { removedComponentIds } = useVisualizationStore();
+  const { removedDistrictIds } = useVisualizationStore();
 
   const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
     []
@@ -64,22 +64,21 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
-    console.log(convertToFlatLandscape(structureLandscapeData));
+    const flatStructure = convertToFlatLandscape(structureLandscapeData);
+
     const { nodes } = structureLandscapeData;
-    // TODO: Handle k8s nodes
 
     log('Get applications from nodes');
     const applications = getApplicationsFromNodes(nodes).filter(
-      ({ id }) => !removedComponentIds.has(id)
+      ({ id }) => !removedDistrictIds.has(id)
     );
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
-      [],
-      applications,
-      removedComponentIds
+      flatStructure,
+      removedDistrictIds
     );
-    log('Layouted landscape.');
+    log('Layouted landscape: ', boxLayoutMap);
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
@@ -97,7 +96,7 @@ export default function useLandscapeDataWatcher(
         classCommunications,
         boxLayoutMap
       );
-      if (!removedComponentIds.has(applicationData.getId())) {
+      if (!removedDistrictIds.has(applicationData.getId())) {
         applicationModels.push(applicationData);
       }
     }
@@ -106,8 +105,8 @@ export default function useLandscapeDataWatcher(
     const interAppCommunications = classCommunications.filter(
       (x) =>
         x.sourceApp !== x.targetApp &&
-        !removedComponentIds.has(x.sourceApp.id) &&
-        !removedComponentIds.has(x.targetApp.id)
+        !removedDistrictIds.has(x.sourceApp.id) &&
+        !removedDistrictIds.has(x.targetApp.id)
     );
 
     // TODO: Add data for IDE extension

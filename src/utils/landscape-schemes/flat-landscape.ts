@@ -5,7 +5,7 @@ import {
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
-type FlatLandscape = {
+export type FlatLandscape = {
   landscapeToken: string;
   cities: Record<string, City>;
   districts: Record<string, District>;
@@ -21,7 +21,7 @@ type FlatBaseModel = {
   editingState?: 'added' | 'removed';
 };
 
-enum Language {
+export enum Language {
   LANGUAGE_UNSPECIFIED = 0,
   JAVA = 1,
   JAVASCRIPT = 2,
@@ -30,18 +30,20 @@ enum Language {
   PLAINTEXT = 5,
 }
 
-type City = FlatBaseModel & {
+export type City = FlatBaseModel & {
   rootDistrictIds: string[];
+  districtIds: string[];
+  buildingIds: string[];
 };
 
-type District = FlatBaseModel & {
+export type District = FlatBaseModel & {
   parentCityId: string;
   parentDistrictId?: string;
   districtIds: string[];
   buildingIds: string[];
 };
 
-type Building = FlatBaseModel & {
+export type Building = FlatBaseModel & {
   parentCityId: string;
   parentDistrictId: string;
   language?: Language;
@@ -50,11 +52,11 @@ type Building = FlatBaseModel & {
   metrics?: Record<string, number>;
 };
 
-type Cls = FlatBaseModel & {
+export type Cls = FlatBaseModel & {
   functionIds: string[];
 };
 
-type Func = FlatBaseModel & {
+export type Func = FlatBaseModel & {
   parentId: string;
   metrics?: Record<string, number>;
 };
@@ -77,19 +79,15 @@ export function convertToFlatLandscape(
   ) {
     const currentPath = [...path, pkg.name];
 
-    const districtId = currentPath.join('.');
-
-    let currentDistrictId: string | undefined;
+    const districtId = pkg.id;
 
     if (!districts[districtId]) {
       districts[districtId] = {
         id: districtId,
-        name: currentPath.join('.'),
+        name: pkg.name,
         parentCityId: cityId,
         parentDistrictId,
-        districtIds: pkg.subPackages.map(
-          (subPkg) => `${districtId}.${subPkg.name}`
-        ),
+        districtIds: pkg.subPackages.map((subPkg) => subPkg.id),
         buildingIds: [],
       };
 
@@ -97,12 +95,11 @@ export function convertToFlatLandscape(
       if (!pkg.parent) {
         cities[cityId].rootDistrictIds.push(districtId);
       }
+      cities[cityId].districtIds.push(districtId);
     }
 
-    currentDistrictId = districtId;
-
     for (const cls of pkg.classes) {
-      const buildingId = `${districtId}.${cls.name}`;
+      const buildingId = cls.id;
 
       if (!buildings[buildingId]) {
         buildings[buildingId] = {
@@ -122,6 +119,8 @@ export function convertToFlatLandscape(
 
         districts[districtId].buildingIds.push(buildingId);
       }
+
+      cities[cityId].buildingIds.push(buildingId);
 
       if (!classes[cls.id]) {
         classes[cls.id] = {
@@ -152,13 +151,7 @@ export function convertToFlatLandscape(
 
     // Recurse into sub-packages
     for (const sub of pkg.subPackages) {
-      walkPackages(
-        sub,
-        app,
-        cityId,
-        currentPath,
-        currentDistrictId ?? parentDistrictId
-      );
+      walkPackages(sub, app, cityId, currentPath, districtId);
     }
   }
 
@@ -168,9 +161,11 @@ export function convertToFlatLandscape(
 
       if (!cities[cityId]) {
         cities[cityId] = {
-          id: cityId,
+          id: app.id,
           name: app.name,
           rootDistrictIds: [],
+          districtIds: [],
+          buildingIds: [],
         };
       }
 

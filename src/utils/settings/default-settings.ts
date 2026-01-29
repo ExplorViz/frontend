@@ -6,7 +6,7 @@ import {
 
 export const metricMappingMultipliers = {
   None: 1,
-  'Method Count': 10,
+  'Function Count': 10,
   loc: 1,
   LCOM4: 10,
   cyclomatic_complexity: 10,

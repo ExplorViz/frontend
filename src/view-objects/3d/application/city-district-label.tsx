@@ -56,7 +56,7 @@ export default function CityDistrictLabel({
       isOpen: !state.closedComponentIds.has(component.id),
       isVisible:
         !state.hiddenComponentIds.has(component.id) &&
-        !state.removedComponentIds.has(component.id),
+        !state.removedDistrictIds.has(component.id),
     }))
   );
 

@@ -72,7 +72,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     } = useVisualizationStore(
       useShallow((state) => ({
         hiddenClassIds: state.hiddenClassIds,
-        removedComponentIds: state.removedComponentIds,
+        removedComponentIds: state.removedDistrictIds,
         hoveredEntityId: state.hoveredEntityId,
         setHoveredEntity: state.actions.setHoveredEntityId,
         highlightedEntityIds: state.highlightedEntityIds,

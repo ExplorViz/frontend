@@ -4,7 +4,7 @@ import { create } from 'zustand';
 
 export enum SelectedClassHeatmapMetric {
   None = 'None',
-  Methods = 'Method Count',
+  Methods = 'Function Count',
   LoC = 'Lines of Code',
   DynamicMethods = 'Dynamic Method Quota',
   StaticMethods = 'Static Method Quota',
@@ -12,7 +12,7 @@ export enum SelectedClassHeatmapMetric {
 
 export enum ClassMetricIds {
   None = 'None',
-  Methods = 'Method Count',
+  Methods = 'Function Count',
   LoC = 'Lines of Code',
   DynamicMethods = 'Dynamic Method Quota',
   StaticMethods = 'Static Method Quota',

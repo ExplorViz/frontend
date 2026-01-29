@@ -39,7 +39,7 @@ export default function CodeBuildingLabel({
       isClassHovered: state.hoveredEntityId === dataModel.id,
       isClassVisible:
         !state.hiddenClassIds.has(dataModel.id) &&
-        !state.removedComponentIds.has(dataModel.id),
+        !state.removedDistrictIds.has(dataModel.id),
       isParentHovered: state.hoveredEntityId === dataModel.parent.id,
       isClassHighlighted: state.highlightedEntityIds.has(dataModel.id),
       isParentHighlighted: state.highlightedEntityIds.has(dataModel.parent.id),

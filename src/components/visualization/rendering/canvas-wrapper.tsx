@@ -27,8 +27,8 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
+import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAllApplicationsInLandscape,
   getApplicationFromPackage,
@@ -197,7 +197,7 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { removedComponentIds } = useVisualizationStore();
+  const { removedDistrictIds: removedComponentIds } = useVisualizationStore();
 
   const allApplications = useMemo(() => {
     if (!landscapeData) return [];
@@ -387,12 +387,14 @@ export default function CanvasWrapper({
   const updateLayout = async () => {
     if (!landscapeData) return;
 
+    const flatStructure = convertToFlatLandscape(
+      landscapeData.structureLandscapeData
+    );
+
     const layoutMap = await layoutLandscape(
       landscapeData.structureLandscapeData.k8sNodes!,
-      getApplicationsFromNodes(
-        landscapeData.structureLandscapeData.nodes
-      ).filter((app) => !removedComponentIds.has(app.id)),
-      useVisualizationStore.getState().removedComponentIds ?? new Set<string>()
+      Object.values(flatStructure.buildings),
+      useVisualizationStore.getState().removedDistrictIds ?? new Set<string>()
     );
     useLayoutStore.getState().updateLayouts(layoutMap);
     setLayoutMap(layoutMap);

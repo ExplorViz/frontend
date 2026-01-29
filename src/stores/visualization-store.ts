@@ -9,7 +9,7 @@ interface VisualizationStoreState {
   hiddenComponentIds: Set<string>; // Usually components in closed components
   // State for classes
   hiddenClassIds: Set<string>; // Usually classes in hidden components
-  removedComponentIds: Set<string>;
+  removedDistrictIds: Set<string>;
   sceneLayers: layersType;
   actions: {
     // Actions for all entities
@@ -28,8 +28,8 @@ interface VisualizationStoreState {
     showClasses: (ids: string[]) => void;
     hideClasses: (ids: string[]) => void;
     resetClassStates: () => void;
-    removeComponents: (ids: Set<string>) => void;
-    setRemovedComponents: (ids: Set<string>) => void;
+    removeDistricts: (ids: Set<string>) => void;
+    setRemovedDistricts: (ids: Set<string>) => void;
     setSceneLayers: (layers: layersType) => void;
   };
 }
@@ -57,7 +57,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     hiddenComponentIds: new Set(),
     // Class state
     hiddenClassIds: new Set(),
-    removedComponentIds: new Set(),
+    removedDistrictIds: new Set(),
     sceneLayers: {
       Default: 0,
       Foundation: 1,
@@ -178,14 +178,14 @@ export const useVisualizationStore = create<VisualizationStoreState>(
           hiddenClassIds: get().hiddenClassIds.union(new Set(ids)),
         });
       },
-      removeComponents: (ids: Set<string>) => {
+      removeDistricts: (ids: Set<string>) => {
         set({
-          removedComponentIds: get().removedComponentIds.union(ids),
+          removedDistrictIds: get().removedDistrictIds.union(ids),
         });
       },
-      setRemovedComponents: (ids: Set<string>) => {
+      setRemovedDistricts: (ids: Set<string>) => {
         set({
-          removedComponentIds: ids,
+          removedDistrictIds: ids,
         });
       },
       resetClassStates: () => {

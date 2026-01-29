@@ -73,7 +73,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         hiddenComponentIds: state.hiddenComponentIds,
         highlightedEntityIds: state.highlightedEntityIds,
         hoveredEntityId: state.hoveredEntityId,
-        removedComponentIds: state.removedComponentIds,
+        removedComponentIds: state.removedDistrictIds,
         setHoveredEntity: state.actions.setHoveredEntityId,
       }))
     );

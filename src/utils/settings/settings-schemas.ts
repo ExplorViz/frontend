@@ -360,7 +360,7 @@ export interface ButtonSetting extends Setting<boolean> {
 
 export enum SelectedClassMetric {
   None = 'None',
-  Method = 'Method Count',
+  Method = 'Function Count',
   LoC = 'LoC',
 }
 
