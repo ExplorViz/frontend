@@ -194,7 +194,7 @@ export function spanIdToClass(
 }
 
 export function createEmptyStructureLandscapeData(): StructureLandscapeData {
-  return { landscapeToken: '', nodes: [], k8sNodes: [] };
+  return { landscapeToken: '', nodes: [] };
 }
 
 export function calculateFqn(classInstance: Class, delimiter: string): string {
@@ -233,7 +233,6 @@ export function combineStructureLandscapeData(
   const structure: StructureLandscapeData = {
     landscapeToken: structureA.landscapeToken,
     nodes: [],
-    k8sNodes: [],
   };
 
   for (const nodeA of structureA.nodes) {
@@ -265,27 +264,6 @@ export function combineStructureLandscapeData(
     const nodeA = findCommonNode(nodeB, structureA.nodes);
     if (!nodeA) {
       structure.nodes.push(nodeB);
-    }
-  }
-
-  // TODO: Combine properly
-  if (structureA.k8sNodes) {
-    for (const node of structureA.k8sNodes) {
-      if (structure.k8sNodes) {
-        structure.k8sNodes.push(node);
-      } else {
-        structure.k8sNodes = [node];
-      }
-    }
-  }
-
-  if (structureB.k8sNodes) {
-    for (const node of structureB.k8sNodes) {
-      if (structure.k8sNodes) {
-        structure.k8sNodes.push(node);
-      } else {
-        structure.k8sNodes = [node];
-      }
     }
   }
 
@@ -534,7 +512,6 @@ export function insertApplicationToLandscape(
           hostName: '',
         },
       ],
-      k8sNodes: [],
       landscapeToken: 'editing-landscape',
     }),
     appId,

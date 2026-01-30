@@ -14,7 +14,7 @@ import DistrictPopup from 'explorviz-frontend/src/components/visualization/rende
 import FoundationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/foundation/foundation-popup';
 import HtmlPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/html-popup';
 import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/method/method-popup';
-import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
+
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
@@ -361,7 +361,7 @@ export default function PopupCoordinator({
       {entityType == 'classCommunication' && (
         <CommunicationPopup popupData={popupData} />
       )}
-      {entityType == 'k8s' && <K8sPopup data={popupData} />}
+
       {entityType == 'html' && <HtmlPopup data={popupData} />}
     </div>
   );

@@ -252,8 +252,7 @@ export type EntityMesh =
   | MethodMesh
   | ClazzMesh
   | ClazzCommunicationMesh
-  | FoundationMesh
-  | K8sMesh;
+  | FoundationMesh;
 
 export function isEntityMesh(object: any): object is EntityMesh {
   return (
@@ -261,7 +260,6 @@ export function isEntityMesh(object: any): object is EntityMesh {
     object instanceof MethodMesh ||
     object instanceof ClazzMesh ||
     object instanceof ClazzCommunicationMesh ||
-    object instanceof K8sMesh ||
     object instanceof FoundationMesh
   );
 }

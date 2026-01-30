@@ -133,7 +133,6 @@ export default function Settings({
       Controls: [],
       Effects: [],
       Heatmap: [],
-      Highlighting: [],
       Label: [],
       Layout: [],
       Magnifier: [],

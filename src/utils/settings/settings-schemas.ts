@@ -6,7 +6,6 @@ export type SettingGroup =
   | 'Debugging'
   | 'Effects'
   | 'Heatmap'
-  | 'Highlighting'
   | 'Layout'
   | 'Label'
   | 'Magnifier'
@@ -45,12 +44,7 @@ export type ColorSettingId =
   | 'addedBuildingColor'
   | 'modifiedBuildingColor'
   | 'removedBuildingColor'
-  | 'unchangedBuildingColor'
-  | 'k8sNodeColor'
-  | 'k8sNamespaceColor'
-  | 'k8sDeploymentColor'
-  | 'k8sPodColor'
-  | 'k8sTextColor';
+  | 'unchangedBuildingColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
@@ -118,14 +112,6 @@ export type HeatmapSettings = {
   heatmapEnabled: FlagSetting;
 };
 export type HeatmapSettingId = keyof HeatmapSettings;
-
-export type HighlightingSettings = {
-  applyHighlightingOnHover: FlagSetting;
-  keepHighlightingOnOpenOrClose: FlagSetting;
-  transparencyIntensity: RangeSetting;
-  enableMultipleHighlighting: FlagSetting;
-};
-export type HighlightingSettingId = keyof HighlightingSettings;
 
 export type EffectSettings = {
   animationDuration: RangeSetting;
@@ -241,7 +227,6 @@ export type VisualizationSettingId =
   | ControlSettingId
   | DebugSettingId
   | HeatmapSettingId
-  | HighlightingSettingId
   | EffectSettingId
   | LayoutSettingId
   | LabelSettingId
@@ -257,7 +242,6 @@ export type VisualizationSettings = CameraSettings &
   ControlSettings &
   DebugSettings &
   HeatmapSettings &
-  HighlightingSettings &
   EffectSettings &
   LayoutSettings &
   LabelSettings &

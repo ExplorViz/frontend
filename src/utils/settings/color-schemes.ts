@@ -20,11 +20,6 @@ export const defaultColors = {
   modifiedBuildingColor: '#87CEFA', // pastel blue
   removedBuildingColor: '#B03060', // pastel red
   unchangedBuildingColor: '#000000', // black
-  k8sNodeColor: '#000f6c', // midnight blue
-  k8sNamespaceColor: '#0023a3', // dark blue
-  k8sDeploymentColor: '#002dea', // blue
-  k8sPodColor: '#0648e5', // light blue
-  k8sTextColor: '#ffffff', // white
 };
 
 // The following color schemes might also be partial color schemes

@@ -5,9 +5,7 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import ApplicationData, {
-  K8sData,
-} from 'explorviz-frontend/src/utils/application-data';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import computeAggregatedCommunication from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -94,7 +92,6 @@ export default function useLandscapeDataWatcher(
     for (let i = 0; i < applications.length; ++i) {
       const applicationData = await updateApplicationData(
         applications[i],
-        null,
         classCommunications,
         boxLayoutMap
       );
@@ -154,7 +151,6 @@ export default function useLandscapeDataWatcher(
 
   const updateApplicationData = async (
     application: Application,
-    k8sData: K8sData | null,
     classCommunication: ClassCommunication[],
     boxLayoutMap: any
   ) => {
@@ -170,8 +166,7 @@ export default function useLandscapeDataWatcher(
     let applicationData = new ApplicationData(
       application,
       boxLayoutMap,
-      flatData,
-      k8sData
+      flatData
     );
 
     applicationData.classCommunications = classCommunication.filter(

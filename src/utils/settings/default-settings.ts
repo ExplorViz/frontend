@@ -172,46 +172,7 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Evolution Diff Color',
     isColorSetting: true,
   },
-  k8sNodeColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sNodeColor,
-    group: 'Colors',
-    displayName: 'K8s Node',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sNamespaceColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sNamespaceColor,
-    group: 'Colors',
-    displayName: 'K8s Namespace',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sDeploymentColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sDeploymentColor,
-    group: 'Colors',
-    displayName: 'K8s Deployment',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sPodColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sPodColor,
-    group: 'Colors',
-    displayName: 'K8s Pod',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sTextColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sTextColor,
-    group: 'Colors',
-    displayName: 'K8s Text',
-    description: '',
-    isColorSetting: true,
-  },
+
   // Control Settings
   leftMouseButtonAction: {
     level: SettingLevel.DEFAULT,
@@ -280,43 +241,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   // Highlighting Settings
-  applyHighlightingOnHover: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Highlighting',
-    displayName: 'Only Apply Highlighting Effect on Hover',
-    description:
-      'Toggle to switch between permanent transparency effect and effect on hover',
-    isFlagSetting: true,
-  },
-  keepHighlightingOnOpenOrClose: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Highlighting',
-    displayName: 'Keep Highlighting on Open or Close',
-    description:
-      'Toggle if highlighting should be reset on double click in city visualization',
-    isFlagSetting: true,
-  },
-  transparencyIntensity: {
-    level: SettingLevel.DEFAULT,
-    value: 0.1,
-    range: { min: 0.0, max: 1.0, step: 0.05 },
-    group: 'Highlighting',
-    displayName: 'Transparency Intensity in City Visualization',
-    description:
-      "Transparency effect intensity ('Enable Transparent Districts' must be enabled)",
-    isRangeSetting: true,
-  },
-  enableMultipleHighlighting: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Highlighting',
-    displayName: 'Enable Multiple Highlighting',
-    description:
-      'Toggle if highlighting should be kept on highlighting an unhighlighted district within the same city',
-    isFlagSetting: true,
-  },
+
   // Effect Settings
   enableAnimations: {
     level: SettingLevel.DEFAULT,

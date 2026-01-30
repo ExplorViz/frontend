@@ -14,7 +14,6 @@ import {
 
 export default class ApplicationData {
   application: Application;
-  k8sData: K8sData | null;
 
   boxLayoutMap: Map<string, BoxLayout>;
 
@@ -28,8 +27,7 @@ export default class ApplicationData {
   constructor(
     application: Application,
     boxLayoutMap: Map<string, BoxLayout>,
-    flatData: FlatData,
-    k8sData: K8sData | null
+    flatData: FlatData
   ) {
     this.application = application;
     this.boxLayoutMap = boxLayoutMap;
@@ -41,7 +39,6 @@ export default class ApplicationData {
       differenceMetricScores: new Map<string, Metric[]>(),
       aggregatedMetricScores: new Map<string, Metric>(),
     };
-    this.k8sData = k8sData;
   }
 
   updateApplication(
@@ -89,10 +86,4 @@ export default class ApplicationData {
       this.getClasses().some((c) => c.id === modelId)
     );
   }
-}
-export interface K8sData {
-  k8sNode: string;
-  k8sNamespace: string;
-  k8sDeployment: string;
-  k8sPod: string;
 }
