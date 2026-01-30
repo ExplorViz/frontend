@@ -138,7 +138,7 @@ interface MessageSenderState {
     scale: THREE.Vector3
   ) => void;
   sendObjectReleased: (objectId: string) => void;
-  sendComponentUpdate: (componentIds: string[], isOpened: boolean) => void;
+  sendDistrictUpdate: (componentIds: string[], isOpened: boolean) => void;
   sendHighlightingUpdate: (
     entityIds: string[],
     areHighlighted: boolean
@@ -320,7 +320,7 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
    * @param {string[]} componentIds IDs of the components which were opened or closed
    * @param {boolean} areOpened Tells whether the components are now open or closed (current state)
    */
-  sendComponentUpdate: (componentIds: string[], areOpened: boolean) => {
+  sendDistrictUpdate: (componentIds: string[], areOpened: boolean) => {
     useWebSocketStore
       .getState()
       .send<ComponentUpdateMessage>(COMPONENT_UPDATE_EVENT, {

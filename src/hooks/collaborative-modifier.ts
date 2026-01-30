@@ -8,15 +8,15 @@ import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { BaseChangeLogEntry } from 'explorviz-frontend/src/utils/changelog-entry';
 import {
-  closeComponent,
-  openComponent,
-} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+  closeDistrict,
+  openDistrict,
+} from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   removeAllHighlighting,
   setHighlightingById,
-} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
-import { BaseChangeLogEntry } from 'explorviz-frontend/src/utils/changelog-entry';
+} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
@@ -87,7 +87,7 @@ import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/set
 import {
   pingByModelId,
   pingPosition,
-} from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+} from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -188,11 +188,11 @@ export default function useCollaborativeModifier() {
   }: ForwardedMessage<ComponentUpdateMessage>): void => {
     if (areOpened) {
       componentIds.forEach((componentId) => {
-        openComponent(componentId, false);
+        openDistrict(componentId, false);
       });
     } else {
       componentIds.forEach((componentId) => {
-        closeComponent(componentId, false);
+        closeDistrict(componentId, false);
       });
     }
   };

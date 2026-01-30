@@ -2,7 +2,9 @@ import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/d
 import {
   Building,
   City,
+  Cls,
   District,
+  Func,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   Application,
@@ -27,18 +29,32 @@ interface ModelRepositoryState {
 
   classes: Record<string, Class>;
   buildings: Record<string, Building>;
+  clses: Record<string, Cls>;
+  functions: Record<string, Func>;
 
   communications: Record<string, ClassCommunication>;
 
   // Getter functions for individual models
   getApplication: (id: string) => Application | undefined;
   getCity: (id: string) => City | undefined;
-  getComponent: (id: string) => Package | undefined;
+  getComponent: (id: string) => Package | District | undefined;
   getDistrict: (id: string) => District | undefined;
-  getClass: (id: string) => Class | undefined;
+  getClass: (id: string) => Class | Building | undefined;
   getBuilding: (id: string) => Building | undefined;
+  getCls: (id: string) => Cls | undefined;
+  getFunc: (id: string) => Func | undefined;
   getCommunication: (id: string) => ClassCommunication | undefined;
-  getModel: (id: string) => Application | Package | Class | Class | undefined;
+  getModel: (
+    id: string
+  ) =>
+    | Application
+    | Package
+    | Class
+    | City
+    | District
+    | Building
+    | ClassCommunication
+    | undefined;
   getFlatModel: (id: string) => City | District | Building | undefined;
   getEntityType: (id: string) => EntityType;
   getFlatEntityType: (id: string) => 'city' | 'district' | 'building' | null;
@@ -46,9 +62,9 @@ interface ModelRepositoryState {
   // Getter functions for all models
   getAllApplications: () => Application[];
   getAllCities: () => City[];
-  getAllComponents: () => Package[];
+  getAllComponents: () => (Package | District)[];
   getAllDistricts: () => District[];
-  getAllClasses: () => Class[];
+  getAllBuildings: () => (Class | Building)[];
   getAllBuildings: () => Building[];
   getAllCommunications: () => ClassCommunication[];
 
@@ -68,6 +84,8 @@ interface ModelRepositoryState {
   setDistricts: (districts: District[]) => void;
   setClasses: (classes: Class[]) => void;
   setBuildings: (buildings: Building[]) => void;
+  setClses: (clses: Cls[]) => void;
+  setFunctions: (functions: Func[]) => void;
   setCommunications: (communications: ClassCommunication[]) => void;
 
   // Actions for removing individual models
@@ -97,27 +115,40 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   districts: {},
   classes: {},
   buildings: {},
+  clses: {},
+  functions: {},
   communications: {},
 
   // Getter functions for individual models
   getApplication: (id) => get().applications[id],
   getCity: (id) => get().cities[id],
-  getComponent: (id) => get().components[id],
+  getComponent: (id) => get().districts[id] || get().components[id],
   getDistrict: (id) => get().districts[id],
-  getClass: (id) => get().classes[id],
+  getClass: (id) => get().buildings[id] || get().classes[id],
   getBuilding: (id) => get().buildings[id],
+  getCls: (id) => get().clses[id],
+  getFunc: (id) => get().functions[id],
   getCommunication: (id) => get().communications[id],
 
   // Getter functions for all models
   getAllApplications: () => Object.values(get().applications),
   getAllCities: () => Object.values(get().cities),
-  getAllComponents: () => Object.values(get().components),
+  getAllComponents: () => [
+    ...Object.values(get().districts),
+    ...Object.values(get().components),
+  ],
   getAllDistricts: () => Object.values(get().districts),
-  getAllClasses: () => Object.values(get().classes),
+  getAllBuildings: () => [
+    ...Object.values(get().buildings),
+    ...Object.values(get().classes),
+  ],
   getAllBuildings: () => Object.values(get().buildings),
   getAllCommunications: () => Object.values(get().communications),
 
   getModel: (id) =>
+    get().cities[id] ||
+    get().districts[id] ||
+    get().buildings[id] ||
     get().applications[id] ||
     get().components[id] ||
     get().classes[id] ||
@@ -128,6 +159,9 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
 
   getEntityType: (id) => {
     const state = get();
+    if (state.cities[id]) return 'application';
+    if (state.districts[id]) return 'component';
+    if (state.buildings[id]) return 'class';
     if (state.applications[id]) return 'application';
     if (state.components[id]) return 'component';
     if (state.classes[id]) return 'class';
@@ -211,6 +245,14 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
     set(() => ({
       buildings: Object.fromEntries(buildings.map((b) => [b.id, b])),
     })),
+  setClses: (clses) =>
+    set(() => ({
+      clses: Object.fromEntries(clses.map((c) => [c.id, c])),
+    })),
+  setFunctions: (functions) =>
+    set(() => ({
+      functions: Object.fromEntries(functions.map((f) => [f.id, f])),
+    })),
 
   setCommunications: (communications) =>
     set(() => ({
@@ -278,6 +320,8 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       districts: {},
       classes: {},
       buildings: {},
+      clses: {},
+      functions: {},
       communications: {},
     })),
 }));

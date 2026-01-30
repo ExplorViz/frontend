@@ -35,12 +35,12 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
-import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
-import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
-import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
-import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
+import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
+import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/city/communication-r3f';
+import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
+import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/city/trace-replay-overlay-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import {

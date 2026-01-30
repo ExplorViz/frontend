@@ -8,7 +8,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import ApplicationData, {
   K8sData,
 } from 'explorviz-frontend/src/utils/application-data';
-import computeClassCommunication from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
+import computeAggregatedCommunication from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -84,8 +84,8 @@ export default function useLandscapeDataWatcher(
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
-    let classCommunications = computeClassCommunication(
-      structureLandscapeData,
+    let classCommunications = computeAggregatedCommunication(
+      flatLandscapeStructure,
       dynamicLandscapeData
     );
 
@@ -106,7 +106,7 @@ export default function useLandscapeDataWatcher(
     // Add inter-app communication
     const interAppCommunications = classCommunications.filter(
       (x) =>
-        x.sourceApp !== x.targetApp &&
+        x.sourceApp.id !== x.targetApp.id &&
         !removedDistrictIds.has(x.sourceApp.id) &&
         !removedDistrictIds.has(x.targetApp.id)
     );
@@ -141,6 +141,10 @@ export default function useLandscapeDataWatcher(
     modelRepository.setClasses(classes);
     modelRepository.setBuildings(
       Object.values(flatLandscapeStructure.buildings)
+    );
+    modelRepository.setClses(Object.values(flatLandscapeStructure.classes));
+    modelRepository.setFunctions(
+      Object.values(flatLandscapeStructure.functions)
     );
     modelRepository.setCommunications(classCommunications);
 

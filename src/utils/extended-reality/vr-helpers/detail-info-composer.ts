@@ -1,23 +1,23 @@
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import {
-  getSubPackagesOfPackage,
-  getClassesInPackage,
-} from 'explorviz-frontend/src/utils/package-helpers';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import * as THREE from 'three';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   CLASS_COMMUNICATION_ENTITY_TYPE,
   CLASS_ENTITY_TYPE,
   COMPONENT_ENTITY_TYPE,
   EntityType,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { MethodMesh } from 'explorviz-frontend/src/view-objects/3d/application/method-mesh';
+import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  getClassesInPackage,
+  getSubPackagesOfPackage,
+} from 'explorviz-frontend/src/utils/package-helpers';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
+import { MethodMesh } from 'explorviz-frontend/src/view-objects/3d/city/method-mesh';
+import * as THREE from 'three';
 
 export type DetailedInfo = {
   title: string;

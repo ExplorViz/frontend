@@ -3,12 +3,8 @@ import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  getAllClassIdsInApplications,
-  getAllPackageIdsInApplications,
-} from 'explorviz-frontend/src/utils/application-helpers';
 import { clusterEntities } from 'explorviz-frontend/src/utils/clustering/k-means';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -36,15 +32,15 @@ export default function ClusterCentroidsR3F() {
     }))
   );
 
-  const { componentLayouts, classLayouts } = useLayoutStore(
+  const { districtLayouts, buildingLayouts } = useLayoutStore(
     useShallow((state) => ({
-      componentLayouts: state.districtLayouts,
-      classLayouts: state.buildingLayouts,
+      districtLayouts: state.districtLayouts,
+      buildingLayouts: state.buildingLayouts,
     }))
   );
 
   const { camera } = useThree();
-  const lastUpdateTimeRef = useRef<number>(0);
+  const lastUpdateTimeRef = useRef<number>(performance.now());
 
   // Calculate distances of clusters of to camera at configured frequency
   useFrame(() => {
@@ -60,17 +56,22 @@ export default function ClusterCentroidsR3F() {
     }
   });
 
-  const computeClusters = () => {
+  const computeClusters = useCallback(() => {
     if (!enableClustering) {
       useClusterStore.getState().clearClusters();
       return [];
     }
-    const applications = useModelStore.getState().getAllApplications();
-    const classIds = getAllClassIdsInApplications(applications);
-    const packageIds = getAllPackageIdsInApplications(applications);
+    const buildingIds = useModelStore
+      .getState()
+      .getAllBuildings()
+      .map((b) => b.id);
+    const districtIds = useModelStore
+      .getState()
+      .getAllDistricts()
+      .map((d) => d.id);
 
     const clusteringResult = clusterEntities(
-      [...classIds, ...packageIds],
+      [...buildingIds, ...districtIds],
       clusterCount
     );
     const positions: THREE.Vector3[] = [];
@@ -90,34 +91,22 @@ export default function ClusterCentroidsR3F() {
     } else {
       return [];
     }
-  };
+  }, [enableClustering, clusterCount, displayClusters]);
 
-  // Re-compute clusters when cluster settings or layouts change
   useEffect(() => {
     computeClusters();
-  }, [
-    enableClustering,
-    clusterCount,
-    displayClusters,
-    classLayouts,
-    componentLayouts,
-    classLayouts,
-  ]);
+  }, [computeClusters, buildingLayouts, districtLayouts]);
 
-  const positions = displayClusters
-    ? useClusterStore
-        .getState()
-        .getAllClusters()
-        .values()
-        .map((c) => c.position)
+  const clusters = displayClusters
+    ? Array.from(useClusterStore.getState().getAllClusters().values())
     : [];
 
   return (
     <group>
-      {positions.map((position) => (
+      {clusters.map((cluster) => (
         <mesh
-          key={`cluster-centroid-at-${position.x}-${position.y}-${position.z}`}
-          position={position}
+          key={`cluster-centroid-${cluster.id}`}
+          position={cluster.position}
         >
           <sphereGeometry
             args={[

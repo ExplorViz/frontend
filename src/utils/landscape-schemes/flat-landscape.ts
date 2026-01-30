@@ -4,6 +4,7 @@ import {
   StructureLandscapeData,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import isObject from 'explorviz-frontend/src/utils/object-helpers';
 
 export type FlatLandscape = {
   landscapeToken: string;
@@ -17,6 +18,7 @@ export type FlatLandscape = {
 type FlatBaseModel = {
   id: string;
   name: string;
+  fqn?: string;
   originOfData?: TypeOfAnalysis;
   editingState?: 'added' | 'removed';
 };
@@ -61,6 +63,22 @@ export type Func = FlatBaseModel & {
   metrics?: Record<string, number>;
 };
 
+export function isCity(x: any): x is City {
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'buildingIds');
+}
+
+export function isDistrict(x: any): x is District {
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'districtIds');
+}
+
+export function isBuilding(x: any): x is Building {
+  return (
+    isObject(x) &&
+    Object.prototype.hasOwnProperty.call(x, 'parentDistrictId') &&
+    !Object.prototype.hasOwnProperty.call(x, 'districtIds')
+  );
+}
+
 export function convertToFlatLandscape(
   input: StructureLandscapeData
 ): FlatLandscape {
@@ -85,6 +103,7 @@ export function convertToFlatLandscape(
       districts[districtId] = {
         id: districtId,
         name: pkg.name,
+        fqn: pkg.fqn,
         parentCityId: cityId,
         parentDistrictId,
         districtIds: pkg.subPackages.map((subPkg) => subPkg.id),
@@ -105,6 +124,7 @@ export function convertToFlatLandscape(
         buildings[buildingId] = {
           id: buildingId,
           name: cls.name,
+          fqn: cls.fqn,
           originOfData: cls.originOfData,
           language:
             app.language === 'Java'
@@ -163,6 +183,7 @@ export function convertToFlatLandscape(
         cities[cityId] = {
           id: app.id,
           name: app.name,
+          fqn: app.name,
           rootDistrictIds: [],
           districtIds: [],
           buildingIds: [],

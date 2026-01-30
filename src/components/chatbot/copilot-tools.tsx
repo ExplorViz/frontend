@@ -4,14 +4,15 @@ import {
 } from '@copilotkit/react-core';
 import { ToolCallCard } from 'explorviz-frontend/src/components/chatbot/tool-call-card';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
-  closeAllComponentsInApplication,
-  closeComponent,
-  openAllComponentsInApplication,
-  openComponent,
-} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+  closeAllDistrictsInCity,
+  closeDistrict,
+  openAllDistrictsInCity,
+  openDistrict,
+} from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   Application,
   Class,
@@ -21,7 +22,7 @@ import {
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import * as htmlToImage from 'html-to-image';
 import { use } from 'react';
 import { EditingContext } from '../editing/editing-context';
@@ -834,20 +835,20 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
-      const component = packages.find((pkg) => pkg.id === id);
-      if (component) {
+      const district = useModelStore.getState().getDistrict(id);
+      if (district) {
         if (open) {
-          openComponent(id);
+          openDistrict(id);
         } else {
-          closeComponent(id);
+          closeDistrict(id);
         }
       } else {
-        const application = applications?.find((app) => app.id === id);
-        if (application) {
+        const city = useModelStore.getState().getCity(id);
+        if (city) {
           if (open) {
-            openAllComponentsInApplication(application);
+            openAllDistrictsInCity(city);
           } else {
-            closeAllComponentsInApplication(application);
+            closeAllDistrictsInCity(city);
           }
         }
       }

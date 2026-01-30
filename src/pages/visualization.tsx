@@ -39,11 +39,11 @@ import {
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { closeDistrictsByList } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   highlightById,
   removeAllHighlighting,
-} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
@@ -598,7 +598,7 @@ export default function Visualization() {
 
     // Apply closed components if provided
     if (closedComponentIds && closedComponentIds.length > 0) {
-      closeComponentsByList(closedComponentIds, false, false);
+      closeDistrictsByList(closedComponentIds, false, false);
     }
 
     // Reset all highlights first

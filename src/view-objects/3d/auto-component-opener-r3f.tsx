@@ -3,9 +3,9 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
-  closeComponent,
-  openComponent,
-} from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+  closeDistrict,
+  openDistrict,
+} from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -74,7 +74,7 @@ export default function AutoComponentOpenerR3F() {
           !closedComponentIds.has(component.parent.id);
 
         if (parentIsOpen) {
-          openComponent(component.id, false);
+          openDistrict(component.id, false);
         }
       } else if (!isWithinThreshold && isCurrentlyOpen) {
         // Close component when far from cluster centroid
@@ -84,7 +84,7 @@ export default function AutoComponentOpenerR3F() {
         );
 
         if (allSubPackagesClosed) {
-          closeComponent(component.id, false, false);
+          closeDistrict(component.id, false, false);
         }
       }
     });

@@ -2,7 +2,7 @@ import { useThree } from '@react-three/fiber';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
-import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 

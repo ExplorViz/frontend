@@ -1,5 +1,4 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { getMaxNumberOfFunctionsPerBuilding } from 'explorviz-frontend/src/utils/heatmap/heatmap-helper';
 import { create } from 'zustand';
 
 export enum SelectedBuildingHeatmapMetric {

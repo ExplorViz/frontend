@@ -9,8 +9,8 @@ import AnnotationData from 'explorviz-frontend/src/components/visualization/rend
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';

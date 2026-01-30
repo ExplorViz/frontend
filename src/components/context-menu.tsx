@@ -6,9 +6,9 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
-import * as EntityManipulation from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
-import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 export type ContextMenuItem = {
   title: string;
   action: () => void;
@@ -75,13 +75,13 @@ export default function ContextMenu({ children }: ContextMenuProps) {
     {
       title: 'Open All Components',
       action: () => {
-        EntityManipulation.openAllComponentsInLandscape();
+        EntityManipulation.openAllDistrictsInLandscape();
       },
     },
     {
       title: 'Close All Components',
       action: () => {
-        EntityManipulation.closeAllComponentsInLandscape();
+        EntityManipulation.closeAllDistrictsInLandscape();
       },
     },
     {
