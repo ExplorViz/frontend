@@ -1,5 +1,5 @@
 import {
-  ClassMetricIds,
+  BuildingMetricIds,
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useShallow } from 'zustand/react/shallow';
@@ -8,8 +8,8 @@ export default function MetricSelector() {
   const { selectedClassMetric, setSelectedClassMetric } = useHeatmapStore(
     useShallow((state) => ({
       heatmapShared: state.heatmapShared,
-      selectedClassMetric: state.selectedClassMetric,
-      setSelectedClassMetric: state.setSelectedClassMetric,
+      selectedClassMetric: state.selectedBuildingMetric,
+      setSelectedClassMetric: state.setSelectedBuildingMetric,
       toggleShared: state.toggleShared,
     }))
   );
@@ -20,12 +20,12 @@ export default function MetricSelector() {
       style={{ width: '200px' }}
       onChange={(e) => {
         const val = e.target.value;
-        setSelectedClassMetric(val as ClassMetricIds);
+        setSelectedClassMetric(val as BuildingMetricIds);
       }}
       aria-label="Select metric"
       className="border rounded-md px-2 py-1 w-full"
     >
-      {Object.values(ClassMetricIds).map((name) => (
+      {Object.values(BuildingMetricIds).map((name) => (
         <option key={name} value={name}>
           {name}
         </option>

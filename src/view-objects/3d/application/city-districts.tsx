@@ -131,7 +131,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     const { heatmapActive, selectedClassMetric } = useHeatmapStore(
       useShallow((state) => ({
         heatmapActive: state.isActive(),
-        selectedClassMetric: state.getSelectedClassMetric(),
+        selectedClassMetric: state.getSelectedBuildingMetric(),
       }))
     );
 

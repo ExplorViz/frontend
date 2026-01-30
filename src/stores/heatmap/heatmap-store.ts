@@ -1,25 +1,25 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { getMaxNumberOfMethodsPerClass } from 'explorviz-frontend/src/utils/heatmap/heatmap-helper';
+import { getMaxNumberOfFunctionsPerBuilding } from 'explorviz-frontend/src/utils/heatmap/heatmap-helper';
 import { create } from 'zustand';
 
-export enum SelectedClassHeatmapMetric {
+export enum SelectedBuildingHeatmapMetric {
   None = 'None',
-  Methods = 'Function Count',
+  Functions = 'Function Count',
   LoC = 'Lines of Code',
-  DynamicMethods = 'Dynamic Method Quota',
-  StaticMethods = 'Static Method Quota',
+  DynamicFunctions = 'Dynamic Function Quota',
+  StaticFunctions = 'Static Function Quota',
 }
 
-export enum ClassMetricIds {
+export enum BuildingMetricIds {
   None = 'None',
-  Methods = 'Function Count',
+  Functions = 'Function Count',
   LoC = 'Lines of Code',
-  DynamicMethods = 'Dynamic Method Quota',
-  StaticMethods = 'Static Method Quota',
+  DynamicFunctions = 'Dynamic Function Quota',
+  StaticFunctions = 'Static Function Quota',
 }
 
-const NO_SELECTED_METRIC: ClassMetric = {
-  name: ClassMetricIds.None,
+const NO_SELECTED_METRIC: BuildingMetric = {
+  name: BuildingMetricIds.None,
   description: 'No metric selected',
   min: 0,
   max: 0,
@@ -31,7 +31,7 @@ export enum HeatmapGradient {
   MONOCHROME_GRADIENT = 'Monochrome',
 }
 
-export type ClassMetric = {
+export type BuildingMetric = {
   name: string;
   description: string;
   min: number;
@@ -41,14 +41,14 @@ export type ClassMetric = {
 interface HeatmapConfigurationState {
   heatmapShared: boolean; // tracked
   legendActive: boolean;
-  selectedClassMetric: ClassMetric; //tracked
+  selectedBuildingMetric: BuildingMetric; //tracked
   selectedGradient: HeatmapGradient;
   opacityValue: number;
   showLegendValues: boolean;
   toggleShared: () => void;
   isActive: () => boolean;
-  getSelectedClassMetric: () => ClassMetric | undefined;
-  setSelectedClassMetric: (metricName: ClassMetricIds) => void;
+  getSelectedBuildingMetric: () => BuildingMetric | undefined;
+  setSelectedBuildingMetric: (metricName: BuildingMetricIds) => void;
   getSelectedGradient: () => HeatmapGradient;
   setSelectedGradient: (gradient: HeatmapGradient) => void;
   toggleLegend: () => void;
@@ -60,8 +60,8 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
     heatmapActive: true,
     heatmapShared: false,
     legendActive: true,
-    selectedClassMetric: {
-      name: ClassMetricIds.None,
+    selectedBuildingMetric: {
+      name: BuildingMetricIds.None,
       description: 'No metric selected',
       min: 0,
       max: 0,
@@ -81,63 +81,63 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
     isActive: () => {
       return (
         useUserSettingsStore.getState().visualizationSettings.heatmapEnabled
-          .value && get().selectedClassMetric.name !== ClassMetricIds.None
+          .value && get().selectedBuildingMetric.name !== BuildingMetricIds.None
       );
     },
 
-    getSelectedClassMetric: () => {
-      return get().selectedClassMetric;
+    getSelectedBuildingMetric: () => {
+      return get().selectedBuildingMetric;
     },
 
-    setSelectedClassMetric: (metricName: ClassMetricIds) => {
+    setSelectedBuildingMetric: (metricName: BuildingMetricIds) => {
       switch (metricName) {
-        case ClassMetricIds.Methods:
+        case BuildingMetricIds.Functions:
           set({
-            selectedClassMetric: {
-              name: ClassMetricIds.Methods,
-              description: 'Number of methods in the class',
+            selectedBuildingMetric: {
+              name: BuildingMetricIds.Functions,
+              description: "Number of functions in building's data model",
               min: 0,
-              max: getMaxNumberOfMethodsPerClass(),
+              max: getMaxNumberOfFunctionsPerBuilding(),
             },
           });
           break;
 
-        case ClassMetricIds.LoC:
+        case BuildingMetricIds.LoC:
           set({
-            selectedClassMetric: {
-              name: ClassMetricIds.LoC,
-              description: 'Lines of code in the class',
+            selectedBuildingMetric: {
+              name: BuildingMetricIds.LoC,
+              description: "Lines of code of building's data model",
               min: 0,
               max: 5000, // ToDo: Get max value
             },
           });
           break;
 
-        case ClassMetricIds.DynamicMethods:
+        case BuildingMetricIds.DynamicFunctions:
           set({
-            selectedClassMetric: {
-              name: ClassMetricIds.DynamicMethods,
-              description: 'Dynamic method quota of the class',
+            selectedBuildingMetric: {
+              name: BuildingMetricIds.DynamicFunctions,
+              description: "Dynamic function quota of building's data model",
               min: 0,
               max: 1, // Percentage, so max is 1
             },
           });
           break;
 
-        case ClassMetricIds.StaticMethods:
+        case BuildingMetricIds.StaticFunctions:
           set({
-            selectedClassMetric: {
-              name: ClassMetricIds.StaticMethods,
-              description: 'Static method quota of the class',
+            selectedBuildingMetric: {
+              name: BuildingMetricIds.StaticFunctions,
+              description: "Static function quota of building's data model",
               min: 0,
-              max: 1, // Percentage, so max is 1
+              max: 1, // In percentage, so max is 1
             },
           });
           break;
 
         default:
           set({
-            selectedClassMetric: NO_SELECTED_METRIC,
+            selectedBuildingMetric: NO_SELECTED_METRIC,
           });
           break;
       }
@@ -153,11 +153,11 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
     },
 
     /**
-     * Reset all class attribute values to null;
+     * Reset all attribute values to null;
      */
     cleanup: () => {
       set({
-        selectedClassMetric: NO_SELECTED_METRIC,
+        selectedBuildingMetric: NO_SELECTED_METRIC,
         legendActive: true,
         heatmapShared: false,
       });

@@ -3,7 +3,7 @@ import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
-import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import gsap from 'gsap';
@@ -12,10 +12,10 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CityDistrictLabel({
-  component,
+  district,
   layout,
 }: {
-  component: Package;
+  district: District;
   layout: BoxLayout;
 }) {
   const {
@@ -48,16 +48,16 @@ export default function CityDistrictLabel({
 
   const { centroidDistance } = useClusterStore(
     useShallow((state) => ({
-      centroidDistance: state.getCentroidDistance(component.id),
+      centroidDistance: state.getCentroidDistance(district.id),
     }))
   );
 
   const { isOpen, isVisible } = useVisualizationStore(
     useShallow((state) => ({
-      isOpen: !state.closedDistrictIds.has(component.id),
+      isOpen: !state.closedDistrictIds.has(district.id),
       isVisible:
-        !state.hiddenDistrictIds.has(component.id) &&
-        !state.removedDistrictIds.has(component.id),
+        !state.hiddenDistrictIds.has(district.id) &&
+        !state.removedDistrictIds.has(district.id),
     }))
   );
 
@@ -170,14 +170,14 @@ export default function CityDistrictLabel({
     <Text
       layers={sceneLayers.Label}
       color={districtTextColor}
-      name={'City district label of ' + component.name}
+      name={'City district label of ' + district.name}
       visible={isVisible}
       position={labelPosition}
       rotation={getLabelRotation(districtLabelPlacement)}
       fontSize={getFontSize()}
       raycast={() => null}
     >
-      {getEntityDisplayName(component.name, component.id)}
+      {getEntityDisplayName(district.name, district.id)}
     </Text>
   ) : null;
 }

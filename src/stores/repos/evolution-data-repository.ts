@@ -8,10 +8,8 @@ import {
   CommitComparison,
   CommitTree,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import {
-  Class,
-  StructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   combineStructureLandscapeData,
   createEmptyStructureLandscapeData,
@@ -61,11 +59,9 @@ interface EvolutionDataRepositoryState {
   _fetchCommitTreeForAppName: (
     appName: string
   ) => Promise<CommitTree | undefined>;
-  getMetricForClass: (
-    dataModel: Class,
-    applicationName: string,
-    metricKey: string,
-    getDiff: boolean
+  getMetricForBuilding: (
+    building: Building | undefined,
+    metricKey: string
   ) => number;
 }
 
@@ -352,40 +348,16 @@ export const useEvolutionDataRepositoryStore =
       }
     },
 
-    getMetricForClass: (
-      dataModel: Class,
-      applicationName: string,
-      metricKey: string,
-      getDiff = false
+    getMetricForBuilding: (
+      building: Building | undefined,
+      metricKey: string
     ) => {
+      if (!building) return 0;
       if (metricKey === SelectedBuildingMetric.None) return 0;
       if (metricKey === SelectedBuildingMetric.Method)
-        return dataModel.methods.length;
+        return building.functionIds?.length || 0;
 
-      const selectedCommitToApplicationMetricsCodeMap =
-        get()._appNameToCommitIdToApplicationMetricsCodeMap.get(
-          applicationName
-        );
-      if (!selectedCommitToApplicationMetricsCodeMap) return 0;
-
-      let metricValue = 0;
-      for (const [
-        _,
-        appMetricsCode,
-      ] of selectedCommitToApplicationMetricsCodeMap) {
-        const metricForCommit = Number.parseInt(
-          appMetricsCode.classMetrics[dataModel.fqn]?.[metricKey] || '-1'
-        );
-
-        if (!metricForCommit) {
-          continue;
-        }
-        if (metricValue === 0) {
-          metricValue = metricForCommit;
-        } else if (getDiff) {
-          metricValue = Math.abs(metricValue - metricForCommit);
-        }
-      }
-      return metricValue;
+      // TODO: Add further metrics
+      return 0;
     },
   }));

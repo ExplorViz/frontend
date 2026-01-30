@@ -1,7 +1,7 @@
 import {
-  ClassMetric,
-  ClassMetricIds,
-  SelectedClassHeatmapMetric,
+  BuildingMetric,
+  BuildingMetricIds,
+  SelectedBuildingHeatmapMetric,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import {
   Class,
@@ -34,18 +34,18 @@ export function interpolateColor(c1: RGB, c2: RGB, t: number): RGB {
 
 export function getMetricValues(
   dataModel: Class,
-  classHeatmapMetric: ClassMetric
+  classHeatmapMetric: BuildingMetric
 ): { min: number; max: number; current: number } {
   switch (classHeatmapMetric.name) {
-    case ClassMetricIds.Methods:
-    case SelectedClassHeatmapMetric.Methods:
+    case BuildingMetricIds.Functions:
+    case SelectedBuildingHeatmapMetric.Functions:
       return {
         min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,
         current: dataModel.methods.length,
       };
-    case ClassMetricIds.DynamicMethods:
-    case SelectedClassHeatmapMetric.DynamicMethods:
+    case BuildingMetricIds.DynamicFunctions:
+    case SelectedBuildingHeatmapMetric.DynamicFunctions:
       return {
         min: classHeatmapMetric.min,
         max: dataModel.methods.length,
@@ -55,8 +55,8 @@ export function getMetricValues(
             m.originOfData === TypeOfAnalysis.StaticAndDynamic
         ).length,
       };
-    case ClassMetricIds.StaticMethods:
-    case SelectedClassHeatmapMetric.StaticMethods:
+    case BuildingMetricIds.StaticFunctions:
+    case SelectedBuildingHeatmapMetric.StaticFunctions:
       return {
         min: classHeatmapMetric.min,
         max: dataModel.methods.length,
@@ -66,8 +66,8 @@ export function getMetricValues(
             m.originOfData === TypeOfAnalysis.StaticAndDynamic
         ).length,
       };
-    case ClassMetricIds.LoC:
-    case SelectedClassHeatmapMetric.LoC:
+    case BuildingMetricIds.LoC:
+    case SelectedBuildingHeatmapMetric.LoC:
       return {
         min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,
@@ -84,7 +84,7 @@ export function getMetricValues(
 
 export function getHeatmapColor(
   dataModel: Class,
-  classHeatmapMetric: ClassMetric,
+  classHeatmapMetric: BuildingMetric,
   minColor: string,
   avgColor: string,
   maxColor: string

@@ -17,11 +17,11 @@ import {
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/class-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
-  Class,
-  TypeOfAnalysis,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+  Building,
+  City,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   MetricKey,
   metricMappingMultipliers,
@@ -60,7 +60,6 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     const instanceIdToBuildingId = new Map<number, string>();
     const buildingIdToInstanceId = new Map<string, number>();
-    const buildingIdToClass = new Map<string, Class>();
 
     const layoutMap = useLayoutStore.getState().getBuildingLayouts();
 
@@ -81,7 +80,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     );
 
     const getMetricForBuilding = useEvolutionDataRepositoryStore(
-      (state) => state.getMetricForClass
+      (state) => state.getMetricForBuilding
     );
 
     const commitComparison = useEvolutionDataRepositoryStore
@@ -136,7 +135,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       useHeatmapStore(
         useShallow((state) => ({
           heatmapActive: state.isActive(),
-          selectedBuildingMetric: state.getSelectedClassMetric(),
+          selectedBuildingMetric: state.getSelectedBuildingMetric(),
           selectedHeatmapGradient: state.getSelectedGradient(),
         }))
       );
@@ -149,17 +148,12 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
-    const getBuildingHeight = (dataModel: Class) => {
+    const getBuildingHeight = (building: Building) => {
       return (
         buildingFootprint +
         metricMappingMultipliers[heightMetric as MetricKey] *
           buildingHeightMultiplier *
-          getMetricForBuilding(
-            dataModel,
-            city.name,
-            heightMetric,
-            evoConfig.renderOnlyDifferences
-          )
+          getMetricForBuilding(building, heightMetric)
       );
     };
 
@@ -175,7 +169,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
       if (
         buildingIdToInstanceId.size > 0 &&
-        buildingIdToClass.size === buildingIds.length &&
+        buildingIds.length > 0 &&
         enableAnimations
       ) {
         animateMeshInstanceChanges();
@@ -199,7 +193,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     }, [buildingColor, highlightedEntityColor]);
 
     const computeColor = (buildingId: string) => {
-      const dataModel = buildingIdToClass.get(buildingId);
+      const dataModel = useModelStore.getState().getClass(buildingId);
       if (!dataModel) {
         return new THREE.Color('red');
       }
@@ -253,9 +247,9 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       }
       if (!meshRef.current) return;
 
-      // Update the visibility of the instances based on classData
+      // Update the visibility of the instances based
       instanceIdToBuildingId.forEach((buildingId, instanceId) => {
-        // Set visibility based on classData
+        // Set visibility based on hidden buildings
         meshRef.current?.setVisibilityAt(
           instanceId,
           !hiddenBuildingIds.has(buildingId) &&
@@ -348,7 +342,7 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
       const buildingId = instanceIdToBuildingId.get(instanceId);
       if (!buildingId) return;
-      const classModel = buildingIdToClass.get(buildingId);
+      const classModel = useModelStore.getState().getClass(buildingId);
       addPopup({
         entityId: buildingId,
         entity: classModel,
@@ -376,31 +370,30 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       meshRef.current.clearInstances();
       instanceIdToBuildingId.clear();
       buildingIdToInstanceId.clear();
-      buildingIdToClass.clear();
 
       let i = 0;
       meshRef.current.addInstances(buildingIds.length, (obj) => {
         const classData = useModelStore.getState().getClass(buildingIds[i]);
-        if (!classData) {
+        const building = useModelStore.getState().getBuilding(buildingIds[i]);
+        if (!classData || !building) {
           return;
         }
-        instanceIdToBuildingId.set(obj.id, classData.id);
-        buildingIdToInstanceId.set(classData.id, obj.id);
-        buildingIdToClass.set(classData.id, classData);
-        const layout = layoutMap.get(classData.id);
+        instanceIdToBuildingId.set(obj.id, building.id);
+        buildingIdToInstanceId.set(building.id, obj.id);
+        const layout = layoutMap.get(building.id);
         if (!layout) {
           return;
         }
         obj.position.set(
           layout.center.x,
-          layout.position.y + getBuildingHeight(classData) / 2,
+          layout.position.y + getBuildingHeight(building) / 2,
           layout.center.z
         );
         obj.visible =
-          !hiddenBuildingIds.has(classData.id) &&
-          !removedDistrictIds.has(classData.id);
-        obj.scale.set(layout.width, getBuildingHeight(classData), layout.depth);
-        obj.color = computeColor(classData.id);
+          !hiddenBuildingIds.has(building.id) &&
+          !removedDistrictIds.has(building.id);
+        obj.scale.set(layout.width, getBuildingHeight(building), layout.depth);
+        obj.color = computeColor(building.id);
         obj.updateMatrix();
         i++;
       });
@@ -423,11 +416,11 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         const quat = new Quaternion();
         const scale = new Vector3();
 
-        const classModel = buildingIdToClass.get(buildingId);
+        const building = useModelStore.getState().getBuilding(buildingId);
         const layout = layoutMap.get(buildingId);
-        if (!classModel || !layout) return;
+        if (!building || !layout) return;
 
-        const targetHeight = getBuildingHeight(classModel);
+        const targetHeight = getBuildingHeight(building);
         const targetPositionX = layout.center.x;
         const targetPositionY = layout.position.y + targetHeight / 2;
         const targetPositionZ = layout.center.z;

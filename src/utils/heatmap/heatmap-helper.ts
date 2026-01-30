@@ -1,5 +1,4 @@
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
-import { getAllClassesInApplications } from 'explorviz-frontend/src/utils/application-helpers';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import * as THREE from 'three';
 
 export default function applySimpleHeatOnFoundation(
@@ -80,20 +79,13 @@ export function removeHeatmapHelperLines(
   });
 }
 
-export function getMaxNumberOfMethodsPerClass() {
-  const allClasses = getAllClassesInApplications(
-    Array.from(
-      useApplicationRepositoryStore
-        .getState()
-        .getAll()
-        .map((data) => data.application)
-    )
-  );
-  let maxMethods = 0;
-  allClasses.forEach((clazz) => {
-    if (clazz.methods.length > maxMethods) {
-      maxMethods = clazz.methods.length;
+export function getMaxNumberOfFunctionsPerBuilding() {
+  const allBuildings = useModelStore.getState().getAllBuildings();
+  let maxFunctions = 0;
+  allBuildings.forEach((building) => {
+    if (building.functionIds && building.functionIds.length > maxFunctions) {
+      maxFunctions = building.functionIds.length;
     }
   });
-  return maxMethods;
+  return maxFunctions;
 }

@@ -5,6 +5,7 @@ import {
   getAllClassIdsInApplication,
   getAllPackageIdsInApplications,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   Application,
   Class,
@@ -180,6 +181,26 @@ export function closeAllComponentsInApplication(
 
   if (sendMessage) {
     useMessageSenderStore.getState().sendComponentUpdate(packageIds, false);
+  }
+}
+
+/**
+ * Closes all components which are part of the given application
+ *
+ * @param application Application object which contains the components
+ */
+export function closeAllDistrictsInCity(city: City, sendMessage = true) {
+  const packageIdsToHide = city.districtIds.filter(
+    (id) => !city.rootDistrictIds.includes(id)
+  );
+  closeComponents(city.districtIds);
+  hideComponents(packageIdsToHide);
+  hideClasses(city.buildingIds);
+
+  if (sendMessage) {
+    useMessageSenderStore
+      .getState()
+      .sendComponentUpdate(city.districtIds, false);
   }
 }
 

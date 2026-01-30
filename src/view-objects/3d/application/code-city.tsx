@@ -81,6 +81,8 @@ export default function CodeCity({
     }
   }, [layoutMap]);
 
+  if (!city) return null;
+
   return (
     <group position={appPosition}>
       {showEmbeddedBrowserIcon && (
@@ -103,34 +105,23 @@ export default function CodeCity({
       {isBrowserActive && (
         <EmbeddedBrowser application={applicationData.application} />
       )}
-      {layoutMap.get(applicationData.getId()) && (
-        <CityFoundation
-          application={applicationData.application}
-          layout={layoutMap.get(applicationData.getId())!}
-        />
+      {layoutMap.get(city.id) && (
+        <CityFoundation city={city} layout={layoutMap.get(city.id)} />
       )}
-      {city && (
-        <CodeBuildings
-          buildingIds={applicationData
-            .getClasses()
-            .filter((cls) => layoutMap.has(cls.id))
-            .map((cls) => cls.id)}
-          city={city}
-          ref={classInstanceMeshRef}
+      <CodeBuildings
+        buildingIds={applicationData
+          .getClasses()
+          .filter((cls) => layoutMap.has(cls.id))
+          .map((cls) => cls.id)}
+        city={city}
+        ref={classInstanceMeshRef}
+      />
+      {applicationData.getClasses().map((classData) => (
+        <CodeBuildingLabel
+          key={classData.id + '-label'}
+          buildingId={classData.id}
         />
-      )}
-      {applicationData
-        .getClasses()
-        .map((classData) =>
-          layoutMap.get(classData.id) ? (
-            <CodeBuildingLabel
-              key={classData.id + '-label'}
-              dataModel={classData}
-              application={applicationData.application}
-              layout={layoutMap.get(classData.id)!}
-            />
-          ) : null
-        )}
+      ))}
       <CityDistricts
         packages={applicationData
           .getPackages()
@@ -139,16 +130,22 @@ export default function CodeCity({
         ref={componentInstanceMeshRef}
         application={applicationData.application}
       />
-      {applicationData
-        .getPackages()
-        .filter((packageData) => layoutMap.has(packageData.id))
-        .map((packageData) => (
-          <CityDistrictLabel
-            key={packageData.id + '-label'}
-            component={packageData}
-            layout={layoutMap.get(packageData.id)!}
-          />
-        ))}
+      {city.districtIds.map((districtId) => {
+        const district = useModelStore.getState().getDistrict(districtId);
+        const layout = layoutMap.get(districtId);
+        if (district && layout) {
+          return (
+            district &&
+            layout && (
+              <CityDistrictLabel
+                key={districtId + '-label'}
+                district={district}
+                layout={layout}
+              />
+            )
+          );
+        }
+      })}
       {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
           <CommunicationR3F

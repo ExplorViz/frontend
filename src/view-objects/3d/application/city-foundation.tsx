@@ -12,7 +12,7 @@ import {
   toggleHighlightById,
 } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { getLabelRotation } from 'explorviz-frontend/src/view-objects/utils/label-utils';
 import { gsap } from 'gsap';
@@ -21,10 +21,10 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CityFoundation({
-  application,
+  city,
   layout,
 }: {
-  application: Application;
+  city: City;
   layout: BoxLayout;
 }) {
   const [foundationPosition, setFoundationPosition] = useState<THREE.Vector3>(
@@ -70,8 +70,8 @@ export default function CityFoundation({
   const { isHighlighted, isHovered, setHoveredEntityId } =
     useVisualizationStore(
       useShallow((state) => ({
-        isHighlighted: state.highlightedEntityIds.has(application.id),
-        isHovered: state.hoveredEntityId === application.id,
+        isHighlighted: state.highlightedEntityIds.has(city.id),
+        isHovered: state.hoveredEntityId === city.id,
         setHoveredEntityId: state.actions.setHoveredEntityId,
       }))
     );
@@ -85,8 +85,8 @@ export default function CityFoundation({
   const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     addPopup({
-      entityId: application.id,
-      entity: application,
+      entityId: city.id,
+      entity: city,
       position: {
         x: event.clientX,
         y: event.clientY,
@@ -122,7 +122,7 @@ export default function CityFoundation({
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
-    setHoveredEntityId(application.id);
+    setHoveredEntityId(city.id);
   };
 
   const handleOnPointerOut = (event: any) => {
@@ -131,11 +131,11 @@ export default function CityFoundation({
   };
 
   const handleClick = (/*event: any*/) => {
-    toggleHighlightById(application.id);
+    toggleHighlightById(city.id);
   };
 
   const handleDoubleClick = (/*event: any*/) => {
-    EntityManipulation.closeAllComponentsInApplication(application);
+    EntityManipulation.closeAllDistrictsInCity(city);
   };
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
@@ -143,7 +143,7 @@ export default function CityFoundation({
 
   const computeColor = () => {
     const baseColor = isHighlighted
-      ? getHighlightingColorForEntity(application.id)
+      ? getHighlightingColorForEntity(city.id)
       : new THREE.Color(foundationColor);
 
     if (enableHoverEffects && isHovered) {
@@ -174,7 +174,7 @@ export default function CityFoundation({
     <mesh
       layers={sceneLayers.Foundation}
       castShadow={castShadows}
-      name={'Foundation of ' + application.name}
+      name={'Foundation of ' + city.name}
       scale={[layout.width, layout.height, layout.depth]}
       position={foundationPosition} // Center around application's position
       onClick={handleClickWithPrevent}
@@ -201,7 +201,7 @@ export default function CityFoundation({
           fontSize={(cityLabelMargin * 0.9) / layout.depth}
           raycast={() => null}
         >
-          {getEntityDisplayName(application.name, application.id)}
+          {getEntityDisplayName(city.name, city.id)}
         </Text>
       )}
     </mesh>

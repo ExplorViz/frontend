@@ -1,14 +1,11 @@
 import { Text } from '@react-three/drei';
 import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
-import {
-  Application,
-  Class,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
   MetricKey,
@@ -20,14 +17,15 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeBuildingLabel({
-  dataModel,
-  layout,
-  application,
+  buildingId,
 }: {
-  dataModel: Class;
-  layout: BoxLayout;
-  application: Application;
+  buildingId: string;
 }) {
+  const building = useModelStore.getState().getBuilding(buildingId);
+  const layout =
+    useLayoutStore.getState().getBuildingLayouts().get(buildingId) ||
+    new BoxLayout();
+
   const {
     isBuildingHovered,
     isParentHovered,
@@ -36,26 +34,22 @@ export default function CodeBuildingLabel({
     isBuildingVisible,
   } = useVisualizationStore(
     useShallow((state) => ({
-      isBuildingHovered: state.hoveredEntityId === dataModel.id,
+      isBuildingHovered: state.hoveredEntityId === buildingId,
       isBuildingVisible:
-        !state.hiddenBuildingIds.has(dataModel.id) &&
-        !state.removedDistrictIds.has(dataModel.id),
-      isParentHovered: state.hoveredEntityId === dataModel.parent.id,
-      isBuildingHighlighted: state.highlightedEntityIds.has(dataModel.id),
-      isParentHighlighted: state.highlightedEntityIds.has(dataModel.parent.id),
+        !state.hiddenBuildingIds.has(buildingId) &&
+        !state.removedDistrictIds.has(buildingId),
+      isParentHovered: state.hoveredEntityId === building?.parentDistrictId,
+      isBuildingHighlighted: state.highlightedEntityIds.has(buildingId),
+      isParentHighlighted: state.highlightedEntityIds.has(
+        building?.parentDistrictId || ''
+      ),
     }))
   );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
   const getMetricForBuilding = useEvolutionDataRepositoryStore(
-    (state) => state.getMetricForClass
-  );
-
-  const { evoConfig } = useVisibilityServiceStore(
-    useShallow((state) => ({
-      evoConfig: state._evolutionModeRenderingConfiguration,
-    }))
+    (state) => state.getMetricForBuilding
   );
 
   const {
@@ -91,21 +85,16 @@ export default function CodeBuildingLabel({
 
   const { centroidDistance } = useClusterStore(
     useShallow((state) => ({
-      centroidDistance: state.getCentroidDistance(dataModel.id),
+      centroidDistance: state.getCentroidDistance(buildingId),
     }))
   );
 
-  const getbuildingHeight = () => {
+  const getBuildingHeight = () => {
     return (
       buildingFootprint +
       metricMappingMultipliers[heightMetric as MetricKey] *
         buildingHeightMultiplier *
-        getMetricForBuilding(
-          dataModel,
-          application.name,
-          heightMetric,
-          evoConfig.renderOnlyDifferences
-        )
+        getMetricForBuilding(building, heightMetric)
     );
   };
 
@@ -116,7 +105,7 @@ export default function CodeBuildingLabel({
   useEffect(() => {
     const target = new THREE.Vector3(
       layout.center.x,
-      layout.positionY + getbuildingHeight() + labelOffset,
+      layout.positionY + getBuildingHeight() + labelOffset,
       layout.center.z
     );
 
@@ -165,11 +154,15 @@ export default function CodeBuildingLabel({
       isParentHighlighted) &&
     isWithinSemanticZoomDistance;
 
+  if (!building) {
+    return null;
+  }
+
   return shouldShowLabel ? (
     <Text
       layers={sceneLayers.Label}
-      key={dataModel.id + '-label'}
-      name={'Code building label of ' + dataModel.name}
+      key={buildingId + '-label'}
+      name={'Code building label of ' + building.name}
       position={labelPosition}
       color={buildingTextColor}
       visible={isBuildingVisible}
@@ -179,11 +172,7 @@ export default function CodeBuildingLabel({
       }
       raycast={() => null}
     >
-      {getTruncatedDisplayName(
-        dataModel.name,
-        dataModel.id,
-        buildingLabelLength
-      )}
+      {getTruncatedDisplayName(building.name, buildingId, buildingLabelLength)}
     </Text>
   ) : null;
 }
