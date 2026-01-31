@@ -70,7 +70,7 @@ async function streamSvgFile(output, res) {
 }
 
 diagramsRouter.post('/', async (req, res) => {
-  const { type, path: inputPath, namespace } = req.body;
+  const { type, path: inputPath } = req.body;
 
   try {
     switch (type) {
@@ -97,19 +97,19 @@ diagramsRouter.post('/', async (req, res) => {
       // TODO: namespace & all-namespaces not working,
       // need kubeconfig to point kubectl to cluster.
       // commands are fine in theory, 'kubectl get all' just fails since it finds nothing
-      case 'namespace':
-        await runShellAndStream(
-          `kubectl get all -n ${namespace || 'default'} -o yaml | kube-diagrams -`,
-          res
-        );
-        break;
+      // case 'namespace':
+      //   await runShellAndStream(
+      //     `kubectl get all -n ${namespace || 'default'} -o yaml | kube-diagrams -`,
+      //     res
+      //   );
+      //   break;
 
-      case 'all-namespaces':
-        await runShellAndStream(
-          `kubectl get all --all-namespaces -o yaml | kube-diagrams -`,
-          res
-        );
-        break;
+      // case 'all-namespaces':
+      //   await runShellAndStream(
+      //     `kubectl get all --all-namespaces -o yaml | kube-diagrams -`,
+      //     res
+      //   );
+      //   break;
 
       default:
         res.status(400).json({ error: 'Unknown type' });
