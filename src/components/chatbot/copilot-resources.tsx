@@ -1,7 +1,12 @@
 import { useCopilotReadable } from '@copilotkit/react-core';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
 import { type Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { EditingContext } from '../editing/editing-context';
+import { use } from 'react';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { ChatbotContext } from './chatbot-context';
 
 interface CopilotResourcesProps {
   applications?: Application[];
@@ -15,10 +20,56 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     removedComponentIds,
   } = useVisualizationStore();
 
+  const { canGoBack, canGoForward } = use(EditingContext);
+  const visualizationSettings = useUserSettingsStore(
+    (state) => state.visualizationSettings
+  );
+
+  const flattenSettings = (settings: VisualizationSettings) => {
+    const result: Record<string, unknown> = {};
+    Object.entries(settings).forEach(([id, setting]) => {
+      result[id] = (setting as any).value;
+    });
+    return result;
+  };
+  const summarizeApplications = (apps: Application[]) =>
+    apps.map((app) => {
+      let packageCount = 0;
+      let classCount = 0;
+      let methodCount = 0;
+
+      const traversePackages = (pkg: Application['packages'][number]) => {
+        packageCount += 1;
+        classCount += pkg.classes.length;
+        methodCount += pkg.classes.reduce(
+          (count, clazz) => count + clazz.methods.length,
+          0
+        );
+        pkg.subPackages.forEach(traversePackages);
+      };
+
+      app.packages.forEach(traversePackages);
+      return {
+        id: app.id,
+        name: app.name,
+        language: app.language,
+        originOfData: app.originOfData,
+        packageCount,
+        classCount,
+        methodCount,
+      };
+    });
+  const {
+    showToolsSidebar,
+    showSettingsSidebar,
+    openedToolComponent,
+    openedSettingComponent,
+  } = use(ChatbotContext);
+
   useCopilotReadable({
     description:
-      'Get the list of all applications of the 3D landscape data, the highest level of the underlying data structure.',
-    value: JSON.stringify(applications ?? [], getCircularReplacer(true)),
+      "Get a lightweight summary of the applications in the 3D landscape (counts only). Use the 'query-landscape-data' tool when you need filtered or detailed data.",
+    value: JSON.stringify(summarizeApplications(applications ?? [])),
   });
 
   useCopilotReadable({
@@ -40,6 +91,46 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     description:
       'Get the list of all currently removed components from the 3D visualization by their IDs. Removed components are not visible in the visualization.',
     value: JSON.stringify([...removedComponentIds]),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the user can navigate back in their editing history of the 3D landscape data.',
+    value: JSON.stringify(canGoBack),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the user can navigate forward in their editing history of the 3D landscape data.',
+    value: JSON.stringify(canGoForward),
+  });
+  useCopilotReadable({
+    description:
+      'Get the current visualization settings as a map of setting IDs to their values.',
+    value: JSON.stringify(flattenSettings(visualizationSettings)),
+  });
+  useCopilotReadable({
+    description:
+      'Get the default visualization settings as a map of setting IDs to their default values. Use this to reset settings or reason about valid values.',
+    value: JSON.stringify(flattenSettings(defaultVizSettings)),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the tools sidebar in the visualization UI is currently visible.',
+    value: JSON.stringify(showToolsSidebar),
+  });
+  useCopilotReadable({
+    description:
+      'Indicates whether the settings sidebar in the visualization UI is currently visible.',
+    value: JSON.stringify(showSettingsSidebar),
+  });
+  useCopilotReadable({
+    description:
+      'Gets the identifier of the currently opened component in the tools sidebar, or null if none is open.',
+    value: JSON.stringify(openedToolComponent),
+  });
+  useCopilotReadable({
+    description:
+      'Gets the identifier of the currently opened component in the settings sidebar, or null if none is open.',
+    value: JSON.stringify(openedSettingComponent),
   });
   return null;
 }

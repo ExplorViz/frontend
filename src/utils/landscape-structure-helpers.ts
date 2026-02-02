@@ -491,12 +491,23 @@ function findCommonNode(node: Node, nodes: Node[]) {
 
 // #endregion
 
-export interface InsertionApplication {}
+export interface SimpleClass {
+  fqn: string;
+  methods?: {
+    name: string;
+    private: boolean;
+    parameters: {
+      name: string;
+      type: string;
+    }[];
+    returnType: string;
+  }[];
+}
 
 export function insertApplicationToLandscape(
   structure: StructureLandscapeData,
   name: string,
-  classes: string[]
+  classes: SimpleClass[]
 ) {
   const nodeId = generateId();
   const appId = generateId();
@@ -533,7 +544,7 @@ export function insertApplicationToLandscape(
 export function insertClassesToLandscape(
   structure: StructureLandscapeData,
   id: string,
-  classes: string[]
+  classes: SimpleClass[]
 ) {
   const application = getApplicationInLandscapeById(structure, id);
   if (application) {
@@ -545,7 +556,7 @@ export function insertClassesToLandscape(
 
 // classes are a list of fully qualified names
 function packagesFromFlatClasses(
-  classes: string[],
+  classes: SimpleClass[],
   existingPackages?: Package[]
 ): Package[] {
   const rootPackagesMap = new Map<string, Package>();
@@ -553,7 +564,7 @@ function packagesFromFlatClasses(
     rootPackagesMap.set(pkg.name, pkg);
   });
 
-  classes.forEach((fqn) => {
+  classes.forEach(({ fqn, methods = [] }) => {
     const parts = fqn.split('.');
     let currentPackagesMap = rootPackagesMap;
     let parentPackage: Package | undefined = undefined;
@@ -592,7 +603,17 @@ function packagesFromFlatClasses(
       parentPackage.classes.push({
         id: generateId(),
         name: parts[parts.length - 1],
-        methods: [],
+        methods: methods.map(
+          ({ name, private: p, parameters, returnType }) => ({
+            id: generateId(),
+            type: returnType,
+            private: p,
+            parameters,
+            name,
+            originOfData: TypeOfAnalysis.Editing,
+            methodHash: '',
+          })
+        ),
         originOfData: TypeOfAnalysis.Editing,
         fqn,
         parent: parentPackage,

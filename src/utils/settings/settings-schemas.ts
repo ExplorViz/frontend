@@ -76,7 +76,11 @@ export type CommunicationSettingId =
   | 'bundlingStepSize'
   | 'beta'
   | 'use3DHAPAlgorithm'
-  | 'commCurveHeightDependsOnDistance';
+  | 'commCurveHeightDependsOnDistance'
+  | 'showHAPTree'
+  | 'scatterRadius'
+  | 'edgeBundlingStreamline'
+  | 'leafPackagesOnly';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -96,6 +100,10 @@ export type CommunicationSettings = {
   bundlingStepSize: RangeSetting;
   beta: RangeSetting;
   use3DHAPAlgorithm: FlagSetting;
+  showHAPTree: FlagSetting;
+  scatterRadius: RangeSetting;
+  edgeBundlingStreamline: FlagSetting;
+  leafPackagesOnly: FlagSetting;
 };
 
 export type DebugSettings = {
@@ -176,9 +184,17 @@ export type LayoutSettings = {
 export type LayoutSettingId = keyof LayoutSettings;
 
 export type MinimapSettings = {
-  minimap: FlagSetting;
-  zoom: RangeSetting;
-  useCameraPosition: FlagSetting;
+  isMinimapEnabled: FlagSetting;
+  minimapBgColor: ColorSetting;
+  minimapZoom: RangeSetting;
+  minimapMode: SelectSetting<string>;
+  minimapCorner: SelectSetting<string>;
+  minimapMarginX: RangeSetting;
+  minimapMarginY: RangeSetting;
+  minimapWidth: RangeSetting;
+  minimapHeight: RangeSetting;
+  minimapShape: SelectSetting<string>;
+  minimapRotate: FlagSetting;
   layer1: FlagSetting;
   layer2: FlagSetting;
   layer3: FlagSetting;
@@ -220,7 +236,7 @@ export type MagnifierSettings = {
 };
 export type MagnifierSettingId = keyof MagnifierSettings;
 
-export type XrSettingId = 'showVrButton' | 'showVrOnClick';
+export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type VisualizationSettingId =

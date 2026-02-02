@@ -4,6 +4,16 @@ resolver_timeout 5s;
 server {
   listen 80;
 
+  # BEGIN Code-Agent
+    location /api/analysis/trigger {
+      set $upstream_code_agent ${CODE_AGENT_URL};
+      proxy_pass $upstream_code_agent;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+  }
+
+  # END Code-Agent
+
   # BEGIN User-Service
 
   location /user {
@@ -29,7 +39,7 @@ server {
 
   # END User-Service
 
-  # BEGIN Dynamic-Data
+  # BEGIN Span-Service
 
   location ~* /v2/landscapes/[0-9a-z-]+/structure {
     set $upstream_landscape ${SPAN_SERV_URL};
@@ -59,9 +69,9 @@ server {
     proxy_set_header Host $host;
   }
 
-  # END Dynamic-Data
+  # END Span-Service
 
-  # BEGIN Static-Data
+  # BEGIN Code-Service
 
   location /v2/code {
     set $upstream_code ${CODE_SERV_URL};
@@ -70,9 +80,9 @@ server {
     proxy_set_header Host $host;
   }
 
-  # END Static-Data
+  # END Code-Service
 
-  # BEGIN Collab
+  # BEGIN Collab-Service
 
   location /room {
     set $upstream_room ${COLLAB_SERV_URL};
@@ -90,7 +100,7 @@ server {
     proxy_set_header Connection "upgrade";
   }
 
-  # END Collab
+  # END Collab-Service
 
   # BEGIN VSCode
 
@@ -106,6 +116,26 @@ server {
   }
 
   # END VSCode
+
+  # BEGIN Chatbot
+
+  location /providers {
+    set $upstream_copilot_providers ${COPILOT_SERV_URL};
+    proxy_pass ${upstream_copilot_providers};
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+
+  location /copilot {
+     set $upstream_copilot ${COPILOT_SERV_URL};
+    proxy_pass $upstream_copilot;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+  
+  # END Chatbot
 
   # BEGIN Keycloak
 

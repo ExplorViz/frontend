@@ -10,6 +10,7 @@ interface VisualizationStoreState {
   // State for classes
   hiddenClassIds: Set<string>; // Usually classes in hidden components
   removedComponentIds: Set<string>;
+  sceneLayers: layersType;
   actions: {
     // Actions for all entities
     setHoveredEntityId: (id: string | null) => void;
@@ -29,8 +30,22 @@ interface VisualizationStoreState {
     resetClassStates: () => void;
     removeComponents: (ids: Set<string>) => void;
     setRemovedComponents: (ids: Set<string>) => void;
+    setSceneLayers: (layers: layersType) => void;
   };
 }
+
+type layersType = {
+  Default: number;
+  Foundation: number;
+  District: number;
+  Building: number;
+  Communication: number;
+  Ping: number;
+  Label: number;
+  MinimapLabel: number;
+  MinimapMarkers: number;
+  LocalMinimapMarker: number;
+};
 
 export const useVisualizationStore = create<VisualizationStoreState>(
   (set, get) => ({
@@ -43,6 +58,18 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     // Class state
     hiddenClassIds: new Set(),
     removedComponentIds: new Set(),
+    sceneLayers: {
+      Default: 0,
+      Foundation: 1,
+      District: 2,
+      Building: 3,
+      Communication: 4,
+      Ping: 5,
+      Label: 6,
+      MinimapLabel: 7,
+      LocalMinimapMarker: 8,
+      MinimapMarkers: 9,
+    },
     actions: {
       // Shared entity states
       setHoveredEntityId: (id: string | null) => {
@@ -163,6 +190,9 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       },
       resetClassStates: () => {
         set({ hiddenClassIds: new Set() });
+      },
+      setSceneLayers: (layers: layersType) => {
+        set({ sceneLayers: layers });
       },
     },
   })

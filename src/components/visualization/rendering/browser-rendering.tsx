@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-
 import { GearIcon, ToolsIcon } from '@primer/octicons-react';
-import { createXRStore } from '@react-three/xr';
 import CollaborationOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-opener';
 import VscodeExtensionSettings from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings';
 import VscodeExtensionOpener from 'explorviz-frontend/src/components/collaboration/visualization/page-setup/sidebar/customizationbar/vscode/vscode-extension-settings-opener';
@@ -12,10 +9,12 @@ import SettingsOpener from 'explorviz-frontend/src/components/visualization/page
 import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
 import ApplicationSearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
 import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
+import CodeAnalysisTriggerForm from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-form';
+import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
-import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams';
 import KubernetesDiagramsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams-opener';
+import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import useCollaborativeModifier from 'explorviz-frontend/src/hooks/collaborative-modifier';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
@@ -23,7 +22,6 @@ import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotat
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -32,9 +30,14 @@ import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
-import { ChatbotProvider } from '../../chatbot/chatbot-context';
+import {
+  ApplicationSearchController,
+  ChatbotProvider,
+  EntityFilteringController,
+} from '../../chatbot/chatbot-context';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
 import { EditingProvider } from '../../editing/editing-context';
@@ -79,20 +82,6 @@ export default function BrowserRendering({
 }: BrowserRenderingProps) {
   // MARK: Stores
 
-  const xrStore = createXRStore({
-    controller: {
-      teleportPointer: { rayModel: { color: 'red' } },
-      rayPointer: { rayModel: { color: 'red' } },
-    },
-    offerSession: false,
-  });
-
-  const applicationRepositoryActions = useApplicationRepositoryStore(
-    useShallow((state) => ({
-      cleanup: state.cleanup,
-    }))
-  );
-
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
       setIsCommRendered: state.setIsCommRendered,
@@ -106,7 +95,6 @@ export default function BrowserRendering({
       updatePopup: state.updatePopup,
       pinPopup: state.pinPopup,
       sharePopup: state.sharePopup,
-      handleMouseMove: state.handleMouseMove,
       cleanup: state.cleanup,
     }))
   );
@@ -122,7 +110,6 @@ export default function BrowserRendering({
       addAnnotation: state.addAnnotation,
       removeAnnotation: state.removeAnnotation,
       clearAnnotations: state.clearAnnotations,
-      handleMouseMove: state.handleMouseMove,
       cleanup: state.cleanup,
     }))
   );
@@ -221,6 +208,9 @@ export default function BrowserRendering({
     string | null
   >(null);
 
+  const entityFilteringRef = useRef<EntityFilteringController | null>(null);
+  const applicationSearchRef = useRef<ApplicationSearchController | null>(null);
+
   // MARK: Refs
 
   const outerDiv = useRef<HTMLDivElement | null>(null);
@@ -253,7 +243,6 @@ export default function BrowserRendering({
 
     // Cleanup on component unmount
     return function cleanup() {
-      applicationRepositoryActions.cleanup();
       configurationActions.setIsCommRendered(true);
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();
@@ -274,7 +263,19 @@ export default function BrowserRendering({
 
   return (
     <EditingProvider>
-      <ChatbotProvider landscapeData={landscapeData}>
+      <ChatbotProvider
+        landscapeData={landscapeData}
+        showToolsSidebar={showToolsSidebar}
+        setShowToolsSidebar={setShowToolsSidebar}
+        showSettingsSidebar={showSettingsSidebar}
+        setShowSettingsSidebar={setShowSettingsSidebar}
+        openedToolComponent={openedToolComponent}
+        setOpenedToolComponent={setOpenedToolComponent}
+        openedSettingComponent={openedSettingComponent}
+        setOpenedSettingComponent={setOpenedSettingComponent}
+        entityFilteringControllerRef={entityFilteringRef}
+        applicationSearchControllerRef={applicationSearchRef}
+      >
         <div className="row h-100">
           <div className="d-flex flex-column h-100 col-12">
             <div id="rendering" ref={outerDiv}>
@@ -307,8 +308,8 @@ export default function BrowserRendering({
               {useUserSettingsStore.getState().visualizationSettings
                 .heatmapEnabled.value && <HeatmapInfo />}
 
-              <ContextMenu enterVR={() => xrStore.enterVR()}>
-                <CanvasWrapper landscapeData={landscapeData} store={xrStore} />
+              <ContextMenu>
+                <CanvasWrapper landscapeData={landscapeData} />
               </ContextMenu>
 
               {landscapeData && <Popups landscapeData={landscapeData} />}
@@ -351,6 +352,12 @@ export default function BrowserRendering({
                           toggleToolsSidebarComponent
                         }
                       />
+                      <CodeAnalysisTriggerOpener
+                        openedComponent={openedToolComponent}
+                        toggleToolsSidebarComponent={
+                          toggleToolsSidebarComponent
+                        }
+                      />
                       <KubernetesDiagramsOpener
                         openedComponent={openedToolComponent}
                         toggleToolsSidebarComponent={
@@ -366,13 +373,16 @@ export default function BrowserRendering({
                           landscapeData && (
                             <>
                               <h5 className="text-center">Entity Filtering</h5>
-                              <EntityFiltering landscapeData={landscapeData} />
+                              <EntityFiltering
+                                ref={entityFilteringRef}
+                                landscapeData={landscapeData}
+                              />
                             </>
                           )}
                         {openedToolComponent === 'application-search' && (
                           <>
                             <h5 className="text-center">Application Search</h5>
-                            <ApplicationSearch />
+                            <ApplicationSearch ref={applicationSearchRef} />
                           </>
                         )}
                         {openedToolComponent === 'Trace-Replayer' &&
@@ -386,7 +396,15 @@ export default function BrowserRendering({
                               }
                             />
                           )}
-                          {openedToolComponent === 'kubernetes-diagrams' && (
+                        {openedToolComponent === 'code-analysis-trigger' && (
+                          <>
+                            <h5 className="text-center">
+                              Git Repository Analysis
+                            </h5>
+                            <CodeAnalysisTriggerForm />
+                          </>
+                        )}
+                        {openedToolComponent === 'kubernetes-diagrams' && (
                           <>
                             <h5 className="text-center">Kubernetes Diagrams</h5>
                             <KubernetesDiagrams />

@@ -509,17 +509,58 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isFlagSetting: true,
   },
-
-  // bundlingBeta: {
-  //   value: 0.5,
-  //   range: { min: 0.0, max: 1.0, step: 0.01 },
-  //   group: 'Communication',
-  //   displayName: 'Edge Bundling β',
-  //   description: 'Controls the bundling strength (higher = stronger bundling)',
-  //   level: SettingLevel.DEFAULT,
-  //   isRangeSetting: true,
-  // },
-
+  showHAPTree: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Show HAP Tree',
+    description:
+      'Debug visualization of HAP (Hierarchical Attraction Points) tree',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  scatterRadius: {
+    level: SettingLevel.DEFAULT,
+    value: 0.5,
+    range: { min: 0.0, max: 3.0, step: 0.05 },
+    group: 'Communication',
+    displayName: 'Edge Scatter Radius',
+    description:
+      'Controls how far edges are scattered apart (0 = no scattering)',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  leafPackagesOnly: {
+    level: SettingLevel.DEFAULT,
+    value: false,
+    group: 'Communication',
+    displayName: 'Leaf Packages Only',
+    description: 'Only create HAPs for packages that contain no sub-packages',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
+  edgeBundlingStreamline: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Communication',
+    displayName: 'Streamline Edge Paths',
+    description:
+      'Simplify edge paths by keeping only class-level and highest-level HAPs (reduces detours)',
+    dependsOn: {
+      settingId: 'use3DHAPAlgorithm',
+      value: true,
+    },
+    isFlagSetting: true,
+  },
   // Label settings
   appLabelMargin: {
     level: SettingLevel.DEFAULT,
@@ -1040,20 +1081,12 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   // VR Settings
-  showVrButton: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Virtual Reality',
-    displayName: 'Show VR Button',
-    description: 'Toggle visibility of VR button',
-    isFlagSetting: true,
-  },
-  showVrOnClick: {
+  autoEnterVr: {
     level: SettingLevel.DEFAULT,
     value: true,
     group: 'Virtual Reality',
-    displayName: 'Show VR in Browser',
-    description: 'Shows the VR room in the browser after joining',
+    displayName: 'Automatically Enter VR',
+    description: 'Automatically enter VR mode when switch to VR mode',
     isFlagSetting: true,
   },
 
@@ -1242,7 +1275,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isButtonSetting: true,
   },
   // Minimap Settings
-  minimap: {
+  isMinimapEnabled: {
     level: SettingLevel.DEFAULT,
     value: false,
     group: 'Minimap',
@@ -1250,28 +1283,141 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Toggle visibility of the minimap',
     isFlagSetting: true,
   },
-  zoom: {
+  minimapCorner: {
     level: SettingLevel.DEFAULT,
-    value: 1,
-    range: { min: 0.1, max: 5, step: 0.05 },
+    value: 'top-left',
+    options: [
+      'top-left',
+      'top-middle',
+      'top-right',
+      'middle-right',
+      'bottom-right',
+      'bottom-middle',
+      'bottom-left',
+      'middle-left',
+    ],
+    group: 'Minimap',
+    displayName: 'Minimap Corner',
+    description: 'Corner in which the minimap should be placed',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isSelectSetting: true,
+  },
+  minimapZoom: {
+    level: SettingLevel.DEFAULT,
+    value: 0.5,
+    range: { min: 0, max: 5, step: 0.05 },
     group: 'Minimap',
     displayName: 'Zoom of Minimap',
     description: 'Set zoom of the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isRangeSetting: true,
   },
-  useCameraPosition: {
+  minimapShape: {
+    level: SettingLevel.DEFAULT,
+    value: 'round',
+    options: ['rectangle', 'round'],
+    group: 'Minimap',
+    displayName: 'Minimap Shape',
+    description: 'Shape of the minimap',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isSelectSetting: true,
+  },
+  minimapWidth: {
+    level: SettingLevel.DEFAULT,
+    value: 300,
+    range: { min: 50, max: 1000, step: 5 },
+    group: 'Minimap',
+    displayName: 'Minimap Width',
+    description: 'Width of the minimap',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  minimapHeight: {
+    level: SettingLevel.DEFAULT,
+    value: 300,
+    range: { min: 50, max: 1000, step: 5 },
+    group: 'Minimap',
+    displayName: 'Minimap Height',
+    description: 'Height of the minimap',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  minimapMarginX: {
+    level: SettingLevel.DEFAULT,
+    value: 35,
+    range: { min: 0, max: 100, step: 1 },
+    group: 'Minimap',
+    displayName: 'Margin Padding X',
+    description: 'Margin in x-direction to the edge of the viewport',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  minimapMarginY: {
+    level: SettingLevel.DEFAULT,
+    value: 35,
+    range: { min: 0, max: 100, step: 1 },
+    group: 'Minimap',
+    displayName: 'Minimap Margin Y',
+    description: 'Margin in y-direction to the edge of the viewport',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isRangeSetting: true,
+  },
+  minimapBgColor: {
+    level: SettingLevel.DEFAULT,
+    value: '#d3d3d3',
+    group: 'Minimap',
+    displayName: 'Minimap Background Color',
+    description: 'Set background color of the minimap',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isColorSetting: true,
+  },
+  minimapMode: {
+    level: SettingLevel.DEFAULT,
+    value: 'camera',
+    options: ['camera', 'target', 'landscape'],
+    group: 'Minimap',
+    displayName: 'Minimap Tracking Mode',
+    description:
+      'Determines what the minimap tracks (Camera, Target, or fixed Landscape)',
+    dependsOn: {
+      settingId: 'isMinimapEnabled',
+      value: true,
+    },
+    isSelectSetting: true,
+  },
+  minimapRotate: {
     level: SettingLevel.DEFAULT,
     value: true,
     group: 'Minimap',
-    displayName: 'Use Camera Position',
+    displayName: 'Rotate Minimap',
     description:
-      'If off, calculate minimap position via intersection of camera with ground plane.',
+      'If on, the minimap rotates with the main camera. If off, it stays north-oriented.',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1283,7 +1429,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable foundation visibility',
     description: 'Toggle foundation visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1295,7 +1441,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable component visibility',
     description: 'Toggle component visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1307,31 +1453,31 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Enable clazz visibility',
     description: 'Toggle clazz visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
   },
   layer4: {
     level: SettingLevel.EXTENDED,
-    value: true,
+    value: false,
     group: 'Minimap',
     displayName: 'Enable communication visibility',
     description: 'Toggle communication visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
   },
   layer6: {
     level: SettingLevel.EXTENDED,
-    value: true,
+    value: false,
     group: 'Minimap',
     displayName: 'Enable labels visibility',
     description: 'Toggle labels visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,
@@ -1344,7 +1490,7 @@ export const defaultVizSettings: VisualizationSettings = {
     description:
       'Toggle the different users position markers visibility for the minimap',
     dependsOn: {
-      settingId: 'minimap',
+      settingId: 'isMinimapEnabled',
       value: true,
     },
     isFlagSetting: true,

@@ -15,6 +15,9 @@ export class BundledCommunicationLayout extends CommunicationLayout {
   private _originHAP: HAPNode | null = null;
   private _destinationHAP: HAPNode | null = null;
   private _beta: number = 0.8;
+  private _scatterRadius: number = 0.5;
+  private _streamline: boolean = true;
+  private _leafPackagesOnly: boolean = false;
 
   constructor(
     model: ClassCommunication | ComponentCommunication,
@@ -29,6 +32,7 @@ export class BundledCommunicationLayout extends CommunicationLayout {
     this.startPoint = startPoint;
     this.endPoint = endPoint;
     this.lineThickness = lineThickness;
+    this._streamline = true;
 
     this._bundlingConfig = {
       bundleStrength: config?.bundleStrength ?? 0.3,
@@ -49,6 +53,44 @@ export class BundledCommunicationLayout extends CommunicationLayout {
     this.updatePathFromHAP();
   }
 
+  public setScatterRadius(radius: number): void {
+    this._scatterRadius = Math.max(0, Math.min(30, radius));
+    if (this._originHAP && this._destinationHAP) {
+      this.updatePathFromHAP();
+    }
+  }
+
+  public setStreamline(streamline: boolean): void {
+    if (this._streamline !== streamline) {
+      this._streamline = streamline;
+      if (this._originHAP && this._destinationHAP) {
+        this.updatePathFromHAP();
+      }
+    }
+  }
+
+  public getStreamline(): boolean {
+    return this._streamline;
+  }
+
+  // Set leaf packages only
+  public setLeafPackagesOnly(leafOnly: boolean): void {
+    if (this._leafPackagesOnly !== leafOnly) {
+      this._leafPackagesOnly = leafOnly;
+      if (this._originHAP && this._destinationHAP) {
+        this.updatePathFromHAP();
+      }
+    }
+  }
+
+  public getLeafPackagesOnly(): boolean {
+    return this._leafPackagesOnly;
+  }
+
+  public getScatterRadius(): number {
+    return this._scatterRadius;
+  }
+
   // Update path using 3D-HAP algorithm
   private updatePathFromHAP(): void {
     if (!this._originHAP || !this._destinationHAP) {
@@ -58,13 +100,17 @@ export class BundledCommunicationLayout extends CommunicationLayout {
 
     const hapPath = this._hapSystem.findHAPPath(
       this._originHAP,
-      this._destinationHAP
+      this._destinationHAP,
+      this._streamline,
+      this._leafPackagesOnly
     );
     const edgePath = this._hapSystem.calculateEdgePath(
       this.startPoint,
       this.endPoint,
       hapPath,
-      this._beta
+      this._beta,
+      this._scatterRadius,
+      this._streamline
     );
 
     // Remove start and end points to get control points only
@@ -156,6 +202,9 @@ export class BundledCommunicationLayout extends CommunicationLayout {
     );
     copy.updateControlPoints(this._controlPoints);
     copy.setBeta(this._beta);
+    copy.setScatterRadius(this._scatterRadius);
+    copy.setStreamline(this._streamline);
+    copy.setLeafPackagesOnly(this._leafPackagesOnly);
     if (this._originHAP && this._destinationHAP) {
       copy.setHAPNodes(this._originHAP, this._destinationHAP);
     }

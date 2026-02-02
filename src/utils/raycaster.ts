@@ -1,4 +1,4 @@
-import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
 import CrosshairMesh from 'explorviz-frontend/src/view-objects/3d/crosshair-mesh.ts';
@@ -97,11 +97,11 @@ export default class Raycaster extends THREE.Raycaster {
   ) {
     this.setFromCamera(new THREE.Vector2(coords.x, coords.y), camera);
     userList.forEach((mesh: THREE.Mesh) => {
-      mesh.layers.enable(SceneLayers.Default);
+      mesh.layers.enable(useVisualizationStore.getState().sceneLayers.Default);
     });
     const intersections = this.intersectObjects(userList, false);
     userList.forEach((mesh: THREE.Mesh) => {
-      mesh.layers.disable(SceneLayers.Default);
+      mesh.layers.disable(useVisualizationStore.getState().sceneLayers.Default);
     });
     if (intersections.length > 0) {
       return intersections[0];

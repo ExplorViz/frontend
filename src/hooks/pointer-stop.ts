@@ -1,5 +1,5 @@
 import { ThreeEvent } from '@react-three/fiber';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 type PointerStopCallback = (event: ThreeEvent<PointerEvent>) => void;
 
@@ -10,32 +10,29 @@ export function usePointerStop(
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pointerIsOnMeshRef = useRef<boolean>(true);
 
-  const handlePointerEnter = useCallback(() => {
+  const handlePointerEnter = () => {
     pointerIsOnMeshRef.current = true;
-  }, []);
+  };
 
-  const handlePointerLeave = useCallback(() => {
+  const handlePointerLeave = () => {
     pointerIsOnMeshRef.current = false;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-  }, []);
+  };
 
-  const handlePointerMove = useCallback(
-    (event: ThreeEvent<PointerEvent>) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+  const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      if (timeoutRef.current && pointerIsOnMeshRef.current) {
+        onPointerStop(event);
       }
-
-      timeoutRef.current = setTimeout(() => {
-        if (timeoutRef.current && pointerIsOnMeshRef.current) {
-          onPointerStop(event);
-        }
-      }, delay);
-    },
-    [delay, onPointerStop]
-  );
+    }, delay);
+  };
 
   useEffect(() => {
     return () => {

@@ -1,50 +1,102 @@
 import { useEffect, useState } from 'react';
-import { SearchIcon, ToolsIcon } from '@primer/octicons-react';
+import { InfoIcon, SearchIcon, ToolsIcon } from '@primer/octicons-react';
 import { Button } from 'react-bootstrap';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 
 type Action =
   | 'highlight'
   | 'removeHighlight'
   | 'open'
   | 'close'
+  | 'openToolsSidebar'
+  | 'closeToolsSidebar'
+  | 'openSettingsSidebar'
+  | 'closeSettingsSidebar'
+  | 'openToolsComponent'
+  | 'closeToolsComponent'
+  | 'openSettingsComponent'
+  | 'closeSettingsComponent'
+  | 'filterEntities'
+  | 'searchComponents'
+  | 'updateSettings'
   | 'ping'
   | 'moveCamera'
   | 'resetCamera'
   | 'addApplication'
   | 'addClasses'
-  | 'removeComponent';
+  | 'removeComponent'
+  | 'undoEdit'
+  | 'redoEdit'
+  | 'screenshot'
+  | 'queryLandscapeData'
+  | 'clickOnScreen';
 type Status = 'inProgress' | 'executing' | 'complete';
 
 interface ToolCallCardProps {
+  message?: string;
+  messageArgs?: Record<string, any>;
   component?: {
     id?: string;
     name?: string;
+    fqn?: string;
   };
   status: Status;
   action?: Action;
-  disablePing?: boolean;
+  showPopup?: boolean;
+  errorMessage?: string;
+  onClick?: () => void;
 }
 
 export function ToolCallCard({
   component,
   status,
   action,
-  disablePing,
+  showPopup,
+  errorMessage,
+  messageArgs,
+  message = getMessage(status, action, errorMessage, messageArgs),
+  onClick,
 }: ToolCallCardProps) {
-  const message = getMessage(status, action);
-  const displayComponent = component?.name || component?.id?.slice(0, 8);
-  const hasId = Boolean(component?.id);
-  const disabled = !hasId || disablePing;
+  const disabled = !component?.id && !onClick;
+  const application = component?.id
+    ? useModelStore.getState().getApplication(component?.id)
+    : undefined;
+  const pckg = component?.id
+    ? useModelStore.getState().getComponent(component?.id)
+    : undefined;
+  const clazz = component?.id
+    ? useModelStore.getState().getClass(component?.id)
+    : undefined;
+  const displayComponent =
+    component?.name ||
+    (application?.name && `application ${application.name}`) ||
+    (pckg?.fqn && `package ${pckg.fqn}`) ||
+    (clazz?.fqn && `class ${clazz.fqn}`) ||
+    component?.id?.slice(0, 8);
+  const { addPopup } = usePopupHandlerStore();
 
   return (
-    <div className="tool-call-card">
+    <div className={`tool-call-card ${errorMessage ? 'error' : ''}`}>
       <Button
-        variant="primary"
+        variant={errorMessage ? 'danger' : 'primary'}
         disabled={disabled}
-        onClick={() => pingByModelId(component?.id!)}
+        onClick={
+          onClick ||
+          (() =>
+            showPopup
+              ? addPopup({ entityId: component!.id! })
+              : pingByModelId(component?.id!))
+        }
       >
-        {disabled ? <ToolsIcon size={14} /> : <SearchIcon size={14} />}
+        {disabled ? (
+          <ToolsIcon size={14} />
+        ) : showPopup ? (
+          <InfoIcon size={14} />
+        ) : (
+          <SearchIcon size={14} />
+        )}
       </Button>
       {message}
       {displayComponent && ` ${displayComponent}`}
@@ -67,7 +119,12 @@ function AnimatedEllipsis() {
   return '.'.repeat(count);
 }
 
-function getMessage(status: Status, action?: Action) {
+function getMessage(
+  status: Status,
+  action?: Action,
+  errorMessage?: string,
+  messageArgs?: Record<string, string>
+): string {
   switch (status) {
     case 'inProgress':
     case 'executing':
@@ -80,6 +137,28 @@ function getMessage(status: Status, action?: Action) {
           return 'Opening';
         case 'close':
           return 'Closing';
+        case 'openToolsSidebar':
+          return 'Opening tools sidebar';
+        case 'closeToolsSidebar':
+          return 'Closing tools sidebar';
+        case 'openSettingsSidebar':
+          return 'Opening settings sidebar';
+        case 'closeSettingsSidebar':
+          return 'Closing settings sidebar';
+        case 'openToolsComponent':
+          return 'Opening tools component';
+        case 'closeToolsComponent':
+          return 'Closing tools component';
+        case 'openSettingsComponent':
+          return 'Opening settings component';
+        case 'closeSettingsComponent':
+          return 'Closing settings component';
+        case 'filterEntities':
+          return 'Filtering entities';
+        case 'searchComponents':
+          return 'Searching components';
+        case 'updateSettings':
+          return 'Updating settings';
         case 'ping':
           return 'Pinging';
         case 'moveCamera':
@@ -89,9 +168,19 @@ function getMessage(status: Status, action?: Action) {
         case 'addApplication':
           return 'Adding application';
         case 'addClasses':
-          return 'Adding classes to';
+          return `Adding ${messageArgs?.classes?.length ?? '?'} classes to`;
         case 'removeComponent':
           return 'Removing component';
+        case 'undoEdit':
+          return 'Undoing edit';
+        case 'redoEdit':
+          return 'Redoing edit';
+        case 'screenshot':
+          return 'Taking screenshot';
+        case 'queryLandscapeData':
+          return 'Querying landscape data';
+        case 'clickOnScreen':
+          return 'Clicking on screen at';
         default:
           return 'Tool call';
       }
@@ -105,6 +194,28 @@ function getMessage(status: Status, action?: Action) {
           return 'Opened';
         case 'close':
           return 'Closed';
+        case 'openToolsSidebar':
+          return 'Opened tools sidebar';
+        case 'closeToolsSidebar':
+          return 'Closed tools sidebar';
+        case 'openSettingsSidebar':
+          return 'Opened settings sidebar';
+        case 'closeSettingsSidebar':
+          return 'Closed settings sidebar';
+        case 'openToolsComponent':
+          return 'Opened tools component';
+        case 'closeToolsComponent':
+          return 'Closed tools component';
+        case 'openSettingsComponent':
+          return 'Opened settings component';
+        case 'closeSettingsComponent':
+          return 'Closed settings component';
+        case 'filterEntities':
+          return 'Filtered entities';
+        case 'searchComponents':
+          return 'Searched components';
+        case 'updateSettings':
+          return 'Updated settings';
         case 'ping':
           return 'Pinged';
         case 'moveCamera':
@@ -114,9 +225,22 @@ function getMessage(status: Status, action?: Action) {
         case 'addApplication':
           return 'Added application';
         case 'addClasses':
-          return 'Added classes to';
+          return `Added ${messageArgs?.classes?.length ?? '?'} classes to`;
         case 'removeComponent':
           return 'Removed component';
+        case 'undoEdit':
+          return 'Undid edit';
+        case 'redoEdit':
+          return 'Redid edit';
+        case 'screenshot':
+          if (errorMessage) {
+            return `Failed to take screenshot: ${errorMessage}`;
+          }
+          return 'Took screenshot';
+        case 'queryLandscapeData':
+          return 'Fetched landscape data for';
+        case 'clickOnScreen':
+          return 'Clicked on screen at';
         default:
           return 'Tool call';
       }

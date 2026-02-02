@@ -1,3 +1,4 @@
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
@@ -37,6 +38,7 @@ export default class CommunicationArrowMesh extends BaseMesh {
 
     this.setDirection(dir);
     this.setLength(length, headLength, headWidth);
+    this.layers.set(useVisualizationStore.getState().sceneLayers.Communication);
   }
 
   setDirection(dir: THREE.Vector3) {

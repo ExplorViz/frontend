@@ -364,7 +364,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
     }),
     {
       name: 'ExplorVizSettings',
-      version: 26, // increment to overwrite existing storage (if needed)
+      version: 29, // increment to overwrite existing storage (if needed)
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
@@ -374,6 +374,11 @@ export const useUserSettingsStore = create<UserSettingsState>()(
               key === 'selectedPreset'
           )
         ),
+      merge: (persistedState: any, currentState) => {
+        if (!persistedState) return currentState;
+
+        return { ...currentState, ...persistedState };
+      },
     }
   )
 );

@@ -46,6 +46,8 @@ export default function CodeBuildingLabel({
     }))
   );
 
+  const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
+
   const getMetricForClass = useEvolutionDataRepositoryStore(
     (state) => state.getMetricForClass
   );
@@ -84,10 +86,9 @@ export default function CodeBuildingLabel({
     }))
   );
 
-  const { centroidDistances, getCentroidDistance } = useClusterStore(
+  const { centroidDistance } = useClusterStore(
     useShallow((state) => ({
-      centroidDistances: state.centroidDistances,
-      getCentroidDistance: state.getCentroidDistance,
+      centroidDistance: state.getCentroidDistance(dataModel.id),
     }))
   );
 
@@ -108,26 +109,6 @@ export default function CodeBuildingLabel({
   const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
     new THREE.Vector3(layout.center.x, layout.positionY, layout.center.z)
   );
-
-  // Track distance to cluster centroid for label visibility
-  const [isWithinDistance, setIsWithinDistance] = useState<boolean>(true);
-
-  useEffect(() => {
-    const distance = getCentroidDistance(dataModel.id);
-    if (distance !== undefined) {
-      // Larger Labels of larger districts should be visible from a greater distance
-      const sizeMultiplier = 1.0 + layout.area / 10000.0;
-      setIsWithinDistance(distance <= labelDistanceThreshold * sizeMultiplier);
-    } else {
-      // Show label by default
-      setIsWithinDistance(true);
-    }
-  }, [
-    centroidDistances,
-    labelDistanceThreshold,
-    getCentroidDistance,
-    dataModel.id,
-  ]);
 
   useEffect(() => {
     const target = new THREE.Vector3(
@@ -156,7 +137,9 @@ export default function CodeBuildingLabel({
           setLabelPosition(new THREE.Vector3(values.x, values.y, values.z)),
       });
     } else {
-      setLabelPosition(target.clone());
+      if (!labelPosition.equals(target)) {
+        setLabelPosition(target.clone());
+      }
     }
   }, [
     layout,
@@ -166,17 +149,24 @@ export default function CodeBuildingLabel({
     labelOffset,
   ]);
 
+  const sizeMultiplier = 1.0 + layout.area / 10000.0;
+  const isWithinSemanticZoomDistance = centroidDistance
+    ? centroidDistance <= labelDistanceThreshold * sizeMultiplier
+    : true;
+
   const shouldShowLabel =
     (showAllClassLabels ||
       isClassHovered ||
       isParentHovered ||
       isClassHighlighted ||
       isParentHighlighted) &&
-    isWithinDistance;
+    isWithinSemanticZoomDistance;
 
   return shouldShowLabel ? (
     <Text
+      layers={sceneLayers.Label}
       key={dataModel.id + '-label'}
+      name={'Code building label of ' + dataModel.name}
       position={labelPosition}
       color={classTextColor}
       visible={isClassVisible}

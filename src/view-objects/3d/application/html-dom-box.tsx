@@ -1,13 +1,9 @@
 import { Box, Edges, Html, Line } from '@react-three/drei';
-import { ThreeEvent } from '@react-three/fiber';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { BoxData } from 'explorviz-frontend/src/view-objects/3d/application/html-visualizer';
 import { useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useShallow } from 'zustand/react/shallow';
 
 export default function HtmlDomBox({
   box,
@@ -22,32 +18,12 @@ export default function HtmlDomBox({
   visible: boolean;
   setClickedNode: any;
 }) {
-  const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(box.isSubtreeRoot);
 
   const meshRef = useRef<THREE.Group | null>(null);
-  if (meshRef.current instanceof THREE.Group) {
-    meshRef.current.dataModel = box;
-  }
 
-  const { addPopup } = usePopupHandlerStore(
-    useShallow((state) => ({
-      addPopup: state.addPopup,
-    }))
-  );
-
-  const enableHoverEffects = useUserSettingsStore(
-    (state) => state.visualizationSettings.enableHoverEffects.value
-  );
-
-  const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
-    addPopup({
-      mesh: meshRef.current,
-      position: {
-        x: event.clientX,
-        y: event.clientY,
-      },
-    });
+  const handlePointerStop = (/*event: ThreeEvent<PointerEvent>*/) => {
+    // TODO: Add popup
   };
 
   const pointerStopHandlers = usePointerStop(handlePointerStop, 50);
@@ -62,7 +38,9 @@ export default function HtmlDomBox({
   };
 
   const handleDoubleClick = () => {
-    box.htmlNode.click();
+    if (box.htmlNode instanceof HTMLElement) {
+      box.htmlNode.click();
+    }
   };
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
@@ -71,22 +49,7 @@ export default function HtmlDomBox({
   return (
     <group
       position={[300, 218, 0]}
-      intersectChildren={false}
       visible={visible}
-      {...(enableHoverEffects && {
-        onPointerOver: (event) => {
-          if (visible) {
-            event.stopPropagation();
-            setHovered(true);
-          }
-        },
-        onPointerOut: (event) => {
-          if (visible) {
-            event.stopPropagation();
-          }
-          setHovered(false);
-        },
-      })}
       onClick={handleClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       ref={meshRef}

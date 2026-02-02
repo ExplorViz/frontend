@@ -1,9 +1,15 @@
 .chatbot {
   margin-top: 2rem;
+  --copilot-kit-background-color: transparent;
+}
+
+.copilotKitMessages::-webkit-scrollbar-track {
+  background-color: transparent !important;
 }
 
 .chatbox-button-area {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
   width: 95%;
@@ -43,6 +49,10 @@
   display: inline-block;
 }
 
+.tool-call-card.error {
+  background-color: rgba(var(--bs-danger-rgb), 0.3);
+}
+
 .tool-call-card button {
   height: 26px;
   width: 26px;
@@ -53,4 +63,53 @@
   top: 7px;
   left: 7px;
   border-radius: 13px;
+}
+
+.ping-indicator {
+  height: 10px;
+  width: 10px;
+  border-radius: 5px;
+  background-color: var(--bs-danger);
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10000002;
+  animation: fadeInOut 3s ease-in-out forwards;
+}
+.ping-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 50%;
+  background-color: var(--bs-danger);
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+// ping indicator animation
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%,
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  5%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }

@@ -1,40 +1,39 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
-import { format } from 'date-fns';
-import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
-import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
-import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
-import {
-  useSnapshotTokenStore,
-  SnapshotToken,
-} from 'explorviz-frontend/src/stores/snapshot-token';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import Select from 'react-select';
-import AsyncSelect from 'react-select/async';
-import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
 import {
   DeviceCameraIcon,
   ImageIcon,
   TrashIcon,
   XIcon,
 } from '@primer/octicons-react';
-import { useShallow } from 'zustand/react/shallow';
+import { format } from 'date-fns';
+import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/wide-checkbox';
+import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
+import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
+import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
+import {
+  SnapshotToken,
+  useSnapshotTokenStore,
+} from 'explorviz-frontend/src/stores/snapshot-token';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
+import Select from 'react-select';
+import AsyncSelect from 'react-select/async';
+import { useShallow } from 'zustand/react/shallow';
 
 const shareSnapshot = import.meta.env.VITE_SHARE_SNAPSHOT_URL;
 const gitlabApi = import.meta.env.VITE_GIT_FACADE_SERV_URL;
@@ -126,9 +125,9 @@ export default function Restructure({
 
   // MARK: Constants
 
-  const today: string = useMemo(
-    () => format(new Date().getTime() + 86400 * 1000, 'yyyy-MM-dd'),
-    []
+  const today: string = format(
+    new Date().getTime() + 86400 * 1000,
+    'yyyy-MM-dd'
   );
 
   // MARK: State
@@ -328,7 +327,13 @@ export default function Restructure({
   };
 
   const loadProjects = () => {
-    const body = { api_token: token!.token, host_url: token!.hostUrl };
+    if (!token) {
+      console.error('No token provided to load projects in restructuring');
+      return;
+      Promise.resolve([]);
+    }
+
+    const body = { api_token: token.token, host_url: token.hostUrl };
     return new Promise<{ id: string; name: string }[]>((resolve) => {
       // fetch(`${gitlabApi}/get_all_projects/${token}/${hostUrl}`)
       fetch(`${gitlabApi}/get_all_projects`, {

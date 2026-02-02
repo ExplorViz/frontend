@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { SceneLayers } from 'explorviz-frontend/src/stores/minimap-service';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
@@ -175,7 +175,7 @@ export function pingPosition(
     animationMixer: globalMixer,
     color: pingColorObj,
   });
-  mesh.layers.enable(SceneLayers.Ping);
+  mesh.layers.enable(useVisualizationStore.getState().sceneLayers.Ping);
   pingContainer.add(mesh);
 
   // Scale container according to landscape settings

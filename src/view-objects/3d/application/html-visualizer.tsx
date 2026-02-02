@@ -41,45 +41,7 @@ export default function HtmlVisualizer({
   const [searchString, setSearchString] = useState('');
   const [cropToViewport, setCropToViewport] = useState(true);
 
-  useEffect(() => {
-    if (!html) {
-      setBoxes([]);
-      return;
-    }
-
-    if (renderHtmlTextures) {
-      let img = new Image();
-      htmlToImage
-        .toPng(html.getElementsByTagName('body')[0], {
-          width: 1920,
-          height: 1080,
-          pixelRatio: 1,
-        })
-        .then((dataUrl) => {
-          img.src = dataUrl;
-          document.body.appendChild(img);
-        })
-        .then(() => {
-          computeBoxes(img);
-        })
-        .catch(() => {
-          console.error('Could not create image of HTML!');
-          computeBoxes();
-        });
-    } else {
-      computeBoxes();
-    }
-  }, [
-    cropToViewport,
-    html,
-    reloadCounter,
-    updateWithObserver,
-    renderHtmlTextures,
-    renderOnlyHtmlLeafs,
-    clickedNode,
-  ]);
-
-  const computeBoxes = (img: HTMLImageElement | undefined = undefined) => {
+    const computeBoxes = (img: HTMLImageElement | undefined = undefined) => {
     if (!html) return;
 
     // Avoid that multiple observer fire in parallel
@@ -186,6 +148,44 @@ export default function HtmlVisualizer({
     maxLayer.current = maxLevel;
     setBoxes(tempBoxes);
   };
+
+  useEffect(() => {
+    if (!html) {
+      setBoxes([]);
+      return;
+    }
+
+    if (renderHtmlTextures) {
+      let img = new Image();
+      htmlToImage
+        .toPng(html.getElementsByTagName('body')[0], {
+          width: 1920,
+          height: 1080,
+          pixelRatio: 1,
+        })
+        .then((dataUrl) => {
+          img.src = dataUrl;
+          document.body.appendChild(img);
+        })
+        .then(() => {
+          computeBoxes(img);
+        })
+        .catch(() => {
+          console.error('Could not create image of HTML!');
+          computeBoxes();
+        });
+    } else {
+      computeBoxes();
+    }
+  }, [
+    cropToViewport,
+    html,
+    reloadCounter,
+    updateWithObserver,
+    renderHtmlTextures,
+    renderOnlyHtmlLeafs,
+    clickedNode,
+  ]);
 
   const isBoxVisible = (box: BoxData) => {
     return (

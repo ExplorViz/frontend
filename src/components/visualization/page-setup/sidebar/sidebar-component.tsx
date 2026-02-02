@@ -1,7 +1,12 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
-// TODO: How to get child components in here via helper?
-export default function SidebarComponent({ componentId, children }) {
+export default function SidebarComponent({
+  componentId,
+  children,
+}: {
+  componentId: string;
+  children: React.ReactNode[];
+}) {
   const onWheel: React.WheelEventHandler = (event) => {
     document
       .querySelector('.tse-scroll-content')

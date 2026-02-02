@@ -5,7 +5,6 @@ import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import { computeCommunicationLayout } from 'explorviz-frontend/src/utils/application-rendering/communication-layouter';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/application/city-district-label';
 import CityDistricts from 'explorviz-frontend/src/view-objects/3d/application/city-districts';
@@ -151,13 +150,9 @@ export default function CodeCity({
           <CommunicationR3F
             key={communication.id}
             communicationModel={communication}
-            communicationLayout={computeCommunicationLayout(
-              communication,
-              [applicationData],
-              layoutMap
-            )}
             applicationElement={applicationData.application}
             layoutMap={layoutMap}
+            applicationModels={[applicationData]}
           />
         ))}
     </group>

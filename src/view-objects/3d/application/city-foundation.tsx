@@ -31,6 +31,8 @@ export default function CityFoundation({
     new THREE.Vector3(layout.width / 2, layout.positionY, layout.depth / 2)
   );
 
+  const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
+
   useEffect(() => {
     if (enableAnimations) {
       const gsapValues = {
@@ -54,9 +56,14 @@ export default function CityFoundation({
         },
       });
     } else {
-      setFoundationPosition(
-        new THREE.Vector3(layout.width / 2, layout.center.y, layout.depth / 2)
+      const target = new THREE.Vector3(
+        layout.width / 2,
+        layout.center.y,
+        layout.depth / 2
       );
+      if (!foundationPosition.equals(target)) {
+        setFoundationPosition(target);
+      }
     }
   }, [layout.width, layout.positionY, layout.depth]);
 
@@ -165,7 +172,9 @@ export default function CityFoundation({
 
   return (
     <mesh
+      layers={sceneLayers.Foundation}
       castShadow={castShadows}
+      name={'Foundation of ' + application.name}
       scale={[layout.width, layout.height, layout.depth]}
       position={foundationPosition} // Center around application's position
       onClick={handleClickWithPrevent}
@@ -184,6 +193,7 @@ export default function CityFoundation({
       <boxGeometry />
       {appLabelMargin > 1.5 && (
         <Text
+          layers={sceneLayers.Label}
           color={foundationTextColor}
           outlineColor={'white'}
           position={getLabelPosition()}
