@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { parse } from 'svg-parser';
 import {
-  useDiagramGenerator,
   DiagramType,
-} from "../../../../../../hooks/useDiagramGenerator";
+  useDiagramGenerator,
+} from '../../../../../../hooks/useDiagramGenerator';
 
 type SvgTextNode = {
-  type: "text";
+  type: 'text';
   value: string;
 };
 
 type SvgElementNode = {
-  type: "element";
+  type: 'element';
   tagName: string;
   properties?: Record<string, any>;
   children?: SvgNode[];
@@ -20,82 +20,55 @@ type SvgElementNode = {
 type SvgNode = SvgTextNode | SvgElementNode;
 
 type SvgRootNode = {
-  type: "root";
+  type: 'root';
   children: SvgNode[];
 };
 
-type SvgComponent = React.FC<React.SVGProps<SVGSVGElement>>;
+export function svgToReactComponent(
+  svg: string,
+  displayName?: string
+): React.FC<React.SVGProps<SVGSVGElement>> | null {
+  if (!svg.trim().startsWith('<')) return null;
 
-const svgModules = import.meta.glob("/manifest-svgs/*.svg", {
-  eager: true,
-  import: "default",
-  query: "?raw"
-}) as Record<string, string>;
+  const ast = parse(svg) as SvgRootNode;
 
+  const svgElement = ast.children.find(
+    (n): n is SvgElementNode => n.type === 'element' && n.tagName === 'svg'
+  );
 
-const diagrams = buildSvgComponents();
-const diagramNames = Object.keys(diagrams);
+  if (!svgElement) return null;
 
+  const originalViewBox =
+    typeof svgElement.properties?.viewBox === 'string'
+      ? svgElement.properties.viewBox
+      : undefined;
 
-function buildSvgComponents(): Record<string, SvgComponent> {
-  const components: Record<string, SvgComponent> = {};
+  const Component: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
+    const controlledViewBox = deriveViewBox(originalViewBox, props);
 
-  for (const [path, svg] of Object.entries(svgModules)) {
-    if (!svg || !svg.trim().startsWith("<")) {
-      console.warn(`Skipping invalid SVG: ${path}`);
-      continue;
-    }
+    return renderNode({
+      ...svgElement,
+      properties: {
+        xmlns: 'http://www.w3.org/2000/svg',
+        ...svgElement.properties,
+        ...(controlledViewBox ? { viewBox: controlledViewBox } : {}),
+        ...props,
+      },
+    });
+  };
 
-    const ast = parse(svg) as SvgRootNode;
-
-    const svgElement = ast.children.find(
-      (n): n is SvgElementNode =>
-        n.type === "element" && n.tagName === "svg"
-    );
-
-    if (!svgElement) continue;
-
-    const originalViewBox =
-      typeof svgElement.properties?.viewBox === "string"
-        ? svgElement.properties.viewBox
-        : undefined;
-
-    const name = path.split("/").pop()!.replace(".svg", "");
-
-    const Component: SvgComponent = (props) => {
-      const controlledViewBox = deriveViewBox(originalViewBox, props);
-
-      return renderNode({
-        ...svgElement,
-        properties: {
-          xmlns: "http://www.w3.org/2000/svg",
-          ...svgElement.properties,
-          ...(controlledViewBox ? { viewBox: controlledViewBox } : {}),
-          ...props,
-        },
-      });
-    };
-
-    Component.displayName = `Svg(${name})`;
-    components[name] = Component;
-  }
-
-  return components;
+  Component.displayName = displayName ?? 'Svg(Dynamic)';
+  return Component;
 }
 
-function renderNode(
-  node: SvgNode,
-  key?: React.Key
-): React.ReactNode {
-  if (node.type === "text") {
+function renderNode(node: SvgNode, key?: React.Key): React.ReactNode {
+  if (node.type === 'text') {
     return decodeXmlEntities(node.value);
   }
   return React.createElement(
     node.tagName,
     { ...normalizeSvgProps(node.properties), key },
-    node.children?.map((child, index) =>
-      renderNode(child, index)
-    )
+    node.children?.map((child, index) => renderNode(child, index))
   );
 }
 
@@ -115,14 +88,8 @@ function deriveViewBox(
   const [x, y, w, h] = original.split(/\s+/).map(Number);
   if ([x, y, w, h].some(Number.isNaN)) return original;
 
-  return [
-    x - padding,
-    y - padding,
-    w + padding * 2,
-    h + padding * 2,
-  ].join(" ");
+  return [x - padding, y - padding, w + padding * 2, h + padding * 2].join(' ');
 }
-
 
 function normalizeSvgProps(
   props: Record<string, any> = {}
@@ -130,11 +97,11 @@ function normalizeSvgProps(
   const normalized: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(props)) {
-    if (key === "class") {
+    if (key === 'class') {
       normalized.className = value;
-    } else if (key === "xlink:href" || key === "xlinkHref") {
+    } else if (key === 'xlink:href' || key === 'xlinkHref') {
       normalized.href = value;
-    } else if (key.includes("-")) {
+    } else if (key.includes('-')) {
       normalized[key.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = value;
     } else {
       normalized[key] = value;
@@ -145,164 +112,103 @@ function normalizeSvgProps(
 }
 
 function decodeXmlEntities(value: string): string {
-  if (!value.includes("&")) return value;
+  if (!value.includes('&')) return value;
 
-  const textarea = document.createElement("textarea");
+  const textarea = document.createElement('textarea');
   textarea.innerHTML = value;
   return textarea.value;
 }
 
-export interface DiagramProps
-  extends React.SVGProps<SVGSVGElement> {
-  name: string;
-}
-
-function Diagram({
-  name,
-  ...props
-}: Partial<DiagramProps> = {}) {
-  if (name) {
-    const Svg = diagrams[name];
-    if (!Svg) {
-      return null;
-    }
-    return <Svg {...props} />;
-  }
+function DiagramGeneratorMenu({
+  onGenerate,
+  isRunning,
+}: {
+  onGenerate: (type: DiagramType, path?: string) => void;
+  isRunning: boolean;
+}) {
+  const [type, setType] = useState<DiagramType>('manifest');
+  const [path, setPath] = useState('');
 
   return (
-    <>
-      {Object.entries(diagrams).map(([n, Svg]) => (
-        <Svg key={n} {...props} />
-      ))}
-    </>
-  );
-}
-
-function DiagramGeneratorMenu() {
-  const { generate, isRunning, error } = useDiagramGenerator();
-
-  const [type, setType] = useState<DiagramType>("manifest");
-  const [path, setPath] = useState("");
-  const [namespace, setNamespace] = useState("default");
-  const [name, setName] = useState("");
-
-  async function onGenerate() {
-    await generate({
-      type,
-      name,
-      path: path || undefined,
-      namespace: namespace || undefined,
-    });
-
-    // simplest way to refresh SVGs for now
-    window.location.reload();
-  }
-
-  return (
-    <div style={{ padding: 12, borderBottom: "1px solid #ccc" }}>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <div style={{ padding: 12, borderBottom: '1px solid #ccc' }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <select
           value={type}
-          onChange={e => setType(e.target.value as DiagramType)}
+          onChange={(e) => setType(e.target.value as DiagramType)}
         >
           <option value="manifest">Manifest</option>
           <option value="kustomize">Kustomize</option>
           <option value="helmfile">Helmfile</option>
-          <option value="namespace">Namespace</option>
-          <option value="all-namespaces">All namespaces</option>
         </select>
 
-        {type !== "all-namespaces" && type !== "namespace" && (
-          <input
-            placeholder="Path"
-            value={path}
-            onChange={e => setPath(e.target.value)}
-          />
-        )}
-
-        {type === "namespace" && (
-          <input
-            placeholder="Namespace"
-            value={namespace}
-            onChange={e => setNamespace(e.target.value)}
-          />
-        )}
-
         <input
-          placeholder="Diagram name"
-          value={name}
-          onChange={e => setName(e.target.value)}
+          placeholder="Path"
+          value={path}
+          onChange={(e) => setPath(e.target.value)}
         />
 
-        <button disabled={isRunning || !name} onClick={onGenerate}>
-          {isRunning ? "Generating…" : "Generate"}
+        <button
+          disabled={isRunning}
+          onClick={() => onGenerate(type, path || undefined)}
+        >
+          {isRunning ? 'Generating…' : 'Generate'}
         </button>
       </div>
-
-      {error && <div style={{ color: "red" }}>{error}</div>}
     </div>
   );
 }
 
-function DiagramTabs(
-  props: React.SVGProps<SVGSVGElement>
-) {
-  const [active, setActive] = useState(
-    () => localStorage.getItem("activeDiagram") ?? diagramNames[0]
-  );
+export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
+  const [persistedSvg, setPersistedSvg] = useState<string | null>(null);
+  const { generate, svg, isRunning, error } = useDiagramGenerator();
+  const [SvgComponent, setSvgComponent] = useState<React.FC<
+    React.SVGProps<SVGSVGElement>
+  > | null>(null);
 
   useEffect(() => {
-    localStorage.setItem("activeDiagram", active);
-  }, [active]);
+    const storedSvg = localStorage.getItem('generated-diagram-svg');
+    if (storedSvg) {
+      setPersistedSvg(storedSvg);
+    }
+  }, []);
 
-  if (!diagramNames.length) {
-    return null;
+  const effectiveSvg = svg ?? persistedSvg;
+
+  useEffect(() => {
+    if (!effectiveSvg) {
+      setSvgComponent(null);
+      return;
+    }
+
+    const Component = svgToReactComponent(effectiveSvg, 'GeneratedDiagram');
+    setSvgComponent(() => Component);
+  }, [effectiveSvg]);
+
+  useEffect(() => {
+    if (svg) {
+      localStorage.setItem('generated-diagram-svg', svg);
+    }
+  }, [svg]);
+
+  async function onGenerate(type: DiagramType, path?: string) {
+    await generate({ type, path });
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Tabs */}
-      <div
-        style={{
-          display: "flex",
-          borderBottom: "1px solid #ccc",
-          gap: 4,
-        }}
-      >
-        {diagramNames.map((name) => (
-          <button
-            key={name}
-            onClick={() => setActive(name)}
-            style={{
-              padding: "6px 12px",
-              border: "none",
-              borderBottom:
-                active === name ? "2px solid #007acc" : "2px solid transparent",
-              background: "none",
-              cursor: "pointer",
-              fontWeight: active === name ? 600 : 400,
-            }}
-          >
-            {name}
-          </button>
-        ))}
-      </div>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <DiagramGeneratorMenu onGenerate={onGenerate} isRunning={isRunning} />
 
-      {/* Active diagram */}
-      <div style={{ flex: 1, overflow: "auto" }}>
-        <Diagram name={active} {...props} />
-      </div>
-    </div>
-  );
-}
+      {error && <div style={{ color: 'red' }}>{error}</div>}
 
-export default function DiagramPage(
-  props: React.SVGProps<SVGSVGElement>
-) {
-  return (
-    <div style={{ height: "100%" }}>
-      <DiagramGeneratorMenu />
-      <DiagramTabs {...props} />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {SvgComponent ? (
+          <SvgComponent {...props} />
+        ) : (
+          <div style={{ padding: 16, color: '#666' }}>
+            No diagram generated yet
+          </div>
+        )}
+      </div>
     </div>
   );
 }
