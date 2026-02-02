@@ -20,7 +20,7 @@ export function useDiagramGenerator() {
     setSvg(null);
 
     try {
-      const res = await fetch('http://localhost:9123/api/diagrams', {
+      const res = await fetch('/api/diagrams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),
