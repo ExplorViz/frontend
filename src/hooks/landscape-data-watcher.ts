@@ -59,9 +59,9 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
-    const flatLandscapeStructure = convertToFlatLandscape(
-      structureLandscapeData
-    );
+    const flatLandscapeStructure =
+      landscapeData.flatLandscapeData ??
+      convertToFlatLandscape(structureLandscapeData);
 
     const { nodes } = structureLandscapeData;
 

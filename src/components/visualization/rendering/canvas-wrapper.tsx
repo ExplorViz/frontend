@@ -20,6 +20,7 @@ import {
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
@@ -385,9 +386,9 @@ export default function CanvasWrapper({
   const updateLayout = useCallback(async () => {
     if (!landscapeData) return;
 
-    const flatStructure = convertToFlatLandscape(
-      landscapeData.structureLandscapeData
-    );
+    const flatStructure =
+      landscapeData.flatLandscapeData ??
+      convertToFlatLandscape(landscapeData.structureLandscapeData);
 
     const layoutMap = await layoutLandscape(flatStructure, removedDistrictIds);
     useLayoutStore.getState().updateLayouts(layoutMap);
@@ -547,13 +548,12 @@ export default function CanvasWrapper({
             </TeleportTarget>
           </IfInSessionMode>
           <LandscapeR3F>
-            {applicationModels.map((appModel) => (
-              <CodeCity
-                key={appModel.application.id}
-                applicationData={appModel}
-                layoutMap={layoutMap || appModel.boxLayoutMap}
-              />
-            ))}
+            {useModelStore
+              .getState()
+              .getAllCities()
+              .map((city) => (
+                <CodeCity key={city.id} city={city} />
+              ))}
             {isCommRendered &&
               interAppCommunications.map((communication) => (
                 <CommunicationR3F

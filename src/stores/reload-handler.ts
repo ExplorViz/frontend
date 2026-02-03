@@ -2,6 +2,10 @@ import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos
 import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
+  convertStructureLandscapeFromFlat,
+  FlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
@@ -12,11 +16,15 @@ interface ReloadHandlerState {
   loadLandscapeByTimestamp: (
     timestampFrom: number,
     timestampTo?: number
-  ) => Promise<[StructureLandscapeData, DynamicLandscapeData]>;
+  ) => Promise<
+    [StructureLandscapeData, DynamicLandscapeData, FlatLandscape | undefined]
+  >;
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
-  ) => Promise<[StructureLandscapeData, DynamicLandscapeData]>;
+  ) => Promise<
+    [StructureLandscapeData, DynamicLandscapeData, FlatLandscape | undefined]
+  >;
   findLastIndexPolyfill: <T>(
     array: T[],
     predicate: (value: T) => boolean
@@ -33,6 +41,13 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
     timestampFrom: number,
     timestampTo?: number
   ) => {
+    const intervalInSeconds = 10;
+    const NANOSECONDS_PER_SECOND = 1_000_000_000;
+
+    let start = 0;
+    const exact = timestampFrom;
+    let end = exact + intervalInSeconds * NANOSECONDS_PER_SECOND;
+
     try {
       const getTimestampsForCommitId =
         useTimestampRepositoryStore.getState().getTimestampsForCommitId;
@@ -52,6 +67,8 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
           ? 0
           : listOfAllTimestamps[timestampIndex1].epochNano;
 
+      start = tenSecondBucketEpochNano;
+
       listOfAllTimestamps = useTimestampRepositoryStore
         .getState()
         .getTimestampsForCommitId('cross-commit', true);
@@ -60,30 +77,42 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
         (ts) => ts.epochNano > timestampFrom
       );
 
-      const start = tenSecondBucketEpochNano;
-      const exact = timestampFrom;
-      const intervalInSeconds = 10;
-      const NANOSECONDS_PER_SECOND = 1_000_000_000;
-      const end =
-        timestampIndex2 === -1
-          ? exact + intervalInSeconds * NANOSECONDS_PER_SECOND
-          : listOfAllTimestamps[timestampIndex2].epochNano;
+      if (timestampIndex2 !== -1) {
+        end = listOfAllTimestamps[timestampIndex2].epochNano;
+      }
+    } catch (e) {
+      console.error('Error calculating timestamps: ', e);
+    }
+
+    try {
       const [structureDataPromise, dynamicDataPromise] = await requestData(
         start,
         exact,
         timestampTo ?? end
       );
 
-      if (
-        structureDataPromise.status === 'fulfilled' &&
-        dynamicDataPromise.status === 'fulfilled'
-      ) {
-        const structure = preProcessAndEnhanceStructureLandscape(
-          structureDataPromise.value,
-          TypeOfAnalysis.Dynamic
-        );
+      if (structureDataPromise.status === 'fulfilled') {
+        const structureOrFlat = structureDataPromise.value;
 
-        const dynamic = dynamicDataPromise.value;
+        let structure: StructureLandscapeData;
+        let flat: FlatLandscape | undefined;
+
+        if ('cities' in structureOrFlat) {
+          structure = convertStructureLandscapeFromFlat(
+            structureOrFlat as FlatLandscape
+          );
+          flat = structureOrFlat as FlatLandscape;
+        } else {
+          structure = preProcessAndEnhanceStructureLandscape(
+            structureOrFlat,
+            TypeOfAnalysis.Dynamic
+          );
+        }
+
+        const dynamic =
+          dynamicDataPromise.status === 'fulfilled'
+            ? dynamicDataPromise.value
+            : [];
 
         for (const t of dynamic) {
           const traceId = t.traceId;
@@ -93,10 +122,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
           }
         }
 
-        return [structure, dynamic] as [
-          StructureLandscapeData,
-          DynamicLandscapeData,
-        ];
+        return [structure, dynamic, flat];
       }
       throw Error('No data available.');
     } catch (e: any) {
@@ -122,10 +148,7 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
       }
     }
 
-    return [structure, dynamic] as [
-      StructureLandscapeData,
-      DynamicLandscapeData,
-    ];
+    return [structure, dynamic, undefined];
   },
 
   findLastIndexPolyfill: <T>(array: T[], predicate: (value: T) => boolean) => {

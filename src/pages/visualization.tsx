@@ -405,14 +405,21 @@ export default function Visualization() {
   const isLandscapeExistentAndEmpty = (() => {
     return (
       renderingServiceLandscapeData !== null &&
-      renderingServiceLandscapeData.structureLandscapeData?.nodes.length === 0
+      renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
+        0 &&
+      (!renderingServiceLandscapeData.flatLandscapeData ||
+        Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
+          .length === 0)
     );
   })();
 
   const allLandscapeDataExistsAndNotEmpty = (() => {
     return (
       renderingServiceLandscapeData !== null &&
-      renderingServiceLandscapeData.structureLandscapeData?.nodes.length > 0
+      (renderingServiceLandscapeData.structureLandscapeData?.nodes.length > 0 ||
+        (renderingServiceLandscapeData.flatLandscapeData &&
+          Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
+            .length > 0))
     );
   })();
 

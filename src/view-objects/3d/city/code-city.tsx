@@ -3,29 +3,21 @@ import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
+import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/city/city-district-label';
 import CityDistricts from 'explorviz-frontend/src/view-objects/3d/city/city-districts';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/city/city-foundation';
 import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/city/code-building-label';
 import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/city/code-buildings';
-import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/city/communication-r3f';
-import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/city/embedded-browser';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function CodeCity({
-  applicationData,
-  layoutMap,
-}: {
-  applicationData: ApplicationData;
-  layoutMap: Map<string, BoxLayout>;
-}) {
+export default function CodeCity({ city }: { city: City }) {
   const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
     useUserSettingsStore(
       useShallow((state) => ({
@@ -36,10 +28,10 @@ export default function CodeCity({
       }))
     );
 
-  const city = useModelStore.getState().getCity(applicationData.application.id);
+  const appLayout = useLayoutStore.getState().getLayout(city.id);
 
   const [appPosition, setAppPosition] = useState<THREE.Vector3 | undefined>(
-    layoutMap.get(applicationData.getId())?.position
+    appLayout?.position
   );
   const [isBrowserActive, setIsBrowserActive] = useState(false);
 
@@ -53,7 +45,7 @@ export default function CodeCity({
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
   useEffect(() => {
-    const newPosition = layoutMap.get(applicationData.getId())?.position;
+    const newPosition = appLayout?.position;
     if (!newPosition) return;
     if (enableAnimations && appPosition) {
       const gsapValues = {
@@ -79,7 +71,7 @@ export default function CodeCity({
     } else {
       setAppPosition(newPosition);
     }
-  }, [layoutMap]);
+  }, [appLayout]);
 
   if (!city) return null;
 
@@ -102,14 +94,14 @@ export default function CodeCity({
           </Container>
         </Root>
       )}
-      {isBrowserActive && (
+      {/* {isBrowserActive && (
         <EmbeddedBrowser application={applicationData.application} />
-      )}
-      {layoutMap.get(city.id) && (
-        <CityFoundation city={city} layout={layoutMap.get(city.id)} />
-      )}
+      )} */}
+      {appLayout && <CityFoundation city={city} layout={appLayout} />}
       <CodeBuildings
-        buildingIds={city.buildingIds.filter((id) => layoutMap.has(id))}
+        buildingIds={city.buildingIds.filter((id) =>
+          useLayoutStore.getState().getBuildingLayouts().has(id)
+        )}
         city={city}
         ref={buildingInstanceMeshRef}
       />
@@ -120,14 +112,16 @@ export default function CodeCity({
         />
       ))}
       <CityDistricts
-        districtIds={city.districtIds.filter((id) => layoutMap.has(id))}
-        layoutMap={layoutMap}
+        districtIds={city.districtIds.filter((id) =>
+          useLayoutStore.getState().districtLayouts.has(id)
+        )}
+        layoutMap={useLayoutStore.getState().districtLayouts}
         ref={componentInstanceMeshRef}
         city={city}
       />
       {city.districtIds.map((districtId) => {
         const district = useModelStore.getState().getDistrict(districtId);
-        const layout = layoutMap.get(districtId);
+        const layout = useLayoutStore.getState().getLayout(districtId);
         if (district && layout) {
           return (
             <CityDistrictLabel
@@ -139,7 +133,7 @@ export default function CodeCity({
         }
         return null;
       })}
-      {isCommRendered &&
+      {/* {isCommRendered &&
         applicationData.classCommunications.map((communication) => (
           <CommunicationR3F
             key={communication.id}
@@ -148,7 +142,7 @@ export default function CodeCity({
             layoutMap={layoutMap}
             applicationModels={[applicationData]}
           />
-        ))}
+        ))} */}
     </group>
   );
 }

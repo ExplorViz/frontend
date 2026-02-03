@@ -1,6 +1,7 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
@@ -34,31 +35,34 @@ export async function requestData(
 }
 
 export function requestStructureData(/* fromTimestamp: number, toTimestamp: number */) {
-  return new Promise<StructureLandscapeData>((resolve, reject) => {
-    if (useLandscapeTokenStore.getState().token === null) {
-      reject(new Error('No landscape token selected'));
-      return;
-    }
-    fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure`,
-      {
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-          'Access-Control-Allow-Origin': '*',
-        },
+  return new Promise<StructureLandscapeData | FlatLandscape>(
+    (resolve, reject) => {
+      if (useLandscapeTokenStore.getState().token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
       }
-    )
-      .then(async (response: Response) => {
-        if (response.ok) {
-          const structureData =
-            (await response.json()) as StructureLandscapeData;
-          resolve(structureData);
-        } else {
-          reject();
+      fetch(
+        `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure`,
+        {
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
         }
-      })
-      .catch((e) => reject(e));
-  });
+      )
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const structureData = (await response.json()) as
+              | StructureLandscapeData
+              | FlatLandscape;
+            resolve(structureData);
+          } else {
+            reject();
+          }
+        })
+        .catch((e) => reject(e));
+    }
+  );
 }
 
 export function requestDynamicData(

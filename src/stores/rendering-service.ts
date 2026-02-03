@@ -11,6 +11,7 @@ import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
@@ -44,7 +45,8 @@ interface RenderingServiceState {
   ) => Promise<void>;
   triggerRenderingForGivenLandscapeData: (
     structureData: StructureLandscapeData,
-    dynamicData: DynamicLandscapeData
+    dynamicData: DynamicLandscapeData,
+    flatData?: FlatLandscape
   ) => void;
   triggerRenderingForSelectedCommits: () => Promise<void>;
   _mapTimestampsToEpochs: (
@@ -140,10 +142,13 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           const dynamicToRender =
             combinedRuntimeLandscapeData.dynamicLandscapeData;
 
+          const flatToRender = combinedRuntimeLandscapeData.flatLandscapeData;
+
           if (get()._requiresRerendering(structureToRender, dynamicToRender)) {
             get().triggerRenderingForGivenLandscapeData(
               structureToRender,
-              dynamicToRender
+              dynamicToRender,
+              flatToRender
             );
           }
         }
@@ -166,12 +171,14 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
     triggerRenderingForGivenLandscapeData: (
       structureData: StructureLandscapeData,
-      dynamicData: DynamicLandscapeData
+      dynamicData: DynamicLandscapeData,
+      flatData?: FlatLandscape
     ) => {
       set({
         _landscapeData: {
           structureLandscapeData: structureData,
           dynamicLandscapeData: dynamicData,
+          flatLandscapeData: flatData,
         },
       });
     },
@@ -234,6 +241,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         const [
           latestFetchedStructureLandscapeData,
           latestFetchedDynamicLandscapeData,
+          latestFetchedFlatLandscapeData,
         ] = await useReloadHandlerStore
           .getState()
           .loadLandscapeByTimestamp(timestampFrom, timestampTo);
@@ -241,6 +249,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         commitToRuntimeLandscapeDataMap.set(commitId, {
           structureLandscapeData: latestFetchedStructureLandscapeData,
           dynamicLandscapeData: latestFetchedDynamicLandscapeData,
+          flatLandscapeData: latestFetchedFlatLandscapeData,
         });
       }
       return commitToRuntimeLandscapeDataMap;
@@ -261,6 +270,9 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             prevLandscapeData.dynamicLandscapeData,
             newLandscapeData.dynamicLandscapeData
           ),
+          flatLandscapeData:
+            newLandscapeData.flatLandscapeData ??
+            prevLandscapeData.flatLandscapeData,
         };
       } else {
         return newLandscapeData;
@@ -292,6 +304,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       );
 
       if (
+        get()._landscapeData === null ||
         !areArraysEqual(latestMethodHashes, get().previousMethodHashes) ||
         !areArraysEqual(
           newDynamicLandscapeData,

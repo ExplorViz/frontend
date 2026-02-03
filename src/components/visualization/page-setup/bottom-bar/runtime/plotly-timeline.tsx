@@ -537,7 +537,17 @@ export default function PlotlyTimeline({
       // Convert nanoseconds to milliseconds for Date object
       const timestampEpochMillis =
         nanosecondsToMilliseconds(timestampEpochNanos);
+
+      if (isNaN(timestampEpochMillis)) {
+        return '';
+      }
+
       const timestampDate = new Date(timestampEpochMillis);
+
+      if (isNaN(timestampDate.getTime())) {
+        return '';
+      }
+
       return timestampDate
         .toISOString()
         .replace('T', '<br>')
@@ -631,7 +641,10 @@ export default function PlotlyTimeline({
         }
         addCurrentTimestampToDataObject = true;
         nextExpectedTimestamp = timestampId + TIMESTAMP_INTERVAL;
-      } else if (timestamp.epochNano === null) {
+      } else if (
+        timestamp.epochNano === null ||
+        timestamp.epochNano === undefined
+      ) {
         // Edge case if API will return null values in the future
         x.push(null);
         y.push(null);

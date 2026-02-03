@@ -1,5 +1,7 @@
 import {
   Application,
+  Method,
+  Node,
   Package,
   StructureLandscapeData,
   TypeOfAnalysis,
@@ -205,4 +207,147 @@ export function convertToFlatLandscape(
     classes,
     functions,
   };
+}
+
+export function convertStructureLandscapeFromFlat(
+  flatLandscape: FlatLandscape
+): StructureLandscapeData {
+  const nodes: Node[] = [];
+
+  // Create a default node as FlatLandscape doesn't preserve Node structure
+  // We'll group all applications under this node
+  const defaultNode: Node = {
+    id: 'default-node',
+    ipAddress: '127.0.0.1',
+    hostName: 'structure-from-flat',
+    name: 'Default Node',
+    applications: [],
+    originOfData: TypeOfAnalysis.Dynamic,
+  };
+
+  nodes.push(defaultNode);
+
+  const { cities, districts, buildings, functions } = flatLandscape;
+
+  Object.values(cities).forEach((city) => {
+    const app: Application = {
+      id: city.id,
+      name: city.name,
+      language: 'JAVA', // Default or infer from buildings?
+      instanceId: '',
+      parentId: defaultNode.id,
+      packages: [],
+      originOfData: city.originOfData || TypeOfAnalysis.Dynamic,
+    };
+
+    city.rootDistrictIds.forEach((districtId) => {
+      const pkg = buildPackage(districtId, districts, buildings, functions);
+      if (pkg) {
+        pkg.parent = undefined; // Root packages have no parent
+        pkg.level = 0;
+        app.packages.push(pkg);
+      }
+    });
+
+    // Determine language from first building if available
+    if (city.buildingIds.length > 0) {
+      const firstBuilding = buildings[city.buildingIds[0]];
+      if (firstBuilding?.language) {
+        app.language = Language[firstBuilding.language];
+      }
+    }
+
+    defaultNode.applications.push(app);
+  });
+
+  // Calculate levels (since we set them to 0 or relative during build)
+  defaultNode.applications.forEach((app) => {
+    calculateLevels(app.packages, 0);
+  });
+
+  return {
+    landscapeToken: flatLandscape.landscapeToken,
+    nodes,
+  };
+}
+
+function buildPackage(
+  districtId: string,
+  districts: Record<string, District>,
+  buildings: Record<string, Building>,
+  functions: Record<string, Func>
+): Package | undefined {
+  const district = districts[districtId];
+  if (!district) return undefined;
+
+  const pkg: Package = {
+    id: district.id,
+    name: district.name,
+    fqn: district.fqn,
+    originOfData: district.originOfData || TypeOfAnalysis.Dynamic,
+    subPackages: [],
+    classes: [],
+    level: 0, // Will be recalculated
+  };
+
+  district.districtIds.forEach((subDistrictId) => {
+    const subPkg = buildPackage(subDistrictId, districts, buildings, functions);
+    if (subPkg) {
+      subPkg.parent = pkg;
+      pkg.subPackages.push(subPkg);
+    }
+  });
+
+  district.buildingIds.forEach((buildingId) => {
+    const building = buildings[buildingId];
+    if (building) {
+      const cls = buildClass(building, functions);
+      cls.parent = pkg;
+      pkg.classes.push(cls);
+    }
+  });
+
+  return pkg;
+}
+
+function buildClass(
+  building: Building,
+  functions: Record<string, Func>
+): Class {
+  const methods: Method[] = [];
+
+  building.functionIds?.forEach((funcId) => {
+    const func = functions[funcId];
+    if (func) {
+      methods.push({
+        id: func.id,
+        name: func.name,
+        type: '', // Missing in FlatLandscape
+        private: false, // Missing in FlatLandscape
+        methodHash: func.id,
+        parameters: [], // Missing in FlatLandscape
+        originOfData: func.originOfData || TypeOfAnalysis.Dynamic,
+      });
+    }
+  });
+
+  return {
+    id: building.id,
+    name: building.name,
+    fqn: building.fqn,
+    methods,
+    originOfData: building.originOfData || TypeOfAnalysis.Dynamic,
+    parent: undefined as any, // Set by caller
+    level: 0, // Set by caller/recalculate
+  };
+}
+
+function calculateLevels(packages: Package[], level: number) {
+  packages.forEach((pkg) => {
+    pkg.level = level;
+    calculateLevels(pkg.subPackages, level + 1);
+    pkg.classes.forEach((cls) => {
+      cls.level = level + 1;
+    });
+  });
 }
