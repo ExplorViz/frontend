@@ -177,7 +177,7 @@ export function convertToFlatLandscape(
 
   for (const node of input.nodes) {
     for (const app of node.applications) {
-      const cityId = app.name;
+      const cityId = app.id;
 
       if (!cities[cityId]) {
         cities[cityId] = {
@@ -191,7 +191,7 @@ export function convertToFlatLandscape(
       }
 
       for (const pkg of app.packages) {
-        walkPackages(pkg, app, cityId, [cityId]);
+        walkPackages(pkg, app, cityId, [app.name]);
       }
     }
   }

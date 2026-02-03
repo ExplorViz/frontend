@@ -15,7 +15,7 @@ import { useShallow } from 'zustand/react/shallow';
  * Districts can only be automatically opened if the parent district is already opened.
  * Districts can only be automatically closed if all nested districts are already closed.
  */
-export default function AutoComponentOpenerR3F() {
+export default function AutoDistrictOpenerR3F() {
   const {
     enableClustering,
     autoOpenCloseDistricts,
@@ -33,7 +33,7 @@ export default function AutoComponentOpenerR3F() {
     }))
   );
 
-  const closedComponentIds = useVisualizationStore(
+  const closedDistrictIds = useVisualizationStore(
     (state) => state.closedDistrictIds
   );
 
@@ -44,7 +44,7 @@ export default function AutoComponentOpenerR3F() {
     }))
   );
 
-  const getAllComponents = useModelStore((state) => state.getAllComponents);
+  const getAllDistricts = useModelStore((state) => state.getAllDistricts);
 
   useEffect(() => {
     if (
@@ -54,37 +54,38 @@ export default function AutoComponentOpenerR3F() {
     ) {
       return;
     }
-    const components = getAllComponents();
+    const districts = getAllDistricts();
 
-    components.forEach((component) => {
-      const distance = getCentroidDistance(component.id);
+    districts.forEach((district) => {
+      const distance = getCentroidDistance(district.id);
       if (distance === undefined) {
         // No cluster assignment, skip
         return;
       }
 
-      const isCurrentlyOpen = !closedComponentIds.has(component.id);
+      const isCurrentlyOpen = !closedDistrictIds.has(district.id);
       const isWithinThreshold = distance <= districtOpenCloseDistanceThreshold;
 
       if (isWithinThreshold && !isCurrentlyOpen) {
-        // Open component when close to cluster centroid
-        // But only if parent component is already opened (or component has no parent)
+        // Open district when close to cluster centroid
+        // But only if parent district is already opened (or district has no parent)
         const parentIsOpen =
-          component.parent === undefined ||
-          !closedComponentIds.has(component.parent.id);
+          district.parentDistrictId === undefined ||
+          !closedDistrictIds.has(district.parentDistrictId);
 
         if (parentIsOpen) {
-          openDistrict(component.id, false);
+          openDistrict(district.id, false);
         }
       } else if (!isWithinThreshold && isCurrentlyOpen) {
-        // Close component when far from cluster centroid
-        // But only if all subpackages are already closed
-        const allSubPackagesClosed = component.subPackages.every((subPackage) =>
-          closedComponentIds.has(subPackage.id)
+        // Close district when far from cluster centroid
+        // But only if all contained districts are already closed
+
+        const allInnerDistricts = district.districtIds.every(
+          (containedDistrictId) => closedDistrictIds.has(containedDistrictId)
         );
 
-        if (allSubPackagesClosed) {
-          closeDistrict(component.id, false, false);
+        if (allInnerDistricts) {
+          closeDistrict(district.id, false, false);
         }
       }
     });

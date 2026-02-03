@@ -35,7 +35,7 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
-import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
+import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-district-opener-r3f';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/city/communication-r3f';
@@ -567,7 +567,7 @@ export default function CanvasWrapper({
           </LandscapeR3F>
           {enableClustering && <ClusterCentroidsR3F />}
           {enableClustering && autoOpenCloseDistricts && (
-            <AutoComponentOpenerR3F />
+            <AutoDistrictOpenerR3F />
           )}
           <AnimatedPing />
           <TraceReplayOverlayR3F />

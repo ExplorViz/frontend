@@ -5,6 +5,7 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -20,6 +21,7 @@ import {
   Building,
   City,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   MetricKey,
   metricMappingMultipliers,
@@ -93,6 +95,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       enableAnimations,
       animationDuration,
       entityOpacity,
+      addedBuildingColor,
+      modifiedBuildingColor,
+      removedBuildingColor,
+      unchangedBuildingColor,
     } = useUserSettingsStore(
       useShallow((state) => ({
         buildingColor: state.visualizationSettings.buildingColor.value,
@@ -106,7 +112,19 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         enableAnimations: state.visualizationSettings.enableAnimations.value,
         animationDuration: state.visualizationSettings.animationDuration.value,
         entityOpacity: state.visualizationSettings.entityOpacity.value,
+        addedBuildingColor:
+          state.visualizationSettings.addedBuildingColor.value,
+        modifiedBuildingColor:
+          state.visualizationSettings.modifiedBuildingColor.value,
+        removedBuildingColor:
+          state.visualizationSettings.removedBuildingColor.value,
+        unchangedBuildingColor:
+          state.visualizationSettings.unchangedBuildingColor.value,
       }))
+    );
+
+    const commitComparison = useEvolutionDataRepositoryStore(
+      useShallow((state) => state.getCommitComparisonByAppName(city.name))
     );
 
     const { heatmapActive, selectedBuildingMetric, selectedHeatmapGradient } =
@@ -141,13 +159,13 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     const computeColor = useCallback(
       (buildingId: string) => {
-        const dataModel = useModelStore.getState().getBuilding(buildingId);
-        if (!dataModel) {
+        const building = useModelStore.getState().getBuilding(buildingId);
+        if (!building) {
           return new THREE.Color('red');
         }
         if (heatmapActive) {
           const metricValues = getMetricValues(
-            dataModel,
+            building,
             selectedBuildingMetric!
           );
           return new THREE.Color(
@@ -155,22 +173,45 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
           );
         }
 
-        const isHovered = hoveredEntityId === dataModel.id;
-        const isHighlighted = highlightedEntityIds.has(dataModel.id);
+        if (evoConfig.renderOnlyDifferences && commitComparison) {
+          const fqn = building.fqn || '';
+          if (commitComparison.added.includes(fqn)) {
+            return new THREE.Color(addedBuildingColor);
+          } else if (commitComparison.deleted.includes(fqn)) {
+            return new THREE.Color(removedBuildingColor);
+          } else if (commitComparison.modified.includes(fqn)) {
+            return new THREE.Color(modifiedBuildingColor);
+          } else {
+            return new THREE.Color(unchangedBuildingColor);
+          }
+        }
 
-        const baseColor = isHighlighted
-          ? getHighlightingColorForEntity(dataModel.id)
+        if (building.originOfData === TypeOfAnalysis.Editing) {
+          return new THREE.Color(addedBuildingColor);
+        }
+
+        const isHovered = hoveredEntityId === building.id;
+        const isHighlighted = highlightedEntityIds.has(building.id);
+
+        let baseColor = isHighlighted
+          ? getHighlightingColorForEntity(building.id)
           : new THREE.Color(buildingColor);
 
         if (enableHoverEffects && isHovered) {
-          return calculateColorBrightness(baseColor, 1.1);
-        } else {
-          return baseColor;
+          baseColor = calculateColorBrightness(baseColor, 1.1);
         }
+
+        return baseColor;
       },
       [
         heatmapActive,
         selectedBuildingMetric,
+        evoConfig.renderOnlyDifferences,
+        commitComparison,
+        addedBuildingColor,
+        removedBuildingColor,
+        modifiedBuildingColor,
+        unchangedBuildingColor,
         hoveredEntityId,
         highlightedEntityIds,
         buildingColor,
@@ -208,9 +249,35 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
           layout.position.y + getBuildingHeight(building) / 2,
           layout.center.z
         );
+
+        const visibleDueToEvo = (() => {
+          if (evoConfig.renderOnlyDifferences) {
+            if (!commitComparison) return false;
+            const fqn = building.fqn || '';
+            return (
+              commitComparison.added.includes(fqn) ||
+              commitComparison.deleted.includes(fqn) ||
+              commitComparison.modified.includes(fqn)
+            );
+          }
+
+          if (
+            building.originOfData === TypeOfAnalysis.Static ||
+            building.originOfData === TypeOfAnalysis.StaticAndDynamic
+          ) {
+            return evoConfig.renderStatic;
+          }
+          if (building.originOfData === TypeOfAnalysis.Dynamic) {
+            return evoConfig.renderDynamic;
+          }
+          return true;
+        })();
+
         obj.visible =
           !hiddenBuildingIds.has(building.id) &&
-          !removedDistrictIds.has(building.id);
+          !removedDistrictIds.has(building.id) &&
+          visibleDueToEvo;
+
         obj.scale.set(layout.width, getBuildingHeight(building), layout.depth);
         obj.color = computeColor(building.id);
         obj.updateMatrix();
@@ -223,6 +290,8 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       layoutMap,
       hiddenBuildingIds,
       removedDistrictIds,
+      evoConfig,
+      commitComparison,
       getBuildingHeight,
       computeColor,
       instanceIdToBuildingId,

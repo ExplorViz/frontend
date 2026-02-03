@@ -38,9 +38,6 @@ export default function useLandscapeDataWatcher(
   const [flatDataWorker] = useState<Worker>(
     () => new Worker(new URL('../workers/flat-data-worker.js', import.meta.url))
   );
-  const [metricsWorker] = useState<Worker>(
-    () => new Worker(new URL('../workers/metrics-worker.js', import.meta.url))
-  );
 
   // Variables
   const structureLandscapeData = landscapeData?.structureLandscapeData;
@@ -139,7 +136,6 @@ export default function useLandscapeDataWatcher(
     modelRepository.setBuildings(
       Object.values(flatLandscapeStructure.buildings)
     );
-    modelRepository.setClses(Object.values(flatLandscapeStructure.classes));
     modelRepository.setFunctions(
       Object.values(flatLandscapeStructure.functions)
     );
@@ -187,7 +183,6 @@ export default function useLandscapeDataWatcher(
 
   useEffect(() => {
     return function cleanup() {
-      metricsWorker.terminate();
       flatDataWorker.terminate();
     };
   }, []);

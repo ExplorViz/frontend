@@ -2,7 +2,6 @@ import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/d
 import {
   Building,
   City,
-  Cls,
   District,
   Func,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -29,7 +28,6 @@ interface ModelRepositoryState {
 
   classes: Record<string, Class>;
   buildings: Record<string, Building>;
-  clses: Record<string, Cls>;
   functions: Record<string, Func>;
 
   communications: Record<string, ClassCommunication>;
@@ -41,7 +39,6 @@ interface ModelRepositoryState {
   getDistrict: (id: string) => District | undefined;
   getClass: (id: string) => Class | Building | undefined;
   getBuilding: (id: string) => Building | undefined;
-  getCls: (id: string) => Cls | undefined;
   getFunc: (id: string) => Func | undefined;
   getCommunication: (id: string) => ClassCommunication | undefined;
   getModel: (
@@ -62,9 +59,7 @@ interface ModelRepositoryState {
   // Getter functions for all models
   getAllApplications: () => Application[];
   getAllCities: () => City[];
-  getAllComponents: () => (Package | District)[];
   getAllDistricts: () => District[];
-  getAllBuildings: () => (Class | Building)[];
   getAllBuildings: () => Building[];
   getAllCommunications: () => ClassCommunication[];
 
@@ -84,7 +79,6 @@ interface ModelRepositoryState {
   setDistricts: (districts: District[]) => void;
   setClasses: (classes: Class[]) => void;
   setBuildings: (buildings: Building[]) => void;
-  setClses: (clses: Cls[]) => void;
   setFunctions: (functions: Func[]) => void;
   setCommunications: (communications: ClassCommunication[]) => void;
 
@@ -115,7 +109,6 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   districts: {},
   classes: {},
   buildings: {},
-  clses: {},
   functions: {},
   communications: {},
 
@@ -126,22 +119,13 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   getDistrict: (id) => get().districts[id],
   getClass: (id) => get().buildings[id] || get().classes[id],
   getBuilding: (id) => get().buildings[id],
-  getCls: (id) => get().clses[id],
   getFunc: (id) => get().functions[id],
   getCommunication: (id) => get().communications[id],
 
   // Getter functions for all models
   getAllApplications: () => Object.values(get().applications),
   getAllCities: () => Object.values(get().cities),
-  getAllComponents: () => [
-    ...Object.values(get().districts),
-    ...Object.values(get().components),
-  ],
   getAllDistricts: () => Object.values(get().districts),
-  getAllBuildings: () => [
-    ...Object.values(get().buildings),
-    ...Object.values(get().classes),
-  ],
   getAllBuildings: () => Object.values(get().buildings),
   getAllCommunications: () => Object.values(get().communications),
 
@@ -245,10 +229,6 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
     set(() => ({
       buildings: Object.fromEntries(buildings.map((b) => [b.id, b])),
     })),
-  setClses: (clses) =>
-    set(() => ({
-      clses: Object.fromEntries(clses.map((c) => [c.id, c])),
-    })),
   setFunctions: (functions) =>
     set(() => ({
       functions: Object.fromEntries(functions.map((f) => [f.id, f])),
@@ -320,7 +300,6 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       districts: {},
       classes: {},
       buildings: {},
-      clses: {},
       functions: {},
       communications: {},
     })),
