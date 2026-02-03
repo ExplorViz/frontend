@@ -391,11 +391,11 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         return;
       }
 
-      if (
-        buildingIdToInstanceId.size > 0 &&
-        buildingIds.length > 0 &&
-        enableAnimations
-      ) {
+      const setsMatch =
+        buildingIds.length === buildingIdToInstanceId.size &&
+        buildingIds.every((id) => buildingIdToInstanceId.has(id));
+
+      if (setsMatch && buildingIds.length > 0 && enableAnimations) {
         animateMeshInstanceChanges();
       } else {
         computeMeshInstances();
@@ -403,10 +403,10 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
     }, [
       meshRef,
       buildingIds,
-      buildingIdToInstanceId.size,
       enableAnimations,
       animateMeshInstanceChanges,
       computeMeshInstances,
+      buildingIdToInstanceId,
     ]);
 
     // React on changes of color

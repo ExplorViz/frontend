@@ -20,7 +20,8 @@ type FlatBaseModel = {
   name: string;
   fqn?: string;
   originOfData?: TypeOfAnalysis;
-  editingState?: 'added' | 'removed';
+  commitComparison?: 'added' | 'modified' | 'removed' | 'unchanged'; // For two selected commits
+  editingState?: 'added' | 'removed'; // Reflect changes from restructuring
 };
 
 export enum Language {

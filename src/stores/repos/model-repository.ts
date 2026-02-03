@@ -35,6 +35,7 @@ interface ModelRepositoryState {
   // Getter functions for individual models
   getApplication: (id: string) => Application | undefined;
   getCity: (id: string) => City | undefined;
+  getCityForModel: (id: string) => City | undefined;
   getComponent: (id: string) => Package | District | undefined;
   getDistrict: (id: string) => District | undefined;
   getClass: (id: string) => Class | Building | undefined;
@@ -115,6 +116,22 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   // Getter functions for individual models
   getApplication: (id) => get().applications[id],
   getCity: (id) => get().cities[id],
+  getCityForModel: (id) => {
+    const state = get();
+    if (state.cities[id]) return state.cities[id];
+
+    const district = state.districts[id];
+    if (district) {
+      return state.cities[district.parentCityId];
+    }
+
+    const building = state.buildings[id];
+    if (building) {
+      return state.cities[building.parentCityId];
+    }
+
+    return undefined;
+  },
   getComponent: (id) => get().districts[id] || get().components[id],
   getDistrict: (id) => get().districts[id],
   getClass: (id) => get().buildings[id] || get().classes[id],
