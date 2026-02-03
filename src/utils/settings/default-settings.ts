@@ -598,6 +598,19 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isFlagSetting: true,
   },
+  enableEdgeColoring: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Communication',
+    displayName: 'Edge Coloring',
+    description:
+      'Enable colored gradient visualization for communication edges',
+    isFlagSetting: true,
+    dependsOn: {
+      settingId: 'edgeBundlingAlgorithm',
+      values: ['3D-HAP', 'Force-directed', 'None'],
+    },
+  },
   // Label settings
   appLabelMargin: {
     level: SettingLevel.DEFAULT,

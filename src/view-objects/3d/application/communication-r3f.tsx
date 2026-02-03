@@ -70,6 +70,7 @@ export default function CommunicationR3F({
     bundlingIterations,
     bundlingStepSize,
     classLayoutAlgorithm,
+    enableEdgeColoring,
 
     // 3D-HAP specific settings
     showHAPTree,
@@ -104,6 +105,7 @@ export default function CommunicationR3F({
         bundlingStepSize: vizSettings.bundlingStepSize.value,
         classLayoutAlgorithm:
           state.visualizationSettings.classLayoutAlgorithm.value,
+        enableEdgeColoring: vizSettings.enableEdgeColoring?.value ?? true,
 
         // 3D-HAP settings with safe fallbacks
         beta: vizSettings.beta?.value ?? 0.8,
@@ -1918,6 +1920,35 @@ export default function CommunicationR3F({
     return [dataModel, { use3DHAPAlgorithm }];
   }, [communicationModel, use3DHAPAlgorithm]);
 
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.enableEdgeColoring = enableEdgeColoring;
+
+      // Force re-render
+      meshRef.current._needsRender = true;
+      meshRef.current.requestRender();
+    }
+  }, [enableEdgeColoring, meshRef.current]);
+
+  useEffect(() => {
+    if (meshRef.current) {
+      // 1. Clear current geometry
+      if (meshRef.current.geometry) {
+        meshRef.current.releaseSharedGeometry(meshRef.current.geometry);
+        meshRef.current.geometry.dispose();
+        meshRef.current.geometry = new THREE.BufferGeometry();
+      }
+
+      // 2. Force re-render
+      meshRef.current._needsRender = true;
+      meshRef.current.requestRender();
+
+      ClazzCommunicationMesh.clearSharedGeometries();
+    }
+
+    setForceUpdate((prev) => prev + 1);
+  }, [enableEdgeColoring]);
+
   // Check if component should be displayed
   if (!evoConfig.renderDynamic) {
     return null;
@@ -1969,6 +2000,7 @@ export default function CommunicationR3F({
           : null
       }
       bundlingConfig={edgeBundlingConfig}
+      enableEdgeColoring={enableEdgeColoring}
       // 3D-HAP props
       beta={beta}
       use3DHAPAlgorithm={use3DHAPAlgorithm}

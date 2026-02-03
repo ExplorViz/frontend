@@ -28,6 +28,7 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _hapPackageElevation: number = 30;
   private _hapApplicationElevation: number = 50;
   private _hapUseRelativeElevation: boolean = true;
+  private _enableEdgeColoring: boolean = true;
 
   private static hoverGeometryCache = new Map<
     string,
@@ -195,6 +196,18 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   set hapUseRelativeElevation(value: boolean) {
     if (this._hapUseRelativeElevation !== value) {
       this._hapUseRelativeElevation = value;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  get enableEdgeColoring(): boolean {
+    return this._enableEdgeColoring;
+  }
+
+  set enableEdgeColoring(enabled: boolean) {
+    if (this._enableEdgeColoring !== enabled) {
+      this._enableEdgeColoring = enabled;
       this._needsRender = true;
       this.requestRender();
     }
@@ -595,10 +608,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.releaseSharedGeometry(oldGeometry);
     }
 
-    this.material = new THREE.MeshBasicMaterial({
-      color: this.defaultColor,
-      transparent: true,
-    });
+    if (this._enableEdgeColoring) {
+      this.geometry = this.createGradientColoredGeometry(this.geometry, curve);
+      this.material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        color: 0xffffff,
+        transparent: true,
+      });
+    } else {
+      this.material = new THREE.MeshBasicMaterial({
+        color: this.defaultColor,
+        transparent: true,
+      });
+    }
   }
 
   /**
@@ -861,11 +883,20 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     // Create vertex colors on the shared geometry
     this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
 
-    this.material = new THREE.MeshBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.8,
-    });
+    if (this._enableEdgeColoring) {
+      this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
+      this.material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+      });
+    } else {
+      this.geometry = sharedGeometry;
+      this.material = new THREE.MeshBasicMaterial({
+        color: this.defaultColor,
+        opacity: 0.8,
+      });
+    }
   }
 
   private renderWithEdgeBundling(curveSegments: number): void {
@@ -877,11 +908,20 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     // Use shared geometry
     this.geometry = this.getSharedGeometry(curve, curveSegments);
 
-    this.material = new THREE.MeshBasicMaterial({
-      color: this.defaultColor,
-      transparent: true,
-      opacity: 0.8,
-    });
+    if (this._enableEdgeColoring) {
+      this.geometry = this.createGradientColoredGeometry(this.geometry, curve);
+      this.material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+      });
+    } else {
+      this.material = new THREE.MeshBasicMaterial({
+        color: this.defaultColor,
+        transparent: true,
+        opacity: 0.8,
+      });
+    }
   }
 
   // Update edge bundling based on group of communications
@@ -1395,6 +1435,7 @@ declare module '@react-three/fiber' {
         compatibilityThreshold: number;
         iterations: number;
         stepSize: number;
+        enableEdgeColoring?: boolean;
       };
       // 3D-HAP properties
       beta?: number;

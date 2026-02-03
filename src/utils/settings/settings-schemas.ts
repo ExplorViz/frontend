@@ -83,7 +83,8 @@ export type CommunicationSettingId =
   | 'hapPackageElevation'
   | 'hapApplicationElevation'
   | 'hapUseRelativeElevation'
-  | 'edgeBundlingAlgorithm';
+  | 'edgeBundlingAlgorithm'
+  | 'enableEdgeColoring';
 
 // export type CommunicationSettings = Record<
 //   CommunicationSettingId,
@@ -110,6 +111,7 @@ export type CommunicationSettings = {
   hapApplicationElevation: RangeSetting;
   hapUseRelativeElevation: FlagSetting;
   edgeBundlingAlgorithm: SelectSetting<string>;
+  enableEdgeColoring: FlagSetting;
 };
 
 export type DebugSettings = {
