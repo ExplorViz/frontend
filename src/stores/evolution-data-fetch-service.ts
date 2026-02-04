@@ -7,6 +7,10 @@ import {
   CommitTree,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import {
+  convertStructureLandscapeFromFlat,
+  FlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
   TypeOfAnalysis,
@@ -114,10 +118,16 @@ export const useEvolutionDataFetchServiceStore =
         : firstCommit.commitId;
       const url = get()._constructUrl('structure', applicationName, commitPath);
 
-      const response =
-        await get()._fetchFromService<StructureLandscapeData>(url);
+      const response = await get()._fetchFromService<
+        StructureLandscapeData | FlatLandscape
+      >(url);
+
+      if ('cities' in response) {
+        return convertStructureLandscapeFromFlat(response as FlatLandscape);
+      }
+
       return preProcessAndEnhanceStructureLandscape(
-        response,
+        response as StructureLandscapeData,
         TypeOfAnalysis.Static
       );
     },
