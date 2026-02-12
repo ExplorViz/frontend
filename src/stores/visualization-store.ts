@@ -1,3 +1,4 @@
+import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 interface VisualizationStoreState {
@@ -10,6 +11,8 @@ interface VisualizationStoreState {
   // State for buildings
   hiddenBuildingIds: Set<string>; // Usually buildings inside closed districts
   removedDistrictIds: Set<string>;
+  // State for language filtering
+  hiddenLanguages: Set<Language>;
   sceneLayers: layersType;
   actions: {
     // Actions for all entities
@@ -31,6 +34,9 @@ interface VisualizationStoreState {
     removeDistricts: (ids: Set<string>) => void;
     setRemovedDistricts: (ids: Set<string>) => void;
     setSceneLayers: (layers: layersType) => void;
+    // Language filtering
+    toggleLanguageVisibility: (language: Language) => void;
+    resetLanguageFilter: () => void;
   };
 }
 
@@ -58,6 +64,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
     // Building state
     hiddenBuildingIds: new Set(),
     removedDistrictIds: new Set(),
+    // Language filtering
+    hiddenLanguages: new Set(),
     sceneLayers: {
       Default: 0,
       Foundation: 1,
@@ -108,6 +116,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
           closedDistrictIds: new Set(),
           hiddenDistrictIds: new Set(),
           hiddenBuildingIds: new Set(),
+          hiddenLanguages: new Set(),
         });
       },
       filterEntityIds: (validEntityIds: Set<string>) => {
@@ -195,6 +204,18 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       },
       setSceneLayers: (layers: layersType) => {
         set({ sceneLayers: layers });
+      },
+      toggleLanguageVisibility: (language: Language) => {
+        const current = new Set(get().hiddenLanguages);
+        if (current.has(language)) {
+          current.delete(language); 
+        } else {
+          current.add(language);
+        }
+        set({ hiddenLanguages: current });
+      },
+      resetLanguageFilter: () => {
+        set({ hiddenLanguages: new Set() });
       },
     },
   })

@@ -3,7 +3,7 @@ import { Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
-const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8090';
+const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
 
 interface AnalysisRequest {
   repoPath?: string;

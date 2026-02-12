@@ -22,7 +22,11 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const formatEntry = (selectOption: ApplicationSearchEntity) => {
-    const fqnStr = selectOption.fqn;
+    const fqnStr = selectOption?.fqn;
+
+    if (!fqnStr) {
+      return selectOption.applicationName ?? '';
+    }
 
     if (!searchString) {
       return fqnStr;

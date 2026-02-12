@@ -694,6 +694,9 @@ interface CodeBuildingsArgs {
  */
 const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
   const getBuilding = useModelStore.getState().getBuilding;
+  const hiddenLanguages = useVisualizationStore(
+    (state) => state.hiddenLanguages
+  );
 
   const buildingsByLanguage = useMemo(
     () => groupBuildingsByLanguage(buildingIds, getBuilding),
@@ -704,9 +707,14 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
     return null;
   }
 
+  // Filter the hidden langiages out 
+  const filteredBuildingsByLanguage = useMemo(() => {
+    return Array.from(buildingsByLanguage.entries()).filter(([lang, _]) => !hiddenLanguages.has(lang));
+  }, [buildingsByLanguage, hiddenLanguages]);
+
   return (
     <>
-      {Array.from(buildingsByLanguage.entries()).map(
+      {filteredBuildingsByLanguage.map(
         ([lang, langBuildingIds]) => (
           <LanguageGroup
             key={`${city.id}-${lang}`}

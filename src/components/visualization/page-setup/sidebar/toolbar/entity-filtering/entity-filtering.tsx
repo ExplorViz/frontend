@@ -1,5 +1,6 @@
 import { forwardRef, Ref, useEffect, useImperativeHandle, useRef } from 'react';
 
+import LanguageFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/language-filtering/language-filtering';
 import StructureFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/structure-filtering';
 import TraceFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-filtering';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
@@ -91,6 +92,12 @@ const EntityFiltering = forwardRef<
           Reset Filtering
         </Button>
       </div>
+
+      <hr className="dropdown-divider mb-3" />
+      <h6 className="text-center">
+        <u>Language Filtering</u>
+      </h6>
+      <LanguageFiltering />
 
       <hr className="dropdown-divider mb-3" />
 
