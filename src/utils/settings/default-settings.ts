@@ -24,6 +24,13 @@ export const MOUSE_ACTIONS = [
   'ZOOM',
 ];
 
+export const GEOMETRY_OPTIONS = [
+  'Box',
+  'Cone',
+  'Sphere',
+  'Cylinder',
+] as const;
+
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   backgroundColor: {
@@ -1003,6 +1010,78 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isRangeSetting: true,
   },
+  // Geometry Settings
+  languageGeometryJava: {
+    level: SettingLevel.DEFAULT,
+    value: 'Box',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'Java Geometry',
+    description: 'Geometry used for Java files',
+    isSelectSetting: true,
+  },
+  languageColorJava: {
+    level: SettingLevel.DEFAULT,
+    value: '#F5A623',
+    group: 'Geometry',
+    displayName: 'Java Color',
+    description: 'Color used for Java files',
+    isColorSetting: true,
+  },
+  languageGeometryPython: {
+    level: SettingLevel.DEFAULT,
+    value: 'Cylinder',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'Python Geometry',
+    description: 'Geometry used for Python files',
+    isSelectSetting: true,
+  },
+  languageColorPython: {
+    level: SettingLevel.DEFAULT,
+    value: '#3AA4FC',
+    group: 'Geometry',
+    displayName: 'Python Color',
+    description: 'Color used for Python files',
+    isColorSetting: true,
+  },
+  languageGeometryTypeScript: {
+    level: SettingLevel.DEFAULT,
+    value: 'Cone',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'TypeScript Geometry',
+    description: 'Geometry used for TypeScript and JavaScript files',
+    isSelectSetting: true,
+  },
+  languageColorTypeScript: {
+    level: SettingLevel.DEFAULT,
+    value: '#FFF150',
+    group: 'Geometry',
+    displayName: 'TypeScript Color',
+    description: 'Color used for TypeScript and JavaScript files',
+    isColorSetting: true,
+  },
+  languageGeometryOther: {
+    level: SettingLevel.DEFAULT,
+    value: 'Sphere',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'Other Files Geometry',
+    description:
+      'Geometry used for text files, unknown files, and other file types',
+    isSelectSetting: true,
+  },
+  languageColorOther: {
+    level: SettingLevel.DEFAULT,
+    value: '#F0F0F0',
+    group: 'Geometry',
+    displayName: 'Other Files Color',
+    description:
+      'Color used for text files, unknown files, and other file types',
+    isColorSetting: true,
+  },
+
   // VR Settings
   autoEnterVr: {
     level: SettingLevel.DEFAULT,

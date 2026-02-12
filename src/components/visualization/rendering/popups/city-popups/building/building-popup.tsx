@@ -2,10 +2,7 @@ import CopyButton from 'explorviz-frontend/src/components/copy-button.tsx';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
-import {
-  Building,
-  Language,
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { useMemo } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 
@@ -17,8 +14,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const building = popupData.entity as Building;
   const { getFunc } = useModelStore();
 
-  const languageName =
-    building.language !== undefined ? Language[building.language] : 'Unknown';
+  const languageName = building.language ?? 'LANGUAGE_UNSPECIFIED';
 
   const functions = useMemo(() => {
     return (building.functionIds || [])

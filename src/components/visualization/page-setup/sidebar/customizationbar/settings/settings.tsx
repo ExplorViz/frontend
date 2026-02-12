@@ -127,6 +127,7 @@ export default function Settings({
       SettingGroup,
       VisualizationSettingId[]
     > = {
+      Geometry: [],
       Camera: [],
       Colors: [],
       Communication: [],

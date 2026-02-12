@@ -5,6 +5,7 @@ export type SettingGroup =
   | 'Controls'
   | 'Debugging'
   | 'Effects'
+  | 'Geometry'
   | 'Heatmap'
   | 'Layout'
   | 'Label'
@@ -220,6 +221,18 @@ export type MagnifierSettingId = keyof MagnifierSettings;
 export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
+export type GeometrySettings = {
+  languageGeometryJava: SelectSetting<string>;
+  languageGeometryPython: SelectSetting<string>;
+  languageGeometryTypeScript: SelectSetting<string>;
+  languageGeometryOther: SelectSetting<string>;
+  languageColorJava: ColorSetting;
+  languageColorPython: ColorSetting;
+  languageColorTypeScript: ColorSetting;
+  languageColorOther: ColorSetting;
+};
+export type GeometrySettingId = keyof GeometrySettings;
+
 export type VisualizationSettingId =
   | CameraSettingId
   | ColorSettingId
@@ -235,7 +248,8 @@ export type VisualizationSettingId =
   | MiscSettingId
   | PopupSettingId
   | SemanticZoomSettingId
-  | XrSettingId;
+  | XrSettingId
+  | GeometrySettingId;
 
 export type VisualizationSettings = CameraSettings &
   CommunicationSettings &
@@ -243,6 +257,7 @@ export type VisualizationSettings = CameraSettings &
   DebugSettings &
   HeatmapSettings &
   EffectSettings &
+  GeometrySettings &
   LayoutSettings &
   LabelSettings &
   MagnifierSettings &

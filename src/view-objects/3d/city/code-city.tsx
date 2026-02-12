@@ -41,7 +41,6 @@ export default function CodeCity({ city }: { city: City }) {
     }))
   );
 
-  const buildingInstanceMeshRef = useRef<InstancedMesh2>(null);
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
   useEffect(() => {
@@ -103,7 +102,6 @@ export default function CodeCity({ city }: { city: City }) {
           useLayoutStore.getState().getBuildingLayouts().has(id)
         )}
         city={city}
-        ref={buildingInstanceMeshRef}
       />
       {city.buildingIds.map((buildingId) => (
         <CodeBuildingLabel

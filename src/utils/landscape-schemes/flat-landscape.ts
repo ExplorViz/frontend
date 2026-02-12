@@ -26,14 +26,13 @@ type FlatBaseModel = {
   editingState?: 'added' | 'removed'; // Reflect changes from restructuring
 };
 
-export enum Language {
-  LANGUAGE_UNSPECIFIED = 0,
-  JAVA = 1,
-  JAVASCRIPT = 2,
-  TYPESCRIPT = 3,
-  PYTHON = 4,
-  PLAINTEXT = 5,
-}
+export type Language = 
+  | 'JAVA'
+  | 'JAVASCRIPT'
+  | 'TYPESCRIPT'
+  | 'PYTHON'
+  | 'PLAINTEXT'
+  | 'LANGUAGE_UNSPECIFIED';
 
 export type City = FlatBaseModel & {
   rootDistrictIds: string[];
@@ -131,8 +130,8 @@ export function convertToFlatLandscape(
           originOfData: cls.originOfData,
           language:
             app.language === 'Java'
-              ? Language.JAVA
-              : Language.LANGUAGE_UNSPECIFIED,
+              ? 'JAVA'
+              : 'LANGUAGE_UNSPECIFIED',
           parentCityId: cityId,
           parentDistrictId: districtId,
           classIds: [],
@@ -253,7 +252,7 @@ export function convertStructureLandscapeFromFlat(
     if (city.buildingIds.length > 0) {
       const firstBuilding = buildings[city.buildingIds[0]];
       if (firstBuilding?.language) {
-        app.language = Language[firstBuilding.language];
+        app.language = firstBuilding.language;
       }
     }
 
