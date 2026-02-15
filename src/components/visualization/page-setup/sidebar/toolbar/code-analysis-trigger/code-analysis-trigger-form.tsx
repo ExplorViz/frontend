@@ -16,6 +16,7 @@ interface AnalysisRequest {
   restrictAnalysisToFolders?: string;
   startCommit?: string;
   endCommit?: string;
+  cloneDepth?: number;
   landscapeToken: string;
   applicationName: string;
 }
@@ -55,7 +56,7 @@ export default function CodeAnalysisTriggerForm() {
     }
   }, [landscapeTokenValue]);
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | number | undefined) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -126,6 +127,9 @@ export default function CodeAnalysisTriggerForm() {
       if (formData.endCommit) {
         requestBody.endCommit = formData.endCommit;
       }
+      if (formData.cloneDepth !== undefined && formData.cloneDepth > 0) {
+        requestBody.cloneDepth = formData.cloneDepth;
+      }
 
       const response = await fetch(`${codeAgentUrl}/api/analysis/trigger`, {
         method: 'POST',
@@ -153,6 +157,7 @@ export default function CodeAnalysisTriggerForm() {
           restrictAnalysisToFolders: '',
           startCommit: '',
           endCommit: '',
+          cloneDepth: undefined,
           landscapeToken: landscapeTokenValue || '',
           applicationName: '',
         });
@@ -285,6 +290,22 @@ export default function CodeAnalysisTriggerForm() {
             </Form.Group>
           </>
         )}
+
+        <Form.Group className="mb-3">
+          <Form.Label>Clone Depth</Form.Label>
+          <Form.Control
+            type="number"
+            min={1}
+            placeholder="Leave empty for full clone"
+            value={formData.cloneDepth}
+            onChange={(e) =>
+              handleInputChange(
+                'cloneDepth',
+                e.target.value === '' ? undefined : parseInt(e.target.value, 10)
+              )
+            }
+          />
+        </Form.Group>
 
         <div className="mb-3">
           <h6>Commit Range (Optional)</h6>
