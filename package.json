@@ -92,6 +92,7 @@
     "keycloak-js": "^26.2.1",
     "loader.js": "4.7.0",
     "meshline": "3.3.1",
+    "multer": "^2.0.2",
     "plotly.js-dist": "^3.3.0",
     "react-bootstrap": "^2.10.10",
     "react-color": "^2.19.3",

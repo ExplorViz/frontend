@@ -5,6 +5,7 @@ export type DiagramType = 'manifest' | 'kustomize' | 'helmfile';
 export interface GenerateDiagramInput {
   type: DiagramType;
   path?: string;
+  file?: File;
 }
 
 type GeneratorStatus = 'idle' | 'running' | 'success' | 'error';
@@ -20,16 +21,26 @@ export function useDiagramGenerator() {
     setSvg(null);
 
     try {
+      const formData = new FormData();
+      formData.append('type', input.type)
+
+      if (input.path) {
+        formData.append('path', input.path);
+      }
+
+      if (input.file) {
+        formData.append('file', input.file);
+      }
+
       const res = await fetch('/api/diagrams', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input),
+        body: formData,
       });
 
       const body = res.body;
       if (!res.ok || body == null) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.error ?? 'Diagram generation failed');
+        const text = await res.text();
+        throw new Error(text || 'Diagram generation failed');
       }
 
       const reader = body.getReader();

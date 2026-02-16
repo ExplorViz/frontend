@@ -70,6 +70,8 @@ function normalizeSvgProps(
       normalized.className = value;
     } else if (key === 'xlink:href' || key === 'xlinkHref') {
       normalized.href = value;
+    } else if (key === 'xlink:title') {
+      normalized.xlinkTitle = value;
     } else if (key.includes('-')) {
       normalized[key.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = value;
     } else {
@@ -92,11 +94,12 @@ function DiagramGeneratorMenu({
   onGenerate,
   isRunning,
 }: {
-  onGenerate: (type: DiagramType, path?: string) => void;
+  onGenerate: (type: DiagramType, path?: string, file?: File) => void;
   isRunning: boolean;
 }) {
   const [type, setType] = useState<DiagramType>('manifest');
   const [path, setPath] = useState('');
+  const [file, setFile] = useState<File | null>(null);
 
   return (
     <div style={{ padding: 12, borderBottom: '1px solid #ccc' }}>
@@ -113,12 +116,22 @@ function DiagramGeneratorMenu({
         <input
           placeholder="Path"
           value={path}
+          disabled={!!file}
           onChange={(e) => setPath(e.target.value)}
+        />
+
+        <input
+          type="file"
+          accept=".yaml,.yml"
+          onChange={(e) => {
+            setFile(e.target.files?.[0] ?? null);
+            setPath('');
+          }}
         />
 
         <button
           disabled={isRunning}
-          onClick={() => onGenerate(type, path || undefined)}
+          onClick={() => onGenerate(type, path || undefined, file || undefined)}
         >
           {isRunning ? 'Generating…' : 'Generate'}
         </button>
@@ -146,8 +159,8 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
     return svgToReactNode(effectiveSvg, props);
   }, [effectiveSvg, props]);
 
-  async function onGenerate(type: DiagramType, path?: string) {
-    await generate({ type, path });
+  async function onGenerate(type: DiagramType, path?: string, file?: File) {
+    await generate({ type, path, file });
   }
 
   return (
