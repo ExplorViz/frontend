@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
+import CreatableSelect from 'react-select/creatable';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 
 const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
+
+type ExtensionOption = {
+  label: string;
+  value: string;
+}
+
+const DEFAULT_EXCLUDED_EXTENSIONS: ExtensionOption[] = [
+  { value: '.min.js', label: '.min.js' },
+  { value: '.bundle.js', label: '.bundle.js' },
+  { value: '.chunk.js', label: '.chunk.js' },
+  { value: '.d.ts', label: '.d.ts' },
+];
 
 interface AnalysisRequest {
   repoPath?: string;
@@ -19,12 +32,14 @@ interface AnalysisRequest {
   cloneDepth?: number;
   landscapeToken: string;
   applicationName: string;
+  codeAnalysisExcludedFileExtensions?: string;
 }
 
 export default function CodeAnalysisTriggerForm() {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useLocalRepo, setUseLocalRepo] = useState(false);
+  const [excludedExtensions, setExcludedExtensions] = useState<readonly ExtensionOption[]>(DEFAULT_EXCLUDED_EXTENSIONS);
 
   const landscapeTokenValue = searchParams.get('landscapeToken')
 
@@ -130,6 +145,11 @@ export default function CodeAnalysisTriggerForm() {
       if (formData.cloneDepth !== undefined && formData.cloneDepth > 0) {
         requestBody.cloneDepth = formData.cloneDepth;
       }
+      if (excludedExtensions.length > 0) {
+        requestBody.codeAnalysisExcludedFileExtensions = excludedExtensions
+          .map((opt) => opt.value)
+          .join(',');
+      }
 
       const response = await fetch(`${codeAgentUrl}/api/analysis/trigger`, {
         method: 'POST',
@@ -161,6 +181,7 @@ export default function CodeAnalysisTriggerForm() {
           landscapeToken: landscapeTokenValue || '',
           applicationName: '',
         });
+        setExcludedExtensions(DEFAULT_EXCLUDED_EXTENSIONS);
       } else {
         const errorMessage = await response.text();
         useToastHandlerStore
@@ -265,6 +286,25 @@ export default function CodeAnalysisTriggerForm() {
             value={formData.restrictAnalysisToFolders}
             onChange={(e) => handleInputChange('restrictAnalysisToFolders', e.target.value)}
           />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Code analysis excluded file extensions</Form.Label>
+          <CreatableSelect<ExtensionOption, true>
+            isMulti
+            options={DEFAULT_EXCLUDED_EXTENSIONS}
+            value={excludedExtensions}
+            onChange={(newValue) => setExcludedExtensions(newValue)}
+            getNewOptionData={(inputValue) => ({
+              value: inputValue,
+              label: inputValue,
+            })}
+            placeholder="Select or type to add extensions..."
+            noOptionsMessage={() => 'Type an extension to add it'}
+          />
+          <Form.Text className="text-muted">
+            These file types are excluded from code analysis - only loc and size are collected.
+          </Form.Text>
         </Form.Group>
 
         {!useLocalRepo && (
