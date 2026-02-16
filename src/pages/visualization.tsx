@@ -485,6 +485,11 @@ export default function Visualization() {
 
   // #region Setup
   const initRenderingAndSetupListeners = async () => {
+    const tokenFromUrl = searchParams.get('landscapeToken');
+    if (!useLandscapeTokenStore.getState().token && tokenFromUrl) {
+      await useLandscapeTokenStore.getState().setTokenByValue(tokenFromUrl);
+    }
+
     setLandscapeDataRenderingService(null);
 
     // set timelineDataObjectHandler where necessary
@@ -993,7 +998,7 @@ export default function Visualization() {
                     debugSnapshots={useDebugSnapshotRepositoryStore
                       .getState()
                       .getDebugSnapshotsByLandscapeToken(
-                        landscapeTokenServiceToken!.value
+                        landscapeTokenServiceToken?.value ?? ''
                       )}
                     timelineUpdateVersion={timelineUpdateVersion}
                     clicked={timelineDataObjectHandler.timelineClicked}
