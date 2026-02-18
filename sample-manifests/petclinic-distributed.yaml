@@ -1,0 +1,253 @@
+
+# =============================
+# Discovery Server
+# =============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-discovery-server
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-discovery-server
+  template:
+    metadata:
+      labels:
+        app: petclinic-discovery-server
+    spec:
+      containers:
+        - name: petclinic-discovery-server
+          image: springcommunity/spring-petclinic-discovery-server
+          ports:
+            - containerPort: 8761
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-discovery-server
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  selector:
+    app: petclinic-discovery-server
+  ports:
+    - port: 8761
+      targetPort: 8761
+
+---
+# =============================
+# API Gateway
+# =============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-api-gateway
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-api-gateway
+  template:
+    metadata:
+      labels:
+        app: petclinic-api-gateway
+    spec:
+      containers:
+        - name: petclinic-api-gateway
+          image: springcommunity/spring-petclinic-api-gateway
+          ports:
+            - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-api-gateway
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  type: ClusterIP
+  selector:
+    app: petclinic-api-gateway
+  ports:
+    - port: 80
+      targetPort: 8080
+
+---
+# =============================
+# Customers Service + DB
+# =============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-customer-service
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-customer-service
+  template:
+    metadata:
+      labels:
+        app: petclinic-customer-service
+    spec:
+      containers:
+        - name: petclinic-customer-service
+          image: springcommunity/spring-petclinic-customers-service
+          ports:
+            - containerPort: 8081
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-customer-service
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  selector:
+    app: petclinic-customer-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+
+---
+
+# =============================
+# Vets Service
+# =============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-vets-service
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-vets-service
+  template:
+    metadata:
+      labels:
+        app: petclinic-vets-service
+    spec:
+      containers:
+        - name: petclinic-vets-service
+          image: springcommunity/spring-petclinic-vets-service
+          ports:
+            - containerPort: 8082
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-vets-service
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  selector:
+    app: petclinic-vets-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+
+---
+# =============================
+# Visits Service
+# =============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-visits-service
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-visits-service
+  template:
+    metadata:
+      labels:
+        app: petclinic-visits-service
+    spec:
+      containers:
+        - name: petclinic-visits-service
+          image: springcommunity/spring-petclinic-visits-service
+          ports:
+            - containerPort: 8083
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-visits-service
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  selector:
+    app: petclinic-visits-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+
+---
+# =============================
+# Admin Server
+# =============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-admin-server
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-admin-server
+  template:
+    metadata:
+      labels:
+        app: petclinic-admin-server
+    spec:
+      containers:
+        - name: petclinic-admin-server
+          image: springcommunity/spring-petclinic-admin-server
+          ports:
+            - containerPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-admin-server
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  selector:
+    app: petclinic-admin-server
+  ports:
+    - port: 9090
+      targetPort: 9090
