@@ -23,6 +23,3 @@
 # Dev Container
 /.devcontainer*
 .github/dependabot.yml
-
-#Ignore generated KubeDiagrams SVG Files
-/public/manifest-svgs/*

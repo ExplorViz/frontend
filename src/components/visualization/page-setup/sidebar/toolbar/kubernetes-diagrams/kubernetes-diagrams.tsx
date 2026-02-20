@@ -34,7 +34,7 @@ const svgExistenceMap = new Map<string, boolean>();
 
 /**
  * Extract filename from image URL and map it to local SVG path
- * e.g., "https://.../sts.png" -> "/images/kubeDiagrams/svg/sts.svg"
+ * e.g., "https://.../sts.png" -> "/images/kubeDiagrams/sts.svg"
  */
 function getLocalSvgPath(imageHref: string): string | null {
   try {
@@ -42,7 +42,7 @@ function getLocalSvgPath(imageHref: string): string | null {
     if (!match) return null;
     const filename = match[1];
     const svgFilename = filename.replace('.png', '.svg');
-    return `/images/kubeDiagrams/svg/${svgFilename}`;
+    return `/images/kubeDiagrams/${svgFilename}`;
   } catch (error) {
     console.error('Error extracting local SVG path:', error);
     return null;
