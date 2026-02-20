@@ -87,11 +87,16 @@ async function loadSvg(
   return null;
 }
 
+function correctViewBox(viewBox: string): string {
+  return "test";
+}
+
 function svgToReactNode(
   svg: string,
   props?: React.SVGProps<SVGSVGElement>,
   loadedSvgs?: Map<string, React.ReactNode>,
-  highlightedNodeNames?: Set<string>
+  highlightedNodeNames?: Set<string>,
+  adjustViewBox = false
 ): React.ReactNode {
   if (!svg.trim().startsWith('<')) return null;
 
@@ -103,9 +108,20 @@ function svgToReactNode(
 
   if (!svgElement) return null;
 
+  // Ensure the main SVG element scales to fit its container
+  if (adjustViewBox && svgElement.properties) {
+      svgElement.properties.width = 'auto';
+      svgElement.properties.height = 'auto';
+
+      // hardcoded adjustments to minimize whitespace in SVG // TODO: automatic calculation of ideal values
+      let viewBox = svgElement.properties.viewBox.split(' ').map(Number);
+      viewBox[0] += 150;
+      viewBox[1] += 140;
+      viewBox[3] -= 280;
+      svgElement.properties.viewBox = viewBox.join(' ');
+  }
+
   // Build a set of image positions (x,y) that should be highlighted
-  // Position is the unique identifier since all nodes of the same type
-  // share the same local SVG path
   const highlightedPositions = new Set<string>();
   if (highlightedNodeNames) {
     for (const name of highlightedNodeNames) {
@@ -436,10 +452,22 @@ function DiagramGeneratorMenu({
   const [type, setType] = useState<DiagramType>('manifest');
   const [path, setPath] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleGenerate = () => {
+    onGenerate(type, path || undefined, file || undefined);
+    // Clear file after generate to make both options usable again
+    if (file) {
+      setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   return (
     <div style={{ padding: 12, borderBottom: '1px solid #ccc' }}>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <select
           value={type}
           onChange={(e) => setType(e.target.value as DiagramType)}
@@ -457,17 +485,21 @@ function DiagramGeneratorMenu({
         />
 
         <input
+          ref={fileInputRef}
           type="file"
           accept=".yaml,.yml"
           onChange={(e) => {
-            setFile(e.target.files?.[0] ?? null);
-            setPath('');
+            const selectedFile = e.target.files?.[0] ?? null;
+            setFile(selectedFile);
+            if (selectedFile) {
+              setPath('');
+            }
           }}
         />
 
         <button
-          disabled={isRunning}
-          onClick={() => onGenerate(type, path || undefined, file || undefined)}
+          disabled={isRunning || (!path && !file)}
+          onClick={handleGenerate}
         >
           {isRunning ? 'Generating…' : 'Generate'}
         </button>
@@ -484,19 +516,20 @@ function ColorPickerSection() {
         padding: 12,
         borderBottom: '1px solid #ccc',
         display: 'flex',
-        gap: 16,
+        flexDirection: 'column',
+        gap: 8,
       }}
     >
-      <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ColorPicker id="k8sDiagramForegroundColor" />
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ColorPicker id="k8sDiagramBackgroundColor" />
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ColorPicker id="k8sDiagramHighlightForegroundColor" />
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ColorPicker id="k8sDiagramHighlightBackgroundColor" />
       </div>
     </div>
@@ -549,11 +582,13 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
   );
   const highlightForegroundColor = useUserSettingsStore(
     (state) =>
-      state.visualizationSettings.k8sDiagramHighlightForegroundColor?.value ?? '#d3d3d3'
+      state.visualizationSettings.k8sDiagramHighlightForegroundColor?.value ??
+      '#d3d3d3'
   );
   const highlightBackgroundColor = useUserSettingsStore(
     (state) =>
-      state.visualizationSettings.k8sDiagramHighlightBackgroundColor?.value ?? '#ff5151'
+      state.visualizationSettings.k8sDiagramHighlightBackgroundColor?.value ??
+      '#ff5151'
   );
 
   useEffect(() => {
@@ -593,7 +628,13 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
     };
 
     loadSvgs();
-  }, [effectiveSvg, foregroundColor, backgroundColor, highlightForegroundColor, highlightBackgroundColor]);
+  }, [
+    effectiveSvg,
+    foregroundColor,
+    backgroundColor,
+    highlightForegroundColor,
+    highlightBackgroundColor,
+  ]);
 
   const svgElement = useMemo<React.ReactNode>(() => {
     if (!effectiveSvg) return null;
@@ -601,7 +642,8 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
       effectiveSvg,
       props,
       loadedSvgs,
-      highlightedNodeNames
+      highlightedNodeNames,
+      true // adjustViewBox
     );
   }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames]);
 
