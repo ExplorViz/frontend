@@ -251,6 +251,18 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             k8sTextColor: new THREE.Color(
               visualizationSettings.k8sTextColor.value
             ),
+            k8sDiagramForegroundColor: new THREE.Color(
+              visualizationSettings.k8sDiagramForegroundColor.value
+            ),
+            k8sDiagramBackgroundColor: new THREE.Color(
+              visualizationSettings.k8sDiagramBackgroundColor.value
+            ),
+            k8sDiagramHighlightForegroundColor: new THREE.Color(
+              visualizationSettings.k8sDiagramHighlightForegroundColor.value
+            ),
+            k8sDiagramHighlightBackgroundColor: new THREE.Color(
+              visualizationSettings.k8sDiagramHighlightBackgroundColor.value
+            ),
           },
         });
       },

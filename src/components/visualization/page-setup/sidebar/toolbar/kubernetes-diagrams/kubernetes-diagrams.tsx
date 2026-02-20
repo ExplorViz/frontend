@@ -4,7 +4,9 @@ import {
   DiagramType,
   useDiagramGenerator,
 } from '../../../../../../hooks/useDiagramGenerator';
+import { useModelStore } from '../../../../../../stores/repos/model-repository';
 import { useUserSettingsStore } from '../../../../../../stores/user-settings';
+import { useVisualizationStore } from '../../../../../../stores/visualization-store';
 import ColorPicker from '../../customizationbar/settings/color-picker';
 
 type SvgTextNode = {
@@ -53,12 +55,12 @@ function getLocalSvgPath(imageHref: string): string | null {
  */
 async function loadSvg(
   path: string,
-  foregroundColor?: string,
-  backgroundColor?: string
+  foregroundColor: string,
+  backgroundColor: string
 ): Promise<string | null> {
   if (svgCache.has(path)) {
     let svg = svgCache.get(path) ?? null;
-    if (svg && foregroundColor && backgroundColor) {
+    if (svg) {
       svg = applyColorsToSvg(svg, foregroundColor, backgroundColor);
     }
     return svg;
@@ -72,9 +74,7 @@ async function loadSvg(
       let svg = await response.text();
       svgCache.set(path, svg);
       svgExistenceMap.set(path, true);
-      if (foregroundColor && backgroundColor) {
-        svg = applyColorsToSvg(svg, foregroundColor, backgroundColor);
-      }
+      svg = applyColorsToSvg(svg, foregroundColor, backgroundColor);
       return svg;
     } else {
       svgExistenceMap.set(path, false);
@@ -90,7 +90,8 @@ async function loadSvg(
 function svgToReactNode(
   svg: string,
   props?: React.SVGProps<SVGSVGElement>,
-  loadedSvgs?: Map<string, React.ReactNode>
+  loadedSvgs?: Map<string, React.ReactNode>,
+  highlightedNodeNames?: Set<string>
 ): React.ReactNode {
   if (!svg.trim().startsWith('<')) return null;
 
@@ -102,6 +103,23 @@ function svgToReactNode(
 
   if (!svgElement) return null;
 
+  // Build a set of image positions (x,y) that should be highlighted
+  // Position is the unique identifier since all nodes of the same type
+  // share the same local SVG path
+  const highlightedPositions = new Set<string>();
+  if (highlightedNodeNames) {
+    for (const name of highlightedNodeNames) {
+      const imageNodes = findImagesByLabel(ast, name);
+      for (const imageNode of imageNodes) {
+        const x = imageNode.properties?.x;
+        const y = imageNode.properties?.y;
+        if (x !== undefined && y !== undefined) {
+          highlightedPositions.add(`${x},${y}`);
+        }
+      }
+    }
+  }
+
   return renderNode(
     {
       ...svgElement,
@@ -112,14 +130,16 @@ function svgToReactNode(
       },
     },
     undefined,
-    loadedSvgs
+    loadedSvgs,
+    highlightedPositions
   );
 }
 
 function renderNode(
   node: SvgNode,
   key?: React.Key,
-  loadedSvgs?: Map<string, React.ReactNode>
+  loadedSvgs?: Map<string, React.ReactNode>,
+  highlightedPositions?: Set<string>
 ): React.ReactNode {
   if (node.type === 'text') {
     return decodeXmlEntities(node.value);
@@ -139,7 +159,16 @@ function renderNode(
       const y = normalizedProps.y || node.properties.y || 0;
       const width = normalizedProps.width || node.properties.width;
       const height = normalizedProps.height || node.properties.height;
-      const svgNode = loadedSvgs.get(localPath);
+
+      // Check if this specific image should be highlighted using its position
+      // Position (x,y) is unique per node, while localPath is shared across node types
+      const positionKey = `${x},${y}`;
+      const isHighlighted = highlightedPositions?.has(positionKey);
+      const highlightedKey = `${localPath}#highlighted`;
+      const svgNode =
+        isHighlighted && loadedSvgs.has(highlightedKey)
+          ? loadedSvgs.get(highlightedKey)
+          : loadedSvgs.get(localPath);
 
       const svgProps: Record<string, any> =
         (svgNode as React.ReactElement)?.props || {};
@@ -175,7 +204,9 @@ function renderNode(
   return React.createElement(
     node.tagName,
     { ...normalizeSvgProps(node.properties), key },
-    node.children?.map((child, index) => renderNode(child, index, loadedSvgs))
+    node.children?.map((child, index) =>
+      renderNode(child, index, loadedSvgs, highlightedPositions)
+    )
   );
 }
 
@@ -241,6 +272,61 @@ function decodeXmlEntities(value: string): string {
   return textarea.value;
 }
 
+function decodeHtmlEntities(str: string): string {
+  return str.replace(/&#(\d+);/g, (_, code) =>
+    String.fromCharCode(Number(code))
+  );
+}
+
+function collectTextFromAnchor(anchor: SvgElementNode): string {
+  if (!anchor.children) return '';
+
+  return anchor.children
+    .filter(
+      (child): child is SvgElementNode =>
+        child.type === 'element' && child.tagName === 'text'
+    )
+    .map((textElement) => {
+      const textNode = textElement.children?.find(
+        (c): c is SvgTextNode => c.type === 'text'
+      );
+
+      return textNode ? decodeHtmlEntities(textNode.value) : '';
+    })
+    .join('');
+}
+
+function findImagesByLabel(
+  root: SvgRootNode,
+  target: string
+): SvgElementNode[] {
+  const results: SvgElementNode[] = [];
+
+  function walk(node: SvgNode) {
+    if (node.type === 'element') {
+      if (node.tagName === 'a') {
+        const label = collectTextFromAnchor(node);
+
+        if (label === target) {
+          const imageNode = node.children?.find(
+            (c): c is SvgElementNode =>
+              c.type === 'element' && c.tagName === 'image'
+          );
+          if (imageNode) {
+            results.push(imageNode);
+          }
+        }
+      }
+
+      node.children?.forEach(walk);
+    }
+  }
+
+  root.children.forEach(walk);
+
+  return results;
+}
+
 /**
  * Apply colors to SVG content by replacing fill and stroke attributes
  */
@@ -291,27 +377,48 @@ function extractLocalSvgPaths(
 
 /**
  * Preload all local SVGs and convert them to React nodes
+ * Loads both standard and highlighted versions
  */
 async function preloadLocalSvgs(
   node: SvgNode,
   foregroundColor: string,
-  backgroundColor: string
+  backgroundColor: string,
+  highlightForegroundColor: string,
+  highlightBackgroundColor: string
 ): Promise<Map<string, React.ReactNode>> {
   const paths = extractLocalSvgPaths(node);
   const loadedSvgs = new Map<string, React.ReactNode>();
 
-  const results = await Promise.all(
+  // Load standard versions
+  const standardResults = await Promise.all(
     Array.from(paths).map((path) =>
       loadSvg(path, foregroundColor, backgroundColor)
     )
   );
 
+  // Load highlighted versions
+  const highlightedResults = await Promise.all(
+    Array.from(paths).map((path) =>
+      loadSvg(path, highlightForegroundColor, highlightBackgroundColor)
+    )
+  );
+
   Array.from(paths).forEach((path, index) => {
-    const svgContent = results[index];
-    if (svgContent) {
-      const reactNode = svgToReactNode(svgContent);
+    // Store standard version
+    const standardContent = standardResults[index];
+    if (standardContent) {
+      const reactNode = svgToReactNode(standardContent);
       if (reactNode) {
         loadedSvgs.set(path, reactNode);
+      }
+    }
+
+    // Store highlighted version with special key
+    const highlightedContent = highlightedResults[index];
+    if (highlightedContent) {
+      const reactNode = svgToReactNode(highlightedContent);
+      if (reactNode) {
+        loadedSvgs.set(`${path}#highlighted`, reactNode);
       }
     }
   });
@@ -386,6 +493,12 @@ function ColorPickerSection() {
       <div style={{ flex: 1 }}>
         <ColorPicker id="k8sDiagramBackgroundColor" />
       </div>
+      <div style={{ flex: 1 }}>
+        <ColorPicker id="k8sDiagramHighlightForegroundColor" />
+      </div>
+      <div style={{ flex: 1 }}>
+        <ColorPicker id="k8sDiagramHighlightBackgroundColor" />
+      </div>
     </div>
   );
 }
@@ -399,6 +512,33 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
     () => new Map()
   );
 
+  const getAllApplications = useModelStore((state) => state.getAllApplications);
+  const highlightedEntityIds = useVisualizationStore(
+    (state) => state.highlightedEntityIds
+  );
+
+  useEffect(() => {
+    for (const app of getAllApplications()) {
+      console.log(
+        'Application: ' +
+          app.name +
+          ', highlighted: ' +
+          highlightedEntityIds.has(app.id)
+      );
+    }
+  }, [getAllApplications, highlightedEntityIds]);
+
+  const highlightedNodeNames = useMemo(() => {
+    const names = new Set<string>();
+    const allApps = getAllApplications();
+    for (const app of allApps) {
+      if (highlightedEntityIds.has(app.id)) {
+        names.add(app.name);
+      }
+    }
+    return names;
+  }, [getAllApplications, highlightedEntityIds]);
+
   const foregroundColor = useUserSettingsStore(
     (state) =>
       state.visualizationSettings.k8sDiagramForegroundColor?.value ?? '#ffffff'
@@ -406,6 +546,14 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
   const backgroundColor = useUserSettingsStore(
     (state) =>
       state.visualizationSettings.k8sDiagramBackgroundColor?.value ?? '#326ce5'
+  );
+  const highlightForegroundColor = useUserSettingsStore(
+    (state) =>
+      state.visualizationSettings.k8sDiagramHighlightForegroundColor?.value ?? '#d3d3d3'
+  );
+  const highlightBackgroundColor = useUserSettingsStore(
+    (state) =>
+      state.visualizationSettings.k8sDiagramHighlightBackgroundColor?.value ?? '#ff5151'
   );
 
   useEffect(() => {
@@ -424,7 +572,7 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
     const loadSvgs = async () => {
       try {
         const ast = parse(effectiveSvg) as SvgRootNode;
-
+        console.log('Parsed SVG AST:', ast);
         const svgElement = ast.children.find(
           (n): n is SvgElementNode =>
             n.type === 'element' && n.tagName === 'svg'
@@ -433,7 +581,9 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
           const loaded = await preloadLocalSvgs(
             svgElement,
             foregroundColor,
-            backgroundColor
+            backgroundColor,
+            highlightForegroundColor,
+            highlightBackgroundColor
           );
           setLoadedSvgs(loaded);
         }
@@ -443,12 +593,17 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
     };
 
     loadSvgs();
-  }, [effectiveSvg, foregroundColor, backgroundColor]);
+  }, [effectiveSvg, foregroundColor, backgroundColor, highlightForegroundColor, highlightBackgroundColor]);
 
   const svgElement = useMemo<React.ReactNode>(() => {
     if (!effectiveSvg) return null;
-    return svgToReactNode(effectiveSvg, props, loadedSvgs);
-  }, [effectiveSvg, props, loadedSvgs]);
+    return svgToReactNode(
+      effectiveSvg,
+      props,
+      loadedSvgs,
+      highlightedNodeNames
+    );
+  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames]);
 
   async function onGenerate(type: DiagramType, path?: string, file?: File) {
     await generate({ type, path, file });

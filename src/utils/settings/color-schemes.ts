@@ -27,6 +27,8 @@ export const defaultColors = {
   k8sTextColor: '#ffffff', // white
   k8sDiagramForegroundColor: '#ffffff', // white
   k8sDiagramBackgroundColor: '#326ce5', // bright blue
+  k8sDiagramHighlightForegroundColor: '#d3d3d3', // light grey
+  k8sDiagramHighlightBackgroundColor: '#ff5151' // pastel red
 };
 
 // The following color schemes might also be partial color schemes
