@@ -69,10 +69,6 @@ export type CommunicationSettingId =
   | 'commArrowSize'
   | 'commArrowOffset'
   | 'curvyCommHeight'
-  | 'bundleStrength'
-  | 'compatibilityThreshold'
-  | 'bundlingIterations'
-  | 'bundlingStepSize'
   | 'beta'
   | 'commCurveHeightDependsOnDistance'
   | 'showHAPTree'
@@ -97,10 +93,6 @@ export type CommunicationSettings = {
   commArrowOffset: RangeSetting;
   curvyCommHeight: RangeSetting;
   commCurveHeightDependsOnDistance: FlagSetting;
-  bundleStrength: RangeSetting;
-  compatibilityThreshold: RangeSetting;
-  bundlingIterations: RangeSetting;
-  bundlingStepSize: RangeSetting;
   beta: RangeSetting;
   showHAPTree: FlagSetting;
   scatterRadius: RangeSetting;

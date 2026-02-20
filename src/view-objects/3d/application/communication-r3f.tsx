@@ -65,10 +65,6 @@ export default function CommunicationR3F({
 
     // Edge Bundling settings
     edgeBundlingAlgorithm,
-    bundleStrength,
-    compatibilityThreshold,
-    bundlingIterations,
-    bundlingStepSize,
     classLayoutAlgorithm,
     enableEdgeColoring,
 
@@ -98,11 +94,6 @@ export default function CommunicationR3F({
         commThickness: vizSettings.commThickness.value,
         enableHoverEffects: vizSettings.enableHoverEffects.value,
 
-        // Edge Bundling settings
-        bundleStrength: vizSettings.bundleStrength.value,
-        compatibilityThreshold: vizSettings.compatibilityThreshold.value,
-        bundlingIterations: vizSettings.bundlingIterations.value,
-        bundlingStepSize: vizSettings.bundlingStepSize.value,
         classLayoutAlgorithm:
           state.visualizationSettings.classLayoutAlgorithm.value,
         enableEdgeColoring: vizSettings.enableEdgeColoring?.value ?? true,
@@ -210,22 +201,6 @@ export default function CommunicationR3F({
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
-
-  // Edge Bundling config - only for fallback (when use3DHAPAlgorithm = false)
-  const edgeBundlingConfig = useMemo<EdgeBundlingConfig>(
-    () => ({
-      bundleStrength,
-      compatibilityThreshold,
-      iterations: bundlingIterations,
-      stepSize: bundlingStepSize,
-    }),
-    [
-      bundleStrength,
-      compatibilityThreshold,
-      bundlingIterations,
-      bundlingStepSize,
-    ]
-  );
 
   // The deeper into the hierarchy tree, the closer the 3D-HAP is to its geometric element
   const getHapLevel = useCallback((element: any): number => {
@@ -919,13 +894,7 @@ export default function CommunicationR3F({
         communicationModel,
         startPoint,
         endPoint,
-        updatedLineThickness,
-        {
-          bundleStrength,
-          compatibilityThreshold,
-          iterations: bundlingIterations,
-          stepSize: bundlingStepSize,
-        }
+        updatedLineThickness
       );
     }
 
@@ -962,12 +931,6 @@ export default function CommunicationR3F({
 
     if (shouldUseForceDirectedForThisEdge) {
       bundledLayout.setUseForceDirected(true);
-      bundledLayout.setBundlingConfig({
-        bundleStrength,
-        compatibilityThreshold,
-        iterations: bundlingIterations,
-        stepSize: bundlingStepSize,
-      });
 
       const isCircleLayout = classLayoutAlgorithm === 'circle';
       const type = isInterApp ? 'inter-app' : 'intra-app';
@@ -1015,10 +978,6 @@ export default function CommunicationR3F({
     scatterRadius,
     edgeBundlingStreamline,
     leafPackagesOnly,
-    bundleStrength,
-    compatibilityThreshold,
-    bundlingIterations,
-    bundlingStepSize,
     forceUpdate,
     classLayoutAlgorithm,
     applicationElement?.id,
@@ -1999,7 +1958,6 @@ export default function CommunicationR3F({
             communicationModel.targetClass.id
           : null
       }
-      bundlingConfig={edgeBundlingConfig}
       enableEdgeColoring={enableEdgeColoring}
       // 3D-HAP props
       beta={beta}
