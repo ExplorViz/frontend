@@ -28,6 +28,7 @@ import { SYNC_ROOM_STATE_EVENT } from 'explorviz-frontend/src/utils/collaboratio
 import { TIMESTAMP_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/sendable/timestamp-update';
 import { Nonce } from 'explorviz-frontend/src/utils/collaboration//web-socket-messages/types/nonce';
 import { CHAT_SYNC_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-synchronization';
+import { IMMERSIVE_VIEW_UPDATE_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/immersive-view-update';
 import { RESET_HIGHLIGHTING_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/reset-highlighting';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { MENU_DETACHED_RESPONSE_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
@@ -79,6 +80,7 @@ const RECEIVABLE_EVENTS = [
   CHAT_SYNC_EVENT,
   USER_KICK_EVENT,
   MESSAGE_DELETE_EVENT,
+  IMMERSIVE_VIEW_UPDATE_EVENT,
 ];
 
 const RESPONSE_EVENTS = [
