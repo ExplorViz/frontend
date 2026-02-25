@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { parse } from 'svg-parser';
+import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 import {
   DiagramType,
   useDiagramGenerator,
-} from '../../../../../../hooks/useDiagramGenerator';
-import { useModelStore } from '../../../../../../stores/repos/model-repository';
-import { useUserSettingsStore } from '../../../../../../stores/user-settings';
-import { useVisualizationStore } from '../../../../../../stores/visualization-store';
-import ColorPicker from '../../customizationbar/settings/color-picker';
+} from 'explorviz-frontend/src/hooks/useDiagramGenerator';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import React, { useEffect, useMemo, useState } from 'react';
+import { parse } from 'svg-parser';
 
 type SvgTextNode = {
   type: 'text';
@@ -87,10 +87,6 @@ async function loadSvg(
   return null;
 }
 
-function correctViewBox(viewBox: string): string {
-  return "test";
-}
-
 function svgToReactNode(
   svg: string,
   props?: React.SVGProps<SVGSVGElement>,
@@ -110,15 +106,15 @@ function svgToReactNode(
 
   // Ensure the main SVG element scales to fit its container
   if (adjustViewBox && svgElement.properties) {
-      svgElement.properties.width = 'auto';
-      svgElement.properties.height = 'auto';
+    svgElement.properties.width = 'auto';
+    svgElement.properties.height = 'auto';
 
-      // hardcoded adjustments to minimize whitespace in SVG // TODO: automatic calculation of ideal values
-      let viewBox = svgElement.properties.viewBox.split(' ').map(Number);
-      viewBox[0] += 150;
-      viewBox[1] += 140;
-      viewBox[3] -= 280;
-      svgElement.properties.viewBox = viewBox.join(' ');
+    // hardcoded adjustments to minimize whitespace in SVG // TODO: automatic calculation of ideal values
+    let viewBox = svgElement.properties.viewBox.split(' ').map(Number);
+    viewBox[0] += 150;
+    viewBox[1] += 140;
+    viewBox[3] -= 280;
+    svgElement.properties.viewBox = viewBox.join(' ');
   }
 
   // Build a set of image positions (x,y) that should be highlighted
@@ -544,6 +540,7 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
   const [loadedSvgs, setLoadedSvgs] = useState<Map<string, React.ReactNode>>(
     () => new Map()
   );
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   const getAllApplications = useModelStore((state) => state.getAllApplications);
   const highlightedEntityIds = useVisualizationStore(
@@ -653,9 +650,28 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <DiagramGeneratorMenu onGenerate={onGenerate} isRunning={isRunning} />
+      <button
+        onClick={() => setOptionsOpen(!optionsOpen)}
+        style={{
+          padding: '8px 12px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          border: '1px solid #ccc',
+          background: '#f5f5f5',
+        }}
+      >
+        <span>{optionsOpen ? '▼' : '▶'}</span>
+        <span>Options</span>
+      </button>
 
-      <ColorPickerSection />
+      {optionsOpen && (
+        <>
+          <DiagramGeneratorMenu onGenerate={onGenerate} isRunning={isRunning} />
+          <ColorPickerSection />
+        </>
+      )}
 
       {error && <div style={{ color: 'red' }}>{error}</div>}
 
