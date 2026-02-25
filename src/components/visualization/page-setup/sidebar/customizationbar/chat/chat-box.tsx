@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import {
   DownloadIcon,
@@ -6,13 +6,15 @@ import {
   LogIcon,
   TrashIcon,
 } from '@primer/octicons-react';
-import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import {
+  ChatMessageInterface,
+  useChatStore,
+} from 'explorviz-frontend/src/stores/chat';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import Button from 'react-bootstrap/Button';
-import * as THREE from 'three';
 
 interface ChatUser {
   id: string;
@@ -33,22 +35,17 @@ export default function ChatBox() {
   const filteredMessages = useChatStore((state) => state.filteredChatMessages);
   const sendChatMessage = useChatStore((state) => state.sendChatMessage);
   const removeChatMessage = useChatStore((state) => state.removeChatMessage);
-  const deletedMessage = useChatStore((state) => state.deletedMessage);
-  const deletedMessageIds = useChatStore((state) => state.deletedMessageIds);
-  const setDeletedMessageIds = useChatStore(
-    (state) => state.setDeletedMessageIds
-  );
   const clearFilter = useChatStore((state) => state.clearFilter);
   const filterChat = useChatStore((state) => state.filterChat);
   const synchronizeWithServer = useChatStore(
     (state) => state.synchronizeWithServer
   );
+  const clearChat = useChatStore((state) => state.clearChat);
   const [openFilterOptions, setOpenFilterOptions] = useState<boolean>(false);
   const [openDeleteActions, setOpenDeleteActions] = useState<boolean>(false);
   const [isFilterEnabled, setIsFilterEnabled] = useState<boolean>(false);
   const [filterMode, setFilterMode] = useState<string>('');
   const [filterValue, setFilterValue] = useState<string>('');
-  const [usersInChat, setUsersInChat] = useState<ChatUser[]>([]);
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(
     new Set()
   );
@@ -56,15 +53,28 @@ export default function ChatBox() {
     (state) => state.showErrorToastMessage
   );
 
-  const deleteMessageOnEvent = () => {
-    const messageIds = deletedMessageIds;
+  const chatThreadRef = useRef<HTMLUListElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    messageIds.forEach((msg) => {
-      removeMessage(msg);
+  const usersInChat = React.useMemo<ChatUser[]>(() => {
+    const uniqueUsers = new Map<string, string>();
+    chatMessages.forEach((msg) => {
+      uniqueUsers.set(msg.userId, msg.userName);
     });
 
-    setDeletedMessageIds([]);
-  };
+    return Array.from(uniqueUsers.entries()).map(([id, name]) => ({
+      id,
+      name: `${name}(${id})`,
+    }));
+  }, [chatMessages]);
+
+  const canModifyChat = userIsHost || connectionStatus === 'offline';
+
+  useEffect(() => {
+    if (chatThreadRef.current) {
+      chatThreadRef.current.scrollTop = chatThreadRef.current.scrollHeight;
+    }
+  }, [chatMessages, filteredMessages, isFilterEnabled]);
 
   const toggleFilter = () => {
     setOpenFilterOptions((prev) => !prev);
@@ -74,74 +84,85 @@ export default function ChatBox() {
     setOpenDeleteActions((prev) => !prev);
   };
 
-  const selectMessage = (event: any, chatMessage: any) => {
-    const checkbox = event.target as HTMLInputElement;
-
-    if (checkbox.checked) {
-      setSelectedMessages((prev) => new Set([...prev, chatMessage.msgId]));
-    } else {
-      setSelectedMessages(
-        (prev) =>
-          new Set([...prev].filter((msgId) => msgId !== chatMessage.msgId))
-      );
-    }
-  };
-
   const deleteSelectedMessages = () => {
-    const messageIds: number[] = [];
-    selectedMessages.forEach((messageId) => {
-      messageIds.push(messageId);
-    });
-    removeUserMessage(messageIds);
+    const messageIds = Array.from(selectedMessages);
+    removeChatMessage(messageIds);
     setSelectedMessages(new Set());
-    toggleDeleteAction();
+    setOpenDeleteActions(false);
   };
 
-  const applyFilter = () => {
-    if (isFilterEnabled) {
-      clearChat('.chat-thread.filtered');
-    } else {
-      clearChat('.chat-thread.normal');
-    }
-    filterChat(filterMode, filterValue);
+  const renderChatActions = () => {
+    if (!canModifyChat) return null;
+
+    return (
+      <div className="d-flex gap-2">
+        <Button
+          variant={openDeleteActions ? 'secondary' : 'outline-secondary'}
+          title="Select Messages to Delete"
+          onClick={toggleDeleteAction}
+          className="btn-chat-action"
+        >
+          <TrashIcon size="small" />
+          <span className="ms-1">Select Messages</span>
+        </Button>
+        {openDeleteActions && (
+          <Button
+            title="Delete Selected"
+            variant="danger"
+            size="sm"
+            onClick={deleteSelectedMessages}
+            disabled={selectedMessages.size === 0}
+            className="btn-delete-action"
+          >
+            Delete ({selectedMessages.size})
+          </Button>
+        )}
+        <Button
+          variant="outline-danger"
+          title="Clear All Messages"
+          onClick={clearChat}
+          className="btn-chat-action btn-clear-chat"
+          disabled={chatMessages.length === 0}
+        >
+          <TrashIcon size="small" />
+          <span className="ms-1">Clear Chat</span>
+        </Button>
+      </div>
+    );
   };
 
-  const toggleCheckbox = (event: React.FormEvent) => {
-    const target = event.currentTarget as HTMLInputElement;
-    setIsFilterEnabled(target.checked);
-    if (!target.checked) {
+  const toggleCheckbox = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked;
+    setIsFilterEnabled(checked);
+    if (!checked) {
       clearFilter();
     } else {
-      applyFilter();
+      filterChat(filterMode, filterValue);
     }
   };
 
   const changeFilterMode = (mode: string) => {
-    clearFilter();
-    if (isFilterEnabled) {
-      clearChat('.chat-thread.filtered');
-    } else {
-      clearChat('.chat-thread.normal');
-    }
     setFilterMode(mode);
-    applyFilter();
+    if (isFilterEnabled) {
+      filterChat(mode, filterValue);
+    }
   };
 
-  const updateFilterValue = (event: React.FormEvent) => {
+  const updateFilterValue = (
+    event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
+    setFilterValue(event.target.value);
     if (isFilterEnabled) {
-      const target = event.currentTarget as HTMLInputElement;
-      setFilterValue(target.value);
-      applyFilter();
+      filterChat(filterMode, event.target.value);
     }
   };
 
   const synchronize = () => {
-    if (connectionStatus == 'offline') {
+    if (connectionStatus === 'offline') {
       showErrorToastMessage("Can't synchronize with server");
       return;
     }
     clearFilter();
-    clearChat('.chat-thread');
     synchronizeWithServer();
   };
 
@@ -158,7 +179,7 @@ export default function ChatBox() {
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'chat.txt'; // TODO: Change filename to landscape token + room id and date?
+    a.download = 'chat.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -166,133 +187,17 @@ export default function ChatBox() {
   };
 
   const insertMessage = () => {
-    const inputElement = document.querySelector(
-      '.message-input'
-    ) as HTMLInputElement;
+    if (!inputRef.current) return;
 
-    const msg = inputElement.value.trim();
-    if (msg.trim() === '') {
-      return;
-    }
+    const msg = inputRef.current.value.trim();
+    if (msg === '') return;
 
-    sendChatMessage(userId, msg, false);
-    inputElement.value = '';
+    sendChatMessage(msg, false);
+    inputRef.current.value = '';
   };
 
-  const postMessage = (chatMessage: {
-    msgId: number;
-    userId: string;
-    userName: string;
-    userColor: THREE.Color;
-    timestamp: string;
-    message: string;
-    isEvent: boolean;
-    eventType: string;
-    eventData: any[];
-  }) => {
-    // Check filter selection
-    const activeUserFilter =
-      filterValue === chatMessage.userName + '(' + chatMessage.userId + ')' &&
-      filterMode === 'UserId';
-
-    const activeEventFilter = filterMode === 'Events' && chatMessage.isEvent;
-
-    const shouldDisplayMessage = isFilterEnabled
-      ? activeUserFilter || activeEventFilter
-      : true;
-
-    if (!shouldDisplayMessage) {
-      return;
-    }
-
-    // Post message into normal chat or filtered chat depending on filter
-    const chatThreadClass = isFilterEnabled
-      ? '.chat-thread.filtered'
-      : '.chat-thread.normal';
-    const chatThread = document.querySelector(chatThreadClass) as HTMLElement;
-    if (chatThread) {
-      // If message already exists, don't post it again
-      const existingMessage = chatThread.querySelector(
-        `.message-container[data-message-id="${chatMessage.msgId}"]`
-      );
-      if (existingMessage) {
-        return;
-      }
-
-      // Create container div for the message
-      const messageContainer = document.createElement('div');
-      messageContainer.classList.add('message-container');
-      chatThread.appendChild(messageContainer);
-
-      // Create and add the User on top of the message container
-      if (!chatMessage.isEvent) {
-        const userDiv = document.createElement('div');
-        userDiv.textContent =
-          chatMessage.userId !== 'unknown'
-            ? `${chatMessage.userName}(${chatMessage.userId})`
-            : `${chatMessage.userName}`;
-        userDiv.classList.add('User');
-        userDiv.style.color = `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`;
-        messageContainer.appendChild(userDiv);
-      }
-
-      // Add the message with a unique id attribute to the container
-      const messageLi = document.createElement('li');
-      messageLi.textContent = chatMessage.message;
-      const messageClass = chatMessage.isEvent ? 'event-message' : 'Message';
-      messageLi.classList.add(messageClass);
-      messageContainer.setAttribute(
-        'data-message-id',
-        chatMessage.msgId.toString()
-      );
-      messageContainer.appendChild(messageLi);
-
-      // Add the button for replayability of certain events
-      if (
-        (chatMessage.isEvent && chatMessage.eventType == 'ping') ||
-        chatMessage.eventType === 'highlight'
-      ) {
-        const eventButton = document.createElement('Button');
-        eventButton.textContent = 'Replay';
-        eventButton.classList.add('event-button');
-        eventButton.onclick = () => handleEventClick(chatMessage);
-
-        messageLi.appendChild(eventButton);
-      }
-
-      // Add the checkbox for message deletion
-      if (userIsHost) {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.value = chatMessage.msgId.toString();
-        checkbox.classList.add('delete-checkbox');
-        checkbox.onchange = (event) => selectMessage(event, chatMessage);
-        messageLi.appendChild(checkbox);
-      }
-
-      // Add the timestamp at the end of the message
-      const timestampDiv = document.createElement('div');
-      timestampDiv.textContent = chatMessage.timestamp;
-      timestampDiv.classList.add('chat-timestamp');
-      messageLi.appendChild(timestampDiv);
-
-      scrollChatToBottom();
-      addUserToChat(chatMessage.userId, chatMessage.userName);
-    }
-  };
-
-  const handleEventClick = (chatMessage: {
-    msgId: number;
-    userId: string;
-    userName: string;
-    userColor: THREE.Color;
-    timestamp: string;
-    message: string;
-    isEvent: boolean;
-    eventType: string;
-    eventData: any[];
-  }): any => {
-    if (chatMessage.eventData.length == 0) {
+  const handleEventClick = (chatMessage: ChatMessageInterface) => {
+    if (!chatMessage.eventData || chatMessage.eventData.length === 0) {
       showErrorToastMessage('No event data');
       return;
     }
@@ -319,167 +224,183 @@ export default function ChatBox() {
     }
   };
 
-  const removeUserMessage = (messageId: number[]) => {
-    removeChatMessage(messageId);
-    messageId.forEach((msg) => removeMessage(msg));
-  };
+  const toggleMessageSelection = (chatMessage: ChatMessageInterface) => {
+    if (!openDeleteActions) return;
 
-  const addUserToChat = (id: string, userName: string) => {
-    const userExists = usersInChat.some((user) => user.id === id);
-    if (!userExists) {
-      const name = userName + '(' + id + ')';
-      setUsersInChat((prev) => [...prev, { id, name }]);
-    }
-  };
-
-  const removeMessage = (messageId: number) => {
-    const chatThread = document.querySelector('.chat-thread') as HTMLElement;
-    if (chatThread) {
-      if (filteredMessages.some((message) => message.msgId === messageId)) {
-        const messageToRemove = chatThread.querySelector(
-          `.message-container[data-message-id="${messageId}"]`
-        );
-        if (messageToRemove) {
-          messageToRemove.remove();
-        }
+    setSelectedMessages((prev) => {
+      const next = new Set(prev);
+      if (next.has(chatMessage.msgId)) {
+        next.delete(chatMessage.msgId);
+      } else {
+        next.add(chatMessage.msgId);
       }
-    }
+      return next;
+    });
   };
 
-  const clearChat = (thread: string) => {
-    const chatThread = document.querySelector(thread) as HTMLElement;
-    if (chatThread) {
-      const messages = document.querySelectorAll('.message-container');
-      messages.forEach((msg) => msg.remove());
-      filteredMessages.forEach((chatMessage) => {
-        const messageToRemove = chatThread.querySelector(
-          `.message-container[data-message-id="${chatMessage.msgId}"]`
-        );
-        if (messageToRemove) {
-          messageToRemove.remove();
-        }
-      });
-      const messageItems = document.querySelectorAll('.message-item');
-      messageItems.forEach((msgItem) => msgItem.remove());
-    }
+  const messagesToDisplay = isFilterEnabled ? filteredMessages : chatMessages;
+
+  const handleEnabledChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    toggleCheckbox(event);
   };
 
-  const scrollChatToBottom = () => {
-    const chatThread = document.querySelector('.chat-thread') as HTMLElement;
-    if (chatThread) {
-      chatThread.scrollTop = chatThread.scrollHeight;
-    }
+  const renderFilterOptions = () => {
+    if (!openFilterOptions) return null;
+
+    return (
+      <div className="filter-options">
+        <label htmlFor="filter-checkbox">
+          <input
+            type="checkbox"
+            checked={isFilterEnabled}
+            id="filter-checkbox"
+            onChange={handleEnabledChange}
+          />
+          <span>Enable Filtering</span>
+        </label>
+        <div className="radio-buttons-chat">
+          <label>
+            <input
+              type="radio"
+              name="filter-type"
+              value="UserId"
+              checked={filterMode === 'UserId'}
+              onChange={() => changeFilterMode('UserId')}
+            />
+            <span>Filter by User</span>
+          </label>
+          {filterMode === 'UserId' && (
+            <select
+              id="filter-val"
+              className="form-select form-select-sm"
+              value={filterValue}
+              onChange={updateFilterValue}
+            >
+              <option value="">Select a user...</option>
+              {usersInChat.map((user) => (
+                <option value={user.name} key={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <label>
+            <input
+              type="radio"
+              name="filter-type"
+              value="Events"
+              checked={filterMode === 'Events'}
+              onChange={() => changeFilterMode('Events')}
+            />
+            <span>Filter by Events</span>
+          </label>
+        </div>
+      </div>
+    );
   };
-
-  useEffect(() => {
-    if (deletedMessage) {
-      deleteMessageOnEvent();
-    }
-    useChatStore.setState({ deletedMessage: false });
-  }, [deletedMessage]);
-
-  useEffect(() => {
-    filteredMessages.forEach(postMessage);
-    chatMessages.forEach(postMessage);
-  });
 
   return (
     <>
       <div className="chat">
-        <h5 className="text-center">Chat</h5>
+        <h5>Collaboration Chat</h5>
         <div className="chat-button-area">
-          <div className="filter-box">
-            <Button title="Filter" onClick={toggleFilter}>
-              <GearIcon size="small" className="align-middle" />
+          <div className="d-flex gap-2 flex-wrap align-items-center w-100">
+            <div style={{ position: 'relative' }}>
+              <Button
+                variant="outline-secondary"
+                title="Filter Options"
+                onClick={toggleFilter}
+                className="btn-chat-action"
+              >
+                <GearIcon size="small" />
+              </Button>
+              {renderFilterOptions()}
+            </div>
+
+            {renderChatActions()}
+
+            <Button
+              variant="outline-secondary"
+              title="Sync with Server"
+              onClick={synchronize}
+              className="btn-chat-action ms-auto"
+            >
+              <LogIcon size="small" />
             </Button>
-            {openFilterOptions && (
-              <div className="filter-options">
-                <label htmlFor="filter-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={isFilterEnabled}
-                    id="filter-checkbox"
-                    onChange={toggleCheckbox}
-                  />
-                  Enable Filtering By
-                  <div className="radio-buttons-chat">
-                    <label>
-                      <input
-                        type="radio"
-                        name="filter-u"
-                        value="UserId"
-                        checked={filterMode === 'UserId'}
-                        onChange={() => changeFilterMode('UserId')}
-                      />
-                      User
-                      <select
-                        id="filter-val"
-                        value={filterValue}
-                        onFocus={updateFilterValue}
-                        onChange={updateFilterValue}
-                      >
-                        {usersInChat.map((user) => (
-                          <option value={user.name} key={user.id}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="filter-e"
-                        value="Events"
-                        checked={filterMode === 'Events'}
-                        onChange={() => setFilterMode('Events')}
-                      />
-                      Events
-                    </label>
-                  </div>
-                </label>
-              </div>
-            )}
-          </div>
-          <div className="chat-right-buttons">
-            {userIsHost && (
-              <div className="host-actions">
-                <Button title="Host action" onClick={toggleDeleteAction}>
-                  <TrashIcon size="small" className="align-middle" />
-                </Button>
-                {openDeleteActions && (
-                  <Button
-                    title="Delete Selected Messages"
-                    variant="danger"
-                    onClick={deleteSelectedMessages}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </div>
-            )}
-            <div className="synchronize">
-              <Button title="Get Chat Log From Room" onClick={synchronize}>
-                <LogIcon size="small" className="align-middle" />
-              </Button>
-            </div>
-            <div className="download">
-              <Button title="Download" onClick={downloadChat}>
-                <DownloadIcon size="small" className="align-middle" />
-              </Button>
-            </div>
+            <Button
+              variant="outline-secondary"
+              title="Download Chat History"
+              onClick={downloadChat}
+              className="btn-chat-action"
+            >
+              <DownloadIcon size="small" />
+            </Button>
           </div>
         </div>
 
-        {isFilterEnabled ? (
-          <ul className="chat-thread filtered"></ul>
-        ) : (
-          <ul className="chat-thread normal"></ul>
-        )}
+        <ul className="chat-thread" ref={chatThreadRef}>
+          {messagesToDisplay.map((chatMessage) => {
+            const isSelf = chatMessage.userId === userId;
+            const isEvent = chatMessage.isEvent;
+            const isSelected = selectedMessages.has(chatMessage.msgId);
+
+            let containerClass = 'message-container';
+            if (isEvent) containerClass += ' event';
+            else if (isSelf) containerClass += ' self';
+            else containerClass += ' other';
+
+            if (openDeleteActions) containerClass += ' selectable';
+            if (isSelected) containerClass += ' selected';
+
+            return (
+              <div
+                key={chatMessage.msgId}
+                className={containerClass}
+                data-message-id={chatMessage.msgId}
+                onClick={() => toggleMessageSelection(chatMessage)}
+              >
+                {!isEvent && (
+                  <div
+                    className="User"
+                    style={{
+                      color: `rgb(${chatMessage.userColor.r * 255}, ${chatMessage.userColor.g * 255}, ${chatMessage.userColor.b * 255})`,
+                    }}
+                  >
+                    {chatMessage.userId !== 'unknown'
+                      ? `${chatMessage.userName} (${chatMessage.userId})`
+                      : chatMessage.userName}
+                  </div>
+                )}
+                <li className={isEvent ? 'event-message' : 'Message'}>
+                  {chatMessage.message}
+                  {(chatMessage.eventType === 'ping' ||
+                    chatMessage.eventType === 'highlight') && (
+                    <Button
+                      variant="link"
+                      className="event-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEventClick(chatMessage);
+                      }}
+                    >
+                      Replay
+                    </Button>
+                  )}
+                </li>
+                {!isEvent && (
+                  <div className="chat-timestamp">{chatMessage.timestamp}</div>
+                )}
+              </div>
+            );
+          })}
+        </ul>
 
         <div className="message-box">
           <input
+            ref={inputRef}
             id="texfield"
-            className="message-input form-control mr-2"
+            className="message-input"
+            placeholder="Type a message..."
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 insertMessage();

@@ -38,6 +38,7 @@ interface ChatState {
   msgId: number;
   deletedMessage: boolean; // Can be adjusted to 'needSynchronization' for exmaple, to synchronize chat whenever necessary..
   deletedMessageIds: number[];
+  isInitialized: boolean;
   _constructor: () => void;
   cleanup: () => void;
   removeEventListener: () => void;
@@ -62,11 +63,10 @@ interface ChatState {
     originalMessage,
   }: ForwardedMessage<MessageDeleteEvent>) => void;
   sendChatMessage: (
-    userId: string,
     msg: string,
-    isEvent: boolean,
-    eventType: string,
-    eventData: any[]
+    isEvent?: boolean,
+    eventType?: string,
+    eventData?: any[]
   ) => void;
   addChatMessage: (
     msgId: number,
@@ -89,6 +89,7 @@ interface ChatState {
   synchronizeWithServer: () => void;
   syncChatMessages: (messages: ChatSynchronizeMessage[]) => void;
   setDeletedMessageIds: (deletedMessageIds: number[]) => void;
+  clearChat: () => void;
 }
 
 // Has to be explicitly called
@@ -106,10 +107,14 @@ export const useChatStore = create<ChatState>((set, get) => {
     deletedMessage: false, // tracked
     deletedMessageIds: [],
 
+    isInitialized: false,
+
     _constructor: () => {
+      if (get().isInitialized) return;
       eventEmitter.on(CHAT_MESSAGE_EVENT, get().onChatMessageEvent);
       eventEmitter.on(CHAT_SYNC_EVENT, get().onChatSyncEvent);
       eventEmitter.on(MESSAGE_DELETE_EVENT, get().onMessageDeleteEvent);
+      set({ isInitialized: true });
     },
 
     cleanup: () => {
@@ -137,6 +142,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         eventData,
       },
     }: ForwardedMessage<ChatMessage>) => {
+      if (!msg) return; // Prevent empty/corrupt messages
       if (useLocalUserStore.getState().userId != userId && !isEvent) {
         useToastHandlerStore
           .getState()
@@ -183,18 +189,19 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     sendChatMessage: (
-      userId: string,
       msg: string,
-      isEvent: boolean,
+      isEvent: boolean = false,
       eventType: string = '',
       eventData: any[] = []
     ) => {
+      const userId = useLocalUserStore.getState().userId;
       if (
         useCollaborationSessionStore.getState().connectionStatus == 'offline'
       ) {
-        set({ msgId: get().msgId++ });
+        const nextId = get().msgId + 1;
+        set({ msgId: nextId });
         get().addChatMessage(
-          get().msgId,
+          nextId,
           userId,
           msg,
           '',
@@ -263,20 +270,26 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     removeChatMessage: (messageId: number[], received?: boolean) => {
-      messageId.forEach((msgId) => {
-        set({
-          chatMessages: get().chatMessages.filter((msg) => msg.msgId !== msgId),
-        });
-      });
+      const remainingMessages = get().chatMessages.filter(
+        (msg) => !messageId.includes(msg.msgId)
+      );
+      set({ chatMessages: remainingMessages });
 
       if (!received) {
         useMessageSenderStore.getState().sendMessageDelete(messageId);
       } else {
-        set({ deletedMessage: true });
-        let newDeletedMessageIds = get().deletedMessageIds;
-        messageId.forEach((msgId) => newDeletedMessageIds.push(msgId));
-        set({ deletedMessageIds: newDeletedMessageIds });
+        set({
+          deletedMessage: true,
+          deletedMessageIds: [...get().deletedMessageIds, ...messageId],
+        });
       }
+      get()._applyCurrentFilter('', '');
+    },
+
+    clearChat: () => {
+      const messageIds = get().chatMessages.map((msg) => msg.msgId);
+      if (messageIds.length === 0) return;
+      get().removeChatMessage(messageIds, false);
     },
 
     findEventByUserId: (userId: string, eventType: string): boolean => {
@@ -300,7 +313,6 @@ export const useChatStore = create<ChatState>((set, get) => {
             get().userIdMuteList?.filter((id) => userId !== id) || [],
         });
         get().sendChatMessage(
-          useLocalUserStore.getState().userId,
           `${remoteUser.userName}(${remoteUser.userId})` + ' was unmuted',
           true,
           'mute_event',
@@ -309,7 +321,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       } else {
         set({ userIdMuteList: [...get().userIdMuteList!, userId] });
         get().sendChatMessage(
-          useLocalUserStore.getState().userId,
           `${remoteUser.userName}(${remoteUser.userId})` + ' was muted',
           true,
           'mute_event',

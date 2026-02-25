@@ -42,8 +42,6 @@ import {
 } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 
-// interface CollaborationControlsProps {}
-
 export default function CollaborationControls() {
   const localUserColor = useLocalUserStore((state) => state.color);
   const localUserName = useLocalUserStore((state) => state.userName);
@@ -53,9 +51,9 @@ export default function CollaborationControls() {
 
   const collabStore = useCollaborationSessionStore(
     useShallow((state) => ({
+      idToRemoteUser: state.idToRemoteUser,
       connectionStatus: state.connectionStatus,
       currentRoomId: state.currentRoomId,
-      getAllRemoteUsers: state.getAllRemoteUsers,
       hostRoom: state.hostRoom,
       disconnect: state.disconnect,
       joinRoom: state.joinRoom,
@@ -71,7 +69,6 @@ export default function CollaborationControls() {
   const activateSpectateConfig = useSpectateUserStore(
     (state) => state.activateConfig
   );
-  const userIdMuteList = useChatStore((state) => state.userIdMuteList);
   const isChatUserMuted = useChatStore((state) => state.isUserMuted);
   const toggleChatMuteStatus = useChatStore((state) => state.toggleMuteStatus);
   const authUser = useAuthStore((state) => state.user);
@@ -117,7 +114,6 @@ export default function CollaborationControls() {
   const [rooms, setRooms] = useState<RoomListRecord[]>([]);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [landscapeTokens, setLandscapeTokens] = useState<LandscapeToken[]>([]);
-  const [mutedUsers, setMutedUsers] = useState<string[]>([]);
   const [spectateConfigEnabled, setSpectateConfigEnabled] =
     useState<boolean>(false);
   const [spectateConfigs, setSpectateConfigs] = useState<SpectateConfig[]>([]);
@@ -155,7 +151,7 @@ export default function CollaborationControls() {
         isKickable: false,
       });
     }
-    const remoteUsers = Array.from(collabStore.getAllRemoteUsers()).map(
+    const remoteUsers = Array.from(collabStore.idToRemoteUser.values()).map(
       (user) => {
         const isSpectatedByUs = spectatedUser?.userId === user.userId;
         return {
@@ -188,18 +184,21 @@ export default function CollaborationControls() {
     });
   };
 
-  const loadRooms = async (alert = true) => {
-    if (alert) {
-      showSuccessToastMessage('Reloading Rooms');
-    }
-    await listRooms();
-    setRooms(await listRooms());
-    setLandscapeTokens(await retrieveLandscapeTokens());
+  const loadRooms = React.useCallback(
+    async (alert = true) => {
+      if (alert) {
+        showSuccessToastMessage('Reloading Rooms');
+      }
+      await listRooms();
+      setRooms(await listRooms());
+      setLandscapeTokens(await retrieveLandscapeTokens());
 
-    setSpectateConfigs(
-      await useSpectateConfigurationStore.getState().retrieveConfigs()
-    );
-  };
+      setSpectateConfigs(
+        await useSpectateConfigurationStore.getState().retrieveConfigs()
+      );
+    },
+    [listRooms, retrieveLandscapeTokens, showSuccessToastMessage]
+  );
 
   const joinRoom = async (room: RoomListRecord) => {
     // In case join action fails, the room list should be up-to-date
@@ -222,12 +221,6 @@ export default function CollaborationControls() {
   const toggleMuteStatus = (user: { remoteUserId: string }) => {
     if (user) {
       const userId = user.remoteUserId;
-
-      if (isChatUserMuted(userId)) {
-        setMutedUsers((prev) => prev.filter((id) => id !== userId));
-      } else {
-        setMutedUsers((prev) => [...prev, userId]);
-      }
       toggleChatMuteStatus(userId);
     }
   };
@@ -236,7 +229,7 @@ export default function CollaborationControls() {
     if (!user) {
       return;
     }
-    return mutedUsers.includes(user.remoteUserId);
+    return isChatUserMuted(user.remoteUserId);
   };
 
   const kickUser = (user: { remoteUserId: string }) => {
@@ -249,9 +242,7 @@ export default function CollaborationControls() {
   const configurationSelected = (selectedConfig: string) => {
     if (!selectedConfig) return;
 
-    const remoteUserIds = Array.from(collabStore.getAllRemoteUsers()).map(
-      (user) => user.userId
-    );
+    const remoteUserIds = Array.from(collabStore.idToRemoteUser.keys());
     activateSpectateConfig(selectedConfig, remoteUserIds);
   };
 
@@ -528,7 +519,6 @@ export default function CollaborationControls() {
   };
 
   useEffect(() => {
-    setMutedUsers(userIdMuteList || []);
     loadRooms(false);
 
     const deviceIdParam = searchParams.get('deviceId');
@@ -537,7 +527,7 @@ export default function CollaborationControls() {
     } else {
       setDeviceId(deviceIdParam);
     }
-  }, []);
+  }, [loadRooms, searchParams]);
 
   return (
     <>
