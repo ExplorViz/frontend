@@ -1,6 +1,7 @@
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as THREE from 'three';
@@ -40,7 +41,11 @@ export function setHighlightingById(
   useVisualizationStore
     .getState()
     .actions.setHighlightedEntityId(modelId, highlight);
+
   if (sendMessage) {
+    // Log to chat for replay
+    useHighlightingStore.getState().logHighlightToChat(modelId, highlight);
+    // Send network update
     useMessageSenderStore
       .getState()
       .sendHighlightingUpdate([modelId], highlight);

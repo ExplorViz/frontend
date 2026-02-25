@@ -6,14 +6,15 @@ import {
   LogIcon,
   TrashIcon,
 } from '@primer/octicons-react';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import {
   ChatMessageInterface,
   useChatStore,
 } from 'explorviz-frontend/src/stores/chat';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 
 interface ChatUser {
@@ -27,10 +28,7 @@ export default function ChatBox() {
   );
   const userId = useLocalUserStore((state) => state.userId);
   const userIsHost = useLocalUserStore((state) => state.isHost);
-  const pingReplay = useLocalUserStore((state) => state.pingReplay);
-  const highlightReplay = useHighlightingStore(
-    (state) => state.highlightReplay
-  );
+  const { lookAtEntity } = useCameraControlsStore();
   const chatMessages = useChatStore((state) => state.chatMessages);
   const filteredMessages = useChatStore((state) => state.filteredChatMessages);
   const sendChatMessage = useChatStore((state) => state.sendChatMessage);
@@ -202,21 +200,24 @@ export default function ChatBox() {
       return;
     }
 
-    const userId = chatMessage.userId;
+    const msgUserId = chatMessage.userId;
     switch (chatMessage.eventType) {
       case 'ping':
         {
-          const objId = chatMessage.eventData[0];
-          const pingPos = chatMessage.eventData[1];
-          const pingDurationInMs = chatMessage.eventData[2];
-          pingReplay(userId, objId, pingPos, pingDurationInMs);
+          const objId = chatMessage.eventData[0] as string;
+          const pingPos = chatMessage.eventData[1] as {
+            x: number;
+            y: number;
+            z: number;
+          } | null;
+          const pingDurationInMs = chatMessage.eventData[2] as number;
+          pingReplay(msgUserId, objId, pingPos, pingDurationInMs);
         }
         break;
       case 'highlight':
         {
-          const appId = chatMessage.eventData[0];
-          const entityId = chatMessage.eventData[1];
-          highlightReplay(userId, appId, entityId);
+          const entityId = chatMessage.eventData[1] as string;
+          lookAtEntity(entityId);
         }
         break;
       default:
@@ -383,7 +384,9 @@ export default function ChatBox() {
                         handleEventClick(chatMessage);
                       }}
                     >
-                      Replay
+                      {chatMessage.eventType === 'highlight'
+                        ? 'Look At'
+                        : 'Replay'}
                     </Button>
                   )}
                 </li>

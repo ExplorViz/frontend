@@ -1,8 +1,12 @@
 import { useFrame, useThree } from '@react-three/fiber';
+import { useChatStore } from 'explorviz-frontend/src/stores/chat';
+import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useEffect, useRef } from 'react';
@@ -95,6 +99,77 @@ function removeFromActivePings(mesh: PingMesh): void {
 
 // #endregion Helper Functions
 
+// #region Chat Logging
+
+const MAX_DISPLAY_LENGTH = 30;
+
+/**
+ * Truncates a string to MAX_DISPLAY_LENGTH characters, appending ' ...' if it was cut.
+ */
+function truncate(str: string): string {
+  return str.length > MAX_DISPLAY_LENGTH
+    ? str.slice(0, MAX_DISPLAY_LENGTH) + ' ...'
+    : str;
+}
+
+/**
+ * Resolves a human-readable name for a model ID by searching through the application
+ * repository for a matching application, package, or class.
+ * Returns the raw ID if no match is found.
+ */
+function getEntityName(modelId: string): string {
+  const appRepo = useApplicationRepositoryStore.getState();
+  const appData = appRepo.getByModelId(modelId);
+  if (!appData) return modelId;
+
+  // Check if it's the application itself
+  if (appData.getId() === modelId) {
+    return appData.application.name;
+  }
+
+  // Check packages
+  const matchingPackage = appData.getPackages().find((p) => p.id === modelId);
+  if (matchingPackage) return matchingPackage.name;
+
+  // Check classes
+  const matchingClass = appData.getClasses().find((c) => c.id === modelId);
+  if (matchingClass) return matchingClass.name;
+
+  return modelId;
+}
+
+/**
+ * Logs a ping event to the chat store so it can be replayed later.
+ * @param modelId - The model ID that was pinged, or null for a position-only ping
+ * @param position - The world position of the ping
+ * @param durationMs - Duration of the ping in milliseconds
+ */
+function _logPingToChat(
+  modelId: string | null,
+  position: THREE.Vector3,
+  durationMs: number
+): void {
+  const posData = { x: position.x, y: position.y, z: position.z };
+  let pingMsg: string;
+  if (modelId) {
+    const entityName = truncate(getEntityName(modelId));
+    pingMsg = `📍 Pinged: ${entityName}`;
+  } else {
+    const posStr = `(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`;
+    pingMsg = `📍 Pinged position ${truncate(posStr)}`;
+  }
+
+  useChatStore
+    .getState()
+    .sendChatMessage(pingMsg, true, 'ping', [
+      modelId ?? '',
+      posData,
+      durationMs,
+    ]);
+}
+
+// #endregion Chat Logging
+
 // #region Public API
 /**
  * Triggers a ping animation at the position of a model by its ID
@@ -117,10 +192,56 @@ export function pingByModelId(
     return;
   }
 
-  pingPosition(modelWorldPosition, color, sendMessage, durationMs, {
+  // Log to chat when this is a local user action (sendMessage=true) and not a replay
+  if (sendMessage && !replay) {
+    _logPingToChat(modelId, modelWorldPosition, durationMs);
+  }
+
+  pingPosition(modelWorldPosition, color, false, durationMs, {
     replay,
     removeOldPings,
   });
+
+  // Send network message
+  if (sendMessage) {
+    useMessageSenderStore.getState().sendPingUpdate({
+      modelIds: [modelId],
+    });
+  }
+}
+
+/**
+ * Replays a ping event from the chat log
+ */
+export function pingReplay(
+  userId: string,
+  modelId: string,
+  pingPos: { x: number; y: number; z: number } | null,
+  durationMs: number = 3000
+): void {
+  const isLocalUser = userId === useLocalUserStore.getState().userId;
+  let color: THREE.ColorRepresentation;
+
+  if (isLocalUser) {
+    color = useHighlightingStore.getState().highlightingColor();
+  } else {
+    const remoteUser = useCollaborationSessionStore
+      .getState()
+      .lookupRemoteUserById(userId);
+    color = remoteUser?.color ?? new THREE.Color(0xffffff);
+  }
+
+  if (modelId) {
+    pingByModelId(modelId, false, {
+      color,
+      durationMs,
+      replay: true,
+      removeOldPings: false,
+    });
+  } else if (pingPos) {
+    const position = new THREE.Vector3(pingPos.x, pingPos.y, pingPos.z);
+    pingPosition(position, color, false, durationMs, { replay: true });
+  }
 }
 
 /**
@@ -154,8 +275,9 @@ export function pingPosition(
     return;
   }
 
-  // Send ping update message if requested
-  if (sendMessage) {
+  // Send ping update message and log to chat (for position-only pings without a modelId)
+  if (sendMessage && !replay) {
+    _logPingToChat(null, position, durationMs);
     useMessageSenderStore.getState().sendPingUpdate({
       positions: [position],
     });
