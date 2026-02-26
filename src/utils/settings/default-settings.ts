@@ -452,67 +452,14 @@ export const defaultVizSettings: VisualizationSettings = {
       'If enabled, communication curve height is calculated based on the distance between source and target',
     isFlagSetting: true,
   },
-  enableEdgeBundling: {
+  edgeBundlingAlgorithm: {
     level: SettingLevel.DEFAULT,
-    value: false,
+    value: 'None',
+    options: ['None', '3D-HAP', 'Force-directed'],
     group: 'Communication',
-    displayName: 'Enable Edge Bundling',
-    description:
-      'Bundle communication lines for better visualization of dense areas',
-    isFlagSetting: true,
-  },
-  bundleStrength: {
-    level: SettingLevel.DEFAULT,
-    value: 0.3,
-    range: { min: 0.0, max: 1.0, step: 0.01 },
-    group: 'Communication',
-    displayName: 'Bundling Strength',
-    description: 'Controls how strongly edges are bundled together',
-    dependsOn: {
-      settingId: 'enableEdgeBundling',
-      value: true,
-    },
-    isRangeSetting: true,
-  },
-  compatibilityThreshold: {
-    level: SettingLevel.EXTENDED,
-    value: 0.6,
-    range: { min: 0.0, max: 1.0, step: 0.01 },
-    group: 'Communication',
-    displayName: 'Compatibility Threshold',
-    description: 'Minimum compatibility score for edges to be bundled',
-    dependsOn: {
-      settingId: 'enableEdgeBundling',
-      value: true,
-    },
-    isRangeSetting: true,
-  },
-  bundlingIterations: {
-    level: SettingLevel.EXTENDED,
-    value: 30,
-    range: { min: 1, max: 100, step: 1 },
-    group: 'Communication',
-    displayName: 'Bundling Iterations',
-    description:
-      'Number of bundling algorithm iterations (higher = better quality)',
-    dependsOn: {
-      settingId: 'enableEdgeBundling',
-      value: true,
-    },
-    isRangeSetting: true,
-  },
-  bundlingStepSize: {
-    level: SettingLevel.EXTENDED,
-    value: 0.1,
-    range: { min: 0.01, max: 0.5, step: 0.01 },
-    group: 'Communication',
-    displayName: 'Bundling Step Size',
-    description: 'Step size for bundling algorithm (smaller = smoother)',
-    dependsOn: {
-      settingId: 'enableEdgeBundling',
-      value: true,
-    },
-    isRangeSetting: true,
+    displayName: 'Edge Bundling Algorithm',
+    description: 'Select algorithm for bundling communication edges',
+    isSelectSetting: true,
   },
   beta: {
     level: SettingLevel.DEFAULT,
@@ -521,25 +468,12 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Communication',
     displayName: '3D-HAP Attraction Power (β)',
     description:
-      'Controls the attraction power of hierarchical attraction points (β factor from paper)',
+      'Controls the attraction power of hierarchical attraction points',
     dependsOn: {
-      settingId: 'use3DHAPAlgorithm',
-      value: true,
+      settingId: 'edgeBundlingAlgorithm',
+      value: '3D-HAP',
     },
     isRangeSetting: true,
-  },
-  use3DHAPAlgorithm: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    group: 'Communication',
-    displayName: 'Use 3D-HAP Algorithm',
-    description:
-      'Enable 3D Hierarchical Edge Bundling algorithm from Caserta paper',
-    dependsOn: {
-      settingId: 'enableEdgeBundling',
-      value: true,
-    },
-    isFlagSetting: true,
   },
   showHAPTree: {
     level: SettingLevel.DEFAULT,
@@ -549,8 +483,8 @@ export const defaultVizSettings: VisualizationSettings = {
     description:
       'Debug visualization of HAP (Hierarchical Attraction Points) tree',
     dependsOn: {
-      settingId: 'use3DHAPAlgorithm',
-      value: true,
+      settingId: 'edgeBundlingAlgorithm',
+      value: '3D-HAP',
     },
     isFlagSetting: true,
   },
@@ -563,35 +497,99 @@ export const defaultVizSettings: VisualizationSettings = {
     description:
       'Controls how far edges are scattered apart (0 = no scattering)',
     dependsOn: {
-      settingId: 'use3DHAPAlgorithm',
-      value: true,
+      settingId: 'edgeBundlingAlgorithm',
+      value: '3D-HAP',
     },
     isRangeSetting: true,
   },
-  leafPackagesOnly: {
+  hapClassElevation: {
     level: SettingLevel.DEFAULT,
+    value: 15,
+    range: { min: 0, max: 500, step: 5 },
+    group: 'Communication',
+    displayName: 'Class Elevation',
+    description: 'Vertical height of class-level HAP points above classes',
+    dependsOn: {
+      settingId: 'edgeBundlingAlgorithm',
+      value: '3D-HAP',
+    },
+    isRangeSetting: true,
+  },
+  hapPackageElevation: {
+    level: SettingLevel.DEFAULT,
+    value: 30,
+    range: { min: 0, max: 1000, step: 10 },
+    group: 'Communication',
+    displayName: 'Package Elevation',
+    description: 'Vertical height of package-level HAP points above packages',
+    dependsOn: {
+      settingId: 'edgeBundlingAlgorithm',
+      value: '3D-HAP',
+    },
+    isRangeSetting: true,
+  },
+  hapApplicationElevation: {
+    level: SettingLevel.DEFAULT,
+    value: 50,
+    range: { min: 0, max: 5000, step: 50 },
+    group: 'Communication',
+    displayName: 'Application Elevation',
+    description:
+      'Vertical height of application-level HAP points above applications',
+    dependsOn: {
+      settingId: 'edgeBundlingAlgorithm',
+      value: '3D-HAP',
+    },
+    isRangeSetting: true,
+  },
+  hapUseRelativeElevation: {
+    level: SettingLevel.DEFAULT,
+    value: true,
+    group: 'Communication',
+    displayName: 'Use Relative Elevation',
+    description: 'If enabled, elevation is relative to element position',
+    dependsOn: {
+      settingId: 'edgeBundlingAlgorithm',
+      value: '3D-HAP',
+    },
+    isFlagSetting: true,
+  },
+  leafPackagesOnly: {
+    level: SettingLevel.EXTENDED,
     value: false,
     group: 'Communication',
     displayName: 'Leaf Packages Only',
     description: 'Only create HAPs for packages that contain no sub-packages',
     dependsOn: {
-      settingId: 'use3DHAPAlgorithm',
-      value: true,
+      settingId: 'edgeBundlingAlgorithm',
+      values: ['3D-HAP'],
     },
     isFlagSetting: true,
   },
   edgeBundlingStreamline: {
-    level: SettingLevel.DEFAULT,
+    level: SettingLevel.EXTENDED,
     value: true,
     group: 'Communication',
     displayName: 'Streamline Edge Paths',
-    description:
-      'Simplify edge paths by keeping only class-level and highest-level HAPs (reduces detours)',
+    description: 'Simplify edge paths to reduce detours',
     dependsOn: {
-      settingId: 'use3DHAPAlgorithm',
-      value: true,
+      settingId: 'edgeBundlingAlgorithm',
+      values: ['3D-HAP'],
     },
     isFlagSetting: true,
+  },
+  enableEdgeColoring: {
+    level: SettingLevel.EXTENDED,
+    value: true,
+    group: 'Communication',
+    displayName: 'Edge Coloring',
+    description:
+      'Enable colored gradient visualization for communication edges',
+    isFlagSetting: true,
+    dependsOn: {
+      settingId: 'edgeBundlingAlgorithm',
+      values: ['3D-HAP', 'Force-directed', 'None'],
+    },
   },
   // Label settings
   appLabelMargin: {

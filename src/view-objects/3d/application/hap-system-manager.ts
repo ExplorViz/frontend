@@ -1,4 +1,9 @@
 import {
+  isApplication,
+  isClass,
+  isPackage,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
   HAPNode,
   HierarchicalAttractionSystem,
 } from 'explorviz-frontend/src/view-objects/3d/application/edge-bundling-utils';
@@ -103,38 +108,140 @@ export class HAPSystemManager {
     this.hapSystems.set('LANDSCAPE', landscapeHAPSystem);
   }
 
-  /**
-   * Build HAP tree with optional leaf packages only filter
-   */
   public buildApplicationHAPTree(
     applicationId: string,
     rootElement: any,
     getChildren: (element: any) => any[],
     getPosition: (element: any) => THREE.Vector3,
     getLevel: (element: any) => number,
-    leafPackagesOnly: boolean = false
+    leafPackagesOnly: boolean = false,
+    isCircleLayout: boolean = false,
+    getPackageCentroid?: (packageElement: any) => THREE.Vector3
   ): void {
     // Clear existing system
     this.clearHAPSystem(applicationId);
 
     const hapSystem = new HierarchicalAttractionSystem();
 
-    // Modified build function that respects leafPackagesOnly
+    const packageInfo = new Map<string, { index: number; total: number }>();
+    if (isCircleLayout) {
+      const collectPackages = (element: any, startIndex: number = 0) => {
+        if (isPackage(element)) {
+          const children = getChildren(element);
+          const subPackages = children.filter(isPackage);
+          let currentIndex = startIndex;
+
+          packageInfo.set(element.id, {
+            index: currentIndex,
+            total: subPackages.length,
+          });
+          currentIndex++;
+
+          for (const subPackage of subPackages) {
+            collectPackages(subPackage, currentIndex);
+            currentIndex++;
+          }
+        }
+      };
+
+      const appPackages = getChildren(rootElement).filter(isPackage);
+      appPackages.forEach((pkg, index) => {
+        collectPackages(pkg, index);
+      });
+    }
+
     const buildTree = (
       element: any,
       parent: HAPNode | null,
       depth: number = 0
     ): HAPNode | null => {
-      // Determine if HAP for this element should be created
+      if (!element || typeof element !== 'object') {
+        return null;
+      }
+
+      if (isCircleLayout && isPackage(element)) {
+        let position = getPosition(element);
+
+        if (getPackageCentroid && position.lengthSq() < 1) {
+          position = getPackageCentroid(element);
+        }
+
+        if (position.lengthSq() < 1) {
+          const angle = depth * 0.5;
+          const radius = 30 + depth * 15;
+          position = new THREE.Vector3(
+            Math.cos(angle) * radius,
+            20 + depth * 20,
+            Math.sin(angle) * radius
+          );
+        }
+
+        const node: HAPNode = {
+          id: element.id,
+          position: position,
+          level: Math.min(2, depth + 1),
+          children: [],
+          parent: parent,
+          element: element,
+        };
+
+        const children = getChildren(element);
+        children.forEach((child) => {
+          const childNode = buildTree(child, node, depth + 1);
+          if (childNode) {
+            node.children.push(childNode);
+          }
+        });
+
+        return node;
+      }
+
+      if (isCircleLayout) {
+        if (isPackage(element) && element !== rootElement) {
+          const children = getChildren(element);
+          const childNodes: HAPNode[] = [];
+
+          children.forEach((child) => {
+            if (isClass(child)) {
+              const childNode = buildTree(child, parent, depth + 1);
+              if (childNode) {
+                childNodes.push(childNode);
+              }
+            }
+          });
+
+          if (childNodes.length > 0) {
+            const virtualPackageNode: HAPNode = {
+              id:
+                element.id ||
+                `pkg_${depth}_${Math.random().toString(36).substr(2, 9)}`,
+              position: getPosition(element),
+              level: getLevel(element),
+              children: childNodes,
+              parent: parent,
+              element: { ...element, isVirtual: true },
+            };
+
+            childNodes.forEach((child) => {
+              child.parent = virtualPackageNode;
+            });
+
+            return virtualPackageNode;
+          }
+
+          return null;
+        }
+      }
+
       const shouldCreateHAP = this.shouldCreateHAPForElement(
         element,
         getChildren,
         leafPackagesOnly,
-        depth
+        depth,
+        isCircleLayout
       );
 
       if (!shouldCreateHAP && element !== rootElement) {
-        // Skip this element, but process its children
         const children = getChildren(element);
         children.forEach((child) => {
           buildTree(child, parent, depth + 1);
@@ -142,11 +249,16 @@ export class HAPSystemManager {
         return null;
       }
 
+      let effectiveLevel = getLevel(element);
+      if (isCircleLayout && isPackage(element)) {
+        effectiveLevel = 1;
+      }
+
       // Create HAP node
       const node: HAPNode = {
         id: element.id || Math.random().toString(),
         position: getPosition(element),
-        level: getLevel(element),
+        level: effectiveLevel,
         children: [],
         parent: parent,
         element: element,
@@ -173,52 +285,40 @@ export class HAPSystemManager {
     }
   }
 
-  /**
-   * Determine if HAP should be created for element
-   */
   private shouldCreateHAPForElement(
     element: any,
     getChildren: (element: any) => any[],
     leafPackagesOnly: boolean,
-    depth: number
+    depth: number,
+    isCircleLayout: boolean = false
   ): boolean {
-    // Always create HAPs for:
-    // 1. Root application
-    // 2. Classes (level 0)
-    // 3. Packages at level 1 (if not filtering)
-
-    const children = getChildren(element);
-    const hasSubPackages = children.some(
-      (child) => child.type === 'package' || child.type === 'Package'
-    );
-
-    const isPackage = element.type === 'package' || element.type === 'Package';
-    const isClass = element.type === 'class' || element.type === 'Class';
-    const isApplication =
-      element.type === 'application' || element.type === 'Application';
+    if (isCircleLayout && isPackage(element)) {
+      return false;
+    }
 
     // Always include root application
-    if (depth === 0 && isApplication) {
+    if (depth === 0 && isApplication(element)) {
       return true;
     }
 
     // Always include classes
-    if (isClass) {
+    if (isClass(element)) {
       return true;
     }
 
-    // For packages:
-    if (isPackage) {
+    // For packages
+    if (isPackage(element)) {
       if (leafPackagesOnly) {
-        // Only include leaf packages (no sub-packages)
+        const children = getChildren(element);
+        const hasSubPackages = children.some(
+          (child) => child.type === 'package' || child.type === 'Package'
+        );
         return !hasSubPackages;
       } else {
-        // Include all packages
         return true;
       }
     }
 
-    // Default: include other elements
     return true;
   }
 
@@ -243,7 +343,7 @@ export class HAPSystemManager {
     );
   }
 
-  // Recursively register all HAP nodes - optimized iterative version
+  // Recursively register all HAP nodes
   private registerHAPNodes(root: HAPNode): void {
     const stack: HAPNode[] = [root];
 
@@ -627,5 +727,178 @@ export class HAPSystemManager {
 
     // Clear systems and trees
     this.clearAllHAPSystems();
+  }
+
+  public updateHAPTreeElevations(
+    applicationId: string,
+    getPosition: (element: any) => THREE.Vector3,
+    getPackageCentroid?: (packageElement: any) => THREE.Vector3
+  ): boolean {
+    const system = this.getHAPSystem(applicationId);
+    if (!system) {
+      return false;
+    }
+
+    const hapTree = system.getHAPTree();
+    if (!hapTree) {
+      return false;
+    }
+
+    let updateCount = 0;
+    let packageUpdates = 0;
+    let classUpdates = 0;
+    let appUpdates = 0;
+
+    const updateNodePositions = (node: HAPNode) => {
+      if (!node.element) return;
+
+      let newPosition: THREE.Vector3;
+
+      // Packages with centroid function
+      if (
+        getPackageCentroid &&
+        (node.element.type === 'package' || node.element.type === 'Package')
+      ) {
+        newPosition = getPackageCentroid(node.element);
+        packageUpdates++;
+      } else {
+        newPosition = getPosition(node.element);
+      }
+
+      if (
+        !newPosition ||
+        isNaN(newPosition.x) ||
+        isNaN(newPosition.y) ||
+        isNaN(newPosition.z)
+      ) {
+        return;
+      }
+
+      const distance = node.position.distanceTo(newPosition);
+      if (distance > 0.1) {
+        const oldY = node.position.y;
+        node.position.copy(newPosition);
+        updateCount++;
+
+        if (node.element.type === 'class' || node.element.type === 'Class')
+          classUpdates++;
+        else if (
+          node.element.type === 'package' ||
+          node.element.type === 'Package'
+        )
+          packageUpdates++;
+        else if (
+          node.element.type === 'application' ||
+          node.element.type === 'Application'
+        )
+          appUpdates++;
+      }
+
+      node.children.forEach(updateNodePositions);
+    };
+
+    updateNodePositions(hapTree);
+
+    if (updateCount > 0) {
+      window.dispatchEvent(
+        new CustomEvent('hapTreeUpdated', {
+          detail: {
+            applicationId,
+            updateCount,
+            classUpdates,
+            packageUpdates,
+            appUpdates,
+          },
+        })
+      );
+
+      this.forceVisualizationUpdate(applicationId);
+
+      return true;
+    }
+
+    return false;
+  }
+
+  private forceVisualizationUpdate(applicationId: string): void {
+    window.dispatchEvent(
+      new CustomEvent('forceHAPVisualizationUpdate', {
+        detail: {
+          applicationId,
+          timestamp: Date.now(),
+        },
+      })
+    );
+  }
+
+  public rebuildHAPSystemForLayoutChange(
+    applicationId: string,
+    rootElement: any,
+    getChildren: (element: any) => any[],
+    getPosition: (element: any) => THREE.Vector3,
+    getLevel: (element: any) => number,
+    layoutAlgorithm: string,
+    leafPackagesOnly: boolean = false
+  ): void {
+    this.clearHAPSystem(applicationId);
+
+    const elementsToRemove: string[] = [];
+    this.elementToHAP.forEach((node, elementId) => {
+      if (
+        node.element &&
+        this.isElementInApplication(node.element, applicationId)
+      ) {
+        elementsToRemove.push(elementId);
+      }
+    });
+    elementsToRemove.forEach((elementId) => {
+      this.elementToHAP.delete(elementId);
+    });
+
+    const getPackageCentroid =
+      layoutAlgorithm === 'circle'
+        ? (pkg: any): THREE.Vector3 => {
+            const position = getPosition(pkg);
+
+            if (position.lengthSq() < 1) {
+              const hash = pkg.id
+                .split('')
+                .reduce((acc: number, char: string) => {
+                  return char.charCodeAt(0) + ((acc << 5) - acc);
+                }, 0);
+
+              const angle = (hash % 360) * (Math.PI / 180);
+              const radius = 50 + (hash % 30);
+              return new THREE.Vector3(
+                Math.cos(angle) * radius,
+                getLevel(pkg) * 20 + 30,
+                Math.sin(angle) * radius
+              );
+            }
+
+            return position;
+          }
+        : undefined;
+
+    this.buildApplicationHAPTree(
+      applicationId,
+      rootElement,
+      getChildren,
+      getPosition,
+      getLevel,
+      leafPackagesOnly,
+      layoutAlgorithm === 'circle',
+      getPackageCentroid
+    );
+
+    window.dispatchEvent(
+      new CustomEvent('hapSystemRebuilt', {
+        detail: {
+          applicationId,
+          layoutAlgorithm,
+          timestamp: Date.now(),
+        },
+      })
+    );
   }
 }

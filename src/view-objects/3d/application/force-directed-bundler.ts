@@ -1,290 +1,242 @@
 import * as THREE from 'three';
 
-export interface CommunicationEdge {
+export interface PaperEdge {
   id: string;
-  startPoint: THREE.Vector3;
-  endPoint: THREE.Vector3;
-  controlPoints: THREE.Vector3[];
-  appPair: string;
-  stability: number;
+  P0: THREE.Vector3;
+  P1: THREE.Vector3;
+  originalLength: number;
+  subdivisionPoints: THREE.Vector3[];
 }
 
-export class ForceDirectedBundler {
-  private edges: Map<string, CommunicationEdge> = new Map();
-  private stiffness: number = 0.42;
-  private repulsion: number = 0.03;
-  private damping: number = 0.88;
-  private compatibilityThreshold: number = 0.25;
+type CompatibilityEntry = { idx: number; c: number };
 
-  // Stability tracking
-  private movementHistory: number[] = [];
-  private readonly stabilityThreshold = 0.008; // Movement < 0.005 units = stable
-  private readonly minStableFrames = 8; // Min. 8 stable Frames
+export class ForceDirectedBundlerPaper {
+  private edges: PaperEdge[] = [];
 
-  private bundleStrengthMultiplier: number = 1.8; // higher attraction
+  private readonly P0 = 1;
+  private readonly S0 = 0.04;
+  private readonly C = 6;
+  private readonly I = [50, 33, 22, 15, 9, 7];
+  private readonly K = 0.1;
 
-  constructor(
-    config?: Partial<{
-      stiffness: number;
-      repulsion: number;
-      damping: number;
-      compatibilityThreshold: number;
-      stabilityThreshold: number;
-      bundleStrength: number;
-    }>
-  ) {
-    Object.assign(this, config);
-  }
+  private currentCycle = 0;
+  private currentIteration = 0;
+  private active = false;
 
-  public addInterAppEdge(
-    id: string,
-    startPoint: THREE.Vector3,
-    endPoint: THREE.Vector3,
-    app1Id: string,
-    app2Id: string
-  ): void {
-    if (app1Id === app2Id) return;
+  // Sparse compatibility
+  private compatibility: Array<CompatibilityEntry[]> = [];
 
-    const appPair = [app1Id, app2Id].sort().join('_');
-    const controlPoints = this.createInitialControlPoints(startPoint, endPoint);
+  addEdge(id: string, start: THREE.Vector3, end: THREE.Vector3): void {
+    if (this.active) {
+      return;
+    }
 
-    this.edges.set(id, {
+    const edge: PaperEdge = {
       id,
-      startPoint: startPoint.clone(),
-      endPoint: endPoint.clone(),
-      controlPoints,
-      appPair,
-      stability: 0,
+      P0: start.clone(),
+      P1: end.clone(),
+      originalLength: start.distanceTo(end),
+      subdivisionPoints: [],
+    };
+    this.edges.push(edge);
+  }
+
+  start(): void {
+    this.currentCycle = 0;
+    this.currentIteration = 0;
+    this.active = true;
+
+    this.initializeSubdivisionPoints();
+    this.precomputeCompatibility();
+  }
+
+  edgeCount(): number {
+    return this.edges.length;
+  }
+
+  update(): boolean {
+    if (!this.active) return false;
+
+    if (this.currentIteration >= this.I[this.currentCycle]) {
+      this.nextCycle();
+      return this.active;
+    }
+
+    this.iterate();
+    this.currentIteration++;
+    return true;
+  }
+
+  stop(): void {
+    this.active = false;
+  }
+
+  getControlPoints(edgeId: string): THREE.Vector3[] {
+    const e = this.edges.find((e) => e.id === edgeId);
+    return e ? e.subdivisionPoints.map((p) => p.clone()) : [];
+  }
+
+  private initializeSubdivisionPoints(): void {
+    const P = this.P0 * Math.pow(2, this.currentCycle);
+
+    this.edges.forEach((edge) => {
+      edge.subdivisionPoints = [];
+      for (let i = 0; i < P; i++) {
+        const t = (i + 1) / (P + 1);
+        edge.subdivisionPoints.push(
+          new THREE.Vector3().lerpVectors(edge.P0, edge.P1, t)
+        );
+      }
     });
   }
 
-  private createInitialControlPoints(
-    start: THREE.Vector3,
-    end: THREE.Vector3
-  ): THREE.Vector3[] {
-    const points: THREE.Vector3[] = [];
-    const segments = 3;
-    const direction = new THREE.Vector3().subVectors(end, start);
-    const length = direction.length();
+  private iterate(): void {
+    const P = this.edges[0]?.subdivisionPoints.length ?? 0;
+    if (P === 0) return;
 
-    for (let i = 1; i <= segments; i++) {
-      const t = i / (segments + 1);
-      const point = new THREE.Vector3()
-        .copy(start)
-        .add(direction.clone().multiplyScalar(t));
+    const S = this.S0 / Math.pow(2, this.currentCycle);
+    const newPositions: THREE.Vector3[][] = this.edges.map((e) =>
+      e.subdivisionPoints.map((p) => p.clone())
+    );
 
-      point.y += length * 0.12;
-      points.push(point);
-    }
+    for (let e = 0; e < this.edges.length; e++) {
+      const edge = this.edges[e];
+      const kP = this.K / (edge.originalLength * (P + 1));
 
-    return points;
-  }
+      for (let i = 0; i < P; i++) {
+        const p = edge.subdivisionPoints[i];
+        const F = new THREE.Vector3();
 
-  private calculateCompatibility(
-    edge1: CommunicationEdge,
-    edge2: CommunicationEdge
-  ): number {
-    // 1. APP-PAIR BONUS
-    let appPairBonus = 1.0;
-    if (edge1.appPair === edge2.appPair) {
-      appPairBonus = 2.5;
-    }
+        const prev = i === 0 ? edge.P0 : edge.subdivisionPoints[i - 1];
+        const next = i === P - 1 ? edge.P1 : edge.subdivisionPoints[i + 1];
 
-    // 2. ANGLE-COMPATIBILITY
-    const dir1 = new THREE.Vector3()
-      .subVectors(edge1.endPoint, edge1.startPoint)
-      .normalize();
-    const dir2 = new THREE.Vector3()
-      .subVectors(edge2.endPoint, edge2.startPoint)
-      .normalize();
-    const angleComp = Math.max(0, dir1.dot(dir2));
-    const angleCompSquared = angleComp * angleComp;
+        F.add(prev.clone().sub(p).multiplyScalar(kP));
+        F.add(next.clone().sub(p).multiplyScalar(kP));
 
-    // 3. POSITION-COMPATIBILITY
-    const mid1 = new THREE.Vector3()
-      .addVectors(edge1.startPoint, edge1.endPoint)
-      .multiplyScalar(0.5);
-    const mid2 = new THREE.Vector3()
-      .addVectors(edge2.startPoint, edge2.endPoint)
-      .multiplyScalar(0.5);
-    const dist = mid1.distanceTo(mid2);
-    const avgLength =
-      (edge1.startPoint.distanceTo(edge1.endPoint) +
-        edge2.startPoint.distanceTo(edge2.endPoint)) /
-      2;
+        // Sparse compatibility
+        const neighbors = this.compatibility[e];
+        for (let ni = 0; ni < neighbors.length; ni++) {
+          const { idx: oe, c: C } = neighbors[ni];
 
-    // More compatibility for larger distances
-    const positionComp = Math.exp(-dist / (avgLength * 1.5));
+          // Early exit
+          if (C < 0.01) break;
 
-    // Compatibility sum
-    return angleCompSquared * positionComp * appPairBonus;
-  }
-  /**
-   * Returns after on interation if there is still movement
-   * @returns true = still movement, false = system is stable
-   */
-  public update(): boolean {
-    if (this.edges.size === 0) return false;
+          const q = this.edges[oe].subdivisionPoints[i];
+          const dir = q.clone().sub(p);
+          if (dir.lengthSq() === 0) continue;
 
-    const edgesArray = Array.from(this.edges.values());
-    let totalMovement = 0;
-    let maxMovement = 0;
-
-    // Save old positions for movement detection
-    const oldPositions = new Map<string, THREE.Vector3[]>();
-    edgesArray.forEach((edge) => {
-      oldPositions.set(
-        edge.id,
-        edge.controlPoints.map((p) => p.clone())
-      );
-    });
-
-    edgesArray.forEach((edge, i) => {
-      edge.controlPoints.forEach((point, pointIndex) => {
-        const force = new THREE.Vector3(0, 0, 0);
-        let compatibilitySum = 0;
-        let compatibleEdges = 0;
-
-        edgesArray.forEach((otherEdge, j) => {
-          if (i === j || pointIndex >= otherEdge.controlPoints.length) return;
-
-          const compatibility = this.calculateCompatibility(edge, otherEdge);
-
-          if (compatibility > this.compatibilityThreshold) {
-            const otherPoint = otherEdge.controlPoints[pointIndex];
-
-            const attractionStrength =
-              this.stiffness * compatibility * this.bundleStrengthMultiplier;
-            const attraction = new THREE.Vector3()
-              .subVectors(otherPoint, point)
-              .multiplyScalar(attractionStrength);
-
-            force.add(attraction);
-            compatibilitySum += compatibility;
-            compatibleEdges++;
-          }
-        });
-
-        // Group attraction
-        if (compatibleEdges > 0) {
-          const avgAttraction = compatibilitySum / compatibleEdges;
-          force.multiplyScalar(0.7 + 0.3 * avgAttraction);
+          dir.normalize().multiplyScalar(this.C * C);
+          F.add(dir);
         }
 
-        const t = (pointIndex + 1) / (edge.controlPoints.length + 1);
-        const targetHeight = edge.startPoint.distanceTo(edge.endPoint) * 0.18;
-        const basePoint = new THREE.Vector3().lerpVectors(
-          edge.startPoint,
-          edge.endPoint,
-          t
-        );
-        basePoint.y += targetHeight;
-
-        const springForce = new THREE.Vector3()
-          .subVectors(basePoint, point)
-          .multiplyScalar(0.04);
-
-        force.add(springForce);
-
-        force.multiplyScalar(this.damping);
-        point.add(force);
-      });
-    });
-
-    // Calculate average movement
-    const totalPoints = edgesArray.length * 3; // 3 control points per Edge
-    const avgMovement = totalMovement / totalPoints;
-
-    // Save movement history
-    this.movementHistory.push(avgMovement);
-    if (this.movementHistory.length > 20) {
-      this.movementHistory.shift();
+        newPositions[e][i].add(F.multiplyScalar(S));
+      }
     }
 
-    // Update stability for every edge
-    edgesArray.forEach((edge) => {
-      const oldPoints = oldPositions.get(edge.id)!;
-      let edgeMovement = 0;
-      edge.controlPoints.forEach((point, i) => {
-        edgeMovement += point.distanceTo(oldPoints[i]);
-      });
+    for (let e = 0; e < this.edges.length; e++) {
+      this.edges[e].subdivisionPoints = newPositions[e];
+    }
+  }
 
-      edge.stability = Math.max(
-        0,
-        1 - edgeMovement / 3 / this.stabilityThreshold
-      );
-      edge.stability = Math.min(1, edge.stability);
+  private nextCycle(): void {
+    this.currentCycle++;
+    this.currentIteration = 0;
+
+    if (this.currentCycle >= this.C) {
+      this.active = false;
+      return;
+    }
+
+    this.edges.forEach((edge) => {
+      const old = edge.subdivisionPoints;
+      const poly = [
+        edge.P0.clone(),
+        ...old.map((p) => p.clone()),
+        edge.P1.clone(),
+      ];
+
+      const newPoints: THREE.Vector3[] = [];
+      for (let i = 0; i < poly.length - 1; i++) {
+        const a = poly[i];
+        const b = poly[i + 1];
+
+        newPoints.push(a.clone());
+        const mid = a.clone().add(b).multiplyScalar(0.5);
+        newPoints.push(mid);
+      }
+      newPoints.push(poly[poly.length - 1].clone());
+
+      edge.subdivisionPoints = newPoints.slice(1, -1);
     });
 
-    // Check global stability
-    const isStable = this.checkStability();
-
-    return !isStable;
+    // this.precomputeCompatibility();
   }
 
-  private checkStability(): boolean {
-    if (this.movementHistory.length < this.minStableFrames) return false;
+  private precomputeCompatibility(): void {
+    const n = this.edges.length;
+    this.compatibility = Array.from({ length: n }, () => []);
 
-    // Check last frames
-    const recentHistory = this.movementHistory.slice(-this.minStableFrames);
-    const avgRecent =
-      recentHistory.reduce((a, b) => a + b, 0) / recentHistory.length;
-    const maxRecent = Math.max(...recentHistory);
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const c = this.edgeCompatibility(this.edges[i], this.edges[j]);
+        const v = c > 0.01 ? c : 0;
 
-    // Stable if average and max under threshold
-    const isStable =
-      avgRecent < this.stabilityThreshold &&
-      maxRecent < this.stabilityThreshold * 2;
+        if (v > 0) {
+          this.compatibility[i].push({ idx: j, c: v });
+          this.compatibility[j].push({ idx: i, c: v });
+        }
+      }
+    }
 
-    return isStable;
+    this.compatibility.forEach((list) => list.sort((a, b) => b.c - a.c));
   }
 
-  public getEdgeControlPoints(edgeId: string): THREE.Vector3[] | null {
-    const edge = this.edges.get(edgeId);
-    if (!edge) return null;
+  private edgeCompatibility(P: PaperEdge, Q: PaperEdge): number {
+    const p = P.P1.clone().sub(P.P0);
+    const q = Q.P1.clone().sub(Q.P0);
 
-    return edge.controlPoints.map((p) => p.clone());
+    const Ca = Math.abs(p.clone().normalize().dot(q.clone().normalize()));
+
+    const lP = P.originalLength;
+    const lQ = Q.originalLength;
+    const lavg = (lP + lQ) / 2;
+    const Cs = 2 / (lavg / Math.min(lP, lQ) + Math.max(lP, lQ) / lavg);
+
+    const mp = P.P0.clone().add(P.P1).multiplyScalar(0.5);
+    const mq = Q.P0.clone().add(Q.P1).multiplyScalar(0.5);
+    const Cp = lavg / (lavg + mp.distanceTo(mq));
+
+    const Cv = this.visibilityCompatibility(P, Q);
+
+    return Ca * Cs * Cp * Cv;
   }
 
-  public getEdgeStability(edgeId: string): number {
-    const edge = this.edges.get(edgeId);
-    return edge?.stability || 0;
+  private visibilityCompatibility(P: PaperEdge, Q: PaperEdge): number {
+    const vPQ = this.visibility(P, Q);
+    const vQP = this.visibility(Q, P);
+    return Math.min(vPQ, vQP);
   }
 
-  public getGlobalStability(): number {
-    if (this.edges.size === 0) return 1;
+  private visibility(P: PaperEdge, Q: PaperEdge): number {
+    const u = P.P1.clone().sub(P.P0);
+    const lenU = u.length();
+    const lenUSq = lenU * lenU;
 
-    const edgesArray = Array.from(this.edges.values());
-    const avgStability =
-      edgesArray.reduce((sum, edge) => sum + edge.stability, 0) /
-      edgesArray.length;
+    const t0 = this.clampedT(P, Q.P0, u, lenUSq);
+    const t1 = this.clampedT(P, Q.P1, u, lenUSq);
 
-    return avgStability;
+    const projLen = Math.abs(t1 - t0) * lenU;
+    return projLen / lenU;
   }
 
-  public removeEdge(edgeId: string): void {
-    this.edges.delete(edgeId);
-  }
-
-  public clear(): void {
-    this.edges.clear();
-    this.movementHistory = [];
-  }
-
-  public getStats(): {
-    edgeCount: number;
-    avgStability: number;
-    isStable: boolean;
-    recentMovement: number;
-  } {
-    const edgeCount = this.edges.size;
-    const avgStability = this.getGlobalStability();
-    const isStable = this.checkStability();
-    const recentMovement =
-      this.movementHistory.length > 0
-        ? this.movementHistory[this.movementHistory.length - 1]
-        : 0;
-
-    return { edgeCount, avgStability, isStable, recentMovement };
+  private clampedT(
+    P: PaperEdge,
+    x: THREE.Vector3,
+    u: THREE.Vector3,
+    lenUSq: number
+  ): number {
+    const ux = x.clone().sub(P.P0);
+    const t = ux.dot(u) / lenUSq;
+    return Math.max(0, Math.min(1, t));
   }
 }
