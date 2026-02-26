@@ -389,7 +389,52 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       merge: (persistedState: any, currentState) => {
         if (!persistedState) return currentState;
 
-        return { ...currentState, ...persistedState };
+        // Safely merge visualization settings: only carry over persisted values
+        // that are compatible with the current default settings. Any incompatible
+        // or missing entries fall back to the default and are logged to the console.
+        let mergedVisualizationSettings = {
+          ...currentState.visualizationSettings,
+        };
+
+        if (
+          persistedState.visualizationSettings &&
+          typeof persistedState.visualizationSettings === 'object'
+        ) {
+          let settingId: keyof VisualizationSettings;
+          for (settingId in currentState.visualizationSettings) {
+            const defaultSetting =
+              currentState.visualizationSettings[settingId];
+            const storedSetting =
+              persistedState.visualizationSettings[settingId];
+
+            if (storedSetting === undefined || storedSetting === null) {
+              console.warn(
+                `[UserSettings] Stored setting "${settingId}" is missing from localStorage. Using default value.`
+              );
+              continue;
+            }
+
+            const defaultValueType = typeof defaultSetting.value;
+            const storedValueType = typeof storedSetting.value;
+
+            if (storedValueType !== defaultValueType) {
+              console.warn(
+                `[UserSettings] Stored setting "${settingId}" has incompatible value type ` +
+                  `(expected "${defaultValueType}", got "${storedValueType}"). Using default value.`
+              );
+              continue;
+            }
+
+            // Value type is compatible — use the stored setting
+            mergedVisualizationSettings[settingId] = storedSetting;
+          }
+        }
+
+        return {
+          ...currentState,
+          ...persistedState,
+          visualizationSettings: mergedVisualizationSettings,
+        };
       },
     }
   )
