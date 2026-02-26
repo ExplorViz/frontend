@@ -3,9 +3,11 @@ import {
   DiagramType,
   useDiagramGenerator,
 } from 'explorviz-frontend/src/hooks/useDiagramGenerator';
+import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { parse } from 'svg-parser';
 
@@ -95,7 +97,9 @@ function svgToReactNode(
   loadedSvgs?: Map<string, React.ReactNode>,
   highlightedNodeNames?: Set<string>,
   adjustViewBox = false,
-  onNodeClick?: NodeClickHandler
+  onNodeClick?: NodeClickHandler,
+  activePingNodeNames?: Set<string>,
+  onNodeMiddleClick?: NodeClickHandler
 ): React.ReactNode {
   if (!svg.trim().startsWith('<')) return null;
 
@@ -147,7 +151,9 @@ function svgToReactNode(
     undefined,
     loadedSvgs,
     highlightedPositions,
-    onNodeClick
+    onNodeClick,
+    activePingNodeNames,
+    onNodeMiddleClick
   );
 }
 
@@ -156,7 +162,9 @@ function renderNode(
   key?: React.Key,
   loadedSvgs?: Map<string, React.ReactNode>,
   highlightedPositions?: Set<string>,
-  onNodeClick?: NodeClickHandler
+  onNodeClick?: NodeClickHandler,
+  activePingNodeNames?: Set<string>,
+  onNodeMiddleClick?: NodeClickHandler
 ): React.ReactNode {
   if (node.type === 'text') {
     return decodeXmlEntities(node.value);
@@ -170,6 +178,8 @@ function renderNode(
       loadedSvgs,
       highlightedPositions,
       onNodeClick,
+      activePingNodeNames,
+      onNodeMiddleClick,
     });
   }
 
@@ -233,7 +243,7 @@ function renderNode(
     node.tagName,
     { ...normalizeSvgProps(node.properties), key },
     node.children?.map((child, index) =>
-      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick)
+      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick, activePingNodeNames, onNodeMiddleClick)
     )
   );
 }
@@ -459,29 +469,76 @@ function KubeDiagramNode({
   loadedSvgs,
   highlightedPositions,
   onNodeClick,
+  activePingNodeNames,
+  onNodeMiddleClick,
 }: {
   node: SvgElementNode;
   loadedSvgs?: Map<string, React.ReactNode>;
   highlightedPositions?: Set<string>;
   onNodeClick?: NodeClickHandler;
+  activePingNodeNames?: Set<string>;
+  onNodeMiddleClick?: NodeClickHandler;
 }) {
   const nodeName = collectTextFromAnchor(node);
   const normalizedProps = normalizeSvgProps(node.properties);
   const existingStyle =
     typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
 
+  const isPinged = nodeName ? (activePingNodeNames?.has(nodeName) ?? false) : false;
+
+  // Locate the <image> child to derive its center for the ping overlay
+  const imageChild = node.children?.find(
+    (c): c is SvgElementNode => c.type === 'element' && c.tagName === 'image'
+  );
+  const imgNorm = imageChild ? normalizeSvgProps(imageChild.properties) : {};
+  const ix = parseFloat(String(imgNorm.x ?? imageChild?.properties?.x ?? 0)) || 0;
+  const iy = parseFloat(String(imgNorm.y ?? imageChild?.properties?.y ?? 0)) || 0;
+  const iw = parseFloat(String(imgNorm.width ?? imageChild?.properties?.width ?? 50)) || 50;
+  const ih = parseFloat(String(imgNorm.height ?? imageChild?.properties?.height ?? 50)) || 50;
+  const cx = ix + iw / 2;
+  const cy = iy + ih / 2;
+  const r = Math.max(iw, ih) / 2;
+
+  // Ping overlay: only rendered while isPinged; CSS animation handles the pulse effect
+  const pingOverlay =
+    isPinged && imageChild
+      ? React.createElement('circle', {
+          cx,
+          cy,
+          r,
+          fill: 'none',
+          stroke: 'orange',
+          strokeWidth: 3,
+          className: 'kube-ping-circle',
+          style: { pointerEvents: 'none' },
+        })
+      : null;
+
+  const children = [
+    ...(node.children?.map((child, index) =>
+      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick, activePingNodeNames, onNodeMiddleClick)
+    ) ?? []),
+    pingOverlay,
+  ];
+
   return React.createElement(
     node.tagName,
     {
       ...normalizedProps,
       onClick: nodeName ? () => onNodeClick?.(nodeName) : undefined,
+      onMouseDown: nodeName
+        ? (e: React.MouseEvent) => {
+            if (e.button === 1) {
+              e.preventDefault();
+              onNodeMiddleClick?.(nodeName);
+            }
+          }
+        : undefined,
       style: nodeName
         ? { cursor: 'pointer', ...existingStyle }
         : normalizedProps.style,
     },
-    node.children?.map((child, index) =>
-      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick)
-    )
+    ...children
   );
 }
 
@@ -627,6 +684,32 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     [getAllApplications, highlightedEntityIds, setHighlightedEntityId]
   );
 
+  const activePingEntityIds = usePingStore((state) => state.activePingEntityIds);
+
+  const activePingNodeNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const app of getAllApplications()) {
+      if (activePingEntityIds.has(app.id)) {
+        names.add(app.name);
+      }
+    }
+    return names;
+  }, [getAllApplications, activePingEntityIds]);
+
+  const handleNodeMiddleClick = useCallback(
+    (nodeName: string) => {
+      const matchingApp = getAllApplications().find(
+        (app) => app.name === nodeName
+      );
+      if (!matchingApp) return;
+      const DURATION_MS = 3000;
+      
+      usePingStore.getState().addPing(matchingApp.id, DURATION_MS);
+      pingByModelId(matchingApp.id, false);
+    },
+    [getAllApplications]
+  );
+
   const foregroundColor = useUserSettingsStore(
     (state) =>
       state.visualizationSettings.k8sDiagramForegroundColor?.value ?? '#ffffff'
@@ -698,9 +781,11 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       loadedSvgs,
       highlightedNodeNames,
       true, // adjustViewBox
-      onNodeClick ?? handleNodeClick
+      onNodeClick ?? handleNodeClick,
+      activePingNodeNames,
+      handleNodeMiddleClick
     );
-  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames, onNodeClick, handleNodeClick]);
+  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames, onNodeClick, handleNodeClick, activePingNodeNames, handleNodeMiddleClick]);
 
   async function onGenerate(type: DiagramType, path?: string, file?: File) {
     await generate({ type, path, file });
@@ -734,6 +819,18 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       {error && <div style={{ color: 'red' }}>{error}</div>}
 
       <div style={{ flex: 1, overflow: 'auto' }}>
+        <style>{`
+          @keyframes kube-ping-pulse {
+            0%   { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(3); opacity: 0;   }
+          }
+          .kube-ping-circle {
+            animation: kube-ping-pulse 1s ease-out 3 forwards;
+            transform-box: fill-box;
+            transform-origin: center;
+            pointer-events: none;
+          }
+        `}</style>
         {svgElement ?? (
           <div style={{ padding: 16, color: '#666' }}>
             No diagram generated yet

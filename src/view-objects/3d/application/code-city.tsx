@@ -79,7 +79,7 @@ export default function CodeCity({
   }, [layoutMap]);
 
   return (
-    <group position={appPosition}>
+    <group position={appPosition} userData={{ applicationId: applicationData.getId() }}>
       {showEmbeddedBrowserIcon && (
         <Root positionBottom={15} positionLeft={0} pixelSize={1}>
           <Container>
