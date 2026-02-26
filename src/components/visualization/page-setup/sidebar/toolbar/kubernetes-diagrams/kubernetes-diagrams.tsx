@@ -28,6 +28,8 @@ type SvgRootNode = {
   children: SvgNode[];
 };
 
+type NodeClickHandler = (nodeName: string) => void;
+
 // Cache for loaded SVGs
 const svgCache = new Map<string, string>();
 const svgExistenceMap = new Map<string, boolean>();
@@ -92,7 +94,8 @@ function svgToReactNode(
   props?: React.SVGProps<SVGSVGElement>,
   loadedSvgs?: Map<string, React.ReactNode>,
   highlightedNodeNames?: Set<string>,
-  adjustViewBox = false
+  adjustViewBox = false,
+  onNodeClick?: NodeClickHandler
 ): React.ReactNode {
   if (!svg.trim().startsWith('<')) return null;
 
@@ -143,7 +146,8 @@ function svgToReactNode(
     },
     undefined,
     loadedSvgs,
-    highlightedPositions
+    highlightedPositions,
+    onNodeClick
   );
 }
 
@@ -151,10 +155,22 @@ function renderNode(
   node: SvgNode,
   key?: React.Key,
   loadedSvgs?: Map<string, React.ReactNode>,
-  highlightedPositions?: Set<string>
+  highlightedPositions?: Set<string>,
+  onNodeClick?: NodeClickHandler
 ): React.ReactNode {
   if (node.type === 'text') {
     return decodeXmlEntities(node.value);
+  }
+
+  // Each <a> element (a kubernetes resource node) becomes its own React component
+  if (node.tagName === 'a') {
+    return React.createElement(KubeDiagramNode, {
+      key,
+      node,
+      loadedSvgs,
+      highlightedPositions,
+      onNodeClick,
+    });
   }
 
   // Replace image with inlined SVG (if it exists)
@@ -217,7 +233,7 @@ function renderNode(
     node.tagName,
     { ...normalizeSvgProps(node.properties), key },
     node.children?.map((child, index) =>
-      renderNode(child, index, loadedSvgs, highlightedPositions)
+      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick)
     )
   );
 }
@@ -438,6 +454,37 @@ async function preloadLocalSvgs(
   return loadedSvgs;
 }
 
+function KubeDiagramNode({
+  node,
+  loadedSvgs,
+  highlightedPositions,
+  onNodeClick,
+}: {
+  node: SvgElementNode;
+  loadedSvgs?: Map<string, React.ReactNode>;
+  highlightedPositions?: Set<string>;
+  onNodeClick?: NodeClickHandler;
+}) {
+  const nodeName = collectTextFromAnchor(node);
+  const normalizedProps = normalizeSvgProps(node.properties);
+  const existingStyle =
+    typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
+
+  return React.createElement(
+    node.tagName,
+    {
+      ...normalizedProps,
+      onClick: nodeName ? () => onNodeClick?.(nodeName) : undefined,
+      style: nodeName
+        ? { cursor: 'pointer', ...existingStyle }
+        : normalizedProps.style,
+    },
+    node.children?.map((child, index) =>
+      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick)
+    )
+  );
+}
+
 function DiagramGeneratorMenu({
   onGenerate,
   isRunning,
@@ -532,7 +579,11 @@ function ColorPickerSection() {
   );
 }
 
-export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
+type DiagramPageProps = React.SVGProps<SVGSVGElement> & {
+  onNodeClick?: NodeClickHandler;
+};
+
+export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps) {
   const { generate, svg, isRunning, error } = useDiagramGenerator();
   const [persistedSvg] = useState<string | null>(() =>
     localStorage.getItem('generated-diagram-svg')
@@ -628,9 +679,10 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
       props,
       loadedSvgs,
       highlightedNodeNames,
-      true // adjustViewBox
+      true, // adjustViewBox
+      onNodeClick
     );
-  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames]);
+  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames, onNodeClick]);
 
   async function onGenerate(type: DiagramType, path?: string, file?: File) {
     await generate({ type, path, file });
