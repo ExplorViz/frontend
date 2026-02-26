@@ -23,6 +23,9 @@ export function usePointerStop(
   };
 
   const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
+    // Only the nearest hit object should trigger
+    event.stopPropagation();
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
