@@ -25,12 +25,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { BundledCommunicationLayout } from './bundled-communication-layout';
-import {
-  EdgeBundlingConfig,
-  HierarchicalAttractionSystem,
-} from './edge-bundling-utils';
-import { HAPSystemManager } from './hap-system-manager';
+import { HierarchicalAttractionSystem } from './edge-bundling-utils';
 import globalBundlingService from './global-bundling-service';
+import { HAPSystemManager } from './hap-system-manager';
 
 // HAP System Manager Instance
 const hapSystemManager = HAPSystemManager.getInstance();
@@ -1199,12 +1196,41 @@ export default function CommunicationR3F({
   ]);
 
   useEffect(() => {
+    const currentApplicationId = applicationElement?.id;
+    const currentScene = scene;
+    const currentMesh = meshRef.current;
     return () => {
-      // Cleanup when component unmounts
-      if (meshRef.current) {
-        meshRef.current.disposeRecursively();
+      // Cleanup when component unmounts: dispose the mesh
+      if (currentMesh) {
+        currentMesh.disposeRecursively();
+      }
+      // Remove HAP visualization group from the scene for this application
+      if (currentApplicationId) {
+        const landscapeGroup = currentScene.children.find(
+          (child) => child.type === 'Group' && child.scale.x < 1
+        );
+        if (landscapeGroup) {
+          const groupName = `HAP_GROUP_${currentApplicationId}`;
+          const hapGroup = landscapeGroup.children.find(
+            (child: any) => child.name === groupName
+          ) as THREE.Group | undefined;
+          if (hapGroup) {
+            landscapeGroup.remove(hapGroup);
+            for (let i = hapGroup.children.length - 1; i >= 0; i--) {
+              const child = hapGroup.children[i];
+              if (child instanceof THREE.Line && child.geometry) {
+                child.geometry.dispose();
+              } else if (child instanceof THREE.InstancedMesh) {
+                child.dispose();
+              }
+            }
+          }
+        }
+        // Clear the HAP system for this application to free memory
+        hapSystemManager.clearHAPSystem(currentApplicationId);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When application changes, clear the entire geometry cache
