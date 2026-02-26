@@ -547,17 +547,6 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
     (state) => state.highlightedEntityIds
   );
 
-  useEffect(() => {
-    for (const app of getAllApplications()) {
-      console.log(
-        'Application: ' +
-          app.name +
-          ', highlighted: ' +
-          highlightedEntityIds.has(app.id)
-      );
-    }
-  }, [getAllApplications, highlightedEntityIds]);
-
   const highlightedNodeNames = useMemo(() => {
     const names = new Set<string>();
     const allApps = getAllApplications();
@@ -604,7 +593,6 @@ export default function DiagramPage(props: React.SVGProps<SVGSVGElement>) {
     const loadSvgs = async () => {
       try {
         const ast = parse(effectiveSvg) as SvgRootNode;
-        console.log('Parsed SVG AST:', ast);
         const svgElement = ast.children.find(
           (n): n is SvgElementNode =>
             n.type === 'element' && n.tagName === 'svg'
