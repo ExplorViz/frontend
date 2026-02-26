@@ -228,20 +228,22 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Background color for Kubernetes diagram inline SVGs',
     isColorSetting: true,
   },
-  k8sDiagramHighlightForegroundColor: { 
+  k8sDiagramHighlightForegroundColor: {
     level: SettingLevel.DEFAULT,
     value: defaultColors.k8sDiagramHighlightForegroundColor,
     group: 'Colors',
     displayName: 'K8s Diagram Highlight Foreground',
-    description: 'Highlight foreground color for Kubernetes diagram inline SVGs',
+    description:
+      'Highlight foreground color for Kubernetes diagram inline SVGs',
     isColorSetting: true,
   },
-  k8sDiagramHighlightBackgroundColor: { 
+  k8sDiagramHighlightBackgroundColor: {
     level: SettingLevel.DEFAULT,
     value: defaultColors.k8sDiagramHighlightBackgroundColor,
     group: 'Colors',
     displayName: 'K8s Diagram Highlight Background',
-    description: 'Highlight background color for Kubernetes diagram inline SVGs',
+    description:
+      'Highlight background color for Kubernetes diagram inline SVGs',
     isColorSetting: true,
   },
   // Control Settings
@@ -580,7 +582,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   enableEdgeColoring: {
     level: SettingLevel.EXTENDED,
-    value: true,
+    value: false,
     group: 'Communication',
     displayName: 'Edge Coloring',
     description:
