@@ -212,6 +212,38 @@ export const defaultVizSettings: VisualizationSettings = {
     description: '',
     isColorSetting: true,
   },
+  k8sDiagramForegroundColor: {
+    level: SettingLevel.DEFAULT,
+    value: defaultColors.k8sDiagramForegroundColor,
+    group: 'Colors',
+    displayName: 'K8s Diagram Foreground',
+    description: 'Foreground color for Kubernetes diagram inline SVGs',
+    isColorSetting: true,
+  },
+  k8sDiagramBackgroundColor: {
+    level: SettingLevel.DEFAULT,
+    value: defaultColors.k8sDiagramBackgroundColor,
+    group: 'Colors',
+    displayName: 'K8s Diagram Background',
+    description: 'Background color for Kubernetes diagram inline SVGs',
+    isColorSetting: true,
+  },
+  k8sDiagramHighlightForegroundColor: { 
+    level: SettingLevel.DEFAULT,
+    value: defaultColors.k8sDiagramHighlightForegroundColor,
+    group: 'Colors',
+    displayName: 'K8s Diagram Highlight Foreground',
+    description: 'Highlight foreground color for Kubernetes diagram inline SVGs',
+    isColorSetting: true,
+  },
+  k8sDiagramHighlightBackgroundColor: { 
+    level: SettingLevel.DEFAULT,
+    value: defaultColors.k8sDiagramHighlightBackgroundColor,
+    group: 'Colors',
+    displayName: 'K8s Diagram Highlight Background',
+    description: 'Highlight background color for Kubernetes diagram inline SVGs',
+    isColorSetting: true,
+  },
   // Control Settings
   leftMouseButtonAction: {
     level: SettingLevel.DEFAULT,

@@ -30,6 +30,7 @@
     "**/.eslintrc.js",
     ".template-lintrc.js",
     "src",
+    "server",
     "config",
     "types"
   ]

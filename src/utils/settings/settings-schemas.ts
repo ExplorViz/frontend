@@ -50,7 +50,11 @@ export type ColorSettingId =
   | 'k8sNamespaceColor'
   | 'k8sDeploymentColor'
   | 'k8sPodColor'
-  | 'k8sTextColor';
+  | 'k8sTextColor'
+  | 'k8sDiagramForegroundColor'
+  | 'k8sDiagramBackgroundColor'
+  | 'k8sDiagramHighlightForegroundColor'
+  | 'k8sDiagramHighlightBackgroundColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
