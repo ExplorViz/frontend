@@ -6,7 +6,7 @@ import {
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { parse } from 'svg-parser';
 
 type SvgTextNode = {
@@ -597,6 +597,9 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   const highlightedEntityIds = useVisualizationStore(
     (state) => state.highlightedEntityIds
   );
+  const setHighlightedEntityId = useVisualizationStore(
+    (state) => state.actions.setHighlightedEntityId
+  );
 
   const highlightedNodeNames = useMemo(() => {
     const names = new Set<string>();
@@ -608,6 +611,21 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     }
     return names;
   }, [getAllApplications, highlightedEntityIds]);
+
+  const handleNodeClick = useCallback(
+    (nodeName: string) => {
+      const matchingApp = getAllApplications().find(
+        (app) => app.name === nodeName
+      );
+      if (matchingApp) {
+        setHighlightedEntityId(
+          matchingApp.id,
+          !highlightedEntityIds.has(matchingApp.id)
+        );
+      }
+    },
+    [getAllApplications, highlightedEntityIds, setHighlightedEntityId]
+  );
 
   const foregroundColor = useUserSettingsStore(
     (state) =>
@@ -680,9 +698,9 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       loadedSvgs,
       highlightedNodeNames,
       true, // adjustViewBox
-      onNodeClick
+      onNodeClick ?? handleNodeClick
     );
-  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames, onNodeClick]);
+  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames, onNodeClick, handleNodeClick]);
 
   async function onGenerate(type: DiagramType, path?: string, file?: File) {
     await generate({ type, path, file });
