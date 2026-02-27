@@ -59,13 +59,12 @@ function getLocalSvgPath(imageHref: string): string | null {
  */
 async function loadSvg(
   path: string,
-  foregroundColor: string,
-  backgroundColor: string
+  diagramColor: string,
 ): Promise<string | null> {
   if (svgCache.has(path)) {
     let svg = svgCache.get(path) ?? null;
     if (svg) {
-      svg = applyColorsToSvg(svg, foregroundColor, backgroundColor);
+      svg = applyColorsToSvg(svg, diagramColor);
     }
     return svg;
   }
@@ -78,7 +77,7 @@ async function loadSvg(
       let svg = await response.text();
       svgCache.set(path, svg);
       svgExistenceMap.set(path, true);
-      svg = applyColorsToSvg(svg, foregroundColor, backgroundColor);
+      svg = applyColorsToSvg(svg, diagramColor);
       return svg;
     } else {
       svgExistenceMap.set(path, false);
@@ -99,7 +98,8 @@ function svgToReactNode(
   adjustViewBox = false,
   onNodeClick?: NodeClickHandler,
   activePingNodeNames?: Set<string>,
-  onNodeMiddleClick?: NodeClickHandler
+  onNodeMiddleClick?: NodeClickHandler,
+  highlightedEntityColor?: string
 ): React.ReactNode {
   if (!svg.trim().startsWith('<')) return null;
 
@@ -116,7 +116,8 @@ function svgToReactNode(
     svgElement.properties.width = 'auto';
     svgElement.properties.height = 'auto';
 
-    // hardcoded adjustments to minimize whitespace in SVG // TODO: automatic calculation of ideal values
+    // hardcoded adjustments to minimize whitespace in SVG 
+    // TODO: automatic calculation of ideal values
     let viewBox = svgElement.properties.viewBox.split(' ').map(Number);
     viewBox[0] += 150;
     viewBox[1] += 140;
@@ -153,7 +154,8 @@ function svgToReactNode(
     highlightedPositions,
     onNodeClick,
     activePingNodeNames,
-    onNodeMiddleClick
+    onNodeMiddleClick,
+    highlightedEntityColor
   );
 }
 
@@ -164,7 +166,8 @@ function renderNode(
   highlightedPositions?: Set<string>,
   onNodeClick?: NodeClickHandler,
   activePingNodeNames?: Set<string>,
-  onNodeMiddleClick?: NodeClickHandler
+  onNodeMiddleClick?: NodeClickHandler,
+  highlightedEntityColor?: string
 ): React.ReactNode {
   if (node.type === 'text') {
     return decodeXmlEntities(node.value);
@@ -180,6 +183,7 @@ function renderNode(
       onNodeClick,
       activePingNodeNames,
       onNodeMiddleClick,
+      highlightedEntityColor
     });
   }
 
@@ -243,7 +247,15 @@ function renderNode(
     node.tagName,
     { ...normalizeSvgProps(node.properties), key },
     node.children?.map((child, index) =>
-      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick, activePingNodeNames, onNodeMiddleClick)
+      renderNode(
+        child, 
+        index, 
+        loadedSvgs, 
+        highlightedPositions, 
+        onNodeClick, 
+        activePingNodeNames, 
+        onNodeMiddleClick, 
+        highlightedEntityColor)
     )
   );
 }
@@ -370,21 +382,14 @@ function findImagesByLabel(
  */
 function applyColorsToSvg(
   svgContent: string,
-  foregroundColor: string,
-  backgroundColor: string
+  diagramColor: string,
 ): string {
   let modified = svgContent;
-
-  // Replace white with the chosen foreground color
-  modified = modified.replace(
-    /#[fF]{3}(?![0-9a-fA-F])|#[fF]{6}(?![0-9a-fA-F])|rgb\s*\(\s*255\s*,\s*255\s*,\s*255\s*\)|white/gi,
-    foregroundColor
-  );
 
   // Replace blue with the chosen background color
   modified = modified.replace(
     /#326[cC][eE]5[0-9a-fA-F]{0,2}|rgb\s*\(\s*50\s*,\s*108\s*,\s*229\s*\)/gi,
-    backgroundColor
+    diagramColor
   );
 
   return modified;
@@ -419,10 +424,8 @@ function extractLocalSvgPaths(
  */
 async function preloadLocalSvgs(
   node: SvgNode,
-  foregroundColor: string,
-  backgroundColor: string,
-  highlightForegroundColor: string,
-  highlightBackgroundColor: string
+  diagramColor: string,
+  highlightedEntityColor: string,
 ): Promise<Map<string, React.ReactNode>> {
   const paths = extractLocalSvgPaths(node);
   const loadedSvgs = new Map<string, React.ReactNode>();
@@ -430,14 +433,14 @@ async function preloadLocalSvgs(
   // Load standard versions
   const standardResults = await Promise.all(
     Array.from(paths).map((path) =>
-      loadSvg(path, foregroundColor, backgroundColor)
+      loadSvg(path, diagramColor)
     )
   );
 
   // Load highlighted versions
   const highlightedResults = await Promise.all(
     Array.from(paths).map((path) =>
-      loadSvg(path, highlightForegroundColor, highlightBackgroundColor)
+      loadSvg(path, highlightedEntityColor)
     )
   );
 
@@ -471,6 +474,7 @@ function KubeDiagramNode({
   onNodeClick,
   activePingNodeNames,
   onNodeMiddleClick,
+  highlightedEntityColor,
 }: {
   node: SvgElementNode;
   loadedSvgs?: Map<string, React.ReactNode>;
@@ -478,6 +482,7 @@ function KubeDiagramNode({
   onNodeClick?: NodeClickHandler;
   activePingNodeNames?: Set<string>;
   onNodeMiddleClick?: NodeClickHandler;
+  highlightedEntityColor?: string;
 }) {
   const nodeName = collectTextFromAnchor(node);
   const normalizedProps = normalizeSvgProps(node.properties);
@@ -507,7 +512,7 @@ function KubeDiagramNode({
           cy,
           r,
           fill: 'none',
-          stroke: 'orange',
+          stroke: highlightedEntityColor || '#ff5151',
           strokeWidth: 3,
           className: 'kube-ping-circle',
           style: { pointerEvents: 'none' },
@@ -516,7 +521,15 @@ function KubeDiagramNode({
 
   const children = [
     ...(node.children?.map((child, index) =>
-      renderNode(child, index, loadedSvgs, highlightedPositions, onNodeClick, activePingNodeNames, onNodeMiddleClick)
+      renderNode(
+        child, 
+        index, 
+        loadedSvgs, 
+        highlightedPositions, 
+        onNodeClick, 
+        activePingNodeNames, 
+        onNodeMiddleClick,
+        highlightedEntityColor)
     ) ?? []),
     pingOverlay,
   ];
@@ -608,7 +621,7 @@ function DiagramGeneratorMenu({
   );
 }
 
-// Optional: Display color picker above diagram for easy access (also accessible in settings)
+// Optional: Display color picker above diagram for easy access
 function ColorPickerSection() {
   return (
     <div
@@ -621,16 +634,7 @@ function ColorPickerSection() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ColorPicker id="k8sDiagramForegroundColor" />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ColorPicker id="k8sDiagramBackgroundColor" />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ColorPicker id="k8sDiagramHighlightForegroundColor" />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ColorPicker id="k8sDiagramHighlightBackgroundColor" />
+        <ColorPicker id="k8sDiagramColor" />
       </div>
     </div>
   );
@@ -702,30 +706,21 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
         (app) => app.name === nodeName
       );
       if (!matchingApp) return;
+
       const DURATION_MS = 3000;
-      
       usePingStore.getState().addPing(matchingApp.id, DURATION_MS);
       pingByModelId(matchingApp.id, false);
     },
     [getAllApplications]
   );
 
-  const foregroundColor = useUserSettingsStore(
+  const diagramColor = useUserSettingsStore(
     (state) =>
-      state.visualizationSettings.k8sDiagramForegroundColor?.value ?? '#ffffff'
+      state.visualizationSettings.k8sDiagramColor?.value ?? '#326ce5'
   );
-  const backgroundColor = useUserSettingsStore(
-    (state) =>
-      state.visualizationSettings.k8sDiagramBackgroundColor?.value ?? '#326ce5'
-  );
-  const highlightForegroundColor = useUserSettingsStore(
-    (state) =>
-      state.visualizationSettings.k8sDiagramHighlightForegroundColor?.value ??
-      '#d3d3d3'
-  );
-  const highlightBackgroundColor = useUserSettingsStore(
-    (state) =>
-      state.visualizationSettings.k8sDiagramHighlightBackgroundColor?.value ??
+
+  const highlightedEntityColor = useUserSettingsStore(
+    (state) => state.visualizationSettings.highlightedEntityColor?.value ??
       '#ff5151'
   );
 
@@ -752,10 +747,8 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
         if (svgElement) {
           const loaded = await preloadLocalSvgs(
             svgElement,
-            foregroundColor,
-            backgroundColor,
-            highlightForegroundColor,
-            highlightBackgroundColor
+            diagramColor,
+            highlightedEntityColor
           );
           setLoadedSvgs(loaded);
         }
@@ -767,10 +760,8 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     loadSvgs();
   }, [
     effectiveSvg,
-    foregroundColor,
-    backgroundColor,
-    highlightForegroundColor,
-    highlightBackgroundColor,
+    diagramColor,
+    highlightedEntityColor
   ]);
 
   const svgElement = useMemo<React.ReactNode>(() => {
@@ -783,9 +774,20 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       true, // adjustViewBox
       onNodeClick ?? handleNodeClick,
       activePingNodeNames,
-      handleNodeMiddleClick
+      handleNodeMiddleClick,
+      highlightedEntityColor
     );
-  }, [effectiveSvg, props, loadedSvgs, highlightedNodeNames, onNodeClick, handleNodeClick, activePingNodeNames, handleNodeMiddleClick]);
+  }, [
+    effectiveSvg, 
+    props, 
+    loadedSvgs, 
+    highlightedNodeNames, 
+    onNodeClick, 
+    handleNodeClick, 
+    activePingNodeNames, 
+    handleNodeMiddleClick, 
+    highlightedEntityColor
+  ]);
 
   async function onGenerate(type: DiagramType, path?: string, file?: File) {
     await generate({ type, path, file });
