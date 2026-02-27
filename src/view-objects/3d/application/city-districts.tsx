@@ -54,9 +54,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     const geometry = useRef<BoxGeometry>(new BoxGeometry());
     const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
 
-    const instanceIdToComponentId = new Map<number, string>();
-    const componentIdToInstanceId = new Map<string, number>();
-    const componentIdToPackage = new Map<string, Package>();
+    const instanceIdToComponentId = useRef<Map<number, string>>(new Map());
+    const componentIdToInstanceId = useRef<Map<string, number>>(new Map());
+    const componentIdToPackage = useRef<Map<string, Package>>(new Map());
 
     const meshRef = useRef<InstancedMesh2 | null>(null);
 
@@ -153,9 +153,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }
       if (!meshRef.current) return;
       meshRef.current.clearInstances();
-      instanceIdToComponentId.clear();
-      componentIdToInstanceId.clear();
-      componentIdToPackage.clear();
+      instanceIdToComponentId.current.clear();
+      componentIdToInstanceId.current.clear();
+      componentIdToPackage.current.clear();
 
       const mesh = meshRef.current.addInstances(
         packages.length,
@@ -170,9 +170,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             return;
           }
 
-          instanceIdToComponentId.set(obj.id, component.id);
-          componentIdToInstanceId.set(component.id, obj.id);
-          componentIdToPackage.set(component.id, component);
+          instanceIdToComponentId.current.set(obj.id, component.id);
+          componentIdToInstanceId.current.set(component.id, obj.id);
+          componentIdToPackage.current.set(component.id, component);
 
           const isOpen = !closedComponentIds.has(component.id);
           const isVisible =
@@ -212,8 +212,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }
 
       if (
-        componentIdToInstanceId.size > 0 &&
-        componentIdToInstanceId.size === packages.length &&
+        componentIdToInstanceId.current.size > 0 &&
+        componentIdToInstanceId.current.size === packages.length &&
         enableAnimations
       ) {
         animateComponentChange();
@@ -226,7 +226,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (ref === null || typeof ref === 'function' || !meshRef.current) {
         return;
       }
-      componentIdToInstanceId.forEach((instanceId, componentId) => {
+      componentIdToInstanceId.current.forEach((instanceId, componentId) => {
         meshRef.current?.setVisibilityAt(
           instanceId,
           !hiddenComponentIds.has(componentId) &&
@@ -252,7 +252,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     }, [entityOpacity, material]);
 
     const computeColor = (componentId: string) => {
-      const component = componentIdToPackage.get(componentId);
+      const component = componentIdToPackage.current.get(componentId);
       if (!component) return new Color('white');
 
       if (heatmapActive) {
@@ -317,7 +317,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       const { instanceId } = e;
       if (instanceId === undefined) return;
       e.stopPropagation();
-      const componentId = instanceIdToComponentId.get(instanceId);
+      const componentId = instanceIdToComponentId.current.get(instanceId);
       if (!componentId) return;
       // Toggle highlighting
       toggleHighlightById(componentId);
@@ -336,7 +336,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         return;
       }
       e.stopPropagation();
-      const componentId = instanceIdToComponentId.get(instanceId);
+      const componentId = instanceIdToComponentId.current.get(instanceId);
       if (!componentId) {
         return;
       }
@@ -353,7 +353,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (ref === null || typeof ref === 'function' || !meshRef.current) {
         return;
       }
-      componentIdToInstanceId.forEach((instanceId, componentId) => {
+      componentIdToInstanceId.current.forEach((instanceId, componentId) => {
         meshRef.current?.setColorAt(instanceId, computeColor(componentId));
       });
     }, [
@@ -379,7 +379,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (instanceId === undefined) return;
       e.stopPropagation();
 
-      const componentId = instanceIdToComponentId.get(instanceId);
+      const componentId = instanceIdToComponentId.current.get(instanceId);
       if (!componentId) return;
 
       setHoveredEntity(componentId);
@@ -399,9 +399,9 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       if (instanceId === undefined) return;
       e.stopPropagation();
 
-      const componentId = instanceIdToComponentId.get(instanceId);
+      const componentId = instanceIdToComponentId.current.get(instanceId);
       if (!componentId) return;
-      const component = componentIdToPackage.get(componentId);
+      const component = componentIdToPackage.current.get(componentId);
       addPopup({
         entityId: componentId,
         entity: component,
@@ -421,7 +421,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       const currentMeshRef = meshRef.current;
       if (!currentMeshRef) return;
 
-      instanceIdToComponentId.forEach((componentId, instanceId) => {
+      instanceIdToComponentId.current.forEach((componentId, instanceId) => {
         const tempMatrix = new Matrix4();
         const pos = new Vector3();
         const quat = new Quaternion();

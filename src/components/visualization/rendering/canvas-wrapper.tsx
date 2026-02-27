@@ -38,6 +38,7 @@ import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
+import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/application/global-bundling-service';
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
@@ -349,6 +350,13 @@ export default function CanvasWrapper({
 
   useEffect(() => {
     if (landscapeData) {
+      // Reset edge bundling state when the landscape changes so stale edges
+      // from a previous session do not prevent new edges from being registered.
+      globalBundlingService.reset();
+
+      // Clear all HAP systems so they are rebuilt fresh for the new landscape.
+      hapSystemManager.clearAllHAPSystems();
+
       // Use layout of landscape data watcher
       setLayoutMap(null);
       const allPackages = getAllApplicationsInLandscape(

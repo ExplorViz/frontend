@@ -24,6 +24,11 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _lastHAPNodes: { originId?: string; destinationId?: string } = {};
   private _streamline: boolean = true;
   private _leafPackagesOnly: boolean = false;
+  private _hapClassElevation: number = 15;
+  private _hapPackageElevation: number = 30;
+  private _hapApplicationElevation: number = 50;
+  private _hapUseRelativeElevation: boolean = true;
+  private _enableEdgeColoring: boolean = true;
 
   private static hoverGeometryCache = new Map<
     string,
@@ -35,8 +40,9 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   >();
 
   private static readonly MAX_HOVER_CACHE_SIZE = 200;
-  private static readonly CACHE_CLEANUP_INTERVAL = 30000; // 30 Sekunden
+  private static readonly CACHE_CLEANUP_INTERVAL = 30000;
   private static lastCacheCleanup = Date.now();
+  private static currentLayoutAlgorithm: string = '';
 
   private _preHoverState: {
     geometry: THREE.BufferGeometry;
@@ -47,6 +53,14 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   } | null = null;
 
   private _isInHoverMode = false;
+
+  public static setCurrentLayoutAlgorithm(algorithm: string): void {
+    if (this.currentLayoutAlgorithm !== algorithm) {
+      this.currentLayoutAlgorithm = algorithm;
+      this.clearSharedGeometries();
+      this.clearHoverCache();
+    }
+  }
 
   get layout() {
     return this._layout;
@@ -134,6 +148,134 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this._needsRender = true;
       this.requestRender();
     }
+  }
+
+  get hapClassElevation(): number {
+    return this._hapClassElevation;
+  }
+
+  get hapPackageElevation(): number {
+    return this._hapPackageElevation;
+  }
+
+  get hapApplicationElevation(): number {
+    return this._hapApplicationElevation;
+  }
+
+  get hapUseRelativeElevation(): boolean {
+    return this._hapUseRelativeElevation;
+  }
+
+  set hapClassElevation(value: number) {
+    const newValue = Math.max(0, Math.min(5000, value)); // Clamp value
+    if (Math.abs(this._hapClassElevation - newValue) > 0.1) {
+      this._hapClassElevation = newValue;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  set hapPackageElevation(value: number) {
+    const newValue = Math.max(0, Math.min(5000, value));
+    if (Math.abs(this._hapPackageElevation - newValue) > 0.1) {
+      this._hapPackageElevation = newValue;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  set hapApplicationElevation(value: number) {
+    const newValue = Math.max(0, Math.min(5000, value));
+    if (Math.abs(this._hapApplicationElevation - newValue) > 0.1) {
+      this._hapApplicationElevation = newValue;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  set hapUseRelativeElevation(value: boolean) {
+    if (this._hapUseRelativeElevation !== value) {
+      this._hapUseRelativeElevation = value;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  get enableEdgeColoring(): boolean {
+    return this._enableEdgeColoring;
+  }
+
+  set enableEdgeColoring(enabled: boolean) {
+    if (this._enableEdgeColoring !== enabled) {
+      this._enableEdgeColoring = enabled;
+      this._needsRender = true;
+      this.requestRender();
+    }
+  }
+
+  /**
+   * Set all HAP elevation settings at once
+   * @param settings Object containing all elevation settings
+   */
+  public setHAPElevationSettings(settings: {
+    class: number;
+    package: number;
+    application: number;
+    useRelative: boolean;
+  }): void {
+    let needsUpdate = false;
+
+    // Class elevation
+    const newClass = Math.max(0, Math.min(5000, settings.class));
+    if (Math.abs(this._hapClassElevation - newClass) > 0.1) {
+      this._hapClassElevation = newClass;
+      needsUpdate = true;
+    }
+
+    // Package elevation
+    const newPackage = Math.max(0, Math.min(5000, settings.package));
+    if (Math.abs(this._hapPackageElevation - newPackage) > 0.1) {
+      this._hapPackageElevation = newPackage;
+      needsUpdate = true;
+    }
+
+    // Application elevation
+    const newApp = Math.max(0, Math.min(5000, settings.application));
+    if (Math.abs(this._hapApplicationElevation - newApp) > 0.1) {
+      this._hapApplicationElevation = newApp;
+      needsUpdate = true;
+    }
+
+    // Relative/absolute
+    if (this._hapUseRelativeElevation !== settings.useRelative) {
+      this._hapUseRelativeElevation = settings.useRelative;
+      needsUpdate = true;
+    }
+
+    if (needsUpdate) {
+      this._needsRender = true;
+      this.requestRender();
+
+      this.releaseSharedGeometry(this.geometry);
+      ClazzCommunicationMesh.clearSharedGeometries();
+    }
+  }
+
+  /**
+   * Get current HAP elevation settings
+   */
+  public getHAPElevationSettings(): {
+    class: number;
+    package: number;
+    application: number;
+    useRelative: boolean;
+  } {
+    return {
+      class: this._hapClassElevation,
+      package: this._hapPackageElevation,
+      application: this._hapApplicationElevation,
+      useRelative: this._hapUseRelativeElevation,
+    };
   }
 
   potentialBidirectionalArrow!: CommunicationArrowMesh | undefined;
@@ -466,10 +608,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this.releaseSharedGeometry(oldGeometry);
     }
 
-    this.material = new THREE.MeshBasicMaterial({
-      color: this.defaultColor,
-      transparent: true,
-    });
+    if (this._enableEdgeColoring) {
+      this.geometry = this.createGradientColoredGeometry(this.geometry, curve);
+      this.material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        color: 0xffffff,
+        transparent: true,
+      });
+    } else {
+      this.material = new THREE.MeshBasicMaterial({
+        color: this.defaultColor,
+        transparent: true,
+      });
+    }
   }
 
   /**
@@ -645,14 +796,16 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     segments: number
   ): string {
     if (this._use3DHAPAlgorithm && this._originHAP && this._destinationHAP) {
-      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
-    } else {
-      const start = curve.getPoint(0);
-      const end = curve.getPoint(1);
-      const mid = curve.getPoint(0.5);
+      const elevationKey = `C${Math.round(this._hapClassElevation)}_P${Math.round(this._hapPackageElevation)}_A${Math.round(this._hapApplicationElevation)}_R${this._hapUseRelativeElevation ? 1 : 0}`;
 
-      return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
+      return `HAP_${this._originHAP.id}_${this._destinationHAP.id}_${this._beta}_${this._scatterRadius}_${this._streamline ? 'S' : 'F'}_${this._leafPackagesOnly ? 'L' : 'A'}_${elevationKey}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
     }
+
+    const start = curve.getPoint(0);
+    const end = curve.getPoint(1);
+    const mid = curve.getPoint(0.5);
+
+    return `CURVE_${start.x.toFixed(2)}_${start.y.toFixed(2)}_${start.z.toFixed(2)}_${end.x.toFixed(2)}_${end.y.toFixed(2)}_${end.z.toFixed(2)}_${mid.x.toFixed(2)}_${mid.y.toFixed(2)}_${mid.z.toFixed(2)}_H${this._curveHeight.toFixed(2)}_EB${this._enableEdgeBundling ? 'ON' : 'OFF'}_${segments}_${this.layout.lineThickness}`;
   }
 
   public releaseSharedGeometry(geometry: THREE.BufferGeometry): void {
@@ -730,11 +883,20 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     // Create vertex colors on the shared geometry
     this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
 
-    this.material = new THREE.MeshBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.8,
-    });
+    if (this._enableEdgeColoring) {
+      this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
+      this.material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+      });
+    } else {
+      this.geometry = sharedGeometry;
+      this.material = new THREE.MeshBasicMaterial({
+        color: this.defaultColor,
+        opacity: 0.8,
+      });
+    }
   }
 
   private renderWithEdgeBundling(curveSegments: number): void {
@@ -746,11 +908,20 @@ export default class ClazzCommunicationMesh extends BaseMesh {
     // Use shared geometry
     this.geometry = this.getSharedGeometry(curve, curveSegments);
 
-    this.material = new THREE.MeshBasicMaterial({
-      color: this.defaultColor,
-      transparent: true,
-      opacity: 0.8,
-    });
+    if (this._enableEdgeColoring) {
+      this.geometry = this.createGradientColoredGeometry(this.geometry, curve);
+      this.material = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+      });
+    } else {
+      this.material = new THREE.MeshBasicMaterial({
+        color: this.defaultColor,
+        transparent: true,
+        opacity: 0.8,
+      });
+    }
   }
 
   // Update edge bundling based on group of communications
@@ -1264,6 +1435,7 @@ declare module '@react-three/fiber' {
         compatibilityThreshold: number;
         iterations: number;
         stepSize: number;
+        enableEdgeColoring?: boolean;
       };
       // 3D-HAP properties
       beta?: number;
