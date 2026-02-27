@@ -8,7 +8,14 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { parse } from 'svg-parser';
 
 type SvgTextNode = {
@@ -90,6 +97,104 @@ async function loadSvg(
   return null;
 }
 
+/**
+ * Compute a tight viewBox for a graphviz-generated SVG by scanning all
+ * coordinate data in the AST (polygon points, path data, image/text positions).
+ *
+ * Graphviz SVGs have a main <g> with transform="translate(tx ty)". All child
+ * coordinates are in graphviz space; adding (tx, ty) converts them to SVG space.
+ * The very first child of that group is the page-background polygon, which we
+ * skip so it doesn't inflate the bounding box to the full page size.
+ */
+function computeGraphvizViewBox(svgElement: SvgElementNode): string | null {
+  // Find the main graph group that carries the coordinate transform
+  const graphGroup = svgElement.children?.find(
+    (n): n is SvgElementNode =>
+      n.type === 'element' &&
+      n.tagName === 'g' &&
+      typeof (n as SvgElementNode).properties?.transform === 'string'
+  );
+  if (!graphGroup) return null;
+
+  // Extract translate(tx, ty) — graphviz always emits "scale(1 1) rotate(0) translate(tx ty)"
+  const transformStr = graphGroup.properties!.transform as string;
+  const m = transformStr.match(/translate\(\s*([-\d.]+)[,\s]+([-\d.]+)\s*\)/);
+  if (!m) return null;
+  const tx = parseFloat(m[1]);
+  const ty = parseFloat(m[2]);
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  function expand(svgX: number, svgY: number) {
+    if (!isFinite(svgX) || !isFinite(svgY)) return;
+    if (svgX < minX) minX = svgX;
+    if (svgY < minY) minY = svgY;
+    if (svgX > maxX) maxX = svgX;
+    if (svgY > maxY) maxY = svgY;
+  }
+
+  function walkNode(node: SvgNode) {
+    if (node.type !== 'element') return;
+
+    if (node.tagName === 'polygon') {
+      // Parse "x1,y1 x2,y2 ..." or "x1 y1 x2 y2 ..."
+      const nums = String(node.properties?.points ?? '')
+        .trim()
+        .split(/[\s,]+/)
+        .map(Number);
+      for (let i = 0; i + 1 < nums.length; i += 2) {
+        expand(nums[i] + tx, nums[i + 1] + ty);
+      }
+    } else if (node.tagName === 'path') {
+      const d = String(node.properties?.d ?? '');
+      for (const coord of d.matchAll(/([-\d.]+),([-\d.]+)/g)) {
+        expand(parseFloat(coord[1]) + tx, parseFloat(coord[2]) + ty);
+      }
+    } else if (node.tagName === 'image') {
+      const x = parseFloat(String(node.properties?.x ?? '0'));
+      const y = parseFloat(String(node.properties?.y ?? '0'));
+      // width/height may carry a "px" suffix — parseFloat handles that
+      const w = parseFloat(String(node.properties?.width ?? '0'));
+      const h = parseFloat(String(node.properties?.height ?? '0'));
+      expand(x + tx, y + ty);
+      expand(x + w + tx, y + h + ty);
+    } else if (node.tagName === 'text') {
+      const x = parseFloat(String(node.properties?.x ?? '0'));
+      const y = parseFloat(String(node.properties?.y ?? '0'));
+      expand(x + tx, y + ty);
+    } else if (node.tagName === 'ellipse') {
+      const cx = parseFloat(String(node.properties?.cx ?? '0'));
+      const cy = parseFloat(String(node.properties?.cy ?? '0'));
+      const rx = parseFloat(String(node.properties?.rx ?? '0'));
+      const ry = parseFloat(String(node.properties?.ry ?? '0'));
+      expand(cx - rx + tx, cy - ry + ty);
+      expand(cx + rx + tx, cy + ry + ty);
+    }
+
+    node.children?.forEach(walkNode);
+  }
+
+  // Walk all children of the graph group.
+  // Skip index 0 when it is the background polygon (full-page white rectangle).
+  graphGroup.children?.forEach((child, index) => {
+    if (
+      index === 0 &&
+      child.type === 'element' &&
+      (child as SvgElementNode).tagName === 'polygon'
+    ) {
+      return;
+    }
+    walkNode(child);
+  });
+
+  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+    return null;
+  }
+
+  const pad = 8;
+  return `${minX - pad} ${minY - pad} ${maxX - minX + 2 * pad} ${maxY - minY + 2 * pad}`;
+}
+
 function svgToReactNode(
   svg: string,
   props?: React.SVGProps<SVGSVGElement>,
@@ -113,16 +218,13 @@ function svgToReactNode(
 
   // Ensure the main SVG element scales to fit its container
   if (adjustViewBox && svgElement.properties) {
-    svgElement.properties.width = 'auto';
-    svgElement.properties.height = 'auto';
+    svgElement.properties.width = '100%';
+    svgElement.properties.height = '100%';
 
-    // hardcoded adjustments to minimize whitespace in SVG 
-    // TODO: automatic calculation of ideal values
-    let viewBox = svgElement.properties.viewBox.split(' ').map(Number);
-    viewBox[0] += 150;
-    viewBox[1] += 140;
-    viewBox[3] -= 280;
-    svgElement.properties.viewBox = viewBox.join(' ');
+    const tightViewBox = computeGraphvizViewBox(svgElement);
+    if (tightViewBox) {
+      svgElement.properties.viewBox = tightViewBox;
+    }
   }
 
   // Build a set of image positions (x,y) that should be highlighted
@@ -657,6 +759,22 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   );
   const [optionsOpen, setOptionsOpen] = useState(false);
 
+  // Measure how much vertical space the diagram has from its own top edge to the
+  // bottom of the viewport.  We re-measure whenever the options panel is toggled
+  // (which changes the wrapper's top position) and whenever the window resizes.
+  const diagramRef = useRef<HTMLDivElement>(null);
+  const [diagramHeight, setDiagramHeight] = useState(400);
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (!diagramRef.current) return;
+      const top = diagramRef.current.getBoundingClientRect().top;
+      setDiagramHeight(Math.max(window.innerHeight - top - 8, 80));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [optionsOpen]);
+
   const getAllApplications = useModelStore((state) => state.getAllApplications);
   const highlightedEntityIds = useVisualizationStore(
     (state) => state.highlightedEntityIds
@@ -790,7 +908,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <button
         onClick={() => setOptionsOpen(!optionsOpen)}
         style={{
@@ -815,7 +933,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
 
       {error && <div style={{ color: 'red' }}>{error}</div>}
 
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div ref={diagramRef} style={{ height: diagramHeight, overflow: 'hidden' }}>
         <style>{`
           @keyframes kube-ping-pulse {
             0%   { transform: scale(1); opacity: 0.8; }
