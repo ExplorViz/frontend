@@ -636,6 +636,9 @@ function ColorPickerSection() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ColorPicker id="k8sDiagramColor" />
       </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ColorPicker id="highlightedEntityColor" />
+      </div>
     </div>
   );
 }
@@ -796,8 +799,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           display: 'flex',
           alignItems: 'center',
           gap: 4,
-          border: '1px solid #ccc',
-          background: '#f5f5f5',
+          border: '1px solid #ccc'
         }}
       >
         <span>{optionsOpen ? '▼' : '▶'}</span>
@@ -817,7 +819,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
         <style>{`
           @keyframes kube-ping-pulse {
             0%   { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(3); opacity: 0;   }
+            100% { transform: scale(1.7); opacity: 0;   }
           }
           .kube-ping-circle {
             animation: kube-ping-pulse 1s ease-out 3 forwards;
