@@ -688,28 +688,21 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     [getAllApplications, highlightedEntityIds, setHighlightedEntityId]
   );
 
-  const activePingEntityIds = usePingStore((state) => state.activePingEntityIds);
-
-  const activePingNodeNames = useMemo(() => {
-    const names = new Set<string>();
-    for (const app of getAllApplications()) {
-      if (activePingEntityIds.has(app.id)) {
-        names.add(app.name);
-      }
-    }
-    return names;
-  }, [getAllApplications, activePingEntityIds]);
+  const activePingNodeNames = usePingStore((state) => state.activePingNodeNames);
 
   const handleNodeMiddleClick = useCallback(
     (nodeName: string) => {
+      const DURATION_MS = 3000;
       const matchingApp = getAllApplications().find(
         (app) => app.name === nodeName
       );
-      if (!matchingApp) return;
-
-      const DURATION_MS = 3000;
-      usePingStore.getState().addPing(matchingApp.id, DURATION_MS);
-      pingByModelId(matchingApp.id, false);
+      if (matchingApp) {
+        // pingByModelId internally adds to the ping store and animates the 3D canvas
+        pingByModelId(matchingApp.id, false, { durationMs: DURATION_MS });
+      } else {
+        // No matching canvas application — ping the sidebar node only
+        usePingStore.getState().addPing(nodeName, DURATION_MS);
+      }
     },
     [getAllApplications]
   );

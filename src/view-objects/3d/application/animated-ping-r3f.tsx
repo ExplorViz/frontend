@@ -187,8 +187,9 @@ export function pingByModelId(
     removeOldPings = false,
   } = options;
 
-  // Always notify the ping store so the sidebar can react
-  usePingStore.getState().addPing(modelId, durationMs);
+  // Always notify the ping store so the sidebar can react.
+  // Store by resolved name so SVG nodes (identified by name) can match directly.
+  usePingStore.getState().addPing(getEntityName(modelId), durationMs);
 
   const modelWorldPosition = getWorldPositionOfModel(modelId);
   if (!modelWorldPosition) {

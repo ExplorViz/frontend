@@ -1,21 +1,21 @@
 import { create } from 'zustand';
 
 interface PingStoreState {
-  activePingEntityIds: Set<string>;
-  addPing: (entityId: string, durationMs?: number) => void;
+  activePingNodeNames: Set<string>;
+  addPing: (name: string, durationMs?: number) => void;
 }
 
 export const usePingStore = create<PingStoreState>((set) => ({
-  activePingEntityIds: new Set(),
-  addPing: (entityId, durationMs = 3000) => {
+  activePingNodeNames: new Set(),
+  addPing: (name, durationMs = 3000) => {
     set((state) => ({
-      activePingEntityIds: new Set([...state.activePingEntityIds, entityId]),
+      activePingNodeNames: new Set([...state.activePingNodeNames, name]),
     }));
     setTimeout(() => {
       set((state) => {
-        const next = new Set(state.activePingEntityIds);
-        next.delete(entityId);
-        return { activePingEntityIds: next };
+        const next = new Set(state.activePingNodeNames);
+        next.delete(name);
+        return { activePingNodeNames: next };
       });
     }, durationMs);
   },

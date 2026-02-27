@@ -75,7 +75,7 @@ export default function LandscapeR3F({
           }
           pingPosition(pingedPoint);
           // Walk up the hierarchy to find the CodeCity group (which stores
-          // applicationId in userData) so the sidebar can show a ping.
+          // applicationName in userData) so the sidebar can show a ping.
           interface NodeLike {
             userData?: Record<string, unknown>;
             parent: NodeLike | null;
@@ -83,11 +83,11 @@ export default function LandscapeR3F({
           let candidate: NodeLike | null =
             e.object as unknown as NodeLike;
           while (candidate) {
-            const appId = candidate.userData?.applicationId as
+            const appName = candidate.userData?.applicationName as
               | string
               | undefined;
-            if (appId) {
-              usePingStore.getState().addPing(appId);
+            if (appName) {
+              usePingStore.getState().addPing(appName);
               break;
             }
             candidate = candidate.parent;
