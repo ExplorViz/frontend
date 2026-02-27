@@ -783,8 +783,10 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     (state) => state.actions.setHighlightedEntityId
   );
 
+  const [localHighlightedNodeNames, setLocalHighlightedNodeNames] = useState<Set<string>>(() => new Set());
+
   const highlightedNodeNames = useMemo(() => {
-    const names = new Set<string>();
+    const names = new Set<string>(localHighlightedNodeNames);
     const allApps = getAllApplications();
     for (const app of allApps) {
       if (highlightedEntityIds.has(app.id)) {
@@ -792,7 +794,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       }
     }
     return names;
-  }, [getAllApplications, highlightedEntityIds]);
+  }, [getAllApplications, highlightedEntityIds, localHighlightedNodeNames]);
 
   const handleNodeClick = useCallback(
     (nodeName: string) => {
@@ -804,6 +806,17 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           matchingApp.id,
           !highlightedEntityIds.has(matchingApp.id)
         );
+      } else {
+        // No matching canvas application — highlight the sidebar node only
+        setLocalHighlightedNodeNames((prev) => {
+          const next = new Set(prev);
+          if (next.has(nodeName)) {
+            next.delete(nodeName);
+          } else {
+            next.add(nodeName);
+          }
+          return next;
+        });
       }
     },
     [getAllApplications, highlightedEntityIds, setHighlightedEntityId]
