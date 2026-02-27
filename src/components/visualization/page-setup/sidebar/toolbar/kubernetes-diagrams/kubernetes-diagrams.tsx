@@ -1,3 +1,4 @@
+import { LocationIcon, PaintbrushIcon } from '@primer/octicons-react';
 import ColorPicker from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/color-picker';
 import {
   DiagramType,
@@ -7,6 +8,7 @@ import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import React, {
   useCallback,
@@ -350,14 +352,15 @@ function renderNode(
     { ...normalizeSvgProps(node.properties), key },
     node.children?.map((child, index) =>
       renderNode(
-        child, 
-        index, 
-        loadedSvgs, 
-        highlightedPositions, 
-        onNodeClick, 
-        activePingNodeNames, 
-        onNodeMiddleClick, 
-        highlightedEntityColor)
+        child,
+        index,
+        loadedSvgs,
+        highlightedPositions,
+        onNodeClick,
+        activePingNodeNames,
+        onNodeMiddleClick,
+        highlightedEntityColor
+      )
     )
   );
 }
@@ -624,12 +627,12 @@ function KubeDiagramNode({
   const children = [
     ...(node.children?.map((child, index) =>
       renderNode(
-        child, 
-        index, 
-        loadedSvgs, 
-        highlightedPositions, 
-        onNodeClick, 
-        activePingNodeNames, 
+        child,
+        index,
+        loadedSvgs,
+        highlightedPositions,
+        onNodeClick,
+        activePingNodeNames,
         onNodeMiddleClick,
         highlightedEntityColor)
     ) ?? []),
@@ -640,6 +643,8 @@ function KubeDiagramNode({
     node.tagName,
     {
       ...normalizedProps,
+      // data-node-name enables hover detection via event delegation on the container
+      'data-node-name': nodeName || undefined,
       onClick: nodeName ? () => onNodeClick?.(nodeName) : undefined,
       onMouseDown: nodeName
         ? (e: React.MouseEvent) => {
@@ -654,6 +659,105 @@ function KubeDiagramNode({
         : normalizedProps.style,
     },
     ...children
+  );
+}
+
+function KubeDiagramHoverPopup({
+  nodeName,
+  clientX,
+  clientY,
+  onHighlight,
+  onPing,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  nodeName: string;
+  clientX: number;
+  clientY: number;
+  onHighlight: () => void;
+  onPing: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}) {
+  const popupWidth = 180;
+  const popupHeight = 72;
+  let left = clientX - popupWidth / 2;
+  let top = clientY - popupHeight - 8;
+
+  if (left < 4) left = 4;
+  if (left + popupWidth > window.innerWidth - 4) left = window.innerWidth - popupWidth - 4;
+  if (top < 4) top = clientY + 20;
+
+  return (
+    <div
+      className="popover"
+      style={{
+        position: 'fixed',
+        left,
+        top,
+        zIndex: 3000,
+        width: popupWidth,
+        overflow: 'hidden',
+        cursor: 'default',
+        padding: 0,
+      }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div
+        className="popover-header"
+        style={{
+          margin: 0,
+          fontSize: '0.85rem',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {nodeName}
+      </div>
+      <div className="popover-body" style={{ padding: '0.3rem 0.4rem', display: 'flex', gap: '0.3rem' }}>
+        <button onClick={onHighlight} title="Highlight">
+          <PaintbrushIcon size={14} />
+        </button>
+        <button onClick={onPing} title="Ping">
+          <LocationIcon size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function KubeDiagramContextMenu({
+  x,
+  y,
+  onClearHighlighting,
+}: {
+  x: number;
+  y: number;
+  onClearHighlighting: () => void;
+}) {
+  return (
+    <ul
+      className="bg-white shadow border rounded-md select-none"
+      style={{
+        position: 'fixed',
+        top: y,
+        left: x,
+        listStyle: 'none',
+        padding: 0,
+        zIndex: 2000,
+        minWidth: 160,
+      }}
+    >
+      <li
+        className="context-menu-item"
+        style={{ cursor: 'pointer' }}
+        onClick={onClearHighlighting}
+      >
+        Clear Highlighting
+      </li>
+    </ul>
   );
 }
 
@@ -758,6 +862,20 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     () => new Map()
   );
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<{ name: string; clientX: number; clientY: number } | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up hover timers on unmount
+  useEffect(() => {
+    const hoverTimeout = hoverTimeoutRef;
+    const hideTimeout = hideTimeoutRef;
+    return () => {
+      if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+      if (hideTimeout.current) clearTimeout(hideTimeout.current);
+    };
+  }, []);
 
   // Measure how much vertical space the diagram has from its own top edge to the
   // bottom of the viewport.  We re-measure whenever the options panel is toggled
@@ -841,6 +959,87 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     [getAllApplications]
   );
 
+  // Context menu
+  const handleContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY });
+  }, []);
+
+  const handleClearHighlighting = useCallback(() => {
+    setLocalHighlightedNodeNames(new Set());
+    removeAllHighlighting();
+    setContextMenu(null);
+  }, []);
+
+  useEffect(() => {
+    const hide = () => setContextMenu(null);
+    document.addEventListener('click', hide);
+    return () => document.removeEventListener('click', hide);
+  }, []);
+
+  const lastHoveredNameRef = useRef<string | null>(null);
+
+  // Called on every onMouseOver on the diagram container. Reads data-node-name from the
+  // event target to detect which node (if any) is under the cursor.
+  const handleDiagramMouseOver = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const nodeEl = (e.target as Element).closest('[data-node-name]');
+    const nodeName = nodeEl?.getAttribute('data-node-name') ?? null;
+
+    if (nodeName === lastHoveredNameRef.current) return;
+
+    if (hideTimeoutRef.current) { clearTimeout(hideTimeoutRef.current); hideTimeoutRef.current = null; }
+    if (hoverTimeoutRef.current) { clearTimeout(hoverTimeoutRef.current); hoverTimeoutRef.current = null; }
+
+    lastHoveredNameRef.current = nodeName;
+
+    // Ensures popups are only shown for graph nodes
+    const isNode = nodeEl?.parentElement?.getAttribute('id')?.includes('node');
+
+    if (isNode && nodeName) {
+      const { clientX, clientY } = e;
+      hoverTimeoutRef.current = setTimeout(() => {
+        setHoveredNode({ name: nodeName, clientX, clientY });
+      }, 500);
+    } else {
+      hideTimeoutRef.current = setTimeout(() => {
+        setHoveredNode(null);
+        hideTimeoutRef.current = null;
+      }, 150);
+    }
+  }, []);
+
+  // Mouse left the diagram container entirely
+  const handleDiagramMouseLeave = useCallback(() => {
+    lastHoveredNameRef.current = null;
+    if (hoverTimeoutRef.current) { clearTimeout(hoverTimeoutRef.current); hoverTimeoutRef.current = null; }
+    hideTimeoutRef.current = setTimeout(() => {
+      setHoveredNode(null);
+      hideTimeoutRef.current = null;
+    }, 150);
+  }, []);
+
+  const handlePopupMouseEnter = useCallback(() => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handlePopupMouseLeave = useCallback(() => {
+    setHoveredNode(null);
+    lastHoveredNameRef.current = null;
+  }, []);
+
+  const handleHoverHighlight = useCallback(() => {
+    if (!hoveredNode) return;
+    handleNodeClick(hoveredNode.name);
+  }, [hoveredNode, handleNodeClick]);
+
+  const handleHoverPing = useCallback(() => {
+    if (!hoveredNode) return;
+    handleNodeMiddleClick(hoveredNode.name);
+  }, [hoveredNode, handleNodeMiddleClick]);
+
   const diagramColor = useUserSettingsStore(
     (state) =>
       state.visualizationSettings.k8sDiagramColor?.value ?? '#326ce5'
@@ -905,15 +1104,15 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       highlightedEntityColor
     );
   }, [
-    effectiveSvg, 
-    props, 
-    loadedSvgs, 
-    highlightedNodeNames, 
-    onNodeClick, 
-    handleNodeClick, 
-    activePingNodeNames, 
-    handleNodeMiddleClick, 
-    highlightedEntityColor
+    effectiveSvg,
+    props,
+    loadedSvgs,
+    highlightedNodeNames,
+    onNodeClick,
+    handleNodeClick,
+    activePingNodeNames,
+    handleNodeMiddleClick,
+    highlightedEntityColor,
   ]);
 
   async function onGenerate(type: DiagramType, path?: string, file?: File) {
@@ -946,7 +1145,13 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
 
       {error && <div style={{ color: 'red' }}>{error}</div>}
 
-      <div ref={diagramRef} style={{ height: diagramHeight, overflow: 'hidden' }}>
+      <div
+        ref={diagramRef}
+        style={{ height: diagramHeight, overflow: 'hidden' }}
+        onContextMenu={handleContextMenu}
+        onMouseOver={handleDiagramMouseOver}
+        onMouseLeave={handleDiagramMouseLeave}
+      >
         <style>{`
           @keyframes kube-ping-pulse {
             0%   { transform: scale(1); opacity: 0.8; }
@@ -965,6 +1170,26 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           </div>
         )}
       </div>
+
+      {contextMenu && (
+        <KubeDiagramContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClearHighlighting={handleClearHighlighting}
+        />
+      )}
+
+      {hoveredNode && (
+        <KubeDiagramHoverPopup
+          nodeName={hoveredNode.name}
+          clientX={hoveredNode.clientX}
+          clientY={hoveredNode.clientY}
+          onHighlight={handleHoverHighlight}
+          onPing={handleHoverPing}
+          onMouseEnter={handlePopupMouseEnter}
+          onMouseLeave={handlePopupMouseLeave}
+        />
+      )}
     </div>
   );
 }
