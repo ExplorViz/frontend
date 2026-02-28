@@ -1,7 +1,7 @@
 import React from 'react';
 import { parse } from 'svg-parser';
+import { KubeDiagramNode } from './kube-diagram-node';
 import {
-  collectTextFromAnchor,
   computeGraphvizViewBox,
   decodeXmlEntities,
   findImagesByLabel,
@@ -18,6 +18,11 @@ import type {
 /**
  * Convert an SVG string into a React node tree, optionally adjusting the viewBox
  * to tightly fit the diagram content.
+ *
+ * @param svg           Raw SVG markup string
+ * @param props         Extra props merged onto the root <svg> element
+ * @param ctx           Rendering context (loaded icon SVGs, highlighting, interaction handlers)
+ * @param adjustViewBox When true, replaces the viewBox with a tight fit around diagram content
  */
 export function svgToReactNode(
   svg: string,
@@ -42,17 +47,6 @@ export function svgToReactNode(
     }
   }
 
-  // Build a set of image positions (x,y) for nodes that should be highlighted.
-  // Position is used as the key because the same icon SVG is shared across node types.
-  const highlightedPositions = new Set<string>();
-  if (ctx?.highlightedPositions) {
-    // highlightedPositions is already computed by the caller from highlightedNodeNames
-    // We pass it through directly in the context
-  }
-
-  // Resolve highlighted positions from node names if we have the AST and names
-  const resolvedPositions = ctx?.highlightedPositions ?? new Set<string>();
-
   return renderNode(
     {
       ...svgElement,
@@ -63,13 +57,16 @@ export function svgToReactNode(
       },
     },
     undefined,
-    ctx ? { ...ctx, highlightedPositions: resolvedPositions } : undefined,
+    ctx,
   );
 }
 
 /**
- * Build highlighted positions from a set of node names by scanning the SVG AST.
+ * Resolve a set of node names to their corresponding image positions in the SVG AST.
  * Call this before svgToReactNode to populate DiagramRenderContext.highlightedPositions.
+ *
+ * Position strings ("x,y") are unique per node instance and are used to look up
+ * which <image> elements should render the highlighted icon variant.
  */
 export function buildHighlightedPositions(
   svg: string,
@@ -81,8 +78,7 @@ export function buildHighlightedPositions(
   const positions = new Set<string>();
 
   for (const name of highlightedNodeNames) {
-    const imageNodes = findImagesByLabel(ast, name);
-    for (const imageNode of imageNodes) {
+    for (const imageNode of findImagesByLabel(ast, name)) {
       const x = imageNode.properties?.x;
       const y = imageNode.properties?.y;
       if (x !== undefined && y !== undefined) {
@@ -103,15 +99,13 @@ function renderNode(
     return decodeXmlEntities(node.value);
   }
 
-  // Each <a> element (a kubernetes resource node) becomes its own React component
+  // Each <a> element (a kubernetes resource node) becomes its own React component.
   if (node.tagName === 'a') {
     return React.createElement(KubeDiagramNode, {
       key,
       node,
-      ctx: ctx ?? {
-        loadedSvgs: new Map(),
-        highlightedPositions: new Set(),
-      },
+      ctx: ctx ?? { loadedSvgs: new Map(), highlightedPositions: new Set() },
+      renderChildren: (child: SvgNode, index: number) => renderNode(child, index, ctx),
     });
   }
 
@@ -130,34 +124,31 @@ function renderNode(
       const width = normalizedProps.width || node.properties!.width;
       const height = normalizedProps.height || node.properties!.height;
 
-      const positionKey = `${x},${y}`;
-      const isHighlighted = ctx.highlightedPositions?.has(positionKey);
+      // Position (x,y) is unique per node; localPath is shared across node types
+      const isHighlighted = ctx.highlightedPositions?.has(`${x},${y}`);
       const highlightedKey = `${localPath}#highlighted`;
       const svgNode =
         isHighlighted && ctx.loadedSvgs.has(highlightedKey)
           ? ctx.loadedSvgs.get(highlightedKey)
           : ctx.loadedSvgs.get(localPath);
 
-      const svgProps: Record<string, any> =
-        (svgNode as React.ReactElement)?.props || {};
+      const svgProps: Record<string, any> = (svgNode as React.ReactElement)?.props || {};
       const existingStyle =
-        svgProps.style && typeof svgProps.style === 'object'
-          ? svgProps.style
-          : {};
-      const svgElement = svgNode as React.ReactElement;
+        svgProps.style && typeof svgProps.style === 'object' ? svgProps.style : {};
+      const svgEl = svgNode as React.ReactElement;
 
       return React.createElement(
         'g',
         { key, transform: `translate(${x}, ${y})` },
         React.createElement(
-          svgElement.type as React.ElementType,
+          svgEl.type as React.ElementType,
           {
-            ...(typeof svgElement.props === 'object' ? svgElement.props : {}),
+            ...(typeof svgEl.props === 'object' ? svgEl.props : {}),
             width,
             height,
             style: { overflow: 'visible', ...existingStyle },
           } as any,
-          (svgElement.props as any)?.children
+          (svgEl.props as any)?.children
         )
       );
     }
@@ -167,83 +158,5 @@ function renderNode(
     node.tagName,
     { ...normalizeSvgProps(node.properties), key },
     node.children?.map((child, index) => renderNode(child, index, ctx))
-  );
-}
-
-/**
- * Renders a single Kubernetes resource node (an <a> element in the graphviz SVG).
- * Handles click/middle-click events, highlighted state, and ping animation overlay.
- *
- * Kept in svg-renderer.tsx alongside renderNode because the two are mutually recursive —
- * renderNode creates KubeDiagramNode elements and KubeDiagramNode calls renderNode for
- * its children. Separating them would create a circular import.
- */
-function KubeDiagramNode({
-  node,
-  ctx,
-}: {
-  node: SvgElementNode;
-  ctx: DiagramRenderContext;
-}) {
-  const nodeName = collectTextFromAnchor(node);
-  const normalizedProps = normalizeSvgProps(node.properties);
-  const existingStyle =
-    typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
-
-  const isPinged = nodeName ? (ctx.activePingNodeNames?.has(nodeName) ?? false) : false;
-
-  // Locate the <image> child to derive its center for the ping overlay
-  const imageChild = node.children?.find(
-    (c): c is SvgElementNode => c.type === 'element' && c.tagName === 'image'
-  );
-  const imgNorm = imageChild ? normalizeSvgProps(imageChild.properties) : {};
-  const ix = parseFloat(String(imgNorm.x ?? imageChild?.properties?.x ?? 0)) || 0;
-  const iy = parseFloat(String(imgNorm.y ?? imageChild?.properties?.y ?? 0)) || 0;
-  const iw = parseFloat(String(imgNorm.width ?? imageChild?.properties?.width ?? 50)) || 50;
-  const ih = parseFloat(String(imgNorm.height ?? imageChild?.properties?.height ?? 50)) || 50;
-  const cx = ix + iw / 2;
-  const cy = iy + ih / 2;
-  const r = Math.max(iw, ih) / 2;
-
-  const pingOverlay =
-    isPinged && imageChild
-      ? React.createElement('circle', {
-          cx,
-          cy,
-          r,
-          fill: 'none',
-          stroke: ctx.highlightedEntityColor || '#ff5151',
-          strokeWidth: 3,
-          className: 'kube-ping-circle',
-          style: { pointerEvents: 'none' },
-        })
-      : null;
-
-  const children = [
-    ...(node.children?.map((child, index) =>
-      renderNode(child, index, ctx)
-    ) ?? []),
-    pingOverlay,
-  ];
-
-  return React.createElement(
-    node.tagName,
-    {
-      ...normalizedProps,
-      'data-node-name': nodeName || undefined,
-      onClick: nodeName ? () => ctx.onNodeClick?.(nodeName) : undefined,
-      onMouseDown: nodeName
-        ? (e: React.MouseEvent) => {
-            if (e.button === 1) {
-              e.preventDefault();
-              ctx.onNodeMiddleClick?.(nodeName);
-            }
-          }
-        : undefined,
-      style: nodeName
-        ? { cursor: 'pointer', ...existingStyle }
-        : normalizedProps.style,
-    },
-    ...children
   );
 }
