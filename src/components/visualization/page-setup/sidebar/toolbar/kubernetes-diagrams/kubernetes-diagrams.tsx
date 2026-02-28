@@ -91,7 +91,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       svgElement,
       diagramColor,
       highlightedEntityColor,
-      (s) => svgToReactNode(s),
+      svgToReactNode,
     )
       .then(setLoadedSvgs)
       .catch((err) => console.error('Error preloading SVGs:', err));
@@ -139,14 +139,6 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     document.addEventListener('click', hide);
     return () => document.removeEventListener('click', hide);
   }, []);
-
-  const handleHoverHighlight = useCallback(() => {
-    if (hoveredNode) handleNodeClick(hoveredNode.name);
-  }, [hoveredNode, handleNodeClick]);
-
-  const handleHoverPing = useCallback(() => {
-    if (hoveredNode) handleNodeMiddleClick(hoveredNode.name);
-  }, [hoveredNode, handleNodeMiddleClick]);
 
   async function onGenerate(type: DiagramType, path?: string, file?: File) {
     await generate({ type, path, file });
@@ -215,8 +207,8 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           nodeName={hoveredNode.name}
           clientX={hoveredNode.clientX}
           clientY={hoveredNode.clientY}
-          onHighlight={handleHoverHighlight}
-          onPing={handleHoverPing}
+          onHighlight={() => handleNodeClick(hoveredNode!.name)}
+          onPing={() => handleNodeMiddleClick(hoveredNode!.name)}
           onMouseEnter={handlePopupMouseEnter}
           onMouseLeave={handlePopupMouseLeave}
         />

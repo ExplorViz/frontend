@@ -24,17 +24,17 @@ export function KubeDiagramNode({
   const existingStyle =
     typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
 
-  const isPinged = nodeName ? (ctx.activePingNodeNames?.has(nodeName) ?? false) : false;
+  const isPinged = !!nodeName && !!ctx.activePingNodeNames?.has(nodeName);
 
   // Locate the <image> child to derive its center for the ping overlay circle
   const imageChild = node.children?.find(
     (c): c is SvgElementNode => c.type === 'element' && c.tagName === 'image'
   );
   const imgNorm = imageChild ? normalizeSvgProps(imageChild.properties) : {};
-  const ix = parseFloat(String(imgNorm.x ?? imageChild?.properties?.x ?? 0)) || 0;
-  const iy = parseFloat(String(imgNorm.y ?? imageChild?.properties?.y ?? 0)) || 0;
-  const iw = parseFloat(String(imgNorm.width ?? imageChild?.properties?.width ?? 50)) || 50;
-  const ih = parseFloat(String(imgNorm.height ?? imageChild?.properties?.height ?? 50)) || 50;
+  const ix = parseFloat(String(imgNorm.x ?? 0)) || 0;
+  const iy = parseFloat(String(imgNorm.y ?? 0)) || 0;
+  const iw = parseFloat(String(imgNorm.width ?? 50)) || 50;
+  const ih = parseFloat(String(imgNorm.height ?? 50)) || 50;
   const pingRadius = Math.max(iw, ih) / 2;
 
   const pingOverlay =

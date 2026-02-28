@@ -132,10 +132,8 @@ function renderNode(
           ? ctx.loadedSvgs.get(highlightedKey)
           : ctx.loadedSvgs.get(localPath);
 
-      const svgProps: Record<string, any> = (svgNode as React.ReactElement)?.props || {};
-      const existingStyle =
-        svgProps.style && typeof svgProps.style === 'object' ? svgProps.style : {};
-      const svgEl = svgNode as React.ReactElement;
+      const svgEl = svgNode as React.ReactElement<any>;
+      const existingStyle = typeof svgEl.props?.style === 'object' ? svgEl.props.style : {};
 
       return React.createElement(
         'g',

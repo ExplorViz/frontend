@@ -23,12 +23,10 @@ export function useHoverPopup() {
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHoveredNameRef = useRef<string | null>(null);
 
-  // Clean up pending timers on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    };
+  // Clean up pending timers on unmount (clearTimeout(null/undefined) is a safe no-op)
+  useEffect(() => () => {
+    clearTimeout(hoverTimeoutRef.current ?? undefined);
+    clearTimeout(hideTimeoutRef.current ?? undefined);
   }, []);
 
   const handleDiagramMouseOver = useCallback(

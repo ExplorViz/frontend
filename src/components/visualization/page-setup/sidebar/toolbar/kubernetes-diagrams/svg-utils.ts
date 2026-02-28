@@ -11,16 +11,8 @@ const svgExistenceMap = new Map<string, boolean>();
  * e.g., "https://.../sts.png" -> "/images/kubeDiagrams/sts.svg"
  */
 export function getLocalSvgPath(imageHref: string): string | null {
-  try {
-    const match = imageHref.match(/\/([^/]+\.png)$/);
-    if (!match) return null;
-    const filename = match[1];
-    const svgFilename = filename.replace('.png', '.svg');
-    return `/images/kubeDiagrams/${svgFilename}`;
-  } catch (error) {
-    console.error('Error extracting local SVG path:', error);
-    return null;
-  }
+  const match = imageHref.match(/\/([^/]+\.png)$/);
+  return match ? `/images/kubeDiagrams/${match[1].replace('.png', '.svg')}` : null;
 }
 
 /**
@@ -161,14 +153,8 @@ export function normalizeSvgProps(
   const normalized: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(props)) {
-    if (key.includes(':')) {
-      if (key === 'xlink:href' || key === 'xlink:title') {
-        // Handle these below
-      } else {
-        // Skip all other namespaced attributes (inkscape:*, sodipodi:*, etc.)
-        continue;
-      }
-    }
+    // Skip namespaced attributes except the two xlink ones handled below
+    if (key.includes(':') && key !== 'xlink:href' && key !== 'xlink:title') continue;
 
     if (key === 'class') {
       normalized.className = value;

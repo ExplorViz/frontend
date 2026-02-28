@@ -49,11 +49,7 @@ export function useNodeInteractions() {
       } else {
         setLocalHighlightedNodeNames((prev) => {
           const next = new Set(prev);
-          if (next.has(nodeName)) {
-            next.delete(nodeName);
-          } else {
-            next.add(nodeName);
-          }
+          next.has(nodeName) ? next.delete(nodeName) : next.add(nodeName);
           return next;
         });
       }
