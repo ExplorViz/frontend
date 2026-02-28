@@ -20,7 +20,7 @@ export function KubeDiagramNode({
   renderChildren: (child: SvgNode, index: number) => React.ReactNode;
 }) {
   const nodeName = collectTextFromAnchor(node);
-  const normalizedProps = normalizeSvgProps(node.properties);
+  const { xlinkTitle: _xlinkTitle, ...normalizedProps } = normalizeSvgProps(node.properties);
   const existingStyle =
     typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
 

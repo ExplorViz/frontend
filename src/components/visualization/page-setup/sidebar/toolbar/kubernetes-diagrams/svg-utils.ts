@@ -147,12 +147,21 @@ export function computeGraphvizViewBox(svgElement: SvgElementNode): string | nul
   return `${minX - pad} ${minY - pad} ${maxX - minX + 2 * pad} ${maxY - minY + 2 * pad}`;
 }
 
+/** Graphviz-specific SVG attributes that are not valid HTML/SVG and trigger React DOM warnings. */
+const GRAPHVIZ_ONLY_PROPS = new Set([
+  'fit-margin-top',
+  'fit-margin-bottom',
+  'fit-margin-left',
+  'fit-margin-right',
+]);
+
 export function normalizeSvgProps(
   props: Record<string, any> = {}
 ): Record<string, any> {
   const normalized: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(props)) {
+    if (GRAPHVIZ_ONLY_PROPS.has(key)) continue;
     // Skip namespaced attributes except the two xlink ones handled below
     if (key.includes(':') && key !== 'xlink:href' && key !== 'xlink:title') continue;
 

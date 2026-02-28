@@ -99,6 +99,9 @@ function renderNode(
     return decodeXmlEntities(node.value);
   }
 
+  // Skip <title> elements — browsers render them as native SVG tooltips
+  if (node.tagName === 'title') return null;
+
   // Each <a> element (a kubernetes resource node) becomes its own React component.
   if (node.tagName === 'a') {
     return React.createElement(KubeDiagramNode, {
