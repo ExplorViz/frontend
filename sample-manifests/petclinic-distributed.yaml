@@ -5,7 +5,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: petclinic-discovery-server
+  name: petclinic-discovery-service
   namespace: petclinic
   labels:
     app: petclinic
@@ -13,15 +13,15 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: petclinic-discovery-server
+      app: petclinic-discovery-service
   template:
     metadata:
       labels:
-        app: petclinic-discovery-server
+        app: petclinic-discovery-service
     spec:
       containers:
-        - name: petclinic-discovery-server
-          image: springcommunity/spring-petclinic-discovery-server
+        - name: petclinic-discovery-service
+          image: springcommunity/spring-petclinic-discovery-service
           ports:
             - containerPort: 8761
 
@@ -29,13 +29,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: petclinic-discovery-server
+  name: petclinic-discovery-service
   namespace: petclinic
   labels:
     app: petclinic
 spec:
   selector:
-    app: petclinic-discovery-server
+    app: petclinic-discovery-service
   ports:
     - port: 8761
       targetPort: 8761

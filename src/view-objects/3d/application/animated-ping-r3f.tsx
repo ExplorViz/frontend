@@ -4,6 +4,7 @@ import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/coll
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
+import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -185,6 +186,10 @@ export function pingByModelId(
     replay = false,
     removeOldPings = false,
   } = options;
+
+  // Always notify the ping store so the sidebar can react.
+  // Store by resolved name so SVG nodes (identified by name) can match directly.
+  usePingStore.getState().addPing(getEntityName(modelId), durationMs);
 
   const modelWorldPosition = getWorldPositionOfModel(modelId);
   if (!modelWorldPosition) {
