@@ -3,6 +3,7 @@ import {
   EyeIcon,
   PlusIcon,
   TrashIcon,
+  CodeIcon
 } from '@primer/octicons-react';
 import AdditionalTokenInfo from 'explorviz-frontend/src/components/additional-token-info';
 import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
@@ -15,6 +16,7 @@ import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
+  openRepoAnalysisModal(): void;
   selectToken(token: LandscapeToken): void;
   deleteToken(tokenId: string, event: React.MouseEvent): Promise<void>;
   reload(): void;
@@ -23,6 +25,7 @@ interface TokenSelectionArgs {
 export default function TokenSelection({
   tokens,
   openTokenCreationModal,
+  openRepoAnalysisModal,
   selectToken,
   deleteToken,
   reload,
@@ -236,13 +239,21 @@ export default function TokenSelection({
       <tfoot>
         <tr>
           <td colSpan={3} className="p-1">
-            <div className="d-flex flex-row justify-content-center">
+            <div className="d-flex flex-row justify-content-center gap-2">
               <Button
                 variant="primary"
-                className="align-self-center pt-2 px-3"
+                className="align-self-center pt-2 px-3 primary"
                 onClick={openTokenCreationModal}
               >
                 <PlusIcon size="small" />
+              </Button>
+
+              <Button
+                variant="success"
+                className="align-self-center pt-2 px-3 success"
+                onClick={openRepoAnalysisModal}
+              >
+                <CodeIcon size="small" />
               </Button>
             </div>
           </td>

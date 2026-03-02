@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { generateRandomToken } from './generateRandomToken';
 
 const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
 
@@ -35,13 +36,24 @@ interface AnalysisRequest {
   codeAnalysisExcludedFileExtensions?: string;
 }
 
-export default function CodeAnalysisTriggerForm() {
+type Props = {
+  assignRandomToken?: boolean
+  onSubmitSuccess?: (landscapeToken: string) => void
+}
+
+export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuccess }: Props) {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useLocalRepo, setUseLocalRepo] = useState(false);
   const [excludedExtensions, setExcludedExtensions] = useState<readonly ExtensionOption[]>(DEFAULT_EXCLUDED_EXTENSIONS);
 
-  const landscapeTokenValue = searchParams.get('landscapeToken')
+  const landscapeTokenValue = useMemo(() => {
+    if(assignRandomToken) {
+      return generateRandomToken(16);
+    }
+
+    return searchParams.get('landscapeToken') || '';
+  }, [searchParams, assignRandomToken]);
 
   console.log({
     landscapeTokenValue,
@@ -182,6 +194,8 @@ export default function CodeAnalysisTriggerForm() {
           applicationName: '',
         });
         setExcludedExtensions(DEFAULT_EXCLUDED_EXTENSIONS);
+
+        onSubmitSuccess?.(landscapeTokenValue);
       } else {
         const errorMessage = await response.text();
         useToastHandlerStore
@@ -222,7 +236,13 @@ export default function CodeAnalysisTriggerForm() {
             readOnly={!!landscapeTokenValue}
           />
           <Form.Text className="text-muted">
-            {landscapeTokenValue ? 'Using current landscape token' : 'No landscape token selected'}
+            {
+              (() => {
+                if(assignRandomToken) return 'Randomly assigned';
+                if(landscapeTokenValue) return 'Using current landscape token';
+                else return 'No landscape token selected';
+              })()
+            }
           </Form.Text>
         </Form.Group>
 
