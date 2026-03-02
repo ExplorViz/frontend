@@ -3,6 +3,7 @@ import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -146,17 +147,19 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
 
     const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
+    const enterImmersive = useImmersiveViewStore((state) => state.enterImmersive);
+
     const getClassHeight = (dataModel: Class) => {
       return (
         classFootprint +
         metricMappingMultipliers[heightMetric as MetricKey] *
-          classHeightMultiplier *
-          getMetricForClass(
-            dataModel,
-            application.name,
-            heightMetric,
-            evoConfig.renderOnlyDifferences
-          )
+        classHeightMultiplier *
+        getMetricForClass(
+          dataModel,
+          application.name,
+          heightMetric,
+          evoConfig.renderOnlyDifferences
+        )
       );
     };
 
@@ -332,7 +335,118 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
       setHoveredEntity(null);
     };
 
-    const handleDoubleClick = (/*event: any*/) => {};
+    // When a class is double clicked, the immersive view is entered
+    const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
+      if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
+        return;
+      }
+
+      const { instanceId } = e;
+      if (instanceId === undefined) return;
+
+      e.stopPropagation();
+
+      const classId = instanceIdToClassId.get(instanceId);
+      if (!classId) return;
+
+      // Compute the coordinates to fly to
+      const layout = layoutMap.get(classId);
+      const classModel = classIdToClass.get(classId);
+
+      if (!layout || !classModel) return;
+
+      const currentHeight = getClassHeight(classModel);
+
+      const localTarget = new THREE.Vector3(
+        layout.center.x,
+        layout.position.y + currentHeight + 110,
+        layout.center.z
+      );
+
+      meshRef.current.localToWorld(localTarget);
+
+      // =====================================================================
+      // MOCKING & PARSING 
+      // As the system does not provide all interesting data, missing data is mocked.
+      // Everything that the system yields is parsed (method names and paramters).
+      // =====================================================================
+
+      const parseAndMockMethod = (method: any) => {
+        let name = method.name;
+        let parameters: { name: string; type: string }[] = [];
+        let returnType = method.type || 'void';
+
+        // Parse the methods
+        if (method.parameters && method.parameters.length > 0) {
+          return {
+            name: name,
+            returnType: returnType,
+            parameters: method.parameters.map((p: any) => ({ name: p.name, type: p.type }))
+          };
+        }
+
+        if (name.includes('(')) {
+          const parts = name.split('(');
+          name = parts[0];
+          const paramString = parts[1].replace(')', '');
+
+          if (paramString.trim().length > 0) {
+            parameters = paramString.split(',').map((pType: string, idx: number) => ({
+              name: `arg${idx}`,
+              type: pType.trim()
+            }));
+          }
+        }
+
+        return { name, returnType, parameters };
+      };
+
+      // Mock the variables
+      let finalVariables = classModel.variables?.map((v) => ({
+        name: v.name,
+        type: v.type
+      })) ?? [];
+
+      if (finalVariables.length === 0) {
+        finalVariables = [
+          { name: 'logger', type: 'Logger' },
+          { name: 'repository', type: 'CrudRepository' },
+          { name: 'id', type: 'Long' },
+          { name: 'creationDate', type: 'LocalDateTime' },
+          { name: 'isActive', type: 'boolean' },
+          { name: 'test', type: 'String' }
+        ];
+      }
+
+      // Mock the extends
+      let finalExtends = classModel.extends?.map((p) => p.name) ?? [];
+      if (finalExtends.length === 0) {
+        finalExtends = ['BaseEntity']; // Dummy-Parent
+      }
+
+      // Mock the implements
+      let finalImplements = classModel.implements?.map((i) => i.name) ?? [];
+      if (finalImplements.length === 0) {
+        finalImplements = ['Serializable', 'Auditable']; // Dummy-Interfaces
+      }
+
+      // Put all data together
+      const infoData = {
+        name: classModel.name,
+        fqn: (classModel as any).fqn || classModel.name,
+        extends: finalExtends,
+        implements: finalImplements,
+        variables: finalVariables,
+        methods: classModel.methods?.map(parseAndMockMethod) ?? []
+      };
+
+      // =====================================================================
+      // --- MOCKING $ PARSING DONE ---
+      // =====================================================================
+
+
+      enterImmersive(classId, localTarget, infoData);
+    };
 
     const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
       if (meshRef === null || typeof meshRef === 'function') {
@@ -481,6 +595,68 @@ const CodeBuildings = forwardRef<InstancedMesh2, Args>(
         });
       });
     };
+
+
+    // ---------------------------------------------------------
+    // Immersive View Logic (grwing & shrinking of classes)
+    // ---------------------------------------------------------
+
+    const activeMeshId = useImmersiveViewStore((state) => state.activeMeshId);
+
+    const previousActiveIdRef = useRef<string | null>(null);
+
+    const IMMERSIVE_HEIGHT = 100;
+
+    // Change the height of a class building
+    const setInstanceHeight = (classId: string, height: number) => {
+      const mesh = meshRef.current;
+      const instanceId = classIdToInstanceId.get(classId);
+      const layout = layoutMap.get(classId);
+
+      if (!mesh || instanceId === undefined || !layout) return;
+
+      const tempMatrix = new THREE.Matrix4();
+      const pos = new THREE.Vector3();
+      const quat = new THREE.Quaternion();
+      const scale = new THREE.Vector3();
+
+      mesh.getMatrixAt(instanceId, tempMatrix);
+
+      tempMatrix.decompose(pos, quat, scale);
+
+      scale.y = height;
+
+      pos.y = layout.position.y + height / 2;
+
+      tempMatrix.compose(pos, quat, scale);
+      mesh.setMatrixAt(instanceId, tempMatrix);
+
+      mesh.instanceMatrix.needsUpdate = true;
+    };
+
+    // Shrink or grow a class, when immersive view is entered or closed
+    useEffect(() => {
+      // When the immersive view is closed, shrink the clas to original size
+      if (previousActiveIdRef.current && previousActiveIdRef.current !== activeMeshId) {
+        const oldId = previousActiveIdRef.current;
+        const oldClass = classIdToClass.get(oldId);
+
+        if (oldClass) {
+          const originalHeight = getClassHeight(oldClass);
+          setInstanceHeight(oldId, originalHeight);
+        }
+      }
+
+      // When immersive view is entered, grow the class
+      if (activeMeshId) {
+        setInstanceHeight(activeMeshId, IMMERSIVE_HEIGHT);
+        previousActiveIdRef.current = activeMeshId;
+      } else {
+        previousActiveIdRef.current = null;
+      }
+
+    }, [activeMeshId, classes, layoutMap]);
+
 
     return (
       <instancedMesh2

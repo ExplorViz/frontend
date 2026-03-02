@@ -40,6 +40,8 @@ import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-ci
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/application/global-bundling-service';
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
+import ImmersiveSphere from 'explorviz-frontend/src/view-objects/3d/application/immersive-sphere';
+import ImmersiveInterface from 'explorviz-frontend/src/view-objects/3d/application/ImmersiveInterface';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
 import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
@@ -54,6 +56,8 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import ImmersiveStateSync from './immersive-state-sync';
+import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
 
 /**
@@ -486,6 +490,7 @@ export default function CanvasWrapper({
           }
         }}
       >
+        <ImmersiveCameraHandler controlsRef={cameraControlsRef}></ImmersiveCameraHandler>
         {xrStore ? null : (
           <>
             <CameraControls
@@ -606,6 +611,9 @@ export default function CanvasWrapper({
           )}
           {showAxesHelper && <axesHelper args={[5]} />}
         </XR>
+        <ImmersiveSphere></ImmersiveSphere>
+        <ImmersiveInterface />
+        <ImmersiveStateSync />
       </Canvas>
     </>
   );
