@@ -7,7 +7,10 @@ const SHOW_DELAY_MS = 1000;
 
 /** Delay before hiding the popup when the cursor leaves a node (ms).
  *  Long enough for the user to move into the popup itself. */
-const HIDE_DELAY_MS = 150;
+const HIDE_DELAY_MS = 200;
+
+/** Delay before automatically closing the popup if the user doesn't interact with it (ms). */
+const AUTO_CLOSE_DELAY_MS = 2000;
 
 /**
  * Manages the hover popup that appears over diagram nodes.
@@ -21,13 +24,28 @@ export function useHoverPopup() {
 
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHoveredNameRef = useRef<string | null>(null);
 
   // Clean up pending timers on unmount (clearTimeout(null/undefined) is a safe no-op)
   useEffect(() => () => {
     clearTimeout(hoverTimeoutRef.current ?? undefined);
     clearTimeout(hideTimeoutRef.current ?? undefined);
+    clearTimeout(autoCloseTimeoutRef.current ?? undefined);
   }, []);
+
+  // Auto-close the popup if the user doesn't interact with it
+  useEffect(() => {
+    if (hoveredNode) {
+      autoCloseTimeoutRef.current = setTimeout(() => {
+        setHoveredNode(null);
+        autoCloseTimeoutRef.current = null;
+      }, AUTO_CLOSE_DELAY_MS);
+    } else {
+      clearTimeout(autoCloseTimeoutRef.current ?? undefined);
+      autoCloseTimeoutRef.current = null;
+    }
+  }, [hoveredNode]);
 
   const handleDiagramMouseOver = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -73,10 +91,21 @@ export function useHoverPopup() {
       clearTimeout(hideTimeoutRef.current);
       hideTimeoutRef.current = null;
     }
+    if (autoCloseTimeoutRef.current) {
+      clearTimeout(autoCloseTimeoutRef.current);
+      autoCloseTimeoutRef.current = null;
+    }
   }, []);
 
   const handlePopupMouseLeave = useCallback(() => {
-    setHoveredNode(null);
+    if (autoCloseTimeoutRef.current) {
+      clearTimeout(autoCloseTimeoutRef.current);
+      autoCloseTimeoutRef.current = null;
+    }
+    hideTimeoutRef.current = setTimeout(() => {
+      setHoveredNode(null);
+      hideTimeoutRef.current = null;
+    }, HIDE_DELAY_MS);
     lastHoveredNameRef.current = null;
   }, []);
 
