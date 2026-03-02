@@ -89,7 +89,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   buildingIds,
   city,
 }) => {
-  console.log({ language, buildingIds})
   const meshRef = useRef<InstancedMesh2>(null);
   const material = useRef<MeshLambertMaterial>(new MeshLambertMaterial());
 
@@ -703,14 +702,14 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
     [buildingIds, getBuilding]
   );
 
-  if (buildingIds.length === 0) {
-    return null;
-  }
-
-  // Filter the hidden langiages out 
+  // Filter the hidden langiages out
   const filteredBuildingsByLanguage = useMemo(() => {
     return Array.from(buildingsByLanguage.entries()).filter(([lang, _]) => !hiddenLanguages.has(lang));
   }, [buildingsByLanguage, hiddenLanguages]);
+
+  if (buildingIds.length === 0) {
+    return null;
+  }
 
   return (
     <>
