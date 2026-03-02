@@ -309,7 +309,7 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Code analysis excluded file extensions</Form.Label>
+          <Form.Label>Excluded filename patterns (substring match)</Form.Label>
           <CreatableSelect<ExtensionOption, true>
             isMulti
             options={DEFAULT_EXCLUDED_EXTENSIONS}
@@ -323,7 +323,7 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
             noOptionsMessage={() => 'Type an extension to add it'}
           />
           <Form.Text className="text-muted">
-            These file types are excluded from code analysis - only loc and size are collected.
+            Files whose names contain any of these values are excluded from full analysis (only LOC and size are collected).
           </Form.Text>
         </Form.Group>
 
