@@ -15,7 +15,7 @@ type ProgressState = {
   analyzedCommits: number;
   totalFiles: number;
   analyzedFiles: number;
-  progress: number;
+  currentAnalysingFile: string | null;
 }
 
 const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
@@ -41,6 +41,9 @@ const LoadingProgress = ({ state }: { state: ProgressState | null }) => {
     <div>
       <p>Analysed commits: {state.analyzedCommits}/{state.totalCommits}</p>      
       <ProgressBar now={percentage} label={`${percentage.toFixed(2)}%`} animated striped />
+      {state.currentAnalysingFile && (
+        <p className='mt-3'>{state.currentAnalysingFile}</p>
+      )}
     </div>
   );
 }
@@ -99,7 +102,7 @@ export const RepoAnalysisModal = ({ show, onClose }: Props) => {
 
   const onSuccess = (landscapeToken: string) => {
     setMode('running');
-    intervalRef.current = window.setInterval(() => checkAnalysisStatus(landscapeToken), 1000);
+    intervalRef.current = window.setInterval(() => checkAnalysisStatus(landscapeToken), 500);
   }
 
   const redirectToLandspacePage = (landscapeToken: string) => {
