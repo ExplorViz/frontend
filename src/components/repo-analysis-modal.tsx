@@ -52,57 +52,73 @@ export const RepoAnalysisModal = ({ show, onClose }: Props) => {
   const [mode, setMode] = useState<'form' | 'running'>('form');
   const [progress, setProgress] = useState<ProgressState | null>(null);
 
-  const intervalRef = useRef<number | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
   const navigate = useNavigate()
 
-  const clearStatusInterval = () => {
-    if (intervalRef.current !== null) {
-      window.clearInterval(intervalRef.current);
-      intervalRef.current = null;
+  const clearStatusStream = () => {
+    if (eventSourceRef.current !== null) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
     }
   }
 
   const closeModal = () => {
     setMode('form');
-    clearStatusInterval();
+    setProgress(null);
+    clearStatusStream();
     onClose();
   }
 
   useEffect(
-    () => () => clearStatusInterval(),
+    () => () => clearStatusStream(),
     []
   );
 
-  const checkAnalysisStatus = async (landscapeToken: string) => {
-    try {
-      const response = await fetch(`${codeAgentUrl}/api/analysis/state/${landscapeToken}`);
+  const handleProgressState = (landscapeToken: string, state: ProgressState) => {
+    setProgress(state);
 
-      if(!response.ok) {
-        throw new Error(`Status code: ${response.status}`);
-      }
-
-      const state: ProgressState = await response.json();
-      setProgress(state);
-
-      if(state.status === 'finished') {
-        redirectToLandspacePage(landscapeToken);
-      } else if (state.status === 'failed') {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Analysis failed. Try again.');
-        closeModal();
-      }
-    } catch (error: any) {
+    if (state.status === 'finished') {
+      redirectToLandspacePage(landscapeToken);
+    } else if (state.status === 'failed') {
       useToastHandlerStore
         .getState()
-        .showErrorToastMessage(`Error while analysis. ${error.message}`);
+        .showErrorToastMessage('Analysis failed. Try again.');
       closeModal();
     }
   }
 
+  const startStatusStream = (landscapeToken: string) => {
+    clearStatusStream();
+    const eventSource = new EventSource(
+      `${codeAgentUrl}/api/analysis/state/stream/${landscapeToken}`
+    );
+
+    eventSource.onmessage = (event) => {
+      try {
+        const state: ProgressState = JSON.parse(event.data) as ProgressState;
+        handleProgressState(landscapeToken, state);
+      } catch {
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Received invalid progress update.');
+      }
+    };
+
+    eventSource.onerror = () => {
+      if (eventSource.readyState === EventSource.CLOSED) {
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Error while analysis progress streaming.');
+        closeModal();
+      }
+    };
+
+    eventSourceRef.current = eventSource;
+  }
+
   const onSuccess = (landscapeToken: string) => {
     setMode('running');
-    intervalRef.current = window.setInterval(() => checkAnalysisStatus(landscapeToken), 500);
+    startStatusStream(landscapeToken);
   }
 
   const redirectToLandspacePage = (landscapeToken: string) => {
