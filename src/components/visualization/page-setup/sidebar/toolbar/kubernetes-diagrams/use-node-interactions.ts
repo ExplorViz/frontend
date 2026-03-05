@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { useCallback, useMemo, useState } from 'react';
 
 const PING_DURATION_MS = 3000;
 
@@ -19,6 +20,7 @@ const PING_DURATION_MS = 3000;
  */
 export function useNodeInteractions() {
   const getAllApplications = useModelStore((state) => state.getAllApplications);
+  const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
   const highlightedEntityIds = useVisualizationStore(
     (state) => state.highlightedEntityIds
   );
@@ -41,7 +43,7 @@ export function useNodeInteractions() {
     return names;
   }, [getAllApplications, highlightedEntityIds, localHighlightedNodeNames]);
 
-  const handleNodeClick = useCallback(
+  const handleNodeHighlight = useCallback(
     (nodeName: string) => {
       const matchingApp = getAllApplications().find((app) => app.name === nodeName);
       if (matchingApp) {
@@ -57,7 +59,7 @@ export function useNodeInteractions() {
     [getAllApplications, highlightedEntityIds, setHighlightedEntityId]
   );
 
-  const handleNodeMiddleClick = useCallback(
+  const handleNodePing = useCallback(
     (nodeName: string) => {
       const matchingApp = getAllApplications().find((app) => app.name === nodeName);
       if (matchingApp) {
@@ -69,16 +71,32 @@ export function useNodeInteractions() {
     [getAllApplications]
   );
 
+  const handleNodeLookAt = useCallback(
+    (nodeName: string) => {
+      const matchingApp = getAllApplications().find((app) => app.name === nodeName);
+      if (matchingApp) {
+        lookAtEntity(matchingApp.id);
+      }
+    },
+    [getAllApplications, lookAtEntity]
+  );
+
   const clearHighlighting = useCallback(() => {
     setLocalHighlightedNodeNames(new Set());
     removeAllHighlighting();
   }, []);
 
+  const resetView = async () => {
+    useCameraControlsStore.getState().resetCamera();
+  };
+
   return {
     highlightedNodeNames,
     activePingNodeNames,
-    handleNodeClick,
-    handleNodeMiddleClick,
+    handleNodeHighlight,
+    handleNodePing,
+    handleNodeLookAt,
     clearHighlighting,
+    resetView,
   };
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { collectTextFromAnchor, normalizeSvgProps } from './svg-utils';
 import type { DiagramRenderContext, SvgElementNode, SvgNode } from './types';
 
@@ -24,6 +24,8 @@ export function KubeDiagramNode({
   const existingStyle =
     typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
 
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const isPinged = !!nodeName && !!ctx.activePingNodeNames?.has(nodeName);
 
   // Locate the <image> child to derive its center for the ping overlay circle
@@ -47,7 +49,6 @@ export function KubeDiagramNode({
           stroke: ctx.highlightedEntityColor || '#ff5151',
           strokeWidth: 3,
           className: 'kube-ping-circle',
-          style: { pointerEvents: 'none' },
         })
       : null;
 
@@ -62,11 +63,31 @@ export function KubeDiagramNode({
       ...normalizedProps,
       // data-node-name enables hover detection via event delegation on the container
       'data-node-name': nodeName || undefined,
-      onClick: nodeName ? () => ctx.onNodeClick?.(nodeName) : undefined,
+      onClick: nodeName
+        ? () => {
+            ctx.onAnyClick?.();
+            if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = setTimeout(() => {
+              clickTimerRef.current = null;
+              ctx.onNodeClick?.(nodeName);
+            }, 250);
+          }
+        : undefined,
+      onDoubleClick: nodeName
+        ? () => {
+            ctx.onAnyClick?.();
+            if (clickTimerRef.current) {
+              clearTimeout(clickTimerRef.current);
+              clickTimerRef.current = null;
+            }
+            ctx.onNodeDoubleClick?.(nodeName);
+          }
+        : undefined,
       onMouseDown: nodeName
         ? (e: React.MouseEvent) => {
             if (e.button === 1) {
               e.preventDefault();
+              ctx.onAnyClick?.();
               ctx.onNodeMiddleClick?.(nodeName);
             }
           }

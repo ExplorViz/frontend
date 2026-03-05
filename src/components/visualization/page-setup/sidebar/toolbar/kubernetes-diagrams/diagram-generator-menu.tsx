@@ -25,8 +25,8 @@ export function DiagramGeneratorMenu({
   };
 
   return (
-    <div style={{ padding: 12, borderBottom: '1px solid #ccc' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div className="kube-diagram-generator-menu">
+      <div className="kube-diagram-generator-form">
         <select
           value={type}
           onChange={(e) => setType(e.target.value as DiagramType)}

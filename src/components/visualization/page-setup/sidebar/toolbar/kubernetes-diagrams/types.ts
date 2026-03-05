@@ -27,5 +27,7 @@ export type DiagramRenderContext = {
   onNodeClick?: NodeClickHandler;
   activePingNodeNames?: Set<string>;
   onNodeMiddleClick?: NodeClickHandler;
+  onNodeDoubleClick?: NodeClickHandler;
   highlightedEntityColor?: string;
+  onAnyClick?: () => void;
 };

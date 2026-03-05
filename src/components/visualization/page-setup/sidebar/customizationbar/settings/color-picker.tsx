@@ -8,18 +8,12 @@ import { ColorResult, SketchPicker } from 'react-color';
 import { Color } from 'three';
 
 export default function ColorPicker({ id }: { id: ColorSettingId }) {
-  const colorSetting = useUserSettingsStore.getState().visualizationSettings[
-    id
-  ] as ColorSetting;
+  const colorSetting = useUserSettingsStore(
+    (state) => state.visualizationSettings[id] as ColorSetting
+  );
 
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
-  const [currentColor, setCurrentColor] = useState(colorSetting.value);
   const colorPickerRef = useRef<HTMLDivElement>(null);
-
-  // Update color when setting changes externally
-  useEffect(() => {
-    setCurrentColor(colorSetting.value);
-  }, [colorSetting.value]);
 
   // Close color picker when clicking outside
   useEffect(() => {
@@ -41,10 +35,7 @@ export default function ColorPicker({ id }: { id: ColorSettingId }) {
   }, [displayColorPicker]);
 
   const handleColorChange = (color: ColorResult) => {
-    const hexColor = color.hex;
-    setCurrentColor(hexColor);
-
-    useUserSettingsStore.getState().updateSetting(id, hexColor);
+    useUserSettingsStore.getState().updateSetting(id, color.hex);
   };
 
   const formatColorProperty = (displayName: string) => {
@@ -61,7 +52,7 @@ export default function ColorPicker({ id }: { id: ColorSettingId }) {
     return displayName;
   };
 
-  const colorObject = new Color(currentColor);
+  const colorObject = new Color(colorSetting.value);
 
   return (
     <div
@@ -87,7 +78,7 @@ export default function ColorPicker({ id }: { id: ColorSettingId }) {
           {displayColorPicker && (
             <div className="colorpicker-popup">
               <SketchPicker
-                color={currentColor}
+                color={colorSetting.value}
                 onChange={handleColorChange}
                 disableAlpha
               />
@@ -99,4 +90,4 @@ export default function ColorPicker({ id }: { id: ColorSettingId }) {
   );
 }
 
-export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
+export type ExplorVizColors = Record<ColorSettingId, Color>;

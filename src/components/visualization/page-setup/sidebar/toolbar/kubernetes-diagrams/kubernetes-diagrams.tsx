@@ -51,17 +51,25 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   const {
     highlightedNodeNames,
     activePingNodeNames,
-    handleNodeClick,
-    handleNodeMiddleClick,
+    handleNodeHighlight,
+    handleNodePing,
+    handleNodeLookAt,
     clearHighlighting,
+    resetView,
   } = useNodeInteractions();
 
   const {
     hoveredNode,
+    wasMoved,
+    lockedPopups,
     handleDiagramMouseOver,
-    handleDiagramMouseLeave,
     handlePopupMouseEnter,
     handlePopupMouseLeave,
+    movePopup,
+    pinPopup,
+    closePopup,
+    closeLockedPopup,
+    resetHoverTimer,
   } = useHoverPopup();
 
   const diagramColor = useUserSettingsStore(
@@ -104,10 +112,12 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     const ctx: DiagramRenderContext = {
       loadedSvgs,
       highlightedPositions,
-      onNodeClick: onNodeClick ?? handleNodeClick,
+      onNodeClick: handleNodeHighlight,
       activePingNodeNames,
-      onNodeMiddleClick: handleNodeMiddleClick,
+      onNodeMiddleClick: handleNodePing,
+      onNodeDoubleClick: handleNodeLookAt,
       highlightedEntityColor,
+      onAnyClick: resetHoverTimer,
     };
 
     return svgToReactNode(effectiveSvg, props, ctx, true);
@@ -116,11 +126,12 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     props,
     loadedSvgs,
     highlightedNodeNames,
-    onNodeClick,
-    handleNodeClick,
+    handleNodeHighlight,
     activePingNodeNames,
-    handleNodeMiddleClick,
+    handleNodePing,
+    handleNodeLookAt,
     highlightedEntityColor,
+    resetHoverTimer,
   ]);
 
   const handleContextMenu = useCallback((event: React.MouseEvent) => {
@@ -145,17 +156,10 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="kube-diagrams-root">
       <button
         onClick={() => setOptionsOpen(!optionsOpen)}
-        style={{
-          padding: '8px 12px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          border: '1px solid #ccc',
-        }}
+        className="kube-diagrams-options-toggle"
       >
         <span>{optionsOpen ? '▼' : '▶'}</span>
         <span>Options</span>
@@ -168,29 +172,17 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
         </>
       )}
 
-      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {error && <div className="kube-diagrams-error">{error}</div>}
 
       <div
         ref={diagramRef}
-        style={{ height: diagramHeight, overflow: 'hidden' }}
+        className="kube-diagrams-viewport"
+        style={{ height: diagramHeight }}
         onContextMenu={handleContextMenu}
         onMouseOver={handleDiagramMouseOver}
-        onMouseLeave={handleDiagramMouseLeave}
       >
-        <style>{`
-          @keyframes kube-ping-pulse {
-            0%   { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.7); opacity: 0; }
-          }
-          .kube-ping-circle {
-            animation: kube-ping-pulse 1s ease-out 3 forwards;
-            transform-box: fill-box;
-            transform-origin: center;
-            pointer-events: none;
-          }
-        `}</style>
         {svgElement ?? (
-          <div style={{ padding: 16, color: '#666' }}>No diagram generated yet</div>
+          <div className="kube-diagrams-empty">No diagram generated yet</div>
         )}
       </div>
 
@@ -199,6 +191,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           x={contextMenu.x}
           y={contextMenu.y}
           onClearHighlighting={handleClearHighlighting}
+          onResetView={resetView}
         />
       )}
 
@@ -207,12 +200,35 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           nodeName={hoveredNode.name}
           clientX={hoveredNode.clientX}
           clientY={hoveredNode.clientY}
-          onHighlight={() => handleNodeClick(hoveredNode!.name)}
-          onPing={() => handleNodeMiddleClick(hoveredNode!.name)}
+          wasMoved={wasMoved}
+          onHighlight={() => handleNodeHighlight(hoveredNode!.name)}
+          onPing={() => handleNodePing(hoveredNode!.name)}
+          onLookAt={() => handleNodeLookAt(hoveredNode!.name)}
+          onMove={movePopup}
+          onPin={pinPopup}
+          onClose={closePopup}
           onMouseEnter={handlePopupMouseEnter}
           onMouseLeave={handlePopupMouseLeave}
         />
       )}
+
+      {lockedPopups.map((popup) => (
+        <KubeDiagramHoverPopup
+          key={popup.id}
+          nodeName={popup.name}
+          clientX={0}
+          clientY={0}
+          fixedLeft={popup.left}
+          fixedTop={popup.top}
+          wasMoved={true}
+          isPinned={true}
+          onHighlight={() => handleNodeHighlight(popup.name)}
+          onPing={() => handleNodePing(popup.name)}
+          onLookAt={() => handleNodeLookAt(popup.name)}
+          onMove={movePopup}
+          onClose={() => closeLockedPopup(popup.id)}
+        />
+      ))}
     </div>
   );
 }
