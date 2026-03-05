@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { collectTextFromAnchor, normalizeSvgProps } from './svg-utils';
 import type { DiagramRenderContext, SvgElementNode, SvgNode } from './types';
 
@@ -23,6 +23,8 @@ export function KubeDiagramNode({
   const { xlinkTitle: _xlinkTitle, ...normalizedProps } = normalizeSvgProps(node.properties);
   const existingStyle =
     typeof normalizedProps.style === 'object' ? normalizedProps.style : {};
+
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isPinged = !!nodeName && !!ctx.activePingNodeNames?.has(nodeName);
 
@@ -61,8 +63,24 @@ export function KubeDiagramNode({
       ...normalizedProps,
       // data-node-name enables hover detection via event delegation on the container
       'data-node-name': nodeName || undefined,
-      onClick: nodeName ? () => ctx.onNodeClick?.(nodeName) : undefined,
-      onDoubleClick: nodeName ? () => ctx.onNodeDoubleClick?.(nodeName) : undefined,
+      onClick: nodeName
+        ? () => {
+            if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = setTimeout(() => {
+              clickTimerRef.current = null;
+              ctx.onNodeClick?.(nodeName);
+            }, 250);
+          }
+        : undefined,
+      onDoubleClick: nodeName
+        ? () => {
+            if (clickTimerRef.current) {
+              clearTimeout(clickTimerRef.current);
+              clickTimerRef.current = null;
+            }
+            ctx.onNodeDoubleClick?.(nodeName);
+          }
+        : undefined,
       onMouseDown: nodeName
         ? (e: React.MouseEvent) => {
             if (e.button === 1) {
