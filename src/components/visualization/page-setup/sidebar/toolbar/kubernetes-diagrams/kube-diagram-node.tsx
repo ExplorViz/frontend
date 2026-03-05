@@ -47,7 +47,6 @@ export function KubeDiagramNode({
           stroke: ctx.highlightedEntityColor || '#ff5151',
           strokeWidth: 3,
           className: 'kube-ping-circle',
-          style: { pointerEvents: 'none' },
         })
       : null;
 

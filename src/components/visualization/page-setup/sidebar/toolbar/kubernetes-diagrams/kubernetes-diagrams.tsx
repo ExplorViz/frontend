@@ -152,17 +152,10 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="kube-diagrams-root">
       <button
         onClick={() => setOptionsOpen(!optionsOpen)}
-        style={{
-          padding: '8px 12px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          border: '1px solid #ccc',
-        }}
+        className="kube-diagrams-options-toggle"
       >
         <span>{optionsOpen ? '▼' : '▶'}</span>
         <span>Options</span>
@@ -175,28 +168,17 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
         </>
       )}
 
-      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {error && <div className="kube-diagrams-error">{error}</div>}
 
       <div
         ref={diagramRef}
-        style={{ height: diagramHeight, overflow: 'hidden', userSelect: 'none' }}
+        className="kube-diagrams-viewport"
+        style={{ height: diagramHeight }}
         onContextMenu={handleContextMenu}
         onMouseOver={handleDiagramMouseOver}
       >
-        <style>{`
-          @keyframes kube-ping-pulse {
-            0%   { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.7); opacity: 0; }
-          }
-          .kube-ping-circle {
-            animation: kube-ping-pulse 1s ease-out 3 forwards;
-            transform-box: fill-box;
-            transform-origin: center;
-            pointer-events: none;
-          }
-        `}</style>
         {svgElement ?? (
-          <div style={{ padding: 16, color: '#666' }}>No diagram generated yet</div>
+          <div className="kube-diagrams-empty">No diagram generated yet</div>
         )}
       </div>
 

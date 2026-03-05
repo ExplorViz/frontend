@@ -2,19 +2,11 @@ import ColorPicker from 'explorviz-frontend/src/components/visualization/page-se
 
 export function ColorPickerSection() {
   return (
-    <div
-      style={{
-        padding: 12,
-        borderBottom: '1px solid #ccc',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className="kube-color-picker-section">
+      <div className="kube-color-picker-row">
         <ColorPicker id="k8sDiagramColor" />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="kube-color-picker-row">
         <ColorPicker id="highlightedEntityColor" />
       </div>
     </div>

@@ -107,8 +107,7 @@ export function KubeDiagramHoverPopup({
   return (
     <div
       ref={elementRef}
-      className="popover"
-      style={{ position: 'fixed', zIndex: 3000 }}
+      className="popover kube-hover-popup"
       onPointerDown={dragStart}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

@@ -1,0 +1,86 @@
+// kubernetes-diagrams.tsx
+.kube-diagrams-root {
+  display: flex;
+  flex-direction: column;
+}
+
+.kube-diagrams-options-toggle {
+  padding: 8px 12px;
+  cursor: 'pointer';
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #ccc;
+}
+
+.kube-diagrams-error {
+  color: red;
+}
+
+.kube-diagrams-viewport {
+  overflow: hidden;
+  user-select: none;
+}
+
+.kube-diagrams-empty {
+  padding: 16px;
+  color: #666;
+}
+
+@keyframes kube-ping-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.kube-ping-circle {
+  animation: kube-ping-pulse 1s ease-out 3 forwards;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+// color-picker-section.tsx
+.kube-color-picker-section {
+  padding: 12px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kube-color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// context-menu.tsx
+.kube-context-menu {
+  list-style: none;
+  padding: 0;
+  z-index: 2000;
+  min-width: 160px;
+}
+
+// diagram-generator-menu.tsx
+.kube-diagram-generator-menu {
+  padding: 12px;
+  border-bottom: 1px solid #ccc;
+}
+
+.kube-diagram-generator-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// hover-popup.tsx
+.kube-hover-popup {
+  position: fixed;
+}
