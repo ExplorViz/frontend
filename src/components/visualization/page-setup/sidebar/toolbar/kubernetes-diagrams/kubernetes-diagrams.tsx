@@ -53,15 +53,21 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     activePingNodeNames,
     handleNodeClick,
     handleNodeMiddleClick,
+    handleNodeLookAt,
     clearHighlighting,
   } = useNodeInteractions();
 
   const {
     hoveredNode,
+    wasMoved,
+    lockedPopups,
     handleDiagramMouseOver,
-    handleDiagramMouseLeave,
     handlePopupMouseEnter,
     handlePopupMouseLeave,
+    movePopup,
+    pinPopup,
+    closePopup,
+    closeLockedPopup,
   } = useHoverPopup();
 
   const diagramColor = useUserSettingsStore(
@@ -107,6 +113,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       onNodeClick: onNodeClick ?? handleNodeClick,
       activePingNodeNames,
       onNodeMiddleClick: handleNodeMiddleClick,
+      onNodeDoubleClick: handleNodeLookAt,
       highlightedEntityColor,
     };
 
@@ -120,6 +127,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     handleNodeClick,
     activePingNodeNames,
     handleNodeMiddleClick,
+    handleNodeLookAt,
     highlightedEntityColor,
   ]);
 
@@ -175,7 +183,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
         style={{ height: diagramHeight, overflow: 'hidden' }}
         onContextMenu={handleContextMenu}
         onMouseOver={handleDiagramMouseOver}
-        onMouseLeave={handleDiagramMouseLeave}
+        //onMouseLeave={handleDiagramMouseLeave}
       >
         <style>{`
           @keyframes kube-ping-pulse {
@@ -207,12 +215,35 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           nodeName={hoveredNode.name}
           clientX={hoveredNode.clientX}
           clientY={hoveredNode.clientY}
+          wasMoved={wasMoved}
           onHighlight={() => handleNodeClick(hoveredNode!.name)}
           onPing={() => handleNodeMiddleClick(hoveredNode!.name)}
+          onLookAt={() => handleNodeLookAt(hoveredNode!.name)}
+          onMove={movePopup}
+          onPin={pinPopup}
+          onClose={closePopup}
           onMouseEnter={handlePopupMouseEnter}
           onMouseLeave={handlePopupMouseLeave}
         />
       )}
+
+      {lockedPopups.map((popup) => (
+        <KubeDiagramHoverPopup
+          key={popup.id}
+          nodeName={popup.name}
+          clientX={0}
+          clientY={0}
+          fixedLeft={popup.left}
+          fixedTop={popup.top}
+          wasMoved={true}
+          isPinned={true}
+          onHighlight={() => handleNodeClick(popup.name)}
+          onPing={() => handleNodeMiddleClick(popup.name)}
+          onLookAt={() => handleNodeLookAt(popup.name)}
+          onMove={movePopup}
+          onClose={() => closeLockedPopup(popup.id)}
+        />
+      ))}
     </div>
   );
 }

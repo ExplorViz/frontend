@@ -4,6 +4,7 @@ import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 
 const PING_DURATION_MS = 3000;
 
@@ -19,6 +20,7 @@ const PING_DURATION_MS = 3000;
  */
 export function useNodeInteractions() {
   const getAllApplications = useModelStore((state) => state.getAllApplications);
+  const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
   const highlightedEntityIds = useVisualizationStore(
     (state) => state.highlightedEntityIds
   );
@@ -69,6 +71,16 @@ export function useNodeInteractions() {
     [getAllApplications]
   );
 
+  const handleNodeLookAt = useCallback(
+    (nodeName: string) => {
+      const matchingApp = getAllApplications().find((app) => app.name === nodeName);
+      if (matchingApp) {
+        lookAtEntity(matchingApp.id);
+      }
+    },
+    [getAllApplications, lookAtEntity]
+  );
+
   const clearHighlighting = useCallback(() => {
     setLocalHighlightedNodeNames(new Set());
     removeAllHighlighting();
@@ -79,6 +91,7 @@ export function useNodeInteractions() {
     activePingNodeNames,
     handleNodeClick,
     handleNodeMiddleClick,
+    handleNodeLookAt,
     clearHighlighting,
   };
 }

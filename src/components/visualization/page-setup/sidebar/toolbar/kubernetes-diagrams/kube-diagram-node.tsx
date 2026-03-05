@@ -63,6 +63,7 @@ export function KubeDiagramNode({
       // data-node-name enables hover detection via event delegation on the container
       'data-node-name': nodeName || undefined,
       onClick: nodeName ? () => ctx.onNodeClick?.(nodeName) : undefined,
+      onDoubleClick: nodeName ? () => ctx.onNodeDoubleClick?.(nodeName) : undefined,
       onMouseDown: nodeName
         ? (e: React.MouseEvent) => {
             if (e.button === 1) {
