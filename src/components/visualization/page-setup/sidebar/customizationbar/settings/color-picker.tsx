@@ -99,4 +99,4 @@ export default function ColorPicker({ id }: { id: ColorSettingId }) {
   );
 }
 
-export type ExplorVizColors = Record<ColorSettingId, THREE.Color>;
+export type ExplorVizColors = Record<ColorSettingId, Color>;

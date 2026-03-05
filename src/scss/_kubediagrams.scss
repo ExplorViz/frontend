@@ -49,15 +49,6 @@
 .kube-color-picker-section {
   padding: 12px;
   border-bottom: 1px solid #ccc;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.kube-color-picker-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 // context-menu.tsx
