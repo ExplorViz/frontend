@@ -29,4 +29,5 @@ export type DiagramRenderContext = {
   onNodeMiddleClick?: NodeClickHandler;
   onNodeDoubleClick?: NodeClickHandler;
   highlightedEntityColor?: string;
+  onAnyClick?: () => void;
 };

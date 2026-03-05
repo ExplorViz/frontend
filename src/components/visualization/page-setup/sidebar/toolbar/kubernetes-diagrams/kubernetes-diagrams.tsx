@@ -55,6 +55,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     handleNodePing,
     handleNodeLookAt,
     clearHighlighting,
+    resetView,
   } = useNodeInteractions();
 
   const {
@@ -68,6 +69,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     pinPopup,
     closePopup,
     closeLockedPopup,
+    resetHoverTimer,
   } = useHoverPopup();
 
   const diagramColor = useUserSettingsStore(
@@ -115,6 +117,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
       onNodeMiddleClick: handleNodePing,
       onNodeDoubleClick: handleNodeLookAt,
       highlightedEntityColor,
+      onAnyClick: resetHoverTimer,
     };
 
     return svgToReactNode(effectiveSvg, props, ctx, true);
@@ -128,6 +131,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     handleNodePing,
     handleNodeLookAt,
     highlightedEntityColor,
+    resetHoverTimer,
   ]);
 
   const handleContextMenu = useCallback((event: React.MouseEvent) => {
@@ -187,6 +191,7 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           x={contextMenu.x}
           y={contextMenu.y}
           onClearHighlighting={handleClearHighlighting}
+          onResetView={resetView}
         />
       )}
 

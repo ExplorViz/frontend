@@ -65,6 +65,7 @@ export function KubeDiagramNode({
       'data-node-name': nodeName || undefined,
       onClick: nodeName
         ? () => {
+            ctx.onAnyClick?.();
             if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
             clickTimerRef.current = setTimeout(() => {
               clickTimerRef.current = null;
@@ -74,6 +75,7 @@ export function KubeDiagramNode({
         : undefined,
       onDoubleClick: nodeName
         ? () => {
+            ctx.onAnyClick?.();
             if (clickTimerRef.current) {
               clearTimeout(clickTimerRef.current);
               clickTimerRef.current = null;
@@ -85,6 +87,7 @@ export function KubeDiagramNode({
         ? (e: React.MouseEvent) => {
             if (e.button === 1) {
               e.preventDefault();
+              ctx.onAnyClick?.();
               ctx.onNodeMiddleClick?.(nodeName);
             }
           }

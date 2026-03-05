@@ -86,6 +86,10 @@ export function useNodeInteractions() {
     removeAllHighlighting();
   }, []);
 
+  const resetView = async () => {
+    useCameraControlsStore.getState().resetCamera();
+  };
+
   return {
     highlightedNodeNames,
     activePingNodeNames,
@@ -93,5 +97,6 @@ export function useNodeInteractions() {
     handleNodePing,
     handleNodeLookAt,
     clearHighlighting,
+    resetView,
   };
 }

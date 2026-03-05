@@ -4,15 +4,8 @@ type HoveredNode = { name: string; clientX: number; clientY: number };
 /** A popup that has been explicitly pinned. `left`/`top` are viewport px (position: fixed). */
 export type LockedPopup = { id: string; name: string; left: number; top: number };
 
-/** Delay before showing the hover popup after the cursor enters a node (ms). */
-const SHOW_DELAY_MS = 1000;
-
-/** Delay before hiding the popup when the cursor leaves a node (ms).
- *  Long enough for the user to move into the popup itself. */
-const HIDE_DELAY_MS = 200;
-
-/** Delay before automatically closing the popup if the user doesn't interact with it (ms). */
-const AUTO_CLOSE_DELAY_MS = 2000;
+const SHOW_DELAY_MS = 1500;
+const HIDE_DELAY_MS = 1000;
 
 /**
  * Manages the hover popup that appears over diagram nodes.
@@ -37,19 +30,13 @@ export function useHoverPopup() {
     lockedPopupNamesRef.current = new Set(lockedPopups.map((p) => p.name));
   }, [lockedPopups]);
 
-  useEffect(() => () => {
-    clearTimeout(hoverTimeoutRef.current ?? undefined);
-    clearTimeout(hideTimeoutRef.current ?? undefined);
-    clearTimeout(autoCloseTimeoutRef.current ?? undefined);
-  }, []);
-
   // Auto-close only while the popup has not been moved.
   useEffect(() => {
     if (hoveredNode && !wasMoved) {
       autoCloseTimeoutRef.current = setTimeout(() => {
         setHoveredNode(null);
         autoCloseTimeoutRef.current = null;
-      }, AUTO_CLOSE_DELAY_MS);
+      }, HIDE_DELAY_MS);
     } else {
       clearTimeout(autoCloseTimeoutRef.current ?? undefined);
       autoCloseTimeoutRef.current = null;
@@ -151,6 +138,10 @@ export function useHoverPopup() {
     setLockedPopups((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
+  const resetHoverTimer = useCallback(() => {
+    clearTimeout(hoverTimeoutRef.current ?? undefined);
+  }, []);
+
   return {
     hoveredNode,
     wasMoved,
@@ -162,5 +153,6 @@ export function useHoverPopup() {
     pinPopup,
     closePopup,
     closeLockedPopup,
+    resetHoverTimer,
   };
 }
