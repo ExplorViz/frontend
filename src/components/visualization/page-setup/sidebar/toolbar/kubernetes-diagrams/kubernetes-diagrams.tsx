@@ -51,8 +51,8 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
   const {
     highlightedNodeNames,
     activePingNodeNames,
-    handleNodeClick,
-    handleNodeMiddleClick,
+    handleNodeHighlight,
+    handleNodePing,
     handleNodeLookAt,
     clearHighlighting,
   } = useNodeInteractions();
@@ -110,9 +110,9 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     const ctx: DiagramRenderContext = {
       loadedSvgs,
       highlightedPositions,
-      onNodeClick: onNodeClick ?? handleNodeClick,
+      onNodeClick: handleNodeHighlight,
       activePingNodeNames,
-      onNodeMiddleClick: handleNodeMiddleClick,
+      onNodeMiddleClick: handleNodePing,
       onNodeDoubleClick: handleNodeLookAt,
       highlightedEntityColor,
     };
@@ -123,10 +123,9 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
     props,
     loadedSvgs,
     highlightedNodeNames,
-    onNodeClick,
-    handleNodeClick,
+    handleNodeHighlight,
     activePingNodeNames,
-    handleNodeMiddleClick,
+    handleNodePing,
     handleNodeLookAt,
     highlightedEntityColor,
   ]);
@@ -180,10 +179,9 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
 
       <div
         ref={diagramRef}
-        style={{ height: diagramHeight, overflow: 'hidden' }}
+        style={{ height: diagramHeight, overflow: 'hidden', userSelect: 'none' }}
         onContextMenu={handleContextMenu}
         onMouseOver={handleDiagramMouseOver}
-        //onMouseLeave={handleDiagramMouseLeave}
       >
         <style>{`
           @keyframes kube-ping-pulse {
@@ -216,8 +214,8 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           clientX={hoveredNode.clientX}
           clientY={hoveredNode.clientY}
           wasMoved={wasMoved}
-          onHighlight={() => handleNodeClick(hoveredNode!.name)}
-          onPing={() => handleNodeMiddleClick(hoveredNode!.name)}
+          onHighlight={() => handleNodeHighlight(hoveredNode!.name)}
+          onPing={() => handleNodePing(hoveredNode!.name)}
           onLookAt={() => handleNodeLookAt(hoveredNode!.name)}
           onMove={movePopup}
           onPin={pinPopup}
@@ -237,8 +235,8 @@ export default function DiagramPage({ onNodeClick, ...props }: DiagramPageProps)
           fixedTop={popup.top}
           wasMoved={true}
           isPinned={true}
-          onHighlight={() => handleNodeClick(popup.name)}
-          onPing={() => handleNodeMiddleClick(popup.name)}
+          onHighlight={() => handleNodeHighlight(popup.name)}
+          onPing={() => handleNodePing(popup.name)}
           onLookAt={() => handleNodeLookAt(popup.name)}
           onMove={movePopup}
           onClose={() => closeLockedPopup(popup.id)}

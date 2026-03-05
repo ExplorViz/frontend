@@ -44,7 +44,6 @@ export function KubeDiagramHoverPopup({
   // Place the popup above the cursor, or at a fixed viewport coordinate for pinned popups.
   useLayoutEffect(() => {
     const el = elementRef.current;
-    console.log(el);
     if (!el) return;
 
     if (fixedLeft !== undefined && fixedTop !== undefined) {
