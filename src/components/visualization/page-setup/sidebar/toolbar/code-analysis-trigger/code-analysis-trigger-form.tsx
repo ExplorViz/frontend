@@ -233,7 +233,7 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
             placeholder="Landscape token"
             value={formData.landscapeToken}
             onChange={(e) => handleInputChange('landscapeToken', e.target.value)}
-            readOnly={!!landscapeTokenValue}
+            readOnly={!!landscapeTokenValue && !assignRandomToken}
           />
           <Form.Text className="text-muted">
             {
