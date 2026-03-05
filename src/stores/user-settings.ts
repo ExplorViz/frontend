@@ -138,15 +138,25 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             },
           });
         } else if (isColorSetting(setting) && typeof newValue === 'string') {
-          setting.value = newValue;
-          let newVisualizationSettings = { ...get().visualizationSettings };
-          newVisualizationSettings[name].value = newValue;
-          set({ visualizationSettings: newVisualizationSettings });
+          set({
+            visualizationSettings: {
+              ...get().visualizationSettings,
+              [name]: {
+                ...JSON.parse(JSON.stringify(setting)),
+                value: newValue,
+              },
+            },
+          });
         } else if (isSelectSetting(setting) && typeof newValue === 'string') {
-          setting.value = newValue;
-          let newVisualizationSettings = { ...get().visualizationSettings };
-          newVisualizationSettings[name].value = newValue;
-          set({ visualizationSettings: newVisualizationSettings });
+          set({
+            visualizationSettings: {
+              ...get().visualizationSettings,
+              [name]: {
+                ...JSON.parse(JSON.stringify(setting)),
+                value: newValue,
+              },
+            },
+          });
         }
       },
 
