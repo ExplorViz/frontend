@@ -9,7 +9,6 @@ import SettingsOpener from 'explorviz-frontend/src/components/visualization/page
 import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
 import ApplicationSearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
 import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
-import CodeAnalysisTriggerForm from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-form';
 import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
@@ -51,6 +50,7 @@ import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
+import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -393,7 +393,7 @@ export default function BrowserRendering({
                             <h5 className="text-center">
                               Git Repository Analysis
                             </h5>
-                            <CodeAnalysisTriggerForm />
+                            <CodeAnalysisSection />
                           </>
                         )}
                       </div>

@@ -17,6 +17,8 @@ const DEFAULT_EXCLUDED_EXTENSIONS: ExtensionOption[] = [
   { value: '.bundle.js', label: '.bundle.js' },
   { value: '.chunk.js', label: '.chunk.js' },
   { value: '.d.ts', label: '.d.ts' },
+  { value: '/node_modules', label: '/node_modules' },
+  { value: '/dist', label: '/dist' },
 ];
 
 interface AnalysisRequest {
@@ -41,6 +43,22 @@ type Props = {
   onSubmitSuccess?: (landscapeToken: string) => void
 }
 
+const getInitialFormData = (landscapeToken: string): AnalysisRequest => ({
+  landscapeToken,
+  repoRemoteUrl: '',
+  repoPath: '',
+  remoteStoragePath: '',
+  username: '',
+  password: '',
+  branch: 'main',
+  sourceDirectory: '',
+  restrictAnalysisToFolders: '',
+  startCommit: '',
+  endCommit: '',
+  cloneDepth: 1,
+  applicationName: '',
+});
+
 export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuccess }: Props) {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,19 +78,9 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
   });
 
   // form state
-  const [formData, setFormData] = useState<AnalysisRequest>({
-    repoRemoteUrl: '',
-    repoPath: '',
-    username: '',
-    password: '',
-    branch: '',
-    sourceDirectory: '',
-    restrictAnalysisToFolders: '',  
-    startCommit: '',
-    endCommit: '',
-    landscapeToken: '',
-    applicationName: '',
-  });
+  const [formData, setFormData] = useState<AnalysisRequest>(
+    () => getInitialFormData(landscapeTokenValue)
+  );
 
   useEffect(() => {
     if (landscapeTokenValue) {
@@ -178,24 +186,10 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
           .showSuccessToastMessage(message || 'Analysis triggered successfully');
         
         // Reset form
-        setFormData({
-          repoRemoteUrl: '',
-          repoPath: '',
-          remoteStoragePath: '',
-          username: '',
-          password: '',
-          branch: '',
-          sourceDirectory: '',
-          restrictAnalysisToFolders: '',
-          startCommit: '',
-          endCommit: '',
-          cloneDepth: undefined,
-          landscapeToken: landscapeTokenValue || '',
-          applicationName: '',
-        });
+        setFormData(getInitialFormData(landscapeTokenValue));
         setExcludedExtensions(DEFAULT_EXCLUDED_EXTENSIONS);
 
-        onSubmitSuccess?.(landscapeTokenValue);
+        onSubmitSuccess?.(formData.landscapeToken);
       } else {
         const errorMessage = await response.text();
         useToastHandlerStore
