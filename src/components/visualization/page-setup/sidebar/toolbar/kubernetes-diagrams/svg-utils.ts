@@ -2,9 +2,8 @@ import type React from 'react';
 import { parse } from 'svg-parser';
 import type { SvgElementNode, SvgNode, SvgRootNode } from './types';
 
-// Cache for loaded SVGs
-const svgCache = new Map<string, string>();
-const svgExistenceMap = new Map<string, boolean>();
+// Cache for loaded SVGs — null means the path was fetched but doesn't exist
+const svgCache = new Map<string, string | null>();
 
 /**
  * Extract filename from image URL and map it to local SVG path
@@ -24,31 +23,22 @@ export async function loadSvg(
   diagramColor: string,
 ): Promise<string | null> {
   if (svgCache.has(path)) {
-    let svg = svgCache.get(path) ?? null;
-    if (svg) {
-      svg = applyColorsToSvg(svg, diagramColor);
-    }
-    return svg;
+    const svg = svgCache.get(path) ?? null;
+    return svg ? applyColorsToSvg(svg, diagramColor) : null;
   }
-
-  if (svgExistenceMap.has(path) && !svgExistenceMap.get(path)) return null;
 
   try {
     const response = await fetch(path);
     if (response.ok) {
-      let svg = await response.text();
+      const svg = await response.text();
       svgCache.set(path, svg);
-      svgExistenceMap.set(path, true);
-      svg = applyColorsToSvg(svg, diagramColor);
-      return svg;
-    } else {
-      svgExistenceMap.set(path, false);
+      return applyColorsToSvg(svg, diagramColor);
     }
   } catch (error) {
     console.error('Error loading SVG:', error);
-    svgExistenceMap.set(path, false);
   }
 
+  svgCache.set(path, null);
   return null;
 }
 
