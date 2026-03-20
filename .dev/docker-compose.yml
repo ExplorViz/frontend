@@ -2,11 +2,11 @@ services:
 
   demo-supplier:
     container_name: explorviz-demo-supplier
-    image: explorviz/demo-supplier:neo4j-helper
+    image: explorviz/demo-supplier
     ports:
       - ${SPAN_PORT}:8083
       - ${USER_PORT}:8084
-      - ${CODE_PORT}:8085
+      - ${CODE_PORT}:9999 # not used anymore
 
 networks:
   default:
