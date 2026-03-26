@@ -66,6 +66,23 @@ export const defaultVizSettings: VisualizationSettings = {
     description: '',
     isColorSetting: true,
   },
+  communicationStartColor: {
+    level: SettingLevel.DEFAULT,
+    value: defaultColors.communicationStartColor,
+    group: 'Colors',
+    displayName: 'Communication Start',
+    description:
+      'Starting color for communication when edge coloring is enabled',
+    isColorSetting: true,
+  },
+  communicationEndColor: {
+    level: SettingLevel.DEFAULT,
+    value: defaultColors.communicationEndColor,
+    group: 'Colors',
+    displayName: 'Communication End',
+    description: 'Ending color for communication when edge coloring is enabled',
+    isColorSetting: true,
+  },
   componentRootLevelColor: {
     level: SettingLevel.DEFAULT,
     value: defaultColors.componentRootLevelColor,
@@ -1503,7 +1520,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   sphereColor: {
     level: SettingLevel.DEFAULT,
-    value: "#00a8cc",
+    value: '#00a8cc',
     group: 'Camera',
     displayName: 'Imersive Sphere Color',
     description: '',

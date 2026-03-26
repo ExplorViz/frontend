@@ -55,6 +55,8 @@ export default function CommunicationR3F({
     arrowOffset,
     arrowWidth,
     communicationColor,
+    communicationStartColor,
+    communicationEndColor,
     curveHeight,
     commThickness,
     highlightedEntityColor,
@@ -86,6 +88,8 @@ export default function CommunicationR3F({
         arrowOffset: vizSettings.commArrowOffset.value,
         arrowWidth: vizSettings.commArrowSize.value,
         communicationColor: vizSettings.communicationColor.value,
+        communicationStartColor: vizSettings.communicationStartColor.value,
+        communicationEndColor: vizSettings.communicationEndColor.value,
         highlightedEntityColor: state.colors?.highlightedEntityColor,
         curveHeight: vizSettings.curvyCommHeight.value,
         commThickness: vizSettings.commThickness.value,
@@ -1134,6 +1138,14 @@ export default function CommunicationR3F({
     meshRef.current.scatterRadius = scatterRadius;
     meshRef.current.streamline = edgeBundlingStreamline;
     meshRef.current.leafPackagesOnly = leafPackagesOnly;
+    meshRef.current.enableEdgeColoring = enableEdgeColoring;
+    meshRef.current.communicationStartColor = new THREE.Color(
+      communicationStartColor
+    );
+    meshRef.current.communicationEndColor = new THREE.Color(
+      communicationEndColor
+    );
+    meshRef.current.defaultColor = new THREE.Color(communicationColor);
 
     if (enableEdgeBundling && use3DHAPAlgorithm && hapNodes && hapSystem) {
       meshRef.current.initializeHAPSystem(
@@ -1153,6 +1165,10 @@ export default function CommunicationR3F({
     beta,
     computedCurveHeight,
     scatterRadius,
+    communicationColor,
+    communicationStartColor,
+    communicationEndColor,
+    enableEdgeColoring,
   ]);
 
   // Initialize HAP system on the mesh when it's created
@@ -1905,36 +1921,6 @@ export default function CommunicationR3F({
     return [dataModel, { use3DHAPAlgorithm }];
   }, [communicationModel, use3DHAPAlgorithm]);
 
-  useEffect(() => {
-    if (meshRef.current) {
-      meshRef.current.enableEdgeColoring = enableEdgeColoring;
-
-      // Force re-render
-      meshRef.current._needsRender = true;
-      meshRef.current.requestRender();
-    }
-  }, [enableEdgeColoring, meshRef.current]);
-
-  useEffect(() => {
-    if (meshRef.current) {
-      // 1. Clear current geometry
-      if (meshRef.current.geometry) {
-        meshRef.current.releaseSharedGeometry(meshRef.current.geometry);
-        meshRef.current.geometry.dispose();
-        meshRef.current.geometry = new THREE.BufferGeometry();
-      }
-
-      // 2. Force re-render
-      meshRef.current._needsRender = true;
-      meshRef.current.requestRender();
-
-      ClazzCommunicationMesh.clearSharedGeometries();
-    }
-
-    setForceUpdate((prev) => prev + 1);
-  }, [enableEdgeColoring]);
-
-  // Check if component should be displayed
   if (!evoConfig.renderDynamic) {
     return null;
   }
@@ -1970,7 +1956,7 @@ export default function CommunicationR3F({
       layout={finalLayout}
       arrowWidth={arrowWidth}
       curveHeight={computedCurveHeight}
-      defaultColor={communicationColor}
+      defaultColor={new THREE.Color(communicationColor)}
       highlighted={isHighlighted}
       highlightingColor={highlightedEntityColor}
       isHovered={enableHoverEffects && isHovered}
@@ -1985,6 +1971,8 @@ export default function CommunicationR3F({
           : null
       }
       enableEdgeColoring={enableEdgeColoring}
+      communicationStartColor={new THREE.Color(communicationStartColor)}
+      communicationEndColor={new THREE.Color(communicationEndColor)}
       // 3D-HAP props
       beta={beta}
       use3DHAPAlgorithm={use3DHAPAlgorithm}

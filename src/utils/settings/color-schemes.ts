@@ -7,6 +7,8 @@ export const defaultColors = {
   classTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
   communicationColor: '#d6d48b', // light yellow
+  communicationStartColor: '#00ff00', // green
+  communicationEndColor: '#ff0000', // red
   componentRootLevelColor: '#3c8db0', // desaturated cyan
   componentDeepestLevelColor: '#65c97e', // lime green
   componentTextColor: '#ffffff', // white

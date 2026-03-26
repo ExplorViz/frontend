@@ -33,6 +33,8 @@ export type ColorSettingId =
   | 'classTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
+  | 'communicationStartColor'
+  | 'communicationEndColor'
   | 'componentRootLevelColor'
   | 'componentDeepestLevelColor'
   | 'componentTextColor'
@@ -51,7 +53,7 @@ export type ColorSettingId =
   | 'k8sDeploymentColor'
   | 'k8sPodColor'
   | 'k8sTextColor'
-  | 'k8sDiagramColor'
+  | 'k8sDiagramColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
@@ -295,48 +297,48 @@ export enum SettingLevel {
  */
 export type SettingDependency =
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Single value that must match (equality check)
-     */
-    value: any;
-  }
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Single value that must match (equality check)
+       */
+      value: any;
+    }
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Array of allowed values. The setting is displayed if the dependent
-     * setting's value is one of these values.
-     */
-    values: any[];
-  }
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Array of allowed values. The setting is displayed if the dependent
+       * setting's value is one of these values.
+       */
+      values: any[];
+    }
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Value that must NOT match (inequality check).
-     * The setting is displayed if the dependent setting's value is NOT equal to this value.
-     */
-    notEqual: any;
-  }
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Value that must NOT match (inequality check).
+       * The setting is displayed if the dependent setting's value is NOT equal to this value.
+       */
+      notEqual: any;
+    }
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Array of values that must NOT match.
-     * The setting is displayed if the dependent setting's value is NOT one of these values.
-     */
-    notValues: any[];
-  };
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Array of values that must NOT match.
+       * The setting is displayed if the dependent setting's value is NOT one of these values.
+       */
+      notValues: any[];
+    };
 
 export type Setting<T> = {
   value: T;
@@ -353,15 +355,15 @@ export type Setting<T> = {
 
 export interface ButtonSetting extends Setting<boolean> {
   type:
-  | 'primary'
-  | 'secondary'
-  | 'success'
-  | 'danger'
-  | 'warning'
-  | 'info'
-  | 'light'
-  | 'dark'
-  | 'link';
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'danger'
+    | 'warning'
+    | 'info'
+    | 'light'
+    | 'dark'
+    | 'link';
   buttonText: string;
   readonly isButtonSetting: true;
 }

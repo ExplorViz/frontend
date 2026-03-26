@@ -29,6 +29,8 @@ export default class ClazzCommunicationMesh extends BaseMesh {
   private _hapApplicationElevation: number = 50;
   private _hapUseRelativeElevation: boolean = true;
   private _enableEdgeColoring: boolean = true;
+  private _communicationStartColor: THREE.Color = new THREE.Color('#ffff00');
+  private _communicationEndColor: THREE.Color = new THREE.Color('#ff0000');
 
   private static hoverGeometryCache = new Map<
     string,
@@ -210,6 +212,44 @@ export default class ClazzCommunicationMesh extends BaseMesh {
       this._enableEdgeColoring = enabled;
       this._needsRender = true;
       this.requestRender();
+    }
+  }
+
+  get communicationStartColor(): THREE.Color {
+    return this._communicationStartColor;
+  }
+
+  set communicationStartColor(color: THREE.Color) {
+    this._communicationStartColor = color;
+    this._needsRender = true;
+    this.requestRender();
+  }
+
+  get communicationEndColor(): THREE.Color {
+    return this._communicationEndColor;
+  }
+
+  set communicationEndColor(color: THREE.Color) {
+    this._communicationEndColor = color;
+    this._needsRender = true;
+    this.requestRender();
+  }
+
+  get defaultColor(): THREE.Color {
+    return this._defaultColor;
+  }
+
+  set defaultColor(color: THREE.Color) {
+    this._defaultColor = color;
+    this._needsRender = true;
+    this.requestRender();
+
+    if (
+      (this.material instanceof THREE.MeshBasicMaterial ||
+        this.material instanceof THREE.MeshLambertMaterial) &&
+      !this.highlighted
+    ) {
+      this.material.color = color;
     }
   }
 
@@ -693,19 +733,19 @@ export default class ClazzCommunicationMesh extends BaseMesh {
         colors[i * 3 + 1] = 0.7; // G: strong green
         colors[i * 3 + 2] = 0.0; // B: 0
       } else {
-        // Unidirectional: Green -> Red
+        // Unidirectional: communicationStart -> communicationEnd
         if (t < 0.5) {
-          // Green origin side
-          const greenIntensity = 0.3 + 0.7 * (1 - t * 2);
-          colors[i * 3] = 0.0;
-          colors[i * 3 + 1] = greenIntensity;
-          colors[i * 3 + 2] = 0.0;
+          // Start color side
+          const intensity = 0.3 + 0.7 * (1 - t * 2);
+          colors[i * 3] = this.communicationStartColor.r * intensity;
+          colors[i * 3 + 1] = this.communicationStartColor.g * intensity;
+          colors[i * 3 + 2] = this.communicationStartColor.b * intensity;
         } else {
-          // Red destination side
-          const redIntensity = 0.3 + 0.7 * ((t - 0.5) * 2);
-          colors[i * 3] = redIntensity;
-          colors[i * 3 + 1] = 0.0;
-          colors[i * 3 + 2] = 0.0;
+          // End color side
+          const intensity = 0.3 + 0.7 * ((t - 0.5) * 2);
+          colors[i * 3] = this.communicationEndColor.r * intensity;
+          colors[i * 3 + 1] = this.communicationEndColor.g * intensity;
+          colors[i * 3 + 2] = this.communicationEndColor.b * intensity;
         }
       }
     }
@@ -879,9 +919,6 @@ export default class ClazzCommunicationMesh extends BaseMesh {
 
     // Use shared geometry instead of creating new one
     const sharedGeometry = this.getSharedGeometry(curve, curveSegments);
-
-    // Create vertex colors on the shared geometry
-    this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
 
     if (this._enableEdgeColoring) {
       this.geometry = this.createGradientColoredGeometry(sharedGeometry, curve);
@@ -1444,6 +1481,8 @@ declare module '@react-three/fiber' {
       originHAP?: HAPNode;
       destinationHAP?: HAPNode;
       scatterRadius?: number;
+      communicationStart?: THREE.Color;
+      communicationEnd?: THREE.Color;
     };
   }
 }
