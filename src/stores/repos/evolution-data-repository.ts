@@ -8,7 +8,7 @@ import {
   CommitTree,
   RepoNameCommitTreeMap
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { Building, FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   combineStructureLandscapeData,
@@ -27,6 +27,7 @@ interface EvolutionDataRepositoryState {
     Map<string, ApplicationMetricsCode>
   >; // TODO: Wird sich über die COmmit-Comparison ändern oder wegfallen
   _commitsToCommitComparisonMap: Map<string, CommitComparison>;
+  _repoNameToFlatLandscapeMap: Map<string, FlatLandscape>;
   getCommitComparisonByAppName: (
     appName: string
   ) => CommitComparison | undefined;
@@ -75,7 +76,10 @@ export const useEvolutionDataRepositoryStore =
       Map<string, ApplicationMetricsCode>
     >(),
     _commitsToCommitComparisonMap: new Map<string, CommitComparison>(),
+    _repoNameToFlatLandscapeMap: new Map<string, FlatLandscape>(),
 
+
+    // TODO: Fliegt raus
     getCommitComparisonByAppName: (
       appName: string
     ): CommitComparison | undefined => {
@@ -167,6 +171,13 @@ export const useEvolutionDataRepositoryStore =
         Map<string, ApplicationMetricsCode>
       >();
 
+      /**
+       * TODO: Schleife kann weg und durch den neuen, einen Endpoint ersetzt werden
+       * Zusätzlich sollte es eine Map geben von RepoName -> FlatLandscape
+       * Beim Call wird dann nur für den jeweiligen RepoNamen das FlatLandscape Objekt ersetzt
+       * Beim Auswählen eines anderen Repos wird dann das jeweilig hinterlegte FlatLandscape Objekt (falls vorhanden)
+       *  an den Rerender-Trigger übergeben
+       */
       for (const [appName, selectedCommits] of appNameToSelectedCommits) {
         try {
           await get()._fetchMetricsForAppAndCommits(

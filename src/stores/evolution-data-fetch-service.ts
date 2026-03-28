@@ -52,6 +52,19 @@ export const useEvolutionDataFetchServiceStore =
       return await get()._fetchFromService<CommitTree>(url);
     },
 
+    fetchFlatLandscapeForRepoNameAndCommits: async (repoName: string, commits: SelectedCommit[]): Promise<FlatLandscape> => {
+      if (commits.length < 1 || commits.length > 2) {
+        throw new Error('Invalid number of commits');
+      }
+      
+      const [firstCommit, secondCommit] = commits;
+      const commitPath = secondCommit
+        ? `${firstCommit.commitId}-${secondCommit.commitId}`
+        : firstCommit.commitId;
+      const url = get()._constructUrlV3('structure', 'evolution', repoName, commitPath);
+      return await get()._fetchFromService<FlatLandscape>(url);
+    },
+
     fetchApplicationMetricsCodeForAppNameAndCommit: async (
       applicationName: string,
       commit: Commit

@@ -70,7 +70,7 @@ interface RenderingServiceState {
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => void;
   _setEvolutionModeActiveAndHandleRendering: (
-    appNameToSelectedCommits: Map<string, SelectedCommit[]>
+    repoNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) => Promise<void>;
   _setRuntimeModeActive: () => void;
   _handleError: (e: any) => void;
@@ -343,7 +343,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
     // private
     _setEvolutionModeActiveAndHandleRendering: async (
-      appNameToSelectedCommits: Map<string, SelectedCommit[]>
+      repoNameToSelectedCommits: Map<string, SelectedCommit[]>
     ) => {
       if (get()._analysisMode === 'runtime') {
         useToastHandlerStore
@@ -355,18 +355,25 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         useTimestampRepositoryStore.getState().resetState();
       }
 
+      // TODO: Das wird der neue Fetch
+      // Der sollte dann im Bestfall auch in ein neues Attribut im Store schreiben, nennen wir es XY
+      // Endpoint der dann in der Funktion gecalled werden muss: v3/landscapes/{landscapeToken}/structure/static/{repoName}/{commitHash1}(-{commitHash2})
       await useEvolutionDataRepositoryStore
         .getState()
-        .fetchAndStoreEvolutionDataForSelectedCommits(appNameToSelectedCommits);
+        .fetchAndStoreEvolutionDataForSelectedCommits(repoNameToSelectedCommits);
 
+      // TODO: Klären, was von dem folgendem gebraucht wird
+      // TODO: Hier dann einfach XY ablegen
       const combinedEvolutionStructureLandscapeData =
         useEvolutionDataRepositoryStore.getState()
           ._combinedStructureLandscapeData;
 
+      // TODO: Brauchen wir noch, weil unten bei Timestamp Kram
       const flattenedSelectedCommits: SelectedCommit[] = Array.from(
-        appNameToSelectedCommits.values()
+        repoNameToSelectedCommits.values()
       ).flat();
 
+      // TODO: Der komplette Block kann weg
       if (combinedEvolutionStructureLandscapeData.nodes.length > 0) {
         let combinedStructureLandscapeData: StructureLandscapeData =
           combinedEvolutionStructureLandscapeData;
@@ -392,8 +399,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           }
         }
 
+        // TODO: Erstmal drin lassen. Später schauen, ob raus kann
         // Remove timestamp and landscape data with commits that are not selected anymore
-
         let notSelectedCommitIds: string[] = Array.from(
           get().currentRuntimeLandscapeData.keys()
         ).flat();
@@ -419,6 +426,12 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           });
         }
 
+        /**
+         * TODO: Neuer Call wird:
+         *    - Leere Struktur Daten (weil is in FlatLandscape)
+         *    - Dynamic Daten die wir aus dem Persistence Service anfragen (Standardanfrage für dynamic data)
+         *    - Das Ergebnis der Commit-Comparison/die Strukturdaten als FlatLandscape = XY
+         */
         get().triggerRenderingForGivenLandscapeData(
           combinedStructureLandscapeData,
           combinedDynamicLandscapeData
