@@ -283,6 +283,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     [buildingFootprint, buildingHeightMultiplier, heightMetric]
   );
 
+  // TODO: Hier dann später Comparison färben
   const computeColor = useCallback(
     (buildingId: string) => {
       const building = useModelStore.getState().getBuilding(buildingId);

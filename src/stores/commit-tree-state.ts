@@ -11,22 +11,30 @@ export type SelectedCommit = Commit;
 interface CommitTreeStateState {
   _selectedCommits: Map<string, SelectedCommit[]>; // tracked
   _appNameAndBranchNameToColorMap: Map<string, string>;
+  _repoNameAndBranchNameToColorMap: Map<string, string>;
   _currentSelectedApplicationName: string; // tracked
+  _currentSelectedRepositoryName: string;
   getSelectedCommits: () => Map<string, Commit[]>;
   getCurrentSelectedApplicationName: () => string;
+  getCurrentSelectedRepositoryName: () => string;
   setDefaultState: (
     currentAppNameCommitTreeMap: AppNameCommitTreeMap,
     commit1: string,
     commit2: string | null | undefined
   ) => boolean;
   setCurrentSelectedApplicationName: (appName: string) => void;
+  setCurrentSelectedRepositoryName: (repoName: string) => void;
   setSelectedCommits: (
     newSelectedCommits: Map<string, SelectedCommit[]>
   ) => void;
   resetSelectedCommits: () => void;
   getCloneOfAppNameAndBranchNameToColorMap: () => Map<string, string>;
+  getCloneOfRepoNameAndBranchNameToColorMap: () => Map<string, string>;
   setAppNameAndBranchNameToColorMap: (
     newAppNameAndBranchNameToColorMap: Map<string, string>
+  ) => void;
+  setRepoNameAndBranchNameToColorMap: (
+    newRepoNameAndBranchNameToColorMap: Map<string, string>
   ) => void;
 }
 
@@ -34,7 +42,9 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
   (set, get) => ({
     _selectedCommits: new Map(),
     _appNameAndBranchNameToColorMap: new Map(),
+    _repoNameAndBranchNameToColorMap: new Map(),
     _currentSelectedApplicationName: '',
+    _currentSelectedRepositoryName: '',
 
     getSelectedCommits: () => {
       return get()._selectedCommits;
@@ -42,6 +52,10 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     getCurrentSelectedApplicationName: () => {
       return get()._currentSelectedApplicationName;
+    },
+
+    getCurrentSelectedRepositoryName: () => {
+      return get()._currentSelectedRepositoryName;
     },
 
     setDefaultState(
@@ -96,6 +110,12 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
       }
     },
 
+    setCurrentSelectedRepositoryName: (repoName: string) => {
+      if (get()._currentSelectedRepositoryName != repoName) {
+        set({ _currentSelectedRepositoryName: repoName });
+      }
+    },
+
     setSelectedCommits: (newSelectedCommits: Map<string, SelectedCommit[]>) => {
       set({ _selectedCommits: newSelectedCommits });
       // Show everything by default
@@ -126,11 +146,23 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
       return structuredClone(get()._appNameAndBranchNameToColorMap);
     },
 
+    getCloneOfRepoNameAndBranchNameToColorMap: () => {
+      return structuredClone(get()._repoNameAndBranchNameToColorMap);
+    },
+
     setAppNameAndBranchNameToColorMap: (
       newAppNameAndBranchNameToColorMap: Map<string, string>
     ) => {
       set({
         _appNameAndBranchNameToColorMap: newAppNameAndBranchNameToColorMap,
+      });
+    },
+
+    setRepoNameAndBranchNameToColorMap: (
+      newRepoNameAndBranchNameToColorMap: Map<string, string>
+    ) => {
+      set({
+        _repoNameAndBranchNameToColorMap: newRepoNameAndBranchNameToColorMap,
       });
     },
   })

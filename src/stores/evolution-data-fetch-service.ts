@@ -20,7 +20,9 @@ import { create } from 'zustand';
 
 interface EvolutionDataFetchState {
   fetchApplications: () => Promise<string[]>;
+  fetchRepositories: () => Promise<string[]>;
   fetchCommitTreeForAppName(appName: string): Promise<CommitTree>;
+  fetchCommitTreeForRepoName(repoName: string): Promise<CommitTree>;
   fetchApplicationMetricsCodeForAppNameAndCommit(
     applicationName: string,
     commit: Commit
@@ -40,6 +42,7 @@ interface EvolutionDataFetchState {
   ): Promise<StructureLandscapeData>;
   _getLandscapeToken(): string;
   _constructUrl(endpoint: string, ...params: string[]): string;
+  _constructUrlV3(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;
 }
 
@@ -50,8 +53,18 @@ export const useEvolutionDataFetchServiceStore =
       return await get()._fetchFromService<string[]>(url);
     },
 
+    fetchRepositories: async (): Promise<string[]> => {
+      const url = get()._constructUrlV3('repositories');
+      return await get()._fetchFromService<string[]>(url);
+    },
+
     fetchCommitTreeForAppName: async (appName: string): Promise<CommitTree> => {
       const url = get()._constructUrl('commit-tree', appName);
+      return await get()._fetchFromService<CommitTree>(url);
+    },
+
+    fetchCommitTreeForRepoName: async (repoName: string): Promise<CommitTree> => {
+      const url = get()._constructUrlV3('commit-tree', repoName);
       return await get()._fetchFromService<CommitTree>(url);
     },
 
@@ -143,6 +156,11 @@ export const useEvolutionDataFetchServiceStore =
     _constructUrl: (endpoint: string, ...params: string[]): string => {
       const landscapeToken = get()._getLandscapeToken();
       return `${import.meta.env.VITE_CODE_SERV_URL}/v2/code/${endpoint}/${landscapeToken}/${params.join('/')}`;
+    },
+
+    _constructUrlV3: (endpoint: string, ...params: string[]): string => {
+      const landscapeToken = get()._getLandscapeToken();
+      return `${import.meta.env.VITE_CODE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
     },
 
     _fetchFromService: async <T>(url: string): Promise<T> => {

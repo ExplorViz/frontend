@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
-import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import CommitTreeRepositorySelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-repository-selection';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
@@ -333,11 +333,19 @@ export default function Visualization() {
   );
   const appNameCommitTreeMapEvolutionDataRepository =
     useEvolutionDataRepositoryStore((state) => state._appNameCommitTreeMap);
+  const repoNameCommitTreeMapEvolutionDataRepository =
+    useEvolutionDataRepositoryStore((state) => state._repoNameCommitTreeMap);
   const fetchAndStoreApplicationCommitTrees = useEvolutionDataRepositoryStore(
     (state) => state.fetchAndStoreApplicationCommitTrees
   );
+  const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
+    (state) => state.fetchAndStoreRepositoryCommitTrees
+  );
   const getCurrentSelectedApplicationName = useCommitTreeStateStore(
     (state) => state.getCurrentSelectedApplicationName
+  );
+  const getCurrentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state.getCurrentSelectedRepositoryName
   );
   const getSelectedCommits = useCommitTreeStateStore(
     (state) => state.getSelectedCommits
@@ -351,8 +359,14 @@ export default function Visualization() {
   const getCloneOfAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.getCloneOfAppNameAndBranchNameToColorMap
   );
+  const getCloneOfRepoNameAndBranchNameToColorMap = useCommitTreeStateStore(
+    (state) => state.getCloneOfRepoNameAndBranchNameToColorMap
+  );
   const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
     (state) => state.setAppNameAndBranchNameToColorMap
+  );
+  const setRepoNameAndBranchNameToColorMap = useCommitTreeStateStore(
+    (state) => state.setRepoNameAndBranchNameToColorMap
   );
   const resetSelectedCommits = useCommitTreeStateStore(
     (state) => state.resetSelectedCommits
@@ -390,6 +404,9 @@ export default function Visualization() {
   );
   const currentSelectedApplicationName = useCommitTreeStateStore(
     (state) => state._currentSelectedApplicationName
+  );
+  const currentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
   );
 
   const roomSerializer = useRoomSerializerStore(
@@ -532,24 +549,40 @@ export default function Visualization() {
     restartTimestampPollingAndVizUpdate([]);
 
     // Fetch applications for evolution mode
-    await fetchAndStoreApplicationCommitTrees();
+    // await fetchAndStoreApplicationCommitTrees();
+    await fetchAndStoreRepositoryCommitTrees();
 
     let showEvolutionVisualization = false;
 
-    const selectedApp = getCurrentSelectedApplicationName();
-    const selectedCommitsForCurrentSelectedApp =
-      getSelectedCommits().get(selectedApp);
+    // const selectedApp = getCurrentSelectedApplicationName();
+    const selectedRepo = getCurrentSelectedRepositoryName(); // TODO: Ab hier weiter Repo einfügen
+    // const selectedCommitsForCurrentSelectedApp =
+    //   getSelectedCommits().get(selectedApp);
+    // setCommit1(
+    //   selectedCommitsForCurrentSelectedApp &&
+    //     selectedCommitsForCurrentSelectedApp.length > 0
+    //     ? selectedCommitsForCurrentSelectedApp[0].commitId
+    //     : undefined
+    // );
+
+    // setCommit2(
+    //   selectedCommitsForCurrentSelectedApp &&
+    //     selectedCommitsForCurrentSelectedApp.length > 1
+    //     ? selectedCommitsForCurrentSelectedApp[1].commitId
+    //     : undefined
+    // );
+    const selectedCommitsForCurrentSelectedRepo =
+      getSelectedCommits().get(selectedRepo);
     setCommit1(
-      selectedCommitsForCurrentSelectedApp &&
-        selectedCommitsForCurrentSelectedApp.length > 0
-        ? selectedCommitsForCurrentSelectedApp[0].commitId
+      selectedCommitsForCurrentSelectedRepo &&
+        selectedCommitsForCurrentSelectedRepo.length > 0
+        ? selectedCommitsForCurrentSelectedRepo[0].commitId
         : undefined
     );
-
     setCommit2(
-      selectedCommitsForCurrentSelectedApp &&
-        selectedCommitsForCurrentSelectedApp.length > 1
-        ? selectedCommitsForCurrentSelectedApp[1].commitId
+      selectedCommitsForCurrentSelectedRepo &&
+        selectedCommitsForCurrentSelectedRepo.length > 1
+        ? selectedCommitsForCurrentSelectedRepo[1].commitId
         : undefined
     );
 
@@ -809,8 +842,10 @@ export default function Visualization() {
     setIsCommitTreeRefreshing(true);
     try {
       resetSelectedCommits();
-      setAppNameAndBranchNameToColorMap(new Map());
-      const refreshed = await fetchAndStoreApplicationCommitTrees();
+      // setAppNameAndBranchNameToColorMap(new Map());
+      setRepoNameAndBranchNameToColorMap(new Map());
+      // const refreshed = await fetchAndStoreApplicationCommitTrees(); // TODO
+      const refreshed = await fetchAndStoreRepositoryCommitTrees();
 
       if (refreshed) {
         showInfoToastMessage('Commit chart data refreshed');
@@ -1026,30 +1061,46 @@ export default function Visualization() {
                   </Button>
                   <div className="row justify-content-md-center">
                     <div className="row justify-content-md-center align-items-center">
-                      <CommitTreeApplicationSelection
+                      {/* <CommitTreeApplicationSelection
                         appNameCommitTreeMap={
                           appNameCommitTreeMapEvolutionDataRepository
                         }
                         selectedAppName={currentSelectedApplicationName}
+                      /> */}
+                      <CommitTreeRepositorySelection
+                        repoNameCommitTreeMap={
+                          repoNameCommitTreeMapEvolutionDataRepository
+                        }
+                        selectedRepoName={currentSelectedRepositoryName}
                       />
                     </div>
                     <EvolutionRenderingButtons />
                   </div>
-                  <PlotlyCommitTree
-                    appNameCommitTreeMap={
-                      appNameCommitTreeMapEvolutionDataRepository
+                  <PlotlyCommitTree // TODO
+                    // appNameCommitTreeMap={
+                    //   appNameCommitTreeMapEvolutionDataRepository
+                    // }
+                    repoNameCommitTreeMap={
+                      repoNameCommitTreeMapEvolutionDataRepository
                     }
                     triggerVizRenderingForSelectedCommits={
                       renderingServiceTriggerRenderingForSelectedCommits
                     }
-                    selectedAppName={currentSelectedApplicationName}
+                    // selectedAppName={currentSelectedApplicationName}
+                    selectedRepoName={currentSelectedRepositoryName}
                     selectedCommits={getSelectedCommits()}
                     setSelectedCommits={setSelectedCommits}
-                    getCloneOfAppNameAndBranchNameToColorMap={
-                      getCloneOfAppNameAndBranchNameToColorMap
+                    // getCloneOfAppNameAndBranchNameToColorMap={
+                    //   getCloneOfAppNameAndBranchNameToColorMap
+                    // }
+                    getCloneOfRepoNameAndBranchNameToColorMap={
+                      getCloneOfRepoNameAndBranchNameToColorMap
                     }
-                    setAppNameAndBranchNameToColorMap={
-                      setAppNameAndBranchNameToColorMap
+                    // setAppNameAndBranchNameToColorMap={
+                    //   setAppNameAndBranchNameToColorMap
+                    // }
+                    setRepoNameAndBranchNameToColorMap={
+                      setRepoNameAndBranchNameToColorMap
                     }
                   />
                 </>

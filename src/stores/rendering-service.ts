@@ -379,6 +379,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           );
 
           if (potentialRuntimeData) {
+            // TODO: Wird nichts mehr neues geben durch v3
             combinedStructureLandscapeData = combineStructureLandscapeData(
               combinedStructureLandscapeData,
               potentialRuntimeData.structureLandscapeData

@@ -144,6 +144,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
+    // TODO: Hier dann später Comparison färben
     const computeColor = useCallback(
       (districtId: string) => {
         const district = useModelStore.getState().getDistrict(districtId);

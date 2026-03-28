@@ -2,6 +2,8 @@ import { CommitComparisonMetric } from 'explorviz-frontend/src/utils/metric-sche
 
 export type AppNameCommitTreeMap = Map<string, CommitTree>;
 
+export type RepoNameCommitTreeMap = Map<string, CommitTree>;
+
 export type CommitTree = {
   name: string;
   branches: Branch[];
