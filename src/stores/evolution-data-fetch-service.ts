@@ -19,18 +19,12 @@ import { ApplicationMetricsCode } from 'explorviz-frontend/src/utils/metric-sche
 import { create } from 'zustand';
 
 interface EvolutionDataFetchState {
-  fetchApplications: () => Promise<string[]>;
   fetchRepositories: () => Promise<string[]>;
-  fetchCommitTreeForAppName(appName: string): Promise<CommitTree>;
   fetchCommitTreeForRepoName(repoName: string): Promise<CommitTree>;
   fetchApplicationMetricsCodeForAppNameAndCommit(
     applicationName: string,
     commit: Commit
   ): Promise<ApplicationMetricsCode>;
-  fetchApplicationMetricsCodeForAppAndCommits(
-    applicationName: string,
-    commits: SelectedCommit[]
-  ): Promise<Map<string, ApplicationMetricsCode>>;
   fetchCommitComparison(
     applicationName: string,
     baseCommit: Commit,
@@ -48,19 +42,9 @@ interface EvolutionDataFetchState {
 
 export const useEvolutionDataFetchServiceStore =
   create<EvolutionDataFetchState>((set, get) => ({
-    fetchApplications: async (): Promise<string[]> => {
-      const url = get()._constructUrl('applications');
-      return await get()._fetchFromService<string[]>(url);
-    },
-
     fetchRepositories: async (): Promise<string[]> => {
       const url = get()._constructUrlV3('repositories');
       return await get()._fetchFromService<string[]>(url);
-    },
-
-    fetchCommitTreeForAppName: async (appName: string): Promise<CommitTree> => {
-      const url = get()._constructUrl('commit-tree', appName);
-      return await get()._fetchFromService<CommitTree>(url);
     },
 
     fetchCommitTreeForRepoName: async (repoName: string): Promise<CommitTree> => {
@@ -78,28 +62,6 @@ export const useEvolutionDataFetchServiceStore =
         commit.commitId
       );
       return await get()._fetchFromService<ApplicationMetricsCode>(url);
-    },
-
-    fetchApplicationMetricsCodeForAppAndCommits: async (
-      applicationName: string,
-      commits: SelectedCommit[]
-    ): Promise<Map<string, ApplicationMetricsCode>> => {
-      const commitIdToAppMetricsCodeMap: Map<string, ApplicationMetricsCode> =
-        new Map();
-
-      for (const commit of commits) {
-        const url = get()._constructUrl(
-          'metrics',
-          applicationName,
-          commit.commitId
-        );
-        const appMetricsCode =
-          await get()._fetchFromService<ApplicationMetricsCode>(url);
-
-        commitIdToAppMetricsCodeMap.set(commit.commitId, appMetricsCode);
-      }
-
-      return commitIdToAppMetricsCodeMap;
     },
 
     fetchCommitComparison: async (

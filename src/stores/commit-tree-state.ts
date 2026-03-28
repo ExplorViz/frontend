@@ -1,8 +1,8 @@
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { findAppNameAndBranchNameForCommit } from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import { findRepoNameAndBranchNameForCommit } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
-  AppNameCommitTreeMap,
   Commit,
+  RepoNameCommitTreeMap
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { create } from 'zustand';
 
@@ -10,29 +10,21 @@ export type SelectedCommit = Commit;
 
 interface CommitTreeStateState {
   _selectedCommits: Map<string, SelectedCommit[]>; // tracked
-  _appNameAndBranchNameToColorMap: Map<string, string>;
   _repoNameAndBranchNameToColorMap: Map<string, string>;
-  _currentSelectedApplicationName: string; // tracked
   _currentSelectedRepositoryName: string;
   getSelectedCommits: () => Map<string, Commit[]>;
-  getCurrentSelectedApplicationName: () => string;
   getCurrentSelectedRepositoryName: () => string;
   setDefaultState: (
-    currentAppNameCommitTreeMap: AppNameCommitTreeMap,
+    currentRepoNameCommitTreeMap: RepoNameCommitTreeMap,
     commit1: string,
     commit2: string | null | undefined
   ) => boolean;
-  setCurrentSelectedApplicationName: (appName: string) => void;
   setCurrentSelectedRepositoryName: (repoName: string) => void;
   setSelectedCommits: (
     newSelectedCommits: Map<string, SelectedCommit[]>
   ) => void;
   resetSelectedCommits: () => void;
-  getCloneOfAppNameAndBranchNameToColorMap: () => Map<string, string>;
   getCloneOfRepoNameAndBranchNameToColorMap: () => Map<string, string>;
-  setAppNameAndBranchNameToColorMap: (
-    newAppNameAndBranchNameToColorMap: Map<string, string>
-  ) => void;
   setRepoNameAndBranchNameToColorMap: (
     newRepoNameAndBranchNameToColorMap: Map<string, string>
   ) => void;
@@ -41,17 +33,11 @@ interface CommitTreeStateState {
 export const useCommitTreeStateStore = create<CommitTreeStateState>(
   (set, get) => ({
     _selectedCommits: new Map(),
-    _appNameAndBranchNameToColorMap: new Map(),
     _repoNameAndBranchNameToColorMap: new Map(),
-    _currentSelectedApplicationName: '',
     _currentSelectedRepositoryName: '',
 
     getSelectedCommits: () => {
       return get()._selectedCommits;
-    },
-
-    getCurrentSelectedApplicationName: () => {
-      return get()._currentSelectedApplicationName;
     },
 
     getCurrentSelectedRepositoryName: () => {
@@ -59,55 +45,48 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
     },
 
     setDefaultState(
-      currentAppNameCommitTreeMap: AppNameCommitTreeMap,
+      currentRepoNameCommitTreeMap: RepoNameCommitTreeMap,
       commit1: string,
       commit2: string | null | undefined
     ): boolean {
       const defaultSelectedCommits = new Map<string, SelectedCommit[]>();
 
-      // Find app and branch of first commit
-      const commit1AppAndBranch = findAppNameAndBranchNameForCommit(
-        currentAppNameCommitTreeMap,
+      // Find repo and branch of first commit
+      const commit1RepoAndBranch = findRepoNameAndBranchNameForCommit(
+        currentRepoNameCommitTreeMap,
         commit1
       );
-      if (!commit1AppAndBranch) {
+      if (!commit1RepoAndBranch) {
         return false;
       }
 
-      defaultSelectedCommits.set(commit1AppAndBranch.appName, [
+      defaultSelectedCommits.set(commit1RepoAndBranch.repoName, [
         {
           commitId: commit1,
-          branchName: commit1AppAndBranch.branchName,
+          branchName: commit1RepoAndBranch.branchName,
         },
       ]);
 
       if (commit2) {
-        // Find app and branch of second commit
-        const commit2AppAndBranch = findAppNameAndBranchNameForCommit(
-          currentAppNameCommitTreeMap,
+        // Find repo and branch of second commit
+        const commit2RepoAndBranch = findRepoNameAndBranchNameForCommit(
+          currentRepoNameCommitTreeMap,
           commit2
         );
-        if (commit2AppAndBranch) {
-          if (!defaultSelectedCommits.has(commit2AppAndBranch.appName)) {
-            defaultSelectedCommits.set(commit2AppAndBranch.appName, []);
+        if (commit2RepoAndBranch) {
+          if (!defaultSelectedCommits.has(commit2RepoAndBranch.repoName)) {
+            defaultSelectedCommits.set(commit2RepoAndBranch.repoName, []);
           }
-          defaultSelectedCommits.get(commit2AppAndBranch.appName)?.push({
+          defaultSelectedCommits.get(commit2RepoAndBranch.repoName)?.push({
             commitId: commit2,
-            branchName: commit2AppAndBranch.branchName,
+            branchName: commit2RepoAndBranch.branchName,
           });
         }
       }
 
       set({ _selectedCommits: defaultSelectedCommits });
-      set({ _currentSelectedApplicationName: commit1AppAndBranch.appName });
+      set({ _currentSelectedRepositoryName: commit1RepoAndBranch.repoName });
       return true;
-    },
-
-    setCurrentSelectedApplicationName: (appName: string) => {
-      if (get()._currentSelectedApplicationName !== appName) {
-        // don't trigger unnecessary rerendering of components
-        set({ _currentSelectedApplicationName: appName });
-      }
     },
 
     setCurrentSelectedRepositoryName: (repoName: string) => {
@@ -142,20 +121,8 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
         });
     },
 
-    getCloneOfAppNameAndBranchNameToColorMap: () => {
-      return structuredClone(get()._appNameAndBranchNameToColorMap);
-    },
-
     getCloneOfRepoNameAndBranchNameToColorMap: () => {
       return structuredClone(get()._repoNameAndBranchNameToColorMap);
-    },
-
-    setAppNameAndBranchNameToColorMap: (
-      newAppNameAndBranchNameToColorMap: Map<string, string>
-    ) => {
-      set({
-        _appNameAndBranchNameToColorMap: newAppNameAndBranchNameToColorMap,
-      });
     },
 
     setRepoNameAndBranchNameToColorMap: (

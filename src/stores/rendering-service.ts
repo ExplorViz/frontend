@@ -185,16 +185,16 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
     triggerRenderingForSelectedCommits: async (): Promise<void> => {
       try {
-        const appNameToSelectedCommits: Map<string, SelectedCommit[]> =
+        const repoNameToSelectedCommits: Map<string, SelectedCommit[]> =
           useCommitTreeStateStore.getState().getSelectedCommits();
 
         // Always pause when the selected commits change
         get().pauseVisualizationUpdating(false);
         useTimestampRepositoryStore.getState().stopTimestampPolling();
 
-        if (appNameToSelectedCommits.size > 0) {
+        if (repoNameToSelectedCommits.size > 0) {
           await get()._setEvolutionModeActiveAndHandleRendering(
-            appNameToSelectedCommits
+            repoNameToSelectedCommits
           );
         } else {
           get()._setRuntimeModeActive();

@@ -9,34 +9,24 @@ import Plotly from 'plotly.js-dist';
 import { useEffect, useRef, useState } from 'react';
 
 interface PlotlyCommitTreeArgs {
-  // appNameCommitTreeMap: AppNameCommitTreeMap;
   repoNameCommitTreeMap: RepoNameCommitTreeMap;
-  // selectedAppName: string;
   selectedRepoName: string;
   selectedCommits: Map<string, SelectedCommit[]>;
   triggerVizRenderingForSelectedCommits(): void;
   setSelectedCommits(newSelectedCommits: Map<string, SelectedCommit[]>): void;
-  // getCloneOfAppNameAndBranchNameToColorMap(): Map<string, string>;
   getCloneOfRepoNameAndBranchNameToColorMap(): Map<string, string>;
-  // setAppNameAndBranchNameToColorMap(
-  //   newAppNameAndBranchNameToColorMap: Map<string, string>
-  // ): void;
   setRepoNameAndBranchNameToColorMap(
     newRepoNameAndBranchNameToColorMap: Map<string, string>
   ): void;
 }
 
 export default function PlotlyCommitTree({
-  // appNameCommitTreeMap,
   repoNameCommitTreeMap,
-  // selectedAppName,
   selectedRepoName,
   selectedCommits,
   triggerVizRenderingForSelectedCommits,
   setSelectedCommits,
-  // getCloneOfAppNameAndBranchNameToColorMap,
   getCloneOfRepoNameAndBranchNameToColorMap,
-  // setAppNameAndBranchNameToColorMap,
   setRepoNameAndBranchNameToColorMap,
 }: PlotlyCommitTreeArgs) {
   const MAX_COMMIT_SELECTION_PER_APP = 2;
@@ -57,8 +47,6 @@ export default function PlotlyCommitTree({
     return 'red';
   })();
 
-  // let [_appNameCommitTreeMap, setAppNameCommitTreeMap] =
-  //   useState<AppNameCommitTreeMap>(new Map());
   let [_repoNameCommitTreeMap, setRepoNameCommitTreeMap] =
     useState<RepoNameCommitTreeMap>(new Map());
 
@@ -70,27 +58,16 @@ export default function PlotlyCommitTree({
   // #region Plot Setup
   function setupPlotlyCommitTreeChart() {
     // deep copy attributes (Map and Object is passed via reference, therefore changes in this component would actually be executed on the original element) -> nasty bugs
-    // setAppNameCommitTreeMap(structuredClone(appNameCommitTreeMap));
     setRepoNameCommitTreeMap(structuredClone(repoNameCommitTreeMap));
 
     usedColors.add([255, 255, 255]); // initialize with white so it won't be used as color for branches on a white background
 
-    // if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
-    //   updatePlotlyCommitTree();
-    // }
     if (_repoNameCommitTreeMap && selectedRepoName && selectedCommits) {
       updatePlotlyCommitTree();
     }
   }
 
   function updatePlotlyCommitTree() {
-    // if (_appNameCommitTreeMap && selectedAppName && selectedCommits) {
-    //   createPlotlyCommitTreeChart(
-    //     _appNameCommitTreeMap,
-    //     selectedAppName,
-    //     selectedCommits
-    //   );
-    // }
     if (_repoNameCommitTreeMap && selectedRepoName && selectedCommits) {
       createPlotlyCommitTreeChart(
         _repoNameCommitTreeMap,
@@ -133,21 +110,17 @@ export default function PlotlyCommitTree({
         const commitId = getCommitId(branchName, pn);
         const selectedCommit: Commit = { commitId, branchName };
 
-        // let selectedCommitsForApp = selectedCommits.get(selectedAppName) || [];
-        // selectedCommits.set(selectedAppName, selectedCommitsForApp);
         let selectedCommitsForRepo = selectedCommits.get(selectedRepoName) || [];
         selectedCommits.set(selectedRepoName, selectedCommitsForRepo);
 
         if (
           isCommitAlreadySelected(
-            // selectedCommitsForApp,
             selectedCommitsForRepo,
             selectedCommit.commitId
           )
         ) {
           unselectCommit(selectedCommit, pn);
         } else {
-          // if (selectedCommitsForApp.length === MAX_COMMIT_SELECTION_PER_APP) {
           if (selectedCommitsForRepo.length === MAX_COMMIT_SELECTION_PER_APP) {
             unselectAllCommits();
           } else {
@@ -159,7 +132,6 @@ export default function PlotlyCommitTree({
         // for (const [app, commits] of selectedCommits.entries()) {
         for (const [repo, commits] of selectedCommits.entries()) {
           if (commits.length === 0) {
-            // selectedCommits.delete(app);
             selectedCommits.delete(repo);
           }
         }
@@ -168,14 +140,10 @@ export default function PlotlyCommitTree({
         triggerVizRenderingForSelectedCommits();
 
         function getCommitId(branchName: string, pointNumber: number): string {
-          // const commitTreeForSelectedAppName =
-          //   appNameCommitTreeMap.get(selectedAppName);
           const commitTreeForSelectedRepoName =
             repoNameCommitTreeMap.get(selectedRepoName);
 
-          // if (commitTreeForSelectedAppName) {
           if (commitTreeForSelectedRepoName) {
-            // for (const branch of commitTreeForSelectedAppName.branches) {
             for (const branch of commitTreeForSelectedRepoName.branches) {
               if (branch.name === branchName) {
                 return branch.commits[pointNumber];
@@ -193,17 +161,12 @@ export default function PlotlyCommitTree({
         }
 
         function unselectAllCommits() {
-          // selectedCommits.set(selectedAppName, []);
           selectedCommits.set(selectedRepoName, []);
 
-          // const commitTreeForSelectedAppName =
-          //   _appNameCommitTreeMap.get(selectedAppName);
           const commitTreeForSelectedRepoName =
             _repoNameCommitTreeMap.get(selectedRepoName);
 
-          // if (commitTreeForSelectedAppName) {
           if (commitTreeForSelectedRepoName) {
-            // for (const branch of commitTreeForSelectedAppName.branches) {
             for (const branch of commitTreeForSelectedRepoName.branches) {
               const curveNumber = branchToY.get(branch.name);
               colors = Array(branch.commits.length).fill(
@@ -217,7 +180,6 @@ export default function PlotlyCommitTree({
         }
 
         function selectCommit(commit: Commit, pointNumber: number) {
-          // selectedCommitsForApp.push(commit);
           selectedCommitsForRepo.push(commit);
 
           colors[pointNumber] = highlightedMarkerColor;
@@ -228,20 +190,14 @@ export default function PlotlyCommitTree({
         }
 
         function unselectCommit(commit: Commit, pointNumber: number) {
-          // selectedCommitsForApp = selectedCommitsForApp.filter(
-          //   (c) => c.commitId !== commit.commitId
-          // );
           selectedCommitsForRepo = selectedCommitsForRepo.filter(
             (c) => c.commitId !== commit.commitId
           );
           colors[pointNumber] = data.points[0].fullData.line.color;
           sizes[pointNumber] = COMMIT_UNSELECTED_SIZE;
-          // if (selectedCommitsForApp.length === 0) {
           if (selectedCommitsForRepo.length === 0) {
-            // selectedCommits.delete(selectedAppName);
             selectedCommits.delete(selectedRepoName);
           } else {
-            // selectedCommits.set(selectedAppName, selectedCommitsForApp);
             selectedCommits.set(selectedRepoName, selectedCommitsForRepo);
           }
           const update = { marker: { color: colors, size: sizes } };
@@ -273,17 +229,7 @@ export default function PlotlyCommitTree({
   };
   // #endregion
 
-  // useEffect(() => {
-  //   // Only setup chart if we have valid data
-  //   if (
-  //     appNameCommitTreeMap &&
-  //     selectedAppName &&
-  //     appNameCommitTreeMap.get(selectedAppName)?.branches
-  //   ) {
-  //     setupPlotlyCommitTreeChart();
-  //   }
-  // }, [appNameCommitTreeMap, selectedAppName]);
-    useEffect(() => {
+  useEffect(() => {
     // Only setup chart if we have valid data
     if (
       repoNameCommitTreeMap &&
@@ -294,17 +240,6 @@ export default function PlotlyCommitTree({
     }
   }, [repoNameCommitTreeMap, selectedRepoName]);
 
-  // useEffect(() => {
-  //   // Only update chart if we have valid data and the div exists
-  //   if (
-  //     plotlyCommitDivRef.current &&
-  //     appNameCommitTreeMap &&
-  //     selectedAppName &&
-  //     appNameCommitTreeMap.get(selectedAppName)?.branches
-  //   ) {
-  //     updatePlotlyCommitTree();
-  //   }
-  // }, [selectedAppName, _appNameCommitTreeMap, appNameCommitTreeMap]);
   useEffect(() => {
     // Only update chart if we have valid data and the div exists
     if (
@@ -327,9 +262,7 @@ export default function PlotlyCommitTree({
     sizes: number[],
     branch: number,
     branchName: string,
-    // appNameCommitTreeMap: AppNameCommitTreeMap,
     repoNameCommitTreeMap: RepoNameCommitTreeMap,
-    // selectedAppName: string,
     selectedRepoName: string,
     lineColor: string
   ) => {
@@ -344,7 +277,6 @@ export default function PlotlyCommitTree({
       hoverlabel: {
         align: 'left',
       },
-      // text: hoverText(appNameCommitTreeMap, selectedAppName, branch),
       text: hoverText(repoNameCommitTreeMap, selectedRepoName, branch),
       x: commits,
       y: Array.from(Array(commits.length)).map(() => branch),
@@ -352,24 +284,13 @@ export default function PlotlyCommitTree({
   };
 
   const createPlotlyCommitTreeChart = (
-    // appNameCommitTreeMap: AppNameCommitTreeMap,
     repoNameCommitTreeMap: RepoNameCommitTreeMap,
-    // selectedAppName: string,
     selectedRepoName: string,
     selectedCommits: Map<string, Commit[]>
   ) => {
-    // const commitTreeForSelectedAppName =
-    //   appNameCommitTreeMap.get(selectedAppName);
     const commitTreeForSelectedRepoName =
       repoNameCommitTreeMap.get(selectedRepoName);
 
-    // if (
-    //   commitTreeForSelectedAppName &&
-    //   commitTreeForSelectedAppName.branches &&
-    //   commitTreeForSelectedAppName.branches.find(
-    //     (branch) => branch.commits.length > 0
-    //   )
-    // ) {
     if (
       commitTreeForSelectedRepoName &&
       commitTreeForSelectedRepoName.branches &&
@@ -381,10 +302,8 @@ export default function PlotlyCommitTree({
       const plotlyBranches: any[] = [];
       let branchCounter = 0;
 
-      // for (const branch of commitTreeForSelectedAppName.branches) {
       for (const branch of commitTreeForSelectedRepoName.branches) {
         const numOfCommits = branch.commits.length;
-        // const offset = calculateOffset(selectedAppName, branch);
         const offset = calculateOffset(selectedRepoName, branch);
         const commits = Array.from(
           { length: numOfCommits },
@@ -396,11 +315,6 @@ export default function PlotlyCommitTree({
           () => COMMIT_UNSELECTED_SIZE
         );
 
-        // const selectedCommitsForSelectedAppName =
-        //   selectedCommits.get(selectedAppName);
-        // if (selectedCommitsForSelectedAppName) {
-        //   markCommit(selectedCommitsForSelectedAppName, branch, colors, sizes);
-        // }
         const selectedCommitsForSelectedRepoName =
           selectedCommits.get(selectedRepoName);
         if (selectedCommitsForSelectedRepoName) {
@@ -413,9 +327,7 @@ export default function PlotlyCommitTree({
           sizes,
           branchCounter,
           branch.name,
-          // appNameCommitTreeMap,
           repoNameCommitTreeMap,
-          // selectedAppName,
           selectedRepoName,
           color
         );
@@ -427,10 +339,8 @@ export default function PlotlyCommitTree({
       }
 
       // add branch-to-branch connections
-      // for (const branch of commitTreeForSelectedAppName.branches) {
       for (const branch of commitTreeForSelectedRepoName.branches) {
         const branchY = branchToY.get(branch.name);
-        // const branchX = calculateOffset(selectedAppName, branch);
         const branchX = calculateOffset(selectedRepoName, branch);
 
         const fromBranchY = branchToY.get(branch.branchPoint.name);
@@ -478,31 +388,25 @@ export default function PlotlyCommitTree({
   };
 
   const createColor = (branchName: string) => {
-    // const cloneColorMap = getCloneOfAppNameAndBranchNameToColorMap();
     const cloneColorMap = getCloneOfRepoNameAndBranchNameToColorMap();
 
     let color: string | undefined = cloneColorMap.get(
-      // selectedAppName + branchName
       selectedRepoName + branchName
     );
     if (!color) {
       color = randomRGBA();
-      // cloneColorMap.set(selectedAppName + branchName, color);
       cloneColorMap.set(selectedRepoName + branchName, color);
-      // setAppNameAndBranchNameToColorMap(cloneColorMap);
       setRepoNameAndBranchNameToColorMap(cloneColorMap);
     }
     return color;
   };
 
   const markCommit = (
-    // selectedCommitsForSelectedAppName: Commit[],
     selectedCommitsForSelectedRepoName: Commit[],
     branch: Branch,
     colors: string[],
     sizes: number[]
   ) => {
-    // for (const selectedCommit of selectedCommitsForSelectedAppName) {
     for (const selectedCommit of selectedCommitsForSelectedRepoName) {
       const index = branch.commits.findIndex(
         (commitId) => commitId === selectedCommit.commitId
@@ -514,30 +418,24 @@ export default function PlotlyCommitTree({
     }
   };
 
-  // const calculateOffset = (selectedAppName: string, branch: Branch) => {
   const calculateOffset = (selectedRepoName: string, branch: Branch) => {
     // TODO: commit can have more than one predecessor (if merged). So we need to calculate and add the maximum of both recursive calls to our counter
 
-    // const commitTreeForSelectedAppName =
-    //   _appNameCommitTreeMap.get(selectedAppName);
     const commitTreeForSelectedRepoName =
       _repoNameCommitTreeMap.get(selectedRepoName);
 
     let counter = 0;
 
-    // if (commitTreeForSelectedAppName) {
     if (commitTreeForSelectedRepoName) {
       const fromCommit = branch.branchPoint.commit;
       const fromBranch = branch.branchPoint.name;
 
       if (fromBranch !== 'NONE') {
-        // for (const b of commitTreeForSelectedAppName.branches) {
         for (const b of commitTreeForSelectedRepoName.branches) {
           if (b.name === fromBranch) {
             for (const commit of b.commits) {
               counter++;
               if (commit === fromCommit) {
-                // counter += calculateOffset(selectedAppName, b);
                 counter += calculateOffset(selectedRepoName, b);
                 break;
               }
@@ -584,19 +482,14 @@ export default function PlotlyCommitTree({
   };
 
   const hoverText = (
-    // appNameCommitTreeMap: AppNameCommitTreeMap,
     repoNameCommitTreeMap: RepoNameCommitTreeMap,
-    // selectedAppName: string,
     selectedRepoName: string,
     branch: number
   ) => {
-    // const commitTreeForApp = appNameCommitTreeMap.get(selectedAppName);
     const commitTreeForRepo = repoNameCommitTreeMap.get(selectedRepoName);
 
-    // if (commitTreeForApp) {
     if (commitTreeForRepo) {
       let branchCounter = 0;
-      // for (const b of commitTreeForApp.branches) {
       for (const b of commitTreeForRepo.branches) {
         if (branch === branchCounter) {
           return b.commits.map((commit) => 'Commit ID: ' + commit);
@@ -691,9 +584,6 @@ export default function PlotlyCommitTree({
 
   return (
     <>
-      {/* {appNameCommitTreeMap &&
-      selectedAppName &&
-      appNameCommitTreeMap.get(selectedAppName)?.branches ? ( */}
       {repoNameCommitTreeMap &&
       selectedRepoName &&
       repoNameCommitTreeMap.get(selectedRepoName)?.branches ? (
@@ -704,16 +594,12 @@ export default function PlotlyCommitTree({
           onMouseLeave={handleMouseLeave}
         ></div>
       ) : (
-        // appNameCommitTreeMap &&
-        // appNameCommitTreeMap.size > 0 && (
         repoNameCommitTreeMap &&
         repoNameCommitTreeMap.size > 0 && (
           <div className="commit-tree-no-data-container">
             <div className="commit-tree-no-data-message">
-              {/* {selectedAppName */}
               {selectedRepoName
                 ? 'No commit tree data available!'
-                // : 'No application selected!'}
                 : 'No repository selected!'}
             </div>
           </div>

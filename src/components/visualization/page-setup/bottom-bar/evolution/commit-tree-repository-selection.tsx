@@ -54,7 +54,7 @@ export default function CommitTreeRepositorySelection({
       }
 
       const labelElement = container.querySelector(
-        '.application-label'
+        '.repository-label'
       ) as HTMLElement;
       const labelWidth = labelElement?.offsetWidth || 0;
       const moreButtonWidth = 50; // Approximate width of the "..." button
@@ -146,12 +146,12 @@ export default function CommitTreeRepositorySelection({
     return (
       <div
         ref={containerRef}
-        className="col-md-auto d-flex align-items-center application-selection-container" // TODO: Könnte die CSS Klassen umbenennen (wenn die nicht an zu vielen Stellen genutzt werden)
+        className="col-md-auto d-flex align-items-center repository-selection-container" // TODO: Könnte die CSS Klassen umbenennen (wenn die nicht an zu vielen Stellen genutzt werden)
       >
-        <span className="h5 p-2 application-label">Repository:</span>
+        <span className="h5 p-2 repository-label">Repository:</span>
         <div
           ref={buttonsContainerRef}
-          className="d-flex align-items-center gap-2 application-buttons-container"
+          className="d-flex align-items-center gap-2 repository-buttons-container"
         >
           {visibleRepos.map((repoName) => (
             <Button
@@ -178,7 +178,7 @@ export default function CommitTreeRepositorySelection({
               <Dropdown.Toggle
                 variant="outline-secondary"
                 size="sm"
-                id="more-applications-dropdown"
+                id="more-repositories-dropdown"
               >
                 <KebabHorizontalIcon size="small" />
               </Dropdown.Toggle>

@@ -6,6 +6,7 @@ import { DropdownButton } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useShallow } from 'zustand/react/shallow';
 
+
 export default function EvolutionRenderingButtons() {
   const commitTreeState = useCommitTreeStateStore(
     useShallow((state) => ({
@@ -40,8 +41,8 @@ export default function EvolutionRenderingButtons() {
     }))
   );
 
-  const getCurrentSelectedApplicationName = useCommitTreeStateStore(
-    (state) => state.getCurrentSelectedApplicationName
+  const getCurrentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state.getCurrentSelectedRepositoryName
   );
 
   const { getSelectedCommits } = useCommitTreeStateStore(
@@ -89,14 +90,23 @@ export default function EvolutionRenderingButtons() {
     visService.applyEvolutionModeRenderingConfiguration(evolutionMode);
   };
 
+  const currentRepoName = getCurrentSelectedRepositoryName();
+  const selectedCommitsMap = getSelectedCommits();
+
+  const selectedCommitsForRepo = currentRepoName
+    ? selectedCommitsMap.get(currentRepoName)
+    : undefined;
+
+  const selectedCount = selectedCommitsForRepo?.length ?? 0;
+  const showUnselect = selectedCount === 1 || selectedCount === 2;
+  const hasSelectedAny = selectedCommitsMap.size > 0;
+  const showRepo = !!currentRepoName;
+
   return (
     <div className="col-md-auto">
-      {getCurrentSelectedApplicationName() && (
+      {showRepo && (
         <div className="row justify-content-md-center">
-          {(getSelectedCommits().get(getCurrentSelectedApplicationName())
-            ?.length === 1 ||
-            getSelectedCommits().get(getCurrentSelectedApplicationName())
-              ?.length === 2) && (
+          {showUnselect && (
             <div className="col-md-auto">
               <div className="d-flex">
                 <button
@@ -109,7 +119,7 @@ export default function EvolutionRenderingButtons() {
               </div>
             </div>
           )}
-          {getSelectedCommits().size > 0 && (
+          {hasSelectedAny && (
             <div className="col-md-auto">
               <DropdownButton
                 id="dropdown-basic-button"

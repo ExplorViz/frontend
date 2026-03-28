@@ -4,10 +4,9 @@ import {
 } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useEvolutionDataFetchServiceStore } from 'explorviz-frontend/src/stores/evolution-data-fetch-service';
 import {
-  AppNameCommitTreeMap,
   CommitComparison,
   CommitTree,
-  RepoNameCommitTreeMap,
+  RepoNameCommitTreeMap
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -20,19 +19,17 @@ import { SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/se
 import { create } from 'zustand';
 
 interface EvolutionDataRepositoryState {
-  _appNameCommitTreeMap: AppNameCommitTreeMap;
   _repoNameCommitTreeMap: RepoNameCommitTreeMap;
   _evolutionStructureLandscapeData: Map<string, StructureLandscapeData>;
   _combinedStructureLandscapeData: StructureLandscapeData;
   _appNameToCommitIdToApplicationMetricsCodeMap: Map<
     string,
     Map<string, ApplicationMetricsCode>
-  >;
+  >; // TODO: Wird sich über die COmmit-Comparison ändern oder wegfallen
   _commitsToCommitComparisonMap: Map<string, CommitComparison>;
   getCommitComparisonByAppName: (
     appName: string
   ) => CommitComparison | undefined;
-  fetchAndStoreApplicationCommitTrees: () => Promise<boolean>;
   fetchAndStoreRepositoryCommitTrees: () => Promise<boolean>;
   fetchAndStoreEvolutionDataForSelectedCommits: (
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
@@ -41,7 +38,6 @@ interface EvolutionDataRepositoryState {
   resetStructureLandscapeData: () => void;
   resetAppNameToCommitIdToApplicationMetricsCodeMap: () => void;
   resetEvolutionStructureLandscapeData: () => void;
-  resetAppNameCommitTreeMap: () => void;
   resetRepoNameCommitTreeMap: () => void;
   resetCommitsToCommitComparisonMap: () => void;
   _fetchMetricsForAppAndCommits: (
@@ -57,15 +53,9 @@ interface EvolutionDataRepositoryState {
     selectedCommits: SelectedCommit[],
     newCommitsToCommitComparisonMap: Map<string, CommitComparison>
   ) => Promise<void>;
-  _buildAppNameCommitTreeMap: (
-    applicationNames: string[]
-  ) => Promise<AppNameCommitTreeMap>;
   _buildRepoNameCommitTreeMap: (
       repositoryNames: string[]
     ) => Promise<RepoNameCommitTreeMap>;
-  _fetchCommitTreeForAppName: (
-    appName: string
-  ) => Promise<CommitTree | undefined>;
   _fetchCommitTreeForRepoName: (
     repoName: string
   ) => Promise<CommitTree | undefined>;
@@ -77,7 +67,6 @@ interface EvolutionDataRepositoryState {
 
 export const useEvolutionDataRepositoryStore =
   create<EvolutionDataRepositoryState>((set, get) => ({
-    _appNameCommitTreeMap: new Map<string, CommitTree>(), // tracked
     _repoNameCommitTreeMap: new Map<string, CommitTree>(),
     _evolutionStructureLandscapeData: new Map<string, StructureLandscapeData>(),
     _combinedStructureLandscapeData: createEmptyStructureLandscapeData(),
@@ -136,25 +125,6 @@ export const useEvolutionDataRepositoryStore =
       return commitComparison;
     },
 
-    fetchAndStoreApplicationCommitTrees: async (): Promise<boolean> => {
-      try {
-        const applicationNames = await useEvolutionDataFetchServiceStore
-          .getState()
-          .fetchApplications();
-        const appNameCommitTreeMap =
-          await get()._buildAppNameCommitTreeMap(applicationNames);
-
-        set({ _appNameCommitTreeMap: appNameCommitTreeMap });
-
-      } catch (error) {
-        get().resetAppNameCommitTreeMap();
-        console.error(`Failed to build AppNameCommitTreeMap, reason: ${error}`);
-        return false;
-      }
-      return true;
-    },
-
-    // TODO
     fetchAndStoreRepositoryCommitTrees: async (): Promise<boolean> => {
       try {
         const repositoryNames = await useEvolutionDataFetchServiceStore
@@ -253,7 +223,6 @@ export const useEvolutionDataRepositoryStore =
 
     resetAllEvolutionData: (): void => {
       get().resetEvolutionStructureLandscapeData();
-      get().resetAppNameCommitTreeMap();
       get().resetRepoNameCommitTreeMap();
     },
 
@@ -272,10 +241,6 @@ export const useEvolutionDataRepositoryStore =
       set({
         _combinedStructureLandscapeData: createEmptyStructureLandscapeData(),
       });
-    },
-
-    resetAppNameCommitTreeMap: () => {
-      set({ _appNameCommitTreeMap: new Map() });
     },
 
     resetRepoNameCommitTreeMap: () => {
@@ -367,20 +332,6 @@ export const useEvolutionDataRepositoryStore =
       }
     },
 
-    _buildAppNameCommitTreeMap: async (
-      applicationNames: string[]
-    ): Promise<AppNameCommitTreeMap> => {
-      const appNameCommitTreeMap: AppNameCommitTreeMap = new Map();
-
-      for (const appName of applicationNames) {
-        const commitTree = await get()._fetchCommitTreeForAppName(appName);
-        if (commitTree) {
-          appNameCommitTreeMap.set(appName, commitTree);
-        }
-      }
-      return appNameCommitTreeMap;
-    },
-
     _buildRepoNameCommitTreeMap: async (
       repositoryNames: string[]
     ): Promise<RepoNameCommitTreeMap> => {
@@ -393,21 +344,6 @@ export const useEvolutionDataRepositoryStore =
         }
       }
       return repoNameCommitTreeMap;
-    },
-
-    _fetchCommitTreeForAppName: async (
-      appName: string
-    ): Promise<CommitTree | undefined> => {
-      try {
-        return await useEvolutionDataFetchServiceStore
-          .getState()
-          .fetchCommitTreeForAppName(appName);
-      } catch (reason) {
-        console.error(
-          `Failed to fetch Commit Tree for appName: ${appName}, reason: ${reason}`
-        );
-        return undefined;
-      }
     },
 
     _fetchCommitTreeForRepoName: async (
