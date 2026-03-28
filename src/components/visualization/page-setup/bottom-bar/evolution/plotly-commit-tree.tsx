@@ -436,9 +436,7 @@ export default function PlotlyCommitTree({
         const fromBranchY = branchToY.get(branch.branchPoint.name);
         const fromBranchX = branchX - 1;
 
-        if (fromBranchY !== undefined && branchY) {
-          // fromBranchY can be 0 so we explicitly ask for undefined
-
+        if (fromBranchY !== undefined && branchY !== undefined) {
           const color = branchToColor.get(branch.name)!;
           plotlyBranches.push({
             line: { color: color, width: 2 },
