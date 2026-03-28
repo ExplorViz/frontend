@@ -537,7 +537,7 @@ export default function Visualization() {
 
     let showEvolutionVisualization = false;
 
-    const selectedRepo = getCurrentSelectedRepositoryName(); // TODO: Ab hier weiter Repo einfügen
+    const selectedRepo = getCurrentSelectedRepositoryName();
     const selectedCommitsForCurrentSelectedRepo =
       getSelectedCommits().get(selectedRepo);
     setCommit1(

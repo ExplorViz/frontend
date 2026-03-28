@@ -21,6 +21,10 @@ import { create } from 'zustand';
 interface EvolutionDataFetchState {
   fetchRepositories: () => Promise<string[]>;
   fetchCommitTreeForRepoName(repoName: string): Promise<CommitTree>;
+  fetchFlatLandscapeForRepoNameAndCommits(
+    repoName: string, 
+    commits: SelectedCommit[]
+  ): Promise<FlatLandscape>;
   fetchApplicationMetricsCodeForAppNameAndCommit(
     applicationName: string,
     commit: Commit
@@ -52,7 +56,10 @@ export const useEvolutionDataFetchServiceStore =
       return await get()._fetchFromService<CommitTree>(url);
     },
 
-    fetchFlatLandscapeForRepoNameAndCommits: async (repoName: string, commits: SelectedCommit[]): Promise<FlatLandscape> => {
+    fetchFlatLandscapeForRepoNameAndCommits: async (
+      repoName: string, 
+      commits: SelectedCommit[]
+    ): Promise<FlatLandscape> => {
       if (commits.length < 1 || commits.length > 2) {
         throw new Error('Invalid number of commits');
       }

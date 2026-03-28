@@ -25,13 +25,18 @@ interface EvolutionDataRepositoryState {
   _appNameToCommitIdToApplicationMetricsCodeMap: Map<
     string,
     Map<string, ApplicationMetricsCode>
-  >; // TODO: Wird sich über die COmmit-Comparison ändern oder wegfallen
+  >; // CC-TODO: Wird sich über die COmmit-Comparison ändern oder wegfallen
   _commitsToCommitComparisonMap: Map<string, CommitComparison>;
   _repoNameToFlatLandscapeMap: Map<string, FlatLandscape>;
   getCommitComparisonByAppName: (
     appName: string
   ) => CommitComparison | undefined;
+  getRepoNameToFlatLandscapeMap: () => Map<string, FlatLandscape>;
   fetchAndStoreRepositoryCommitTrees: () => Promise<boolean>;
+  fetchAndStoreEvolutuinDataForSelectedCommitsNEW: (
+      repositoryName: string,
+      selectedCommits: SelectedCommit[]
+    ) => Promise<void>;
   fetchAndStoreEvolutionDataForSelectedCommits: (
     appNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) => Promise<void>;
@@ -79,7 +84,7 @@ export const useEvolutionDataRepositoryStore =
     _repoNameToFlatLandscapeMap: new Map<string, FlatLandscape>(),
 
 
-    // TODO: Fliegt raus
+    // CC-TODO: Fliegt raus
     getCommitComparisonByAppName: (
       appName: string
     ): CommitComparison | undefined => {
@@ -129,6 +134,10 @@ export const useEvolutionDataRepositoryStore =
       return commitComparison;
     },
 
+    getRepoNameToFlatLandscapeMap: (): Map<string, FlatLandscape> => {
+      return get()._repoNameToFlatLandscapeMap;
+    },
+
     fetchAndStoreRepositoryCommitTrees: async (): Promise<boolean> => {
       try {
         const repositoryNames = await useEvolutionDataFetchServiceStore
@@ -148,6 +157,27 @@ export const useEvolutionDataRepositoryStore =
       return true;
     },
 
+    // CC-TODO: das NEW aus dem Namen entfernen, wenn fertig
+    fetchAndStoreEvolutuinDataForSelectedCommitsNEW: async (
+      repositoryName: string,
+      selectedCommits: SelectedCommit[]
+    ): Promise<void> => {
+        const newRepoNameToFlatLandscapeMap = get()._repoNameToFlatLandscapeMap;
+        try {
+          const structureLandscapeData = await useEvolutionDataFetchServiceStore.getState()
+            .fetchFlatLandscapeForRepoNameAndCommits(repositoryName, selectedCommits);
+
+          newRepoNameToFlatLandscapeMap.set(repositoryName, structureLandscapeData);
+        } catch (error) {
+          console.error(
+            `Failed to fetch and set flat landscape data for repo: ${repositoryName}, reason: ${error}`
+          );
+        }
+        set({ _repoNameToFlatLandscapeMap: newRepoNameToFlatLandscapeMap });
+    },
+
+    // CC-TODO: Wahrscheinlich ganz weg, wenn die andere geht
+    // Gilt womöglich auch für alle enthaltenen
     fetchAndStoreEvolutionDataForSelectedCommits: async (
       appNameToSelectedCommits: Map<string, SelectedCommit[]>
     ): Promise<void> => {
@@ -172,7 +202,7 @@ export const useEvolutionDataRepositoryStore =
       >();
 
       /**
-       * TODO: Schleife kann weg und durch den neuen, einen Endpoint ersetzt werden
+       * CC-TODO: Schleife kann weg und durch den neuen, einen Endpoint ersetzt werden
        * Zusätzlich sollte es eine Map geben von RepoName -> FlatLandscape
        * Beim Call wird dann nur für den jeweiligen RepoNamen das FlatLandscape Objekt ersetzt
        * Beim Auswählen eines anderen Repos wird dann das jeweilig hinterlegte FlatLandscape Objekt (falls vorhanden)
@@ -221,7 +251,7 @@ export const useEvolutionDataRepositoryStore =
 
       set({ _commitsToCommitComparisonMap: newCommitsToCommitComparisonMap });
       set({
-        _evolutionStructureLandscapeData: newEvolutionStructureLandscapeData,
+        _evolutionStructureLandscapeData: newEvolutionStructureLandscapeData, // Not used???????????
       });
       set({
         _combinedStructureLandscapeData: newCombinedStructureLandscapeData,
@@ -263,7 +293,7 @@ export const useEvolutionDataRepositoryStore =
     },
 
     /**
-     * TODO: Kann im Backend komplett passieren
+     * CC-TODO: Kann im Backend komplett passieren
      *  
      * commitIdToApplicationMetricsCode: Brauchen wir nicht, 
      * der Store Eintrag wird einfach komplett überschrieben
@@ -319,7 +349,7 @@ export const useEvolutionDataRepositoryStore =
     },
 
     /**
-     * TODO: Kann komplett im Backend passieren
+     * CC-TODO: Kann komplett im Backend passieren
      *  Wird wahrscheinlich das finale Objekt sein...nicht ganz sicher
      * DOPPEL-TODO: Bestätigen, ob das so ist
      */
@@ -381,7 +411,7 @@ export const useEvolutionDataRepositoryStore =
       if (metricKey === SelectedBuildingMetric.Method)
         return building.functionIds?.length || 0;
 
-      // TODO: Add further metrics
+      // CC-TODO: Add further metrics
       return 0;
     },
   }));

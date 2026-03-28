@@ -146,7 +146,7 @@ export default function CommitTreeRepositorySelection({
     return (
       <div
         ref={containerRef}
-        className="col-md-auto d-flex align-items-center repository-selection-container" // TODO: Könnte die CSS Klassen umbenennen (wenn die nicht an zu vielen Stellen genutzt werden)
+        className="col-md-auto d-flex align-items-center repository-selection-container"
       >
         <span className="h5 p-2 repository-label">Repository:</span>
         <div
