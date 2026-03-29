@@ -17,7 +17,6 @@ import {
   getAllPackagesAndClassesFromLandscape,
   getApplicationsFromNodes,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getAllMethodHashesOfLandscapeStructureData } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 
 export default function useLandscapeDataWatcher(
@@ -37,6 +36,7 @@ export default function useLandscapeDataWatcher(
     ClassCommunication[]
   >([]);
 
+  // CC-TODO: Herausfinden was hier passiert, das lösen und dann kann der flat-data-worker weg
   // State
   const [flatDataWorker] = useState<Worker>(
     () => new Worker(new URL('../workers/flat-data-worker.js', import.meta.url))
@@ -56,7 +56,6 @@ export default function useLandscapeDataWatcher(
     });
   };
 
-  const lastProcessedStructureHashes = useRef<string[]>([]);
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
   const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
 
@@ -102,8 +101,6 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
-    console.log('HandleLandscapeUpdate'); // CC-TODO
-
     const flatLandscapeStructure =
       landscapeData.flatLandscapeData ??
       convertToFlatLandscape(structureLandscapeData);
@@ -114,8 +111,6 @@ export default function useLandscapeDataWatcher(
     const applications = getApplicationsFromNodes(nodes).filter(
       ({ id }) => !removedDistrictIds.has(id)
     );
-
-    console.log('TEST', flatLandscapeStructure); // CC-TODO
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
@@ -162,8 +157,6 @@ export default function useLandscapeDataWatcher(
     for (const applicationData of applicationModels) {
       applicationRepository.add(applicationData.getId(), applicationData);
     }
-
-    console.log('MODEL-APPLICATIONS-CONTENT', applicationModels); // CC-TODO
     
     setApplicationModels(applicationModels);
     setInterAppCommunications(interAppCommunications);
@@ -205,13 +198,6 @@ export default function useLandscapeDataWatcher(
     if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
-    console.log('DATA-WATCHER'); // CC-TODO
-
-    const currentMethodHashes = getAllMethodHashesOfLandscapeStructureData(
-      structureLandscapeData
-    );
-
-    console.log('Method-Hashes', currentMethodHashes); // CC-TODO
 
     const currentFlatLandscapeIds = Object.entries(flatLandscapeData)
       .filter(([, value]) => typeof value === "object" && !Array.isArray(value) && value !== null)
@@ -219,29 +205,19 @@ export default function useLandscapeDataWatcher(
       .filter(item => "id" in item)
       .map(item => item.id);
 
-    console.log("FLAT IDS", currentFlatLandscapeIds); // CC-TODO
-
     const flatChanged = !areArraysEqual(
       currentFlatLandscapeIds,
       lastProcessedFlatLandscapeIds.current
     );
-    // const structureChanged = !areArraysEqual(
-    //   currentMethodHashes,
-    //   lastProcessedStructureHashes.current
-    // );
     const dynamicChanged = !areArraysEqual(
       dynamicLandscapeData,
       lastProcessedDynamicData.current
     );
 
-    console.log('CHANGES', flatChanged, dynamicChanged); // CC-TODO
-
     if (!flatChanged && !dynamicChanged) {
-      console.log('OH NO'); // CC-TODO
       return;
     }
 
-    lastProcessedStructureHashes.current = currentMethodHashes;
     lastProcessedDynamicData.current = dynamicLandscapeData;
     lastProcessedFlatLandscapeIds.current = currentFlatLandscapeIds;
 

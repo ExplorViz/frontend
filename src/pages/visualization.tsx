@@ -304,12 +304,8 @@ export default function Visualization() {
   const setVisualizationPausedRenderingService = useRenderingServiceStore(
     (state) => state.setVisualizationPaused
   );
-  // const renderingServiceTriggerRenderingForSelectedCommits =
-  //   useRenderingServiceStore(
-  //     (state) => state.triggerRenderingForSelectedCommits
-  //   );
   const renderingServiceTriggerRenderingForSelectedCommits = useRenderingServiceStore(
-    (state) => state.triggerRenderingForSelectedCommitsNEW
+    (state) => state.triggerRenderingForSelectedCommits
   );
   const renderingServiceTriggerRenderingForGivenTimestamp =
     useRenderingServiceStore(
@@ -342,8 +338,8 @@ export default function Visualization() {
   const getCurrentSelectedRepositoryName = useCommitTreeStateStore(
     (state) => state.getCurrentSelectedRepositoryName
   );
-  const getSelectedCommits = useCommitTreeStateStore(
-    (state) => state.getSelectedCommits
+  const selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
   );
   const setSelectedCommits = useCommitTreeStateStore(
     (state) => state.setSelectedCommits
@@ -534,15 +530,14 @@ export default function Visualization() {
     // Start main loop
     restartTimestampPollingAndVizUpdate([]);
 
-    // Fetch applications for evolution mode
-    // await fetchAndStoreApplicationCommitTrees();
+    // Fetch repositories for evolution mode
     await fetchAndStoreRepositoryCommitTrees();
 
     let showEvolutionVisualization = false;
 
     const selectedRepo = getCurrentSelectedRepositoryName();
     const selectedCommitsForCurrentSelectedRepo =
-      getSelectedCommits().get(selectedRepo);
+      selectedCommits.get(selectedRepo);
     setCommit1(
       selectedCommitsForCurrentSelectedRepo &&
         selectedCommitsForCurrentSelectedRepo.length > 0
@@ -1046,7 +1041,7 @@ export default function Visualization() {
                       renderingServiceTriggerRenderingForSelectedCommits
                     }
                     selectedRepoName={currentSelectedRepositoryName}
-                    selectedCommits={getSelectedCommits()}
+                    selectedCommits={selectedCommits}
                     setSelectedCommits={setSelectedCommits}
                     getCloneOfRepoNameAndBranchNameToColorMap={
                       getCloneOfRepoNameAndBranchNameToColorMap

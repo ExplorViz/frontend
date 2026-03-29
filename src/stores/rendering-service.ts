@@ -48,7 +48,6 @@ interface RenderingServiceState {
     dynamicData: DynamicLandscapeData,
     flatData?: FlatLandscape
   ) => void;
-  triggerRenderingForSelectedCommitsNEW: () => Promise<void>;
   triggerRenderingForSelectedCommits: () => Promise<void>;
   _mapTimestampsToEpochs: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
@@ -70,13 +69,10 @@ interface RenderingServiceState {
   _updateTimelineData: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => void;
-  _setEvolutionModeActiveAndHandleRenderingNEW: (
+  _setEvolutionModeActiveAndHandleRendering: (
       repositoryName: string,
       repoNameToSelectedCommits: Map<string, SelectedCommit[]>
     ) => Promise<void>;
-  _setEvolutionModeActiveAndHandleRendering: (
-    repoNameToSelectedCommits: Map<string, SelectedCommit[]>
-  ) => Promise<void>;
   _setRuntimeModeActive: () => void;
   _handleError: (e: any) => void;
   toggleVisualizationUpdating: () => void;
@@ -138,9 +134,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           });
 
           const structureToRender = combineStructureLandscapeData(
-            useEvolutionDataRepositoryStore.getState()
-              ._combinedStructureLandscapeData ||
-              createEmptyStructureLandscapeData,
+            createEmptyStructureLandscapeData(),
             combinedRuntimeLandscapeData.structureLandscapeData
           );
 
@@ -188,8 +182,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       });
     },
 
-    //CC-TODO: NEW weg wenn funktioniert
-    triggerRenderingForSelectedCommitsNEW: async (): Promise<void> => {
+    triggerRenderingForSelectedCommits: async (): Promise<void> => {
       try {
         const repoNameToSelectedCommits: Map<string, SelectedCommit[]> =
           useCommitTreeStateStore.getState().getSelectedCommits();
@@ -202,30 +195,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         useTimestampRepositoryStore.getState().stopTimestampPolling();
 
         if (repoNameToSelectedCommits.size > 0) {
-          await get()._setEvolutionModeActiveAndHandleRenderingNEW(
-            currentSelectedRepo,
-            repoNameToSelectedCommits
-          );
-        } else {
-          get()._setRuntimeModeActive();
-        }
-      } catch (error) {
-        get()._handleError(error);
-      }
-    },
-
-    // CC-TODO: Kann weg wenn neues funktioniert
-    triggerRenderingForSelectedCommits: async (): Promise<void> => {
-      try {
-        const repoNameToSelectedCommits: Map<string, SelectedCommit[]> =
-          useCommitTreeStateStore.getState().getSelectedCommits();
-
-        // Always pause when the selected commits change
-        get().pauseVisualizationUpdating(false);
-        useTimestampRepositoryStore.getState().stopTimestampPolling();
-
-        if (repoNameToSelectedCommits.size > 0) {
           await get()._setEvolutionModeActiveAndHandleRendering(
+            currentSelectedRepo,
             repoNameToSelectedCommits
           );
         } else {
@@ -373,8 +344,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       }
     },
 
-    // CC-TODO: NEW entfernen, wenn fertig
-    _setEvolutionModeActiveAndHandleRenderingNEW: async (
+    _setEvolutionModeActiveAndHandleRendering: async (
       repositoryName: string,
       repoNameToSelectedCommits: Map<string, SelectedCommit[]>
     ) => {
@@ -390,7 +360,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
       await useEvolutionDataRepositoryStore
         .getState()
-        .fetchAndStoreEvolutionDataForSelectedCommitsNEW(
+        .fetchAndStoreEvolutionDataForSelectedCommits(
           repositoryName, 
           repoNameToSelectedCommits.get(repositoryName) 
           ?? []
@@ -459,109 +429,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         .restartTimestampPollingAndVizUpdate(flattenedSelectedCommits);
     },
 
-    // CC-TODO: Wird durch neue Funktion ersetzt
-    // private
-    _setEvolutionModeActiveAndHandleRendering: async (
-      repoNameToSelectedCommits: Map<string, SelectedCommit[]>
-    ) => {
-      if (get()._analysisMode === 'runtime') {
-        useToastHandlerStore
-          .getState()
-          .showInfoToastMessage('Switching to evolution mode.');
-        set({ _analysisMode: 'evolution' });
-
-        // Reset all timestamp data upon first change to evolution mode
-        useTimestampRepositoryStore.getState().resetState();
-      }
-
-      // CC-TODO: Das wird der neue Fetch
-      // Der sollte dann im Bestfall auch in ein neues Attribut im Store schreiben, nennen wir es XY
-      // Endpoint der dann in der Funktion gecalled werden muss: v3/landscapes/{landscapeToken}/structure/static/{repoName}/{commitHash1}(-{commitHash2})
-      await useEvolutionDataRepositoryStore
-        .getState()
-        .fetchAndStoreEvolutionDataForSelectedCommits(repoNameToSelectedCommits);
-
-      // CC-TODO: Klären, was von dem folgendem gebraucht wird
-      // CC-TODO: Hier dann einfach XY ablegen
-      const combinedEvolutionStructureLandscapeData =
-        useEvolutionDataRepositoryStore.getState()
-          ._combinedStructureLandscapeData;
-
-      // CC-TODO: Brauchen wir noch, weil unten bei Timestamp Kram
-      const flattenedSelectedCommits: SelectedCommit[] = Array.from(
-        repoNameToSelectedCommits.values()
-      ).flat();
-
-      // CC-TODO: Der komplette Block kann weg
-      if (combinedEvolutionStructureLandscapeData.nodes.length > 0) {
-        let combinedStructureLandscapeData: StructureLandscapeData =
-          combinedEvolutionStructureLandscapeData;
-
-        let combinedDynamicLandscapeData: DynamicLandscapeData = [];
-
-        for (const commit of flattenedSelectedCommits) {
-          const potentialRuntimeData = get().currentRuntimeLandscapeData.get(
-            commit.commitId
-          );
-
-          if (potentialRuntimeData) {
-            // CC-TODO: Wird nichts mehr neues geben durch v3
-            combinedStructureLandscapeData = combineStructureLandscapeData(
-              combinedStructureLandscapeData,
-              potentialRuntimeData.structureLandscapeData
-            );
-
-            combinedDynamicLandscapeData = combineDynamicLandscapeData(
-              combinedDynamicLandscapeData,
-              potentialRuntimeData.dynamicLandscapeData
-            );
-          }
-        }
-
-        // CC-TODO: Erstmal drin lassen. Später schauen, ob raus kann
-        // Remove timestamp and landscape data with commits that are not selected anymore
-        let notSelectedCommitIds: string[] = Array.from(
-          get().currentRuntimeLandscapeData.keys()
-        ).flat();
-
-        notSelectedCommitIds = notSelectedCommitIds.filter(
-          (commitId1) =>
-            !flattenedSelectedCommits.some(
-              ({ commitId: id2 }) => id2 === commitId1
-            )
-        );
-
-        for (const commitIdToBeRemoved of notSelectedCommitIds) {
-          const newCRLD = get().currentRuntimeLandscapeData;
-          const newTDOH = get()._timelineDataObjectHandler;
-          newCRLD.delete(commitIdToBeRemoved);
-          useTimestampRepositoryStore
-            .getState()
-            .commitToTimestampMap.delete(commitIdToBeRemoved);
-          newTDOH?.timelineDataObject.delete(commitIdToBeRemoved);
-          set({
-            currentRuntimeLandscapeData: newCRLD,
-            _timelineDataObjectHandler: newTDOH,
-          });
-        }
-
-        /**
-         * CC-TODO: Neuer Call wird:
-         *    - Leere Struktur Daten (weil is in FlatLandscape)
-         *    - Dynamic Daten die wir aus dem Persistence Service anfragen (Standardanfrage für dynamic data)
-         *    - Das Ergebnis der Commit-Comparison/die Strukturdaten als FlatLandscape = XY
-         */
-        get().triggerRenderingForGivenLandscapeData(
-          combinedStructureLandscapeData,
-          combinedDynamicLandscapeData
-        );
-      }
-
-      useTimestampRepositoryStore
-        .getState()
-        .restartTimestampPollingAndVizUpdate(flattenedSelectedCommits);
-    },
-
     // private
     _setRuntimeModeActive: () => {
       if (get()._analysisMode === 'evolution') {
@@ -576,7 +443,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       }
 
       get().resetAllRenderingStates();
-      useEvolutionDataRepositoryStore.getState().resetStructureLandscapeData();
       useTimestampRepositoryStore.getState().resetState();
       useTimestampRepositoryStore
         .getState()

@@ -78,7 +78,6 @@ export default function CanvasWrapper({
   landscapeData: LandscapeData | null;
   xrStore?: XRStore | undefined;
 }) {
-  console.log('CANVASWRAPPER', landscapeData); // CC-TODO
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );

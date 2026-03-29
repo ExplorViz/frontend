@@ -79,7 +79,6 @@ export default function BrowserRendering({
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
-  console.log("LANDSCAPEDATA", landscapeData); // CC-TODO
 
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({

@@ -6,7 +6,6 @@ import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/coll
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -126,10 +125,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const commitComparison = useEvolutionDataRepositoryStore
-      .getState()
-      .getCommitComparisonByAppName(city.name);
-
     const { evoConfig } = useVisibilityServiceStore(
       useShallow((state) => ({
         evoConfig: state._evolutionModeRenderingConfiguration,
@@ -144,7 +139,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
-    // TODO: Hier dann später Comparison färben
     const computeColor = useCallback(
       (districtId: string) => {
         const district = useModelStore.getState().getDistrict(districtId);
@@ -154,12 +148,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           return new Color('white');
         }
 
-        if (evoConfig.renderOnlyDifferences && commitComparison) {
-          // Fallback to name if fqn is not available in District
-          const fqn = district.name;
-          if (commitComparison.addedPackages.includes(fqn)) {
+        if (evoConfig.renderOnlyDifferences && district.commitComparison) {
+          if (district.commitComparison === 'ADDED') {
             return new Color(addedDistrictColor);
-          } else if (commitComparison.deletedPackages.includes(fqn)) {
+          } else if (district.commitComparison === 'REMOVED') {
             return new Color(removedDistrictColor);
           } else {
             return new Color(unchangedDistrictColor);
@@ -214,7 +206,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         heatmapActive,
         layoutMap,
         evoConfig.renderOnlyDifferences,
-        commitComparison,
       ]
     );
 

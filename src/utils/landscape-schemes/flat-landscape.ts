@@ -1,5 +1,6 @@
 import {
   Application,
+  Class,
   Method,
   Node,
   Package,
@@ -7,6 +8,8 @@ import {
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
+
+export type CommitComparison = 'ADDED' | 'REMOVED' | 'MODIFIED' | 'UNCHANGED';
 
 export type FlatLandscape = {
   landscapeToken: string;
@@ -22,7 +25,7 @@ type FlatBaseModel = {
   name: string;
   fqn?: string;
   originOfData?: TypeOfAnalysis;
-  commitComparison?: 'added' | 'modified' | 'removed' | 'unchanged'; // For two selected commits
+  commitComparison?: CommitComparison; // For two selected commits
   editingState?: 'added' | 'removed'; // Reflect changes from restructuring
 };
 
@@ -54,7 +57,12 @@ export type Building = FlatBaseModel & {
   language?: Language;
   classIds?: string[];
   functionIds?: string[];
-  metrics?: Record<string, number>;
+  metrics?: Record<string, MetricValue>;
+};
+
+export type MetricValue = {
+  current: number;
+  previous?: number;
 };
 
 export type Cls = FlatBaseModel & {
@@ -67,11 +75,15 @@ export type Func = FlatBaseModel & {
 };
 
 export function isCity(x: any): x is City {
-  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'buildingIds');
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'allContainedBuildingIds');
 }
 
 export function isDistrict(x: any): x is District {
-  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'districtIds');
+  return (
+    isObject(x) && 
+    Object.prototype.hasOwnProperty.call(x, 'districtIds') && 
+    Object.prototype.hasOwnProperty.call(x, 'parentCityId')
+  );
 }
 
 export function isBuilding(x: any): x is Building {
@@ -137,7 +149,7 @@ export function convertToFlatLandscape(
           parentDistrictId: districtId,
           classIds: [],
           functionIds: [],
-          metrics: { numOfFunctions: 0 },
+          metrics: { numOfFunctions: { current: 0 } },
         };
 
         districts[districtId].buildingIds.push(buildingId);
@@ -187,6 +199,7 @@ export function convertToFlatLandscape(
           id: app.id,
           name: app.name,
           fqn: app.name,
+          buildingIds: [],
           districtIds: [],
           allContainedDistrictIds: [],
           allContainedBuildingIds: [],

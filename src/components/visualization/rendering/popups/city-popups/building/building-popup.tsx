@@ -24,6 +24,10 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
 
   const uuid = useMemo(() => generateUuidv4(), []);
 
+  const hasPrevious = Object.values(building.metrics ?? {}).some(
+    metric => metric.previous !== undefined
+  );
+
   return (
     <>
       <h3 className="popover-header">
@@ -93,6 +97,7 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                   <tr>
                     <th>Metric</th>
                     <th className="text-right">Value</th>
+                    {hasPrevious && <th className="text-right">Previous</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -101,7 +106,12 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                     Object.entries(building.metrics).map(([name, value]) => (
                       <tr key={name}>
                         <td className="text-break">{name}</td>
-                        <td className="text-right">{value}</td>
+                        <td className="text-right">{value.current}</td>
+                        {hasPrevious && (
+                          <td className="text-right">
+                            {value.previous ?? "-"}
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (

@@ -5,7 +5,6 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
@@ -181,10 +180,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     }))
   );
 
-  const commitComparison = useEvolutionDataRepositoryStore(
-    useShallow((state) => state.getCommitComparisonByAppName(city.name))
-  );
-
   // Compute geometry type based on language setting
   const selectedGeometryType = useMemo(
     () => {
@@ -283,7 +278,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     [buildingFootprint, buildingHeightMultiplier, heightMetric]
   );
 
-  // TODO: Hier dann später Comparison färben
   const computeColor = useCallback(
     (buildingId: string) => {
       const building = useModelStore.getState().getBuilding(buildingId);
@@ -300,13 +294,12 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         );
       }
 
-      if (evoConfig.renderOnlyDifferences && commitComparison) {
-        const fqn = building.fqn || '';
-        if (commitComparison.added.includes(fqn)) {
+      if (evoConfig.renderOnlyDifferences && building.commitComparison) {
+        if (building.commitComparison === 'ADDED') {
           return new THREE.Color(addedBuildingColor);
-        } else if (commitComparison.deleted.includes(fqn)) {
+        } else if (building.commitComparison === 'REMOVED') {
           return new THREE.Color(removedBuildingColor);
-        } else if (commitComparison.modified.includes(fqn)) {
+        } else if (building.commitComparison === 'MODIFIED') {
           return new THREE.Color(modifiedBuildingColor);
         } else {
           return new THREE.Color(unchangedBuildingColor);
@@ -334,7 +327,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       heatmapActive,
       selectedBuildingMetric,
       evoConfig.renderOnlyDifferences,
-      commitComparison,
       addedBuildingColor,
       removedBuildingColor,
       modifiedBuildingColor,
@@ -379,12 +371,8 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
       const visibleDueToEvo = (() => {
         if (evoConfig.renderOnlyDifferences) {
-          if (!commitComparison) return false;
-          const fqn = building.fqn || '';
           return (
-            commitComparison.added.includes(fqn) ||
-            commitComparison.deleted.includes(fqn) ||
-            commitComparison.modified.includes(fqn)
+            !!building.commitComparison
           );
         }
 
@@ -418,7 +406,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     hiddenBuildingIds,
     removedDistrictIds,
     evoConfig,
-    commitComparison,
     getBuildingHeight,
     computeColor,
     instanceIdToBuildingId,

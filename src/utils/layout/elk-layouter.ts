@@ -137,7 +137,6 @@ export default async function layoutLandscape(
       landscapeGraph.children.push(
         createCityGraph(landscape, city, removedDistrictIds)
       );
-      console.log('Landscape-Graph', landscapeGraph); // CC-TODO
     }
   });
 
@@ -249,7 +248,6 @@ function populateDistrict(
   removedDistrictIds: Set<string>
 ) {
   district.buildingIds.forEach((buildingId) => {
-    console.log('BUILDING', buildingId); // CC-TODO
     const building = landscape.buildings[buildingId];
     if (!building) {
       return;
@@ -282,7 +280,6 @@ function populateDistrict(
   });
 
   district.districtIds.forEach((districtId) => {
-    console.log('DICSTRICT ID', districtId); // CC-TODO
     if (removedDistrictIds.has(districtId)) {
       return;
     }
@@ -300,7 +297,6 @@ function populateDistrict(
         ),
       },
     };
-    console.log('INNER DISTRICT PUSH'); // CC-TODO
     districtGraphChildren.push(packageNode);
 
     const district = landscape.districts[districtId];

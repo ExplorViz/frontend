@@ -141,7 +141,6 @@ export default function CityFoundation({
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
-  // TODO: Hier dann später Comparison färben
   const computeColor = () => {
     const baseColor = isHighlighted
       ? getHighlightingColorForEntity(city.id)

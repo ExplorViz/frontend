@@ -87,7 +87,7 @@ export default function CodeBuildingLabel({
 
   const getBuildingHeight = useCallback(
     (building: Building) => {
-      const metricValue = building.metrics?.[heightMetric] || 0;
+      const metricValue = building.metrics?.[heightMetric]?.current || 0;
       return (
         buildingFootprint +
         metricMappingMultipliers[heightMetric as MetricKey] *

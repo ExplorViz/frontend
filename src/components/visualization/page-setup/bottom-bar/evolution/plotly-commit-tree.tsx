@@ -129,7 +129,6 @@ export default function PlotlyCommitTree({
         }
 
         // Filter out empty selections and remove empty applications
-        // for (const [app, commits] of selectedCommits.entries()) {
         for (const [repo, commits] of selectedCommits.entries()) {
           if (commits.length === 0) {
             selectedCommits.delete(repo);

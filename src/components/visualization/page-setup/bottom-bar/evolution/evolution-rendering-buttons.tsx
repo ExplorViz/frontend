@@ -34,28 +34,18 @@ export default function EvolutionRenderingButtons() {
     }
   }, [evoConfig]);
 
-  // const renderingService = useRenderingServiceStore(
-  //   useShallow((state) => ({
-  //     triggerRenderingForSelectedCommits:
-  //       state.triggerRenderingForSelectedCommits,
-  //   }))
-  // );
   const renderingService = useRenderingServiceStore(
     useShallow((state) => ({
       triggerRenderingForSelectedCommits:
-        state.triggerRenderingForSelectedCommitsNEW,
+        state.triggerRenderingForSelectedCommits,
     }))
   );
 
-  const getCurrentSelectedRepositoryName = useCommitTreeStateStore(
-    (state) => state.getCurrentSelectedRepositoryName
+  const currentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
   );
 
-  const { getSelectedCommits } = useCommitTreeStateStore(
-    useShallow((state) => ({
-      getSelectedCommits: state.getSelectedCommits,
-    }))
-  );
+  const selectedCommitsMap = useCommitTreeStateStore((state) => state._selectedCommits);
 
   const visService = useVisibilityServiceStore(
     useShallow((state) => ({
@@ -96,23 +86,14 @@ export default function EvolutionRenderingButtons() {
     visService.applyEvolutionModeRenderingConfiguration(evolutionMode);
   };
 
-  const currentRepoName = getCurrentSelectedRepositoryName();
-  const selectedCommitsMap = getSelectedCommits();
-
-  const selectedCommitsForRepo = currentRepoName
-    ? selectedCommitsMap.get(currentRepoName)
-    : undefined;
-
-  const selectedCount = selectedCommitsForRepo?.length ?? 0;
-  const showUnselect = selectedCount === 1 || selectedCount === 2;
+  const currentRepoName = currentSelectedRepositoryName;
   const hasSelectedAny = selectedCommitsMap.size > 0;
-  const showRepo = !!currentRepoName;
 
   return (
     <div className="col-md-auto">
-      {showRepo && (
+      {!!currentRepoName && (
         <div className="row justify-content-md-center">
-          {showUnselect && (
+          {!!selectedCommitsMap.get(currentRepoName) && (
             <div className="col-md-auto">
               <div className="d-flex">
                 <button
