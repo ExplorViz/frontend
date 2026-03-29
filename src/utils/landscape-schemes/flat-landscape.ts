@@ -35,9 +35,10 @@ export type Language =
   | 'LANGUAGE_UNSPECIFIED';
 
 export type City = FlatBaseModel & {
-  rootDistrictIds: string[];
-  districtIds: string[];
   buildingIds: string[];
+  districtIds: string[];
+  allContainedBuildingIds: string[];
+  allContainedDistrictIds: string[];
 };
 
 export type District = FlatBaseModel & {
@@ -114,9 +115,9 @@ export function convertToFlatLandscape(
 
       // Handle root packages (packages without parent package)
       if (!pkg.parent) {
-        cities[cityId].rootDistrictIds.push(districtId);
+        cities[cityId].districtIds.push(districtId);
       }
-      cities[cityId].districtIds.push(districtId);
+      cities[cityId].allContainedDistrictIds.push(districtId);
     }
 
     for (const cls of pkg.classes) {
@@ -142,7 +143,7 @@ export function convertToFlatLandscape(
         districts[districtId].buildingIds.push(buildingId);
       }
 
-      cities[cityId].buildingIds.push(buildingId);
+      cities[cityId].allContainedBuildingIds.push(buildingId);
 
       if (!classes[cls.id]) {
         classes[cls.id] = {
@@ -186,9 +187,9 @@ export function convertToFlatLandscape(
           id: app.id,
           name: app.name,
           fqn: app.name,
-          rootDistrictIds: [],
           districtIds: [],
-          buildingIds: [],
+          allContainedDistrictIds: [],
+          allContainedBuildingIds: [],
         };
       }
 
@@ -239,7 +240,7 @@ export function convertStructureLandscapeFromFlat(
       originOfData: city.originOfData || TypeOfAnalysis.Dynamic,
     };
 
-    city.rootDistrictIds.forEach((districtId) => {
+    city.districtIds.forEach((districtId) => {
       const pkg = buildPackage(districtId, districts, buildings, functions);
       if (pkg) {
         pkg.parent = undefined; // Root packages have no parent
@@ -249,8 +250,8 @@ export function convertStructureLandscapeFromFlat(
     });
 
     // Determine language from first building if available
-    if (city.buildingIds.length > 0) {
-      const firstBuilding = buildings[city.buildingIds[0]];
+    if (city.allContainedBuildingIds.length > 0) {
+      const firstBuilding = buildings[city.allContainedBuildingIds[0]];
       if (firstBuilding?.language) {
         app.language = firstBuilding.language;
       }

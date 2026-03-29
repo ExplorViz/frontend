@@ -100,26 +100,26 @@ export default function CodeCity({ city }: { city: City }) {
       )} */}
       {appLayout && <CityFoundation city={city} layout={appLayout} />}
       <CodeBuildings
-        buildingIds={city.buildingIds.filter((id) =>
+        buildingIds={city.allContainedBuildingIds.filter((id) =>
           useLayoutStore.getState().getBuildingLayouts().has(id)
         )}
         city={city}
       />
-      {city.buildingIds.map((buildingId) => (
+      {city.allContainedBuildingIds.map((buildingId) => (
         <CodeBuildingLabel
           key={buildingId + '-label'}
           buildingId={buildingId}
         />
       ))}
       <CityDistricts
-        districtIds={city.districtIds.filter((id) =>
+        districtIds={city.allContainedDistrictIds.filter((id) =>
           useLayoutStore.getState().districtLayouts.has(id)
         )}
         layoutMap={useLayoutStore.getState().districtLayouts}
         ref={componentInstanceMeshRef}
         city={city}
       />
-      {city.districtIds.map((districtId) => {
+      {city.allContainedDistrictIds.map((districtId) => {
         const district = useModelStore.getState().getDistrict(districtId);
         const layout = useLayoutStore.getState().getLayout(districtId);
         if (district && layout) {

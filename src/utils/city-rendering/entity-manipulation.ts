@@ -2,9 +2,9 @@ import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaborati
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
-  Building,
-  City,
-  District,
+    Building,
+    City,
+    District,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
@@ -128,17 +128,17 @@ export function closeDistrict(
  * @param city City which contains the districts
  */
 export function closeAllDistrictsInCity(city: City, sendMessage = true) {
-  const districtIdsToHide = city.districtIds.filter(
-    (id) => !city.rootDistrictIds.includes(id)
+  const districtIdsToHide = city.allContainedDistrictIds.filter(
+    (id) => !city.districtIds.includes(id)
   );
-  closeDistricts(city.districtIds);
+  closeDistricts(city.allContainedDistrictIds);
   hideDistricts(districtIdsToHide);
-  hideBuildings(city.buildingIds);
+  hideBuildings(city.allContainedBuildingIds);
 
   if (sendMessage) {
     useMessageSenderStore
       .getState()
-      .sendDistrictUpdate(city.districtIds, false);
+      .sendDistrictUpdate(city.allContainedDistrictIds, false);
   }
 }
 
@@ -174,11 +174,11 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
  * @param city City which contains the districts to be opened
  */
 export function openAllDistrictsInCity(city: City, sendMessage = true) {
-  openDistricts(city.districtIds);
-  showBuildings(city.buildingIds);
+  openDistricts(city.allContainedDistrictIds);
+  showBuildings(city.allContainedBuildingIds);
 
   if (sendMessage) {
-    useMessageSenderStore.getState().sendDistrictUpdate(city.districtIds, true);
+    useMessageSenderStore.getState().sendDistrictUpdate(city.allContainedDistrictIds, true);
   }
 }
 

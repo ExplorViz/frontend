@@ -390,7 +390,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
       await useEvolutionDataRepositoryStore
         .getState()
-        .fetchAndStoreEvolutuinDataForSelectedCommitsNEW(
+        .fetchAndStoreEvolutionDataForSelectedCommitsNEW(
           repositoryName, 
           repoNameToSelectedCommits.get(repositoryName) 
           ?? []

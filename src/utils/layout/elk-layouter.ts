@@ -104,7 +104,7 @@ export default async function layoutLandscape(
   // Add buildings
   const cities = Object.values(landscape.cities);
   cities.forEach((city) => {
-    const buildingCount = city.buildingIds.length;
+    const buildingCount = city.allContainedBuildingIds.length;
     if (useCustomBuildingLayout) {
       let citySideLength = 1;
       if (useCircleLayout) {

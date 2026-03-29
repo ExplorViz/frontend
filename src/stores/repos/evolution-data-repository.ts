@@ -33,7 +33,7 @@ interface EvolutionDataRepositoryState {
   ) => CommitComparison | undefined;
   getRepoNameToFlatLandscapeMap: () => Map<string, FlatLandscape>;
   fetchAndStoreRepositoryCommitTrees: () => Promise<boolean>;
-  fetchAndStoreEvolutuinDataForSelectedCommitsNEW: (
+  fetchAndStoreEvolutionDataForSelectedCommitsNEW: (
       repositoryName: string,
       selectedCommits: SelectedCommit[]
     ) => Promise<void>;
@@ -158,7 +158,7 @@ export const useEvolutionDataRepositoryStore =
     },
 
     // CC-TODO: das NEW aus dem Namen entfernen, wenn fertig
-    fetchAndStoreEvolutuinDataForSelectedCommitsNEW: async (
+    fetchAndStoreEvolutionDataForSelectedCommitsNEW: async (
       repositoryName: string,
       selectedCommits: SelectedCommit[]
     ): Promise<void> => {

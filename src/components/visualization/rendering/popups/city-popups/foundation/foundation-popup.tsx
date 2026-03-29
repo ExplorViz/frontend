@@ -23,13 +23,13 @@ export default function FoundationPopup({ popupData }: FoundationPopupProps) {
             <tr>
               <td>Contained Districts:</td>
               <td className="text-right text-break pl-1">
-                {city.districtIds.length}
+                {city.allContainedDistrictIds.length}
               </td>
             </tr>
             <tr>
               <td>Contained Buildings:</td>
               <td className="text-right text-break pl-1">
-                {city.buildingIds.length}
+                {city.allContainedBuildingIds.length}
               </td>
             </tr>
           </tbody>
