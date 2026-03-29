@@ -45,6 +45,7 @@ export default function useLandscapeDataWatcher(
   // Variables
   const structureLandscapeData = landscapeData?.structureLandscapeData;
   const dynamicLandscapeData = landscapeData?.dynamicLandscapeData;
+  const flatLandscapeData = landscapeData?.flatLandscapeData;
 
   // Event handlers
   const sendMessageToWorker = async (worker: Worker, message: any) => {
@@ -57,6 +58,7 @@ export default function useLandscapeDataWatcher(
 
   const lastProcessedStructureHashes = useRef<string[]>([]);
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
+  const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
 
   const updateApplicationData = useCallback(
     async (
@@ -100,6 +102,8 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
+    console.log('HandleLandscapeUpdate'); // CC-TODO
+
     const flatLandscapeStructure =
       landscapeData.flatLandscapeData ??
       convertToFlatLandscape(structureLandscapeData);
@@ -110,6 +114,8 @@ export default function useLandscapeDataWatcher(
     const applications = getApplicationsFromNodes(nodes).filter(
       ({ id }) => !removedDistrictIds.has(id)
     );
+
+    console.log('TEST', flatLandscapeStructure); // CC-TODO
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
@@ -157,9 +163,11 @@ export default function useLandscapeDataWatcher(
       applicationRepository.add(applicationData.getId(), applicationData);
     }
 
+    console.log('MODEL-APPLICATIONS-CONTENT', applicationModels); // CC-TODO
+    
     setApplicationModels(applicationModels);
     setInterAppCommunications(interAppCommunications);
-
+    
     // Add data to model repository
     const { packages, classes } = getAllPackagesAndClassesFromLandscape(
       structureLandscapeData
@@ -194,32 +202,51 @@ export default function useLandscapeDataWatcher(
   ]);
 
   useEffect(() => {
-    if (!structureLandscapeData || !dynamicLandscapeData) {
+    if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
+    console.log('DATA-WATCHER'); // CC-TODO
 
     const currentMethodHashes = getAllMethodHashesOfLandscapeStructureData(
       structureLandscapeData
     );
 
-    const structureChanged = !areArraysEqual(
-      currentMethodHashes,
-      lastProcessedStructureHashes.current
+    console.log('Method-Hashes', currentMethodHashes); // CC-TODO
+
+    const currentFlatLandscapeIds = Object.entries(flatLandscapeData)
+      .filter(([, value]) => typeof value === "object" && !Array.isArray(value) && value !== null)
+      .flatMap(([, value]) => Object.values(value as Record<string, { id: string }>))
+      .filter(item => "id" in item)
+      .map(item => item.id);
+
+    console.log("FLAT IDS", currentFlatLandscapeIds); // CC-TODO
+
+    const flatChanged = !areArraysEqual(
+      currentFlatLandscapeIds,
+      lastProcessedFlatLandscapeIds.current
     );
+    // const structureChanged = !areArraysEqual(
+    //   currentMethodHashes,
+    //   lastProcessedStructureHashes.current
+    // );
     const dynamicChanged = !areArraysEqual(
       dynamicLandscapeData,
       lastProcessedDynamicData.current
     );
 
-    if (!structureChanged && !dynamicChanged) {
+    console.log('CHANGES', flatChanged, dynamicChanged); // CC-TODO
+
+    if (!flatChanged && !dynamicChanged) {
+      console.log('OH NO'); // CC-TODO
       return;
     }
 
     lastProcessedStructureHashes.current = currentMethodHashes;
     lastProcessedDynamicData.current = dynamicLandscapeData;
+    lastProcessedFlatLandscapeIds.current = currentFlatLandscapeIds;
 
     handleLandscapeUpdate();
-  }, [structureLandscapeData, dynamicLandscapeData, handleLandscapeUpdate]);
+  }, [structureLandscapeData, dynamicLandscapeData, flatLandscapeData, handleLandscapeUpdate]);
 
   useEffect(() => {
     return function cleanup() {

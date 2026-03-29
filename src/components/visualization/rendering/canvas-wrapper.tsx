@@ -78,6 +78,7 @@ export default function CanvasWrapper({
   landscapeData: LandscapeData | null;
   xrStore?: XRStore | undefined;
 }) {
+  console.log('CANVASWRAPPER', landscapeData); // CC-TODO
   const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
     null
   );
@@ -246,7 +247,7 @@ export default function CanvasWrapper({
         // If we found a top-level package, try to find its application by ID pattern
         if (currentElement.id && currentElement.id.includes('.component-')) {
           application = getApplicationFromPackage(
-            landscapeData!.structureLandscapeData,
+            landscapeData!.structureLandscapeData, // CC-TODO: Hier wird nichts mit FlatLandscape gemacht. Vllt. wichtig?
             currentElement.id
           );
         }

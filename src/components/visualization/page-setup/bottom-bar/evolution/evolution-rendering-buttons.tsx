@@ -34,10 +34,16 @@ export default function EvolutionRenderingButtons() {
     }
   }, [evoConfig]);
 
+  // const renderingService = useRenderingServiceStore(
+  //   useShallow((state) => ({
+  //     triggerRenderingForSelectedCommits:
+  //       state.triggerRenderingForSelectedCommits,
+  //   }))
+  // );
   const renderingService = useRenderingServiceStore(
     useShallow((state) => ({
       triggerRenderingForSelectedCommits:
-        state.triggerRenderingForSelectedCommits,
+        state.triggerRenderingForSelectedCommitsNEW,
     }))
   );
 

@@ -45,12 +45,12 @@ import Restructure from '../page-setup/sidebar/customizationbar/restructure/rest
 import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
 import SidebarComponent from '../page-setup/sidebar/sidebar-component';
+import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
 import AnnotationCoordinator from './annotations/annotation-coordinator';
 import Popups from './popups/popups';
-import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 
 interface BrowserRenderingProps {
   readonly id: string;
@@ -79,6 +79,7 @@ export default function BrowserRendering({
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
+  console.log("LANDSCAPEDATA", landscapeData); // CC-TODO
 
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({

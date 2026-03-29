@@ -48,6 +48,7 @@ interface RenderingServiceState {
     dynamicData: DynamicLandscapeData,
     flatData?: FlatLandscape
   ) => void;
+  triggerRenderingForSelectedCommitsNEW: () => Promise<void>;
   triggerRenderingForSelectedCommits: () => Promise<void>;
   _mapTimestampsToEpochs: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>

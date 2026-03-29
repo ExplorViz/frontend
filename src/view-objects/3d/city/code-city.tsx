@@ -18,6 +18,8 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeCity({ city }: { city: City }) {
+  console.log('CITY', city) // CC-TODO
+
   const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
     useUserSettingsStore(
       useShallow((state) => ({

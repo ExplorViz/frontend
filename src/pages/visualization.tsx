@@ -304,10 +304,13 @@ export default function Visualization() {
   const setVisualizationPausedRenderingService = useRenderingServiceStore(
     (state) => state.setVisualizationPaused
   );
-  const renderingServiceTriggerRenderingForSelectedCommits =
-    useRenderingServiceStore(
-      (state) => state.triggerRenderingForSelectedCommits
-    );
+  // const renderingServiceTriggerRenderingForSelectedCommits =
+  //   useRenderingServiceStore(
+  //     (state) => state.triggerRenderingForSelectedCommits
+  //   );
+  const renderingServiceTriggerRenderingForSelectedCommits = useRenderingServiceStore(
+    (state) => state.triggerRenderingForSelectedCommitsNEW
+  );
   const renderingServiceTriggerRenderingForGivenTimestamp =
     useRenderingServiceStore(
       (state) => state.triggerRenderingForGivenTimestamps
