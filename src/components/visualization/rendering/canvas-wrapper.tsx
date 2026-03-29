@@ -335,8 +335,25 @@ export default function CanvasWrapper({
     }))
   );
 
+  console.log('CW-LandscapeData', landscapeData); // CC-TODO
+
+  let flatData = undefined;
+  if (landscapeData && landscapeData.flatLandscapeData) {
+    flatData = landscapeData.flatLandscapeData;
+  }
+
+  const newLandscapeData = {
+    structureLandscapeData: landscapeData ? landscapeData!.structureLandscapeData : undefined,
+    dynamicLandscapeData: landscapeData ? landscapeData!.dynamicLandscapeData : undefined,
+    flatLandscapeData: landscapeData ? flatData ? flatData : convertToFlatLandscape(landscapeData!.structureLandscapeData) : flatData,
+  } as LandscapeData;
+
+  console.log('NEW-LANDSCAPEDATA', newLandscapeData); // CC-TODO
+
   const { applicationModels, interAppCommunications } =
-    useLandscapeDataWatcher(landscapeData);
+    useLandscapeDataWatcher(newLandscapeData);
+  
+  console.log('AppModels & InterComms', applicationModels, interAppCommunications); // CC-TODO
 
   const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
