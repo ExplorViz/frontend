@@ -36,27 +36,11 @@ export default function useLandscapeDataWatcher(
     ClassCommunication[]
   >([]);
 
-  // CC-TODO: Herausfinden was hier passiert, das lösen und dann kann der flat-data-worker weg
-  // State
-  const [flatDataWorker] = useState<Worker>(
-    () => new Worker(new URL('../workers/flat-data-worker.js', import.meta.url))
-  );
-
   // Variables
   const structureLandscapeData = landscapeData?.structureLandscapeData;
   const dynamicLandscapeData = landscapeData?.dynamicLandscapeData;
   const flatLandscapeData = landscapeData?.flatLandscapeData;
 
-  // Event handlers
-  const sendMessageToWorker = async (worker: Worker, message: any) => {
-    return new Promise<any>((resolve, reject) => {
-      worker.onmessage = (event) => resolve(event.data);
-      worker.onerror = (error) => reject(error);
-      worker.postMessage(message);
-    });
-  };
-
-  // const lastProcessedStructureHashes = useRef<string[]>([]);
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
   const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
 
@@ -66,19 +50,9 @@ export default function useLandscapeDataWatcher(
       classCommunication: ClassCommunication[],
       boxLayoutMap: any
     ) => {
-      const workerPayload = {
-        structure: application,
-        dynamic: dynamicLandscapeData,
-      };
-
-      log('Beginn to process flat data.');
-      const flatData = await sendMessageToWorker(flatDataWorker, workerPayload);
-      log('Finished flat data.');
-
       let applicationData = new ApplicationData(
         application,
         boxLayoutMap,
-        flatData
       );
 
       applicationData.classCommunications = classCommunication.filter(
@@ -90,19 +64,15 @@ export default function useLandscapeDataWatcher(
         }
       );
 
-      console.log('APPLICATION DATA', applicationData); // CC-TODO
-
       return applicationData;
     },
-    [dynamicLandscapeData, flatDataWorker, log]
+    [dynamicLandscapeData, log]
   );
 
   const handleLandscapeUpdate = useCallback(async () => {
-    console.log('HandleLandscapeUpdate called'); // CC-TODO
     log('handleLandscapeUpdate');
     await Promise.resolve();
-    if (!structureLandscapeData || !dynamicLandscapeData) {
-      console.log('OH NO'); // CC-TODO
+    if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
 
@@ -117,16 +87,12 @@ export default function useLandscapeDataWatcher(
       ({ id }) => !removedDistrictIds.has(id)
     );
 
-    console.log('H'); // CC-TODO
-
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
       flatLandscapeStructure,
       removedDistrictIds
     );
     log('Layouted landscape: ', boxLayoutMap);
-
-    console.log('F'); // CC-TODO
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
@@ -155,8 +121,6 @@ export default function useLandscapeDataWatcher(
         !removedDistrictIds.has(x.sourceApp.id) &&
         !removedDistrictIds.has(x.targetApp.id)
     );
-
-    console.log('INTER_COMMS', interAppCommunications); // CC-TODO
 
     // TODO: Add data for IDE extension
 
@@ -207,7 +171,6 @@ export default function useLandscapeDataWatcher(
 
   useEffect(() => {
     if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
-      console.log('OH NO 2'); // CC-TODO
       return;
     }
 
@@ -217,18 +180,10 @@ export default function useLandscapeDataWatcher(
       .filter(item => "id" in item)
       .map(item => item.id);
 
-    // const currentMethodHashes = getAllMethodHashesOfLandscapeStructureData(
-    //   structureLandscapeData
-    // );
-
     const flatChanged = !areArraysEqual(
       currentFlatLandscapeIds,
       lastProcessedFlatLandscapeIds.current
     );
-    // const structureChanged = !areArraysEqual(
-    //   currentMethodHashes,
-    //   lastProcessedStructureHashes.current
-    // );
 
     const dynamicChanged = !areArraysEqual(
       dynamicLandscapeData,
@@ -236,22 +191,14 @@ export default function useLandscapeDataWatcher(
     );
 
     if (!flatChanged && !dynamicChanged) {
-    // if (!structureChanged && !dynamicChanged) {
       return;
     }
 
-    // lastProcessedStructureHashes.current = currentMethodHashes;
     lastProcessedDynamicData.current = dynamicLandscapeData;
     lastProcessedFlatLandscapeIds.current = currentFlatLandscapeIds;
 
     handleLandscapeUpdate();
   }, [structureLandscapeData, dynamicLandscapeData, flatLandscapeData, handleLandscapeUpdate]);
-
-  useEffect(() => {
-    return function cleanup() {
-      flatDataWorker.terminate();
-    };
-  }, [flatDataWorker]);
 
   return { applicationModels, interAppCommunications };
 }

@@ -1,5 +1,4 @@
 // import { tracked } from '@glimmer/tracking';
-import { FlatData } from 'explorviz-frontend/src/utils/flat-data-schemes/flat-data';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
@@ -17,7 +16,7 @@ export default class ApplicationData {
 
   boxLayoutMap: Map<string, BoxLayout>;
 
-  flatData: FlatData;
+  // flatData: FlatData;
 
   // @tracked
   applicationMetrics: ApplicationMetrics;
@@ -27,11 +26,11 @@ export default class ApplicationData {
   constructor(
     application: Application,
     boxLayoutMap: Map<string, BoxLayout>,
-    flatData: FlatData
+    // flatData: FlatData
   ) {
     this.application = application;
     this.boxLayoutMap = boxLayoutMap;
-    this.flatData = flatData;
+    // this.flatData = flatData;
     this.applicationMetrics = {
       metrics: [],
       latestClazzMetricScores: [],
@@ -44,11 +43,11 @@ export default class ApplicationData {
   updateApplication(
     newApplication: Application,
     boxLayoutMap: Map<string, BoxLayout>,
-    flatData: FlatData
+    // flatData: FlatData
   ) {
     this.application = newApplication;
     this.boxLayoutMap = boxLayoutMap;
-    this.flatData = flatData;
+    // this.flatData = flatData;
   }
 
   getId() {
