@@ -246,7 +246,7 @@ export default function CanvasWrapper({
         // If we found a top-level package, try to find its application by ID pattern
         if (currentElement.id && currentElement.id.includes('.component-')) {
           application = getApplicationFromPackage(
-            landscapeData!.structureLandscapeData, // CC-TODO: Hier wird nichts mit FlatLandscape gemacht. Vllt. wichtig?
+            landscapeData!.structureLandscapeData,
             currentElement.id
           );
         }
@@ -334,13 +334,6 @@ export default function CanvasWrapper({
       isCommRendered: state.isCommRendered,
     }))
   );
-
-  console.log('CW-LandscapeData', landscapeData); // CC-TODO
-
-  let flatData = undefined;
-  if (landscapeData && landscapeData.flatLandscapeData) {
-    flatData = landscapeData.flatLandscapeData;
-  }
 
   const { applicationModels, interAppCommunications } =
     useLandscapeDataWatcher(landscapeData);
@@ -563,6 +556,18 @@ export default function CanvasWrapper({
               .map((city) => (
                 <CodeCity key={city.id} city={city} />
               ))}
+            {isCommRendered &&
+              useModelStore
+                .getState()
+                .getAllCommunications().map((communication) => (
+                  <CommunicationR3F
+                  key={communication.id}
+                  communicationModel={communication}
+                  applicationElement={communication.sourceApp}
+                  layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                  applicationModels={applicationModels}
+                />
+            ))}
             {isCommRendered &&
               interAppCommunications.map((communication) => (
                 <CommunicationR3F

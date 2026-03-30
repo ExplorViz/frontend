@@ -105,7 +105,6 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
           }
         }
 
-        console.log("LLBT", dynamic, flat); // CC-TODO
         return [flat, dynamic];
       }
       throw Error('No data available.');

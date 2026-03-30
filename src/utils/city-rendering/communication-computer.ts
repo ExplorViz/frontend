@@ -7,7 +7,7 @@ import MethodCall from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/m
 import {
   Building,
   City,
-  FlatLandscape,
+  FlatLandscape
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { getTraceIdToSpanTreeMap } from 'explorviz-frontend/src/utils/trace-helpers';
 
@@ -31,7 +31,7 @@ function computeClassCommunicationRecursively(
   if (!func) {
     return [];
   }
-  const building = flatLandscape.buildings[func.parentId];
+  const building = flatLandscape.buildings[func.parentBuildingId];
   if (!building) {
     return [];
   }
@@ -43,7 +43,8 @@ function computeClassCommunicationRecursively(
   childSpans.forEach((childSpan) => {
     const childFunc = flatLandscape.functions[childSpan.methodHash];
     if (childFunc) {
-      const childBuilding = flatLandscape.buildings[childFunc.parentId];
+      // const childBuilding = flatLandscape.buildings[childFunc.parentId];
+      const childBuilding = flatLandscape.buildings[childFunc.parentBuildingId];
       if (childBuilding) {
         const methodName = childFunc.name;
 

@@ -41,7 +41,6 @@ export default function CommunicationPopupRuntime({
                 {communication.methodCalls.length}
               </td>
             </tr>
-            <hr />
           </>
         )}
 

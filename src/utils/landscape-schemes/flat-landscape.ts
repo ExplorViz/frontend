@@ -67,11 +67,13 @@ export type MetricValue = {
 
 export type Cls = FlatBaseModel & {
   functionIds: string[];
+  parentBuildingId: string;
 };
 
 export type Func = FlatBaseModel & {
   parentId: string;
   metrics?: Record<string, number>;
+  parentBuildingId: string;
 };
 
 export function isCity(x: any): x is City {
