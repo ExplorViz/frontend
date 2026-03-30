@@ -4,7 +4,7 @@ import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-sch
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
-const spanService = import.meta.env.VITE_SPAN_SERV_URL;
+const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
 
 // Helper functions to convert between nanoseconds and milliseconds
 // The backend now uses nanoseconds, but frontend Date objects use milliseconds
@@ -42,7 +42,7 @@ export function requestStructureData(/* fromTimestamp: number, toTimestamp: numb
         return;
       }
       fetch(
-        `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure`,
+        `${persistenceService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure`,
         {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -76,7 +76,7 @@ export function requestDynamicData(
       return;
     }
     fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
+      `${persistenceService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -103,7 +103,7 @@ export function deleteTraceData(): Promise<void> {
       return;
     }
     fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
+      `${persistenceService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
       {
         method: 'DELETE',
         headers: {
