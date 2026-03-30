@@ -34,32 +34,30 @@ export async function requestData(
 }
 
 export function requestStructureData(/* fromTimestamp: number, toTimestamp: number */) {
-  return new Promise<FlatLandscape>(
-    (resolve, reject) => {
-      if (useLandscapeTokenStore.getState().token === null) {
-        reject(new Error('No landscape token selected'));
-        return;
-      }
-      fetch(
-        `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`,
-        {
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      )
-        .then(async (response: Response) => {
-          if (response.ok) {
-            const structureData = (await response.json()) as FlatLandscape;
-            resolve(structureData);
-          } else {
-            reject();
-          }
-        })
-        .catch((e) => reject(e));
+  return new Promise<FlatLandscape>((resolve, reject) => {
+    if (useLandscapeTokenStore.getState().token === null) {
+      reject(new Error('No landscape token selected'));
+      return;
     }
-  );
+    fetch(
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`,
+      {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    )
+      .then(async (response: Response) => {
+        if (response.ok) {
+          const structureData = (await response.json()) as FlatLandscape;
+          resolve(structureData);
+        } else {
+          reject();
+        }
+      })
+      .catch((e) => reject(e));
+  });
 }
 
 export function requestDynamicData(

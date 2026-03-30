@@ -22,8 +22,8 @@ interface TimestampPollingState {
   currentCommits: SelectedCommit[] | null;
   bucketSize: number;
   currentCallback:
-  | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
-  | null;
+    | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
+    | null;
   initTimestampPollingWithCallback: (
     commits: SelectedCommit[],
     callback: (
@@ -87,10 +87,11 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 
     restartPolling: () => {
       get().resetPolling();
-      useTimestampRepositoryStore
-            .getState()
-            .resetState();
-      get().initTimestampPollingWithCallback(get().currentCommits ?? [], get().currentCallback!);
+      useTimestampRepositoryStore.getState().resetState();
+      get().initTimestampPollingWithCallback(
+        get().currentCommits ?? [],
+        get().currentCallback!
+      );
     },
 
     setBucketSize: (value) => set({ bucketSize: value }),
@@ -156,8 +157,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         const allCommitsTimestampPromise = get()._httpFetchTimestamps(
           undefined,
           newestLocalTimestamp,
-          undefined,
-
+          undefined
         );
 
         await allCommitsTimestampPromise
@@ -245,7 +245,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
     _httpFetchTimestamps: (
       commit?: SelectedCommit,
       newestLocalTimestamp?: Timestamp,
-      oldestLocalTimestamp?: Timestamp,
+      oldestLocalTimestamp?: Timestamp
     ) => {
       return new Promise<Timestamp[]>((resolve, reject) => {
         if (!useLandscapeTokenStore.getState().token) {
@@ -255,7 +255,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 
         let url = `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
-        let parameter = "?";
+        let parameter = '?';
 
         if (commit) {
           parameter += `commit=${commit.commitId}&`;
