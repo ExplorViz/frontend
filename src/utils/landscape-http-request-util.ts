@@ -73,7 +73,7 @@ export function requestDynamicData(
       return;
     }
     fetch(
-      `${persistenceService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -100,7 +100,7 @@ export function deleteTraceData(): Promise<void> {
       return;
     }
     fetch(
-      `${persistenceService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
       {
         method: 'DELETE',
         headers: {

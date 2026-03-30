@@ -233,7 +233,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           return;
         }
 
-        let url = `${persistenceService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+        let url = `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         if (newestLocalTimestamp) {
           url += `?newest=${newestLocalTimestamp.epochNano}`;
