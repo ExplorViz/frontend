@@ -12,7 +12,7 @@ import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
 
-const spanService = import.meta.env.VITE_SPAN_SERV_URL;
+const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;
 
 export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
@@ -21,8 +21,8 @@ interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
   currentCommits: SelectedCommit[] | null;
   currentCallback:
-    | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
-    | null;
+  | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
+  | null;
   initTimestampPollingWithCallback: (
     commits: SelectedCommit[],
     callback: (
@@ -233,7 +233,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           return;
         }
 
-        let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+        let url = `${persistenceService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
         if (newestLocalTimestamp) {
           url += `?newest=${newestLocalTimestamp.epochNano}`;
