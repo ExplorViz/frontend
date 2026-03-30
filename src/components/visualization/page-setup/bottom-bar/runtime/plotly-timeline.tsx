@@ -1,10 +1,12 @@
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { DebugSnapshot } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { useTimestampPollingStore } from 'explorviz-frontend/src/stores/timestamp-polling';
 import { nanosecondsToMilliseconds } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { TimelineDataObject } from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import Plotly from 'plotly.js-dist';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Button } from 'react-bootstrap';
 // const Plotly = require('plotly.js-dist');
 
 export interface IMarkerStates {
@@ -57,6 +59,17 @@ export default function PlotlyTimeline({
   const renderingServiceVisualizationPaused = useRenderingServiceStore(
     (state) => state._visualizationPaused
   );
+  const bucketSize = useTimestampPollingStore(
+    (state) => state.bucketSize
+  );
+  const setBucketSize = useTimestampPollingStore(
+    (state) => state.setBucketSize
+  );
+  const restartPolling = useTimestampPollingStore(
+    (state) => state.restartPolling
+  );
+
+  const [localBucketSize, setLocalBucketSize] = useState(bucketSize);
 
   const showDummyTimeline = (() => {
     if (!timelineDataObject || timelineDataObject.size === 0) {
@@ -480,6 +493,11 @@ export default function PlotlyTimeline({
     autoScale();
   };
 
+  const applyBucketSize = () => {
+    setBucketSize(localBucketSize);
+    restartPolling();
+  }
+
   const setMaxRequestFilter = (event: any) => {
     const maxRequestInput = event.target.value;
     maxRequestFilter.current =
@@ -788,6 +806,25 @@ export default function PlotlyTimeline({
             onMouseLeave={handleMouseLeave}
             ref={plotlyDivRef}
           ></div>
+          <div style={{ width: '100px', marginRight: '5px' }}>
+            <div style={{ fontWeight: 'bold' }}>Bucket Size</div>
+            <div>in ms</div>
+            <input
+              id="bucketSize"
+              value={localBucketSize}
+              className="form-control input-lg"
+              placeholder="10000"
+              onChange={(e) => setLocalBucketSize(Number(e.target.value) || 10000)}
+            />
+            <Button
+              variant="primary"
+              style={{ width: '100%', marginTop: '5px' }}
+              className="align-self-center pt-2 px-3"
+              onClick={() => applyBucketSize()}
+            >
+              Apply
+            </Button>
+          </div>
         </div>
       )}
     </>
