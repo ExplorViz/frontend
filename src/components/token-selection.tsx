@@ -1,9 +1,9 @@
 import {
+  CodeIcon,
   DesktopDownloadIcon,
   EyeIcon,
   PlusIcon,
-  TrashIcon,
-  CodeIcon
+  TrashIcon
 } from '@primer/octicons-react';
 import AdditionalTokenInfo from 'explorviz-frontend/src/components/additional-token-info';
 import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
@@ -36,6 +36,8 @@ export default function TokenSelection({
 
   const user = useAuthStore((state) => state.user);
 
+  const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
+
   const sortBy = (property: keyof LandscapeToken) => {
     if (property === sortProperty) {
       if (sortOrder === 'asc') {
@@ -61,13 +63,13 @@ export default function TokenSelection({
   ) => {
     event?.stopPropagation();
     const structurePromise = getJsonBlob(
-      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/structure`
+      `${persistenceService}/v2/landscapes/${token.value}/structure`
     );
     const dynamicPromise = getJsonBlob(
-      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/dynamic`
+      `${persistenceService}/v2/landscapes/${token.value}/dynamic`
     );
     const timestampPromise = getJsonBlob(
-      `${import.meta.env.VITE_SPAN_SERV_URL}/v2/landscapes/${token.value}/timestamps`
+      `${persistenceService}/v2/landscapes/${token.value}/timestamps`
     );
 
     // Wait on all downloads

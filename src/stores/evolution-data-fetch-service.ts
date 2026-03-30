@@ -59,7 +59,7 @@ export const useEvolutionDataFetchServiceStore =
 
     _constructUrl: (endpoint: string, ...params: string[]): string => {
       const landscapeToken = get()._getLandscapeToken();
-      return `${import.meta.env.VITE_CODE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
+      return `${import.meta.env.VITE_PERSISTENCE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
     },
 
     _fetchFromService: async <T>(url: string): Promise<T> => {
