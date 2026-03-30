@@ -80,6 +80,7 @@ import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
+import { convertToFlatLandscape } from '../utils/landscape-schemes/flat-landscape';
 
 const queryParams = [
   'roomId',
@@ -191,8 +192,9 @@ export default function Visualization() {
       dynamicData: DynamicLandscapeData
     ) => {
       renderingServiceTriggerRenderingForGivenLandscapeData(
+        convertToFlatLandscape(structureData), // TODO: Used in restructuring. Restructuring may not work with flatlandscape at the moment
+        dynamicData,
         structureData,
-        dynamicData
       );
     };
     const handleToggleVisualizationUpdating = () => {

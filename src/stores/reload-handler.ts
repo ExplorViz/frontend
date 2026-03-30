@@ -2,8 +2,7 @@ import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos
 import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  convertStructureLandscapeFromFlat,
-  FlatLandscape,
+  FlatLandscape
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   preProcessAndEnhanceStructureLandscape,
@@ -17,7 +16,7 @@ interface ReloadHandlerState {
     timestampFrom: number,
     timestampTo?: number
   ) => Promise<
-    [StructureLandscapeData, DynamicLandscapeData, FlatLandscape | undefined]
+    [FlatLandscape, DynamicLandscapeData]
   >;
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,
@@ -93,9 +92,6 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
 
       if (structureDataPromise.status === 'fulfilled') {
         const flat: FlatLandscape = structureDataPromise.value
-        const structure: StructureLandscapeData = 
-          convertStructureLandscapeFromFlat(flat);
-
         const dynamic =
           dynamicDataPromise.status === 'fulfilled'
             ? dynamicDataPromise.value
@@ -109,8 +105,8 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
           }
         }
 
-        console.log("LLBT", structure, dynamic, flat); // CC-TODO
-        return [structure, dynamic, flat];
+        console.log("LLBT", dynamic, flat); // CC-TODO
+        return [flat, dynamic];
       }
       throw Error('No data available.');
     } catch (e: any) {

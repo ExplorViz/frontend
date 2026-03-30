@@ -10,7 +10,7 @@ import computeAggregatedCommunication from 'explorviz-frontend/src/utils/city-re
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { convertToFlatLandscape, getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
@@ -174,11 +174,7 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
-    const currentFlatLandscapeIds = Object.entries(flatLandscapeData)
-      .filter(([, value]) => typeof value === "object" && !Array.isArray(value) && value !== null)
-      .flatMap(([, value]) => Object.values(value as Record<string, { id: string }>))
-      .filter(item => "id" in item)
-      .map(item => item.id);
+    const currentFlatLandscapeIds = getAllIdsOfFlatLandscape(flatLandscapeData);
 
     const flatChanged = !areArraysEqual(
       currentFlatLandscapeIds,

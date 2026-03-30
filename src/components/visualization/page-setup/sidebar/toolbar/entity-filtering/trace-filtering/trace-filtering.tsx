@@ -6,18 +6,18 @@ import {
   useState,
 } from 'react';
 
-import TraceStart, {
-  TraceStartHandle,
-} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
 import TraceDuration, {
   TraceDurationHandle,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-duration';
+import TraceStart, {
+  TraceStartHandle,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface TraceFilteringProps {
   readonly landscapeData: LandscapeData;
@@ -103,7 +103,7 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
       numFilter = 0;
 
       triggerRenderingForGivenLandscapeData(
-        landscapeData.structureLandscapeData,
+        landscapeData.flatLandscapeData,
         newTraces
       );
     };
@@ -140,7 +140,7 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
       return () => {
         eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
         triggerRenderingForGivenLandscapeData(
-          initialLandscapeData.structureLandscapeData,
+          initialLandscapeData.flatLandscapeData,
           initialLandscapeData.dynamicLandscapeData
         );
       };

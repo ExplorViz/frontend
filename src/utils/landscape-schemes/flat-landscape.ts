@@ -94,6 +94,14 @@ export function isBuilding(x: any): x is Building {
   );
 }
 
+export function getAllIdsOfFlatLandscape(flatLandscape: FlatLandscape): string[] {
+  return Object.entries(flatLandscape)
+      .filter(([, value]) => typeof value === "object" && !Array.isArray(value) && value !== null)
+      .flatMap(([, value]) => Object.values(value as Record<string, { id: string }>))
+      .filter(item => "id" in item)
+      .map(item => item.id);
+}
+
 export function convertToFlatLandscape(
   input: StructureLandscapeData
 ): FlatLandscape {

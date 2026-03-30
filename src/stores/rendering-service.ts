@@ -11,14 +11,12 @@ import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { convertStructureLandscapeFromFlat, FlatLandscape, getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import {
-  combineStructureLandscapeData,
-  createEmptyStructureLandscapeData,
-  getAllMethodHashesOfLandscapeStructureData,
+  createEmptyStructureLandscapeData
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { create } from 'zustand';
@@ -32,7 +30,7 @@ export type EvolutionModeRenderingConfiguration = {
 };
 
 interface RenderingServiceState {
-  previousMethodHashes: string[];
+  previousFlatLandscapeIds: string[];
   currentRuntimeLandscapeData: Map<string, LandscapeData>;
   _timelineDataObjectHandler: TimelineDataObjectHandler | null;
   _landscapeData: LandscapeData | null;
@@ -44,9 +42,9 @@ interface RenderingServiceState {
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => Promise<void>;
   triggerRenderingForGivenLandscapeData: (
-    structureData: StructureLandscapeData,
+    flatData: FlatLandscape,
     dynamicData: DynamicLandscapeData,
-    flatData?: FlatLandscape
+    structureData?: StructureLandscapeData // TODO: Should be remove, when LandscapeData doesn't contain StructureLandscapeData anymore
   ) => void;
   triggerRenderingForSelectedCommits: () => Promise<void>;
   _mapTimestampsToEpochs: (
@@ -63,7 +61,7 @@ interface RenderingServiceState {
     commitToLandscapeDataMap: Map<string, LandscapeData>
   ) => DynamicLandscapeData;
   _requiresRerendering: (
-    newStructureLandscapeData: StructureLandscapeData,
+    newFlatLandscape: FlatLandscape,
     newDynamicLandscapeData: DynamicLandscapeData
   ) => boolean;
   _updateTimelineData: (
@@ -85,7 +83,7 @@ interface RenderingServiceState {
 
 export const useRenderingServiceStore = create<RenderingServiceState>(
   (set, get) => ({
-    previousMethodHashes: [],
+    previousFlatLandscapeIds: [],
     currentRuntimeLandscapeData: new Map<string, LandscapeData>(),
     _timelineDataObjectHandler: null,
     _landscapeData: null, // tracked
@@ -123,6 +121,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         let combinedRuntimeLandscapeData: LandscapeData = {
           structureLandscapeData: createEmptyStructureLandscapeData(),
           dynamicLandscapeData: [],
+          flatLandscapeData: {} as FlatLandscape,
         };
 
         if (fetchedRuntimeLandscapeData.size > 0) {
@@ -133,21 +132,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             );
           });
 
-          const structureToRender = combineStructureLandscapeData(
-            createEmptyStructureLandscapeData(),
-            combinedRuntimeLandscapeData.structureLandscapeData
-          );
-
           const dynamicToRender =
             combinedRuntimeLandscapeData.dynamicLandscapeData;
 
           const flatToRender = combinedRuntimeLandscapeData.flatLandscapeData;
 
-          if (get()._requiresRerendering(structureToRender, dynamicToRender)) {
+          if (get()._requiresRerendering(flatToRender, dynamicToRender)) {
             get().triggerRenderingForGivenLandscapeData(
-              structureToRender,
-              dynamicToRender,
-              flatToRender
+              flatToRender,
+              dynamicToRender
             );
           }
         }
@@ -169,13 +162,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     },
 
     triggerRenderingForGivenLandscapeData: (
-      structureData: StructureLandscapeData,
+      flatData: FlatLandscape,
       dynamicData: DynamicLandscapeData,
-      flatData?: FlatLandscape
+      structureData?: StructureLandscapeData
     ) => {
       set({
         _landscapeData: {
-          structureLandscapeData: structureData,
+          structureLandscapeData: !!structureData 
+            ? structureData 
+            : convertStructureLandscapeFromFlat(flatData), // TODO: Can be removed, when LandscapeData doesn't contain StructureLandscapeData anymore
           dynamicLandscapeData: dynamicData,
           flatLandscapeData: flatData,
         },
@@ -242,15 +237,14 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         }
 
         const [
-          latestFetchedStructureLandscapeData,
-          latestFetchedDynamicLandscapeData,
           latestFetchedFlatLandscapeData,
+          latestFetchedDynamicLandscapeData,
         ] = await useReloadHandlerStore
           .getState()
           .loadLandscapeByTimestamp(timestampFrom, timestampTo);
 
         commitToRuntimeLandscapeDataMap.set(commitId, {
-          structureLandscapeData: latestFetchedStructureLandscapeData,
+          structureLandscapeData: convertStructureLandscapeFromFlat(latestFetchedFlatLandscapeData), // TODO: Remove after removing StructureLD from LandscapeData
           dynamicLandscapeData: latestFetchedDynamicLandscapeData,
           flatLandscapeData: latestFetchedFlatLandscapeData,
         });
@@ -264,18 +258,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       newLandscapeData: LandscapeData
     ): LandscapeData => {
       if (prevLandscapeData) {
+        const newFlatLandscapeData = 
+          newLandscapeData.flatLandscapeData ?? prevLandscapeData.flatLandscapeData;
         return {
-          structureLandscapeData: combineStructureLandscapeData(
-            prevLandscapeData.structureLandscapeData,
-            newLandscapeData.structureLandscapeData
-          ),
+          structureLandscapeData: convertStructureLandscapeFromFlat(newFlatLandscapeData),
           dynamicLandscapeData: combineDynamicLandscapeData(
             prevLandscapeData.dynamicLandscapeData,
             newLandscapeData.dynamicLandscapeData
           ),
-          flatLandscapeData:
-            newLandscapeData.flatLandscapeData ??
-            prevLandscapeData.flatLandscapeData,
+          flatLandscapeData: newFlatLandscapeData,
         };
       } else {
         return newLandscapeData;
@@ -298,17 +289,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
     // private
     _requiresRerendering: (
-      newStructureLandscapeData: StructureLandscapeData,
-      newDynamicLandscapeData: DynamicLandscapeData
+      newFlatLandscapeData: FlatLandscape,
+      newDynamicLandscapeData: DynamicLandscapeData,
     ) => {
       let requiresRerendering = false;
-      const latestMethodHashes = getAllMethodHashesOfLandscapeStructureData(
-        newStructureLandscapeData
-      );
+      const latestFlatLandscapeIds = getAllIdsOfFlatLandscape(newFlatLandscapeData);
 
       if (
         get()._landscapeData === null ||
-        !areArraysEqual(latestMethodHashes, get().previousMethodHashes) ||
+        !areArraysEqual(latestFlatLandscapeIds, get().previousFlatLandscapeIds) ||
         !areArraysEqual(
           newDynamicLandscapeData,
           get()._getCombineDynamicLandscapeData(
@@ -318,7 +307,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       ) {
         requiresRerendering = true;
       }
-      set({ previousMethodHashes: latestMethodHashes });
+      set({ previousFlatLandscapeIds: latestFlatLandscapeIds });
       return requiresRerendering;
     },
 
@@ -418,9 +407,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           }
 
           get().triggerRenderingForGivenLandscapeData(
-            {landscapeToken: 'placeholder', nodes: []},
-            combinedDynamicLandscapeData,
             selectedFlatLandscape,
+            combinedDynamicLandscapeData
           );
         }
 
@@ -494,7 +482,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         _userInitiatedStaticDynamicCombination: false,
         _landscapeData: null,
         currentRuntimeLandscapeData: new Map(),
-        previousMethodHashes: [],
       });
     },
   })
