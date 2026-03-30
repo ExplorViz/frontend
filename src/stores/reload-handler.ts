@@ -92,22 +92,9 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
       );
 
       if (structureDataPromise.status === 'fulfilled') {
-        const structureOrFlat = structureDataPromise.value;
-
-        let structure: StructureLandscapeData;
-        let flat: FlatLandscape | undefined;
-
-        if ('cities' in structureOrFlat) {
-          structure = convertStructureLandscapeFromFlat(
-            structureOrFlat as FlatLandscape
-          );
-          flat = structureOrFlat as FlatLandscape;
-        } else {
-          structure = preProcessAndEnhanceStructureLandscape(
-            structureOrFlat,
-            TypeOfAnalysis.Dynamic
-          );
-        }
+        const flat: FlatLandscape = structureDataPromise.value
+        const structure: StructureLandscapeData = 
+          convertStructureLandscapeFromFlat(flat);
 
         const dynamic =
           dynamicDataPromise.status === 'fulfilled'

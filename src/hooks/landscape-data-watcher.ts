@@ -90,6 +90,8 @@ export default function useLandscapeDataWatcher(
         }
       );
 
+      console.log('APPLICATION DATA', applicationData); // CC-TODO
+
       return applicationData;
     },
     [dynamicLandscapeData, flatDataWorker, log]

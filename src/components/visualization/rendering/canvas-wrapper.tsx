@@ -342,16 +342,8 @@ export default function CanvasWrapper({
     flatData = landscapeData.flatLandscapeData;
   }
 
-  const newLandscapeData = {
-    structureLandscapeData: landscapeData ? landscapeData!.structureLandscapeData : undefined,
-    dynamicLandscapeData: landscapeData ? landscapeData!.dynamicLandscapeData : undefined,
-    flatLandscapeData: landscapeData ? flatData ? flatData : convertToFlatLandscape(landscapeData!.structureLandscapeData) : flatData,
-  } as LandscapeData;
-
-  console.log('NEW-LANDSCAPEDATA', newLandscapeData); // CC-TODO
-
   const { applicationModels, interAppCommunications } =
-    useLandscapeDataWatcher(newLandscapeData);
+    useLandscapeDataWatcher(landscapeData);
   
   console.log('AppModels & InterComms', applicationModels, interAppCommunications); // CC-TODO
 

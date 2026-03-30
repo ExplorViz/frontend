@@ -2,7 +2,6 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 const spanService = import.meta.env.VITE_SPAN_SERV_URL;
 
@@ -35,14 +34,14 @@ export async function requestData(
 }
 
 export function requestStructureData(/* fromTimestamp: number, toTimestamp: number */) {
-  return new Promise<StructureLandscapeData | FlatLandscape>(
+  return new Promise<FlatLandscape>(
     (resolve, reject) => {
       if (useLandscapeTokenStore.getState().token === null) {
         reject(new Error('No landscape token selected'));
         return;
       }
       fetch(
-        `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure`,
+        `${spanService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`,
         {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -52,9 +51,7 @@ export function requestStructureData(/* fromTimestamp: number, toTimestamp: numb
       )
         .then(async (response: Response) => {
           if (response.ok) {
-            const structureData = (await response.json()) as
-              | StructureLandscapeData
-              | FlatLandscape;
+            const structureData = (await response.json()) as FlatLandscape;
             resolve(structureData);
           } else {
             reject();
