@@ -64,7 +64,7 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
 
       for (let i = tracesThatAreRendered.length - 1; i >= 0; i--) {
         for (const span of tracesThatAreRendered[i].spanList) {
-          if (!hashCodeClassMap.get(span.methodHash)) {
+          if (!hashCodeClassMap.get(span.functionId)) {
             // single span of trace is missing in structure data, then skip complete trace
             tracesThatAreRendered.splice(i, 1);
             break;
@@ -92,7 +92,8 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
 
       // hide all traces that have a strict lower duration than selected
       newTraces = newTraces.filter((t) => {
-        if (t.duration >= selectedMinDuration.current!) {
+        const traceDuration = t.endTime - t.startTime;
+        if (traceDuration >= selectedMinDuration.current!) {
           numFilter++;
           return true;
         }
@@ -147,8 +148,10 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
     }, []);
 
     useImperativeHandle(ref, () => ({
-      setMinDuration: (value: number) => traceDurationRef.current?.setValue(value),
-      setMinStartTimestamp: (value: number) => traceStartRef.current?.setValue(value),
+      setMinDuration: (value: number) =>
+        traceDurationRef.current?.setValue(value),
+      setMinStartTimestamp: (value: number) =>
+        traceStartRef.current?.setValue(value),
       reset: () => {
         resetState();
         traceStartRef.current?.reset();

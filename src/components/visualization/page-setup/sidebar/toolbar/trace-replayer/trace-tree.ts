@@ -119,10 +119,10 @@ export class TraceTreeBuilder {
   }
 
   private buildNode(span: Span): TraceNode | undefined {
-    const targetClass = this.classMap.get(span.methodHash);
+    const targetClass = this.classMap.get(span.functionId);
     if (targetClass) {
       const name = targetClass.methods.find(
-        (method) => method.methodHash === span.methodHash
+        (method) => method.methodHash === span.functionId
       )!.name;
       const node = new TraceNode(
         span.spanId,
@@ -159,7 +159,7 @@ export class TraceTreeBuilder {
     this.trace.forEach((span) => {
       const node = map.get(span.spanId);
       if (node) {
-        const parent = map.get(span.parentSpanId);
+        const parent = map.get(span.parentSpanId ?? '');
 
         if (parent) {
           parent.children.push(node);

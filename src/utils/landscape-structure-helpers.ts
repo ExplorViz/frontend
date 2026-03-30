@@ -172,9 +172,9 @@ export function getSpanIdToClassMap(
   const spanIdToClassMap = new Map<string, Class>();
 
   trace.spanList.forEach((span) => {
-    const { methodHash, spanId } = span;
+    const { functionId, spanId } = span;
 
-    const cls = hashCodeToClassMap.get(methodHash);
+    const cls = hashCodeToClassMap.get(functionId);
 
     if (cls !== undefined) {
       spanIdToClassMap.set(spanId, cls);

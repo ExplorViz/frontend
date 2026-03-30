@@ -27,7 +27,7 @@ function computeClassCommunicationRecursively(
     return [];
   }
 
-  const func = flatLandscape.functions[span.methodHash];
+  const func = flatLandscape.functions[span.functionId];
   if (!func) {
     return [];
   }
@@ -41,7 +41,7 @@ function computeClassCommunicationRecursively(
   const classCommunications: SingleCommunication[] = [];
 
   childSpans.forEach((childSpan) => {
-    const childFunc = flatLandscape.functions[childSpan.methodHash];
+    const childFunc = flatLandscape.functions[childSpan.functionId];
     if (childFunc) {
       // const childBuilding = flatLandscape.buildings[childFunc.parentId];
       const childBuilding = flatLandscape.buildings[childFunc.parentBuildingId];
