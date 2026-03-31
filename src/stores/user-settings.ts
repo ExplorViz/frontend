@@ -219,6 +219,12 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             communicationColor: new THREE.Color(
               visualizationSettings.communicationColor.value
             ),
+            communicationStartColor: new THREE.Color(
+              visualizationSettings.communicationStartColor.value
+            ),
+            communicationEndColor: new THREE.Color(
+              visualizationSettings.communicationEndColor.value
+            ),
             communicationArrowColor: new THREE.Color(
               visualizationSettings.communicationArrowColor.value
             ),
