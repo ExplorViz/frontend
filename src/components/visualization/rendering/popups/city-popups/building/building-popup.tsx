@@ -12,12 +12,12 @@ interface BuildingPopupProps {
 
 export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const building = popupData.entity as Building;
-  const { getFunc } = useModelStore();
+  const { getFunc, getClass } = useModelStore();
 
   const languageName = building.language ?? 'LANGUAGE_UNSPECIFIED';
 
   const functions = useMemo(() => {
-    return (building.functionIds || [])
+    return (building.allContainedFunctionIds || [])
       .map((id) => getFunc(id))
       .filter((f) => f !== undefined);
   }, [building.functionIds, getFunc]);

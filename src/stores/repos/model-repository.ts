@@ -2,6 +2,7 @@ import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/d
 import {
   Building,
   City,
+  Cls,
   District,
   Func,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -38,7 +39,7 @@ interface ModelRepositoryState {
   getCityForModel: (id: string) => City | undefined;
   getComponent: (id: string) => Package | District | undefined;
   getDistrict: (id: string) => District | undefined;
-  getClass: (id: string) => Class | Building | undefined;
+  getClass: (id: string) => Cls | undefined;
   getBuilding: (id: string) => Building | undefined;
   getFunc: (id: string) => Func | undefined;
   getCommunication: (id: string) => ClassCommunication | undefined;
@@ -134,7 +135,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   },
   getComponent: (id) => get().districts[id] || get().components[id],
   getDistrict: (id) => get().districts[id],
-  getClass: (id) => get().buildings[id] || get().classes[id],
+  getClass: (id) => get().classes[id],
   getBuilding: (id) => get().buildings[id],
   getFunc: (id) => get().functions[id],
   getCommunication: (id) => get().communications[id],

@@ -338,8 +338,6 @@ export default function CanvasWrapper({
   const { applicationModels, interAppCommunications } =
     useLandscapeDataWatcher(landscapeData);
   
-  console.log('AppModels & InterComms', applicationModels, interAppCommunications); // CC-TODO
-
   const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
       resetVisualizationState: state.actions.resetVisualizationState,

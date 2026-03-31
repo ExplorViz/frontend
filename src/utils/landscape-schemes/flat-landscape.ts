@@ -58,6 +58,8 @@ export type Building = FlatBaseModel & {
   classIds?: string[];
   functionIds?: string[];
   metrics?: Record<string, MetricValue>;
+  allContainedFunctionIds: string[];
+  allContainedClassIds: string[];
 };
 
 export type MetricValue = {
@@ -67,6 +69,7 @@ export type MetricValue = {
 
 export type Cls = FlatBaseModel & {
   functionIds: string[];
+  innerClassIds: string[];
   parentBuildingId: string;
 };
 
