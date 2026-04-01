@@ -250,11 +250,16 @@ export default function CommunicationR3F({
         );
       }
 
+      let appPosition = new THREE.Vector3(0, 0, 0);
+      if (applicationElement && effectiveLayoutMap?.has(applicationElement.id)) {
+        appPosition = effectiveLayoutMap.get(applicationElement.id)!.position;
+      }
+
       const buildingCenter = layout.center.clone();
       return new THREE.Vector3(
-        buildingCenter.x,
+        appPosition.x + buildingCenter.x,
         buildingCenter.y + elevation,
-        buildingCenter.z
+        appPosition.z + buildingCenter.z
       );
     },
     [
@@ -263,6 +268,8 @@ export default function CommunicationR3F({
       hapPackageElevation,
       hapApplicationElevation,
       hapUseRelativeElevation,
+      applicationElement,
+      effectiveLayoutMap,
     ]
   );
 

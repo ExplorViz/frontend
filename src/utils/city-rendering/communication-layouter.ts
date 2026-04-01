@@ -126,10 +126,6 @@ export function computeCommunicationLayout(
     .copy(targetAppLayout.position)
     .add(targetClassLayout.center);
 
-  if (sourceApp.getId() === targetApp.getId()) {
-    start = sourceClassLayout.center;
-    end = targetClassLayout.center;
-  }
 
   const commLayout = new CommunicationLayout(communication);
   commLayout.startPoint = start;

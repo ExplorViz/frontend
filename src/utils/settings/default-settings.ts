@@ -595,7 +595,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   districtLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
-    value: 'box',
+    value: 'rectpacking',
     options: [
       'box',
       'force',

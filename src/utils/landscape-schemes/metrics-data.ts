@@ -1,7 +1,7 @@
 import isObject from 'explorviz-frontend/src/utils/object-helpers';
 
 export type Metric = {
-  idk: string; //idk means here I don't know, since Influx always transmitts one empty key-value pair that is catched by this dummy variable
+  idk: string; //idk means here I don't know, since Influx always transmits one empty key-value pair that is catched by this dummy variable
   table: number;
   timestamp: Date;
   value: number;
