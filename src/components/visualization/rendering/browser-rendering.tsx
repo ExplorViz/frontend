@@ -11,6 +11,8 @@ import ApplicationSearch from 'explorviz-frontend/src/components/visualization/p
 import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
 import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
+import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams';
+import KubernetesDiagramsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import useCollaborativeModifier from 'explorviz-frontend/src/hooks/collaborative-modifier';
@@ -355,6 +357,12 @@ export default function BrowserRendering({
                           toggleToolsSidebarComponent
                         }
                       />
+                      <KubernetesDiagramsOpener
+                        openedComponent={openedToolComponent}
+                        toggleToolsSidebarComponent={
+                          toggleToolsSidebarComponent
+                        }
+                      />
                     </ul>
                   </div>
                   {openedToolComponent && (
@@ -393,6 +401,12 @@ export default function BrowserRendering({
                               Git Repository Analysis
                             </h5>
                             <CodeAnalysisSection />
+                          </>
+                        )}
+                        {openedToolComponent === 'kubernetes-diagrams' && (
+                          <>
+                            <h5 className="text-center">Kubernetes Diagrams</h5>
+                            <KubernetesDiagrams />
                           </>
                         )}
                       </div>

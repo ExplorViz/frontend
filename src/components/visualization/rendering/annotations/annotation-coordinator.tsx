@@ -9,7 +9,6 @@ import AnnotationData from 'explorviz-frontend/src/components/visualization/rend
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -27,7 +26,6 @@ export default function AnnotationCoordinator({
   removeAnnotation,
 }: AnnotationCoordinatorProps) {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
-  const getColor = useCollaborationSessionStore((state) => state.getColor);
   const showErrorToastMessage = useToastHandlerStore(
     (state) => state.showErrorToastMessage
   );
@@ -54,16 +52,22 @@ export default function AnnotationCoordinator({
 
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
+  const isDragging = useRef<boolean>(false);
+  const currentAnnotationPosition = useRef<Position2D>({
+    x: annotationData.mouseX,
+    y: annotationData.mouseY,
+  });
 
-  const sharedByColor = annotationData.sharedBy
-    ? getColor(annotationData.sharedBy)
-    : '';
+  useEffect(() => {
+    if (!isDragging.current) {
+      currentAnnotationPosition.current = {
+        x: annotationData.mouseX,
+        y: annotationData.mouseY,
+      };
+    }
+  }, [annotationData.mouseX, annotationData.mouseY]);
 
   const onPointerOver = () => {
-    // TODO: Apply hover effect to entity if needed
-    // This would need to be implemented through a different mechanism
-    // since we no longer have direct mesh access
-
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(
         (an) => an.annotationId !== annotationData.annotationId
@@ -73,22 +77,12 @@ export default function AnnotationCoordinator({
   };
 
   const onPointerOut = () => {
-    // TODO: Reset hover effect on entity if needed
-    // This would need to be implemented through a different mechanism
-    // since we no longer have direct mesh access
-
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(
         (an) => an.annotationId !== annotationData.annotationId
       ),
       { ...annotationData, hovered: false },
     ]);
-  };
-
-  const highlight = () => {
-    if (annotationData.entityId) {
-      toggleHighlightById(annotationData.entityId);
-    }
   };
 
   const ping = () => {
@@ -98,6 +92,17 @@ export default function AnnotationCoordinator({
   };
 
   const dragMouseDown = (event: React.MouseEvent) => {
+    isDragging.current = true;
+    const currentStore = useAnnotationHandlerStore.getState();
+    const updatedAnnotations = currentStore.annotationData.map((an) => {
+      if (an.annotationId === annotationData.annotationId) {
+        return { ...an, wasMoved: true };
+      }
+      return an;
+    });
+    currentStore.setAnnotationData(updatedAnnotations);
+    currentStore.removeUnmovedAnnotations();
+
     lastMousePosition.current.x = event.clientX;
     lastMousePosition.current.y = event.clientY;
     document.onpointerup = closeDragElement;
@@ -105,12 +110,6 @@ export default function AnnotationCoordinator({
   };
 
   const elementDrag = (event: MouseEvent) => {
-    annotationData.wasMoved = true;
-
-    // prevent that annotation gets minimized before user moves curser out of the annotation window
-    // if this doesnt happen, it would end up in making this annotation not accessible
-    annotationHandler.removeUnmovedAnnotations();
-
     event.preventDefault();
 
     // Calculate delta of cursor position:
@@ -150,9 +149,11 @@ export default function AnnotationCoordinator({
       newPositionY = containerDiv.clientHeight - annotationHeight;
     }
 
-    // Update stored annotation position relative to new position
-    annotationData.mouseX -= element.current!.offsetLeft - newPositionX;
-    annotationData.mouseY -= element.current!.offsetTop - newPositionY;
+    // Update ref for final save
+    currentAnnotationPosition.current.x -=
+      element.current!.offsetLeft - newPositionX;
+    currentAnnotationPosition.current.y -=
+      element.current!.offsetTop - newPositionY;
 
     element.current!.style.left = `${newPositionX}px`;
     element.current!.style.top = `${newPositionY}px`;
@@ -161,10 +162,24 @@ export default function AnnotationCoordinator({
   const closeDragElement = () => {
     document.onpointerup = null;
     document.onpointermove = null;
+    isDragging.current = false;
+
+    const currentStore = useAnnotationHandlerStore.getState();
+    const updatedAnnotations = currentStore.annotationData.map((an) => {
+      if (an.annotationId === annotationData.annotationId) {
+        return {
+          ...an,
+          mouseX: currentAnnotationPosition.current.x,
+          mouseY: currentAnnotationPosition.current.y,
+        };
+      }
+      return an;
+    });
+    currentStore.setAnnotationData(updatedAnnotations);
   };
 
   useEffect(() => {
-    if (element.current === null) {
+    if (element.current === null || isDragging.current) {
       return;
     }
 
@@ -221,16 +236,13 @@ export default function AnnotationCoordinator({
 
     annotationDiv.style.top = `${annotationTopPosition}px`;
     annotationDiv.style.left = `${annotationLeftPosition}px`;
-  }, []);
+  }, [annotationData]);
 
   const hideAnnotation = () => {
     if (annotationData.inEdit && !annotationData.hidden) {
       showErrorToastMessage('Please exit edit mode before hiding.');
       return;
     }
-
-    // const newAnnotation = {...annotation, hidden: !annotation.hidden}
-    // setAnnotation(newAnnotation);
 
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(
@@ -248,15 +260,9 @@ export default function AnnotationCoordinator({
       return;
     }
 
-    // remove potential toggle effects
-    // TODO: Reset hover effects if needed
-    // This would need to be implemented through a different mechanism
-    // since we no longer have direct mesh access
-
-    // const newAnnotation = {...annotation, wasMoved: false}
     annotationHandler.setMinimizedAnnotationData([
       ...annotationHandler.minimizedAnnotations,
-      { ...annotationData, wasMoved: false },
+      { ...annotationData },
     ]);
     annotationHandler.setAnnotationData([
       ...annotationHandler.annotationData.filter(

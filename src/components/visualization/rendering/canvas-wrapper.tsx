@@ -40,7 +40,10 @@ import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-d
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/city/communication-r3f';
+import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
+import ImmersiveSphere from 'explorviz-frontend/src/view-objects/3d/city/immersive-sphere';
+import ImmersiveInterface from 'explorviz-frontend/src/view-objects/3d/city/ImmersiveInterface';
 import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/city/trace-replay-overlay-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
@@ -54,6 +57,8 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import ImmersiveStateSync from './immersive-state-sync';
+import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
 
 /**
@@ -337,7 +342,7 @@ export default function CanvasWrapper({
 
   const { applicationModels, interAppCommunications } =
     useLandscapeDataWatcher(landscapeData);
-  
+
   const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
       resetVisualizationState: state.actions.resetVisualizationState,
@@ -348,6 +353,13 @@ export default function CanvasWrapper({
 
   useEffect(() => {
     if (landscapeData) {
+      // Reset edge bundling state when the landscape changes so stale edges
+      // from a previous session do not prevent new edges from being registered.
+      globalBundlingService.reset();
+
+      // Clear all HAP systems so they are rebuilt fresh for the new landscape.
+      hapSystemManager.clearAllHAPSystems();
+
       // Use layout of landscape data watcher
       setLayoutMap(null);
       const allPackages = getAllApplicationsInLandscape(
@@ -476,6 +488,9 @@ export default function CanvasWrapper({
           }
         }}
       >
+        <ImmersiveCameraHandler
+          controlsRef={cameraControlsRef}
+        ></ImmersiveCameraHandler>
         {xrStore ? null : (
           <>
             <CameraControls
@@ -557,15 +572,16 @@ export default function CanvasWrapper({
             {isCommRendered &&
               useModelStore
                 .getState()
-                .getAllCommunications().map((communication) => (
+                .getAllCommunications()
+                .map((communication) => (
                   <CommunicationR3F
-                  key={communication.id}
-                  communicationModel={communication}
-                  applicationElement={communication.sourceApp}
-                  layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
-                  applicationModels={applicationModels}
-                />
-            ))}
+                    key={communication.id}
+                    communicationModel={communication}
+                    applicationElement={communication.sourceApp}
+                    layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                    applicationModels={applicationModels}
+                  />
+                ))}
             {isCommRendered &&
               interAppCommunications.map((communication) => (
                 <CommunicationR3F
@@ -605,6 +621,9 @@ export default function CanvasWrapper({
           )}
           {showAxesHelper && <axesHelper args={[5]} />}
         </XR>
+        <ImmersiveSphere></ImmersiveSphere>
+        <ImmersiveInterface />
+        <ImmersiveStateSync />
       </Canvas>
     </>
   );

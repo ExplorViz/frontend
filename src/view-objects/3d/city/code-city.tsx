@@ -75,7 +75,7 @@ export default function CodeCity({ city }: { city: City }) {
   if (!city) return null;
 
   return (
-    <group position={appPosition}>
+    <group position={appPosition} userData={{ cityName: city.name }}>
       {showEmbeddedBrowserIcon && (
         <Root positionBottom={15} positionLeft={0} pixelSize={1}>
           <Container>
@@ -141,6 +141,10 @@ export default function CodeCity({ city }: { city: City }) {
             applicationModels={[applicationData]}
           />
         ))} */}
+      {/* TODO: <RemoteImmersiveIndicators
+        layoutMap={layoutMap}
+        applicationData={applicationData}
+      /> */}
     </group>
   );
 }

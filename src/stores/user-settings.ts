@@ -138,15 +138,25 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             },
           });
         } else if (isColorSetting(setting) && typeof newValue === 'string') {
-          setting.value = newValue;
-          let newVisualizationSettings = { ...get().visualizationSettings };
-          newVisualizationSettings[name].value = newValue;
-          set({ visualizationSettings: newVisualizationSettings });
+          set({
+            visualizationSettings: {
+              ...get().visualizationSettings,
+              [name]: {
+                ...JSON.parse(JSON.stringify(setting)),
+                value: newValue,
+              },
+            },
+          });
         } else if (isSelectSetting(setting) && typeof newValue === 'string') {
-          setting.value = newValue;
-          let newVisualizationSettings = { ...get().visualizationSettings };
-          newVisualizationSettings[name].value = newValue;
-          set({ visualizationSettings: newVisualizationSettings });
+          set({
+            visualizationSettings: {
+              ...get().visualizationSettings,
+              [name]: {
+                ...JSON.parse(JSON.stringify(setting)),
+                value: newValue,
+              },
+            },
+          });
         }
       },
 
@@ -211,6 +221,12 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             communicationColor: new THREE.Color(
               visualizationSettings.communicationColor.value
             ),
+            communicationStartColor: new THREE.Color(
+              visualizationSettings.communicationStartColor.value
+            ),
+            communicationEndColor: new THREE.Color(
+              visualizationSettings.communicationEndColor.value
+            ),
             communicationArrowColor: new THREE.Color(
               visualizationSettings.communicationArrowColor.value
             ),
@@ -237,6 +253,9 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             ),
             unchangedBuildingColor: new THREE.Color(
               visualizationSettings.unchangedBuildingColor.value
+            ),
+            k8sDiagramColor: new THREE.Color(
+              visualizationSettings.k8sDiagramColor.value
             ),
           },
         });
@@ -364,7 +383,52 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       merge: (persistedState: any, currentState) => {
         if (!persistedState) return currentState;
 
-        return { ...currentState, ...persistedState };
+        // Safely merge visualization settings: only carry over persisted values
+        // that are compatible with the current default settings. Any incompatible
+        // or missing entries fall back to the default and are logged to the console.
+        let mergedVisualizationSettings = {
+          ...currentState.visualizationSettings,
+        };
+
+        if (
+          persistedState.visualizationSettings &&
+          typeof persistedState.visualizationSettings === 'object'
+        ) {
+          let settingId: keyof VisualizationSettings;
+          for (settingId in currentState.visualizationSettings) {
+            const defaultSetting =
+              currentState.visualizationSettings[settingId];
+            const storedSetting =
+              persistedState.visualizationSettings[settingId];
+
+            if (storedSetting === undefined || storedSetting === null) {
+              console.warn(
+                `[UserSettings] Stored setting "${settingId}" is missing from localStorage. Using default value.`
+              );
+              continue;
+            }
+
+            const defaultValueType = typeof defaultSetting.value;
+            const storedValueType = typeof storedSetting.value;
+
+            if (storedValueType !== defaultValueType) {
+              console.warn(
+                `[UserSettings] Stored setting "${settingId}" has incompatible value type ` +
+                  `(expected "${defaultValueType}", got "${storedValueType}"). Using default value.`
+              );
+              continue;
+            }
+
+            // Value type is compatible — use the stored setting
+            mergedVisualizationSettings[settingId] = storedSetting;
+          }
+        }
+
+        return {
+          ...currentState,
+          ...persistedState,
+          visualizationSettings: mergedVisualizationSettings,
+        };
       },
     }
   )

@@ -1,5 +1,6 @@
 import { useThree } from '@react-three/fiber';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
+import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getLandscapeCenterPosition } from 'explorviz-frontend/src/utils/layout-helper';
 import { pingPosition } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
@@ -73,6 +74,23 @@ export default function LandscapeR3F({
             pingedPoint = e.object.localToWorld(pingedPoint);
           }
           pingPosition(pingedPoint);
+          // Walk up the hierarchy to find the CodeCity group (which stores
+          // applicationName in userData) so the sidebar can show a ping.
+          interface NodeLike {
+            userData?: Record<string, unknown>;
+            parent: NodeLike | null;
+          }
+          let candidate: NodeLike | null = e.object as unknown as NodeLike;
+          while (candidate) {
+            const appName = candidate.userData?.applicationName as
+              | string
+              | undefined;
+            if (appName) {
+              usePingStore.getState().addPing(appName);
+              break;
+            }
+            candidate = candidate.parent;
+          }
         }
       }}
     >

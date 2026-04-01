@@ -406,15 +406,15 @@ export class HierarchicalAttractionSystem {
       return 0.0;
     }
 
-    // switch (level) {
-    //   case 1: // Package-Level
-    //     return baseBeta * 0.8;
-    //   case 2: // Application-Level
-    //     return baseBeta * 1.0;
-    //   default:
-    //     return baseBeta * 0.5; // Fallback
-    // }
-    return baseBeta;
+    switch (level) {
+      case 1: // Package-Level
+        return baseBeta * 0.8;
+      case 2: // Application-Level
+        return baseBeta * 1.0;
+      default:
+        return baseBeta * 0.5; // Fallback
+    }
+    //return baseBeta;
   }
 }
 

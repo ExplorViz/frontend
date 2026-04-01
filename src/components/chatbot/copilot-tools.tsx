@@ -19,7 +19,6 @@ import {
   Method,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
@@ -205,7 +204,7 @@ const settingsPromptDescription = buildSettingsPromptDescription();
 
 export function CopilotTools({ applications }: CopilotToolsProps) {
   const { actions } = useVisualizationStore();
-  const { moveCameraTo, resetCamera } = useCameraControlsStore();
+  const { lookAtEntity, resetCamera } = useCameraControlsStore();
   const {
     addApplication,
     addClasses,
@@ -908,13 +907,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id }) => {
-      const position = getWorldPositionOfModel(id);
-      if (position) {
-        moveCameraTo(
-          [position.x + 2, position.y + 2, position.z + 2],
-          [position.x, position.y, position.z]
-        );
-      }
+      lookAtEntity(id);
     },
     render: ({ args, status }) => (
       <ToolCallCard

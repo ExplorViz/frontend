@@ -33,6 +33,8 @@ export type ColorSettingId =
   | 'buildingTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
+  | 'communicationStartColor'
+  | 'communicationEndColor'
   | 'districtRootLevelColor'
   | 'districtDeepestLevelColor'
   | 'districtTextColor'
@@ -45,7 +47,8 @@ export type ColorSettingId =
   | 'addedBuildingColor'
   | 'modifiedBuildingColor'
   | 'removedBuildingColor'
-  | 'unchangedBuildingColor';
+  | 'unchangedBuildingColor'
+  | 'k8sDiagramColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
@@ -64,18 +67,18 @@ export type CommunicationSettingId =
   | 'commArrowSize'
   | 'commArrowOffset'
   | 'curvyCommHeight'
-  | 'enableEdgeBundling'
-  | 'bundleStrength'
-  | 'compatibilityThreshold'
-  | 'bundlingIterations'
-  | 'bundlingStepSize'
   | 'beta'
-  | 'use3DHAPAlgorithm'
   | 'commCurveHeightDependsOnDistance'
   | 'showHAPTree'
   | 'scatterRadius'
   | 'edgeBundlingStreamline'
-  | 'leafPackagesOnly';
+  | 'leafPackagesOnly'
+  | 'hapClassElevation'
+  | 'hapPackageElevation'
+  | 'hapApplicationElevation'
+  | 'hapUseRelativeElevation'
+  | 'edgeBundlingAlgorithm'
+  | 'enableEdgeColoring';
 
 export type CommunicationSettings = {
   commThickness: RangeSetting;
@@ -83,17 +86,17 @@ export type CommunicationSettings = {
   commArrowOffset: RangeSetting;
   curvyCommHeight: RangeSetting;
   commCurveHeightDependsOnDistance: FlagSetting;
-  enableEdgeBundling: FlagSetting;
-  bundleStrength: RangeSetting;
-  compatibilityThreshold: RangeSetting;
-  bundlingIterations: RangeSetting;
-  bundlingStepSize: RangeSetting;
   beta: RangeSetting;
-  use3DHAPAlgorithm: FlagSetting;
   showHAPTree: FlagSetting;
   scatterRadius: RangeSetting;
   edgeBundlingStreamline: FlagSetting;
   leafPackagesOnly: FlagSetting;
+  hapClassElevation: RangeSetting;
+  hapPackageElevation: RangeSetting;
+  hapApplicationElevation: RangeSetting;
+  hapUseRelativeElevation: FlagSetting;
+  edgeBundlingAlgorithm: SelectSetting<string>;
+  enableEdgeColoring: FlagSetting;
 };
 
 export type DebugSettings = {
@@ -266,7 +269,14 @@ export type VisualizationSettings = CameraSettings &
   PopupSettings &
   SemanticZoomSettings &
   XrSettings &
-  ColorSettings;
+  ColorSettings &
+  ImmersiveSettings;
+
+export type ImmersiveSettings = {
+  sphereColor: ColorSetting;
+  sphereOpacity: RangeSetting;
+  sphereRadius: RangeSetting;
+};
 
 export enum SettingLevel {
   DEFAULT,

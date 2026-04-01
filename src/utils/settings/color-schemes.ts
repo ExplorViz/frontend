@@ -7,7 +7,9 @@ export const defaultColors = {
   buildingTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
   communicationColor: '#d6d48b', // light yellow
-  districtRootLevelColor: '#3c8db0', // desaturated cyan
+  communicationStartColor: '#00ff00', // green
+  communicationEndColor: '#ff0000', // red
+  districtRootLevelColor: '#3c8db0', // unsaturated cyan
   districtDeepestLevelColor: '#65c97e', // lime green
   districtTextColor: '#ffffff', // white
   foundationColor: '#f3f3f3', // light grey
@@ -20,6 +22,7 @@ export const defaultColors = {
   modifiedBuildingColor: '#87CEFA', // pastel blue
   removedBuildingColor: '#B03060', // pastel red
   unchangedBuildingColor: '#000000', // black
+  k8sDiagramColor: '#326ce5', // bright blue
 };
 
 // The following color schemes might also be partial color schemes

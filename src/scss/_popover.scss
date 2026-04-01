@@ -1,3 +1,8 @@
+// Needed since sidebar has z-index of 10000001
+.tooltip {
+  z-index: 10000010 !important;
+}
+
 @media (min-width: 576px) {
   .popover {
     cursor: move;

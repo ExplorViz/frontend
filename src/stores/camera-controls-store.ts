@@ -1,10 +1,12 @@
 import { CameraControls } from '@react-three/drei';
+import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 
 interface CameraControlsState {
   cameraControlsRef: React.RefObject<CameraControls | null> | null;
   setCameraControlsRef: (ref: React.RefObject<CameraControls | null>) => void;
+  lookAtEntity: (entityId: string, offset?: number) => void;
   moveCameraTo: (
     position: [x: number, y: number, z: number],
     target?: [x: number, y: number, z: number],
@@ -40,6 +42,17 @@ export const useCameraControlsStore = create<CameraControlsState>(
           target[1],
           target[2],
           enableTransition
+        );
+      }
+    },
+
+    lookAtEntity: (entityId: string, offset = 2) => {
+      const { moveCameraTo } = get();
+      const position = getWorldPositionOfModel(entityId);
+      if (position) {
+        moveCameraTo(
+          [position.x + offset, position.y + offset, position.z + offset],
+          [position.x, position.y, position.z]
         );
       }
     },
