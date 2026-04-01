@@ -1,5 +1,7 @@
 import { forwardRef, Ref, useEffect, useImperativeHandle, useRef } from 'react';
 
+import { EntityFilteringController } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import LanguageFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/language-filtering/language-filtering';
 import StructureFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/structure-filtering';
 import TraceFiltering from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-filtering';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
@@ -10,9 +12,8 @@ import {
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import Button from 'react-bootstrap/Button';
-import { TraceFilteringHandle } from './trace-filtering/trace-filtering';
 import { StructureFilteringHandle } from './structure-filtering/structure-filtering';
-import { EntityFilteringController } from 'explorviz-frontend/src/components/chatbot/chatbot-context';
+import { TraceFilteringHandle } from './trace-filtering/trace-filtering';
 
 interface EntityFilteringProps {
   readonly landscapeData: LandscapeData;
@@ -62,7 +63,7 @@ const EntityFiltering = forwardRef<
 
   const resetToInit = () => {
     triggerRenderingForGivenLandscapeData(
-      initialLandscapeData.current!.structureLandscapeData,
+      initialLandscapeData.current!.flatLandscapeData,
       initialLandscapeData.current!.dynamicLandscapeData
     );
     updateSelectedTimestamp(timestamp);
@@ -77,7 +78,7 @@ const EntityFiltering = forwardRef<
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     return () => {
       triggerRenderingForGivenLandscapeData(
-        initialLandscapeData.current!.structureLandscapeData,
+        initialLandscapeData.current!.flatLandscapeData,
         initialLandscapeData.current!.dynamicLandscapeData
       );
       eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
@@ -91,6 +92,12 @@ const EntityFiltering = forwardRef<
           Reset Filtering
         </Button>
       </div>
+
+      <hr className="dropdown-divider mb-3" />
+      <h6 className="text-center">
+        <u>Language Filtering</u>
+      </h6>
+      <LanguageFiltering />
 
       <hr className="dropdown-divider mb-3" />
 

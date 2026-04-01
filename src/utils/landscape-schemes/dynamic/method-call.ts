@@ -1,4 +1,8 @@
 import {
+  Building,
+  City,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -8,19 +12,19 @@ export default class MethodCall {
   // Spans might be added in the future, if needed
   //   spans: Span[] = [];
   totalRequests: number = 0;
-  sourceApp: Application;
-  sourceClass: Class;
-  targetApp: Application;
-  targetClass: Class;
+  sourceApp: Application | City;
+  sourceClass: Class | Building;
+  targetApp: Application | City;
+  targetClass: Class | Building;
   operationName: string;
   callerMethodName: string;
 
   constructor(
     id: string,
-    sourceApp: Application,
-    sourceClass: Class,
-    targetApp: Application,
-    targetClass: Class,
+    sourceApp: Application | City,
+    sourceClass: Class | Building,
+    targetApp: Application | City,
+    targetClass: Class | Building,
     operationName: string,
     callerMethodName: string
   ) {

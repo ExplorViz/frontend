@@ -40,7 +40,7 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
   const applicationTraces = dynamicData.filter((trace) => {
     const hashCodeToClassMap = getHashCodeToClassMap(structureData);
     return trace.spanList.some(
-      (span) => hashCodeToClassMap.get(span.methodHash) !== undefined
+      (span) => hashCodeToClassMap.get(span.functionId) !== undefined
     );
   });
 

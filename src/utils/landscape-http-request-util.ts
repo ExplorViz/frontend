@@ -1,9 +1,9 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
-const spanService = import.meta.env.VITE_SPAN_SERV_URL;
+const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
 
 // Helper functions to convert between nanoseconds and milliseconds
 // The backend now uses nanoseconds, but frontend Date objects use milliseconds
@@ -34,13 +34,13 @@ export async function requestData(
 }
 
 export function requestStructureData(/* fromTimestamp: number, toTimestamp: number */) {
-  return new Promise<StructureLandscapeData>((resolve, reject) => {
+  return new Promise<FlatLandscape>((resolve, reject) => {
     if (useLandscapeTokenStore.getState().token === null) {
       reject(new Error('No landscape token selected'));
       return;
     }
     fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure`,
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/structure/runtime`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -50,9 +50,7 @@ export function requestStructureData(/* fromTimestamp: number, toTimestamp: numb
     )
       .then(async (response: Response) => {
         if (response.ok) {
-          const structureData =
-            (await response.json()) as StructureLandscapeData;
-          structureData.k8sNodes = structureData.k8sNodes || [];
+          const structureData = (await response.json()) as FlatLandscape;
           resolve(structureData);
         } else {
           reject();
@@ -73,7 +71,7 @@ export function requestDynamicData(
       return;
     }
     fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -100,7 +98,7 @@ export function deleteTraceData(): Promise<void> {
       return;
     }
     fetch(
-      `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/trace-data`,
       {
         method: 'DELETE',
         headers: {

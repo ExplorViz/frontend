@@ -2,8 +2,8 @@ import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-con
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { removeAllHighlighting } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import { useCallback, useMemo, useState } from 'react';
 
 const PING_DURATION_MS = 3000;
@@ -27,11 +27,13 @@ export function useNodeInteractions() {
   const setHighlightedEntityId = useVisualizationStore(
     (state) => state.actions.setHighlightedEntityId
   );
-  const activePingNodeNames = usePingStore((state) => state.activePingNodeNames);
-
-  const [localHighlightedNodeNames, setLocalHighlightedNodeNames] = useState<Set<string>>(
-    () => new Set()
+  const activePingNodeNames = usePingStore(
+    (state) => state.activePingNodeNames
   );
+
+  const [localHighlightedNodeNames, setLocalHighlightedNodeNames] = useState<
+    Set<string>
+  >(() => new Set());
 
   const highlightedNodeNames = useMemo(() => {
     const names = new Set<string>(localHighlightedNodeNames);
@@ -45,9 +47,14 @@ export function useNodeInteractions() {
 
   const handleNodeHighlight = useCallback(
     (nodeName: string) => {
-      const matchingApp = getAllApplications().find((app) => app.name === nodeName);
+      const matchingApp = getAllApplications().find(
+        (app) => app.name === nodeName
+      );
       if (matchingApp) {
-        setHighlightedEntityId(matchingApp.id, !highlightedEntityIds.has(matchingApp.id));
+        setHighlightedEntityId(
+          matchingApp.id,
+          !highlightedEntityIds.has(matchingApp.id)
+        );
       } else {
         setLocalHighlightedNodeNames((prev) => {
           const next = new Set(prev);
@@ -61,7 +68,9 @@ export function useNodeInteractions() {
 
   const handleNodePing = useCallback(
     (nodeName: string) => {
-      const matchingApp = getAllApplications().find((app) => app.name === nodeName);
+      const matchingApp = getAllApplications().find(
+        (app) => app.name === nodeName
+      );
       if (matchingApp) {
         pingByModelId(matchingApp.id, false, { durationMs: PING_DURATION_MS });
       } else {
@@ -73,7 +82,9 @@ export function useNodeInteractions() {
 
   const handleNodeLookAt = useCallback(
     (nodeName: string) => {
-      const matchingApp = getAllApplications().find((app) => app.name === nodeName);
+      const matchingApp = getAllApplications().find(
+        (app) => app.name === nodeName
+      );
       if (matchingApp) {
         lookAtEntity(matchingApp.id);
       }

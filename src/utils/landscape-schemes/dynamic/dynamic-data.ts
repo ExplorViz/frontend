@@ -3,22 +3,18 @@ import isObject from 'explorviz-frontend/src/utils/object-helpers';
 export type Trace = {
   landscapeToken: string;
   traceId: string;
-  gitCommitChecksum: string;
   startTime: number;
   endTime: number;
-  duration: number;
-  overallRequestCount: number;
-  traceCount: number;
   spanList: Span[];
 };
 
 export type Span = {
   traceId: string;
   spanId: string;
-  parentSpanId: string;
+  parentSpanId?: string;
   startTime: number;
   endTime: number;
-  methodHash: string;
+  functionId: string;
 };
 
 export function isTrace(x: any): x is Trace {

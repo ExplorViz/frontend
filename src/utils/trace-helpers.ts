@@ -140,7 +140,7 @@ export function getTraceIdToSpanTree(trace: Trace) {
   // Put spans into map for more efficient lookup when sorting
   const spanIdToSpanMap = new Map<string, Span>();
   trace.spanList.forEach((span) => {
-    if (!span.parentSpanId) {
+    if (!('parentSpanId' in span)) {
       firstSpan = span;
     } else {
       spanIdToSpanMap.set(span.spanId, span);
@@ -154,7 +154,7 @@ export function getTraceIdToSpanTree(trace: Trace) {
   });
 
   trace.spanList.forEach((span) => {
-    parentSpanIdToChildSpansMap.get(span.parentSpanId)?.push(span);
+    parentSpanIdToChildSpansMap.get(span.parentSpanId ?? '')?.push(span);
   });
 
   parentSpanIdToChildSpansMap.forEach((spanArray) =>

@@ -1,9 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
+import CreatableSelect from 'react-select/creatable';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { generateRandomToken } from './generateRandomToken';
 
-const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8090';
+const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
+
+type ExtensionOption = {
+  label: string;
+  value: string;
+}
+
+const DEFAULT_EXCLUDED_EXTENSIONS: ExtensionOption[] = [
+  { value: '.min.js', label: '.min.js' },
+  { value: '.bundle.js', label: '.bundle.js' },
+  { value: '.chunk.js', label: '.chunk.js' },
+  { value: '.d.ts', label: '.d.ts' },
+  { value: '/node_modules', label: '/node_modules' },
+  { value: '/dist', label: '/dist' },
+];
 
 interface AnalysisRequest {
   repoPath?: string;
@@ -16,35 +32,55 @@ interface AnalysisRequest {
   restrictAnalysisToFolders?: string;
   startCommit?: string;
   endCommit?: string;
+  cloneDepth?: number;
   landscapeToken: string;
   applicationName: string;
+  codeAnalysisExcludedFileExtensions?: string;
 }
 
-export default function CodeAnalysisTriggerForm() {
+type Props = {
+  assignRandomToken?: boolean
+  onSubmitSuccess?: (landscapeToken: string) => void
+}
+
+const getInitialFormData = (landscapeToken: string): AnalysisRequest => ({
+  landscapeToken,
+  repoRemoteUrl: '',
+  repoPath: '',
+  remoteStoragePath: '',
+  username: '',
+  password: '',
+  branch: 'main',
+  sourceDirectory: '',
+  restrictAnalysisToFolders: '',
+  startCommit: '',
+  endCommit: '',
+  cloneDepth: 1,
+  applicationName: '',
+});
+
+export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuccess }: Props) {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useLocalRepo, setUseLocalRepo] = useState(false);
+  const [excludedExtensions, setExcludedExtensions] = useState<readonly ExtensionOption[]>(DEFAULT_EXCLUDED_EXTENSIONS);
 
-  const landscapeTokenValue = searchParams.get('landscapeToken')
+  const landscapeTokenValue = useMemo(() => {
+    if(assignRandomToken) {
+      return generateRandomToken(16);
+    }
+
+    return searchParams.get('landscapeToken') || '';
+  }, [searchParams, assignRandomToken]);
 
   console.log({
     landscapeTokenValue,
   });
 
   // form state
-  const [formData, setFormData] = useState<AnalysisRequest>({
-    repoRemoteUrl: '',
-    repoPath: '',
-    username: '',
-    password: '',
-    branch: '',
-    sourceDirectory: '',
-    restrictAnalysisToFolders: '',  
-    startCommit: '',
-    endCommit: '',
-    landscapeToken: '',
-    applicationName: '',
-  });
+  const [formData, setFormData] = useState<AnalysisRequest>(
+    () => getInitialFormData(landscapeTokenValue)
+  );
 
   useEffect(() => {
     if (landscapeTokenValue) {
@@ -55,7 +91,7 @@ export default function CodeAnalysisTriggerForm() {
     }
   }, [landscapeTokenValue]);
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | number | undefined) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -126,6 +162,14 @@ export default function CodeAnalysisTriggerForm() {
       if (formData.endCommit) {
         requestBody.endCommit = formData.endCommit;
       }
+      if (formData.cloneDepth !== undefined && formData.cloneDepth > 0) {
+        requestBody.cloneDepth = formData.cloneDepth;
+      }
+      if (excludedExtensions.length > 0) {
+        requestBody.codeAnalysisExcludedFileExtensions = excludedExtensions
+          .map((opt) => opt.value)
+          .join(',');
+      }
 
       const response = await fetch(`${codeAgentUrl}/api/analysis/trigger`, {
         method: 'POST',
@@ -142,20 +186,10 @@ export default function CodeAnalysisTriggerForm() {
           .showSuccessToastMessage(message || 'Analysis triggered successfully');
         
         // Reset form
-        setFormData({
-          repoRemoteUrl: '',
-          repoPath: '',
-          remoteStoragePath: '',
-          username: '',
-          password: '',
-          branch: '',
-          sourceDirectory: '',
-          restrictAnalysisToFolders: '',
-          startCommit: '',
-          endCommit: '',
-          landscapeToken: landscapeTokenValue || '',
-          applicationName: '',
-        });
+        setFormData(getInitialFormData(landscapeTokenValue));
+        setExcludedExtensions(DEFAULT_EXCLUDED_EXTENSIONS);
+
+        onSubmitSuccess?.(formData.landscapeToken);
       } else {
         const errorMessage = await response.text();
         useToastHandlerStore
@@ -193,10 +227,16 @@ export default function CodeAnalysisTriggerForm() {
             placeholder="Landscape token"
             value={formData.landscapeToken}
             onChange={(e) => handleInputChange('landscapeToken', e.target.value)}
-            readOnly={!!landscapeTokenValue}
+            readOnly={!!landscapeTokenValue && !assignRandomToken}
           />
           <Form.Text className="text-muted">
-            {landscapeTokenValue ? 'Using current landscape token' : 'No landscape token selected'}
+            {
+              (() => {
+                if(assignRandomToken) return 'Randomly assigned';
+                if(landscapeTokenValue) return 'Using current landscape token';
+                else return 'No landscape token selected';
+              })()
+            }
           </Form.Text>
         </Form.Group>
 
@@ -262,6 +302,25 @@ export default function CodeAnalysisTriggerForm() {
           />
         </Form.Group>
 
+        <Form.Group className="mb-3">
+          <Form.Label>Excluded filename patterns (substring match)</Form.Label>
+          <CreatableSelect<ExtensionOption, true>
+            isMulti
+            options={DEFAULT_EXCLUDED_EXTENSIONS}
+            value={excludedExtensions}
+            onChange={(newValue) => setExcludedExtensions(newValue)}
+            getNewOptionData={(inputValue) => ({
+              value: inputValue,
+              label: inputValue,
+            })}
+            placeholder="Select or type to add extensions..."
+            noOptionsMessage={() => 'Type an extension to add it'}
+          />
+          <Form.Text className="text-muted">
+            Files whose names contain any of these values are excluded from full analysis (only LOC and size are collected).
+          </Form.Text>
+        </Form.Group>
+
         {!useLocalRepo && (
           <>
             <Form.Group className="mb-3">
@@ -285,6 +344,22 @@ export default function CodeAnalysisTriggerForm() {
             </Form.Group>
           </>
         )}
+
+        <Form.Group className="mb-3">
+          <Form.Label>Clone Depth</Form.Label>
+          <Form.Control
+            type="number"
+            min={1}
+            placeholder="Leave empty for full clone"
+            value={formData.cloneDepth}
+            onChange={(e) =>
+              handleInputChange(
+                'cloneDepth',
+                e.target.value === '' ? undefined : parseInt(e.target.value, 10)
+              )
+            }
+          />
+        </Form.Group>
 
         <div className="mb-3">
           <h6>Commit Range (Optional)</h6>

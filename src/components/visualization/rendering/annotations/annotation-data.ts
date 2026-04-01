@@ -5,8 +5,7 @@ import {
   Node,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/city/utils/clazz-communication-mesh-data-model';
 
 export interface AnnotationDataArgs {
   annotationId: number | undefined;
@@ -21,7 +20,6 @@ export interface AnnotationDataArgs {
     | Package
     | Class
     | ClazzCommuMeshDataModel
-    | K8sDataModel
     | ClassCommunication;
   applicationId?: string;
   menuId: string | null;
@@ -57,7 +55,6 @@ export default class AnnotationData {
     | Package
     | Class
     | ClazzCommuMeshDataModel
-    | K8sDataModel
     | ClassCommunication;
 
   applicationId?: string;

@@ -9,7 +9,7 @@ import AnnotationData from 'explorviz-frontend/src/components/visualization/rend
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -53,11 +53,17 @@ export default function AnnotationCoordinator({
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
   const isDragging = useRef<boolean>(false);
-  const currentAnnotationPosition = useRef<Position2D>({ x: annotationData.mouseX, y: annotationData.mouseY });
+  const currentAnnotationPosition = useRef<Position2D>({
+    x: annotationData.mouseX,
+    y: annotationData.mouseY,
+  });
 
   useEffect(() => {
     if (!isDragging.current) {
-      currentAnnotationPosition.current = { x: annotationData.mouseX, y: annotationData.mouseY };
+      currentAnnotationPosition.current = {
+        x: annotationData.mouseX,
+        y: annotationData.mouseY,
+      };
     }
   }, [annotationData.mouseX, annotationData.mouseY]);
 
@@ -144,8 +150,10 @@ export default function AnnotationCoordinator({
     }
 
     // Update ref for final save
-    currentAnnotationPosition.current.x -= element.current!.offsetLeft - newPositionX;
-    currentAnnotationPosition.current.y -= element.current!.offsetTop - newPositionY;
+    currentAnnotationPosition.current.x -=
+      element.current!.offsetLeft - newPositionX;
+    currentAnnotationPosition.current.y -=
+      element.current!.offsetTop - newPositionY;
 
     element.current!.style.left = `${newPositionX}px`;
     element.current!.style.top = `${newPositionY}px`;

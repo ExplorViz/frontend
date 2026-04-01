@@ -1,6 +1,6 @@
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/city/communication-arrow-mesh';
 import CrosshairMesh from 'explorviz-frontend/src/view-objects/3d/crosshair-mesh.ts';
 import * as THREE from 'three';
 import ThreeMeshUI from 'three-mesh-ui';

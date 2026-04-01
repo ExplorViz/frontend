@@ -5,35 +5,35 @@ import { create } from 'zustand';
 interface LayoutStoreState {
   // Layouts for different entities
   landscapeLayout: BoxLayout | null;
-  applicationLayouts: Map<string, BoxLayout>;
-  componentLayouts: Map<string, BoxLayout>;
-  classLayouts: Map<string, BoxLayout>;
-  maxComponentLevel: number | null;
+  cityLayouts: Map<string, BoxLayout>;
+  districtLayouts: Map<string, BoxLayout>;
+  buildingLayouts: Map<string, BoxLayout>;
+  maxDistrictDepth: number | null;
 
   // Actions
   updateLayouts: (boxLayoutMap: Map<string, BoxLayout>) => void;
   getLayout: (entityId: string) => BoxLayout | undefined;
   getLandscapeLayout: () => BoxLayout | null;
-  getApplicationLayouts: () => Map<string, BoxLayout>;
-  getComponentLayouts: () => Map<string, BoxLayout>;
-  getClassLayouts: () => Map<string, BoxLayout>;
+  getCityLayouts: () => Map<string, BoxLayout>;
+  getDistrictLayouts: () => Map<string, BoxLayout>;
+  getBuildingLayouts: () => Map<string, BoxLayout>;
   clearLayouts: () => void;
 }
 
 export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
   landscapeLayout: null,
-  applicationLayouts: new Map<string, BoxLayout>(),
-  componentLayouts: new Map<string, BoxLayout>(),
-  classLayouts: new Map<string, BoxLayout>(),
-  maxComponentLevel: null,
+  cityLayouts: new Map<string, BoxLayout>(),
+  districtLayouts: new Map<string, BoxLayout>(),
+  buildingLayouts: new Map<string, BoxLayout>(),
+  maxDistrictDepth: null,
 
   updateLayouts: (boxLayoutMap: Map<string, BoxLayout>) => {
     const modelStore = useModelStore.getState();
     const landscapeLayout = boxLayoutMap.get('landscape') || null;
 
-    const applicationLayouts = new Map<string, BoxLayout>();
-    const componentLayouts = new Map<string, BoxLayout>();
-    const classLayouts = new Map<string, BoxLayout>();
+    const cityLayouts = new Map<string, BoxLayout>();
+    const districtLayouts = new Map<string, BoxLayout>();
+    const buildingLayouts = new Map<string, BoxLayout>();
 
     // Organize layouts by entity type
     boxLayoutMap.forEach((layout, entityId) => {
@@ -45,13 +45,13 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       const entityType = modelStore.getEntityType(entityId);
       switch (entityType) {
         case 'application':
-          applicationLayouts.set(entityId, layout);
+          cityLayouts.set(entityId, layout);
           break;
         case 'component':
-          componentLayouts.set(entityId, layout);
+          districtLayouts.set(entityId, layout);
           break;
         case 'class':
-          classLayouts.set(entityId, layout);
+          buildingLayouts.set(entityId, layout);
           break;
         default:
           // Unknown entity type, skip
@@ -59,24 +59,24 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       }
     });
 
-    // Compute max component level
-    let maxComponentLevel: number | null = null;
-    if (componentLayouts.size > 0) {
+    // Compute max district level/depth
+    let maxDistrictDepth: number | null = null;
+    if (districtLayouts.size > 0) {
       let maxLevel = -Infinity;
-      componentLayouts.forEach((layout) => {
+      districtLayouts.forEach((layout) => {
         if (layout.level > maxLevel) {
           maxLevel = layout.level;
         }
       });
-      maxComponentLevel = maxLevel !== -Infinity ? maxLevel : null;
+      maxDistrictDepth = maxLevel !== -Infinity ? maxLevel : null;
     }
 
     set({
-      landscapeLayout,
-      applicationLayouts,
-      componentLayouts,
-      classLayouts,
-      maxComponentLevel,
+      landscapeLayout: landscapeLayout,
+      cityLayouts: cityLayouts,
+      districtLayouts: districtLayouts,
+      buildingLayouts: buildingLayouts,
+      maxDistrictDepth: maxDistrictDepth,
     });
   },
 
@@ -88,22 +88,22 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       return state.landscapeLayout || undefined;
     }
 
-    // Check applications
-    const appLayout = state.applicationLayouts.get(entityId);
-    if (appLayout) {
-      return appLayout;
+    // Check cities
+    const cityLayout = state.cityLayouts.get(entityId);
+    if (cityLayout) {
+      return cityLayout;
     }
 
-    // Check components
-    const componentLayout = state.componentLayouts.get(entityId);
-    if (componentLayout) {
-      return componentLayout;
+    // Check districts
+    const districtLayout = state.districtLayouts.get(entityId);
+    if (districtLayout) {
+      return districtLayout;
     }
 
-    // Check classes
-    const classLayout = state.classLayouts.get(entityId);
-    if (classLayout) {
-      return classLayout;
+    // Check buildings
+    const buildingLayout = state.buildingLayouts.get(entityId);
+    if (buildingLayout) {
+      return buildingLayout;
     }
 
     return undefined;
@@ -113,25 +113,25 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
     return get().landscapeLayout;
   },
 
-  getApplicationLayouts: () => {
-    return get().applicationLayouts;
+  getCityLayouts: () => {
+    return get().cityLayouts;
   },
 
-  getComponentLayouts: () => {
-    return get().componentLayouts;
+  getDistrictLayouts: () => {
+    return get().districtLayouts;
   },
 
-  getClassLayouts: () => {
-    return get().classLayouts;
+  getBuildingLayouts: () => {
+    return get().buildingLayouts;
   },
 
   clearLayouts: () => {
     set({
       landscapeLayout: null,
-      applicationLayouts: new Map<string, BoxLayout>(),
-      componentLayouts: new Map<string, BoxLayout>(),
-      classLayouts: new Map<string, BoxLayout>(),
-      maxComponentLevel: null,
+      cityLayouts: new Map<string, BoxLayout>(),
+      districtLayouts: new Map<string, BoxLayout>(),
+      buildingLayouts: new Map<string, BoxLayout>(),
+      maxDistrictDepth: null,
     });
   },
 }));

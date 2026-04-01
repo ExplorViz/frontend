@@ -1,21 +1,21 @@
-import { useEffect, useState } from 'react';
 import { PlayIcon, SquareCircleIcon } from '@primer/octicons-react';
 import TracePreProcess from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-preprocess';
 import TraceSpeed from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-speed';
 import TraceStepDetails from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-step-details';
+import { TraceTab } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tab';
 import TraceTimeline from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-timeline';
 import {
   TraceNode,
   TraceTreeBuilder,
   TraceTreeVisitor,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
-import { TraceTab } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tab';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import {
   PlayState,
   useTraceReplayStore,
 } from 'explorviz-frontend/src/stores/trace-replay';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { openAllDistrictsInLandscape } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Application,
@@ -25,9 +25,9 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
-import { useShallow } from 'zustand/react/shallow';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
-import { openAllComponentsInLandscape } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { useShallow } from 'zustand/react/shallow';
 
 interface TraceReplayerControlsProps {
   selectedTrace: Trace;
@@ -171,7 +171,7 @@ export default function TraceReplayerControls({
       configuration.setIsCommRendered(false);
 
       // Open all components in landscape such that trace is fully visible
-      openAllComponentsInLandscape();
+      openAllDistrictsInLandscape();
     } else {
       observer.forEach((obs) => {
         obs(useTraceReplayStore.getState().cursor);

@@ -48,8 +48,8 @@ import {
   Node,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/city/utils/clazz-communication-mesh-data-model';
+
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 
@@ -91,7 +91,6 @@ interface AnnotationHandlerState {
     annotationId: number | undefined;
     entityId?: string;
     entity?:
-      | K8sDataModel
       | Node
       | Application
       | Package
@@ -491,7 +490,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotationId: number | undefined;
       entityId?: string;
       entity?:
-        | K8sDataModel
         | Node
         | Application
         | Package

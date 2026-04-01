@@ -9,15 +9,16 @@ import {
 import ClassMethodFiltering, {
   ClassMethodFilteringHandle,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/class-method-filtering';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface StructureFilteringProps {
   readonly landscapeData: LandscapeData;
@@ -138,8 +139,9 @@ const StructureFiltering = forwardRef<
     classes = [];
 
     triggerRenderingForGivenLandscapeData(
+      convertToFlatLandscape(deepCopyStructure), // TODO: Should be a deepCopyStructure of the FlatLandscape after removal of StructureData from LandscapeData
+      landscapeData.dynamicLandscapeData,
       deepCopyStructure,
-      landscapeData.dynamicLandscapeData
     );
   };
 
@@ -147,7 +149,7 @@ const StructureFiltering = forwardRef<
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     return () => {
       triggerRenderingForGivenLandscapeData(
-        initialLandscapeData.current.structureLandscapeData,
+        initialLandscapeData.current.flatLandscapeData,
         initialLandscapeData.current.dynamicLandscapeData
       );
       eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);

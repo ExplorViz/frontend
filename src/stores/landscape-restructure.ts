@@ -61,7 +61,7 @@ import {
   restoreID,
   RestructureAction,
 } from 'explorviz-frontend/src/utils/restructure-helper';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
 import * as THREE from 'three';
 import { create } from 'zustand';
 import { useChangelogStore } from './changelog';

@@ -6,7 +6,7 @@ import {
 
 export const metricMappingMultipliers = {
   None: 1,
-  'Method Count': 10,
+  'Function Count': 10,
   loc: 1,
   LCOM4: 10,
   cyclomatic_complexity: 10,
@@ -24,6 +24,8 @@ export const MOUSE_ACTIONS = [
   'ZOOM',
 ];
 
+export const GEOMETRY_OPTIONS = ['Box', 'Cone', 'Sphere', 'Cylinder'] as const;
+
 export const defaultVizSettings: VisualizationSettings = {
   // Color Settings
   backgroundColor: {
@@ -34,19 +36,19 @@ export const defaultVizSettings: VisualizationSettings = {
     description: '',
     isColorSetting: true,
   },
-  classColor: {
+  buildingColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.classColor,
+    value: defaultColors.buildingColor,
     group: 'Colors',
-    displayName: 'Class',
+    displayName: 'Building',
     description: '',
     isColorSetting: true,
   },
-  classTextColor: {
+  buildingTextColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.classTextColor,
+    value: defaultColors.buildingTextColor,
     group: 'Colors',
-    displayName: 'Class Label',
+    displayName: 'Building Label',
     description: '',
     isColorSetting: true,
   },
@@ -83,29 +85,29 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Ending color for communication when edge coloring is enabled',
     isColorSetting: true,
   },
-  componentRootLevelColor: {
+  districtRootLevelColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.componentRootLevelColor,
+    value: defaultColors.districtRootLevelColor,
     group: 'Colors',
-    displayName: 'Component on Root Level',
+    displayName: 'District on Root Level',
     description:
-      'Color for components at the root/top level of the component tree',
+      'Color for districts at the root/top level of the district tree',
     isColorSetting: true,
   },
-  componentDeepestLevelColor: {
+  districtDeepestLevelColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.componentDeepestLevelColor,
+    value: defaultColors.districtDeepestLevelColor,
     group: 'Colors',
-    displayName: 'Component on Deepest Level',
+    displayName: 'District on Deepest Level',
     description:
-      'Color for components at the deepest level of the component tree',
+      'Color for districts at the deepest level of the district tree',
     isColorSetting: true,
   },
-  componentTextColor: {
+  districtTextColor: {
     level: SettingLevel.DEFAULT,
-    value: defaultColors.componentTextColor,
+    value: defaultColors.districtTextColor,
     group: 'Colors',
-    displayName: 'Component Label',
+    displayName: 'District Label',
     description: '',
     isColorSetting: true,
   },
@@ -133,100 +135,60 @@ export const defaultVizSettings: VisualizationSettings = {
     description: '',
     isColorSetting: true,
   },
-  addedComponentColor: {
+  addedDistrictColor: {
     level: SettingLevel.EXTENDED,
-    value: defaultColors.addedComponentColor,
+    value: defaultColors.addedDistrictColor,
     group: 'Colors',
-    displayName: 'Added Component',
+    displayName: 'Added District',
     description: 'Evolution Diff Color',
     isColorSetting: true,
   },
-  removedComponentColor: {
+  removedDistrictColor: {
     level: SettingLevel.EXTENDED,
-    value: defaultColors.removedComponentColor,
+    value: defaultColors.removedDistrictColor,
     group: 'Colors',
-    displayName: 'Removed Component',
+    displayName: 'Removed District',
     description: 'Evolution Diff Color',
     isColorSetting: true,
   },
-  unchangedComponentColor: {
+  unchangedDistrictColor: {
     level: SettingLevel.EXTENDED,
-    value: defaultColors.unchangedComponentColor,
+    value: defaultColors.unchangedDistrictColor,
     group: 'Colors',
-    displayName: 'Unchanged Component',
+    displayName: 'Unchanged District',
     description: 'Evolution Diff',
     isColorSetting: true,
   },
-  addedClassColor: {
+  addedBuildingColor: {
     level: SettingLevel.EXTENDED,
-    value: defaultColors.addedClassColor,
+    value: defaultColors.addedBuildingColor,
     group: 'Colors',
-    displayName: 'Added Class',
+    displayName: 'Added Building',
     description: '',
     isColorSetting: true,
   },
-  modifiedClassColor: {
+  modifiedBuildingColor: {
     level: SettingLevel.EXTENDED,
-    value: defaultColors.modifiedClassColor,
+    value: defaultColors.modifiedBuildingColor,
     group: 'Colors',
-    displayName: 'Modified Class',
+    displayName: 'Modified Building',
     description: 'Evolution Diff Color',
     isColorSetting: true,
   },
-  removedClassColor: {
+  removedBuildingColor: {
     level: SettingLevel.EXTENDED,
-    value: defaultColors.removedClassColor,
+    value: defaultColors.removedBuildingColor,
     group: 'Colors',
-    displayName: 'Removed Class',
+    displayName: 'Removed Building',
     description: '',
     isColorSetting: true,
   },
-  unchangedClassColor: {
+  unchangedBuildingColor: {
     level: SettingLevel.EXTENDED,
-    value: defaultColors.unchangedClassColor,
+    value: defaultColors.unchangedBuildingColor,
     group: 'Colors',
-    displayName: 'Unchanged Class',
+    displayName: 'Unchanged Building',
     description: 'Evolution Diff Color',
-    isColorSetting: true,
-  },
-  k8sNodeColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sNodeColor,
-    group: 'Colors',
-    displayName: 'K8s Node',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sNamespaceColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sNamespaceColor,
-    group: 'Colors',
-    displayName: 'K8s Namespace',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sDeploymentColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sDeploymentColor,
-    group: 'Colors',
-    displayName: 'K8s Deployment',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sPodColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sPodColor,
-    group: 'Colors',
-    displayName: 'K8s Pod',
-    description: '',
-    isColorSetting: true,
-  },
-  k8sTextColor: {
-    level: SettingLevel.DEFAULT,
-    value: defaultColors.k8sTextColor,
-    group: 'Colors',
-    displayName: 'K8s Text',
-    description: '',
     isColorSetting: true,
   },
   k8sDiagramColor: {
@@ -305,50 +267,14 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   // Highlighting Settings
-  applyHighlightingOnHover: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Highlighting',
-    displayName: 'Only Apply Highlighting Effect on Hover',
-    description:
-      'Toggle to switch between permanent transparency effect and effect on hover',
-    isFlagSetting: true,
-  },
-  keepHighlightingOnOpenOrClose: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Highlighting',
-    displayName: 'Keep Highlighting on Open or Close',
-    description:
-      'Toggle if highlighting should be reset on double click in application visualization',
-    isFlagSetting: true,
-  },
-  transparencyIntensity: {
-    level: SettingLevel.DEFAULT,
-    value: 0.1,
-    range: { min: 0.0, max: 1.0, step: 0.05 },
-    group: 'Highlighting',
-    displayName: 'Transparency Intensity in Application Visualization',
-    description:
-      "Transparency effect intensity ('Enable Transparent Components' must be enabled)",
-    isRangeSetting: true,
-  },
-  enableMultipleHighlighting: {
-    level: SettingLevel.DEFAULT,
-    value: true,
-    group: 'Highlighting',
-    displayName: 'Enable Multiple Highlighting',
-    description:
-      'Toggle if highlighting should be kept on highlighting an unhighlighted component within the same application',
-    isFlagSetting: true,
-  },
+
   // Effect Settings
   enableAnimations: {
     level: SettingLevel.DEFAULT,
     value: true,
     group: 'Effects',
     displayName: 'Enable Animations',
-    description: 'Toggle animations for opening and closing components',
+    description: 'Toggle animations for opening and closing districts',
     isFlagSetting: true,
   },
   animationDuration: {
@@ -358,7 +284,7 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Effects',
     displayName: 'Animation Duration',
     description:
-      'Duration of animations in seconds (e.g. opening and closing of components)',
+      'Duration of animations in seconds (e.g. opening and closing of districts)',
     dependsOn: {
       settingId: 'enableAnimations',
       value: true,
@@ -381,11 +307,11 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Enable casting shadows from light (can be expensive)',
     isFlagSetting: true,
   },
-  showAllClassLabels: {
+  showAllBuildingLabels: {
     level: SettingLevel.DEFAULT,
     value: true,
     group: 'Effects',
-    displayName: 'Show All Class Labels',
+    displayName: 'Show All Building Labels',
     description: 'Shows labels all the time or only when hovered.',
     isFlagSetting: true,
   },
@@ -394,7 +320,7 @@ export const defaultVizSettings: VisualizationSettings = {
     value: false,
     group: 'Effects',
     displayName: 'Show outlines',
-    description: 'Shows black outlines of class meshes',
+    description: 'Shows black outlines of building meshes',
     isFlagSetting: true,
   },
   // Communication Settings
@@ -413,8 +339,7 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0.0, max: 10.0, step: 0.25 },
     group: 'Communication',
     displayName: 'Arrow Size',
-    description:
-      'Arrow Size for selected communications in application visualization',
+    description: 'Arrow Size for selected communications in city visualization',
     isRangeSetting: true,
   },
   commArrowOffset: {
@@ -564,7 +489,8 @@ export const defaultVizSettings: VisualizationSettings = {
     value: true,
     group: 'Communication',
     displayName: 'Streamline Edge Paths',
-    description: 'Simplify edge paths to reduce detours',
+    description:
+      'Simplify edge paths by keeping only building-level and highest-level HAPs (reduces detours)',
     dependsOn: {
       settingId: 'edgeBundlingAlgorithm',
       values: ['3D-HAP'],
@@ -585,40 +511,39 @@ export const defaultVizSettings: VisualizationSettings = {
     },
   },
   // Label settings
-  appLabelMargin: {
+  cityLabelMargin: {
     level: SettingLevel.DEFAULT,
     value: 15.0,
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Label',
-    displayName: 'App Label Margin',
-    description:
-      'Determines how much space (height) an application label may occupy',
+    displayName: 'City Label Margin',
+    description: 'Determines how much space (height) a city label may occupy',
     isRangeSetting: true,
   },
-  classLabelFontSize: {
+  buildingLabelFontSize: {
     level: SettingLevel.EXTENDED,
     value: 2.0,
     range: { min: 0.0, max: 5.0, step: 0.01 },
     group: 'Label',
-    displayName: 'Class Label Font Size',
-    description: 'Class Label Font Size',
+    displayName: 'Building Label Font Size',
+    description: 'Building Label Font Size',
     isRangeSetting: true,
   },
-  classLabelLength: {
+  buildingLabelLength: {
     level: SettingLevel.EXTENDED,
     value: 10,
     range: { min: 0, max: 50, step: 1 },
     group: 'Label',
-    displayName: 'Class Label Length',
+    displayName: 'Building Label Length',
     description: 'Determines how many letters are shown at maximum',
     isRangeSetting: true,
   },
-  classLabelOrientation: {
+  buildingLabelOrientation: {
     level: SettingLevel.EXTENDED,
     value: 0.5,
     range: { min: 0.0, max: 6.3, step: 0.01 },
     group: 'Label',
-    displayName: 'Class Label Rotation',
+    displayName: 'Building Label Rotation',
     description: 'Determines rotation of label in radians',
     isRangeSetting: true,
   },
@@ -628,33 +553,32 @@ export const defaultVizSettings: VisualizationSettings = {
     range: { min: 0, max: 100, step: 0.1 },
     group: 'Label',
     displayName: 'Label Offset',
-    description: 'Determines distance between class/component and its label',
+    description: 'Determines distance between building/district and its label',
     isRangeSetting: true,
   },
-  packageLabelMargin: {
+  districtLabelMargin: {
     level: SettingLevel.DEFAULT,
     value: 13.0,
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Label',
-    displayName: 'Package Label Margin',
+    displayName: 'District Label Margin',
     description:
-      'Determines how much space (height) a package label may occupy',
+      'Determines how much space (height) a district label may occupy',
     isRangeSetting: true,
   },
-  componentLabelPlacement: {
+  districtLabelPlacement: {
     level: SettingLevel.DEFAULT,
     value: 'bottom',
     options: ['bottom', 'left', 'right', 'top'],
     group: 'Label',
-    displayName: 'Component Label Placement',
-    description:
-      'Position of application and component labels relative to the application',
+    displayName: 'District Label Placement',
+    description: 'Position of city and district labels relative to the city',
     isSelectSetting: true,
   },
   // Layout settings
-  applicationLayoutAlgorithm: {
+  cityLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
-    value: 'stress',
+    value: 'box',
     options: [
       'box',
       'force',
@@ -665,11 +589,11 @@ export const defaultVizSettings: VisualizationSettings = {
       'stress',
     ],
     group: 'Layout',
-    displayName: 'Application Layout Algorithm',
-    description: 'Determines the layout algorithm for applications',
+    displayName: 'City Layout Algorithm',
+    description: 'Determines the layout algorithm for cities',
     isSelectSetting: true,
   },
-  packageLayoutAlgorithm: {
+  districtLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
     value: 'rectpacking',
     options: [
@@ -682,17 +606,17 @@ export const defaultVizSettings: VisualizationSettings = {
       'stress',
     ],
     group: 'Layout',
-    displayName: 'Package Layout Algorithm',
-    description: 'Determines the layout algorithm for packages',
+    displayName: 'District Layout Algorithm',
+    description: 'Determines the layout algorithm for districts',
     isSelectSetting: true,
   },
-  classLayoutAlgorithm: {
+  buildingLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
     value: 'None',
     options: ['None', 'circle', 'spiral'],
     group: 'Layout',
-    displayName: 'Class Layout',
-    description: 'Layout algorithm for classes within applications',
+    displayName: 'Building Layout',
+    description: 'Layout algorithm for buildings within cities',
     isSelectSetting: true,
   },
   spiralCenterOffset: {
@@ -703,7 +627,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Spiral Center Offset',
     description: 'Offset from center for spiral layout start position',
     dependsOn: {
-      settingId: 'classLayoutAlgorithm',
+      settingId: 'buildingLayoutAlgorithm',
       value: 'spiral',
     },
     isRangeSetting: true,
@@ -716,7 +640,7 @@ export const defaultVizSettings: VisualizationSettings = {
     displayName: 'Spiral Gap',
     description: 'Gap between segments in spiral layout',
     dependsOn: {
-      settingId: 'classLayoutAlgorithm',
+      settingId: 'buildingLayoutAlgorithm',
       value: 'spiral',
     },
     isRangeSetting: true,
@@ -784,148 +708,148 @@ export const defaultVizSettings: VisualizationSettings = {
     description: 'Rotation of the landscape around the Z-axis in radians.',
     isRangeSetting: true,
   },
-  applicationDistance: {
+  cityDistance: {
     level: SettingLevel.DEFAULT,
     value: 500.0,
     range: { min: 100, max: 2000, step: 1 },
     group: 'Layout',
-    displayName: 'App Distance',
-    description: 'Determines a preferred distance between applications',
+    displayName: 'City Distance',
+    description: 'Determines a preferred distance between cities',
     isRangeSetting: true,
   },
-  applicationAspectRatio: {
+  cityAspectRatio: {
     level: SettingLevel.DEFAULT,
     value: 1.0,
     range: { min: 0.25, max: 2.0, step: 0.05 },
     group: 'Layout',
-    displayName: 'App Aspect Ratio',
-    description: 'Determines a preferred aspect ratio for applications',
+    displayName: 'City Aspect Ratio',
+    description: 'Determines a preferred aspect ratio for cities',
     isRangeSetting: true,
   },
-  classWidthMetric: {
+  buildingWidthMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
     options: metricKeys,
     group: 'Layout',
     displayName: 'Width Metric',
-    description: 'Metric that is mapped to the width of a class.',
+    description: 'Metric that is mapped to the width of a building.',
     isSelectSetting: true,
   },
-  classWidthMultiplier: {
+  buildingWidthMultiplier: {
     level: SettingLevel.EXTENDED,
     value: 1.0,
     range: { min: 0, max: 10, step: 0.1 },
     group: 'Layout',
     displayName: 'Width Multiplier',
     description:
-      'Multiplier for metric that is mapped to the width of a class.',
+      'Multiplier for metric that is mapped to the width of a building.',
     dependsOn: {
-      settingId: 'classWidthMetric',
+      settingId: 'buildingWidthMetric',
       notEqual: 'None',
     },
     isRangeSetting: true,
   },
-  classDepthMetric: {
+  buildingDepthMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
     options: metricKeys,
     group: 'Layout',
     displayName: 'Depth Metric',
-    description: 'Metric that is mapped to the depth of a class.',
+    description: 'Metric that is mapped to the depth of a building.',
     isSelectSetting: true,
   },
-  classDepthMultiplier: {
+  buildingDepthMultiplier: {
     level: SettingLevel.EXTENDED,
     value: 1.0,
     range: { min: 0, max: 10, step: 0.1 },
     group: 'Layout',
     displayName: 'Depth Multiplier',
     description:
-      'Multiplier for metric that is mapped to the depth of a class.',
+      'Multiplier for metric that is mapped to the depth of a building.',
     dependsOn: {
-      settingId: 'classDepthMetric',
+      settingId: 'buildingDepthMetric',
       notEqual: 'None',
     },
     isRangeSetting: true,
   },
-  classHeightMetric: {
+  buildingHeightMetric: {
     level: SettingLevel.DEFAULT,
     value: 'None',
     options: metricKeys,
     group: 'Layout',
     displayName: 'Height Metric',
-    description: 'Metric that is mapped to the height of a class.',
+    description: 'Metric that is mapped to the height of a building.',
     isSelectSetting: true,
   },
-  classHeightMultiplier: {
+  buildingHeightMultiplier: {
     level: SettingLevel.EXTENDED,
     value: 1.0,
     range: { min: 0, max: 10, step: 0.1 },
     group: 'Layout',
     displayName: 'Height Multiplier',
     description:
-      'Multiplier for metric that is mapped to the height of a class.',
+      'Multiplier for metric that is mapped to the height of a building.',
     dependsOn: {
-      settingId: 'classHeightMetric',
+      settingId: 'buildingHeightMetric',
       notEqual: 'None',
     },
     isRangeSetting: true,
   },
-  classFootprint: {
+  buildingFootprint: {
     level: SettingLevel.DEFAULT,
     value: 5.0,
     range: { min: 0.5, max: 20.0, step: 0.5 },
     group: 'Layout',
-    displayName: 'Class Footprint',
-    description: 'Determines width and depth of classes',
+    displayName: 'Building Footprint',
+    description: 'Determines width and depth of buildings',
     isRangeSetting: true,
   },
-  classMargin: {
+  buildingMargin: {
     level: SettingLevel.DEFAULT,
     value: 20.0,
     range: { min: 0.0, max: 50.0, step: 1.0 },
     group: 'Layout',
-    displayName: 'Class Margin',
+    displayName: 'Building Margin',
     description:
-      'Determines distance between classes and to surrounding package',
+      'Determines distance between buildings and to surrounding district',
     isRangeSetting: true,
   },
-  appMargin: {
+  cityMargin: {
     level: SettingLevel.DEFAULT,
     value: 6.0,
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
-    displayName: 'App Margin',
-    description: 'Determines margin of applications',
+    displayName: 'City Margin',
+    description: 'Determines margin of cities',
     isRangeSetting: true,
   },
-  packageMargin: {
+  districtMargin: {
     level: SettingLevel.DEFAULT,
     value: 6.0,
     range: { min: 0.0, max: 20.0, step: 0.5 },
     group: 'Layout',
-    displayName: 'Package Margin',
-    description: 'Determines margin of packages',
+    displayName: 'District Margin',
+    description: 'Determines margin of districts',
     isRangeSetting: true,
   },
-  openedComponentHeight: {
+  openedDistrictHeight: {
     level: SettingLevel.DEFAULT,
     value: 7.5,
     range: { min: 0.1, max: 100.0, step: 0.1 },
     group: 'Layout',
-    displayName: 'Opened Component Height',
+    displayName: 'Opened District Height',
     description:
-      'Height of opened components (i.e. when contained classes are visible)',
+      'Height of opened districts (i.e. when contained buildings are visible)',
     isRangeSetting: true,
   },
-  closedComponentHeight: {
+  closedDistrictHeight: {
     level: SettingLevel.DEFAULT,
     value: 20,
     range: { min: 0.1, max: 100, step: 0.1 },
     group: 'Layout',
-    displayName: 'Closed Component Height',
+    displayName: 'Closed District Height',
     description:
-      'Height of closed components (i.e. when contained classes are hidden)',
+      'Height of closed districts (i.e. when contained buildings are hidden)',
     isRangeSetting: true,
   },
   // Popup settings
@@ -944,7 +868,8 @@ export const defaultVizSettings: VisualizationSettings = {
     value: true,
     group: 'Semantic Zoom',
     displayName: 'Enable Clustering',
-    description: 'Enable clustering of classes and packages for semantic zoom',
+    description:
+      'Enable clustering of buildings and districts for semantic zoom',
     isFlagSetting: true,
   },
   clusterCount: {
@@ -1001,29 +926,29 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isRangeSetting: true,
   },
-  autoOpenCloseComponents: {
+  autoOpenCloseDistricts: {
     level: SettingLevel.DEFAULT,
     value: false,
     group: 'Semantic Zoom',
-    displayName: 'Auto Open/Close Components',
+    displayName: 'Auto Open/Close Districts',
     description:
-      'Automatically open components when camera is close to cluster centroid, and close when far away.',
+      'Automatically open districts when camera is close to cluster centroid, and close when far away.',
     dependsOn: {
       settingId: 'enableClustering',
       value: true,
     },
     isFlagSetting: true,
   },
-  componentOpenCloseDistanceThreshold: {
+  districtOpenCloseDistanceThreshold: {
     level: SettingLevel.DEFAULT,
     value: 15.0,
     range: { min: 0.0, max: 100.0, step: 0.5 },
     group: 'Semantic Zoom',
-    displayName: 'Component Open/Close Distance Threshold',
+    displayName: 'District Open/Close Distance Threshold',
     description:
-      'Maximum distance from camera to cluster centroid for components to be automatically opened/closed.',
+      'Maximum distance from camera to cluster centroid for districts to be automatically opened/closed.',
     dependsOn: {
-      settingId: 'autoOpenCloseComponents',
+      settingId: 'autoOpenCloseDistricts',
       value: true,
     },
     isRangeSetting: true,
@@ -1103,6 +1028,78 @@ export const defaultVizSettings: VisualizationSettings = {
     },
     isRangeSetting: true,
   },
+  // Geometry Settings
+  languageGeometryJava: {
+    level: SettingLevel.DEFAULT,
+    value: 'Box',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'Java Geometry',
+    description: 'Geometry used for Java files',
+    isSelectSetting: true,
+  },
+  languageColorJava: {
+    level: SettingLevel.DEFAULT,
+    value: '#F5A623',
+    group: 'Geometry',
+    displayName: 'Java Color',
+    description: 'Color used for Java files',
+    isColorSetting: true,
+  },
+  languageGeometryPython: {
+    level: SettingLevel.DEFAULT,
+    value: 'Cylinder',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'Python Geometry',
+    description: 'Geometry used for Python files',
+    isSelectSetting: true,
+  },
+  languageColorPython: {
+    level: SettingLevel.DEFAULT,
+    value: '#3AA4FC',
+    group: 'Geometry',
+    displayName: 'Python Color',
+    description: 'Color used for Python files',
+    isColorSetting: true,
+  },
+  languageGeometryTypeScript: {
+    level: SettingLevel.DEFAULT,
+    value: 'Cone',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'TypeScript Geometry',
+    description: 'Geometry used for TypeScript and JavaScript files',
+    isSelectSetting: true,
+  },
+  languageColorTypeScript: {
+    level: SettingLevel.DEFAULT,
+    value: '#FFF150',
+    group: 'Geometry',
+    displayName: 'TypeScript Color',
+    description: 'Color used for TypeScript and JavaScript files',
+    isColorSetting: true,
+  },
+  languageGeometryOther: {
+    level: SettingLevel.DEFAULT,
+    value: 'Sphere',
+    options: [...GEOMETRY_OPTIONS],
+    group: 'Geometry',
+    displayName: 'Other Files Geometry',
+    description:
+      'Geometry used for text files, unknown files, and other file types',
+    isSelectSetting: true,
+  },
+  languageColorOther: {
+    level: SettingLevel.DEFAULT,
+    value: '#F0F0F0',
+    group: 'Geometry',
+    displayName: 'Other Files Color',
+    description:
+      'Color used for text files, unknown files, and other file types',
+    isColorSetting: true,
+  },
+
   // VR Settings
   autoEnterVr: {
     level: SettingLevel.DEFAULT,
@@ -1461,8 +1458,8 @@ export const defaultVizSettings: VisualizationSettings = {
     level: SettingLevel.EXTENDED,
     value: true,
     group: 'Minimap',
-    displayName: 'Enable component visibility',
-    description: 'Toggle component visibility for the minimap',
+    displayName: 'Enable district visibility',
+    description: 'Toggle district visibility for the minimap',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,
@@ -1473,8 +1470,8 @@ export const defaultVizSettings: VisualizationSettings = {
     level: SettingLevel.EXTENDED,
     value: true,
     group: 'Minimap',
-    displayName: 'Enable clazz visibility',
-    description: 'Toggle clazz visibility for the minimap',
+    displayName: 'Enable building visibility',
+    description: 'Toggle building visibility for the minimap',
     dependsOn: {
       settingId: 'isMinimapEnabled',
       value: true,

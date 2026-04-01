@@ -31,7 +31,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
     landscapePositionX,
     landscapePositionY,
     landscapePositionZ,
-    openedComponentHeight,
+    openedDistrictHeight,
   } = settings;
 
   const landscapeOffset = new THREE.Vector3(
@@ -42,7 +42,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
 
   const landscapeCenter = new THREE.Vector3(
     -landscapeLayout.width / 2,
-    -openedComponentHeight.value * 2, // due to elk-layouting
+    -openedDistrictHeight.value * 2, // due to elk-layouting
     -landscapeLayout.depth / 2
   );
 
@@ -52,7 +52,7 @@ export function getLandscapeCenterPosition(): THREE.Vector3 {
 }
 
 /**
- * Computes the world-space position of a specific model (application, package, or class)
+ * Computes the world-space position of a specific model (city, district, or building)
  * based on the current layout and landscape settings.
  */
 export function getWorldPositionOfModel(
@@ -62,56 +62,40 @@ export function getWorldPositionOfModel(
   if (modelId.indexOf('_') !== -1) {
     return getWorldPositionOfCommunication(modelId);
   }
-
-  // TODO: This should work on the model store
-  const appRepo = useApplicationRepositoryStore.getState();
-  const settings = useUserSettingsStore.getState().visualizationSettings;
   const layoutStore = useLayoutStore.getState();
 
-  const applicationData = appRepo.getByModelId(modelId);
-  if (!applicationData) {
-    console.warn(`No application found for model ID "${modelId}".`);
-    return undefined;
-  }
-
-  const { landscapeScalar } = settings;
+  const modelLayout = layoutStore.getLayout(modelId);
+  const city = useModelStore.getState().getCityForModel(modelId);
+  if (!city) return undefined;
+  const cityLayout = layoutStore.getLayout(city.id);
   const landscapeLayout = layoutStore.landscapeLayout;
 
-  if (!landscapeLayout) {
-    console.warn(`Landscape layout missing for model ID "${modelId}".`);
+  if (!modelLayout || !cityLayout || !landscapeLayout) {
+    console.warn(`Some layout missing for model ID "${modelId}".`);
     return undefined;
   }
 
-  const appLayout = layoutStore.getLayout(applicationData.getId());
-  if (!appLayout) {
-    console.warn(`Application layout missing for model ID "${modelId}".`);
-    return undefined;
-  }
+  const landscapeScalar =
+    useUserSettingsStore.getState().visualizationSettings.landscapeScalar.value;
 
-  const appPosition = appLayout.position
+  const cityPosition = cityLayout.position
     .clone()
-    .multiplyScalar(landscapeScalar.value);
+    .multiplyScalar(landscapeScalar);
 
-  const isModelApplication = modelId === applicationData.getId();
   let modelPosition: THREE.Vector3 | undefined;
 
-  if (isModelApplication) {
-    const modelLayout = layoutStore.getLayout(modelId);
-    if (!modelLayout) return undefined;
+  // Case that model is city
+  if (useModelStore.getState().cities[modelId]) {
     modelPosition = new THREE.Vector3(
       modelLayout.width / 2,
       0,
       modelLayout.depth / 2
-    ).multiplyScalar(landscapeScalar.value);
+    ).multiplyScalar(landscapeScalar);
   } else {
-    const modelLayout = layoutStore.getLayout(modelId);
-    if (!modelLayout) return undefined;
-    modelPosition = modelLayout.center
-      .clone()
-      .multiplyScalar(landscapeScalar.value);
+    modelPosition = modelLayout.center.clone().multiplyScalar(landscapeScalar);
   }
 
-  return getLandscapeCenterPosition().add(appPosition).add(modelPosition);
+  return getLandscapeCenterPosition().add(cityPosition).add(modelPosition);
 }
 
 /**

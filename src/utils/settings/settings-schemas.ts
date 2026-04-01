@@ -5,8 +5,8 @@ export type SettingGroup =
   | 'Controls'
   | 'Debugging'
   | 'Effects'
+  | 'Geometry'
   | 'Heatmap'
-  | 'Highlighting'
   | 'Layout'
   | 'Label'
   | 'Magnifier'
@@ -29,30 +29,25 @@ export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
-  | 'classColor'
-  | 'classTextColor'
+  | 'buildingColor'
+  | 'buildingTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
   | 'communicationStartColor'
   | 'communicationEndColor'
-  | 'componentRootLevelColor'
-  | 'componentDeepestLevelColor'
-  | 'componentTextColor'
+  | 'districtRootLevelColor'
+  | 'districtDeepestLevelColor'
+  | 'districtTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
   | 'highlightedEntityColor'
-  | 'addedComponentColor'
-  | 'removedComponentColor'
-  | 'unchangedComponentColor'
-  | 'addedClassColor'
-  | 'modifiedClassColor'
-  | 'removedClassColor'
-  | 'unchangedClassColor'
-  | 'k8sNodeColor'
-  | 'k8sNamespaceColor'
-  | 'k8sDeploymentColor'
-  | 'k8sPodColor'
-  | 'k8sTextColor'
+  | 'addedDistrictColor'
+  | 'removedDistrictColor'
+  | 'unchangedDistrictColor'
+  | 'addedBuildingColor'
+  | 'modifiedBuildingColor'
+  | 'removedBuildingColor'
+  | 'unchangedBuildingColor'
   | 'k8sDiagramColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
@@ -84,11 +79,6 @@ export type CommunicationSettingId =
   | 'hapUseRelativeElevation'
   | 'edgeBundlingAlgorithm'
   | 'enableEdgeColoring';
-
-// export type CommunicationSettings = Record<
-//   CommunicationSettingId,
-//   RangeSetting
-// >;
 
 export type CommunicationSettings = {
   commThickness: RangeSetting;
@@ -127,39 +117,31 @@ export type HeatmapSettings = {
 };
 export type HeatmapSettingId = keyof HeatmapSettings;
 
-export type HighlightingSettings = {
-  applyHighlightingOnHover: FlagSetting;
-  keepHighlightingOnOpenOrClose: FlagSetting;
-  transparencyIntensity: RangeSetting;
-  enableMultipleHighlighting: FlagSetting;
-};
-export type HighlightingSettingId = keyof HighlightingSettings;
-
 export type EffectSettings = {
   animationDuration: RangeSetting;
   castShadows: FlagSetting;
   enableAnimations: FlagSetting;
   enableHoverEffects: FlagSetting;
-  showAllClassLabels: FlagSetting;
+  showAllBuildingLabels: FlagSetting;
   showOutlines: FlagSetting;
 };
 export type EffectSettingId = keyof EffectSettings;
 
 export type LabelSettings = {
-  appLabelMargin: RangeSetting;
-  classLabelFontSize: RangeSetting;
-  classLabelLength: RangeSetting;
-  classLabelOrientation: RangeSetting;
+  cityLabelMargin: RangeSetting;
+  buildingLabelFontSize: RangeSetting;
+  buildingLabelLength: RangeSetting;
+  buildingLabelOrientation: RangeSetting;
   labelOffset: RangeSetting;
-  packageLabelMargin: RangeSetting;
-  componentLabelPlacement: SelectSetting<string>;
+  districtLabelMargin: RangeSetting;
+  districtLabelPlacement: SelectSetting<string>;
 };
 export type LabelSettingId = keyof LabelSettings;
 
 export type LayoutSettings = {
-  applicationLayoutAlgorithm: SelectSetting<string>;
-  packageLayoutAlgorithm: SelectSetting<string>;
-  classLayoutAlgorithm: SelectSetting<string>;
+  cityLayoutAlgorithm: SelectSetting<string>;
+  districtLayoutAlgorithm: SelectSetting<string>;
+  buildingLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
   landscapePositionX: RangeSetting;
   landscapePositionY: RangeSetting;
@@ -167,20 +149,20 @@ export type LayoutSettings = {
   landscapeRotationX: RangeSetting;
   landscapeRotationY: RangeSetting;
   landscapeRotationZ: RangeSetting;
-  applicationDistance: RangeSetting;
-  applicationAspectRatio: RangeSetting;
-  appMargin: RangeSetting;
-  packageMargin: RangeSetting;
-  classFootprint: RangeSetting;
-  classWidthMetric: SelectSetting<string>;
-  classWidthMultiplier: RangeSetting;
-  classDepthMetric: SelectSetting<string>;
-  classDepthMultiplier: RangeSetting;
-  classHeightMetric: SelectSetting<string>;
-  classHeightMultiplier: RangeSetting;
-  classMargin: RangeSetting;
-  openedComponentHeight: RangeSetting;
-  closedComponentHeight: RangeSetting;
+  cityDistance: RangeSetting;
+  cityAspectRatio: RangeSetting;
+  cityMargin: RangeSetting;
+  districtMargin: RangeSetting;
+  buildingFootprint: RangeSetting;
+  buildingWidthMetric: SelectSetting<string>;
+  buildingWidthMultiplier: RangeSetting;
+  buildingDepthMetric: SelectSetting<string>;
+  buildingDepthMultiplier: RangeSetting;
+  buildingHeightMetric: SelectSetting<string>;
+  buildingHeightMultiplier: RangeSetting;
+  buildingMargin: RangeSetting;
+  openedDistrictHeight: RangeSetting;
+  closedDistrictHeight: RangeSetting;
   spiralCenterOffset: RangeSetting;
   spiralGap: RangeSetting;
 };
@@ -218,8 +200,8 @@ export type SemanticZoomSettings = {
   clusterCount: RangeSetting;
   labelDistanceThreshold: RangeSetting;
   distanceUpdateFrequency: RangeSetting;
-  autoOpenCloseComponents: FlagSetting;
-  componentOpenCloseDistanceThreshold: RangeSetting;
+  autoOpenCloseDistricts: FlagSetting;
+  districtOpenCloseDistanceThreshold: RangeSetting;
 };
 export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 
@@ -242,6 +224,18 @@ export type MagnifierSettingId = keyof MagnifierSettings;
 export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
+export type GeometrySettings = {
+  languageGeometryJava: SelectSetting<string>;
+  languageGeometryPython: SelectSetting<string>;
+  languageGeometryTypeScript: SelectSetting<string>;
+  languageGeometryOther: SelectSetting<string>;
+  languageColorJava: ColorSetting;
+  languageColorPython: ColorSetting;
+  languageColorTypeScript: ColorSetting;
+  languageColorOther: ColorSetting;
+};
+export type GeometrySettingId = keyof GeometrySettings;
+
 export type VisualizationSettingId =
   | CameraSettingId
   | ColorSettingId
@@ -249,7 +243,6 @@ export type VisualizationSettingId =
   | ControlSettingId
   | DebugSettingId
   | HeatmapSettingId
-  | HighlightingSettingId
   | EffectSettingId
   | LayoutSettingId
   | LabelSettingId
@@ -258,15 +251,16 @@ export type VisualizationSettingId =
   | MiscSettingId
   | PopupSettingId
   | SemanticZoomSettingId
-  | XrSettingId;
+  | XrSettingId
+  | GeometrySettingId;
 
 export type VisualizationSettings = CameraSettings &
   CommunicationSettings &
   ControlSettings &
   DebugSettings &
   HeatmapSettings &
-  HighlightingSettings &
   EffectSettings &
+  GeometrySettings &
   LayoutSettings &
   LabelSettings &
   MagnifierSettings &
@@ -368,9 +362,9 @@ export interface ButtonSetting extends Setting<boolean> {
   readonly isButtonSetting: true;
 }
 
-export enum SelectedClassMetric {
+export enum SelectedBuildingMetric {
   None = 'None',
-  Method = 'Method Count',
+  Method = 'Function Count',
   LoC = 'LoC',
 }
 

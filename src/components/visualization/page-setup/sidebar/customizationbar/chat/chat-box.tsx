@@ -14,7 +14,7 @@ import {
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 
 interface ChatUser {
