@@ -25,6 +25,7 @@ import {
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
@@ -194,7 +195,7 @@ export default function Visualization() {
       renderingServiceTriggerRenderingForGivenLandscapeData(
         convertToFlatLandscape(structureData), // TODO: Used in restructuring. Restructuring may not work with flatlandscape at the moment
         dynamicData,
-        structureData,
+        structureData
       );
     };
     const handleToggleVisualizationUpdating = () => {
@@ -306,9 +307,10 @@ export default function Visualization() {
   const setVisualizationPausedRenderingService = useRenderingServiceStore(
     (state) => state.setVisualizationPaused
   );
-  const renderingServiceTriggerRenderingForSelectedCommits = useRenderingServiceStore(
-    (state) => state.triggerRenderingForSelectedCommits
-  );
+  const renderingServiceTriggerRenderingForSelectedCommits =
+    useRenderingServiceStore(
+      (state) => state.triggerRenderingForSelectedCommits
+    );
   const renderingServiceTriggerRenderingForGivenTimestamp =
     useRenderingServiceStore(
       (state) => state.triggerRenderingForGivenTimestamps
@@ -846,6 +848,7 @@ export default function Visualization() {
     useTimestampPollingStore.getState().resetPolling();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
     useRenderingServiceStore.getState().resetAllRenderingStates();
+    useModelStore.getState().clearAll();
 
     // Always show runtime first
     setIsRuntimeTimelineSelected(true);

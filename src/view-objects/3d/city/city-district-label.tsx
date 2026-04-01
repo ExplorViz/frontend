@@ -22,6 +22,7 @@ export default function CityDistrictLabel({
     labelOffset,
     districtTextColor,
     closedDistrictHeight,
+    openedDistrictHeight,
     districtLabelMargin,
     enableAnimations,
     animationDuration,
@@ -33,6 +34,8 @@ export default function CityDistrictLabel({
       districtTextColor: state.visualizationSettings.districtTextColor.value,
       closedDistrictHeight:
         state.visualizationSettings.closedDistrictHeight.value,
+      openedDistrictHeight:
+        state.visualizationSettings.openedDistrictHeight.value,
       districtLabelMargin:
         state.visualizationSettings.districtLabelMargin.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
@@ -84,54 +87,69 @@ export default function CityDistrictLabel({
     return true;
   }, [centroidDistance, layout.area, labelDistanceThreshold, getFontSize]);
 
-  const getLabelPositionForPlacement = (
-    placement: string,
-    isOpen: boolean
-  ): THREE.Vector3 => {
-    const margin = districtLabelMargin / 2;
-    const openedPosY = layout.positionY + layout.height + labelOffset + 0.01;
-    const closedPosY =
-      layout.positionY + closedDistrictHeight + labelOffset + 0.01;
-    switch (placement) {
-      case 'top':
-        return isOpen
-          ? new THREE.Vector3(
-              layout.center.x,
-              openedPosY,
-              layout.center.z - layout.depth / 2 + margin
-            )
-          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-      case 'bottom':
-        return isOpen
-          ? new THREE.Vector3(
-              layout.center.x,
-              openedPosY,
-              layout.center.z + layout.depth / 2 - margin
-            )
-          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-      case 'left':
-        return isOpen
-          ? new THREE.Vector3(
-              layout.center.x - layout.width / 2 + margin,
-              openedPosY,
-              layout.center.z
-            )
-          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-      case 'right':
-        return isOpen
-          ? new THREE.Vector3(
-              layout.center.x + layout.width / 2 - margin,
-              openedPosY,
-              layout.center.z
-            )
-          : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
-      default:
-        return new THREE.Vector3(0, 0, 0);
-    }
-  };
+  const getLabelPositionForPlacement = useCallback(
+    (placement: string, isOpen: boolean): THREE.Vector3 => {
+      const margin = districtLabelMargin / 2;
+      const openedPosY =
+        layout.positionY + openedDistrictHeight + labelOffset + 0.01;
+      const closedPosY =
+        layout.positionY + closedDistrictHeight + labelOffset + 0.01;
+      switch (placement) {
+        case 'top':
+          return isOpen
+            ? new THREE.Vector3(
+                layout.center.x,
+                openedPosY,
+                layout.center.z - layout.depth / 2 + margin
+              )
+            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+        case 'bottom':
+          return isOpen
+            ? new THREE.Vector3(
+                layout.center.x,
+                openedPosY,
+                layout.center.z + layout.depth / 2 - margin
+              )
+            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+        case 'left':
+          return isOpen
+            ? new THREE.Vector3(
+                layout.center.x - layout.width / 2 + margin,
+                openedPosY,
+                layout.center.z
+              )
+            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+        case 'right':
+          return isOpen
+            ? new THREE.Vector3(
+                layout.center.x + layout.width / 2 - margin,
+                openedPosY,
+                layout.center.z
+              )
+            : new THREE.Vector3(layout.center.x, closedPosY, layout.center.z);
+        default:
+          return new THREE.Vector3(0, 0, 0);
+      }
+    },
+    [
+      layout,
+      openedDistrictHeight,
+      closedDistrictHeight,
+      labelOffset,
+      districtLabelMargin,
+    ]
+  );
 
   useEffect(() => {
     const target = getLabelPositionForPlacement(districtLabelPlacement, isOpen);
+
+    if (
+      labelPosition.x === target.x &&
+      labelPosition.y === target.y &&
+      labelPosition.z === target.z
+    ) {
+      return;
+    }
 
     if (enableAnimations) {
       const values = {
@@ -151,19 +169,13 @@ export default function CityDistrictLabel({
     } else {
       setLabelPosition(target.clone());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    layout,
     isOpen,
-    labelOffset,
-    districtLabelMargin,
-    closedDistrictHeight,
     enableAnimations,
     animationDuration,
     districtLabelPlacement,
     getLabelPositionForPlacement,
-    labelPosition.x,
-    labelPosition.y,
-    labelPosition.z,
   ]);
 
   return isWithinDistance ? (
