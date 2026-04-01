@@ -146,15 +146,13 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
       buildingHeightMultiplier:
         state.visualizationSettings.buildingHeightMultiplier.value,
-      enableHoverEffects:
-        state.visualizationSettings.enableHoverEffects.value,
+      enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       heightMetric: state.visualizationSettings.buildingHeightMetric.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
       entityOpacity: state.visualizationSettings.entityOpacity.value,
-      addedBuildingColor:
-        state.visualizationSettings.addedBuildingColor.value,
+      addedBuildingColor: state.visualizationSettings.addedBuildingColor.value,
       modifiedBuildingColor:
         state.visualizationSettings.modifiedBuildingColor.value,
       removedBuildingColor:
@@ -169,70 +167,62 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         state.visualizationSettings.languageGeometryTypeScript?.value,
       languageGeometryOther:
         state.visualizationSettings.languageGeometryOther?.value,
-      languageColorJava:
-        state.visualizationSettings.languageColorJava?.value,
+      languageColorJava: state.visualizationSettings.languageColorJava?.value,
       languageColorPython:
         state.visualizationSettings.languageColorPython?.value,
       languageColorTypeScript:
         state.visualizationSettings.languageColorTypeScript?.value,
-      languageColorOther:
-        state.visualizationSettings.languageColorOther?.value,
+      languageColorOther: state.visualizationSettings.languageColorOther?.value,
     }))
   );
 
   // Compute geometry type based on language setting
-  const selectedGeometryType = useMemo(
-    () => {
-      switch (language) {
-        case 'JAVA':
-          return languageGeometryJava;
-        case 'PYTHON':
-          return languageGeometryPython;
-        case 'TYPESCRIPT':
-          return languageGeometryTypeScript;
-        case 'JAVASCRIPT':
-          return languageGeometryTypeScript;
-        case 'PLAINTEXT':
-        case 'LANGUAGE_UNSPECIFIED':
-        default:
-          return languageGeometryOther;
-      }
-    },
-    [
-      language,
-      languageGeometryJava,
-      languageGeometryPython,
-      languageGeometryTypeScript,
-      languageGeometryOther,
-    ]
-  );
+  const selectedGeometryType = useMemo(() => {
+    switch (language) {
+      case 'JAVA':
+        return languageGeometryJava;
+      case 'PYTHON':
+        return languageGeometryPython;
+      case 'TYPESCRIPT':
+        return languageGeometryTypeScript;
+      case 'JAVASCRIPT':
+        return languageGeometryTypeScript;
+      case 'PLAINTEXT':
+      case 'LANGUAGE_UNSPECIFIED':
+      default:
+        return languageGeometryOther;
+    }
+  }, [
+    language,
+    languageGeometryJava,
+    languageGeometryPython,
+    languageGeometryTypeScript,
+    languageGeometryOther,
+  ]);
 
   // Compute color based on language setting
-  const selectedLanguageColor = useMemo(
-    () => {
-      switch (language) {
-        case 'JAVA':
-          return languageColorJava;
-        case 'PYTHON':
-          return languageColorPython;
-        case 'TYPESCRIPT':
-          return languageColorTypeScript;
-        case 'JAVASCRIPT':
-          return languageColorTypeScript;
-        case 'PLAINTEXT':
-        case 'LANGUAGE_UNSPECIFIED':
-        default:
-          return languageColorOther;
-      }
-    },
-    [
-      language,
-      languageColorJava,
-      languageColorPython,
-      languageColorTypeScript,
-      languageColorOther,
-    ]
-  );
+  const selectedLanguageColor = useMemo(() => {
+    switch (language) {
+      case 'JAVA':
+        return languageColorJava;
+      case 'PYTHON':
+        return languageColorPython;
+      case 'TYPESCRIPT':
+        return languageColorTypeScript;
+      case 'JAVASCRIPT':
+        return languageColorTypeScript;
+      case 'PLAINTEXT':
+      case 'LANGUAGE_UNSPECIFIED':
+      default:
+        return languageColorOther;
+    }
+  }, [
+    language,
+    languageColorJava,
+    languageColorPython,
+    languageColorTypeScript,
+    languageColorOther,
+  ]);
 
   const geometry = useMemo(() => {
     switch (selectedGeometryType) {
@@ -285,10 +275,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         return new THREE.Color('red');
       }
       if (heatmapActive) {
-        const metricValues = getMetricValues(
-          building,
-          selectedBuildingMetric!
-        );
+        const metricValues = getMetricValues(building, selectedBuildingMetric!);
         return new THREE.Color(
           getSimpleHeatmapColor(metricValues.current, metricValues.max)
         );
@@ -339,11 +326,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   );
 
   const computeMeshInstances = useCallback(() => {
-    if (
-      meshRef === null ||
-      typeof meshRef === 'function' ||
-      !meshRef.current
-    ) {
+    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
     }
 
@@ -371,9 +354,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
       const visibleDueToEvo = (() => {
         if (evoConfig.renderOnlyDifferences) {
-          return (
-            !!building.commitComparison
-          );
+          return !!building.commitComparison;
         }
 
         if (
@@ -413,11 +394,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   ]);
 
   const animateMeshInstanceChanges = useCallback(() => {
-      if (
-        meshRef === null ||
-        typeof meshRef === 'function' ||
-        !meshRef.current
-      ) {
+    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
     }
     const mesh = meshRef.current;
@@ -482,26 +459,22 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
           pos.y = values.positionY;
           pos.z = values.positionZ;
           tempMatrix.compose(pos, quat, scale);
-            if (!meshRef || typeof meshRef === 'function') return;
+          if (!meshRef || typeof meshRef === 'function') return;
           mesh.setMatrixAt(instanceId, tempMatrix);
         },
       });
     });
-    }, [
-      meshRef,
-      buildingIdToInstanceId,
-      layoutMap,
-      getBuildingHeight,
-      animationDuration,
-    ]);
+  }, [
+    meshRef,
+    buildingIdToInstanceId,
+    layoutMap,
+    getBuildingHeight,
+    animationDuration,
+  ]);
 
-    // Compute mesh instances or animate changes
+  // Compute mesh instances or animate changes
   useEffect(() => {
-      if (
-        meshRef === null ||
-        typeof meshRef === 'function' ||
-        !meshRef.current
-      ) {
+    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
     }
 
@@ -539,51 +512,42 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
   // React on changes of color
   useEffect(() => {
-      if (
-        meshRef === null ||
-        typeof meshRef === 'function' ||
-        !meshRef.current
-      ) {
+    if (meshRef === null || typeof meshRef === 'function' || !meshRef.current) {
       return;
     }
     buildingIdToInstanceId.forEach((instanceId, buildingId) => {
       meshRef.current?.setColorAt(instanceId, computeColor(buildingId));
     });
-    }, [
-      meshRef,
-      selectedLanguageColor,
-      highlightedEntityColor,
-      buildingIdToInstanceId,
-      computeColor,
-    ]);
+  }, [
+    meshRef,
+    selectedLanguageColor,
+    highlightedEntityColor,
+    buildingIdToInstanceId,
+    computeColor,
+  ]);
 
   // React on changes of building visibility
   useEffect(() => {
-      if (meshRef === null || typeof meshRef === 'function') {
-        return;
-      }
+    if (meshRef === null || typeof meshRef === 'function') {
+      return;
+    }
     if (!meshRef.current) return;
 
-      // Update the visibility of the instances based
+    // Update the visibility of the instances based
     instanceIdToBuildingId.forEach((buildingId, instanceId) => {
-        // Set visibility based on hidden buildings
+      // Set visibility based on hidden buildings
       meshRef.current?.setVisibilityAt(
         instanceId,
         !hiddenBuildingIds.has(buildingId) &&
           !removedDistrictIds.has(buildingId)
       );
     });
-    }, [
-      meshRef,
-      instanceIdToBuildingId,
-      hiddenBuildingIds,
-      removedDistrictIds,
-    ]);
+  }, [meshRef, instanceIdToBuildingId, hiddenBuildingIds, removedDistrictIds]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
-      if (meshRef === null || typeof meshRef === 'function') {
-        return;
-      }
+    if (meshRef === null || typeof meshRef === 'function') {
+      return;
+    }
     if (!meshRef.current) return;
     const { instanceId } = e;
     if (instanceId === undefined) return;
@@ -596,9 +560,9 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   };
 
   const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
-      if (meshRef === null || typeof meshRef === 'function') {
-        return;
-      }
+    if (meshRef === null || typeof meshRef === 'function') {
+      return;
+    }
     if (!meshRef.current) return;
     const { instanceId } = e;
     if (instanceId === undefined) return;
@@ -611,9 +575,9 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   };
 
   const handleOnPointerOut = (e: ThreeEvent<MouseEvent>) => {
-      if (meshRef === null || typeof meshRef === 'function') {
-        return;
-      }
+    if (meshRef === null || typeof meshRef === 'function') {
+      return;
+    }
     if (!meshRef.current) return;
     const { instanceId } = e;
     if (instanceId === undefined) return;
@@ -627,9 +591,9 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   const handleDoubleClick = (/*event: any*/) => {};
 
   const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
-      if (meshRef === null || typeof meshRef === 'function') {
-        return;
-      }
+    if (meshRef === null || typeof meshRef === 'function') {
+      return;
+    }
     if (!meshRef.current) return;
     const { instanceId } = e;
     if (instanceId === undefined) return;
@@ -692,7 +656,9 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
 
   // Filter the hidden langiages out
   const filteredBuildingsByLanguage = useMemo(() => {
-    return Array.from(buildingsByLanguage.entries()).filter(([lang, _]) => !hiddenLanguages.has(lang));
+    return Array.from(buildingsByLanguage.entries()).filter(
+      ([lang, _]) => !hiddenLanguages.has(lang)
+    );
   }, [buildingsByLanguage, hiddenLanguages]);
 
   if (buildingIds.length === 0) {
@@ -701,16 +667,14 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
 
   return (
     <>
-      {filteredBuildingsByLanguage.map(
-        ([lang, langBuildingIds]) => (
-          <LanguageGroup
-            key={`${city.id}-${lang}`}
-            language={lang}
-            buildingIds={langBuildingIds}
-            city={city}
-          />
-        )
-      )}
+      {filteredBuildingsByLanguage.map(([lang, langBuildingIds]) => (
+        <LanguageGroup
+          key={`${city.id}-${lang}`}
+          language={lang}
+          buildingIds={langBuildingIds}
+          city={city}
+        />
+      ))}
     </>
   );
 };

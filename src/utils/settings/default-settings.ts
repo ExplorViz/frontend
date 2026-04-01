@@ -578,7 +578,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Layout settings
   cityLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
-    value: 'stress',
+    value: 'box',
     options: [
       'box',
       'force',
@@ -595,7 +595,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   districtLayoutAlgorithm: {
     level: SettingLevel.DEFAULT,
-    value: 'rectpacking',
+    value: 'box',
     options: [
       'box',
       'force',
