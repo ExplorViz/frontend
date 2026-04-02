@@ -1,72 +1,97 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { generateRandomToken } from './generateRandomToken';
 
-const codeAgentUrl = import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
+const codeAgentUrl =
+  import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
 
-type ExtensionOption = {
+type InputOption = {
   label: string;
   value: string;
-}
+};
 
-const DEFAULT_EXCLUDED_EXTENSIONS: ExtensionOption[] = [
-  { value: '.min.js', label: '.min.js' },
-  { value: '.bundle.js', label: '.bundle.js' },
-  { value: '.chunk.js', label: '.chunk.js' },
-  { value: '.d.ts', label: '.d.ts' },
-  { value: '/node_modules', label: '/node_modules' },
-  { value: '/dist', label: '/dist' },
+const EXAMPLE_INCLUSION_EXPRESSIONS: InputOption[] = [
+  { value: 'src/main/java/**', label: 'src/main/java/**' },
+  { value: 'src/main/kotlin/**', label: 'src/main/kotlin/**' },
+  { value: 'regex:.*Model\\.java', label: 'regex:.*Model\\.java' },
+  { value: 'src/**/*.ts', label: 'src/**/*.ts' },
+  { value: 'src/**/*.tsx', label: 'src/**/*.tsx' },
+  { value: 'src/**/*.cpp', label: 'src/**/*.cpp' },
+];
+
+const EXAMPLE_EXCLUSION_EXPRESSIONS: InputOption[] = [
+  { value: '**/*.min.js', label: '**/*.min.js' },
+  { value: '**/*.bundle.js', label: '**/*.bundle.js' },
+  { value: '**/*.chunk.js', label: '**/*.chunk.js' },
+  { value: '**/*.d.ts', label: '**/*.d.ts' },
+  { value: '**/node_modules/**', label: '**/node_modules/**' },
+  { value: '**/dist/**', label: '**/dist/**' },
+  { value: '**/target/**', label: '**/target/**' },
+  { value: '**/build/**', label: '**/build/**' },
+  { value: '**/bin/**', label: '**/bin/**' },
+  { value: 'regex:.*Test\\.java', label: 'regex:.*Test\\.java' },
 ];
 
 interface AnalysisRequest {
   repoPath?: string;
   repoRemoteUrl?: string;
-  remoteStoragePath?: string;
   username?: string;
   password?: string;
   branch?: string;
-  sourceDirectory?: string;
-  restrictAnalysisToFolders?: string;
+  applicationRoot?: string;
+  includeInAnalysisExpressions?: string;
+  excludeFromAnalysisExpressions?: string;
   startCommit?: string;
   endCommit?: string;
-  cloneDepth?: number;
+  commitAnalysisLimit?: number;
   landscapeToken: string;
   applicationName: string;
-  codeAnalysisExcludedFileExtensions?: string;
+  calculateMetrics: boolean;
+  sendToRemote: boolean;
 }
 
 type Props = {
-  assignRandomToken?: boolean
-  onSubmitSuccess?: (landscapeToken: string) => void
-}
+  assignRandomToken?: boolean;
+  onSubmitSuccess?: (landscapeToken: string) => void;
+};
 
 const getInitialFormData = (landscapeToken: string): AnalysisRequest => ({
   landscapeToken,
   repoRemoteUrl: '',
   repoPath: '',
-  remoteStoragePath: '',
   username: '',
   password: '',
   branch: 'main',
-  sourceDirectory: '',
-  restrictAnalysisToFolders: '',
+  applicationRoot: '',
+  includeInAnalysisExpressions: '',
+  excludeFromAnalysisExpressions: '',
   startCommit: '',
   endCommit: '',
-  cloneDepth: 1,
+  commitAnalysisLimit: 1,
   applicationName: '',
+  calculateMetrics: true,
+  sendToRemote: true,
 });
 
-export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuccess }: Props) {
+export default function CodeAnalysisTriggerForm({
+  assignRandomToken,
+  onSubmitSuccess,
+}: Props) {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useLocalRepo, setUseLocalRepo] = useState(false);
-  const [excludedExtensions, setExcludedExtensions] = useState<readonly ExtensionOption[]>(DEFAULT_EXCLUDED_EXTENSIONS);
+  const [exclusionExpressions, setExclusionExpressions] = useState<
+    readonly InputOption[]
+  >([]);
+  const [inclusionExpressions, setInclusionExpressions] = useState<
+    readonly InputOption[]
+  >([]);
 
   const landscapeTokenValue = useMemo(() => {
-    if(assignRandomToken) {
+    if (assignRandomToken) {
       return generateRandomToken(16);
     }
 
@@ -78,8 +103,8 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
   });
 
   // form state
-  const [formData, setFormData] = useState<AnalysisRequest>(
-    () => getInitialFormData(landscapeTokenValue)
+  const [formData, setFormData] = useState<AnalysisRequest>(() =>
+    getInitialFormData(landscapeTokenValue)
   );
 
   useEffect(() => {
@@ -91,7 +116,10 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
     }
   }, [landscapeTokenValue]);
 
-  const handleInputChange = (field: string, value: string | boolean | number | undefined) => {
+  const handleInputChange = (
+    field: string,
+    value: string | boolean | number | undefined
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -138,9 +166,6 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
         requestBody.repoRemoteUrl = formData.repoRemoteUrl;
       }
 
-      if (formData.remoteStoragePath) {
-        requestBody.remoteStoragePath = formData.remoteStoragePath;
-      }
       if (formData.username) {
         requestBody.username = formData.username;
       }
@@ -150,11 +175,13 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
       if (formData.branch) {
         requestBody.branch = formData.branch;
       }
-      if (formData.sourceDirectory) {
-        requestBody.sourceDirectory = formData.sourceDirectory;
+      if (formData.applicationRoot) {
+        requestBody.applicationRoot = formData.applicationRoot;
       }
-      if (formData.restrictAnalysisToFolders) {
-        requestBody.restrictAnalysisToFolders = formData.restrictAnalysisToFolders;
+      if (inclusionExpressions.length > 0) {
+        requestBody.includeInAnalysisExpressions = inclusionExpressions
+          .map((opt) => opt.value)
+          .join(',');
       }
       if (formData.startCommit) {
         requestBody.startCommit = formData.startCommit;
@@ -162,14 +189,20 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
       if (formData.endCommit) {
         requestBody.endCommit = formData.endCommit;
       }
-      if (formData.cloneDepth !== undefined && formData.cloneDepth > 0) {
-        requestBody.cloneDepth = formData.cloneDepth;
+      if (
+        formData.commitAnalysisLimit !== undefined &&
+        formData.commitAnalysisLimit > 0
+      ) {
+        requestBody.commitAnalysisLimit = formData.commitAnalysisLimit;
       }
-      if (excludedExtensions.length > 0) {
-        requestBody.codeAnalysisExcludedFileExtensions = excludedExtensions
+      if (exclusionExpressions.length > 0) {
+        requestBody.excludeFromAnalysisExpressions = exclusionExpressions
           .map((opt) => opt.value)
           .join(',');
       }
+
+      requestBody.calculateMetrics = formData.calculateMetrics;
+      requestBody.sendToRemote = formData.sendToRemote;
 
       const response = await fetch(`${codeAgentUrl}/api/analysis/trigger`, {
         method: 'POST',
@@ -183,11 +216,14 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
         const message = await response.text();
         useToastHandlerStore
           .getState()
-          .showSuccessToastMessage(message || 'Analysis triggered successfully');
-        
+          .showSuccessToastMessage(
+            message || 'Analysis triggered successfully'
+          );
+
         // Reset form
         setFormData(getInitialFormData(landscapeTokenValue));
-        setExcludedExtensions(DEFAULT_EXCLUDED_EXTENSIONS);
+        setInclusionExpressions([]);
+        setExclusionExpressions([]);
 
         onSubmitSuccess?.(formData.landscapeToken);
       } else {
@@ -208,7 +244,7 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
   };
 
   return (
-    <div className="code-analysis-trigger-form p-3">      
+    <div className="code-analysis-trigger-form p-3">
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Check
@@ -226,17 +262,17 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
             type="text"
             placeholder="Landscape token"
             value={formData.landscapeToken}
-            onChange={(e) => handleInputChange('landscapeToken', e.target.value)}
+            onChange={(e) =>
+              handleInputChange('landscapeToken', e.target.value)
+            }
             readOnly={!!landscapeTokenValue && !assignRandomToken}
           />
           <Form.Text className="text-muted">
-            {
-              (() => {
-                if(assignRandomToken) return 'Randomly assigned';
-                if(landscapeTokenValue) return 'Using current landscape token';
-                else return 'No landscape token selected';
-              })()
-            }
+            {(() => {
+              if (assignRandomToken) return 'Randomly assigned';
+              if (landscapeTokenValue) return 'Using current landscape token';
+              else return 'No landscape token selected';
+            })()}
           </Form.Text>
         </Form.Group>
 
@@ -257,7 +293,9 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
               type="text"
               placeholder="https://github.com/user/repository"
               value={formData.repoRemoteUrl}
-              onChange={(e) => handleInputChange('repoRemoteUrl', e.target.value)}
+              onChange={(e) =>
+                handleInputChange('repoRemoteUrl', e.target.value)
+              }
             />
           </Form.Group>
         )}
@@ -268,7 +306,9 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
             type="text"
             placeholder="my-application"
             value={formData.applicationName}
-            onChange={(e) => handleInputChange('applicationName', e.target.value)}
+            onChange={(e) =>
+              handleInputChange('applicationName', e.target.value)
+            }
           />
         </Form.Group>
 
@@ -283,41 +323,54 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Source Directory</Form.Label>
+          <Form.Label>Application Root</Form.Label>
           <Form.Control
             type="text"
-            placeholder="src/main/java"
-            value={formData.sourceDirectory}
-            onChange={(e) => handleInputChange('sourceDirectory', e.target.value)}
+            placeholder="e.g. app/src (Project root relative to repository root)"
+            value={formData.applicationRoot}
+            onChange={(e) =>
+              handleInputChange('applicationRoot', e.target.value)
+            }
           />
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Restrict Analysis To Folders</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="src/main/java"
-            value={formData.restrictAnalysisToFolders}
-            onChange={(e) => handleInputChange('restrictAnalysisToFolders', e.target.value)}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Excluded filename patterns (substring match)</Form.Label>
-          <CreatableSelect<ExtensionOption, true>
+          <Form.Label>Inclusion Search Expressions</Form.Label>
+          <CreatableSelect<InputOption, true>
             isMulti
-            options={DEFAULT_EXCLUDED_EXTENSIONS}
-            value={excludedExtensions}
-            onChange={(newValue) => setExcludedExtensions(newValue)}
+            options={EXAMPLE_INCLUSION_EXPRESSIONS}
+            value={inclusionExpressions}
+            onChange={(newValue) => setInclusionExpressions(newValue)}
             getNewOptionData={(inputValue) => ({
               value: inputValue,
               label: inputValue,
             })}
-            placeholder="Select or type to add extensions..."
-            noOptionsMessage={() => 'Type an extension to add it'}
+            placeholder="Include all if empty (e.g. src/main/java/**)"
+            noOptionsMessage={() => 'Type an expression or select a default...'}
           />
           <Form.Text className="text-muted">
-            Files whose names contain any of these values are excluded from full analysis (only LOC and size are collected).
+            Limit the analysis to specific folders or files using glob patterns.
+            If empty, all files will be included.
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Exclusion Search Expressions</Form.Label>
+          <CreatableSelect<InputOption, true>
+            isMulti
+            options={EXAMPLE_EXCLUSION_EXPRESSIONS}
+            value={exclusionExpressions}
+            onChange={(newValue) => setExclusionExpressions(newValue)}
+            getNewOptionData={(inputValue) => ({
+              value: inputValue,
+              label: inputValue,
+            })}
+            placeholder="Select or type to add expressions..."
+            noOptionsMessage={() => 'Type an expression or select a default...'}
+          />
+          <Form.Text className="text-muted">
+            Exclude files or folders using glob patterns (e.g.,
+            **/node_modules/**). If empty, no files will be excluded.
           </Form.Text>
         </Form.Group>
 
@@ -346,24 +399,50 @@ export default function CodeAnalysisTriggerForm({ assignRandomToken, onSubmitSuc
         )}
 
         <Form.Group className="mb-3">
-          <Form.Label>Clone Depth</Form.Label>
+          <Form.Label>Analyze Commit Count</Form.Label>
           <Form.Control
             type="number"
             min={1}
-            placeholder="Leave empty for full clone"
-            value={formData.cloneDepth}
+            placeholder="Leave empty for all commits"
+            value={formData.commitAnalysisLimit}
             onChange={(e) =>
               handleInputChange(
-                'cloneDepth',
+                'commitAnalysisLimit',
                 e.target.value === '' ? undefined : parseInt(e.target.value, 10)
               )
             }
           />
         </Form.Group>
 
+        <div className="mb-3 d-flex gap-4">
+          <Form.Group>
+            <Form.Check
+              type="switch"
+              id="calculate-metrics"
+              label="Calculate Metrics"
+              checked={formData.calculateMetrics}
+              onChange={(e) =>
+                handleInputChange('calculateMetrics', e.target.checked)
+              }
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Check
+              type="switch"
+              id="send-to-remote"
+              label="Send Results via gRPC"
+              checked={formData.sendToRemote}
+              onChange={(e) =>
+                handleInputChange('sendToRemote', e.target.checked)
+              }
+            />
+          </Form.Group>
+        </div>
+
         <div className="mb-3">
           <h6>Commit Range (Optional)</h6>
-          
+
           <Form.Group className="mb-3">
             <Form.Label>Start Commit SHA</Form.Label>
             <Form.Control
