@@ -8,9 +8,8 @@ export const metricMappingMultipliers = {
   None: 1,
   'Function Count': 10,
   loc: 1,
-  LCOM4: 10,
-  cyclomatic_complexity: 10,
-  cyclomatic_complexity_weighted: 10,
+  cloc: 1,
+  size: 0.001,
 } as const;
 export type MetricKey = keyof typeof metricMappingMultipliers;
 export const metricKeys = Object.keys(metricMappingMultipliers) as MetricKey[];

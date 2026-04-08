@@ -5,7 +5,6 @@ import {
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import {
   Class,
-  TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 export type RGB = { r: number; g: number; b: number };
@@ -41,43 +40,20 @@ export function getMetricValues(
   const isBuilding = (x: any): x is Building =>
     Object.prototype.hasOwnProperty.call(x, 'parentCityId');
 
-  const getMethodsCount = (model: Class | Building) => {
-    if (isBuilding(model)) {
-      return model.functionIds?.length || 0;
-    }
-    return (model as Class).methods.length;
-  };
 
-  const getDynamicMethodsCount = (model: Class | Building) => {
-    if (isBuilding(model)) {
-      // For now, we don't have originOfData per function in Building
-      // but we can assume if it exists in dynamic data, it's counted.
-      // However, Building.metrics might already have this.
-      return model.metrics?.dynamicFunctions || 0;
-    }
-    return (model as Class).methods.filter(
-      (m) =>
-        m.originOfData === TypeOfAnalysis.Dynamic ||
-        m.originOfData === TypeOfAnalysis.StaticAndDynamic
-    ).length;
-  };
 
-  const getStaticMethodsCount = (model: Class | Building) => {
+  const getMetricValueFromModel = (
+    model: Class | Building,
+    metricName: string
+  ): number => {
     if (isBuilding(model)) {
-      return model.metrics?.staticFunctions || 0;
+      if (metricName === BuildingMetricIds.Functions) {
+        return model.functionIds?.length || 0;
+      }
+      return model.metrics?.[metricName]?.current || 0;
     }
-    return (model as Class).methods.filter(
-      (m) =>
-        m.originOfData === TypeOfAnalysis.Static ||
-        m.originOfData === TypeOfAnalysis.StaticAndDynamic
-    ).length;
-  };
-
-  const getLinesOfCode = (model: Class | Building) => {
-    if (isBuilding(model)) {
-      return model.metrics?.linesOfCode || 0;
-    }
-    return (model as any).linesOfCode || 0;
+    // Fallback for legacy models if any
+    return (model as any)[metricName] || 0;
   };
 
   switch (classHeatmapMetric.name) {
@@ -86,28 +62,32 @@ export function getMetricValues(
       return {
         min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,
-        current: getMethodsCount(dataModel),
+        current: getMetricValueFromModel(dataModel, BuildingMetricIds.Functions),
+      };
+    case BuildingMetricIds.loc:
+    case SelectedBuildingHeatmapMetric.loc:
+    case BuildingMetricIds.cloc:
+    case SelectedBuildingHeatmapMetric.cloc:
+    case BuildingMetricIds.size:
+    case SelectedBuildingHeatmapMetric.size:
+      return {
+        min: classHeatmapMetric.min,
+        max: classHeatmapMetric.max,
+        current: getMetricValueFromModel(dataModel, classHeatmapMetric.name),
       };
     case BuildingMetricIds.DynamicFunctions:
     case SelectedBuildingHeatmapMetric.DynamicFunctions:
       return {
         min: classHeatmapMetric.min,
-        max: getMethodsCount(dataModel),
-        current: getDynamicMethodsCount(dataModel),
+        max: classHeatmapMetric.max,
+        current: getMetricValueFromModel(dataModel, 'dynamicFunctions'),
       };
     case BuildingMetricIds.StaticFunctions:
     case SelectedBuildingHeatmapMetric.StaticFunctions:
       return {
         min: classHeatmapMetric.min,
-        max: getMethodsCount(dataModel),
-        current: getStaticMethodsCount(dataModel),
-      };
-    case BuildingMetricIds.LoC:
-    case SelectedBuildingHeatmapMetric.LoC:
-      return {
-        min: classHeatmapMetric.min,
         max: classHeatmapMetric.max,
-        current: getLinesOfCode(dataModel),
+        current: getMetricValueFromModel(dataModel, 'staticFunctions'),
       };
     default:
       return {

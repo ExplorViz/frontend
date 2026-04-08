@@ -2,14 +2,17 @@ import ELK from 'elkjs/lib/elk.bundled.js';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import {
+  Building,
   City,
   District,
   FlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { calculateSpiralSideLength } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
-import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  MetricKey,
+  metricMappingMultipliers,
+} from 'explorviz-frontend/src/utils/settings/default-settings';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -252,23 +255,23 @@ function populateDistrict(
     if (!building) {
       return;
     }
-    let widthByMetric = 0;
-    if (WIDTH_METRIC === SelectedBuildingMetric.Method) {
-      widthByMetric = building.functionIds
-        ? WIDTH_METRIC_MULTIPLIER *
-          metricMappingMultipliers['Function Count'] *
-          building.functionIds.length
-        : 0;
-    }
+    const getMetricValue = (building: Building, metricKey: string): number => {
+      if (metricKey === 'Function Count') {
+        return building.functionIds?.length || 0;
+      }
+      const metric = building.metrics?.[metricKey];
+      return metric?.current || 0;
+    };
 
-    let depthByMetric = 0;
-    if (DEPTH_METRIC === SelectedBuildingMetric.Method) {
-      depthByMetric = building.functionIds
-        ? DEPTH_METRIC_MULTIPLIER *
-          metricMappingMultipliers['Function Count'] *
-          building.functionIds.length
-        : 0;
-    }
+    const widthByMetric =
+      WIDTH_METRIC_MULTIPLIER *
+      metricMappingMultipliers[WIDTH_METRIC as MetricKey] *
+      getMetricValue(building, WIDTH_METRIC);
+
+    const depthByMetric =
+      DEPTH_METRIC_MULTIPLIER *
+      metricMappingMultipliers[DEPTH_METRIC as MetricKey] *
+      getMetricValue(building, DEPTH_METRIC);
 
     const buildingNode = {
       id: BUILDING_PREFIX + building.id,

@@ -368,7 +368,9 @@ export interface ButtonSetting extends Setting<boolean> {
 export enum SelectedBuildingMetric {
   None = 'None',
   Method = 'Function Count',
-  LoC = 'LoC',
+  loc = 'loc',
+  cloc = 'cloc',
+  size = 'size',
 }
 
 export interface FlagSetting extends Setting<boolean> {

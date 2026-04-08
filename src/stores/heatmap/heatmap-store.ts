@@ -1,10 +1,21 @@
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { create } from 'zustand';
+
+function getMaxNumberOfFunctionsPerBuilding(): number {
+  const buildings = useModelStore.getState().buildings;
+  return Math.max(
+    ...Object.values(buildings).map((b) => b.functionIds?.length || 0),
+    0
+  );
+}
 
 export enum SelectedBuildingHeatmapMetric {
   None = 'None',
   Functions = 'Function Count',
-  LoC = 'Lines of Code',
+  loc = 'loc',
+  cloc = 'cloc',
+  size = 'size',
   DynamicFunctions = 'Dynamic Function Quota',
   StaticFunctions = 'Static Function Quota',
 }
@@ -12,7 +23,9 @@ export enum SelectedBuildingHeatmapMetric {
 export enum BuildingMetricIds {
   None = 'None',
   Functions = 'Function Count',
-  LoC = 'Lines of Code',
+  loc = 'loc',
+  cloc = 'cloc',
+  size = 'size',
   DynamicFunctions = 'Dynamic Function Quota',
   StaticFunctions = 'Static Function Quota',
 }
@@ -101,11 +114,13 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
           });
           break;
 
-        case BuildingMetricIds.LoC:
+        case BuildingMetricIds.loc:
+        case BuildingMetricIds.cloc:
+        case BuildingMetricIds.size:
           set({
             selectedBuildingMetric: {
-              name: BuildingMetricIds.LoC,
-              description: "Lines of code of building's data model",
+              name: metricName,
+              description: `${metricName} of building's data model`,
               min: 0,
               max: 5000, // ToDo: Get max value
             },
