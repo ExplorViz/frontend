@@ -94,12 +94,14 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             ),
           });
         }
+        get().setColorsFromSettings();
       },
 
       applyDefaultSettings: () => {
         set({
           visualizationSettings: JSON.parse(JSON.stringify(defaultVizSettings)),
         });
+        get().setColorsFromSettings();
       },
 
       shareVisualizationSettings: () => {
@@ -110,6 +112,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
       updateSettings: (settings: VisualizationSettings) => {
         set({ visualizationSettings: settings });
+        get().setColorsFromSettings();
       },
 
       updateSetting: (name: VisualizationSettingId, value?: unknown) => {
@@ -147,6 +150,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
               },
             },
           });
+          get().setColorsFromSettings();
         } else if (isSelectSetting(setting) && typeof newValue === 'string') {
           set({
             visualizationSettings: {
@@ -187,6 +191,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           newVisualizationSettings[settingId].value = scheme[settingId];
           set({ visualizationSettings: newVisualizationSettings });
         }
+        get().setColorsFromSettings();
       },
 
       setColorsFromSettings: () => {
@@ -203,8 +208,20 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             districtDeepestLevelColor: new THREE.Color(
               visualizationSettings.districtDeepestLevelColor.value
             ),
-            buildingColor: new THREE.Color(
-              visualizationSettings.buildingColor.value
+            javaBuildingColor: new THREE.Color(
+              visualizationSettings.javaBuildingColor.value
+            ),
+            cppBuildingColor: new THREE.Color(
+              visualizationSettings.cppBuildingColor.value
+            ),
+            pythonBuildingColor: new THREE.Color(
+              visualizationSettings.pythonBuildingColor.value
+            ),
+            typescriptBuildingColor: new THREE.Color(
+              visualizationSettings.typescriptBuildingColor.value
+            ),
+            otherBuildingColor: new THREE.Color(
+              visualizationSettings.otherBuildingColor.value
             ),
             highlightedEntityColor: new THREE.Color(
               visualizationSettings.highlightedEntityColor.value

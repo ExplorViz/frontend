@@ -5,7 +5,7 @@ export type SettingGroup =
   | 'Controls'
   | 'Debugging'
   | 'Effects'
-  | 'Geometry'
+  | 'Geometries'
   | 'Heatmap'
   | 'Layout'
   | 'Label'
@@ -29,7 +29,11 @@ export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
-  | 'buildingColor'
+  | 'javaBuildingColor'
+  | 'cppBuildingColor'
+  | 'pythonBuildingColor'
+  | 'typescriptBuildingColor'
+  | 'otherBuildingColor'
   | 'buildingTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
@@ -226,13 +230,10 @@ export type XrSettings = Record<XrSettingId, FlagSetting>;
 
 export type GeometrySettings = {
   languageGeometryJava: SelectSetting<string>;
+  languageGeometryCpp: SelectSetting<string>;
   languageGeometryPython: SelectSetting<string>;
   languageGeometryTypeScript: SelectSetting<string>;
   languageGeometryOther: SelectSetting<string>;
-  languageColorJava: ColorSetting;
-  languageColorPython: ColorSetting;
-  languageColorTypeScript: ColorSetting;
-  languageColorOther: ColorSetting;
 };
 export type GeometrySettingId = keyof GeometrySettings;
 
@@ -251,8 +252,9 @@ export type VisualizationSettingId =
   | MiscSettingId
   | PopupSettingId
   | SemanticZoomSettingId
-  | XrSettingId
-  | GeometrySettingId;
+  | 'autoEnterVr'
+  | GeometrySettingId
+  | ImmersiveSettingId;
 
 export type VisualizationSettings = CameraSettings &
   CommunicationSettings &
@@ -277,6 +279,7 @@ export type ImmersiveSettings = {
   sphereOpacity: RangeSetting;
   sphereRadius: RangeSetting;
 };
+export type ImmersiveSettingId = keyof ImmersiveSettings;
 
 export enum SettingLevel {
   DEFAULT,

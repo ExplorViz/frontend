@@ -3,7 +3,11 @@ export type ColorScheme = typeof defaultColors;
 
 export const defaultColors = {
   backgroundColor: '#ffffff', // white
-  buildingColor: '#a7cffb', // light pastel blue
+  javaBuildingColor: '#a7cffb', // light pastel blue
+  cppBuildingColor: '#a7cffb',
+  pythonBuildingColor: '#a7cffb',
+  typescriptBuildingColor: '#a7cffb',
+  otherBuildingColor: '#a7cffb',
   buildingTextColor: '#ffffff', // white
   communicationArrowColor: '#000000', // black
   communicationColor: '#d6d48b', // light yellow
@@ -28,21 +32,33 @@ export const defaultColors = {
 // The following color schemes might also be partial color schemes
 
 export const classicColors = {
-  buildingColor: '#3e14a0', // purple-blue
+  javaBuildingColor: '#3e14a0', // purple-blue
+  cppBuildingColor: '#3e14a0',
+  pythonBuildingColor: '#3e14a0',
+  typescriptBuildingColor: '#3e14a0',
+  otherBuildingColor: '#3e14a0',
   communicationColor: '#f49100', // orange
   districtRootLevelColor: '#169e2b', // dark green
   districtDeepestLevelColor: '#4efa79', // light green
 };
 
 export const blueColors = {
-  buildingColor: '#FDB882', // light orange
+  javaBuildingColor: '#FDB882', // light orange
+  cppBuildingColor: '#FDB882',
+  pythonBuildingColor: '#FDB882',
+  typescriptBuildingColor: '#FDB882',
+  otherBuildingColor: '#FDB882',
 
   districtRootLevelColor: '#031e7f', // deep teal
   districtDeepestLevelColor: '#82c7fd', // light blue
 };
 
 export const darkColors = {
-  buildingColor: '#4073b6', // blue
+  javaBuildingColor: '#4073b6', // blue
+  cppBuildingColor: '#4073b6',
+  pythonBuildingColor: '#4073b6',
+  typescriptBuildingColor: '#4073b6',
+  otherBuildingColor: '#4073b6',
   communicationColor: '#e3e3e3', // light grey
   districtRootLevelColor: '#2f3d3b', // dark grey
   districtDeepestLevelColor: '#5B7B88', // blue-grey
@@ -50,7 +66,11 @@ export const darkColors = {
 
 export const desertCity = {
   foundationColor: '#ffffff', // white
-  buildingColor: '#e0e0e0', // light grey
+  javaBuildingColor: '#e0e0e0', // light grey
+  cppBuildingColor: '#e0e0e0',
+  pythonBuildingColor: '#e0e0e0',
+  typescriptBuildingColor: '#e0e0e0',
+  otherBuildingColor: '#e0e0e0',
   districtRootLevelColor: '#afbac2', // light blue-grey
   districtDeepestLevelColor: '#f2ed59', // sand yellow
 };

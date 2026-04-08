@@ -40,7 +40,7 @@ export default function EditMesh({ entity }: EditMeshProps) {
   );
 
   const [buildingColor] = useState<string>(
-    useUserSettingsStore.getState().visualizationSettings.buildingColor.value
+    useUserSettingsStore.getState().visualizationSettings.otherBuildingColor.value
   );
 
   const isEntityApplication = isApplication(entity);

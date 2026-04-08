@@ -127,12 +127,12 @@ export default function Settings({
       SettingGroup,
       VisualizationSettingId[]
     > = {
-      Geometry: [],
       Camera: [],
       Colors: [],
       Communication: [],
       Controls: [],
       Effects: [],
+      Geometries: [],
       Heatmap: [],
       Label: [],
       Layout: [],

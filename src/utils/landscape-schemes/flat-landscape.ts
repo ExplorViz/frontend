@@ -31,6 +31,7 @@ type FlatBaseModel = {
 
 export type Language = 
   | 'JAVA'
+  | 'CPP'
   | 'JAVASCRIPT'
   | 'TYPESCRIPT'
   | 'PYTHON'
@@ -154,14 +155,21 @@ export function convertToFlatLandscape(
           name: cls.name,
           fqn: cls.fqn,
           originOfData: cls.originOfData,
-          language:
-            app.language === 'Java'
-              ? 'JAVA'
-              : 'LANGUAGE_UNSPECIFIED',
+          language: (() => {
+            const lang = app.language.toUpperCase();
+            if (lang === 'JAVA') return 'JAVA';
+            if (lang === 'CPP' || lang === 'C++') return 'CPP';
+            if (lang === 'PYTHON') return 'PYTHON';
+            if (lang === 'JAVASCRIPT' || lang === 'JS') return 'JAVASCRIPT';
+            if (lang === 'TYPESCRIPT' || lang === 'TS') return 'TYPESCRIPT';
+            return 'LANGUAGE_UNSPECIFIED';
+          })(),
           parentCityId: cityId,
           parentDistrictId: districtId,
           classIds: [],
           functionIds: [],
+          allContainedFunctionIds: [],
+          allContainedClassIds: [],
           metrics: { numOfFunctions: { current: 0 } },
         };
 
@@ -176,6 +184,8 @@ export function convertToFlatLandscape(
           name: cls.name,
           originOfData: cls.originOfData,
           functionIds: [],
+          innerClassIds: [],
+          parentBuildingId: buildingId,
         };
       }
 
@@ -190,6 +200,7 @@ export function convertToFlatLandscape(
             name: method.name,
             originOfData: method.originOfData,
             parentId: buildingId,
+            parentBuildingId: buildingId,
           };
         }
 

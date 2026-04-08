@@ -128,19 +128,20 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     highlightedEntityColor,
     enableAnimations,
     animationDuration,
-    entityOpacity,
     addedBuildingColor,
     modifiedBuildingColor,
     removedBuildingColor,
     unchangedBuildingColor,
     languageGeometryJava,
+    languageGeometryCpp,
     languageGeometryPython,
     languageGeometryTypeScript,
     languageGeometryOther,
-    languageColorJava,
-    languageColorPython,
-    languageColorTypeScript,
-    languageColorOther,
+    javaBuildingColor,
+    cppBuildingColor,
+    pythonBuildingColor,
+    typescriptBuildingColor,
+    otherBuildingColor,
   } = useUserSettingsStore(
     useShallow((state) => ({
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
@@ -151,7 +152,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       highlightedEntityColor: state.colors?.highlightedEntityColor,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       animationDuration: state.visualizationSettings.animationDuration.value,
-      entityOpacity: state.visualizationSettings.entityOpacity.value,
       addedBuildingColor: state.visualizationSettings.addedBuildingColor.value,
       modifiedBuildingColor:
         state.visualizationSettings.modifiedBuildingColor.value,
@@ -161,18 +161,24 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         state.visualizationSettings.unchangedBuildingColor.value,
       languageGeometryJava:
         state.visualizationSettings.languageGeometryJava?.value,
+      languageGeometryCpp:
+        state.visualizationSettings.languageGeometryCpp?.value,
       languageGeometryPython:
         state.visualizationSettings.languageGeometryPython?.value,
       languageGeometryTypeScript:
         state.visualizationSettings.languageGeometryTypeScript?.value,
       languageGeometryOther:
         state.visualizationSettings.languageGeometryOther?.value,
-      languageColorJava: state.visualizationSettings.languageColorJava?.value,
-      languageColorPython:
-        state.visualizationSettings.languageColorPython?.value,
-      languageColorTypeScript:
-        state.visualizationSettings.languageColorTypeScript?.value,
-      languageColorOther: state.visualizationSettings.languageColorOther?.value,
+      javaBuildingColor:
+        state.visualizationSettings.javaBuildingColor?.value,
+      cppBuildingColor:
+        state.visualizationSettings.cppBuildingColor?.value,
+      pythonBuildingColor:
+        state.visualizationSettings.pythonBuildingColor?.value,
+      typescriptBuildingColor:
+        state.visualizationSettings.typescriptBuildingColor?.value,
+      otherBuildingColor:
+        state.visualizationSettings.otherBuildingColor?.value,
     }))
   );
 
@@ -181,6 +187,8 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     switch (language) {
       case 'JAVA':
         return languageGeometryJava;
+      case 'CPP':
+        return languageGeometryCpp;
       case 'PYTHON':
         return languageGeometryPython;
       case 'TYPESCRIPT':
@@ -195,6 +203,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   }, [
     language,
     languageGeometryJava,
+    languageGeometryCpp,
     languageGeometryPython,
     languageGeometryTypeScript,
     languageGeometryOther,
@@ -204,24 +213,26 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   const selectedLanguageColor = useMemo(() => {
     switch (language) {
       case 'JAVA':
-        return languageColorJava;
+        return javaBuildingColor;
+      case 'CPP':
+        return cppBuildingColor;
       case 'PYTHON':
-        return languageColorPython;
+        return pythonBuildingColor;
       case 'TYPESCRIPT':
-        return languageColorTypeScript;
       case 'JAVASCRIPT':
-        return languageColorTypeScript;
+        return typescriptBuildingColor;
       case 'PLAINTEXT':
       case 'LANGUAGE_UNSPECIFIED':
       default:
-        return languageColorOther;
+        return otherBuildingColor;
     }
   }, [
     language,
-    languageColorJava,
-    languageColorPython,
-    languageColorTypeScript,
-    languageColorOther,
+    javaBuildingColor,
+    cppBuildingColor,
+    pythonBuildingColor,
+    typescriptBuildingColor,
+    otherBuildingColor,
   ]);
 
   const geometry = useMemo(() => {
@@ -238,12 +249,11 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     }
   }, [selectedGeometryType]);
 
-  const { heatmapActive, selectedBuildingMetric, selectedHeatmapGradient } =
+  const { heatmapActive, selectedBuildingMetric } =
     useHeatmapStore(
       useShallow((state) => ({
         heatmapActive: state.isActive(),
         selectedBuildingMetric: state.getSelectedBuildingMetric(),
-        selectedHeatmapGradient: state.getSelectedGradient(),
       }))
     );
 
@@ -262,7 +272,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         buildingFootprint +
         metricMappingMultipliers[heightMetric as MetricKey] *
           buildingHeightMultiplier *
-          metricValue
+          (metricValue as number)
       );
     },
     [buildingFootprint, buildingHeightMultiplier, heightMetric]
@@ -520,7 +530,11 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     });
   }, [
     meshRef,
-    selectedLanguageColor,
+    javaBuildingColor,
+    cppBuildingColor,
+    pythonBuildingColor,
+    typescriptBuildingColor,
+    otherBuildingColor,
     highlightedEntityColor,
     buildingIdToInstanceId,
     computeColor,
