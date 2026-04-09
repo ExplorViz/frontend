@@ -1,13 +1,8 @@
 import { useFrame } from '@react-three/fiber';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useRemoteImmersiveStateStore } from 'explorviz-frontend/src/stores/collaboration/remote-immersive-states';
-import ApplicationData from 'explorviz-frontend/src/utils/application-data'; // NEU IMPORTIERT
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import { USER_DISCONNECTED_EVENT } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/user-disconnect';
-import { IMMERSIVE_VIEW_UPDATE_EVENT, ImmersiveViewUpdateMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/immersive-view-update';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { useEffect, useRef } from 'react';
+import { myPlayer, PlayerState, usePlayersList, usePlayerState } from 'playroomkit';
+import { useRef } from 'react';
 import * as THREE from 'three';
 
 // This component is responsible to draw indicators, when another member of the current collaboration room is in imersive view mode.
@@ -18,61 +13,54 @@ export default function RemoteImmersiveIndicators({
     layoutMap: Map<string, BoxLayout>,
     applicationData: ApplicationData
 }) {
-    const updateState = useRemoteImmersiveStateStore((state) => state.updateState);
-    const removeUser = useRemoteImmersiveStateStore((state) => state.removeUser);
-    const userImmersiveStates = useRemoteImmersiveStateStore((state) => state.userImmersiveStates);
-    const getColor = useCollaborationSessionStore((state) => state.getColor);
+    const players = usePlayersList();
+    const me = myPlayer();
 
-    // Whenever an immersive view mode message is received, execute this code.
-    useEffect(() => {
-        const handleMessage = (msg: ForwardedMessage<ImmersiveViewUpdateMessage>) => {
-            const { userId, originalMessage } = msg;
-            const { classId, didEnterView } = originalMessage;
-
-            if (didEnterView) {
-                updateState(userId, classId);
-            } else {
-                updateState(userId, null);
-            }
-        };
-
-        const handleDisconnect = (msg: any) => {
-            if (msg.id) removeUser(msg.id);
-        };
-
-        eventEmitter.on(IMMERSIVE_VIEW_UPDATE_EVENT, handleMessage);
-        eventEmitter.on(USER_DISCONNECTED_EVENT, handleDisconnect);
-
-        return () => {
-            eventEmitter.off(IMMERSIVE_VIEW_UPDATE_EVENT, handleMessage);
-            eventEmitter.off(USER_DISCONNECTED_EVENT, handleDisconnect);
-        };
-    }, [updateState, removeUser]);
-
+    // Create a child component for each user. The child compnent listens for the user.
     return (
         <group>
-            {Array.from(userImmersiveStates.entries()).map(([userId, classId]) => {
-                if (!classId) return null;
-
-                // Belongs the class to this city? Only then draw the marker!!
-                const belongsToThisApp = applicationData.getClasses().some(c => c.id === classId);
-                if (!belongsToThisApp) {
-                    return null;
-                }
-
-                const layout = layoutMap.get(classId);
-                if (!layout) return null;
-
-                return (
-                    <IndicatorSphere
-                        key={userId}
-                        layout={layout}
-                        color={getColor(userId)}
-                    />
-                );
+            {players.map(player => {
+                if (me && player.id === me.id) return null;
+                return <PlayerIndicatorSphereHandler layoutMap={layoutMap} applicationData={applicationData} player={player} key={player.id} />
             })}
         </group>
     );
+}
+
+// This compnent listens for a single user and only the immersiveMeshId state
+// It is needed for more performance (less rerenders of the react engine)
+function PlayerIndicatorSphereHandler({
+    layoutMap,
+    applicationData,
+    player
+}: {
+    layoutMap: Map<string, BoxLayout>,
+    applicationData: ApplicationData,
+    player: PlayerState
+}) {
+    const [classId] = usePlayerState(player, "immersiveMeshId", null);
+
+    // When the user is not in immersive view mode, just do nothing
+    if (!classId) return null;
+
+    // Belongs the class to this city? Only then draw the marker!!
+    const belongsToThisApp = applicationData.getClasses().some(c => c.id === classId);
+    if (!belongsToThisApp) {
+        return null;
+    }
+
+    const layout = layoutMap.get(classId);
+    if (!layout) return null;
+
+    // Render the indocator sphere
+    return (
+        <IndicatorSphere
+            key={classId as string}
+            layout={layout}
+            color={player.getProfile()?.color?.hexString || '#000000'}
+        />
+    );
+
 }
 
 // This component is the actual marker (the 3D geometry of it)

@@ -1,51 +1,26 @@
 import { create } from 'zustand';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
-import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import {
-  APPLICATION_ENTITY_TYPE,
-  CLASS_COMMUNICATION_ENTITY_TYPE,
-  CLASS_ENTITY_TYPE,
-  COMPONENT_ENTITY_TYPE,
-  EntityType,
-  NODE_ENTITY_TYPE,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/entity-type';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { MenuDetachedForwardMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
-import {
-  MenuDetachedResponse,
-  isMenuDetachedResponse,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/menu-detached';
-import {
-  ObjectClosedResponse,
-  isObjectClosedResponse,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
 import {
-  MENU_DETACHED_EVENT,
-  MenuDetachedMessage,
+  MENU_DETACHED_EVENT
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
   Class,
   Node,
-  Package,
-  isApplication,
-  isClass,
-  isNode,
-  isPackage,
+  Package
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 type Position2D = {
@@ -53,30 +28,7 @@ type Position2D = {
   y: number;
 };
 
-/**
- * Converts a popup entity to the EntityType used by websocket messages
- */
-function getEntityTypeForPopup(
-  entity: Node | Application | Package | Class | ClassCommunication
-): EntityType {
-  if (isNode(entity)) {
-    return NODE_ENTITY_TYPE;
-  }
-  if (isApplication(entity)) {
-    return APPLICATION_ENTITY_TYPE;
-  }
-  if (isPackage(entity)) {
-    return COMPONENT_ENTITY_TYPE;
-  }
-  if (isClass(entity)) {
-    return CLASS_ENTITY_TYPE;
-  }
-  if (entity instanceof ClassCommunication) {
-    return CLASS_COMMUNICATION_ENTITY_TYPE;
-  }
-  // Default fallback
-  return APPLICATION_ENTITY_TYPE;
-}
+
 
 interface PopupHandlerState {
   popupData: PopupData[];
@@ -88,7 +40,7 @@ interface PopupHandlerState {
   removeUnmovedPopups: () => void;
   sharePopup: (popup: PopupData) => void;
   pinPopup: (popup: PopupData) => void;
-  removePopup: (entityId: string) => Promise<void>;
+  removePopup: (entityId: string) => void;
   addPopup: ({
     entityId,
     position,
@@ -135,9 +87,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   deactivated: false,
 
   _constructor: () => {
-    eventEmitter.on(MENU_DETACHED_EVENT, get().onMenuDetached);
-    eventEmitter.on(DETACHED_MENU_CLOSED_EVENT, get().onMenuClosed);
-    eventEmitter.on('restore_popups', get().onRestorePopups);
   },
 
   clearPopups: () => {
@@ -153,51 +102,12 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   },
 
   sharePopup: (popup: PopupData) => {
-    const entityId = popup.entityId;
-    const entityType = getEntityTypeForPopup(popup.entity);
-
-    if (useCollaborationSessionStore.getState().isOnline()) {
-      useWebSocketStore
-        .getState()
-        .sendRespondableMessage<MenuDetachedMessage, MenuDetachedResponse>(
-          MENU_DETACHED_EVENT,
-          {
-            event: MENU_DETACHED_EVENT,
-            detachId: entityId,
-            entityType: entityType,
-            position: [0, 0, 0], // Position not needed for browser popups
-            quaternion: [0, 0, 0, 1],
-            scale: [1, 1, 1],
-            nonce: 0, // will be overwritten
-          },
-          {
-            responseType: isMenuDetachedResponse,
-            onResponse: (response: MenuDetachedResponse) => {
-              const sharedBy = useAuthStore.getState().user!.sub;
-              const menuId = response.objectId;
-
-              set({
-                popupData: [
-                  ...get().popupData.filter(
-                    (pd) => pd.entityId !== popup.entityId
-                  ),
-                  {
-                    ...popup,
-                    sharedBy: sharedBy,
-                    isPinned: true,
-                    menuId: menuId,
-                  },
-                ],
-              });
-
-              return true;
-            },
-            onOffline: () => {
-              // Not used at the moment
-            },
-          }
-        );
-    }
+    set({
+      popupData: [
+        ...get().popupData.filter((pd) => pd.entityId !== popup.entityId),
+        { ...popup, isPinned: true },
+      ],
+    });
   },
 
   pinPopup: (popup: PopupData) =>
@@ -211,24 +121,11 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       ],
     }),
 
-  removePopup: async (entityId: string) => {
-    const popup = get().popupData.find((pd) => pd.entity.id === entityId);
-    if (!popup) {
-      return;
-    }
-
-    if (await canRemovePopup(popup)) {
-      set({
-        popupData: get().popupData.filter((pd) => pd.entity.id !== entityId),
-      });
-      useVisualizationStore.getState().actions.setHoveredEntityId(null);
-    } else {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage(
-          'Could not remove popup since it is currently in use by another user.'
-        );
-    }
+  removePopup: (entityId: string) => {
+    set({
+      popupData: get().popupData.filter((pd) => pd.entity.id !== entityId),
+    });
+    useVisualizationStore.getState().actions.setHoveredEntityId(null);
   },
 
   addPopup: ({
@@ -354,14 +251,14 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       popupData: state.popupData.map((pd) =>
         pd.entityId === updatedPopup.entityId
           ? {
-              ...pd,
-              wasMoved: pd.wasMoved || updatedPopup.wasMoved,
-              mouseX: updatePosition ? updatedPopup.mouseX : pd.mouseX,
-              mouseY: updatePosition ? updatedPopup.mouseY : pd.mouseY,
-              isPinned: pd.isPinned || updatedPopup.isPinned,
-              sharedBy: updatedPopup.sharedBy,
-              hovered: updatedPopup.hovered,
-            }
+            ...pd,
+            wasMoved: pd.wasMoved || updatedPopup.wasMoved,
+            mouseX: updatePosition ? updatedPopup.mouseX : pd.mouseX,
+            mouseY: updatePosition ? updatedPopup.mouseY : pd.mouseY,
+            isPinned: pd.isPinned || updatedPopup.isPinned,
+            sharedBy: updatedPopup.sharedBy,
+            hovered: updatedPopup.hovered,
+          }
           : pd
       ),
     }));
@@ -416,31 +313,3 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   setDeactivated: (value: boolean) => set({ deactivated: value }),
 }));
 
-async function canRemovePopup(popup: PopupData) {
-  // Popup / menu cannot be grabbed by other user without menuId
-  if (!popup.menuId) {
-    return true;
-  }
-
-  return useWebSocketStore
-    .getState()
-    .sendRespondableMessage<DetachedMenuClosedMessage, ObjectClosedResponse>(
-      DETACHED_MENU_CLOSED_EVENT,
-      {
-        event: 'detached_menu_closed',
-        menuId: popup.menuId,
-        nonce: 0, // will be overwritten
-      },
-      {
-        responseType: isObjectClosedResponse,
-        onResponse: (response: ObjectClosedResponse) => {
-          return response.isSuccess;
-        },
-        onOffline: () => {
-          return true;
-        },
-      }
-    );
-}
-
-usePopupHandlerStore.getState()._constructor();

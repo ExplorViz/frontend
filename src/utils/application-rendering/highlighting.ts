@@ -1,32 +1,33 @@
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
+import { useLocalHighlightStore } from 'explorviz-frontend/src/stores/collaboration/local-highlight-store';
+import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
+import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { myPlayer } from 'playroomkit';
 import * as THREE from 'three';
 
 export function getLocalHighlightingColor(): THREE.Color {
-  if (useCollaborationSessionStore.getState().isOnline()) {
-    return useLocalUserStore.getState().color;
-  } else {
+  const isConnected = usePlayroomConnectionStore.getState().isConnected;
+  const me = myPlayer();
+  // If in a room, use the playroomkit profile color
+  if (isConnected && me) {
+    return new THREE.Color(me.getProfile().color.hexString);
+  }
+  // If not in a room, use the local highlighting color from the settings 
+  else {
     return new THREE.Color(
-      useUserSettingsStore.getState().visualizationSettings
-        .highlightedEntityColor.value
+      useUserSettingsStore.getState().visualizationSettings.highlightedEntityColor.value
     );
   }
 }
 
 export function getHighlightingColorForEntity(entityId: string): THREE.Color {
-  if (useCollaborationSessionStore.getState().isOnline()) {
-    const remoteUsers = Array.from(
-      useCollaborationSessionStore.getState().getAllRemoteUsers()
-    );
-
-    for (let i = 0; i < remoteUsers.length; i++) {
-      const user = remoteUsers[i];
-      if (user.highlightedEntityIds.has(entityId)) {
-        return user.color;
-      }
+  const isConnected = usePlayroomConnectionStore.getState().isConnected;
+  // If in a room, check if an entity is highlighted by a remote user
+  // If yes, use his color
+  if (isConnected) {
+    const remoteColorHex = useRemoteHighlightingStore.getState().getColor(entityId);
+    if (remoteColorHex) {
+      return new THREE.Color(remoteColorHex);
     }
   }
   return getLocalHighlightingColor();
@@ -37,13 +38,16 @@ export function setHighlightingById(
   highlight: boolean,
   sendMessage = true
 ) {
-  useVisualizationStore
-    .getState()
-    .actions.setHighlightedEntityId(modelId, highlight);
-  if (sendMessage) {
-    useMessageSenderStore
-      .getState()
-      .sendHighlightingUpdate([modelId], highlight);
+  useLocalHighlightStore.getState().setHighlighted(modelId, highlight);
+
+  const isConnected = usePlayroomConnectionStore.getState().isConnected;
+  if (sendMessage && isConnected) {
+    try {
+      const allMyHighlights = Array.from(useLocalHighlightStore.getState().localHighlightedIds);
+      myPlayer().setState('highlightedEntities', allMyHighlights);
+    } catch (e) {
+      console.warn('Playroom Highlighting Update failed:', e);
+    }
   }
 }
 
@@ -56,25 +60,23 @@ export function unhighlightById(modelId: string, sendMessage = true) {
 }
 
 export function toggleHighlightById(modelId: string, sendMessage = true) {
-  const isHighlighted = useVisualizationStore
+  const isHighlighted = useLocalHighlightStore
     .getState()
-    .highlightedEntityIds.has(modelId);
+    .localHighlightedIds.has(modelId);
   setHighlightingById(modelId, !isHighlighted, sendMessage);
 }
 
 export function removeAllHighlighting(sendMessage = true) {
-  // Remove all highlights
-  useVisualizationStore.getState().actions.removeAllHighlightedEntityIds();
+  // delete alll local highlights
+  useLocalHighlightStore.getState().reset();
 
-  // Clear all remote user highlights
-  useCollaborationSessionStore
-    .getState()
-    .getAllRemoteUsers()
-    .forEach((user) => {
-      user.highlightedEntityIds.clear();
-    });
-
-  if (sendMessage) {
-    useMessageSenderStore.getState().sendAllHighlightsReset();
+  // Also remove all highlights from the player state (if in a room)
+  const isConnected = usePlayroomConnectionStore.getState().isConnected;
+  if (sendMessage && isConnected) {
+    try {
+      myPlayer().setState('highlightedEntities', []);
+    } catch (e) {
+      // ignore
+    }
   }
 }

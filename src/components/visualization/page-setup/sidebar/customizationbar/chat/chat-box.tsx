@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import {
   DownloadIcon,
   GearIcon,
-  LogIcon,
-  TrashIcon,
+  TrashIcon
 } from '@primer/octicons-react';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { me } from 'playroomkit';
 import Button from 'react-bootstrap/Button';
 import * as THREE from 'three';
 
@@ -40,9 +40,6 @@ export default function ChatBox() {
   );
   const clearFilter = useChatStore((state) => state.clearFilter);
   const filterChat = useChatStore((state) => state.filterChat);
-  const synchronizeWithServer = useChatStore(
-    (state) => state.synchronizeWithServer
-  );
   const [openFilterOptions, setOpenFilterOptions] = useState<boolean>(false);
   const [openDeleteActions, setOpenDeleteActions] = useState<boolean>(false);
   const [isFilterEnabled, setIsFilterEnabled] = useState<boolean>(false);
@@ -135,15 +132,6 @@ export default function ChatBox() {
     }
   };
 
-  const synchronize = () => {
-    if (connectionStatus == 'offline') {
-      showErrorToastMessage("Can't synchronize with server");
-      return;
-    }
-    clearFilter();
-    clearChat('.chat-thread');
-    synchronizeWithServer();
-  };
 
   const downloadChat = () => {
     const chatContent = chatMessages
@@ -175,7 +163,7 @@ export default function ChatBox() {
       return;
     }
 
-    sendChatMessage(userId, msg, false);
+    sendChatMessage(me().id, msg, false);
     inputElement.value = '';
   };
 
@@ -457,11 +445,6 @@ export default function ChatBox() {
                 )}
               </div>
             )}
-            <div className="synchronize">
-              <Button title="Get Chat Log From Room" onClick={synchronize}>
-                <LogIcon size="small" className="align-middle" />
-              </Button>
-            </div>
             <div className="download">
               <Button title="Download" onClick={downloadChat}>
                 <DownloadIcon size="small" className="align-middle" />

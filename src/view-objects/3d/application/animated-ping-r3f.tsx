@@ -1,10 +1,10 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
+import { RPC } from 'playroomkit';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { AnimationMixer } from 'three';
@@ -156,9 +156,11 @@ export function pingPosition(
 
   // Send ping update message if requested
   if (sendMessage) {
-    useMessageSenderStore.getState().sendPingUpdate({
-      positions: [position],
-    });
+    try {
+      RPC.call('ping', { pos: position.toArray(), color: color }, RPC.Mode.OTHERS);
+    } catch (e) {
+      // Ignore the error (just catch it)
+    }
   }
 
   // Clean up existing pings if requested

@@ -1,44 +1,19 @@
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
-import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
-import { IMMERSIVE_VIEW_UPDATE_EVENT, ImmersiveViewUpdateMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/immersive-view-update';
-import { useEffect, useRef } from 'react';
+import { myPlayer } from 'playroomkit';
+import { useEffect } from 'react';
+import { useImmersiveViewStore } from '../../../stores/immersive-view-store';
 
-// This component sends a message to the collaboration service whenever immersive view is entered or closed
-// This component is not visible!
+// This component syncs the current players state with immersive view
+// (Write in the player state if and where the current player is in imersive view)
 export default function ImmersiveStateSync() {
     const activeMeshId = useImmersiveViewStore((state) => state.activeMeshId);
-    const isOnline = useCollaborationSessionStore((state) => state.isOnline);
 
-    const previousMeshIdRef = useRef<string | null>(null);
-
-    // Execute this code whenever something changes with the immersive mode
+    // As soon as the activeMeshId changes, update the player state
     useEffect(() => {
-        if (!isOnline()) return;
+        const me = myPlayer();
+        if (!me) return;
+        me.setState('immersiveMeshId', activeMeshId || null);
 
-        const webSocket = useWebSocketStore.getState();
-
-        // Entering immserive mode
-        if (activeMeshId && activeMeshId !== previousMeshIdRef.current) {
-            webSocket.send<ImmersiveViewUpdateMessage>(IMMERSIVE_VIEW_UPDATE_EVENT, {
-                event: IMMERSIVE_VIEW_UPDATE_EVENT,
-                classId: activeMeshId,
-                didEnterView: true,
-            });
-            previousMeshIdRef.current = activeMeshId;
-        }
-
-        // Closing immerisve mode
-        else if (!activeMeshId && previousMeshIdRef.current) {
-            webSocket.send<ImmersiveViewUpdateMessage>(IMMERSIVE_VIEW_UPDATE_EVENT, {
-                event: IMMERSIVE_VIEW_UPDATE_EVENT,
-                classId: previousMeshIdRef.current,
-                didEnterView: false,
-            });
-            previousMeshIdRef.current = null;
-        }
-
-    }, [activeMeshId, isOnline]);
+    }, [activeMeshId]);
 
     return null;
 }

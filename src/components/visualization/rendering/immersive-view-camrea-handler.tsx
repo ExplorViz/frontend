@@ -8,7 +8,7 @@ interface Props {
 }
 
 // This component controls the camera actions for immersive view mode.
-// When the mode is entered, it moves thec amera to the specified class, when it's closed,
+// When the mode is entered, it moves the camera to the specified class, when it's closed,
 // the old camera positions is recovered.
 export default function ImmersiveCameraHandler({ controlsRef }: Props) {
     const targetPosition = useImmersiveViewStore((state) => state.targetPosition);
@@ -26,7 +26,7 @@ export default function ImmersiveCameraHandler({ controlsRef }: Props) {
         const controls = controlsRef.current;
         if (!controls) return;
 
-        // ENter immersive view mode
+        // Enter immersive view mode
         if (targetPosition) {
             if (!savedControlSettings.current) {
                 savedControlSettings.current = {
@@ -43,19 +43,20 @@ export default function ImmersiveCameraHandler({ controlsRef }: Props) {
                 };
             }
 
-            // The camera settings during the immersive view mode
-            controls.minDistance = 0;
-            controls.maxDistance = 0.01;
-            controls.mouseButtons.left = 1;   // Rotate
-            controls.mouseButtons.right = 1;  // Rotate
-            controls.mouseButtons.middle = 0; // Disable
-            controls.mouseButtons.wheel = 0;  // Disable
-
+            // At first move the camera to the new target (building)
             controls.setLookAt(
                 targetPosition.x, targetPosition.y, targetPosition.z,
                 targetPosition.x + 0.001, targetPosition.y, targetPosition.z,
                 true
-            );
+            ).then(() => {
+                // After the camera is moved, restrict it for immserive view
+                controls.minDistance = 0;
+                controls.maxDistance = 0.01;
+                controls.mouseButtons.left = 1;   // Rotate
+                controls.mouseButtons.right = 1;  // Rotate
+                controls.mouseButtons.middle = 0; // Disable
+                controls.mouseButtons.wheel = 0;  // Disable
+            });
 
             // Close immersive view mode
         } else if (savedCameraState.current && savedControlSettings.current) {

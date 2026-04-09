@@ -1,23 +1,11 @@
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import {
-  CHAT_MESSAGE_EVENT,
-  ChatMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-message';
-import {
-  CHAT_SYNC_EVENT,
-  ChatSynchronizeMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/chat-synchronization';
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import {
-  MESSAGE_DELETE_EVENT,
-  MessageDeleteEvent,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/delete-message';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { me, RPC } from 'playroomkit';
 import * as THREE from 'three';
 import { create } from 'zustand';
+import { useToastHandlerStore } from './toast-handler';
+
+let isChatRpcRegistered = false;
 
 export interface ChatMessageInterface {
   msgId: number;
@@ -40,27 +28,6 @@ interface ChatState {
   deletedMessageIds: number[];
   _constructor: () => void;
   cleanup: () => void;
-  removeEventListener: () => void;
-  onChatMessageEvent: ({
-    userId,
-    originalMessage: {
-      msgId,
-      msg,
-      userName,
-      timestamp,
-      isEvent,
-      eventType,
-      eventData,
-    },
-  }: ForwardedMessage<ChatMessage>) => void;
-  onChatSyncEvent: ({
-    userId,
-    originalMessage,
-  }: ForwardedMessage<ChatSynchronizeMessage[]>) => void;
-  onMessageDeleteEvent: ({
-    userId,
-    originalMessage,
-  }: ForwardedMessage<MessageDeleteEvent>) => void;
   sendChatMessage: (
     userId: string,
     msg: string,
@@ -72,11 +39,12 @@ interface ChatState {
     msgId: number,
     userId: string,
     msg: string,
-    username: string,
-    time: string,
-    isEvent: boolean,
-    eventType: string,
-    eventData: any[]
+    username?: string,
+    time?: string,
+    isEvent?: boolean,
+    eventType?: string,
+    eventData?: any[],
+    colorHex?: number
   ) => void;
   removeChatMessage: (messageId: number[], received?: boolean) => void;
   findEventByUserId: (userId: string, eventType: string) => boolean;
@@ -86,8 +54,6 @@ interface ChatState {
   clearFilter: () => void;
   _applyCurrentFilter: (filterMode: string, filterValue: string) => void;
   _getTime: () => string;
-  synchronizeWithServer: () => void;
-  syncChatMessages: (messages: ChatSynchronizeMessage[]) => void;
   setDeletedMessageIds: (deletedMessageIds: number[]) => void;
 }
 
@@ -107,79 +73,33 @@ export const useChatStore = create<ChatState>((set, get) => {
     deletedMessageIds: [],
 
     _constructor: () => {
-      eventEmitter.on(CHAT_MESSAGE_EVENT, get().onChatMessageEvent);
-      eventEmitter.on(CHAT_SYNC_EVENT, get().onChatSyncEvent);
-      eventEmitter.on(MESSAGE_DELETE_EVENT, get().onMessageDeleteEvent);
+      // Register the listener for chat messages
+      if (isChatRpcRegistered) return;
+      isChatRpcRegistered = true;
+
+      RPC.register('chatMessage', async (data: any) => {
+
+        // Check if a toast message have to be sent
+        if (!data.isEvent && data.userId != me().id) {
+          useToastHandlerStore.getState().showInfoToastMessage(`Message received: ` + data.msg);
+        }
+
+        // Add themessage toi the interface
+        get().addChatMessage(
+          data.msgId, data.userId, data.msg, data.userName, data.timestamp,
+          data.isEvent, data.eventType, data.eventData, data.color
+        );
+      });
+
+      // Register a function to listen for delete messages
+      RPC.register('deleteMessage', async (messageIds: any) => {
+        get().removeChatMessage(messageIds, true);
+        useToastHandlerStore.getState().showErrorToastMessage('Message(s) deleted');
+      });
     },
 
     cleanup: () => {
-      get().removeEventListener();
-    },
-
-    removeEventListener: () => {
-      eventEmitter.off(CHAT_MESSAGE_EVENT, get().onChatMessageEvent);
-      eventEmitter.off(CHAT_SYNC_EVENT, get().onChatSyncEvent);
-      eventEmitter.off(MESSAGE_DELETE_EVENT, get().onMessageDeleteEvent);
-    },
-
-    /**
-     * Chat message received from backend
-     */
-    onChatMessageEvent: ({
-      userId,
-      originalMessage: {
-        msgId,
-        msg,
-        userName,
-        timestamp,
-        isEvent,
-        eventType,
-        eventData,
-      },
-    }: ForwardedMessage<ChatMessage>) => {
-      if (useLocalUserStore.getState().userId != userId && !isEvent) {
-        useToastHandlerStore
-          .getState()
-          .showInfoToastMessage(`Message received: ` + msg);
-      }
-      get().addChatMessage(
-        msgId,
-        userId,
-        msg,
-        userName,
-        timestamp,
-        isEvent,
-        eventType,
-        eventData
-      );
-    },
-
-    /**
-     * Chat synchronization event received from backend
-     */
-    onChatSyncEvent: ({
-      userId,
-      originalMessage,
-    }: ForwardedMessage<ChatSynchronizeMessage[]>) => {
-      if (useLocalUserStore.getState().userId == userId) {
-        get().syncChatMessages(originalMessage);
-      }
-    },
-
-    /**
-     * Chat message delete event received from backend
-     */
-    onMessageDeleteEvent: ({
-      userId,
-      originalMessage,
-    }: ForwardedMessage<MessageDeleteEvent>) => {
-      if (userId == useLocalUserStore.getState().userId) {
-        return;
-      }
-      get().removeChatMessage(originalMessage.msgIds, true);
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Message(s) deleted');
+      // manuel cleanup is not needed for RPCs
     },
 
     sendChatMessage: (
@@ -189,75 +109,50 @@ export const useChatStore = create<ChatState>((set, get) => {
       eventType: string = '',
       eventData: any[] = []
     ) => {
-      if (
-        useCollaborationSessionStore.getState().connectionStatus == 'offline'
-      ) {
-        set({ msgId: get().msgId++ });
-        get().addChatMessage(
-          get().msgId,
-          userId,
-          msg,
-          '',
-          '',
-          isEvent,
-          eventType,
-          eventData
-        );
-      } else {
-        const userName = useLocalUserStore.getState().userName;
-        useMessageSenderStore
-          .getState()
-          .sendChatMessage(
-            userId,
-            msg,
-            userName,
-            '',
-            isEvent,
-            eventType,
-            eventData
-          );
-      }
+      // Create a uniqze ID for te message
+      const newId = Date.now() + Math.floor(Math.random() * 1000);
+      set({ msgId: newId });
+
+      // Get the current users ID and color
+      const userName = me().getProfile().name;
+      const color = me().getProfile().color.hex;
+      // Get the current time
+      const timestamp = get()._getTime();
+
+      // Construct payload for playroomkit and send it
+      const payload = { msgId: newId, userId, msg, userName, color, timestamp, isEvent, eventType, eventData };
+
+      try {
+        RPC.call('chatMessage', payload, RPC.Mode.ALL);   // Message is send to all, so the current user does not need to actibely add the message here
+      } catch (e) { }
+
     },
 
     addChatMessage: (
       msgId: number,
       userId: string,
       msg: string,
-      username: string = '',
+      username: string = 'Unknown',
       time: string = '',
       isEvent: boolean = false,
       eventType: string = '',
-      eventData: any[] = []
+      eventData: any[] = [],
+      colorHex?: number
     ) => {
-      let userName = username;
-      let userColor = new THREE.Color(0, 0, 0);
-      let timestamp = time;
+      const userColor = new THREE.Color(colorHex !== undefined ? colorHex : 0x888888);
+      const timestamp = time === '' ? get()._getTime() : time;
 
-      const user = useCollaborationSessionStore
-        .getState()
-        .lookupRemoteUserById(userId);
-      if (user) {
-        userName = user.userName;
-        userColor = user.color;
-        timestamp = time;
-      } else if (userId === useLocalUserStore.getState().userId) {
-        userName = useLocalUserStore.getState().userName;
-        userColor = useLocalUserStore.getState().color;
-        timestamp = time === '' ? get()._getTime() : time;
+      // Check if the message is from yourself
+      if (userId == me().id) {
+        username = "You";
       }
 
+      // Create a message object
       const chatMessage: ChatMessageInterface = {
-        msgId,
-        userId,
-        userName,
-        userColor,
-        timestamp,
-        message: msg,
-        isEvent,
-        eventType,
-        eventData,
+        msgId, userId, userName: username, userColor, timestamp, message: msg, isEvent, eventType, eventData,
       };
 
+      // Add the message
       set({ chatMessages: [...get().chatMessages, chatMessage] });
       get()._applyCurrentFilter('', '');
     },
@@ -270,7 +165,9 @@ export const useChatStore = create<ChatState>((set, get) => {
       });
 
       if (!received) {
-        useMessageSenderStore.getState().sendMessageDelete(messageId);
+        try {
+          RPC.call('deleteMessage', messageId, RPC.Mode.OTHERS);
+        } catch (e) { }
       } else {
         set({ deletedMessage: true });
         let newDeletedMessageIds = get().deletedMessageIds;
@@ -316,7 +213,6 @@ export const useChatStore = create<ChatState>((set, get) => {
           []
         );
       }
-      useMessageSenderStore.getState().sendUserMuteUpdate(userId);
     },
 
     isUserMuted: (userId: string): boolean | undefined => {
@@ -367,27 +263,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       const h = new Date().getHours();
       const m = new Date().getMinutes();
       return `${h}:${m < 10 ? '0' + m : m}`;
-    },
-
-    synchronizeWithServer: () => {
-      useMessageSenderStore.getState().sendChatSynchronize();
-    },
-
-    syncChatMessages: (messages: ChatSynchronizeMessage[]) => {
-      set({ chatMessages: [] });
-      messages.forEach((msg) =>
-        get().addChatMessage(
-          msg.msgId,
-          msg.userId,
-          msg.msg,
-          msg.userName,
-          msg.timestamp,
-          msg.isEvent,
-          msg.eventType,
-          msg.eventData
-        )
-      );
-      useToastHandlerStore.getState().showInfoToastMessage('Synchronized');
     },
 
     setDeletedMessageIds: (deletedMessageIds) => {

@@ -1,35 +1,26 @@
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import { useEffect } from 'react';
+import { usePlayersList } from 'playroomkit';
 import * as THREE from 'three';
 
-/**
- * Component that applies spectate camera configuration to the React Three Fiber camera.
- * This component must be placed inside a Canvas component to access the camera via useThree hook.
- */
+// This component syncs the camera settings for spectating mode (not the position)
 export default function SpectateCameraController() {
   const { camera } = useThree();
-  const spectateConfigurationId = useSpectateUserStore(
-    (state) => state.spectateConfigurationId
-  );
-  const currentProjectionMatrix = useSpectateUserStore(
-    (state) => state.currentProjectionMatrix
-  );
+  const players = usePlayersList();
+  const spectatedPlayerId = useSpectateUserStore((state) => state.spectatedPlayerId);
 
-  useEffect(() => {
-    if (!(camera instanceof THREE.PerspectiveCamera)) {
-      return;
-    }
+  useFrame(() => {
+    if (!spectatedPlayerId || !(camera instanceof THREE.PerspectiveCamera)) return;
 
-    if (currentProjectionMatrix) {
-      // Apply the custom projection matrix
-      camera.projectionMatrix.fromArray(currentProjectionMatrix);
+    const targetPlayer = players.find(p => p.id === spectatedPlayerId);
+    if (!targetPlayer) return;
+
+    const projMatrix = targetPlayer.getState('projectionMatrix');
+    if (projMatrix) {
+      camera.projectionMatrix.fromArray(projMatrix);
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
-    } else if (spectateConfigurationId === 'default') {
-      // Reset to default projection matrix when configuration is 'default'
-      camera.updateProjectionMatrix();
     }
-  }, [camera, currentProjectionMatrix, spectateConfigurationId]);
+  });
 
   return null;
 }

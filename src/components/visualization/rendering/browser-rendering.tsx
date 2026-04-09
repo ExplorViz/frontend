@@ -17,6 +17,7 @@ import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rende
 import useCollaborativeModifier from 'explorviz-frontend/src/hooks/collaborative-modifier';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
+import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -265,6 +266,15 @@ export default function BrowserRendering({
 
   useCollaborativeModifier();
 
+  // Close the sidebar, when the connection menu is opened (so ot does not overlap)
+  const isLobbyOpen = usePlayroomConnectionStore((state) => state.isLobbyOpen);
+  useEffect(() => {
+    if (isLobbyOpen) {
+      setShowSettingsSidebar(false);
+      setShowToolsSidebar(false);
+    }
+  }, [isLobbyOpen]);
+
   // MARK: JSX
 
   return (
@@ -388,8 +398,8 @@ export default function BrowserRendering({
                         {openedToolComponent === 'Trace-Replayer' &&
                           landscapeData && (
                             <TraceSelectionAndReplayer
-                              highlightTrace={() => {}}
-                              removeHighlighting={() => {}}
+                              highlightTrace={() => { }}
+                              removeHighlighting={() => { }}
                               dynamicData={landscapeData.dynamicLandscapeData}
                               structureData={
                                 landscapeData.structureLandscapeData
@@ -475,8 +485,8 @@ export default function BrowserRendering({
                       )}
                       {openedSettingComponent ===
                         'VSCode-Extension-Settings' && (
-                        <VscodeExtensionSettings />
-                      )}
+                          <VscodeExtensionSettings />
+                        )}
                       {openedSettingComponent === 'Restructure-Landscape' && (
                         <Restructure
                           landscapeData={landscapeData!}
