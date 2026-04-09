@@ -158,11 +158,11 @@ export type LayoutSettings = {
   cityMargin: RangeSetting;
   districtMargin: RangeSetting;
   buildingFootprint: RangeSetting;
-  buildingWidthMetric: SelectSetting<string>;
+  buildingWidthMetric: SelectSetting<SelectedBuildingMetric>;
   buildingWidthMultiplier: RangeSetting;
-  buildingDepthMetric: SelectSetting<string>;
+  buildingDepthMetric: SelectSetting<SelectedBuildingMetric>;
   buildingDepthMultiplier: RangeSetting;
-  buildingHeightMetric: SelectSetting<string>;
+  buildingHeightMetric: SelectSetting<SelectedBuildingMetric>;
   buildingHeightMultiplier: RangeSetting;
   buildingMargin: RangeSetting;
   openedDistrictHeight: RangeSetting;
@@ -369,7 +369,10 @@ export enum SelectedBuildingMetric {
   None = 'None',
   Method = 'Function Count',
   loc = 'loc',
+  sloc = 'sloc',
   cloc = 'cloc',
+  functionCount = 'functionCount',
+  variableCount = 'variableCount',
   size = 'size',
 }
 

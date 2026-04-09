@@ -47,9 +47,6 @@ export function getMetricValues(
     metricName: string
   ): number => {
     if (isBuilding(model)) {
-      if (metricName === BuildingMetricIds.Functions) {
-        return model.functionIds?.length || 0;
-      }
       return model.metrics?.[metricName]?.current || 0;
     }
     // Fallback for legacy models if any
@@ -57,17 +54,16 @@ export function getMetricValues(
   };
 
   switch (classHeatmapMetric.name) {
-    case BuildingMetricIds.Functions:
-    case SelectedBuildingHeatmapMetric.Functions:
-      return {
-        min: classHeatmapMetric.min,
-        max: classHeatmapMetric.max,
-        current: getMetricValueFromModel(dataModel, BuildingMetricIds.Functions),
-      };
     case BuildingMetricIds.loc:
     case SelectedBuildingHeatmapMetric.loc:
+    case BuildingMetricIds.sloc:
+    case SelectedBuildingHeatmapMetric.sloc:
     case BuildingMetricIds.cloc:
     case SelectedBuildingHeatmapMetric.cloc:
+    case BuildingMetricIds.functionCount:
+    case SelectedBuildingHeatmapMetric.functionCount:
+    case BuildingMetricIds.variableCount:
+    case SelectedBuildingHeatmapMetric.variableCount:
     case BuildingMetricIds.size:
     case SelectedBuildingHeatmapMetric.size:
       return {
@@ -75,20 +71,7 @@ export function getMetricValues(
         max: classHeatmapMetric.max,
         current: getMetricValueFromModel(dataModel, classHeatmapMetric.name),
       };
-    case BuildingMetricIds.DynamicFunctions:
-    case SelectedBuildingHeatmapMetric.DynamicFunctions:
-      return {
-        min: classHeatmapMetric.min,
-        max: classHeatmapMetric.max,
-        current: getMetricValueFromModel(dataModel, 'dynamicFunctions'),
-      };
-    case BuildingMetricIds.StaticFunctions:
-    case SelectedBuildingHeatmapMetric.StaticFunctions:
-      return {
-        min: classHeatmapMetric.min,
-        max: classHeatmapMetric.max,
-        current: getMetricValueFromModel(dataModel, 'staticFunctions'),
-      };
+
     default:
       return {
         min: 0,

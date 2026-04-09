@@ -13,6 +13,7 @@ import {
   MetricKey,
   metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
+import { SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -29,9 +30,9 @@ let BUILDING_ALGORITHM: string;
 let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
 let BUILDING_FOOTPRINT: number;
-let WIDTH_METRIC: string;
+let WIDTH_METRIC: SelectedBuildingMetric;
 let WIDTH_METRIC_MULTIPLIER: number;
-let DEPTH_METRIC: string;
+let DEPTH_METRIC: SelectedBuildingMetric;
 let DEPTH_METRIC_MULTIPLIER: number;
 let BUILDING_MARGIN: number;
 let CITY_LABEL_MARGIN: number;

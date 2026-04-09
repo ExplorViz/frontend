@@ -1,18 +1,23 @@
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
+  SelectedBuildingMetric,
   SettingLevel,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export const metricMappingMultipliers = {
-  None: 1,
-  'Function Count': 10,
-  loc: 1,
-  cloc: 1,
-  size: 0.001,
+  [SelectedBuildingMetric.None]: 1,
+  [SelectedBuildingMetric.Method]: 10,
+  [SelectedBuildingMetric.loc]: 1,
+  [SelectedBuildingMetric.sloc]: 1,
+  [SelectedBuildingMetric.cloc]: 1,
+  [SelectedBuildingMetric.functionCount]: 10,
+  [SelectedBuildingMetric.variableCount]: 10,
+  [SelectedBuildingMetric.size]: 0.001,
 } as const;
-export type MetricKey = keyof typeof metricMappingMultipliers;
-export const metricKeys = Object.keys(metricMappingMultipliers) as MetricKey[];
+
+export type MetricKey = SelectedBuildingMetric;
+export const metricKeys = Object.values(SelectedBuildingMetric);
 export const MOUSE_ACTIONS = [
   'NONE',
   'ROTATE',
@@ -759,7 +764,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   buildingWidthMetric: {
     level: SettingLevel.DEFAULT,
-    value: 'None',
+    value: SelectedBuildingMetric.None,
     options: metricKeys,
     group: 'Layout',
     displayName: 'Width Metric',
@@ -776,13 +781,13 @@ export const defaultVizSettings: VisualizationSettings = {
       'Multiplier for metric that is mapped to the width of a building.',
     dependsOn: {
       settingId: 'buildingWidthMetric',
-      notEqual: 'None',
+      notEqual: SelectedBuildingMetric.None,
     },
     isRangeSetting: true,
   },
   buildingDepthMetric: {
     level: SettingLevel.DEFAULT,
-    value: 'None',
+    value: SelectedBuildingMetric.None,
     options: metricKeys,
     group: 'Layout',
     displayName: 'Depth Metric',
@@ -799,13 +804,13 @@ export const defaultVizSettings: VisualizationSettings = {
       'Multiplier for metric that is mapped to the depth of a building.',
     dependsOn: {
       settingId: 'buildingDepthMetric',
-      notEqual: 'None',
+      notEqual: SelectedBuildingMetric.None,
     },
     isRangeSetting: true,
   },
   buildingHeightMetric: {
     level: SettingLevel.DEFAULT,
-    value: 'None',
+    value: SelectedBuildingMetric.None,
     options: metricKeys,
     group: 'Layout',
     displayName: 'Height Metric',
@@ -822,7 +827,7 @@ export const defaultVizSettings: VisualizationSettings = {
       'Multiplier for metric that is mapped to the height of a building.',
     dependsOn: {
       settingId: 'buildingHeightMetric',
-      notEqual: 'None',
+      notEqual: SelectedBuildingMetric.None,
     },
     isRangeSetting: true,
   },

@@ -2,32 +2,45 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { create } from 'zustand';
 
-function getMaxNumberOfFunctionsPerBuilding(): number {
+function getMinMaxMetricValues(metricName: BuildingMetricIds): {
+  min: number;
+  max: number;
+} {
   const buildings = useModelStore.getState().buildings;
-  return Math.max(
-    ...Object.values(buildings).map((b) => b.functionIds?.length || 0),
-    0
+  const buildingsArray = Object.values(buildings);
+
+  if (buildingsArray.length === 0) return { min: 0, max: 0 };
+
+  return buildingsArray.reduce(
+    (acc, b) => {
+      const val = b.metrics?.[metricName]?.current || (b as any)[metricName] || 0;
+      return {
+        min: Math.min(acc.min, val),
+        max: Math.max(acc.max, val),
+      };
+    },
+    { min: Infinity, max: -Infinity }
   );
 }
 
 export enum SelectedBuildingHeatmapMetric {
   None = 'None',
-  Functions = 'Function Count',
   loc = 'loc',
+  sloc = 'sloc',
   cloc = 'cloc',
+  functionCount = 'functionCount',
+  variableCount = 'variableCount',
   size = 'size',
-  DynamicFunctions = 'Dynamic Function Quota',
-  StaticFunctions = 'Static Function Quota',
 }
 
 export enum BuildingMetricIds {
   None = 'None',
-  Functions = 'Function Count',
   loc = 'loc',
+  sloc = 'sloc',
   cloc = 'cloc',
+  functionCount = 'functionCount',
+  variableCount = 'variableCount',
   size = 'size',
-  DynamicFunctions = 'Dynamic Function Quota',
-  StaticFunctions = 'Static Function Quota',
 }
 
 const NO_SELECTED_METRIC: BuildingMetric = {
@@ -103,51 +116,23 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
 
     setSelectedBuildingMetric: (metricName: BuildingMetricIds) => {
       switch (metricName) {
-        case BuildingMetricIds.Functions:
-          set({
-            selectedBuildingMetric: {
-              name: BuildingMetricIds.Functions,
-              description: "Number of functions in building's data model",
-              min: 0,
-              max: getMaxNumberOfFunctionsPerBuilding(),
-            },
-          });
-          break;
-
         case BuildingMetricIds.loc:
+        case BuildingMetricIds.sloc:
         case BuildingMetricIds.cloc:
-        case BuildingMetricIds.size:
+        case BuildingMetricIds.functionCount:
+        case BuildingMetricIds.variableCount:
+        case BuildingMetricIds.size: {
+          const { min, max } = getMinMaxMetricValues(metricName);
           set({
             selectedBuildingMetric: {
               name: metricName,
               description: `${metricName} of building's data model`,
-              min: 0,
-              max: 5000, // ToDo: Get max value
+              min: min,
+              max: max,
             },
           });
           break;
-
-        case BuildingMetricIds.DynamicFunctions:
-          set({
-            selectedBuildingMetric: {
-              name: BuildingMetricIds.DynamicFunctions,
-              description: "Dynamic function quota of building's data model",
-              min: 0,
-              max: 1, // Percentage, so max is 1
-            },
-          });
-          break;
-
-        case BuildingMetricIds.StaticFunctions:
-          set({
-            selectedBuildingMetric: {
-              name: BuildingMetricIds.StaticFunctions,
-              description: "Static function quota of building's data model",
-              min: 0,
-              max: 1, // In percentage, so max is 1
-            },
-          });
-          break;
+        }
 
         default:
           set({

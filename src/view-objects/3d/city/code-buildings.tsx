@@ -169,16 +169,13 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         state.visualizationSettings.languageGeometryTypeScript?.value,
       languageGeometryOther:
         state.visualizationSettings.languageGeometryOther?.value,
-      javaBuildingColor:
-        state.visualizationSettings.javaBuildingColor?.value,
-      cppBuildingColor:
-        state.visualizationSettings.cppBuildingColor?.value,
+      javaBuildingColor: state.visualizationSettings.javaBuildingColor?.value,
+      cppBuildingColor: state.visualizationSettings.cppBuildingColor?.value,
       pythonBuildingColor:
         state.visualizationSettings.pythonBuildingColor?.value,
       typescriptBuildingColor:
         state.visualizationSettings.typescriptBuildingColor?.value,
-      otherBuildingColor:
-        state.visualizationSettings.otherBuildingColor?.value,
+      otherBuildingColor: state.visualizationSettings.otherBuildingColor?.value,
     }))
   );
 
@@ -249,13 +246,12 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     }
   }, [selectedGeometryType]);
 
-  const { heatmapActive, selectedBuildingMetric } =
-    useHeatmapStore(
-      useShallow((state) => ({
-        heatmapActive: state.isActive(),
-        selectedBuildingMetric: state.getSelectedBuildingMetric(),
-      }))
-    );
+  const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
+    useShallow((state) => ({
+      heatmapActive: state.isActive(),
+      selectedBuildingMetric: state.getSelectedBuildingMetric(),
+    }))
+  );
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -267,7 +263,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
   const getBuildingHeight = useCallback(
     (building: Building) => {
-      const getMetricValue = (metricKey: string): number => {
+      const getMetricValue = (building: Building, metricKey: string): number => {
         if (metricKey === 'Function Count') {
           return building.functionIds?.length || 0;
         }
@@ -275,7 +271,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         return metric?.current || 0;
       };
 
-      const metricValue = getMetricValue(heightMetric);
+      const metricValue = getMetricValue(building, heightMetric);
 
       return (
         buildingFootprint +
