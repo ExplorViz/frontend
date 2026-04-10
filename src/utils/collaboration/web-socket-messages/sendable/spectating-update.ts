@@ -20,7 +20,7 @@ export function isSpectatingUpdateMessage(
     typeof msg === 'object' &&
     msg.event === SPECTATING_UPDATE_EVENT &&
     typeof msg.isSpectating === 'boolean' &&
-    (typeof msg.spectatedUser === 'string' || msg.spectatedUser === null) &&
+    (typeof msg.spectatedUserId === 'string' || msg.spectatedUserId === null) &&
     Array.isArray(msg.spectatingUsers) &&
     typeof msg.configurationId === 'string' &&
     (Array.isArray(msg.configuration) ||
