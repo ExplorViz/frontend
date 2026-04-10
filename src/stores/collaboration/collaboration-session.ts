@@ -51,6 +51,7 @@ interface CollaborationSessionState {
   connectionStatus: ConnectionStatus;
   currentRoomId: string | null;
   previousRoomId: string | null;
+  isInitialized: boolean;
   _constructor: () => void;
   getUserCount: () => number;
   willDestroy: () => void;
@@ -98,6 +99,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     connectionStatus: 'offline', // tracked
     currentRoomId: null, // tracked
     previousRoomId: null, // tracked
+    isInitialized: false,
 
     setIdToRemoteUser: (value: Map<string, RemoteUser>) => {
       set({ idToRemoteUser: value });
@@ -108,12 +110,14 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     },
 
     _constructor: () => {
+      if (get().isInitialized) return;
       eventEmitter.on(SELF_CONNECTED_EVENT, get().onSelfConnected);
       eventEmitter.on(USER_CONNECTED_EVENT, get().onUserConnected);
       eventEmitter.on(USER_DISCONNECTED_EVENT, get().onUserDisconnect);
       eventEmitter.on(USER_POSITIONS_EVENT, get().onUserPositions);
       eventEmitter.on(SELF_DISCONNECTED_EVENT, get().onSelfDisconnected);
       eventEmitter.on(USER_KICK_EVENT, get().onUserKickEvent);
+      set({ isInitialized: true });
     },
 
     // Must be called explicitly in React
@@ -162,6 +166,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
     removeAllRemoteUsers: () => {
       get().idToRemoteUser.forEach((user) => {
         user.removeAllObjects3D();
+        get().remoteUserGroup.remove(user);
       });
       set({ idToRemoteUser: new Map() });
     },
@@ -233,8 +238,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       useChatStore
         .getState()
         .sendChatMessage(
-          self.id,
-          `${self.name}(${self.id}) connected to room ${get().currentRoomId}`,
+          `${self.name}(${self.id}) connected to room ${get().currentRoomId || 'unknown'}`,
           true,
           'connection_event',
           []
@@ -296,33 +300,12 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       }
 
       // walk trough all highlighted entities and unhighlight them
-      for (const highlightedEntityComponent of highlightedComponents) {
-        const { highlightedApp, highlightedEntity } =
-          highlightedEntityComponent;
-        // if (highlightedApp !== '') {
-        //   const application = useApplicationRendererStore
-        //     .getState()
-        //     .getApplicationById(highlightedApp);
-        //   if (application) {
-        //     const mesh = application.getMeshById(highlightedEntity);
-        //     if (isEntityMesh(mesh)) {
-        //       useHighlightingStore.getState().toggleHighlight(mesh, {
-        //         sendMessage: false,
-        //       });
-        //     }
-        //   }
-        // } else {
-        //   //extern Link
-        //   const link = useLinkRendererStore
-        //     .getState()
-        //     .getLinkById(highlightedEntity);
-        //   if (link) {
-        //     useHighlightingStore.getState().toggleHighlight(link, {
-        //       sendMessage: false,
-        //     });
-        //   }
-        // }
-      }
+      // for (const highlightedEntityComponent of highlightedComponents) {
+      //   const { highlightedApp, highlightedEntity } =
+      //     highlightedEntityComponent;
+      //   // if (highlightedApp !== '') {
+      //   // ...
+      // }
     },
 
     onSelfDisconnected: (event?: any) => {
@@ -348,19 +331,17 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
         }
       }
 
+      const roomId = get().currentRoomId || get().previousRoomId;
+
       // Remove remote users.
       get().removeAllRemoteUsers();
 
-      // TODO:
-      // useHighlightingStore.getState().resetColorsOfHighlightedEntities();
-
-      // useHighlightingStore.getState().updateHighlighting();
+      set({ connectionStatus: 'offline', currentRoomId: null });
 
       useChatStore
         .getState()
         .sendChatMessage(
-          useLocalUserStore.getState().userId,
-          `${useLocalUserStore.getState().userName}(${useLocalUserStore.getState().userId}) disconnected from room ${get().previousRoomId}`,
+          `${useLocalUserStore.getState().userName}(${useLocalUserStore.getState().userId}) disconnected from room ${roomId}`,
           true,
           'disconnection_event',
           []
@@ -381,7 +362,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
           const response = await useRoomServiceStore
             .getState()
             .createRoom(roomId);
-          get().joinRoom(response.roomId);
+          await get().joinRoom(response.roomId);
           return true;
         } catch (e: any) {
           // this.connectionStatus = 'offline';
@@ -477,11 +458,12 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
      * Switch to offline mode, close socket connection
      */
     disconnect: () => {
-      if (get().connectionStatus != 'offline') {
-        set({ previousRoomId: get().currentRoomId });
+      if (get().connectionStatus !== 'offline') {
+        const currentRoomId = get().currentRoomId;
+        set({ previousRoomId: currentRoomId });
+        get().onSelfDisconnected('io client disconnect');
       }
 
-      set({ connectionStatus: 'offline', currentRoomId: null });
       useWebSocketStore.getState().closeSocket();
     },
 

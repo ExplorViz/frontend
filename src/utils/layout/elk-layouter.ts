@@ -1,78 +1,67 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import {
-  getAllClassIdsInApplication,
-  getAllPackageIdsInApplications,
-} from 'explorviz-frontend/src/utils/application-helpers';
 import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import {
-  Application,
-  K8sDeployment,
-  K8sNamespace,
-  K8sNode,
-  K8sPod,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+  Building,
+  City,
+  District,
+  FlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { applyCircleLayoutToClasses } from 'explorviz-frontend/src/utils/layout/circle-layouter';
+import { calculateSpiralSideLength } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import {
-  applySpiralLayoutToClasses,
-  calculateSpiralSideLength,
-} from 'explorviz-frontend/src/utils/layout/spiral-layouter';
-import { metricMappingMultipliers } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { SelectedClassMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+  MetricKey,
+  metricMappingMultipliers,
+} from 'explorviz-frontend/src/utils/settings/default-settings';
+import { SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
 // We rely on prefixes having the same length for their later removal
 const LANDSCAPE_PREFIX = 'land-';
-const K8S_NODE_PREFIX = 'node-';
-const K8S_NAMESPACE_PREFIX = 'nspc-';
-const K8S_DEPLOYMENT_PREFIX = 'depl-';
-const K8S_POD_PREFIX = 'kpod-';
-const APP_PREFIX = 'appl-';
-const PACKAGE_PREFIX = 'pack-';
-const CLASS_PREFIX = 'clss-';
+const CITY_PREFIX = 'city-';
+const DISTRICT_PREFIX = 'dist-';
+const BUILDING_PREFIX = 'buil-';
 const DUMMY_PREFIX = 'dumy-';
 
-let APPLICATION_ALGORITHM: string;
-let PACKAGE_ALGORITHM: string;
-let CLASS_ALGORITHM: string;
+let CITY_ALGORITHM: string;
+let DISTRICT_ALGORITHM: string;
+let BUILDING_ALGORITHM: string;
 let DESIRED_EDGE_LENGTH: number;
 let ASPECT_RATIO: number;
-let CLASS_FOOTPRINT: number;
-let WIDTH_METRIC: string;
+let BUILDING_FOOTPRINT: number;
+let WIDTH_METRIC: SelectedBuildingMetric;
 let WIDTH_METRIC_MULTIPLIER: number;
-let DEPTH_METRIC: string;
+let DEPTH_METRIC: SelectedBuildingMetric;
 let DEPTH_METRIC_MULTIPLIER: number;
-let CLASS_MARGIN: number;
-let APP_LABEL_MARGIN: number;
-let APP_MARGIN: number;
-let PACKAGE_LABEL_MARGIN: number;
-let PACKAGE_MARGIN: number;
-let COMPONENT_HEIGHT: number;
-let COMPONENT_LABEL_PLACEMENT: string;
+let BUILDING_MARGIN: number;
+let CITY_LABEL_MARGIN: number;
+let CITY_MARGIN: number;
+let DISTRICT_LABEL_MARGIN: number;
+let DISTRICT_MARGIN: number;
+let DISTRICT_HEIGHT: number;
+let DISTRICT_LABEL_PLACEMENT: string;
 
 function setVisualizationSettings() {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
 
-  APPLICATION_ALGORITHM = vs.applicationLayoutAlgorithm.value;
-  PACKAGE_ALGORITHM = vs.packageLayoutAlgorithm.value;
-  CLASS_ALGORITHM = vs.classLayoutAlgorithm.value;
-  DESIRED_EDGE_LENGTH = vs.applicationDistance.value;
-  ASPECT_RATIO = vs.applicationAspectRatio.value;
-  CLASS_FOOTPRINT = vs.classFootprint.value;
-  WIDTH_METRIC = vs.classWidthMetric.value;
-  WIDTH_METRIC_MULTIPLIER = vs.classWidthMultiplier.value;
-  DEPTH_METRIC = vs.classDepthMetric.value;
-  DEPTH_METRIC_MULTIPLIER = vs.classDepthMultiplier.value;
-  CLASS_MARGIN = vs.classMargin.value;
-  APP_LABEL_MARGIN = vs.appLabelMargin.value;
-  APP_MARGIN = vs.appMargin.value;
-  PACKAGE_LABEL_MARGIN = vs.packageLabelMargin.value;
-  PACKAGE_MARGIN = vs.packageMargin.value;
-  COMPONENT_HEIGHT = vs.openedComponentHeight.value;
-  COMPONENT_LABEL_PLACEMENT = vs.componentLabelPlacement.value;
+  CITY_ALGORITHM = vs.cityLayoutAlgorithm.value;
+  DISTRICT_ALGORITHM = vs.districtLayoutAlgorithm.value;
+  BUILDING_ALGORITHM = vs.buildingLayoutAlgorithm.value;
+  DESIRED_EDGE_LENGTH = vs.cityDistance.value;
+  ASPECT_RATIO = vs.cityAspectRatio.value;
+  BUILDING_FOOTPRINT = vs.buildingFootprint.value;
+  WIDTH_METRIC = vs.buildingWidthMetric.value;
+  WIDTH_METRIC_MULTIPLIER = vs.buildingWidthMultiplier.value;
+  DEPTH_METRIC = vs.buildingDepthMetric.value;
+  DEPTH_METRIC_MULTIPLIER = vs.buildingDepthMultiplier.value;
+  BUILDING_MARGIN = vs.buildingMargin.value;
+  CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
+  CITY_MARGIN = vs.cityMargin.value;
+  DISTRICT_LABEL_MARGIN = vs.districtLabelMargin.value;
+  DISTRICT_MARGIN = vs.districtMargin.value;
+  DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
+  DISTRICT_LABEL_PLACEMENT = vs.districtLabelPlacement.value;
 }
 
 function getPaddingForLabelPlacement(
@@ -89,17 +78,16 @@ function getPaddingForLabelPlacement(
 }
 
 export default async function layoutLandscape(
-  k8sNodes: K8sNode[],
-  applications: Application[],
-  removedComponentIds: Set<string>
+  landscape: FlatLandscape,
+  removedDistrictIds: Set<string>
 ) {
   const elk = new ELK();
 
   setVisualizationSettings();
 
-  const useCircleLayout = CLASS_ALGORITHM === 'circle';
-  const useSpiralLayout = CLASS_ALGORITHM === 'spiral';
-  const useCustomClassLayout = useCircleLayout || useSpiralLayout;
+  const useCircleLayout = BUILDING_ALGORITHM === 'circle';
+  const useSpiralLayout = BUILDING_ALGORITHM === 'spiral';
+  const useCustomBuildingLayout = useCircleLayout || useSpiralLayout;
 
   // Initialize landscape graph
   const landscapeGraph: any = {
@@ -107,322 +95,249 @@ export default async function layoutLandscape(
     children: [],
     edges: [],
     layoutOptions: {
-      algorithm: APPLICATION_ALGORITHM,
+      algorithm: CITY_ALGORITHM,
       desiredEdgeLength: DESIRED_EDGE_LENGTH,
       'elk.padding': getPaddingForLabelPlacement(
-        COMPONENT_LABEL_PLACEMENT,
-        APP_LABEL_MARGIN,
-        APP_MARGIN
+        DISTRICT_LABEL_PLACEMENT,
+        CITY_LABEL_MARGIN,
+        CITY_MARGIN
       ),
     },
   };
 
-  k8sNodes.forEach((k8sNode) => {
-    const k8sNodeGraph = createK8sNodeGraph(k8sNode);
-    landscapeGraph.children.push(k8sNodeGraph);
-  });
-
-  // Add applications
-  applications.forEach((app) => {
-    const classCount = getAllClassIdsInApplication(app).length;
-    if (useCustomClassLayout) {
-      let appSideLength = 1;
+  // Add buildings
+  const cities = Object.values(landscape.cities);
+  cities.forEach((city) => {
+    const buildingCount = city.allContainedBuildingIds.length;
+    if (useCustomBuildingLayout) {
+      let citySideLength = 1;
       if (useCircleLayout) {
         const circumference =
-          classCount * (CLASS_FOOTPRINT * 2 + CLASS_MARGIN * 2);
-        if (classCount <= 2) {
-          appSideLength = CLASS_FOOTPRINT * 4;
+          buildingCount * (BUILDING_FOOTPRINT * 2 + BUILDING_MARGIN * 2);
+        if (buildingCount <= 2) {
+          citySideLength = BUILDING_FOOTPRINT * 4;
         } else {
-          appSideLength = circumference / Math.PI;
+          citySideLength = circumference / Math.PI;
         }
       } else {
         const { visualizationSettings: vs } = useUserSettingsStore.getState();
 
-        appSideLength = calculateSpiralSideLength(
-          classCount,
-          CLASS_FOOTPRINT,
-          CLASS_MARGIN,
+        citySideLength = calculateSpiralSideLength(
+          buildingCount,
+          BUILDING_FOOTPRINT,
+          BUILDING_MARGIN,
           vs.spiralGap.value,
           vs.spiralCenterOffset.value
         );
       }
       landscapeGraph.children.push(
-        createdFixedSizeApplication(app, {
-          width: appSideLength,
-          depth: appSideLength,
+        createdFixedSizeCity(city, {
+          width: citySideLength,
+          depth: citySideLength,
         })
       );
       // Layout without special class layout algorithm
     } else {
       landscapeGraph.children.push(
-        createApplicationGraph(app, removedComponentIds)
+        createCityGraph(landscape, city, removedDistrictIds)
       );
     }
   });
 
-  // Add edges for force layout between applications
-  addEdges(landscapeGraph, applications);
+  // Add edges for force layout between buildings
+  addEdges(landscapeGraph, cities);
 
   const layoutedGraph = await elk.layout(landscapeGraph);
 
   const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
 
   // Apply custom class layout if enabled
-  if (useCustomClassLayout) {
-    // Remove package layouts from the map since packages should not be rendered
-    // Collect all package IDs from all applications
-    getAllPackageIdsInApplications([...applications]).forEach((id) => {
-      boxLayoutMap.delete(id);
-    });
-
-    // Apply the selected layout algorithm to classes
-    if (useCircleLayout) {
-      applyCircleLayoutToClasses(boxLayoutMap, applications);
-    } else if (useSpiralLayout) {
-      applySpiralLayoutToClasses(boxLayoutMap, applications);
-    }
+  if (useCustomBuildingLayout) {
+    // Note: In flat structure with buildings, we might need a different way
+    // to apply circle/spiral layout if buildings contain multiple classes.
+    // For now, we keep the structure but skip the package removal since
+    // we don't have packages in the building graph.
+    // TODO: Adapt applyCircleLayoutToClasses and applySpiralLayoutToClasses for Building[] if needed
   }
 
   return boxLayoutMap;
 }
 
-function createK8sNodeGraph(k8sNode: K8sNode) {
-  const k8sNodeGraph = {
-    id: K8S_NODE_PREFIX + k8sNode.name,
-    children: [],
-    layoutOptions: {
-      aspectRatio: ASPECT_RATIO.toString(),
-      algorithm: PACKAGE_ALGORITHM,
-      'elk.padding': getPaddingForLabelPlacement(
-        COMPONENT_LABEL_PLACEMENT,
-        APP_LABEL_MARGIN,
-        APP_MARGIN
-      ),
-    },
-  };
-
-  populateK8sNodeGraph(k8sNodeGraph, k8sNode.k8sNamespaces);
-
-  return k8sNodeGraph;
-}
-
-function populateK8sNodeGraph(nodeGraph: any, namespaces: K8sNamespace[]) {
-  namespaces.forEach((namespace) => {
-    const namespaceGraph = {
-      id: K8S_NAMESPACE_PREFIX + namespace.name,
-      children: [],
-      layoutOptions: {
-        aspectRatio: ASPECT_RATIO.toString(),
-        algorithm: PACKAGE_ALGORITHM,
-        'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
-      },
-    };
-
-    populateNamespaceGraph(namespaceGraph, namespace.k8sDeployments);
-
-    nodeGraph.children.push(namespaceGraph);
-  });
-}
-
-function populateNamespaceGraph(
-  namespaceGraph: any,
-  deployments: K8sDeployment[]
+function createCityGraph(
+  landscape: FlatLandscape,
+  city: City,
+  removedDistrictIds: Set<string>
 ) {
-  deployments.forEach((deployment) => {
-    const deploymentGraph = {
-      id: K8S_DEPLOYMENT_PREFIX + deployment.name,
-      children: [],
-      layoutOptions: {
-        aspectRatio: ASPECT_RATIO.toString(),
-        algorithm: PACKAGE_ALGORITHM,
-        'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
-      },
-    };
-
-    populateDeployment(deploymentGraph, deployment.k8sPods);
-
-    namespaceGraph.children.push(deploymentGraph);
-  });
-}
-
-function populateDeployment(deploymentGraph: any, pods: K8sPod[]) {
-  pods.forEach((pod) => {
-    const podGraph = {
-      id: K8S_POD_PREFIX + pod.name,
-      children: [],
-      layoutOptions: {
-        aspectRatio: ASPECT_RATIO.toString(),
-        algorithm: PACKAGE_ALGORITHM,
-        'elk.padding': `[top=${APP_MARGIN},left=${APP_MARGIN},bottom=${APP_LABEL_MARGIN},right=${APP_MARGIN}]`,
-      },
-    };
-
-    populatePod(podGraph, pod.applications);
-
-    deploymentGraph.children.push(podGraph);
-  });
-}
-
-function populatePod(podGraph: any, applications: Application[]) {
-  applications.forEach((application) => {
-    const appGraph = createApplicationGraph(application, new Set<string>());
-
-    podGraph.children.push(appGraph);
-  });
-}
-
-function createApplicationGraph(
-  application: Application,
-  removedComponentIds: Set<string>
-) {
-  const appGraph = {
-    id: APP_PREFIX + application.id,
+  const cityGraph = {
+    id: CITY_PREFIX + city.id,
     children: [],
     layoutOptions: {
       aspectRatio: ASPECT_RATIO,
-      algorithm: PACKAGE_ALGORITHM,
+      algorithm: DISTRICT_ALGORITHM,
       'elk.padding': getPaddingForLabelPlacement(
-        COMPONENT_LABEL_PLACEMENT,
-        APP_LABEL_MARGIN,
-        APP_MARGIN
+        DISTRICT_LABEL_PLACEMENT,
+        CITY_LABEL_MARGIN,
+        CITY_MARGIN
       ),
     },
   };
-  populateAppGraph(appGraph, application, removedComponentIds);
 
-  return appGraph;
+  populateCityGraph(cityGraph, landscape, city, removedDistrictIds);
+
+  return cityGraph;
 }
 
-function createdFixedSizeApplication(
-  application: Application,
+function createdFixedSizeCity(
+  city: City,
   size: { width: number; depth: number }
 ) {
-  const appGraph = {
-    id: APP_PREFIX + application.id,
+  const buildingGraph = {
+    id: CITY_PREFIX + city.id,
     width: size.width,
     height: size.depth,
     children: [],
     layoutOptions: {
-      algorithm: PACKAGE_ALGORITHM,
+      algorithm: DISTRICT_ALGORITHM,
       'nodeSize.fixedGraphSize': true,
       'elk.padding': getPaddingForLabelPlacement(
-        COMPONENT_LABEL_PLACEMENT,
-        APP_LABEL_MARGIN,
-        APP_MARGIN
+        DISTRICT_LABEL_PLACEMENT,
+        CITY_LABEL_MARGIN,
+        CITY_MARGIN
       ),
     },
   };
 
-  return appGraph;
+  return buildingGraph;
 }
 
-function populateAppGraph(
-  appGraph: any,
-  application: Application,
-  removedComponentIds: Set<string>
+function populateCityGraph(
+  cityGraph: any,
+  landscape: FlatLandscape,
+  city: City,
+  removedDistrictIds: Set<string>
 ) {
-  application.packages.forEach((component) => {
-    if (removedComponentIds.has(component.id)) {
+  city.districtIds.forEach((districtId) => {
+    if (removedDistrictIds.has(districtId)) {
       return;
     }
-    const packageGraph = {
-      id: PACKAGE_PREFIX + component.id,
+    const districtGraph = {
+      id: DISTRICT_PREFIX + districtId,
       children: [],
       layoutOptions: {
-        algorithm: PACKAGE_ALGORITHM,
+        algorithm: DISTRICT_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
-        'spacing.nodeNode': CLASS_MARGIN,
+        'spacing.nodeNode': BUILDING_MARGIN,
         'elk.padding': getPaddingForLabelPlacement(
-          COMPONENT_LABEL_PLACEMENT,
-          PACKAGE_LABEL_MARGIN,
-          PACKAGE_MARGIN
+          DISTRICT_LABEL_PLACEMENT,
+          DISTRICT_LABEL_MARGIN,
+          DISTRICT_MARGIN
         ),
       },
     };
-    appGraph.children.push(packageGraph);
+    cityGraph.children.push(districtGraph);
 
-    populatePackage(packageGraph.children, component, removedComponentIds);
+    populateDistrict(
+      districtGraph.children,
+      landscape,
+      landscape.districts[districtId],
+      removedDistrictIds
+    );
   });
 }
 
-function populatePackage(
-  packageGraphChildren: any[],
-  component: Package,
-  removedComponentIds: Set<string>
+function populateDistrict(
+  districtGraphChildren: any[],
+  landscape: FlatLandscape,
+  district: District,
+  removedDistrictIds: Set<string>
 ) {
-  component.classes.forEach((classModel) => {
-    let widthByMetric = 0;
-    if (WIDTH_METRIC === SelectedClassMetric.Method) {
-      widthByMetric =
-        WIDTH_METRIC_MULTIPLIER *
-        metricMappingMultipliers['Method Count'] *
-        classModel.methods.length;
+  district.buildingIds.forEach((buildingId) => {
+    const building = landscape.buildings[buildingId];
+    if (!building) {
+      return;
     }
-
-    let depthByMetric = 0;
-    if (DEPTH_METRIC === SelectedClassMetric.Method) {
-      depthByMetric =
-        DEPTH_METRIC_MULTIPLIER *
-        metricMappingMultipliers['Method Count'] *
-        classModel.methods.length;
-    }
-
-    const classNode = {
-      id: CLASS_PREFIX + classModel.id,
-      children: [],
-      width: CLASS_FOOTPRINT + widthByMetric,
-      height: CLASS_FOOTPRINT + depthByMetric,
+    const getMetricValue = (building: Building, metricKey: string): number => {
+      if (metricKey === 'Function Count') {
+        return building.functionIds?.length || 0;
+      }
+      const metric = building.metrics?.[metricKey];
+      return metric?.current || 0;
     };
-    packageGraphChildren.push(classNode);
+
+    const widthByMetric =
+      WIDTH_METRIC_MULTIPLIER *
+      metricMappingMultipliers[WIDTH_METRIC as MetricKey] *
+      getMetricValue(building, WIDTH_METRIC);
+
+    const depthByMetric =
+      DEPTH_METRIC_MULTIPLIER *
+      metricMappingMultipliers[DEPTH_METRIC as MetricKey] *
+      getMetricValue(building, DEPTH_METRIC);
+
+    const buildingNode = {
+      id: BUILDING_PREFIX + building.id,
+      children: [],
+      width: BUILDING_FOOTPRINT + widthByMetric,
+      height: BUILDING_FOOTPRINT + depthByMetric,
+    };
+    districtGraphChildren.push(buildingNode);
   });
 
-  component.subPackages.forEach((subPackage) => {
-    if (removedComponentIds.has(subPackage.id)) {
+  district.districtIds.forEach((districtId) => {
+    if (removedDistrictIds.has(districtId)) {
       return;
     }
     const packageNode = {
-      id: PACKAGE_PREFIX + subPackage.id,
+      id: DISTRICT_PREFIX + districtId,
       children: [],
       layoutOptions: {
-        algorithm: PACKAGE_ALGORITHM,
+        algorithm: DISTRICT_ALGORITHM,
         aspectRatio: ASPECT_RATIO,
-        'spacing.nodeNode': CLASS_MARGIN,
+        'spacing.nodeNode': BUILDING_MARGIN,
         'elk.padding': getPaddingForLabelPlacement(
-          COMPONENT_LABEL_PLACEMENT,
-          PACKAGE_LABEL_MARGIN,
-          PACKAGE_MARGIN
+          DISTRICT_LABEL_PLACEMENT,
+          DISTRICT_LABEL_MARGIN,
+          DISTRICT_MARGIN
         ),
       },
     };
-    packageGraphChildren.push(packageNode);
+    districtGraphChildren.push(packageNode);
 
-    if (subPackage.subPackages.length > 0 || subPackage.classes.length > 0) {
-      populatePackage(packageNode.children, subPackage, removedComponentIds);
+    const district = landscape.districts[districtId];
+    if (district.districtIds.length > 0 || district.buildingIds.length > 0) {
+      populateDistrict(
+        packageNode.children,
+        landscape,
+        district,
+        removedDistrictIds
+      );
     } else {
       // Add dummy class, otherwise package would be assigned with zero width/depth
-      populateWithDummyClass(packageNode.children);
+      populateWithDummyBuilding(packageNode.children);
     }
   });
 }
 
-function populateWithDummyClass(packageGraphChildren: any[]) {
+function populateWithDummyBuilding(packageGraphChildren: any[]) {
   const dummyClassNode = {
     id: DUMMY_PREFIX + generateUuidv4(),
     children: [],
-    width: CLASS_FOOTPRINT,
-    height: CLASS_FOOTPRINT,
+    width: BUILDING_FOOTPRINT,
+    height: BUILDING_FOOTPRINT,
   };
   packageGraphChildren.push(dummyClassNode);
 }
 
-function addEdges(landscapeGraph: any, applications: Application[]) {
-  applications.forEach((sourceApp) => {
-    applications.forEach((targetApp) => {
-      landscapeGraph.edges.push({
-        id: `eFrom${sourceApp.id}to${targetApp.id}`,
-        sources: [APP_PREFIX + sourceApp.id],
-        targets: [APP_PREFIX + targetApp.id],
-      });
+function addEdges(landscapeGraph: any, cities: City[]) {
+  cities.forEach((sourceCity) => {
+    cities.forEach((targetCity) => {
+      if (sourceCity.id !== targetCity.id) {
+        landscapeGraph.edges.push({
+          id: `eFrom${sourceCity.id}to${targetCity.id}`,
+          sources: [CITY_PREFIX + sourceCity.id],
+          targets: [CITY_PREFIX + targetCity.id],
+        });
+      }
     });
   });
 }
@@ -434,33 +349,33 @@ export function convertElkToBoxLayout(
   zOffset = 0,
   depth = 0
 ): Map<string, BoxLayout> {
-  let height = COMPONENT_HEIGHT;
-  if (elkGraph.id.startsWith(CLASS_PREFIX)) {
-    height = CLASS_FOOTPRINT;
+  let height = DISTRICT_HEIGHT;
+  if (elkGraph.id.startsWith(BUILDING_PREFIX)) {
+    height = BUILDING_FOOTPRINT;
   }
 
   const boxLayout = new BoxLayout();
 
   // Prevent 0 value for width and depth
-  boxLayout.width = elkGraph.width || CLASS_FOOTPRINT;
-  boxLayout.depth = elkGraph.height || CLASS_FOOTPRINT;
+  boxLayout.width = elkGraph.width || BUILDING_FOOTPRINT;
+  boxLayout.depth = elkGraph.height || BUILDING_FOOTPRINT;
   boxLayout.height = height;
 
   boxLayout.positionX = xOffset + elkGraph.x!;
-  boxLayout.positionY = COMPONENT_HEIGHT * depth;
+  boxLayout.positionY = DISTRICT_HEIGHT * depth;
   boxLayout.positionZ = zOffset + elkGraph.y!;
 
   boxLayout.level = depth;
 
-  if (elkGraph.id.startsWith(APP_PREFIX)) {
-    // Add application offset since all components and classes are placed directly in app
+  if (elkGraph.id.startsWith(CITY_PREFIX)) {
+    // Add city offset since all districts and buildings are placed directly in city
     xOffset -= boxLayout.positionX;
     zOffset -= boxLayout.positionZ;
   }
 
   // Ids in ELK must not start with numbers, therefore we added letters as prefix
-  if (elkGraph.id.substring(APP_PREFIX.length) !== DUMMY_PREFIX) {
-    layoutMap.set(elkGraph.id.substring(APP_PREFIX.length), boxLayout);
+  if (elkGraph.id.substring(CITY_PREFIX.length) !== DUMMY_PREFIX) {
+    layoutMap.set(elkGraph.id.substring(CITY_PREFIX.length), boxLayout);
   }
 
   elkGraph.children?.forEach((child: any) => {

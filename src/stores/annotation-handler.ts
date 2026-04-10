@@ -48,8 +48,8 @@ import {
   Node,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/city/utils/clazz-communication-mesh-data-model';
+
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 
@@ -91,7 +91,6 @@ interface AnnotationHandlerState {
     annotationId: number | undefined;
     entityId?: string;
     entity?:
-      | K8sDataModel
       | Node
       | Application
       | Package
@@ -201,12 +200,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
               found = true;
             }
           });
-          if (!found && !(an.entity instanceof ClazzCommuMeshDataModel)) {
-            // TODO: Update label if needed
-            // useApplicationRendererStore
-            //   .getState()
-            //   .updateLabel(an.entityId, '');
-          }
         }
       });
     },
@@ -343,44 +336,24 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         );
     },
 
-    removeAnnotation: async (
-      annotationId: number,
-      stillMinimized: boolean = false
-    ): Promise<void> => {
-      const annotation = get().annotationData.find(
-        (an) => an.annotationId === annotationId
-      );
+    removeAnnotation: async (annotationId: number): Promise<void> => {
+      const annotation =
+        get().annotationData.find((an) => an.annotationId === annotationId) ||
+        get().minimizedAnnotations.find(
+          (an) => an.annotationId === annotationId
+        );
       if (!annotation) {
         return;
       }
 
       if (await get().canRemoveAnnotation(annotation)) {
-        // remove potential toggle effects
-        // TODO: Update
-        // if (annotation.entity) {
-        //   const mesh = useApplicationRendererStore
-        //     .getState()
-        //     .getMeshById(annotation.entity.id);
-        //   if (mesh?.isHovered) {
-        //     mesh.resetHoverEffect();
-        //   }
-
-        //   if (
-        //     !(annotation.mesh!.dataModel instanceof ClazzCommuMeshDataModel) &&
-        //     !stillMinimized
-        //   ) {
-        //     useApplicationRendererStore
-        //       .getState()
-        //       .updateLabel(annotation.entity.id, '');
-        //   }
-        // }
-
         set({
-          annotationData: [
-            ...get().annotationData.filter(
-              (an) => an.annotationId !== annotationId
-            ),
-          ],
+          annotationData: get().annotationData.filter(
+            (an) => an.annotationId !== annotationId
+          ),
+          minimizedAnnotations: get().minimizedAnnotations.filter(
+            (an) => an.annotationId !== annotationId
+          ),
         });
       } else {
         useToastHandlerStore
@@ -439,7 +412,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           maybeAnnotation.mouseX == mouseX &&
           maybeAnnotation.mouseY == mouseY
         ) {
-          get().removeAnnotation(annotation.annotationId, true);
+          get().removeAnnotation(annotation.annotationId);
           return;
         }
 
@@ -517,7 +490,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotationId: number | undefined;
       entityId?: string;
       entity?:
-        | K8sDataModel
         | Node
         | Application
         | Package
@@ -550,7 +522,12 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           (an) => an.entityId === resolvedEntityId
         );
         if (annotations.length === 1) {
-          set({ annotationData: [...get().annotationData, annotations[0]] });
+          set({
+            annotationData: [...get().annotationData, annotations[0]],
+            minimizedAnnotations: get().minimizedAnnotations.filter(
+              (an) => an.entityId !== resolvedEntityId
+            ),
+          });
           minimized = true;
           get().removeAnnotationAfterTimeout(annotations[0]);
         }
@@ -742,31 +719,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       originalMessage: { menuId },
     }: ForwardedMessage<AnnotationForwardMessage>): void => {
       if (menuId) {
-        const allAnnotations = [
-          ...get().annotationData,
-          ...get().minimizedAnnotations,
-        ];
-
-        const anno = allAnnotations.find((an) => an.menuId === menuId);
-
-        // ToDo: Migrate
-        // if (anno) {
-        //   if (anno.entity) {
-        //     const mesh = useApplicationRendererStore
-        //       .getState()
-        //       .getMeshById(anno.entity.id);
-        //     if (mesh?.isHovered) {
-        //       mesh.resetHoverEffect();
-        //     }
-
-        //     if (!(anno.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
-        //       useApplicationRendererStore
-        //         .getState()
-        //         .updateLabel(anno.entity.id, '');
-        //     }
-        //   }
-        // }
-
         set({
           minimizedAnnotations: get().minimizedAnnotations.filter(
             (an) => an.menuId !== menuId
@@ -783,19 +735,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     cleanup: () => {
       set({ annotationData: [] });
       set({ minimizedAnnotations: [] });
-      // TODO: This can create errors when leaving a landscape a second time
-      // useWebSocketStore.getState().off(ANNOTATION_OPENED_EVENT, get(), get().onAnnotation);
-      // useWebSocketStore.getState().off(ANNOTATION_CLOSED_EVENT, get(), get().onMenuClosed);
-      // useWebSocketStore.getState().off(
-      //   ANNOTATION_UPDATED_EVENT,
-      //   get(),
-      //   get().onUpdatedAnnotation
-      // );
-      // useDetachedMenuRendererStore.getState().off(
-      //   "restore_annotations",
-      //   get(),
-      //   get().onRestoreAnnotations
-      // );
     },
   })
 );

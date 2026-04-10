@@ -1,15 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import {
-  isApplication,
-  isClass,
-  isPackage,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import Button from 'react-bootstrap/Button';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
 import {
   CopyIcon,
   DiffRenamedIcon,
@@ -20,13 +10,22 @@ import {
   StackIcon,
   TrashIcon,
 } from '@primer/octicons-react';
+import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import {
+  isApplication,
+  isClass,
+  isPackage,
+} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import Button from 'react-bootstrap/Button';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 interface EditMeshProps {
   entity: any;
-  appId: string;
 }
 
-export default function EditMesh({ entity, appId }: EditMeshProps) {
+export default function EditMesh({ entity }: EditMeshProps) {
   const deletedDataModels = useLandscapeRestructureStore(
     (state) => state.deletedDataModels
   );
@@ -35,13 +34,13 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
     (state) => state.clippedMesh
   );
 
-  const [packageColor, setPackageColor] = useState<string>(
-    useUserSettingsStore.getState().visualizationSettings
-      .componentRootLevelColor.value
+  const [districtColor] = useState<string>(
+    useUserSettingsStore.getState().visualizationSettings.districtRootLevelColor
+      .value
   );
 
-  const [classColor, setclassColor] = useState<string>(
-    useUserSettingsStore.getState().visualizationSettings.classColor.value
+  const [buildingColor] = useState<string>(
+    useUserSettingsStore.getState().visualizationSettings.otherBuildingColor.value
   );
 
   const isEntityApplication = isApplication(entity);
@@ -137,8 +136,8 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
             >
               <Button
                 style={{
-                  backgroundColor: packageColor,
-                  borderColor: packageColor,
+                  backgroundColor: districtColor,
+                  borderColor: districtColor,
                 }}
                 onClick={addPackage}
               >
@@ -149,12 +148,12 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
             <OverlayTrigger
               placement="top"
               trigger={['hover', 'focus']}
-              overlay={<Tooltip>Add Class</Tooltip>}
+              overlay={<Tooltip>Add Building</Tooltip>}
             >
               <Button
                 style={{
-                  backgroundColor: classColor,
-                  borderColor: classColor,
+                  backgroundColor: buildingColor,
+                  borderColor: buildingColor,
                 }}
                 onClick={addClass}
               >
@@ -225,8 +224,8 @@ export default function EditMesh({ entity, appId }: EditMeshProps) {
             >
               <Button
                 style={{
-                  backgroundColor: packageColor,
-                  borderColor: packageColor,
+                  backgroundColor: districtColor,
+                  borderColor: districtColor,
                 }}
                 onClick={addPackage}
               >

@@ -79,32 +79,9 @@ export type Node = BaseModel &
     applications: Application[];
   };
 
-export interface K8sPod {
-  id: string;
-  name: string;
-  originOfData: TypeOfAnalysis.Dynamic;
-  applications: Application[];
-}
-
-export interface K8sDeployment {
-  name: string;
-  k8sPods: K8sPod[];
-}
-
-export interface K8sNamespace {
-  name: string;
-  k8sDeployments: K8sDeployment[];
-}
-
-export interface K8sNode {
-  name: string;
-  k8sNamespaces: K8sNamespace[];
-}
-
 export interface StructureLandscapeData {
   landscapeToken: string;
   nodes: Node[];
-  k8sNodes: K8sNode[] | undefined;
 }
 
 export function isLandscape(x: any): x is StructureLandscapeData {
@@ -142,26 +119,6 @@ export function getApplicationsFromNodes(nodes: Node[]) {
   return applications;
 }
 
-export function getK8sAppsFromNodes(k8sNodes: K8sNode[]) {
-  return k8sNodes.flatMap((n) =>
-    n.k8sNamespaces.flatMap((ns) =>
-      ns.k8sDeployments.flatMap((d) =>
-        d.k8sPods.flatMap((p) =>
-          p.applications.map((app) => {
-            return {
-              k8sNode: n,
-              k8sNamespace: ns,
-              k8sDeployment: d,
-              k8sPod: p,
-              app: app,
-            };
-          })
-        )
-      )
-    )
-  );
-}
-
 export function getAllPackagesAndClassesFromLandscape(
   landscapeStructure: StructureLandscapeData
 ): { packages: Package[]; classes: Class[] } {
@@ -181,21 +138,6 @@ export function getAllPackagesAndClassesFromLandscape(
     });
   });
 
-  // Get packages and classes from k8s nodes if they exist
-  if (landscapeStructure.k8sNodes) {
-    landscapeStructure.k8sNodes.forEach((k8sNode) => {
-      k8sNode.k8sNamespaces.forEach((k8sNamespace) => {
-        k8sNamespace.k8sDeployments.forEach((k8sDeployment) => {
-          k8sDeployment.k8sPods.forEach((k8sPod) => {
-            k8sPod.applications.forEach((app) => {
-              app.packages.forEach(collectPackagesAndClasses);
-            });
-          });
-        });
-      });
-    });
-  }
-
   return { packages, classes };
 }
 
@@ -210,23 +152,19 @@ export function preProcessAndEnhanceStructureLandscape(
   landscapeStructure: StructureLandscapeData,
   typeOfAnalysis: TypeOfAnalysis
 ) {
-  const entitiesForIdHashing: Set<
-    Class | Package | Application | Node | K8sPod
-  > = new Set();
+  const entitiesForIdHashing: Set<Class | Package | Application | Node> =
+    new Set();
 
-  function createNodeId(node: Node | K8sPod) {
+  function createNodeId(node: Node) {
     if (isNode(node)) {
       const { hostName, ipAddress } = node;
       node.id = `${hostName}#${ipAddress}`;
       entitiesForIdHashing.add(node);
       return;
     }
-    const { name } = node;
-    node.id = name;
-    entitiesForIdHashing.add(node);
   }
 
-  function createApplicationId(app: Application, parent: Node | K8sPod) {
+  function createApplicationId(app: Application, parent: Node) {
     app.id = `${parent.id}#application-${app.name}`;
     entitiesForIdHashing.add(app);
   }
@@ -280,7 +218,7 @@ export function preProcessAndEnhanceStructureLandscape(
     });
   }
 
-  function addParentToApplication(app: Application, parent: Node | K8sPod) {
+  function addParentToApplication(app: Application, parent: Node) {
     app.parentId = parent.id;
   }
 
@@ -303,18 +241,7 @@ export function preProcessAndEnhanceStructureLandscape(
   const enhancedlandscapeStructure: StructureLandscapeData =
     structuredClone(landscapeStructure);
 
-  let pods: K8sPod[] = [];
-  if (enhancedlandscapeStructure.k8sNodes) {
-    pods = enhancedlandscapeStructure.k8sNodes.flatMap((k8sNode) =>
-      k8sNode.k8sNamespaces.flatMap((k8sNamespace) =>
-        k8sNamespace.k8sDeployments.flatMap(
-          (k8sDeployment) => k8sDeployment.k8sPods
-        )
-      )
-    );
-  }
-
-  [...enhancedlandscapeStructure.nodes, ...pods].forEach((node) => {
+  enhancedlandscapeStructure.nodes.forEach((node) => {
     createNodeId(node);
     node.applications.forEach((app) => {
       createApplicationId(app, node);

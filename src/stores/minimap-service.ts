@@ -107,13 +107,13 @@ export const useMinimapStore = create<MinimapState>((set, get) => ({
     if (newZoom < zoomSetting.range.min) {
       useUserSettingsStore
         .getState()
-        .updateSetting('zoom', zoomSetting.range.min);
+        .updateSetting('minimapZoom', zoomSetting.range.min);
     } else if (newZoom > zoomSetting.range.max) {
       useUserSettingsStore
         .getState()
-        .updateSetting('zoom', zoomSetting.range.max);
+        .updateSetting('minimapZoom', zoomSetting.range.max);
     } else {
-      useUserSettingsStore.getState().updateSetting('zoom', newZoom);
+      useUserSettingsStore.getState().updateSetting('minimapZoom', newZoom);
     }
   },
 

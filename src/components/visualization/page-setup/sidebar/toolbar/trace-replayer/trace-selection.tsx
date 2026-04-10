@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { TimeUnit } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
+import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   Class,
@@ -13,8 +14,7 @@ import {
   sortTracesById,
   sortTracesByRequestCount,
 } from 'explorviz-frontend/src/utils/trace-helpers';
-import { TimeUnit } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
-import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
+import React, { useState } from 'react';
 
 interface TraceSelectionProps {
   selectTrace: (trace: Trace) => void;
@@ -64,7 +64,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
 
     applicationTraces.forEach((trace, index) => {
       const spanList = sortedSpanLists[index];
-      const firstClassHashCode = spanList[0].methodHash;
+      const firstClassHashCode = spanList[0].functionId;
       const firstClass = hashCodeToClassInLandscapeMap.get(firstClassHashCode)!;
       traceIdToFirstClassMap.set(trace.traceId, firstClass);
     });
@@ -84,7 +84,7 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
 
     applicationTraces.forEach((trace, index) => {
       const spanList = sortedSpanLists[index];
-      const lastClassHashCode = spanList[spanList.length - 1].methodHash;
+      const lastClassHashCode = spanList[spanList.length - 1].functionId;
       const lastClass = hashCodeToClassInLandscapeMap.get(lastClassHashCode)!;
       traceIdToLastClassMap.set(trace.traceId, lastClass);
     });

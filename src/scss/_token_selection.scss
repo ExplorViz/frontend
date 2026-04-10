@@ -59,8 +59,12 @@
 }
 
 // Inherit button styles from main
-.selection-table tfoot .btn {
+.selection-table tfoot .btn.primary {
   @extend .main-button--primary;
+}
+
+.selection-table tfoot .btn.success {
+  @extend .main-button--success;
 }
 
 .additional-token-info {

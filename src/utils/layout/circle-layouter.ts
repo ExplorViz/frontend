@@ -6,28 +6,28 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
-let APP_LABEL_MARGIN: number;
-let APP_MARGIN: number;
-let CLASS_FOOTPRINT: number;
+let CITY_LABEL_MARGIN: number;
+let CITY_MARGIN: number;
+let BUILDING_FOOTPRINT: number;
 let WIDTH_METRIC: string;
 let WIDTH_METRIC_MULTIPLIER: number;
 let DEPTH_METRIC: string;
 let DEPTH_METRIC_MULTIPLIER: number;
-let COMPONENT_HEIGHT: number;
+let DISTRICT_HEIGHT: number;
 /**
  * Sets the visualization settings needed for circle layout.
  * This should be called before using circle layout functions.
  */
 export function setCircleLayoutSettings() {
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
-  CLASS_FOOTPRINT = vs.classFootprint.value;
-  WIDTH_METRIC = vs.classWidthMetric.value;
-  WIDTH_METRIC_MULTIPLIER = vs.classWidthMultiplier.value;
-  DEPTH_METRIC = vs.classDepthMetric.value;
-  DEPTH_METRIC_MULTIPLIER = vs.classDepthMultiplier.value;
-  APP_LABEL_MARGIN = vs.appLabelMargin.value;
-  APP_MARGIN = vs.appMargin.value;
-  COMPONENT_HEIGHT = vs.openedComponentHeight.value;
+  BUILDING_FOOTPRINT = vs.buildingFootprint.value;
+  WIDTH_METRIC = vs.buildingWidthMetric.value;
+  WIDTH_METRIC_MULTIPLIER = vs.buildingWidthMultiplier.value;
+  DEPTH_METRIC = vs.buildingDepthMetric.value;
+  DEPTH_METRIC_MULTIPLIER = vs.buildingDepthMultiplier.value;
+  CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
+  CITY_MARGIN = vs.cityMargin.value;
+  DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
 }
 
 /**
@@ -83,8 +83,8 @@ export function applyCircleLayoutToClasses(
     const appDepth = appLayout.depth;
     const radius =
       Math.min(appWidth, appDepth) * 0.5 -
-      CLASS_FOOTPRINT / 2 -
-      Math.max(APP_LABEL_MARGIN, APP_MARGIN);
+      BUILDING_FOOTPRINT / 2 -
+      Math.max(CITY_LABEL_MARGIN, CITY_MARGIN);
 
     // Arrange classes in a circle with equal angular spacing
     const angleStep = (2 * Math.PI) / classes.length;
@@ -92,13 +92,13 @@ export function applyCircleLayoutToClasses(
     classes.forEach((classModel, index) => {
       const classLayout = new BoxLayout();
 
-      classLayout.width = CLASS_FOOTPRINT;
-      classLayout.depth = CLASS_FOOTPRINT;
-      classLayout.height = CLASS_FOOTPRINT;
-      classLayout.positionY = COMPONENT_HEIGHT * 2; // Place directly on foundation
+      classLayout.width = BUILDING_FOOTPRINT;
+      classLayout.depth = BUILDING_FOOTPRINT;
+      classLayout.height = BUILDING_FOOTPRINT;
+      classLayout.positionY = DISTRICT_HEIGHT * 2; // Place directly on foundation
 
       // As Label and regular margin can differ, we offset by half the label margin difference
-      const zMarginOffset = -APP_LABEL_MARGIN / 2 + APP_MARGIN / 2;
+      const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_MARGIN / 2;
 
       if (classes.length === 1) {
         // If there is only one class, place it at the center of the application
@@ -112,7 +112,7 @@ export function applyCircleLayoutToClasses(
       const classX =
         radius * Math.cos(classAngle) +
         appLayout.width / 2 -
-        CLASS_FOOTPRINT / 2;
+        BUILDING_FOOTPRINT / 2;
       const classZ =
         radius * Math.sin(classAngle) + appLayout.depth / 2 + zMarginOffset;
 

@@ -6,18 +6,18 @@ import {
   useState,
 } from 'react';
 
-import TraceStart, {
-  TraceStartHandle,
-} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
 import TraceDuration, {
   TraceDurationHandle,
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-duration';
+import TraceStart, {
+  TraceStartHandle,
+} from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/trace-filtering/trace-start';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
+import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 
 interface TraceFilteringProps {
   readonly landscapeData: LandscapeData;
@@ -64,7 +64,7 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
 
       for (let i = tracesThatAreRendered.length - 1; i >= 0; i--) {
         for (const span of tracesThatAreRendered[i].spanList) {
-          if (!hashCodeClassMap.get(span.methodHash)) {
+          if (!hashCodeClassMap.get(span.functionId)) {
             // single span of trace is missing in structure data, then skip complete trace
             tracesThatAreRendered.splice(i, 1);
             break;
@@ -92,7 +92,8 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
 
       // hide all traces that have a strict lower duration than selected
       newTraces = newTraces.filter((t) => {
-        if (t.duration >= selectedMinDuration.current!) {
+        const traceDuration = t.endTime - t.startTime;
+        if (traceDuration >= selectedMinDuration.current!) {
           numFilter++;
           return true;
         }
@@ -103,7 +104,7 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
       numFilter = 0;
 
       triggerRenderingForGivenLandscapeData(
-        landscapeData.structureLandscapeData,
+        landscapeData.flatLandscapeData,
         newTraces
       );
     };
@@ -140,15 +141,17 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
       return () => {
         eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
         triggerRenderingForGivenLandscapeData(
-          initialLandscapeData.structureLandscapeData,
+          initialLandscapeData.flatLandscapeData,
           initialLandscapeData.dynamicLandscapeData
         );
       };
     }, []);
 
     useImperativeHandle(ref, () => ({
-      setMinDuration: (value: number) => traceDurationRef.current?.setValue(value),
-      setMinStartTimestamp: (value: number) => traceStartRef.current?.setValue(value),
+      setMinDuration: (value: number) =>
+        traceDurationRef.current?.setValue(value),
+      setMinStartTimestamp: (value: number) =>
+        traceStartRef.current?.setValue(value),
       reset: () => {
         resetState();
         traceStartRef.current?.reset();

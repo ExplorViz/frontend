@@ -1,8 +1,13 @@
 import MethodCall from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/method-call';
 import {
+  Building,
+  City,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
   Application,
   Class,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import isObject from 'explorviz-frontend/src/utils/object-helpers';
 
 export default class ClassCommunication {
   id: string = '';
@@ -10,10 +15,10 @@ export default class ClassCommunication {
   isRecursive: boolean = false;
   isBidirectional: boolean = false;
   totalRequests: number = 0;
-  sourceApp: Application;
-  sourceClass: Class;
-  targetApp: Application;
-  targetClass: Class;
+  sourceApp: Application | City;
+  sourceClass: Class | Building;
+  targetApp: Application | City;
+  targetClass: Class | Building;
   operationName: string;
 
   metrics = {
@@ -22,10 +27,10 @@ export default class ClassCommunication {
 
   constructor(
     id: string,
-    sourceApp: Application,
-    sourceClass: Class,
-    targetApp: Application,
-    targetClass: Class,
+    sourceApp: Application | City,
+    sourceClass: Class | Building,
+    targetApp: Application | City,
+    targetClass: Class | Building,
     operationName: string
   ) {
     this.id = id;
@@ -55,4 +60,8 @@ export default class ClassCommunication {
   getClasses() {
     return [this.sourceClass, this.targetClass];
   }
+}
+
+export function isClassCommunication(x: any): x is ClassCommunication {
+  return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'methodCalls');
 }

@@ -1,16 +1,4 @@
 services:
-  collaboration-service-js:
-    image: explorviz/collaboration-service
-    ports:
-      - ${COLLABORATION_PORT}:4444
-    environment:
-      - REDIS_HOST=redis-collab
-      - REDIS_PORT=6379
-
-  redis-collab:
-    image: redis:7.2.2
-    ports:
-      - '6379:6379'
 
   demo-supplier:
     container_name: explorviz-demo-supplier
@@ -18,7 +6,20 @@ services:
     ports:
       - ${SPAN_PORT}:8083
       - ${USER_PORT}:8084
-      - ${CODE_PORT}:8085
+      - ${CODE_PORT}:9999 # not used anymore
+
+  kubediagrams:
+    build:
+      context: ..
+      dockerfile: .dev/Dockerfile.kubediagrams-api
+    container_name: kubediagrams-api
+    volumes:
+      - ..:/work
+    working_dir: /work
+    ports:
+      - "9123:9123"
+    command: ["node", "server/index.js"]
+
 
 networks:
   default:

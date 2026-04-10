@@ -12,7 +12,7 @@ import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
 
-const spanService = import.meta.env.VITE_SPAN_SERV_URL;
+const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
 const vsCodeService = import.meta.env.VITE_VSCODE_SERV_URL;
 
 export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
@@ -20,6 +20,7 @@ export const TIMESTAMP_POLLING_START_EVENT = 'timestamp_polling_start';
 interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
   currentCommits: SelectedCommit[] | null;
+  bucketSize: number;
   currentCallback:
     | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
     | null;
@@ -31,6 +32,8 @@ interface TimestampPollingState {
     ) => void
   ) => void;
   resetPolling: () => void;
+  restartPolling: () => void;
+  setBucketSize: (value: number) => void;
   manuallyPollTimestamps: () => Promise<void>;
   _startTimestampPolling: (
     commits: SelectedCommit[],
@@ -48,7 +51,9 @@ interface TimestampPollingState {
   ) => void;
   _httpFetchTimestamps: (
     commit?: SelectedCommit,
-    newestLocalTimestamp?: Timestamp
+    newestLocalTimestamp?: Timestamp,
+    oldestLocalTimestamp?: Timestamp,
+    size?: Number
   ) => Promise<Timestamp[]>;
   _httpFetchDebugSnapshots: (
     newestLocalTimestamp?: Timestamp
@@ -59,6 +64,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
   (set, get) => ({
     timer: null,
     currentCommits: null,
+    bucketSize: 10000,
     currentCallback: null,
 
     initTimestampPollingWithCallback: async (
@@ -78,6 +84,17 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
       }
       set({ timer: null });
     },
+
+    restartPolling: () => {
+      get().resetPolling();
+      useTimestampRepositoryStore.getState().resetState();
+      get().initTimestampPollingWithCallback(
+        get().currentCommits ?? [],
+        get().currentCallback!
+      );
+    },
+
+    setBucketSize: (value) => set({ bucketSize: value }),
 
     manuallyPollTimestamps: async () => {
       const { currentCommits, currentCallback } = get();
@@ -139,7 +156,8 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           .getLatestDebugSnapshotTimestamp();
         const allCommitsTimestampPromise = get()._httpFetchTimestamps(
           undefined,
-          newestLocalTimestamp
+          newestLocalTimestamp,
+          undefined
         );
 
         await allCommitsTimestampPromise
@@ -200,7 +218,8 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 
           const promise = get()._httpFetchTimestamps(
             selectedCommit,
-            newestLocalTimestampForCommit
+            newestLocalTimestampForCommit,
+            undefined
           );
 
           await promise
@@ -225,7 +244,8 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
     // private
     _httpFetchTimestamps: (
       commit?: SelectedCommit,
-      newestLocalTimestamp?: Timestamp
+      newestLocalTimestamp?: Timestamp,
+      oldestLocalTimestamp?: Timestamp
     ) => {
       return new Promise<Timestamp[]>((resolve, reject) => {
         if (!useLandscapeTokenStore.getState().token) {
@@ -233,17 +253,23 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           return;
         }
 
-        let url = `${spanService}/v2/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
+        let url = `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/timestamps`;
 
+        let parameter = '?';
+
+        if (commit) {
+          parameter += `commit=${commit.commitId}&`;
+        }
         if (newestLocalTimestamp) {
-          url += `?newest=${newestLocalTimestamp.epochNano}`;
-          if (commit) {
-            url += `&commit=${commit.commitId}`;
-          }
+          parameter += `newest=${newestLocalTimestamp.epochNano}&`;
         }
-        if (commit && !newestLocalTimestamp) {
-          url += `?commit=${commit.commitId}`;
+        if (oldestLocalTimestamp) {
+          parameter += `oldest=${oldestLocalTimestamp.epochNano}&`;
         }
+        parameter += `size=${get().bucketSize}&`;
+        parameter = parameter.slice(0, -1);
+        url += parameter;
+
         fetch(url, {
           headers: {
             Authorization: `Bearer ${useAuthStore.getState().accessToken}`,

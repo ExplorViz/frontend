@@ -63,22 +63,22 @@ function advanceInSpiral(
  * Returns the rough side length needed to accommodate all classes in the spiral pattern.
  */
 export function calculateSpiralSideLength(
-  classCount: number,
-  classFootprint: number,
-  classMargin: number,
+  buildingCount: number,
+  buildingFootprint: number,
+  buildingMargin: number,
   spiralGap: number,
   spiralCenterOffset: number
 ): number {
-  if (classCount <= 1) {
-    return classFootprint * 2;
+  if (buildingCount <= 1) {
+    return buildingFootprint * 2;
   }
 
   const MARGIN_FACTOR = 1.25;
   const sideLength =
     Math.sqrt(
-      (classCount + spiralCenterOffset) * (spiralGap + 1) * MARGIN_FACTOR
+      (buildingCount + spiralCenterOffset) * (spiralGap + 1) * MARGIN_FACTOR
     ) *
-    (classFootprint + classMargin);
+    (buildingFootprint + buildingMargin);
 
   return sideLength;
 }
@@ -96,11 +96,11 @@ export function applySpiralLayoutToClasses(
 ) {
   // Get settings from the store
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
-  const CLASS_FOOTPRINT = vs.classFootprint.value;
-  const CLASS_MARGIN = vs.classMargin.value;
-  const COMPONENT_HEIGHT = vs.openedComponentHeight.value;
-  const APP_LABEL_MARGIN = vs.appLabelMargin.value;
-  const APP_MARGIN = vs.appMargin.value;
+  const BUILDING_FOOTPRINT = vs.buildingFootprint.value;
+  const BUILDING_MARGIN = vs.buildingMargin.value;
+  const DISTRICT_HEIGHT = vs.openedDistrictHeight.value;
+  const CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
+  const CITY_MARGIN = vs.cityMargin.value;
   const SPIRAL_CENTER_OFFSET = vs.spiralCenterOffset.value;
   const SPIRAL_GAP = vs.spiralGap.value;
 
@@ -123,19 +123,19 @@ export function applySpiralLayoutToClasses(
     appLayout.width =
       calculateSpiralSideLength(
         classes.length,
-        CLASS_FOOTPRINT,
-        CLASS_MARGIN,
+        BUILDING_FOOTPRINT,
+        BUILDING_MARGIN,
         SPIRAL_GAP,
         SPIRAL_CENTER_OFFSET
       ) +
-      2 * APP_MARGIN;
-    appLayout.depth = appLayout.width - APP_MARGIN + APP_LABEL_MARGIN;
+      2 * CITY_MARGIN;
+    appLayout.depth = appLayout.width - CITY_MARGIN + CITY_LABEL_MARGIN;
 
     // Calculate spacing between classes (footprint + margin)
-    const spacing = CLASS_FOOTPRINT + CLASS_MARGIN;
+    const spacing = BUILDING_FOOTPRINT + BUILDING_MARGIN;
 
     // As Label and regular margin can differ, we offset by half the label margin difference
-    const zMarginOffset = -APP_LABEL_MARGIN / 2 + APP_MARGIN / 2;
+    const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_MARGIN / 2;
 
     if (classes.length === 1) {
       // If there is only one class, place it at the center of the application
@@ -175,13 +175,13 @@ export function applySpiralLayoutToClasses(
     classes.forEach((classModel, _) => {
       const classLayout = new BoxLayout();
 
-      classLayout.width = CLASS_FOOTPRINT;
-      classLayout.depth = CLASS_FOOTPRINT;
-      classLayout.height = CLASS_FOOTPRINT;
-      classLayout.positionY = COMPONENT_HEIGHT * 2; // Place directly on foundation
+      classLayout.width = BUILDING_FOOTPRINT;
+      classLayout.depth = BUILDING_FOOTPRINT;
+      classLayout.height = BUILDING_FOOTPRINT;
+      classLayout.positionY = DISTRICT_HEIGHT * 2; // Place directly on foundation
 
       // Calculate position based on current grid coordinates
-      const classX = centerX + spiralState.x * spacing - CLASS_FOOTPRINT / 2;
+      const classX = centerX + spiralState.x * spacing - BUILDING_FOOTPRINT / 2;
       const classZ = centerZ + spiralState.z * spacing;
 
       classLayout.positionX = classX;

@@ -265,15 +265,18 @@ export default function MinimapView({
       // When he mouse wheel event was inside the minimap (small screen), then adjust the zoom
       if (isInsideMinimap && !isFullscreen) {
         event.stopPropagation();
-        const currentZoom =
-          useUserSettingsStore.getState().visualizationSettings.minimapZoom
-            .value;
+        const minimapZoomSetting =
+          useUserSettingsStore.getState().visualizationSettings.minimapZoom;
+        const currentZoom = minimapZoomSetting.value;
+        const { min, max } = minimapZoomSetting.range;
+
+        // Calculate new zoom and clamp it to the range
+        const newZoom = currentZoom + -Math.sign(event.deltaY) * 0.05;
+        const clampedZoom = Math.max(min, Math.min(max, newZoom));
+
         useUserSettingsStore
           .getState()
-          .updateSetting(
-            'minimapZoom',
-            currentZoom + -Math.sign(event.deltaY) * 0.05
-          );
+          .updateSetting('minimapZoom', clampedZoom);
       }
     };
 
@@ -536,14 +539,26 @@ export default function MinimapView({
     gl.setScissorTest(false);
   }, 1);
 
-  // Clean up FBO on unmount
+  // Clean up FBO and GL state on unmount
   useEffect(() => {
     return () => {
+      // Dispose FBO
       if (minimapRectRef.current.fbo) {
         minimapRectRef.current.fbo.dispose();
+        minimapRectRef.current.fbo = undefined;
       }
+
+      // Clear scenes
+      stencilScene.clear();
+      minimapScene.clear();
+
+      // Ensure GL state is fully reset
+      gl.setScissorTest(false);
+      const canvas = gl.domElement;
+      gl.setViewport(0, 0, canvas.width, canvas.height);
+      gl.autoClear = true;
     };
-  }, []);
+  }, [gl, stencilScene, minimapScene]);
 
   return (
     <>

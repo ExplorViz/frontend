@@ -5,16 +5,16 @@ import {
   HeatmapGradient,
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
-import Button from 'react-bootstrap/Button';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
-import { useShallow } from 'zustand/react/shallow';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import {
   getColorGradient,
   revertKey,
 } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import { CloseButton } from 'react-bootstrap';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import Button from 'react-bootstrap/Button';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function HeatmapLegend() {
   const {
@@ -28,7 +28,7 @@ export default function HeatmapLegend() {
   } = useHeatmapStore(
     useShallow((state) => ({
       heatmapShared: state.heatmapShared,
-      selectedClassMetric: state.getSelectedClassMetric(),
+      selectedClassMetric: state.getSelectedBuildingMetric(),
       selectedGradient: state.getSelectedGradient(),
       setGradient: state.setSelectedGradient,
       setShowLegendValues: state.setShowLegendValues,

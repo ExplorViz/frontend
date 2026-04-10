@@ -23,6 +23,7 @@ import {
 } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
@@ -30,22 +31,23 @@ import {
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
+import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { getApplicationsFromNodes } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   getAllApplicationsInLandscape,
   getApplicationFromPackage,
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
-import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
-import CodeCity from 'explorviz-frontend/src/view-objects/3d/application/code-city';
-import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/application/communication-r3f';
-import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/application/hap-system-manager';
-import ImmersiveSphere from 'explorviz-frontend/src/view-objects/3d/application/immersive-sphere';
-import ImmersiveInterface from 'explorviz-frontend/src/view-objects/3d/application/ImmersiveInterface';
-import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/application/trace-replay-overlay-r3f';
-import AutoComponentOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-component-opener-r3f';
+import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-district-opener-r3f';
+import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
+import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/city/communication-r3f';
+import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
+import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
+import ImmersiveSphere from 'explorviz-frontend/src/view-objects/3d/city/immersive-sphere';
+import ImmersiveInterface from 'explorviz-frontend/src/view-objects/3d/city/ImmersiveInterface';
+import TraceReplayOverlayR3F from 'explorviz-frontend/src/view-objects/3d/city/trace-replay-overlay-r3f';
 import ClusterCentroidsR3F from 'explorviz-frontend/src/view-objects/3d/cluster-centroids-r3f';
 import LandscapeR3F from 'explorviz-frontend/src/view-objects/3d/landscape/landscape-r3f';
 import {
@@ -102,34 +104,35 @@ export default function CanvasWrapper({
   floorTexture.repeat.set(200, 200);
   floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
 
-  const [isHAPTreeReady, setIsHAPTreeReady] = useState(false);
   const hapSystemManager = HAPSystemManager.getInstance();
 
   const directionalLightRef = useRef(null);
 
   const {
-    applicationLayoutAlgorithm,
-    packageLayoutAlgorithm,
-    appLabelMargin,
-    applicationAspectRatio,
-    applicationDistance,
-    appMargin,
+    cityLayoutAlgorithm,
+    districtLayoutAlgorithm,
+    cityLabelMargin,
+    cityAspectRatio,
+    cityDistance,
+    cityMargin,
     cameraFar,
     cameraFov,
     cameraNear,
     castShadows,
-    componentLabelPlacement,
-    classFootprint,
-    classLayoutAlgorithm,
-    classWidthMetric,
-    classWidthMetricMultiplier,
-    classDepthMetric,
-    classDepthMetricMultiplier,
-    classMargin,
-    closedComponentHeight,
-    openedComponentHeight,
-    packageLabelMargin,
-    packageMargin,
+    districtLabelPlacement,
+    buildingFootprint,
+    buildingLayoutAlgorithm,
+    buildingWidthMetric,
+    buildingWidthMultiplier,
+    buildingDepthMetric,
+    buildingDepthMultiplier,
+    buildingMargin,
+    closedDistrictHeight,
+    openedDistrictHeight,
+    enableClustering,
+    autoOpenCloseDistricts,
+    districtLabelMargin,
+    districtMargin,
     sceneBackgroundColor,
     showAxesHelper,
     showFpsCounter,
@@ -149,36 +152,40 @@ export default function CanvasWrapper({
     magnifierAntialias,
   } = useUserSettingsStore(
     useShallow((state) => ({
-      applicationLayoutAlgorithm:
-        state.visualizationSettings.applicationLayoutAlgorithm.value,
-      packageLayoutAlgorithm:
-        state.visualizationSettings.packageLayoutAlgorithm.value,
-      appLabelMargin: state.visualizationSettings.appLabelMargin,
-      applicationAspectRatio:
-        state.visualizationSettings.applicationAspectRatio,
-      applicationDistance: state.visualizationSettings.applicationDistance,
-      appMargin: state.visualizationSettings.appMargin,
+      cityLayoutAlgorithm:
+        state.visualizationSettings.cityLayoutAlgorithm.value,
+      districtLayoutAlgorithm:
+        state.visualizationSettings.districtLayoutAlgorithm.value,
+      cityLabelMargin: state.visualizationSettings.cityLabelMargin,
+      cityAspectRatio: state.visualizationSettings.cityAspectRatio,
+      cityDistance: state.visualizationSettings.cityDistance,
+      cityMargin: state.visualizationSettings.cityMargin,
       cameraFar: state.visualizationSettings.cameraFar.value,
       cameraFov: state.visualizationSettings.cameraFov.value,
       cameraNear: state.visualizationSettings.cameraNear.value,
       castShadows: state.visualizationSettings.castShadows.value,
-      classFootprint: state.visualizationSettings.classFootprint,
-      classLayoutAlgorithm:
-        state.visualizationSettings.classLayoutAlgorithm.value,
-      classMargin: state.visualizationSettings.classMargin.value,
-      classWidthMetric: state.visualizationSettings.classWidthMetric.value,
-      classWidthMetricMultiplier:
-        state.visualizationSettings.classWidthMultiplier.value,
-      classDepthMetric: state.visualizationSettings.classDepthMetric.value,
-      classDepthMetricMultiplier:
-        state.visualizationSettings.classDepthMultiplier.value,
-      closedComponentHeight: state.visualizationSettings.closedComponentHeight,
-      componentLabelPlacement:
-        state.visualizationSettings.componentLabelPlacement.value,
+      buildingFootprint: state.visualizationSettings.buildingFootprint,
+      buildingLayoutAlgorithm:
+        state.visualizationSettings.buildingLayoutAlgorithm.value,
+      buildingMargin: state.visualizationSettings.buildingMargin.value,
+      buildingWidthMetric:
+        state.visualizationSettings.buildingWidthMetric.value,
+      buildingWidthMultiplier:
+        state.visualizationSettings.buildingWidthMultiplier.value,
+      buildingDepthMetric:
+        state.visualizationSettings.buildingDepthMetric.value,
+      buildingDepthMultiplier:
+        state.visualizationSettings.buildingDepthMultiplier.value,
+      closedDistrictHeight: state.visualizationSettings.closedDistrictHeight,
+      districtLabelPlacement:
+        state.visualizationSettings.districtLabelPlacement.value,
       colors: state.colors,
-      openedComponentHeight: state.visualizationSettings.openedComponentHeight,
-      packageLabelMargin: state.visualizationSettings.packageLabelMargin,
-      packageMargin: state.visualizationSettings.packageMargin,
+      openedDistrictHeight: state.visualizationSettings.openedDistrictHeight,
+      enableClustering: state.visualizationSettings.enableClustering.value,
+      autoOpenCloseDistricts:
+        state.visualizationSettings.autoOpenCloseDistricts.value,
+      districtLabelMargin: state.visualizationSettings.districtLabelMargin,
+      districtMargin: state.visualizationSettings.districtMargin,
       sceneBackgroundColor: state.visualizationSettings.backgroundColor.value,
       showAxesHelper: state.visualizationSettings.showAxesHelper.value,
       showFpsCounter: state.visualizationSettings.showFpsCounter.value,
@@ -205,14 +212,14 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { removedComponentIds } = useVisualizationStore();
+  const { removedDistrictIds } = useVisualizationStore();
 
   const allApplications = useMemo(() => {
     if (!landscapeData) return [];
     return getAllApplicationsInLandscape(
       landscapeData.structureLandscapeData
-    ).filter((app) => !removedComponentIds.has(app.id));
-  }, [landscapeData, removedComponentIds]);
+    ).filter((app) => !removedDistrictIds.has(app.id));
+  }, [landscapeData, removedDistrictIds]);
 
   const getHAPPosition = useCallback(
     (element: any): THREE.Vector3 => {
@@ -280,7 +287,7 @@ export default function CanvasWrapper({
         appPosition.z + modelPosition.z
       );
     },
-    [layoutMap]
+    [layoutMap, landscapeData]
   );
 
   const getLevel = useCallback((element: any): number => {
@@ -293,7 +300,6 @@ export default function CanvasWrapper({
   // Build HAP tree with optimized debouncing
   useEffect(() => {
     if (!layoutMap || allApplications.length === 0) {
-      setIsHAPTreeReady(false);
       return;
     }
 
@@ -305,13 +311,12 @@ export default function CanvasWrapper({
         getHAPPosition,
         getLevel
       );
-      setIsHAPTreeReady(true);
     });
 
     return () => cancelAnimationFrame(handle);
-  }, [layoutMap, allApplications, getHAPPosition, getLevel]);
+  }, [layoutMap, allApplications, getHAPPosition, getLevel, hapSystemManager]);
 
-  const cameraControlsRef = useRef<CameraControls>(null);
+  const cameraControlsRef = useRef<CameraControls>(null!);
 
   // Initialize camera controls store
   useCameraControls(cameraControlsRef);
@@ -357,24 +362,31 @@ export default function CanvasWrapper({
 
   useEffect(() => {
     if (landscapeData) {
+      // Reset edge bundling state when the landscape changes so stale edges
+      // from a previous session do not prevent new edges from being registered.
+      globalBundlingService.reset();
+
+      // Clear all HAP systems so they are rebuilt fresh for the new landscape.
+      hapSystemManager.clearAllHAPSystems();
+
       // Use layout of landscape data watcher
       setLayoutMap(null);
       const allPackages = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
-        .filter((app) => !removedComponentIds.has(app.id))
+        .filter((app) => !removedDistrictIds.has(app.id))
         .map((app) => getAllPackagesInApplication(app))
         .flat()
-        .filter((pkg) => !removedComponentIds.has(pkg.id));
+        .filter((pkg) => !removedDistrictIds.has(pkg.id));
       const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
 
       const allClasses = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
-        .filter((app) => !removedComponentIds.has(app.id))
+        .filter((app) => !removedDistrictIds.has(app.id))
         .map((app) => getAllClassesInApplication(app))
         .flat()
-        .filter((classModel) => !removedComponentIds.has(classModel.id));
+        .filter((classModel) => !removedDistrictIds.has(classModel.id));
       const classIds = new Set(allClasses.map((classModel) => classModel.id));
 
       const communicationIds = new Set(
@@ -390,53 +402,52 @@ export default function CanvasWrapper({
       // Remove all ids that are no longer part of the landscape
       useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
-  }, [landscapeData, interAppCommunications]);
+  }, [landscapeData, interAppCommunications, removedDistrictIds]);
 
-  const updateLayout = async () => {
+  const updateLayout = useCallback(async () => {
     if (!landscapeData) return;
 
-    const layoutMap = await layoutLandscape(
-      landscapeData.structureLandscapeData.k8sNodes!,
-      getApplicationsFromNodes(
-        landscapeData.structureLandscapeData.nodes
-      ).filter((app) => !removedComponentIds.has(app.id)),
-      useVisualizationStore.getState().removedComponentIds ?? new Set<string>()
-    );
+    const flatStructure =
+      landscapeData.flatLandscapeData ??
+      convertToFlatLandscape(landscapeData.structureLandscapeData);
+
+    const layoutMap = await layoutLandscape(flatStructure, removedDistrictIds);
     useLayoutStore.getState().updateLayouts(layoutMap);
     setLayoutMap(layoutMap);
-  };
+  }, [landscapeData, removedDistrictIds]);
 
   useEffect(() => {
     updateLayout();
   }, [
-    componentLabelPlacement,
-    appLabelMargin,
-    applicationAspectRatio,
-    applicationDistance,
-    applicationLayoutAlgorithm,
-    appMargin,
-    classDepthMetric,
-    classDepthMetricMultiplier,
-    classFootprint,
-    classLayoutAlgorithm,
-    classMargin,
-    classWidthMetric,
-    classWidthMetricMultiplier,
-    closedComponentHeight,
-    openedComponentHeight,
-    packageLabelMargin,
-    packageLayoutAlgorithm,
-    packageMargin,
-    removedComponentIds,
+    districtLabelPlacement,
+    cityLabelMargin,
+    cityAspectRatio,
+    cityDistance,
+    cityLayoutAlgorithm,
+    cityMargin,
+    buildingDepthMetric,
+    buildingDepthMultiplier,
+    buildingFootprint,
+    buildingLayoutAlgorithm,
+    buildingMargin,
+    buildingWidthMetric,
+    buildingWidthMultiplier,
+    closedDistrictHeight,
+    openedDistrictHeight,
+    districtLabelMargin,
+    districtLayoutAlgorithm,
+    districtMargin,
+    removedDistrictIds,
     spiralCenterOffset,
     spiralGap,
+    updateLayout,
   ]);
 
   useEffect(() => {
     return () => {
       resetVisualizationState();
     };
-  }, []);
+  }, [resetVisualizationState]);
 
   // Keyboard handler for magnifier toggle
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -487,7 +498,9 @@ export default function CanvasWrapper({
             }
           }}
         >
-          <ImmersiveCameraHandler controlsRef={cameraControlsRef}></ImmersiveCameraHandler>
+          <ImmersiveCameraHandler
+            controlsRef={cameraControlsRef}
+          ></ImmersiveCameraHandler>
           {xrStore ? null : (
             <>
               <CameraControls
@@ -513,10 +526,14 @@ export default function CanvasWrapper({
                 far={cameraFar}
                 makeDefault
               />
+              {/* Insert Layer Handler here inside the Canvas */}
               <CameraLayerHandler />
 
               {minimapEnabled && (
-                <MinimapView mainCameraControls={cameraControlsRef} />
+                <MinimapView
+                  mainCameraControls={cameraControlsRef}
+                  landscapeData={landscapeData}
+                />
               )}
               {isMagnifierActive && (
                 <Magnify
@@ -555,16 +572,26 @@ export default function CanvasWrapper({
                 </Suspense>
               </TeleportTarget>
             </IfInSessionMode>
-            <LandscapeR3F
-              layout={applicationModels[0]?.boxLayoutMap.get('landscape')}
-            >
-              {applicationModels.map((appModel) => (
-                <CodeCity
-                  key={appModel.application.id}
-                  applicationData={appModel}
-                  layoutMap={layoutMap || appModel.boxLayoutMap}
-                />
-              ))}
+            <LandscapeR3F>
+              {useModelStore
+                .getState()
+                .getAllCities()
+                .map((city) => (
+                  <CodeCity key={city.id} city={city} />
+                ))}
+              {isCommRendered &&
+                useModelStore
+                  .getState()
+                  .getAllCommunications()
+                  .map((communication) => (
+                    <CommunicationR3F
+                      key={communication.id}
+                      communicationModel={communication}
+                      applicationElement={communication.sourceApp}
+                      layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                      applicationModels={applicationModels}
+                    />
+                  ))}
               {isCommRendered &&
                 interAppCommunications.map((communication) => (
                   <CommunicationR3F
@@ -576,8 +603,10 @@ export default function CanvasWrapper({
                   />
                 ))}
             </LandscapeR3F>
-            <ClusterCentroidsR3F />
-            <AutoComponentOpenerR3F />
+            {enableClustering && <ClusterCentroidsR3F />}
+            {enableClustering && autoOpenCloseDistricts && (
+              <AutoDistrictOpenerR3F />
+            )}
             <AnimatedPing />
             <TraceReplayOverlayR3F />
             <ambientLight />

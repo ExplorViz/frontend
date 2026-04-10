@@ -5,8 +5,8 @@ export type SettingGroup =
   | 'Controls'
   | 'Debugging'
   | 'Effects'
+  | 'Geometries'
   | 'Heatmap'
-  | 'Highlighting'
   | 'Layout'
   | 'Label'
   | 'Magnifier'
@@ -29,28 +29,30 @@ export type CameraSettingId = keyof CameraSettings;
 
 export type ColorSettingId =
   | 'backgroundColor'
-  | 'classColor'
-  | 'classTextColor'
+  | 'javaBuildingColor'
+  | 'cppBuildingColor'
+  | 'pythonBuildingColor'
+  | 'typescriptBuildingColor'
+  | 'otherBuildingColor'
+  | 'buildingTextColor'
   | 'communicationArrowColor'
   | 'communicationColor'
-  | 'componentRootLevelColor'
-  | 'componentDeepestLevelColor'
-  | 'componentTextColor'
+  | 'communicationStartColor'
+  | 'communicationEndColor'
+  | 'districtRootLevelColor'
+  | 'districtDeepestLevelColor'
+  | 'districtTextColor'
   | 'foundationColor'
   | 'foundationTextColor'
   | 'highlightedEntityColor'
-  | 'addedComponentColor'
-  | 'removedComponentColor'
-  | 'unchangedComponentColor'
-  | 'addedClassColor'
-  | 'modifiedClassColor'
-  | 'removedClassColor'
-  | 'unchangedClassColor'
-  | 'k8sNodeColor'
-  | 'k8sNamespaceColor'
-  | 'k8sDeploymentColor'
-  | 'k8sPodColor'
-  | 'k8sTextColor';
+  | 'addedDistrictColor'
+  | 'removedDistrictColor'
+  | 'unchangedDistrictColor'
+  | 'addedBuildingColor'
+  | 'modifiedBuildingColor'
+  | 'removedBuildingColor'
+  | 'unchangedBuildingColor'
+  | 'k8sDiagramColor';
 
 export type ColorSettings = Record<ColorSettingId, ColorSetting>;
 
@@ -69,23 +71,18 @@ export type CommunicationSettingId =
   | 'commArrowSize'
   | 'commArrowOffset'
   | 'curvyCommHeight'
-  | 'enableEdgeBundling'
-  | 'bundleStrength'
-  | 'compatibilityThreshold'
-  | 'bundlingIterations'
-  | 'bundlingStepSize'
   | 'beta'
-  | 'use3DHAPAlgorithm'
   | 'commCurveHeightDependsOnDistance'
   | 'showHAPTree'
   | 'scatterRadius'
   | 'edgeBundlingStreamline'
-  | 'leafPackagesOnly';
-
-// export type CommunicationSettings = Record<
-//   CommunicationSettingId,
-//   RangeSetting
-// >;
+  | 'leafPackagesOnly'
+  | 'hapClassElevation'
+  | 'hapPackageElevation'
+  | 'hapApplicationElevation'
+  | 'hapUseRelativeElevation'
+  | 'edgeBundlingAlgorithm'
+  | 'enableEdgeColoring';
 
 export type CommunicationSettings = {
   commThickness: RangeSetting;
@@ -93,17 +90,17 @@ export type CommunicationSettings = {
   commArrowOffset: RangeSetting;
   curvyCommHeight: RangeSetting;
   commCurveHeightDependsOnDistance: FlagSetting;
-  enableEdgeBundling: FlagSetting;
-  bundleStrength: RangeSetting;
-  compatibilityThreshold: RangeSetting;
-  bundlingIterations: RangeSetting;
-  bundlingStepSize: RangeSetting;
   beta: RangeSetting;
-  use3DHAPAlgorithm: FlagSetting;
   showHAPTree: FlagSetting;
   scatterRadius: RangeSetting;
   edgeBundlingStreamline: FlagSetting;
   leafPackagesOnly: FlagSetting;
+  hapClassElevation: RangeSetting;
+  hapPackageElevation: RangeSetting;
+  hapApplicationElevation: RangeSetting;
+  hapUseRelativeElevation: FlagSetting;
+  edgeBundlingAlgorithm: SelectSetting<string>;
+  enableEdgeColoring: FlagSetting;
 };
 
 export type DebugSettings = {
@@ -124,39 +121,31 @@ export type HeatmapSettings = {
 };
 export type HeatmapSettingId = keyof HeatmapSettings;
 
-export type HighlightingSettings = {
-  applyHighlightingOnHover: FlagSetting;
-  keepHighlightingOnOpenOrClose: FlagSetting;
-  transparencyIntensity: RangeSetting;
-  enableMultipleHighlighting: FlagSetting;
-};
-export type HighlightingSettingId = keyof HighlightingSettings;
-
 export type EffectSettings = {
   animationDuration: RangeSetting;
   castShadows: FlagSetting;
   enableAnimations: FlagSetting;
   enableHoverEffects: FlagSetting;
-  showAllClassLabels: FlagSetting;
+  showAllBuildingLabels: FlagSetting;
   showOutlines: FlagSetting;
 };
 export type EffectSettingId = keyof EffectSettings;
 
 export type LabelSettings = {
-  appLabelMargin: RangeSetting;
-  classLabelFontSize: RangeSetting;
-  classLabelLength: RangeSetting;
-  classLabelOrientation: RangeSetting;
+  cityLabelMargin: RangeSetting;
+  buildingLabelFontSize: RangeSetting;
+  buildingLabelLength: RangeSetting;
+  buildingLabelOrientation: RangeSetting;
   labelOffset: RangeSetting;
-  packageLabelMargin: RangeSetting;
-  componentLabelPlacement: SelectSetting<string>;
+  districtLabelMargin: RangeSetting;
+  districtLabelPlacement: SelectSetting<string>;
 };
 export type LabelSettingId = keyof LabelSettings;
 
 export type LayoutSettings = {
-  applicationLayoutAlgorithm: SelectSetting<string>;
-  packageLayoutAlgorithm: SelectSetting<string>;
-  classLayoutAlgorithm: SelectSetting<string>;
+  cityLayoutAlgorithm: SelectSetting<string>;
+  districtLayoutAlgorithm: SelectSetting<string>;
+  buildingLayoutAlgorithm: SelectSetting<string>;
   landscapeScalar: RangeSetting;
   landscapePositionX: RangeSetting;
   landscapePositionY: RangeSetting;
@@ -164,20 +153,20 @@ export type LayoutSettings = {
   landscapeRotationX: RangeSetting;
   landscapeRotationY: RangeSetting;
   landscapeRotationZ: RangeSetting;
-  applicationDistance: RangeSetting;
-  applicationAspectRatio: RangeSetting;
-  appMargin: RangeSetting;
-  packageMargin: RangeSetting;
-  classFootprint: RangeSetting;
-  classWidthMetric: SelectSetting<string>;
-  classWidthMultiplier: RangeSetting;
-  classDepthMetric: SelectSetting<string>;
-  classDepthMultiplier: RangeSetting;
-  classHeightMetric: SelectSetting<string>;
-  classHeightMultiplier: RangeSetting;
-  classMargin: RangeSetting;
-  openedComponentHeight: RangeSetting;
-  closedComponentHeight: RangeSetting;
+  cityDistance: RangeSetting;
+  cityAspectRatio: RangeSetting;
+  cityMargin: RangeSetting;
+  districtMargin: RangeSetting;
+  buildingFootprint: RangeSetting;
+  buildingWidthMetric: SelectSetting<SelectedBuildingMetric>;
+  buildingWidthMultiplier: RangeSetting;
+  buildingDepthMetric: SelectSetting<SelectedBuildingMetric>;
+  buildingDepthMultiplier: RangeSetting;
+  buildingHeightMetric: SelectSetting<SelectedBuildingMetric>;
+  buildingHeightMultiplier: RangeSetting;
+  buildingMargin: RangeSetting;
+  openedDistrictHeight: RangeSetting;
+  closedDistrictHeight: RangeSetting;
   spiralCenterOffset: RangeSetting;
   spiralGap: RangeSetting;
 };
@@ -215,8 +204,8 @@ export type SemanticZoomSettings = {
   clusterCount: RangeSetting;
   labelDistanceThreshold: RangeSetting;
   distanceUpdateFrequency: RangeSetting;
-  autoOpenCloseComponents: FlagSetting;
-  componentOpenCloseDistanceThreshold: RangeSetting;
+  autoOpenCloseDistricts: FlagSetting;
+  districtOpenCloseDistanceThreshold: RangeSetting;
 };
 export type SemanticZoomSettingId = keyof SemanticZoomSettings;
 
@@ -239,6 +228,15 @@ export type MagnifierSettingId = keyof MagnifierSettings;
 export type XrSettingId = 'autoEnterVr';
 export type XrSettings = Record<XrSettingId, FlagSetting>;
 
+export type GeometrySettings = {
+  languageGeometryJava: SelectSetting<string>;
+  languageGeometryCpp: SelectSetting<string>;
+  languageGeometryPython: SelectSetting<string>;
+  languageGeometryTypeScript: SelectSetting<string>;
+  languageGeometryOther: SelectSetting<string>;
+};
+export type GeometrySettingId = keyof GeometrySettings;
+
 export type VisualizationSettingId =
   | CameraSettingId
   | ColorSettingId
@@ -246,7 +244,6 @@ export type VisualizationSettingId =
   | ControlSettingId
   | DebugSettingId
   | HeatmapSettingId
-  | HighlightingSettingId
   | EffectSettingId
   | LayoutSettingId
   | LabelSettingId
@@ -255,15 +252,17 @@ export type VisualizationSettingId =
   | MiscSettingId
   | PopupSettingId
   | SemanticZoomSettingId
-  | XrSettingId;
+  | 'autoEnterVr'
+  | GeometrySettingId
+  | ImmersiveSettingId;
 
 export type VisualizationSettings = CameraSettings &
   CommunicationSettings &
   ControlSettings &
   DebugSettings &
   HeatmapSettings &
-  HighlightingSettings &
   EffectSettings &
+  GeometrySettings &
   LayoutSettings &
   LabelSettings &
   MagnifierSettings &
@@ -280,6 +279,7 @@ export type ImmersiveSettings = {
   sphereOpacity: RangeSetting;
   sphereRadius: RangeSetting;
 };
+export type ImmersiveSettingId = keyof ImmersiveSettings;
 
 export enum SettingLevel {
   DEFAULT,
@@ -294,48 +294,48 @@ export enum SettingLevel {
  */
 export type SettingDependency =
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Single value that must match (equality check)
-     */
-    value: any;
-  }
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Single value that must match (equality check)
+       */
+      value: any;
+    }
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Array of allowed values. The setting is displayed if the dependent
-     * setting's value is one of these values.
-     */
-    values: any[];
-  }
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Array of allowed values. The setting is displayed if the dependent
+       * setting's value is one of these values.
+       */
+      values: any[];
+    }
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Value that must NOT match (inequality check).
-     * The setting is displayed if the dependent setting's value is NOT equal to this value.
-     */
-    notEqual: any;
-  }
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Value that must NOT match (inequality check).
+       * The setting is displayed if the dependent setting's value is NOT equal to this value.
+       */
+      notEqual: any;
+    }
   | {
-    /**
-     * The setting ID that this setting depends on
-     */
-    settingId: VisualizationSettingId;
-    /**
-     * Array of values that must NOT match.
-     * The setting is displayed if the dependent setting's value is NOT one of these values.
-     */
-    notValues: any[];
-  };
+      /**
+       * The setting ID that this setting depends on
+       */
+      settingId: VisualizationSettingId;
+      /**
+       * Array of values that must NOT match.
+       * The setting is displayed if the dependent setting's value is NOT one of these values.
+       */
+      notValues: any[];
+    };
 
 export type Setting<T> = {
   value: T;
@@ -352,23 +352,28 @@ export type Setting<T> = {
 
 export interface ButtonSetting extends Setting<boolean> {
   type:
-  | 'primary'
-  | 'secondary'
-  | 'success'
-  | 'danger'
-  | 'warning'
-  | 'info'
-  | 'light'
-  | 'dark'
-  | 'link';
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'danger'
+    | 'warning'
+    | 'info'
+    | 'light'
+    | 'dark'
+    | 'link';
   buttonText: string;
   readonly isButtonSetting: true;
 }
 
-export enum SelectedClassMetric {
+export enum SelectedBuildingMetric {
   None = 'None',
-  Method = 'Method Count',
-  LoC = 'LoC',
+  Method = 'Function Count',
+  loc = 'loc',
+  sloc = 'sloc',
+  cloc = 'cloc',
+  functionCount = 'functionCount',
+  variableCount = 'variableCount',
+  size = 'size',
 }
 
 export interface FlagSetting extends Setting<boolean> {

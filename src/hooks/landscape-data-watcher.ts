@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import debug from 'debug';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import ApplicationData, {
-  K8sData,
-} from 'explorviz-frontend/src/utils/application-data';
-import computeClassCommunication from 'explorviz-frontend/src/utils/application-rendering/class-communication-computer';
+import ApplicationData from 'explorviz-frontend/src/utils/application-data';
+import computeAggregatedCommunication from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
+import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { convertToFlatLandscape, getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
@@ -26,7 +27,7 @@ export default function useLandscapeDataWatcher(
 } {
   const log = debug('app:hooks:useLandscapeWatcher');
 
-  const { removedComponentIds } = useVisualizationStore();
+  const { removedDistrictIds } = useVisualizationStore();
 
   const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
     []
@@ -35,54 +36,68 @@ export default function useLandscapeDataWatcher(
     ClassCommunication[]
   >([]);
 
-  // State
-  const [flatDataWorker] = useState<Worker>(
-    () => new Worker(new URL('../workers/flat-data-worker.js', import.meta.url))
-  );
-  const [metricsWorker] = useState<Worker>(
-    () => new Worker(new URL('../workers/metrics-worker.js', import.meta.url))
-  );
-
   // Variables
   const structureLandscapeData = landscapeData?.structureLandscapeData;
   const dynamicLandscapeData = landscapeData?.dynamicLandscapeData;
+  const flatLandscapeData = landscapeData?.flatLandscapeData;
 
-  // Event handlers
-  const sendMessageToWorker = async (worker: Worker, message: any) => {
-    return new Promise<any>((resolve, reject) => {
-      worker.onmessage = (event) => resolve(event.data);
-      worker.onerror = (error) => reject(error);
-      worker.postMessage(message);
-    });
-  };
+  const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
+  const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
 
-  const handleUpdatedLandscapeData = async () => {
-    log('handleUpdateLandscape');
+  const updateApplicationData = useCallback(
+    async (
+      application: Application,
+      classCommunication: ClassCommunication[],
+      boxLayoutMap: any
+    ) => {
+      let applicationData = new ApplicationData(
+        application,
+        boxLayoutMap,
+      );
+
+      applicationData.classCommunications = classCommunication.filter(
+        (communication) => {
+          return (
+            communication.sourceApp.id === application.id &&
+            communication.targetApp.id === application.id
+          );
+        }
+      );
+
+      return applicationData;
+    },
+    [dynamicLandscapeData, log]
+  );
+
+  const handleLandscapeUpdate = useCallback(async () => {
+    log('handleLandscapeUpdate');
     await Promise.resolve();
-    if (!structureLandscapeData || !dynamicLandscapeData) {
+    if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
 
+    const flatLandscapeStructure =
+      landscapeData.flatLandscapeData ??
+      convertToFlatLandscape(structureLandscapeData);
+
     const { nodes } = structureLandscapeData;
-    // TODO: Handle k8s nodes
 
     log('Get applications from nodes');
     const applications = getApplicationsFromNodes(nodes).filter(
-      ({ id }) => !removedComponentIds.has(id)
+      ({ id }) => !removedDistrictIds.has(id)
     );
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
-      [],
-      applications,
-      removedComponentIds
+      flatLandscapeStructure,
+      removedDistrictIds
     );
-    log('Layouted landscape.');
+    log('Layouted landscape: ', boxLayoutMap);
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
-    let classCommunications = computeClassCommunication(
-      structureLandscapeData,
+    let classCommunications = computeAggregatedCommunication(
+      flatLandscapeStructure,
       dynamicLandscapeData
     );
 
@@ -91,11 +106,10 @@ export default function useLandscapeDataWatcher(
     for (let i = 0; i < applications.length; ++i) {
       const applicationData = await updateApplicationData(
         applications[i],
-        null,
         classCommunications,
         boxLayoutMap
       );
-      if (!removedComponentIds.has(applicationData.getId())) {
+      if (!removedDistrictIds.has(applicationData.getId())) {
         applicationModels.push(applicationData);
       }
     }
@@ -103,9 +117,9 @@ export default function useLandscapeDataWatcher(
     // Add inter-app communication
     const interAppCommunications = classCommunications.filter(
       (x) =>
-        x.sourceApp !== x.targetApp &&
-        !removedComponentIds.has(x.sourceApp.id) &&
-        !removedComponentIds.has(x.targetApp.id)
+        x.sourceApp.id !== x.targetApp.id &&
+        !removedDistrictIds.has(x.sourceApp.id) &&
+        !removedDistrictIds.has(x.targetApp.id)
     );
 
     // TODO: Add data for IDE extension
@@ -118,10 +132,10 @@ export default function useLandscapeDataWatcher(
     for (const applicationData of applicationModels) {
       applicationRepository.add(applicationData.getId(), applicationData);
     }
-
+    
     setApplicationModels(applicationModels);
     setInterAppCommunications(interAppCommunications);
-
+    
     // Add data to model repository
     const { packages, classes } = getAllPackagesAndClassesFromLandscape(
       structureLandscapeData
@@ -130,58 +144,57 @@ export default function useLandscapeDataWatcher(
     modelRepository.setApplications(
       applicationModels.map((app) => app.application)
     );
+    modelRepository.setCities(Object.values(flatLandscapeStructure.cities));
     modelRepository.setComponents(packages);
+    modelRepository.setDistricts(
+      Object.values(flatLandscapeStructure.districts)
+    );
     modelRepository.setClasses(classes);
+    modelRepository.setBuildings(
+      Object.values(flatLandscapeStructure.buildings)
+    );
+    modelRepository.setFunctions(
+      Object.values(flatLandscapeStructure.functions)
+    );
     modelRepository.setCommunications(classCommunications);
 
     // Update layout store after model repository is populated
     useLayoutStore.getState().updateLayouts(boxLayoutMap);
-  };
-
-  const updateApplicationData = async (
-    application: Application,
-    k8sData: K8sData | null,
-    classCommunication: ClassCommunication[],
-    boxLayoutMap: any
-  ) => {
-    const workerPayload = {
-      structure: application,
-      dynamic: dynamicLandscapeData,
-    };
-
-    log('Beginn to process flat data.');
-    const flatData = await sendMessageToWorker(flatDataWorker, workerPayload);
-    log('Finished flat data.');
-
-    let applicationData = new ApplicationData(
-      application,
-      boxLayoutMap,
-      flatData,
-      k8sData
-    );
-
-    applicationData.classCommunications = classCommunication.filter(
-      (communication) => {
-        return (
-          communication.sourceApp.id === application.id &&
-          communication.targetApp.id === application.id
-        );
-      }
-    );
-
-    return applicationData;
-  };
+  }, [
+    structureLandscapeData,
+    dynamicLandscapeData,
+    landscapeData,
+    removedDistrictIds,
+    log,
+    updateApplicationData,
+  ]);
 
   useEffect(() => {
-    handleUpdatedLandscapeData();
-  }, [landscapeData]);
+    if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
+      return;
+    }
 
-  useEffect(() => {
-    return function cleanup() {
-      metricsWorker.terminate();
-      flatDataWorker.terminate();
-    };
-  }, []);
+    const currentFlatLandscapeIds = getAllIdsOfFlatLandscape(flatLandscapeData);
+
+    const flatChanged = !areArraysEqual(
+      currentFlatLandscapeIds,
+      lastProcessedFlatLandscapeIds.current
+    );
+
+    const dynamicChanged = !areArraysEqual(
+      dynamicLandscapeData,
+      lastProcessedDynamicData.current
+    );
+
+    if (!flatChanged && !dynamicChanged) {
+      return;
+    }
+
+    lastProcessedDynamicData.current = dynamicLandscapeData;
+    lastProcessedFlatLandscapeIds.current = currentFlatLandscapeIds;
+
+    handleLandscapeUpdate();
+  }, [structureLandscapeData, dynamicLandscapeData, flatLandscapeData, handleLandscapeUpdate]);
 
   return { applicationModels, interAppCommunications };
 }

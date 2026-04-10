@@ -1,15 +1,15 @@
 // @ts-ignore because three mesh ui's typescript support is not fully matured
-import ThreeMeshUI from 'three-mesh-ui';
-import { UiMenuArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
-import * as THREE from 'three';
-import InteractiveMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/interactive-menu';
 import KeyboardMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/keyboard-mesh';
 import SearchList from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/search-list';
 import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 import VRControllerThumbpadBinding, {
   thumbpadDirectionToVector2,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-controller/vr-controller-thumbpad-binding';
-import getPossibleEntityNames from 'explorviz-frontend/src/utils/application-search-logic';
+import InteractiveMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/interactive-menu';
+import { UiMenuArgs } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu';
+import getPossibleEntityNames from 'explorviz-frontend/src/utils/search-logic';
+import * as THREE from 'three';
+import ThreeMeshUI from 'three-mesh-ui';
 
 export type SearchMenuArgs = UiMenuArgs & {
   renderer: THREE.WebGLRenderer;

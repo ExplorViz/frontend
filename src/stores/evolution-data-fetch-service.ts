@@ -2,38 +2,20 @@ import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import {
-  Commit,
-  CommitComparison,
-  CommitTree,
+  CommitTree
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import {
-  preProcessAndEnhanceStructureLandscape,
-  StructureLandscapeData,
-  TypeOfAnalysis,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { ApplicationMetricsCode } from 'explorviz-frontend/src/utils/metric-schemes/metric-data';
+  FlatLandscape
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 interface EvolutionDataFetchState {
-  fetchApplications: () => Promise<string[]>;
-  fetchCommitTreeForAppName(appName: string): Promise<CommitTree>;
-  fetchApplicationMetricsCodeForAppNameAndCommit(
-    applicationName: string,
-    commit: Commit
-  ): Promise<ApplicationMetricsCode>;
-  fetchApplicationMetricsCodeForAppAndCommits(
-    applicationName: string,
+  fetchRepositories: () => Promise<string[]>;
+  fetchCommitTreeForRepoName(repoName: string): Promise<CommitTree>;
+  fetchFlatLandscapeForRepoNameAndCommits(
+    repoName: string, 
     commits: SelectedCommit[]
-  ): Promise<Map<string, ApplicationMetricsCode>>;
-  fetchCommitComparison(
-    applicationName: string,
-    baseCommit: Commit,
-    comparisonCommit: Commit
-  ): Promise<CommitComparison>;
-  fetchStaticLandscapeStructuresForAppName(
-    applicationName: string,
-    commits: SelectedCommit[]
-  ): Promise<StructureLandscapeData>;
+  ): Promise<FlatLandscape>;
   _getLandscapeToken(): string;
   _constructUrl(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;
@@ -41,85 +23,30 @@ interface EvolutionDataFetchState {
 
 export const useEvolutionDataFetchServiceStore =
   create<EvolutionDataFetchState>((set, get) => ({
-    fetchApplications: async (): Promise<string[]> => {
-      const url = get()._constructUrl('applications');
+    fetchRepositories: async (): Promise<string[]> => {
+      const url = get()._constructUrl('repositories');
       return await get()._fetchFromService<string[]>(url);
     },
 
-    fetchCommitTreeForAppName: async (appName: string): Promise<CommitTree> => {
-      const url = get()._constructUrl('commit-tree', appName);
+    fetchCommitTreeForRepoName: async (repoName: string): Promise<CommitTree> => {
+      const url = get()._constructUrl('commit-tree', repoName);
       return await get()._fetchFromService<CommitTree>(url);
     },
 
-    fetchApplicationMetricsCodeForAppNameAndCommit: async (
-      applicationName: string,
-      commit: Commit
-    ): Promise<ApplicationMetricsCode> => {
-      const url = get()._constructUrl(
-        'metrics',
-        applicationName,
-        commit.commitId
-      );
-      return await get()._fetchFromService<ApplicationMetricsCode>(url);
-    },
-
-    fetchApplicationMetricsCodeForAppAndCommits: async (
-      applicationName: string,
+    fetchFlatLandscapeForRepoNameAndCommits: async (
+      repoName: string, 
       commits: SelectedCommit[]
-    ): Promise<Map<string, ApplicationMetricsCode>> => {
-      const commitIdToAppMetricsCodeMap: Map<string, ApplicationMetricsCode> =
-        new Map();
-
-      for (const commit of commits) {
-        const url = get()._constructUrl(
-          'metrics',
-          applicationName,
-          commit.commitId
-        );
-        const appMetricsCode =
-          await get()._fetchFromService<ApplicationMetricsCode>(url);
-
-        commitIdToAppMetricsCodeMap.set(commit.commitId, appMetricsCode);
-      }
-
-      return commitIdToAppMetricsCodeMap;
-    },
-
-    fetchCommitComparison: async (
-      applicationName: string,
-      baseCommit: Commit,
-      comparisonCommit: Commit
-    ): Promise<CommitComparison> => {
-      const url = get()._constructUrl(
-        'commit-comparison',
-        applicationName,
-        `${baseCommit.commitId}-${comparisonCommit.commitId}`
-      );
-
-      const response = await get()._fetchFromService(url);
-      return response as CommitComparison;
-    },
-
-    fetchStaticLandscapeStructuresForAppName: async (
-      applicationName: string,
-      commits: SelectedCommit[]
-    ): Promise<StructureLandscapeData> => {
+    ): Promise<FlatLandscape> => {
       if (commits.length < 1 || commits.length > 2) {
         throw new Error('Invalid number of commits');
       }
-
+      
       const [firstCommit, secondCommit] = commits;
       const commitPath = secondCommit
         ? `${firstCommit.commitId}-${secondCommit.commitId}`
         : firstCommit.commitId;
-      const url = get()._constructUrl('structure', applicationName, commitPath);
-
-      const response =
-        await get()._fetchFromService<StructureLandscapeData>(url);
-      return preProcessAndEnhanceStructureLandscape(
-        response,
-        TypeOfAnalysis.Static
-      );
+      const url = get()._constructUrl('structure', 'evolution', repoName, commitPath);
+      return await get()._fetchFromService<FlatLandscape>(url);
     },
 
     _getLandscapeToken: (): string => {
@@ -132,7 +59,7 @@ export const useEvolutionDataFetchServiceStore =
 
     _constructUrl: (endpoint: string, ...params: string[]): string => {
       const landscapeToken = get()._getLandscapeToken();
-      return `${import.meta.env.VITE_CODE_SERV_URL}/v2/code/${endpoint}/${landscapeToken}/${params.join('/')}`;
+      return `${import.meta.env.VITE_PERSISTENCE_SERV_URL}/v3/landscapes/${landscapeToken}/${endpoint}/${params.join('/')}`;
     },
 
     _fetchFromService: async <T>(url: string): Promise<T> => {
