@@ -260,6 +260,7 @@ export default function BrowserRendering({
   useCollaborativeModifier();
 
   // Close the sidebar, when the connection menu is opened (so ot does not overlap)
+  const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const isLobbyOpen = usePlayroomConnectionStore((state) => state.isLobbyOpen);
   useEffect(() => {
     if (isLobbyOpen) {
@@ -480,7 +481,7 @@ export default function BrowserRendering({
                       {openedSettingComponent === 'Collaboration' && (
                         <>
                           <CollaborationControls />
-                          <ChatBox />
+                          {isConnected && <ChatBox />}
                         </>
                       )}
                       {openedSettingComponent === 'Chatbot' && (
