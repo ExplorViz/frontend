@@ -42,28 +42,28 @@ server {
   # BEGIN Span-Service
 
   location ~* /v2/landscapes/[0-9a-z-]+/structure {
-    set $upstream_landscape ${SPAN_SERV_URL};
+    set $upstream_landscape ${PERSISTENCE_SERV_URL};
     proxy_pass $upstream_landscape;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/dynamic {
-    set $upstream_trace ${SPAN_SERV_URL};
+    set $upstream_trace ${PERSISTENCE_SERV_URL};
     proxy_pass $upstream_trace;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/trace-data {
-    set $upstream_landscapes  ${SPAN_SERV_URL};
+    set $upstream_landscapes  ${PERSISTENCE_SERV_URL};
     proxy_pass $upstream_landscapes;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
   location ~* /v2/landscapes/[0-9a-z-]+/timestamps {
-    set $upstream_timestamps ${SPAN_SERV_URL};
+    set $upstream_timestamps ${PERSISTENCE_SERV_URL};
     proxy_pass $upstream_timestamps;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
@@ -71,36 +71,16 @@ server {
 
   # END Span-Service
 
-  # BEGIN Code-Service
+  # BEGIN Persistence-Service
 
   location /v2/code {
-    set $upstream_code ${CODE_SERV_URL};
+    set $upstream_code ${PERSISTENCE_SERV_URL};
     proxy_pass $upstream_code;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
 
-  # END Code-Service
-
-  # BEGIN Collab-Service
-
-  location /room {
-    set $upstream_room ${COLLAB_SERV_URL};
-    proxy_pass $upstream_room;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-  }
-
-  location /socket.io {
-    set $upstream_socketio ${COLLAB_SERV_URL};
-    proxy_pass $upstream_socketio;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-  }
-
-  # END Collab-Service
+  # END Persistence-Service
 
   # BEGIN VSCode
 
