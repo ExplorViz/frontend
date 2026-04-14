@@ -4,7 +4,7 @@ type HoveredNode = { name: string; clientX: number; clientY: number };
 /** A popup that has been explicitly pinned. `left`/`top` are viewport px (position: fixed). */
 export type LockedPopup = { id: string; name: string; left: number; top: number };
 
-const SHOW_DELAY_MS = 1500;
+const SHOW_DELAY_MS = 1000;
 const HIDE_DELAY_MS = 1000;
 
 /**
@@ -17,7 +17,6 @@ export function useHoverPopup() {
 
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHoveredNameRef = useRef<string | null>(null);
   const wasMovedRef = useRef(false);
   const lockedPopupNamesRef = useRef<Set<string>>(new Set());
@@ -29,19 +28,6 @@ export function useHoverPopup() {
   useEffect(() => {
     lockedPopupNamesRef.current = new Set(lockedPopups.map((p) => p.name));
   }, [lockedPopups]);
-
-  // Auto-close only while the popup has not been moved.
-  useEffect(() => {
-    if (hoveredNode && !wasMoved) {
-      autoCloseTimeoutRef.current = setTimeout(() => {
-        setHoveredNode(null);
-        autoCloseTimeoutRef.current = null;
-      }, HIDE_DELAY_MS);
-    } else {
-      clearTimeout(autoCloseTimeoutRef.current ?? undefined);
-      autoCloseTimeoutRef.current = null;
-    }
-  }, [hoveredNode, wasMoved]);
 
   const handleDiagramMouseOver = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -63,6 +49,11 @@ export function useHoverPopup() {
           setWasMoved(false);
           wasMovedRef.current = false;
           setHoveredNode({ name: nodeName, clientX, clientY });
+          // Auto-close after delay; cancelled by movePopup if the user drags the popup.
+          hideTimeoutRef.current = setTimeout(() => {
+            setHoveredNode(null);
+            hideTimeoutRef.current = null;
+          }, HIDE_DELAY_MS);
         }, SHOW_DELAY_MS);
       } else {
         hideTimeoutRef.current = setTimeout(() => {
@@ -82,18 +73,14 @@ export function useHoverPopup() {
       clearTimeout(hideTimeoutRef.current);
       hideTimeoutRef.current = null;
     }
-    if (autoCloseTimeoutRef.current) {
-      clearTimeout(autoCloseTimeoutRef.current);
-      autoCloseTimeoutRef.current = null;
-    }
   }, []);
 
   const handlePopupMouseLeave = useCallback(() => {
     if (wasMovedRef.current) return;
 
-    if (autoCloseTimeoutRef.current) {
-      clearTimeout(autoCloseTimeoutRef.current);
-      autoCloseTimeoutRef.current = null;
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
     }
     hideTimeoutRef.current = setTimeout(() => {
       setHoveredNode(null);
@@ -107,8 +94,6 @@ export function useHoverPopup() {
   const movePopup = useCallback(() => {
     setWasMoved(true);
     wasMovedRef.current = true;
-    clearTimeout(autoCloseTimeoutRef.current ?? undefined);
-    autoCloseTimeoutRef.current = null;
     clearTimeout(hideTimeoutRef.current ?? undefined);
     hideTimeoutRef.current = null;
   }, []);
