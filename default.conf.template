@@ -39,7 +39,7 @@ server {
 
   # END User-Service
 
-  # BEGIN Span-Service
+  # BEGIN Persistence-Service
 
   location ~* /v2/landscapes/[0-9a-z-]+/structure {
     set $upstream_landscape ${PERSISTENCE_SERV_URL};
@@ -69,13 +69,51 @@ server {
     proxy_set_header Host $host;
   }
 
-  # END Span-Service
-
-  # BEGIN Persistence-Service
-
   location /v2/code {
     set $upstream_code ${PERSISTENCE_SERV_URL};
     proxy_pass $upstream_code;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~* /v3/landscapes/[0-9a-z-]+/structure {
+    set $upstream_landscape_v3 ${PERSISTENCE_SERV_URL};
+    proxy_pass $upstream_landscape_v3;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~* /v3/landscapes/[0-9a-z-]+/dynamic {
+    set $upstream_trace_v3 ${PERSISTENCE_SERV_URL};
+    proxy_pass $upstream_trace_v3;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~* /v3/landscapes/[0-9a-z-]+/trace-data {
+    set $upstream_landscapes_v3 ${PERSISTENCE_SERV_URL};
+    proxy_pass $upstream_landscapes_v3;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~* /v3/landscapes/[0-9a-z-]+/timestamps {
+    set $upstream_timestamps_v3 ${PERSISTENCE_SERV_URL};
+    proxy_pass $upstream_timestamps_v3;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~* /v3/landscapes/[0-9a-z-]+/repositories {
+    set $upstream_repositories_v3 ${PERSISTENCE_SERV_URL};
+    proxy_pass $upstream_repositories_v3;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+  }
+
+  location ~* /v3/landscapes/[0-9a-z-]+/commit-tree {
+    set $upstream_commit_tree_v3 ${PERSISTENCE_SERV_URL};
+    proxy_pass $upstream_commit_tree_v3;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
   }
