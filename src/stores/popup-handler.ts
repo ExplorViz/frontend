@@ -22,6 +22,7 @@ import {
   Node,
   Package
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { me } from 'playroomkit';
 
 type Position2D = {
   x: number;
@@ -105,7 +106,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     set({
       popupData: [
         ...get().popupData.filter((pd) => pd.entityId !== popup.entityId),
-        { ...popup, isPinned: true },
+        { ...popup, sharedBy: me().id },
       ],
     });
   },

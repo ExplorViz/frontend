@@ -1,46 +1,6 @@
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { AnnotationForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-forward';
-import { AnnotationUpdatedForwardMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/annotation-updated-forward';
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import {
-  AnnotationEditResponse,
-  isAnnotationEditResponse,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-edit-response';
-import {
-  AnnotationResponse,
-  isAnnotationResponse,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-response';
-import {
-  AnnotationUpdatedResponse,
-  isAnnotationUpdatedResponse,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/response/annotation-updated-response';
-import {
-  ANNOTATION_CLOSED_EVENT,
-  AnnotationClosedMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-closed';
-import {
-  ANNOTATION_EDIT_EVENT,
-  AnnotationEditMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-edit';
-import {
-  ANNOTATION_OPENED_EVENT,
-  AnnotationOpenedMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-opened';
-import {
-  ANNOTATION_UPDATED_EVENT,
-  AnnotationUpdatedMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/annotation-updated';
-import { SerializedAnnotation } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import {
-  ObjectClosedResponse,
-  isObjectClosedResponse,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/response/object-closed';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   Application,
@@ -68,8 +28,7 @@ interface AnnotationHandlerState {
   removeAnnotation: (
     annotationId: number,
     stillMinimized?: boolean
-  ) => Promise<void>;
-  canRemoveAnnotation: (annotation: AnnotationData) => Promise<boolean>;
+  ) => void;
   removeAnnotationAfterTimeout: (annotation: AnnotationData) => void;
   shareAnnotation: (annotation: AnnotationData) => void;
   addAnnotation: ({
@@ -91,13 +50,13 @@ interface AnnotationHandlerState {
     annotationId: number | undefined;
     entityId?: string;
     entity?:
-      | K8sDataModel
-      | Node
-      | Application
-      | Package
-      | Class
-      | ClazzCommuMeshDataModel
-      | ClassCommunication;
+    | K8sDataModel
+    | Node
+    | Application
+    | Package
+    | Class
+    | ClazzCommuMeshDataModel
+    | ClassCommunication;
     position: Position2D | undefined;
     wasMoved?: boolean;
     menuId?: string | null;
@@ -115,26 +74,6 @@ interface AnnotationHandlerState {
     annotationText: string,
     annotationTitle: string
   ) => void;
-  onAnnotation: ({
-    annotationId,
-    objectId,
-    userId,
-    entityId,
-    annotationTitle,
-    annotationText,
-    owner,
-    lastEditor,
-  }: AnnotationForwardMessage) => void;
-  onUpdatedAnnotation: ({
-    objectId,
-    annotationTitle,
-    annotationText,
-    lastEditor,
-  }: AnnotationUpdatedForwardMessage) => void;
-  onRestoreAnnotations: (annotations: SerializedAnnotation[]) => void;
-  onMenuClosed: ({
-    originalMessage: { menuId },
-  }: ForwardedMessage<AnnotationForwardMessage>) => void;
   cleanup: () => void;
   setAnnotationData: (annotations: AnnotationData[]) => void;
   setMinimizedAnnotationData: (minimizedAnnotations: AnnotationData[]) => void;
@@ -147,10 +86,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     minimizedAnnotations: [],
 
     init: () => {
-      eventEmitter.on(ANNOTATION_OPENED_EVENT, get().onAnnotation);
-      eventEmitter.on(ANNOTATION_CLOSED_EVENT, get().onMenuClosed);
-      eventEmitter.on(ANNOTATION_UPDATED_EVENT, get().onUpdatedAnnotation);
-      eventEmitter.on('restore_annotations', get().onRestoreAnnotations);
     },
 
     setAnnotationData: (annotations: AnnotationData[]) => {
@@ -212,211 +147,28 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     editAnnotation: (annotationData: AnnotationData) => {
-      const annotation = get().annotationData.find(
-        (an) => an.annotationId === annotationData.annotationId
-      );
-
-      if (!annotation) {
-        return;
-      }
-
-      if (
-        !annotation.shared ||
-        !useCollaborationSessionStore.getState().isOnline()
-      ) {
-        set({
-          annotationData: [
-            ...get().annotationData.filter(
-              (an) => an.annotationId !== annotationData.annotationId
-            ),
-            { ...annotationData, inEdit: true },
-          ],
-        });
-        return;
-      }
-
-      useWebSocketStore
-        .getState()
-        .sendRespondableMessage<AnnotationEditMessage, AnnotationEditResponse>(
-          ANNOTATION_EDIT_EVENT,
-          {
-            event: ANNOTATION_EDIT_EVENT,
-            objectId: annotationData.menuId!,
-            nonce: 0,
-          },
-          {
-            responseType: isAnnotationEditResponse,
-            onResponse: (response: AnnotationEditResponse) => {
-              if (!response.isEditable) {
-                useToastHandlerStore
-                  .getState()
-                  .showErrorToastMessage(
-                    'Another user is currently editing this annotation.'
-                  );
-                return false;
-              }
-
-              set({
-                annotationData: [
-                  ...get().annotationData.filter(
-                    (an) => an.annotationId !== annotationData.annotationId
-                  ),
-                  { ...annotationData, inEdit: true },
-                ],
-              });
-              return true;
-            },
-            onOffline: () => {
-              // Nothing
-            },
-          }
-        );
+      set({
+        annotationData: [
+          ...get().annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
+          { ...annotationData, inEdit: true },
+        ],
+      });
     },
 
     updateAnnotation: (annotationData: AnnotationData) => {
-      const annotation = get().annotationData.find(
-        (an) => an.annotationId === annotationData.annotationId
-      );
-
-      if (!annotation) {
-        return;
-      }
-
-      annotationData.lastEditor = useAuthStore.getState().user!.name;
-
-      if (
-        !useCollaborationSessionStore.getState().isOnline() ||
-        !annotation.shared
-      ) {
-        set({
-          annotationData: [
-            ...get().annotationData.filter(
-              (an) => an.annotationId !== annotationData.annotationId
-            ),
-            { ...annotationData, inEdit: false },
-          ],
-        });
-
-        return;
-      }
-
-      useWebSocketStore
-        .getState()
-        .sendRespondableMessage<
-          AnnotationUpdatedMessage,
-          AnnotationUpdatedResponse
-        >(
-          ANNOTATION_UPDATED_EVENT,
-          {
-            event: ANNOTATION_UPDATED_EVENT,
-            objectId: annotationData.menuId!,
-            annotationId: annotationData.annotationId,
-            annotationTitle: annotationData.annotationTitle,
-            annotationText: annotationData.annotationText,
-            lastEditor: annotationData.lastEditor,
-            nonce: 0,
-          },
-          {
-            responseType: isAnnotationUpdatedResponse,
-            onResponse: (response: AnnotationUpdatedResponse) => {
-              if (response.updated) {
-                set({
-                  annotationData: [
-                    ...get().annotationData.filter(
-                      (an) => an.annotationId !== annotationData.annotationId
-                    ),
-                    { ...annotation, inEdit: false },
-                  ],
-                });
-                return true;
-              } else {
-                useToastHandlerStore
-                  .getState()
-                  .showErrorToastMessage('Something went wrong.');
-                return false;
-              }
-            },
-            onOffline: () => {
-              // Not used at the moment
-            },
-          }
-        );
+      annotationData.lastEditor = useAuthStore.getState().user?.name || 'Unknown';
+      set({
+        annotationData: [
+          ...get().annotationData.filter((an) => an.annotationId !== annotationData.annotationId),
+          { ...annotationData, inEdit: false },
+        ],
+      });
     },
 
-    removeAnnotation: async (
-      annotationId: number,
-      stillMinimized: boolean = false
-    ): Promise<void> => {
-      const annotation = get().annotationData.find(
-        (an) => an.annotationId === annotationId
-      );
-      if (!annotation) {
-        return;
-      }
-
-      if (await get().canRemoveAnnotation(annotation)) {
-        // remove potential toggle effects
-        // TODO: Update
-        // if (annotation.entity) {
-        //   const mesh = useApplicationRendererStore
-        //     .getState()
-        //     .getMeshById(annotation.entity.id);
-        //   if (mesh?.isHovered) {
-        //     mesh.resetHoverEffect();
-        //   }
-
-        //   if (
-        //     !(annotation.mesh!.dataModel instanceof ClazzCommuMeshDataModel) &&
-        //     !stillMinimized
-        //   ) {
-        //     useApplicationRendererStore
-        //       .getState()
-        //       .updateLabel(annotation.entity.id, '');
-        //   }
-        // }
-
-        set({
-          annotationData: [
-            ...get().annotationData.filter(
-              (an) => an.annotationId !== annotationId
-            ),
-          ],
-        });
-      } else {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage(
-            'Could not remove annotation since it is currently in use by another user.'
-          );
-      }
-    },
-
-    canRemoveAnnotation: async (
-      annotation: AnnotationData
-    ): Promise<boolean> => {
-      if (!annotation.menuId) {
-        return true;
-      }
-
-      return useWebSocketStore
-        .getState()
-        .sendRespondableMessage<AnnotationClosedMessage, ObjectClosedResponse>(
-          ANNOTATION_CLOSED_EVENT,
-          {
-            event: 'annotation_closed',
-            menuId: annotation.menuId,
-            nonce: 0,
-          },
-          {
-            responseType: isObjectClosedResponse,
-            onResponse: (response: ObjectClosedResponse) => {
-              return response.isSuccess;
-            },
-            onOffline: () => {
-              return true;
-            },
-          }
-        );
+    removeAnnotation: (annotationId: number, stillMinimized: boolean = false) => {
+      set({
+        annotationData: get().annotationData.filter((an) => an.annotationId !== annotationId),
+      });
     },
 
     removeAnnotationAfterTimeout: (annotation: AnnotationData) => {
@@ -448,54 +200,16 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     shareAnnotation: (annotation: AnnotationData) => {
-      const entityId = annotation.entityId;
-
-      if (useCollaborationSessionStore.getState().isOnline()) {
-        useWebSocketStore
-          .getState()
-          .sendRespondableMessage<AnnotationOpenedMessage, AnnotationResponse>(
-            ANNOTATION_OPENED_EVENT,
-            {
-              event: ANNOTATION_OPENED_EVENT,
-              annotationId: annotation.annotationId,
-              entityId: entityId,
-              menuId: annotation.menuId,
-              annotationTitle: annotation.annotationTitle,
-              annotationText: annotation.annotationText,
-              owner: annotation.owner,
-              inEdit: annotation.inEdit,
-              lastEditor: annotation.lastEditor,
-              nonce: 0,
-            },
-            {
-              responseType: isAnnotationResponse,
-              onResponse: (response: AnnotationResponse) => {
-                const sharedBy = useAuthStore.getState().user!.sub;
-                const menuId = response.objectId;
-                const shared = true;
-
-                set({
-                  annotationData: [
-                    ...get().annotationData.filter(
-                      (an) => an.annotationId !== annotation.annotationId
-                    ),
-                    {
-                      ...annotation,
-                      sharedBy: sharedBy,
-                      menuId: menuId,
-                      shared: shared,
-                    },
-                  ],
-                });
-
-                return true;
-              },
-              onOffline: () => {
-                // Not used at the moment
-              },
-            }
-          );
-      }
+      set({
+        annotationData: [
+          ...get().annotationData.filter((an) => an.annotationId !== annotation.annotationId),
+          {
+            ...annotation,
+            sharedBy: useAuthStore.getState().user?.sub || 'Unknown',
+            shared: true,
+          },
+        ],
+      });
     },
 
     addAnnotation: ({
@@ -517,13 +231,13 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotationId: number | undefined;
       entityId?: string;
       entity?:
-        | K8sDataModel
-        | Node
-        | Application
-        | Package
-        | Class
-        | ClazzCommuMeshDataModel
-        | ClassCommunication;
+      | K8sDataModel
+      | Node
+      | Application
+      | Package
+      | Class
+      | ClazzCommuMeshDataModel
+      | ClassCommunication;
       position: Position2D | undefined;
       wasMoved?: boolean;
       menuId?: string | null;
@@ -617,108 +331,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       }
     },
 
-    onAnnotation: ({
-      annotationId,
-      objectId,
-      userId,
-      entityId,
-      annotationTitle,
-      annotationText,
-      owner,
-      lastEditor,
-    }: AnnotationForwardMessage) => {
-      get().addAnnotation({
-        annotationId: annotationId,
-        entityId: entityId,
-        entity: entityId
-          ? useModelStore.getState().getModel(entityId)
-          : undefined,
-        position: undefined,
-        wasMoved: true,
-        menuId: objectId,
-        hovered: false,
-        annotationTitle: annotationTitle,
-        annotationText: annotationText,
-        sharedBy: userId,
-        owner: owner,
-        shared: true,
-        inEdit: false,
-        lastEditor: lastEditor,
-      });
-    },
-
-    onUpdatedAnnotation: ({
-      objectId,
-      annotationTitle,
-      annotationText,
-      lastEditor,
-    }: AnnotationUpdatedForwardMessage) => {
-      let annotation = get().annotationData.find(
-        (an) => an.menuId === objectId
-      );
-
-      if (!annotation) {
-        annotation = get().minimizedAnnotations.find(
-          (an) => an.menuId === objectId
-        );
-
-        if (!annotation) {
-          return;
-        }
-
-        set({
-          minimizedAnnotations: [
-            ...get().minimizedAnnotations.filter(
-              (an) => an.menuId === objectId
-            ),
-            {
-              ...annotation,
-              annotationTitle: annotationTitle,
-              annotationText: annotationText,
-              lastEditor: lastEditor,
-            },
-          ],
-        });
-      }
-
-      set({
-        annotationData: [
-          ...get().annotationData.filter((an) => an.menuId === objectId),
-          {
-            ...annotation,
-            annotationTitle: annotationTitle,
-            annotationText: annotationText,
-            lastEditor: lastEditor,
-          },
-        ],
-      });
-    },
-
-    onRestoreAnnotations: (annotations: SerializedAnnotation[]) => {
-      set({ annotationData: [] });
-
-      for (const annotation of annotations) {
-        get().addAnnotation({
-          annotationId: annotation.annotationId,
-          entityId: annotation.entityId,
-          entity: annotation.entityId
-            ? useModelStore.getState().getModel(annotation.entityId)
-            : undefined,
-          position: undefined,
-          wasMoved: true,
-          menuId: annotation.menuId || null,
-          hovered: false,
-          annotationTitle: annotation.annotationTitle,
-          annotationText: annotation.annotationText,
-          sharedBy: annotation.userId,
-          owner: annotation.owner,
-          shared: annotation.shared !== undefined ? annotation.shared : true,
-          inEdit: false,
-          lastEditor: annotation.lastEditor,
-        });
-      }
-    },
-
     _updateExistingAnnotation: (
       annotation: AnnotationData,
       annotationText: string,
@@ -738,47 +350,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       });
     },
 
-    onMenuClosed: ({
-      originalMessage: { menuId },
-    }: ForwardedMessage<AnnotationForwardMessage>): void => {
-      if (menuId) {
-        const allAnnotations = [
-          ...get().annotationData,
-          ...get().minimizedAnnotations,
-        ];
-
-        const anno = allAnnotations.find((an) => an.menuId === menuId);
-
-        // ToDo: Migrate
-        // if (anno) {
-        //   if (anno.entity) {
-        //     const mesh = useApplicationRendererStore
-        //       .getState()
-        //       .getMeshById(anno.entity.id);
-        //     if (mesh?.isHovered) {
-        //       mesh.resetHoverEffect();
-        //     }
-
-        //     if (!(anno.mesh!.dataModel instanceof ClazzCommuMeshDataModel)) {
-        //       useApplicationRendererStore
-        //         .getState()
-        //         .updateLabel(anno.entity.id, '');
-        //     }
-        //   }
-        // }
-
-        set({
-          minimizedAnnotations: get().minimizedAnnotations.filter(
-            (an) => an.menuId !== menuId
-          ),
-        });
-        set({
-          annotationData: get().annotationData.filter(
-            (an) => an.menuId !== menuId
-          ),
-        });
-      }
-    },
 
     cleanup: () => {
       set({ annotationData: [] });

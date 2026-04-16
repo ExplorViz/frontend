@@ -1,4 +1,3 @@
-import RoomList from 'explorviz-frontend/src/components/collaboration/room-list';
 import SnapshotSelection from 'explorviz-frontend/src/components/snapshot-selection';
 import TokenCreationModal from 'explorviz-frontend/src/components/token-creation-modal';
 import TokenSelection from 'explorviz-frontend/src/components/token-selection';
@@ -233,12 +232,13 @@ export default function Landscapes() {
               />
             </div>
           </Tab>
+          {/* This tab is disabled because playroomkit in its version without an account is not able to provide a list of all current lobbies.
           <Tab eventKey="rooms" title="Rooms" id="room-tab">
             <RoomList
               tokens={data.landscapeTokens!}
               selectToken={selectToken}
             />
-          </Tab>
+          </Tab> */}
           <Tab eventKey="snapshots" title="Snapshots" id="snapshot-tab">
             <SnapshotSelection
               snapshotInfo={data.snapshotInfo}

@@ -9,13 +9,13 @@ import {
   XR,
   XROrigin,
 } from '@react-three/xr';
-import CollaborationComponentSync from 'explorviz-frontend/src/components/collaboration/collaboration-component-sync';
-import CollaborationLandscapeSync from 'explorviz-frontend/src/components/collaboration/collaboration-landscape-sync';
-import PlayroomWrapper from 'explorviz-frontend/src/components/collaboration/visualization/rendering/playroom-wrapper';
 import {
   default as CollaborationCameraSync,
   default as SpectateCameraController,
-} from 'explorviz-frontend/src/components/visualization/rendering/collaboration-camera-sync';
+} from 'explorviz-frontend/src/components/collaboration/sync/collaboration-camera-sync';
+import CollaborationComponentSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-component-sync';
+import CollaborationLandscapeSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-landscape-sync';
+import PlayroomWrapper from 'explorviz-frontend/src/components/collaboration/visualization/rendering/playroom-wrapper';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   INITIAL_CAMERA_POSITION,
@@ -59,13 +59,14 @@ import {
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { CollaborationKickRPC } from '../../collaboration/collaboration-kick-RPC';
-import CollaborationPingSync from '../../collaboration/collaboration-ping-sync';
-import { CollaborationPopupSync } from '../../collaboration/collaboration-popup-sync';
-import SpectateStatusSync from '../../collaboration/spectate-status-sync';
-import CollaborationHighlightingSync from './collaboration-highlighting-sync';
-import ImmersiveStateSync from './immersive-state-sync';
+import { CollaborationAnnotationSync } from '../../collaboration/sync/collaboration-annotation-sync';
+import CollaborationHighlightingSync from '../../collaboration/sync/collaboration-highlighting-sync';
+import CollaborationPingSync from '../../collaboration/sync/collaboration-ping-sync';
+import { CollaborationPopupSync } from '../../collaboration/sync/collaboration-popup-sync';
+import ImmersiveStateSync from '../../collaboration/sync/immersive-state-sync';
+import LocalHighlightSync from '../../collaboration/sync/local-highlight-sync';
+import SpectateStatusSync from '../../collaboration/sync/spectate-status-sync';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
-import LocalHighlightSync from './local-highlight-sync';
 import MinimapView from './minimap-view';
 
 /**
@@ -613,6 +614,7 @@ export default function CanvasWrapper({
           <CollaborationPingSync />
           <CollaborationKickRPC />
           <CollaborationPopupSync />
+          <CollaborationAnnotationSync />
         </Canvas>
       </PlayroomWrapper>
     </>

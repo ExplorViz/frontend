@@ -1,6 +1,4 @@
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { me, RPC } from 'playroomkit';
+import { getState, me, RPC } from 'playroomkit';
 import * as THREE from 'three';
 import { create } from 'zustand';
 import { useToastHandlerStore } from './toast-handler';
@@ -20,7 +18,6 @@ export interface ChatMessageInterface {
 }
 
 interface ChatState {
-  userIdMuteList?: string[];
   chatMessages: ChatMessageInterface[];
   filteredChatMessages: ChatMessageInterface[];
   msgId: number;
@@ -65,7 +62,6 @@ export const destroyChatStore = () => {
 
 export const useChatStore = create<ChatState>((set, get) => {
   return {
-    userIdMuteList: [], // tracked
     chatMessages: [], // tracked
     filteredChatMessages: [], // tracked
     msgId: 1, // tracked
@@ -109,6 +105,12 @@ export const useChatStore = create<ChatState>((set, get) => {
       eventType: string = '',
       eventData: any[] = []
     ) => {
+      // Check if the current user is muted
+      const mutedUsers = getState('globalMutedUsers') || [];
+      if (mutedUsers.includes(userId) && !isEvent) {
+        useToastHandlerStore.getState().showErrorToastMessage('You have been muted by the host.');
+        return;
+      }
       // Create a uniqze ID for te message
       const newId = Date.now() + Math.floor(Math.random() * 1000);
       set({ msgId: newId });
@@ -183,41 +185,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       return messages.length > 0;
     },
 
-    toggleMuteStatus: (userId: string) => {
-      const remoteUser = useCollaborationSessionStore
-        .getState()
-        .getUserById(userId);
-      if (!remoteUser) {
-        return;
-      }
-
-      if (get().isUserMuted(userId)) {
-        set({
-          userIdMuteList:
-            get().userIdMuteList?.filter((id) => userId !== id) || [],
-        });
-        get().sendChatMessage(
-          useLocalUserStore.getState().userId,
-          `${remoteUser.userName}(${remoteUser.userId})` + ' was unmuted',
-          true,
-          'mute_event',
-          []
-        );
-      } else {
-        set({ userIdMuteList: [...get().userIdMuteList!, userId] });
-        get().sendChatMessage(
-          useLocalUserStore.getState().userId,
-          `${remoteUser.userName}(${remoteUser.userId})` + ' was muted',
-          true,
-          'mute_event',
-          []
-        );
-      }
-    },
-
-    isUserMuted: (userId: string): boolean | undefined => {
-      return get().userIdMuteList?.includes(userId);
-    },
 
     filterChat: (filterMode: string, filterValue: string): void => {
       get()._applyCurrentFilter(filterMode, filterValue);

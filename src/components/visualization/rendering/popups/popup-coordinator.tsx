@@ -18,8 +18,11 @@ import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
   isApplication,
@@ -33,8 +36,6 @@ import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/applicatio
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
-import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
@@ -54,7 +55,8 @@ export default function PopupCoordinator({
   sharePopup,
   addAnnotationForPopup,
 }: PopupCoordinatorProps) {
-  const isOnline = useCollaborationSessionStore((state) => state.isOnline);
+  const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
+  const isOnline = () => isConnected;
   const getColor = useCollaborationSessionStore((state) => state.getColor);
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode

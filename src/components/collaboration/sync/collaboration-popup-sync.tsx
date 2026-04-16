@@ -40,11 +40,11 @@ export function CollaborationPopupSync() {
         // Listen to the ocal popup handler
         const unsubscribe = usePopupHandlerStore.subscribe((state) => {
             const currentGlobal = { ...(getState('sharedPopups') || {}) };
-            const currentPinnedIds = state.popupData.filter(p => p.isPinned).map(p => p.entityId);
+            const currentSharedIds = state.popupData.filter(p => p.sharedBy == null || p.sharedBy == "" ? false : true).map(p => p.entityId);
             let hasChanges = false;
 
             // Did the user opened somethiong locally? Or did the change occured because of someone else in the room
-            currentPinnedIds.forEach(id => {
+            currentSharedIds.forEach(id => {
                 if (currentGlobal[id] === undefined) {
                     currentGlobal[id] = me.getState('name') || me.id;
                     hasChanges = true;
@@ -53,7 +53,7 @@ export function CollaborationPopupSync() {
 
             // Did the user closed somethiong locally? Or did the change occured because of someone else in the room
             lastPinnedRefs.current.forEach(id => {
-                if (!currentPinnedIds.includes(id) && currentGlobal[id] !== undefined) {
+                if (!currentSharedIds.includes(id) && currentGlobal[id] !== undefined) {
                     delete currentGlobal[id];
                     hasChanges = true;
                 }
@@ -64,7 +64,7 @@ export function CollaborationPopupSync() {
                 setState('sharedPopups', currentGlobal);
             }
 
-            lastPinnedRefs.current = currentPinnedIds;
+            lastPinnedRefs.current = currentSharedIds;
         });
 
         return () => unsubscribe();
