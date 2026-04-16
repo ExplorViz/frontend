@@ -16,6 +16,7 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import React, { useEffect, useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import { createSearchParams, useNavigate } from 'react-router-dom';
+import { RepoAnalysisModal } from '../components/repo-analysis-modal';
 
 export default function Landscapes() {
   const [data, setData] = useState<{
@@ -25,6 +26,9 @@ export default function Landscapes() {
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
     useState<boolean>(false);
+  const [repoAnalysisModalIsOpen, setRepoAnalysisModalIsOpen] = 
+    useState<boolean>(false);
+
   const [activeKey, setActiveKey] = useState<string>('landscapes');
 
   const landscapeToken = useLandscapeTokenStore((state) => state.token);
@@ -225,6 +229,7 @@ export default function Landscapes() {
             >
               <TokenSelection
                 openTokenCreationModal={() => setTokenCreationModalIsOpen(true)}
+                openRepoAnalysisModal={() => setRepoAnalysisModalIsOpen(true)}
                 selectToken={selectToken}
                 tokens={data.landscapeTokens}
                 deleteToken={deleteToken}
@@ -255,6 +260,11 @@ export default function Landscapes() {
           show={tokenCreationModalIsOpen}
           handleClose={() => setTokenCreationModalIsOpen(false)}
           createToken={createToken}
+        />
+
+        <RepoAnalysisModal
+          show={repoAnalysisModalIsOpen}
+          onClose={() => setRepoAnalysisModalIsOpen(false)}
         />
       </div>
     </>

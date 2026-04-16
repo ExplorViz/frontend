@@ -8,8 +8,8 @@ import {
   Node,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/application/utils/clazz-communication-mesh-data-model';
-import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/city/utils/clazz-communication-mesh-data-model';
+
 import { create } from 'zustand';
 import { useAuthStore } from './auth';
 
@@ -50,7 +50,6 @@ interface AnnotationHandlerState {
     annotationId: number | undefined;
     entityId?: string;
     entity?:
-    | K8sDataModel
     | Node
     | Application
     | Package
@@ -136,12 +135,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
               found = true;
             }
           });
-          if (!found && !(an.entity instanceof ClazzCommuMeshDataModel)) {
-            // TODO: Update label if needed
-            // useApplicationRendererStore
-            //   .getState()
-            //   .updateLabel(an.entityId, '');
-          }
         }
       });
     },
@@ -191,7 +184,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           maybeAnnotation.mouseX == mouseX &&
           maybeAnnotation.mouseY == mouseY
         ) {
-          get().removeAnnotation(annotation.annotationId, true);
+          get().removeAnnotation(annotation.annotationId);
           return;
         }
 
@@ -231,7 +224,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotationId: number | undefined;
       entityId?: string;
       entity?:
-      | K8sDataModel
       | Node
       | Application
       | Package
@@ -264,7 +256,12 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           (an) => an.entityId === resolvedEntityId
         );
         if (annotations.length === 1) {
-          set({ annotationData: [...get().annotationData, annotations[0]] });
+          set({
+            annotationData: [...get().annotationData, annotations[0]],
+            minimizedAnnotations: get().minimizedAnnotations.filter(
+              (an) => an.entityId !== resolvedEntityId
+            ),
+          });
           minimized = true;
           get().removeAnnotationAfterTimeout(annotations[0]);
         }
@@ -354,19 +351,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     cleanup: () => {
       set({ annotationData: [] });
       set({ minimizedAnnotations: [] });
-      // TODO: This can create errors when leaving a landscape a second time
-      // useWebSocketStore.getState().off(ANNOTATION_OPENED_EVENT, get(), get().onAnnotation);
-      // useWebSocketStore.getState().off(ANNOTATION_CLOSED_EVENT, get(), get().onMenuClosed);
-      // useWebSocketStore.getState().off(
-      //   ANNOTATION_UPDATED_EVENT,
-      //   get(),
-      //   get().onUpdatedAnnotation
-      // );
-      // useDetachedMenuRendererStore.getState().off(
-      //   "restore_annotations",
-      //   get(),
-      //   get().onRestoreAnnotations
-      // );
     },
   })
 );

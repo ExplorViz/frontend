@@ -1,11 +1,11 @@
 import { useCopilotReadable } from '@copilotkit/react-core';
+import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { type Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { EditingContext } from '../editing/editing-context';
-import { use } from 'react';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import { use } from 'react';
+import { EditingContext } from '../editing/editing-context';
 import { ChatbotContext } from './chatbot-context';
 
 interface CopilotResourcesProps {
@@ -14,10 +14,10 @@ interface CopilotResourcesProps {
 
 export function CopilotResources({ applications }: CopilotResourcesProps) {
   const {
-    closedComponentIds,
+    closedDistrictIds: closedComponentIds,
     highlightedEntityIds,
     hoveredEntityId,
-    removedComponentIds,
+    removedDistrictIds: removedComponentIds,
   } = useVisualizationStore();
 
   const { canGoBack, canGoForward } = use(EditingContext);

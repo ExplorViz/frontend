@@ -2,56 +2,56 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import { useMultiplayerState } from 'playroomkit';
 import { useEffect, useRef } from 'react';
 
-// A data type to hold all arrays important for opening/closing components
-type ComponentStructureState = {
+// A data type to hold all arrays important for opening/closing districts
+type DistrictStructureState = {
     closed: string[];
-    hiddenComps: string[];
-    hiddenClasses: string[];
+    hiddenDistricts: string[];
+    hiddenBuildings: string[];
 };
 
 export default function CollaborationComponentSync() {
     // Get the global component state
-    const [globalStructure, setGlobalStructure] = useMultiplayerState<ComponentStructureState>('componentStructure', {
+    const [globalStructure, setGlobalStructure] = useMultiplayerState<DistrictStructureState>('componentStructure', {
         closed: [],
-        hiddenComps: [],
-        hiddenClasses: []
+        hiddenDistricts: [],
+        hiddenBuildings: []
     });
 
-    const localClosed = useVisualizationStore((state) => state.closedComponentIds);
-    const localHiddenComps = useVisualizationStore((state) => state.hiddenComponentIds);
-    const localHiddenClasses = useVisualizationStore((state) => state.hiddenClassIds);
+    const localClosed = useVisualizationStore((state) => state.closedDistrictIds);
+    const localHiddenDistricts = useVisualizationStore((state) => state.hiddenDistrictIds);
+    const localHiddenBuildings = useVisualizationStore((state) => state.hiddenBuildingIds);
 
     const lastSyncedStringRef = useRef<string>("");
 
-    // Check for first render (to prevent resetting everything once a plaer joins)
+    // Check for first render (to prevent resetting everything once a player joins)
     const isFirstRender = useRef(true);
 
     useEffect(() => {
         // Get the current local state
         const localPayload = {
-            closed: Array.from(localClosed).sort(),
-            hiddenComps: Array.from(localHiddenComps).sort(),
-            hiddenClasses: Array.from(localHiddenClasses).sort()
+            closed: Array.from(localClosed || []).sort(),
+            hiddenDistricts: Array.from(localHiddenDistricts || []).sort(),
+            hiddenBuildings: Array.from(localHiddenBuildings || []).sort()
         };
         const localString = JSON.stringify(localPayload);
 
         // Get the current global state
         const globalString = JSON.stringify({
             closed: (globalStructure?.closed || []).sort(),
-            hiddenComps: (globalStructure?.hiddenComps || []).sort(),
-            hiddenClasses: (globalStructure?.hiddenClasses || []).sort()
+            hiddenDistricts: (globalStructure?.hiddenDistricts || []).sort(),
+            hiddenBuildings: (globalStructure?.hiddenBuildings || []).sort()
         });
 
         // If this is the first render, overwrite local state with global one
         if (isFirstRender.current) {
             isFirstRender.current = false;
 
-            if (globalString !== JSON.stringify({ closed: [], hiddenComps: [], hiddenClasses: [] })) {
+            if (globalString !== JSON.stringify({ closed: [], hiddenDistricts: [], hiddenBuildings: [] })) {
                 lastSyncedStringRef.current = globalString;
                 useVisualizationStore.setState({
-                    closedComponentIds: new Set(globalStructure?.closed || []),
-                    hiddenComponentIds: new Set(globalStructure?.hiddenComps || []),
-                    hiddenClassIds: new Set(globalStructure?.hiddenClasses || [])
+                    closedDistrictIds: new Set(globalStructure?.closed || []),
+                    hiddenDistrictIds: new Set(globalStructure?.hiddenDistricts || []),
+                    hiddenBuildingIds: new Set(globalStructure?.hiddenBuildings || [])
                 });
             } else {
                 lastSyncedStringRef.current = localString;
@@ -74,14 +74,14 @@ export default function CollaborationComponentSync() {
             lastSyncedStringRef.current = globalString;
 
             useVisualizationStore.setState({
-                closedComponentIds: new Set(globalStructure?.closed || []),
-                hiddenComponentIds: new Set(globalStructure?.hiddenComps || []),
-                hiddenClassIds: new Set(globalStructure?.hiddenClasses || [])
+                closedDistrictIds: new Set(globalStructure?.closed || []),
+                hiddenDistrictIds: new Set(globalStructure?.hiddenDistricts || []),
+                hiddenBuildingIds: new Set(globalStructure?.hiddenBuildings || [])
             });
             return;
         }
 
-    }, [localClosed, localHiddenComps, localHiddenClasses, globalStructure, setGlobalStructure]);
+    }, [localClosed, localHiddenDistricts, localHiddenBuildings, globalStructure, setGlobalStructure]);
 
     return null;
 }

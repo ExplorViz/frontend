@@ -94,12 +94,14 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             ),
           });
         }
+        get().setColorsFromSettings();
       },
 
       applyDefaultSettings: () => {
         set({
           visualizationSettings: JSON.parse(JSON.stringify(defaultVizSettings)),
         });
+        get().setColorsFromSettings();
       },
 
       shareVisualizationSettings: () => {
@@ -110,6 +112,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
       updateSettings: (settings: VisualizationSettings) => {
         set({ visualizationSettings: settings });
+        get().setColorsFromSettings();
       },
 
       updateSetting: (name: VisualizationSettingId, value?: unknown) => {
@@ -138,15 +141,26 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             },
           });
         } else if (isColorSetting(setting) && typeof newValue === 'string') {
-          setting.value = newValue;
-          let newVisualizationSettings = { ...get().visualizationSettings };
-          newVisualizationSettings[name].value = newValue;
-          set({ visualizationSettings: newVisualizationSettings });
+          set({
+            visualizationSettings: {
+              ...get().visualizationSettings,
+              [name]: {
+                ...JSON.parse(JSON.stringify(setting)),
+                value: newValue,
+              },
+            },
+          });
+          get().setColorsFromSettings();
         } else if (isSelectSetting(setting) && typeof newValue === 'string') {
-          setting.value = newValue;
-          let newVisualizationSettings = { ...get().visualizationSettings };
-          newVisualizationSettings[name].value = newValue;
-          set({ visualizationSettings: newVisualizationSettings });
+          set({
+            visualizationSettings: {
+              ...get().visualizationSettings,
+              [name]: {
+                ...JSON.parse(JSON.stringify(setting)),
+                value: newValue,
+              },
+            },
+          });
         }
       },
 
@@ -177,6 +191,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           newVisualizationSettings[settingId].value = scheme[settingId];
           set({ visualizationSettings: newVisualizationSettings });
         }
+        get().setColorsFromSettings();
       },
 
       setColorsFromSettings: () => {
@@ -187,21 +202,35 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             foundationColor: new THREE.Color(
               visualizationSettings.foundationColor.value
             ),
-            componentRootLevelColor: new THREE.Color(
-              visualizationSettings.componentRootLevelColor.value
+            districtRootLevelColor: new THREE.Color(
+              visualizationSettings.districtRootLevelColor.value
             ),
-            componentDeepestLevelColor: new THREE.Color(
-              visualizationSettings.componentDeepestLevelColor.value
+            districtDeepestLevelColor: new THREE.Color(
+              visualizationSettings.districtDeepestLevelColor.value
             ),
-            classColor: new THREE.Color(visualizationSettings.classColor.value),
+            javaBuildingColor: new THREE.Color(
+              visualizationSettings.javaBuildingColor.value
+            ),
+            cppBuildingColor: new THREE.Color(
+              visualizationSettings.cppBuildingColor.value
+            ),
+            pythonBuildingColor: new THREE.Color(
+              visualizationSettings.pythonBuildingColor.value
+            ),
+            typescriptBuildingColor: new THREE.Color(
+              visualizationSettings.typescriptBuildingColor.value
+            ),
+            otherBuildingColor: new THREE.Color(
+              visualizationSettings.otherBuildingColor.value
+            ),
             highlightedEntityColor: new THREE.Color(
               visualizationSettings.highlightedEntityColor.value
             ),
-            componentTextColor: new THREE.Color(
-              visualizationSettings.componentTextColor.value
+            districtTextColor: new THREE.Color(
+              visualizationSettings.districtTextColor.value
             ),
-            classTextColor: new THREE.Color(
-              visualizationSettings.classTextColor.value
+            buildingTextColor: new THREE.Color(
+              visualizationSettings.buildingTextColor.value
             ),
             foundationTextColor: new THREE.Color(
               visualizationSettings.foundationTextColor.value
@@ -209,47 +238,41 @@ export const useUserSettingsStore = create<UserSettingsState>()(
             communicationColor: new THREE.Color(
               visualizationSettings.communicationColor.value
             ),
+            communicationStartColor: new THREE.Color(
+              visualizationSettings.communicationStartColor.value
+            ),
+            communicationEndColor: new THREE.Color(
+              visualizationSettings.communicationEndColor.value
+            ),
             communicationArrowColor: new THREE.Color(
               visualizationSettings.communicationArrowColor.value
             ),
             backgroundColor: new THREE.Color(
               visualizationSettings.backgroundColor.value
             ),
-            addedComponentColor: new THREE.Color(
-              visualizationSettings.addedComponentColor.value
+            addedDistrictColor: new THREE.Color(
+              visualizationSettings.addedDistrictColor.value
             ),
-            removedComponentColor: new THREE.Color(
-              visualizationSettings.removedComponentColor.value
+            removedDistrictColor: new THREE.Color(
+              visualizationSettings.removedDistrictColor.value
             ),
-            unchangedComponentColor: new THREE.Color(
-              visualizationSettings.unchangedComponentColor.value
+            unchangedDistrictColor: new THREE.Color(
+              visualizationSettings.unchangedDistrictColor.value
             ),
-            addedClassColor: new THREE.Color(
-              visualizationSettings.addedClassColor.value
+            addedBuildingColor: new THREE.Color(
+              visualizationSettings.addedBuildingColor.value
             ),
-            modifiedClassColor: new THREE.Color(
-              visualizationSettings.modifiedClassColor.value
+            modifiedBuildingColor: new THREE.Color(
+              visualizationSettings.modifiedBuildingColor.value
             ),
-            removedClassColor: new THREE.Color(
-              visualizationSettings.removedClassColor.value
+            removedBuildingColor: new THREE.Color(
+              visualizationSettings.removedBuildingColor.value
             ),
-            unchangedClassColor: new THREE.Color(
-              visualizationSettings.unchangedClassColor.value
+            unchangedBuildingColor: new THREE.Color(
+              visualizationSettings.unchangedBuildingColor.value
             ),
-            k8sNodeColor: new THREE.Color(
-              visualizationSettings.k8sNodeColor.value
-            ),
-            k8sNamespaceColor: new THREE.Color(
-              visualizationSettings.k8sNamespaceColor.value
-            ),
-            k8sDeploymentColor: new THREE.Color(
-              visualizationSettings.k8sDeploymentColor.value
-            ),
-            k8sPodColor: new THREE.Color(
-              visualizationSettings.k8sPodColor.value
-            ),
-            k8sTextColor: new THREE.Color(
-              visualizationSettings.k8sTextColor.value
+            k8sDiagramColor: new THREE.Color(
+              visualizationSettings.k8sDiagramColor.value
             ),
           },
         });
@@ -364,7 +387,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
     }),
     {
       name: 'ExplorVizSettings',
-      version: 29, // increment to overwrite existing storage (if needed)
+      version: 30, // increment to overwrite existing storage (if needed)
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
@@ -377,7 +400,52 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       merge: (persistedState: any, currentState) => {
         if (!persistedState) return currentState;
 
-        return { ...currentState, ...persistedState };
+        // Safely merge visualization settings: only carry over persisted values
+        // that are compatible with the current default settings. Any incompatible
+        // or missing entries fall back to the default and are logged to the console.
+        let mergedVisualizationSettings = {
+          ...currentState.visualizationSettings,
+        };
+
+        if (
+          persistedState.visualizationSettings &&
+          typeof persistedState.visualizationSettings === 'object'
+        ) {
+          let settingId: keyof VisualizationSettings;
+          for (settingId in currentState.visualizationSettings) {
+            const defaultSetting =
+              currentState.visualizationSettings[settingId];
+            const storedSetting =
+              persistedState.visualizationSettings[settingId];
+
+            if (storedSetting === undefined || storedSetting === null) {
+              console.warn(
+                `[UserSettings] Stored setting "${settingId}" is missing from localStorage. Using default value.`
+              );
+              continue;
+            }
+
+            const defaultValueType = typeof defaultSetting.value;
+            const storedValueType = typeof storedSetting.value;
+
+            if (storedValueType !== defaultValueType) {
+              console.warn(
+                `[UserSettings] Stored setting "${settingId}" has incompatible value type ` +
+                  `(expected "${defaultValueType}", got "${storedValueType}"). Using default value.`
+              );
+              continue;
+            }
+
+            // Value type is compatible — use the stored setting
+            mergedVisualizationSettings[settingId] = storedSetting;
+          }
+        }
+
+        return {
+          ...currentState,
+          ...persistedState,
+          visualizationSettings: mergedVisualizationSettings,
+        };
       },
     }
   )

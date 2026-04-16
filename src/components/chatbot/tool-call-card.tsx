@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
 import { InfoIcon, SearchIcon, ToolsIcon } from '@primer/octicons-react';
-import { Button } from 'react-bootstrap';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import { useEffect, useState } from 'react';
+import { Button } from 'react-bootstrap';
 
 type Action =
   | 'highlight'

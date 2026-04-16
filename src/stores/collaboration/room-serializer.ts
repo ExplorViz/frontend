@@ -41,7 +41,7 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
       const serializedRoom = {
         landscape: get()._serializeLandscape(),
         closedComponentIds: Array.from(
-          useVisualizationStore.getState().closedComponentIds
+          useVisualizationStore.getState().closedDistrictIds
         ),
         highlightedEntities: Array.from(
           useVisualizationStore.getState().highlightedEntityIds

@@ -9,9 +9,10 @@ import SettingsOpener from 'explorviz-frontend/src/components/visualization/page
 import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
 import ApplicationSearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
 import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
-import CodeAnalysisTriggerForm from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-form';
 import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
+import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams';
+import KubernetesDiagramsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
 import useCollaborativeModifier from 'explorviz-frontend/src/hooks/collaborative-modifier';
@@ -21,7 +22,6 @@ import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collab
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { SnapshotToken } from 'explorviz-frontend/src/stores/snapshot-token';
 import { ApiToken } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -48,6 +48,7 @@ import Restructure from '../page-setup/sidebar/customizationbar/restructure/rest
 import SettingsSidebar from '../page-setup/sidebar/customizationbar/settings-sidebar';
 import Snapshot from '../page-setup/sidebar/customizationbar/snapshot/snapshot';
 import SidebarComponent from '../page-setup/sidebar/sidebar-component';
+import { CodeAnalysisSection } from '../page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-section';
 import EntityFiltering from '../page-setup/sidebar/toolbar/entity-filtering/entity-filtering';
 import ToolSelection from '../page-setup/sidebar/toolbar/tool-selection';
 import TraceSelectionAndReplayer from '../page-setup/sidebar/toolbar/trace-replayer/trace-selection-and-replayer';
@@ -81,13 +82,6 @@ export default function BrowserRendering({
   removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
-
-  const applicationRepositoryActions = useApplicationRepositoryStore(
-    useShallow((state) => ({
-      cleanup: state.cleanup,
-    }))
-  );
-
   const configurationActions = useConfigurationStore(
     useShallow((state) => ({
       setIsCommRendered: state.setIsCommRendered,
@@ -249,7 +243,6 @@ export default function BrowserRendering({
 
     // Cleanup on component unmount
     return function cleanup() {
-      applicationRepositoryActions.cleanup();
       configurationActions.setIsCommRendered(true);
       popupHandlerActions.cleanup();
       annotationHandlerActions.cleanup();
@@ -267,6 +260,7 @@ export default function BrowserRendering({
   useCollaborativeModifier();
 
   // Close the sidebar, when the connection menu is opened (so ot does not overlap)
+  const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const isLobbyOpen = usePlayroomConnectionStore((state) => state.isLobbyOpen);
   useEffect(() => {
     if (isLobbyOpen) {
@@ -374,6 +368,12 @@ export default function BrowserRendering({
                           toggleToolsSidebarComponent
                         }
                       />
+                      <KubernetesDiagramsOpener
+                        openedComponent={openedToolComponent}
+                        toggleToolsSidebarComponent={
+                          toggleToolsSidebarComponent
+                        }
+                      />
                     </ul>
                   </div>
                   {openedToolComponent && (
@@ -411,7 +411,13 @@ export default function BrowserRendering({
                             <h5 className="text-center">
                               Git Repository Analysis
                             </h5>
-                            <CodeAnalysisTriggerForm />
+                            <CodeAnalysisSection />
+                          </>
+                        )}
+                        {openedToolComponent === 'kubernetes-diagrams' && (
+                          <>
+                            <h5 className="text-center">Kubernetes Diagrams</h5>
+                            <KubernetesDiagrams />
                           </>
                         )}
                       </div>
@@ -475,7 +481,7 @@ export default function BrowserRendering({
                       {openedSettingComponent === 'Collaboration' && (
                         <>
                           <CollaborationControls />
-                          <ChatBox />
+                          {isConnected && <ChatBox />}
                         </>
                       )}
                       {openedSettingComponent === 'Chatbot' && (

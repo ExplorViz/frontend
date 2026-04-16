@@ -1,23 +1,16 @@
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
-  Application,
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { K8sDataModel } from 'explorviz-frontend/src/view-objects/3d/k8s/k8s-mesh';
+  Building,
+  City,
+  District,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export interface PopupDataArgs {
   mouseX: number;
   mouseY: number;
   wasMoved: boolean;
   entityId: string;
-  entity:
-    | K8sDataModel
-    | Node
-    | Application
-    | Package
-    | Class
-    | ClassCommunication;
+  entity: City | District | Building | ClassCommunication;
   isPinned: boolean;
   sharedBy: string;
   menuId: string | null;
@@ -36,13 +29,7 @@ export default class PopupData {
 
   entityId: string;
 
-  entity:
-    | K8sDataModel
-    | Node
-    | Application
-    | Package
-    | Class
-    | ClassCommunication;
+  entity: City | District | Building | ClassCommunication;
 
   // @tracked
   isPinned: boolean;

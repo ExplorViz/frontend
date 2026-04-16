@@ -29,8 +29,8 @@ interface ChatState {
     userId: string,
     msg: string,
     isEvent: boolean,
-    eventType: string,
-    eventData: any[]
+    eventType?: string,
+    eventData?: any[]
   ) => void;
   addChatMessage: (
     msgId: number,

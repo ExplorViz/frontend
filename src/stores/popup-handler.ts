@@ -17,6 +17,11 @@ import {
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
+  Building,
+  City,
+  District,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
   Application,
   Class,
   Node,
@@ -24,12 +29,32 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { me } from 'playroomkit';
 
+function isCity(entity: any): entity is City {
+  return (
+    entity && Object.prototype.hasOwnProperty.call(entity, 'rootDistrictIds')
+  );
+}
+
+function isBuilding(entity: any): entity is Building {
+  return (
+    entity &&
+    Object.prototype.hasOwnProperty.call(entity, 'parentCityId') &&
+    Object.prototype.hasOwnProperty.call(entity, 'parentDistrictId')
+  );
+}
+
+function isDistrict(entity: any): entity is District {
+  return (
+    entity &&
+    Object.prototype.hasOwnProperty.call(entity, 'parentCityId') &&
+    !Object.prototype.hasOwnProperty.call(entity, 'parentDistrictId')
+  );
+}
+
 type Position2D = {
   x: number;
   y: number;
 };
-
-
 
 interface PopupHandlerState {
   popupData: PopupData[];
@@ -53,14 +78,22 @@ interface PopupHandlerState {
     model,
   }: {
     entityId: string;
-    entity?: Node | Application | Package | Class | ClassCommunication;
+    entity?:
+      | Node
+      | Application
+      | Package
+      | Class
+      | ClassCommunication
+      | City
+      | District
+      | Building;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
     menuId?: string | null;
     sharedBy?: string | null;
     hovered?: boolean;
-    model?: Application | Package | Class;
+    model?: Application | Package | Class | City | District | Building;
     applicationId?: string;
   }) => void;
   _removePopupAfterTimeout: (popup: PopupData) => void;

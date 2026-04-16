@@ -2,7 +2,7 @@ import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/coll
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useVrAssetRepoStore } from 'explorviz-frontend/src/stores/extended-reality/vr-asset-repo';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import ActionIcon from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/action-icon';
 import CloseIcon from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/close-icon';
 import { DetachableMenu } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';

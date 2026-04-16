@@ -43,7 +43,8 @@ export function EditingProvider({ children }: PropsWithChildren) {
   const [landscapeData, setLandscapeData] = useRenderingServiceStore(
     useShallow((state) => [state._landscapeData, state.setLandscapeData])
   );
-  const { actions, removedComponentIds } = useVisualizationStore();
+  const { actions, removedDistrictIds: removedComponentIds } =
+    useVisualizationStore();
   const [history, setHistory] = useState<[LandscapeData, Set<string>][]>([]);
 
   // always +1 of the currently rendered element in history
@@ -67,7 +68,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
     setLandscapeData(landscapeData);
     setEditingCursor((cursor) => cursor + 1);
     if (removedIds) {
-      actions.setRemovedComponents(removedIds);
+      actions.setRemovedDistricts(removedIds);
     }
   };
 
@@ -150,7 +151,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
     const [previousLandscapeData, previousRemovedIds] =
       history[editingCursor - 2];
     setLandscapeData(previousLandscapeData);
-    actions.setRemovedComponents(previousRemovedIds);
+    actions.setRemovedDistricts(previousRemovedIds);
     setEditingCursor((cursor) => cursor - 1);
   };
 
@@ -158,7 +159,7 @@ export function EditingProvider({ children }: PropsWithChildren) {
     if (editingCursor >= history.length) return;
     const [nextLandscapeData, nextRemovedIds] = history[editingCursor];
     setLandscapeData(nextLandscapeData);
-    actions.setRemovedComponents(nextRemovedIds);
+    actions.setRemovedDistricts(nextRemovedIds);
     setEditingCursor((cursor) => cursor + 1);
   };
 

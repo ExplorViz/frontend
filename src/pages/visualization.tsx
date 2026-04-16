@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ChevronUpIcon, SyncIcon } from '@primer/octicons-react';
-import CommitTreeApplicationSelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-application-selection';
+import CommitTreeRepositorySelection from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/commit-tree-repository-selection';
 import EvolutionRenderingButtons from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/evolution-rendering-buttons';
 import PlotlyCommitTree from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/evolution/plotly-commit-tree';
 import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page-setup/bottom-bar/runtime/plotly-timeline';
@@ -25,6 +25,7 @@ import {
   useRenderingServiceStore,
 } from 'explorviz-frontend/src/stores/rendering-service';
 import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useSnapshotTokenStore } from 'explorviz-frontend/src/stores/snapshot-token';
 import { useSpectateConfigurationStore } from 'explorviz-frontend/src/stores/spectate-configuration';
@@ -39,11 +40,11 @@ import {
 } from 'explorviz-frontend/src/stores/user-api-token';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { closeComponentsByList } from 'explorviz-frontend/src/utils/application-rendering/entity-manipulation';
+import { closeDistrictsByList } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   highlightById,
   removeAllHighlighting,
-} from 'explorviz-frontend/src/utils/application-rendering/highlighting';
+} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import {
   INITIAL_LANDSCAPE_EVENT,
@@ -80,6 +81,7 @@ import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
+import { convertToFlatLandscape } from '../utils/landscape-schemes/flat-landscape';
 
 const queryParams = [
   'roomId',
@@ -191,8 +193,9 @@ export default function Visualization() {
       dynamicData: DynamicLandscapeData
     ) => {
       renderingServiceTriggerRenderingForGivenLandscapeData(
-        structureData,
-        dynamicData
+        convertToFlatLandscape(structureData), // TODO: Used in restructuring. Restructuring may not work with flatlandscape at the moment
+        dynamicData,
+        structureData
       );
     };
     const handleToggleVisualizationUpdating = () => {
@@ -200,7 +203,7 @@ export default function Visualization() {
     };
 
     eventEmitter.on('restructureLandscapeData', handleRestructureLandscapeData);
-    eventEmitter.on('toggelVisualization', handleToggleVisualizationUpdating);
+    eventEmitter.on('toggleVisualization', handleToggleVisualizationUpdating);
 
     return () => {
       willDestroy();
@@ -210,7 +213,7 @@ export default function Visualization() {
         handleRestructureLandscapeData
       );
       eventEmitter.off(
-        'toggelVisualization',
+        'toggleVisualization',
         handleToggleVisualizationUpdating
       );
     };
@@ -331,16 +334,16 @@ export default function Visualization() {
   const manualPollTimestamps = useTimestampPollingStore(
     (state) => state.manuallyPollTimestamps
   );
-  const appNameCommitTreeMapEvolutionDataRepository =
-    useEvolutionDataRepositoryStore((state) => state._appNameCommitTreeMap);
-  const fetchAndStoreApplicationCommitTrees = useEvolutionDataRepositoryStore(
-    (state) => state.fetchAndStoreApplicationCommitTrees
+  const repoNameCommitTreeMapEvolutionDataRepository =
+    useEvolutionDataRepositoryStore((state) => state._repoNameCommitTreeMap);
+  const fetchAndStoreRepositoryCommitTrees = useEvolutionDataRepositoryStore(
+    (state) => state.fetchAndStoreRepositoryCommitTrees
   );
-  const getCurrentSelectedApplicationName = useCommitTreeStateStore(
-    (state) => state.getCurrentSelectedApplicationName
+  const getCurrentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state.getCurrentSelectedRepositoryName
   );
-  const getSelectedCommits = useCommitTreeStateStore(
-    (state) => state.getSelectedCommits
+  const selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
   );
   const setSelectedCommits = useCommitTreeStateStore(
     (state) => state.setSelectedCommits
@@ -348,11 +351,11 @@ export default function Visualization() {
   const setDefaultState = useCommitTreeStateStore(
     (state) => state.setDefaultState
   );
-  const getCloneOfAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
-    (state) => state.getCloneOfAppNameAndBranchNameToColorMap
+  const getCloneOfRepoNameAndBranchNameToColorMap = useCommitTreeStateStore(
+    (state) => state.getCloneOfRepoNameAndBranchNameToColorMap
   );
-  const setAppNameAndBranchNameToColorMap = useCommitTreeStateStore(
-    (state) => state.setAppNameAndBranchNameToColorMap
+  const setRepoNameAndBranchNameToColorMap = useCommitTreeStateStore(
+    (state) => state.setRepoNameAndBranchNameToColorMap
   );
   const resetSelectedCommits = useCommitTreeStateStore(
     (state) => state.resetSelectedCommits
@@ -388,8 +391,8 @@ export default function Visualization() {
   const snapshotSelected = useSnapshotTokenStore(
     (state) => state.snapshotSelected
   );
-  const currentSelectedApplicationName = useCommitTreeStateStore(
-    (state) => state._currentSelectedApplicationName
+  const currentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
   );
 
   const roomSerializer = useRoomSerializerStore(
@@ -407,8 +410,8 @@ export default function Visualization() {
       renderingServiceLandscapeData !== null &&
       renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
         0 &&
-      (!renderingServiceLandscapeData.structureLandscapeData.k8sNodes ||
-        renderingServiceLandscapeData.structureLandscapeData?.k8sNodes
+      (!renderingServiceLandscapeData.flatLandscapeData ||
+        Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
           .length === 0)
     );
   })();
@@ -417,8 +420,8 @@ export default function Visualization() {
     return (
       renderingServiceLandscapeData !== null &&
       (renderingServiceLandscapeData.structureLandscapeData?.nodes.length > 0 ||
-        (renderingServiceLandscapeData.structureLandscapeData.k8sNodes &&
-          renderingServiceLandscapeData.structureLandscapeData?.k8sNodes
+        (renderingServiceLandscapeData.flatLandscapeData &&
+          Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
             .length > 0))
     );
   })();
@@ -485,6 +488,11 @@ export default function Visualization() {
 
   // #region Setup
   const initRenderingAndSetupListeners = async () => {
+    const tokenFromUrl = searchParams.get('landscapeToken');
+    if (!useLandscapeTokenStore.getState().token && tokenFromUrl) {
+      await useLandscapeTokenStore.getState().setTokenByValue(tokenFromUrl);
+    }
+
     setLandscapeDataRenderingService(null);
 
     // set timelineDataObjectHandler where necessary
@@ -526,32 +534,31 @@ export default function Visualization() {
     // Start main loop
     restartTimestampPollingAndVizUpdate([]);
 
-    // Fetch applications for evolution mode
-    await fetchAndStoreApplicationCommitTrees();
+    // Fetch repositories for evolution mode
+    await fetchAndStoreRepositoryCommitTrees();
 
     let showEvolutionVisualization = false;
 
-    const selectedApp = getCurrentSelectedApplicationName();
-    const selectedCommitsForCurrentSelectedApp =
-      getSelectedCommits().get(selectedApp);
+    const selectedRepo = getCurrentSelectedRepositoryName();
+    const selectedCommitsForCurrentSelectedRepo =
+      selectedCommits.get(selectedRepo);
     setCommit1(
-      selectedCommitsForCurrentSelectedApp &&
-        selectedCommitsForCurrentSelectedApp.length > 0
-        ? selectedCommitsForCurrentSelectedApp[0].commitId
+      selectedCommitsForCurrentSelectedRepo &&
+        selectedCommitsForCurrentSelectedRepo.length > 0
+        ? selectedCommitsForCurrentSelectedRepo[0].commitId
         : undefined
     );
-
     setCommit2(
-      selectedCommitsForCurrentSelectedApp &&
-        selectedCommitsForCurrentSelectedApp.length > 1
-        ? selectedCommitsForCurrentSelectedApp[1].commitId
+      selectedCommitsForCurrentSelectedRepo &&
+        selectedCommitsForCurrentSelectedRepo.length > 1
+        ? selectedCommitsForCurrentSelectedRepo[1].commitId
         : undefined
     );
 
     // check what kind of rendering we should start
     if (commit1 && commit1.length > 0) {
       showEvolutionVisualization = setDefaultState(
-        appNameCommitTreeMapEvolutionDataRepository,
+        repoNameCommitTreeMapEvolutionDataRepository,
         commit1,
         commit2
       );
@@ -598,7 +605,7 @@ export default function Visualization() {
 
     // Apply closed components if provided
     if (closedComponentIds && closedComponentIds.length > 0) {
-      closeComponentsByList(closedComponentIds, false, false);
+      closeDistrictsByList(closedComponentIds, false, false);
     }
 
     // Reset all highlights first
@@ -804,8 +811,8 @@ export default function Visualization() {
     setIsCommitTreeRefreshing(true);
     try {
       resetSelectedCommits();
-      setAppNameAndBranchNameToColorMap(new Map());
-      const refreshed = await fetchAndStoreApplicationCommitTrees();
+      setRepoNameAndBranchNameToColorMap(new Map());
+      const refreshed = await fetchAndStoreRepositoryCommitTrees();
 
       if (refreshed) {
         showInfoToastMessage('Commit chart data refreshed');
@@ -841,6 +848,7 @@ export default function Visualization() {
     useTimestampPollingStore.getState().resetPolling();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
     useRenderingServiceStore.getState().resetAllRenderingStates();
+    useModelStore.getState().clearAll();
 
     // Always show runtime first
     setIsRuntimeTimelineSelected(true);
@@ -993,7 +1001,7 @@ export default function Visualization() {
                     debugSnapshots={useDebugSnapshotRepositoryStore
                       .getState()
                       .getDebugSnapshotsByLandscapeToken(
-                        landscapeTokenServiceToken!.value
+                        landscapeTokenServiceToken?.value ?? ''
                       )}
                     timelineUpdateVersion={timelineUpdateVersion}
                     clicked={timelineDataObjectHandler.timelineClicked}
@@ -1021,30 +1029,30 @@ export default function Visualization() {
                   </Button>
                   <div className="row justify-content-md-center">
                     <div className="row justify-content-md-center align-items-center">
-                      <CommitTreeApplicationSelection
-                        appNameCommitTreeMap={
-                          appNameCommitTreeMapEvolutionDataRepository
+                      <CommitTreeRepositorySelection
+                        repoNameCommitTreeMap={
+                          repoNameCommitTreeMapEvolutionDataRepository
                         }
-                        selectedAppName={currentSelectedApplicationName}
+                        selectedRepoName={currentSelectedRepositoryName}
                       />
                     </div>
                     <EvolutionRenderingButtons />
                   </div>
                   <PlotlyCommitTree
-                    appNameCommitTreeMap={
-                      appNameCommitTreeMapEvolutionDataRepository
+                    repoNameCommitTreeMap={
+                      repoNameCommitTreeMapEvolutionDataRepository
                     }
                     triggerVizRenderingForSelectedCommits={
                       renderingServiceTriggerRenderingForSelectedCommits
                     }
-                    selectedAppName={currentSelectedApplicationName}
-                    selectedCommits={getSelectedCommits()}
+                    selectedRepoName={currentSelectedRepositoryName}
+                    selectedCommits={selectedCommits}
                     setSelectedCommits={setSelectedCommits}
-                    getCloneOfAppNameAndBranchNameToColorMap={
-                      getCloneOfAppNameAndBranchNameToColorMap
+                    getCloneOfRepoNameAndBranchNameToColorMap={
+                      getCloneOfRepoNameAndBranchNameToColorMap
                     }
-                    setAppNameAndBranchNameToColorMap={
-                      setAppNameAndBranchNameToColorMap
+                    setRepoNameAndBranchNameToColorMap={
+                      setRepoNameAndBranchNameToColorMap
                     }
                   />
                 </>

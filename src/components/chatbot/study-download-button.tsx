@@ -1,17 +1,17 @@
 import { useCopilotChatInternal } from '@copilotkit/react-core';
 import { DownloadIcon } from '@primer/octicons-react';
-import { use } from 'react';
-import Button from 'react-bootstrap/Button';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import {
-  VisualizationSettings,
   VisualizationSettingId,
+  VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
-import { getCircularReplacer } from 'explorviz-frontend/src/utils/circularReplacer';
-import { ChatbotContext } from './chatbot-context';
+import { use } from 'react';
+import Button from 'react-bootstrap/Button';
 import { EditingContext } from '../editing/editing-context';
+import { ChatbotContext } from './chatbot-context';
 
 function flattenSettings(settings: VisualizationSettings) {
   const flattened: Record<VisualizationSettingId, unknown> = {} as Record<
@@ -27,10 +27,10 @@ function flattenSettings(settings: VisualizationSettings) {
 export function StudyDownloadButton() {
   const { messages } = useCopilotChatInternal();
   const {
-    closedComponentIds,
+    closedDistrictIds: closedComponentIds,
     highlightedEntityIds,
     hoveredEntityId,
-    removedComponentIds,
+    removedDistrictIds: removedComponentIds,
   } = useVisualizationStore();
   const {
     selectedProvider,
@@ -102,7 +102,6 @@ export function StudyDownloadButton() {
       link.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Failed to download study data', err);
     }
   };

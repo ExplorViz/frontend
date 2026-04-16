@@ -6,8 +6,8 @@ import {
   Class,
   Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/application/clazz-communication-mesh';
-import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/application/communication-arrow-mesh';
+import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
+import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/city/communication-arrow-mesh';
 import { Object3DEventMap } from 'three';
 
 export enum IDEApiDest {

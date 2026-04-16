@@ -1,13 +1,13 @@
-import { AppNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { RepoNameCommitTreeMap } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
-export function findAppNameAndBranchNameForCommit(
-  appCommitMap: AppNameCommitTreeMap,
+export function findRepoNameAndBranchNameForCommit(
+  repoCommitMap: RepoNameCommitTreeMap,
   targetCommit: string
-): { appName: string; branchName: string } | undefined {
-  for (const [appName, commitTree] of appCommitMap.entries()) {
+): { repoName: string; branchName: string } | undefined {
+  for (const [repoName, commitTree] of repoCommitMap.entries()) {
     for (const branch of commitTree.branches) {
       if (branch.commits.includes(targetCommit)) {
-        return { appName, branchName: branch.name };
+        return { repoName, branchName: branch.name };
       }
     }
   }

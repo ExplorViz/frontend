@@ -6,6 +6,7 @@ import { DropdownButton } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import { useShallow } from 'zustand/react/shallow';
 
+
 export default function EvolutionRenderingButtons() {
   const commitTreeState = useCommitTreeStateStore(
     useShallow((state) => ({
@@ -40,15 +41,11 @@ export default function EvolutionRenderingButtons() {
     }))
   );
 
-  const getCurrentSelectedApplicationName = useCommitTreeStateStore(
-    (state) => state.getCurrentSelectedApplicationName
+  const currentSelectedRepositoryName = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
   );
 
-  const { getSelectedCommits } = useCommitTreeStateStore(
-    useShallow((state) => ({
-      getSelectedCommits: state.getSelectedCommits,
-    }))
-  );
+  const selectedCommitsMap = useCommitTreeStateStore((state) => state._selectedCommits);
 
   const visService = useVisibilityServiceStore(
     useShallow((state) => ({
@@ -89,14 +86,14 @@ export default function EvolutionRenderingButtons() {
     visService.applyEvolutionModeRenderingConfiguration(evolutionMode);
   };
 
+  const currentRepoName = currentSelectedRepositoryName;
+  const hasSelectedAny = selectedCommitsMap.size > 0;
+
   return (
     <div className="col-md-auto">
-      {getCurrentSelectedApplicationName() && (
+      {!!currentRepoName && (
         <div className="row justify-content-md-center">
-          {(getSelectedCommits().get(getCurrentSelectedApplicationName())
-            ?.length === 1 ||
-            getSelectedCommits().get(getCurrentSelectedApplicationName())
-              ?.length === 2) && (
+          {!!selectedCommitsMap.get(currentRepoName) && (
             <div className="col-md-auto">
               <div className="d-flex">
                 <button
@@ -109,7 +106,7 @@ export default function EvolutionRenderingButtons() {
               </div>
             </div>
           )}
-          {getSelectedCommits().size > 0 && (
+          {hasSelectedAny && (
             <div className="col-md-auto">
               <DropdownButton
                 id="dropdown-basic-button"

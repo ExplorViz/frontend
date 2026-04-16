@@ -194,7 +194,8 @@ export function ChatbotProvider({
       }}
     >
       <CopilotKit
-        showDevConsole={true}
+        showDevConsole={false}
+        enableInspector={false}
         runtimeUrl={`${copilotUrl}/copilot`}
         headers={{
           ['x-explorviz-provider']: selectedProvider.id,

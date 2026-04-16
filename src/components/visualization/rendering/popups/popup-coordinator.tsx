@@ -8,13 +8,13 @@ import {
   ShareAndroidIcon,
   XIcon,
 } from '@primer/octicons-react';
-import ClazzPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/clazz/clazz-popup.tsx';
-import CommunicationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/communication/communication-popup.tsx';
-import ComponentPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/component/component-popup.tsx';
-import FoundationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/foundation/foundation-popup.tsx';
-import HtmlPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/html-popup';
-import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/application-popups/method/method-popup.tsx';
-import K8sPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/k8s-popups/k8s-popup.tsx';
+import BuildingPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/building/building-popup';
+import CommunicationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/communication/communication-popup';
+import DistrictPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/district/district-popup';
+import FoundationPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/foundation/foundation-popup';
+import HtmlPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/html-popup';
+import MethodPopup from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/method/method-popup';
+
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
@@ -22,17 +22,18 @@ import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collab
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/application-rendering/highlighting';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { isClassCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import {
-  isApplication,
-  isClass,
+  isBuilding,
+  isCity,
+  isDistrict,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
   isMethod,
-  isNode,
-  isPackage,
   StructureLandscapeData,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/application/animated-ping-r3f';
+import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
@@ -353,28 +354,16 @@ export default function PopupCoordinator({
         </Button>
       )}
 
-      {entityType == 'application' && (
-        <FoundationPopup
-          restructureMode={restructureMode}
-          popupData={popupData}
-        />
-      )}
-      {entityType == 'package' && (
-        <ComponentPopup
-          restructureMode={restructureMode}
-          popupData={popupData}
-        />
-      )}
-      {entityType == 'class' && (
-        <ClazzPopup restructureMode={restructureMode} popupData={popupData} />
-      )}
+      {entityType == 'city' && <FoundationPopup popupData={popupData} />}
+      {entityType == 'district' && <DistrictPopup popupData={popupData} />}
+      {entityType == 'building' && <BuildingPopup popupData={popupData} />}
       {entityType == 'method' && (
         <MethodPopup restructureMode={restructureMode} popupData={popupData} />
       )}
       {entityType == 'classCommunication' && (
         <CommunicationPopup popupData={popupData} />
       )}
-      {entityType == 'k8s' && <K8sPopup data={popupData} />}
+
       {entityType == 'html' && <HtmlPopup data={popupData} />}
     </div>
   );
@@ -384,28 +373,21 @@ function getEntityType(popupData?: PopupData): string {
   if (!popupData) {
     return '';
   }
-  if (isNode(popupData.entity)) {
-    return 'node';
+  if (isCity(popupData.entity)) {
+    return 'city';
   }
-  if (isApplication(popupData.entity)) {
-    return 'application';
+  if (isDistrict(popupData.entity)) {
+    return 'district';
   }
-  if (isClass(popupData.entity)) {
-    return 'class';
-  }
-  if (isPackage(popupData.entity)) {
-    return 'package';
+  if (isBuilding(popupData.entity)) {
+    return 'building';
   }
   if (isMethod(popupData.entity)) {
     return 'method';
   }
-  if (popupData.entity instanceof ClassCommunication) {
+  if (isClassCommunication(popupData.entity)) {
     return 'classCommunication';
   }
-  // TODO:
-  // if (popupData.entity instanceof K8sDataModel) {
-  //   return 'k8s';
-  // }
   if ('htmlNode' in popupData.entity) {
     return 'html';
   }

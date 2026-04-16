@@ -10,7 +10,9 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 export default function StatusIcons() {
   const isOnline = useCollaborationSessionStore((state) => state.isOnline);
-  const spectatedUser = useSpectateUserStore((state) => state.spectatedUser);
+  const spectatedPlayerId = useSpectateUserStore(
+    (state) => state.spectatedPlayerId
+  );
   const isCommRendered = useConfigurationStore((state) => state.isCommRendered);
   const idToRemoteUser = useCollaborationSessionStore(
     (state) => state.idToRemoteUser
@@ -18,7 +20,7 @@ export default function StatusIcons() {
 
   return (
     <div className="navbar-status-icons">
-      {spectatedUser !== null && (
+      {spectatedPlayerId !== null && (
         <div className="navbar-danger-icon">
           <OverlayTrigger
             placement="bottom"
