@@ -1,6 +1,5 @@
-import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
@@ -54,7 +53,7 @@ interface AnalysisRequest {
 }
 
 type Props = {
-  assignRandomToken?: boolean;
+  landscapeToken?: string;
   onSubmitSuccess?: (landscapeToken: string) => void;
 };
 
@@ -77,7 +76,7 @@ const getInitialFormData = (landscapeToken: string): AnalysisRequest => ({
 });
 
 export default function CodeAnalysisTriggerForm({
-  assignRandomToken,
+  landscapeToken,
   onSubmitSuccess,
 }: Props) {
   const [searchParams] = useSearchParams();
@@ -91,12 +90,8 @@ export default function CodeAnalysisTriggerForm({
   >([]);
 
   const landscapeTokenValue = useMemo(() => {
-    if (assignRandomToken) {
-      return '';
-    }
-
-    return searchParams.get('landscapeToken') || '';
-  }, [searchParams, assignRandomToken]);
+    return landscapeToken || searchParams.get('landscapeToken') || '';
+  }, [searchParams, landscapeToken]);
 
   console.log({
     landscapeTokenValue,
@@ -107,43 +102,14 @@ export default function CodeAnalysisTriggerForm({
     getInitialFormData(landscapeTokenValue)
   );
 
-  const createToken = useLandscapeTokenStore((state) => state.createToken);
-  const isTokenRequested = useRef(false);
-  const [isRegisteringToken, setIsRegisteringToken] = useState(false);
-
   useEffect(() => {
-    if (!assignRandomToken || isTokenRequested.current) {
-      return;
-    }
-    isTokenRequested.current = true;
-    setIsRegisteringToken(true);
-    const registerToken = async () => {
-      try {
-        const newToken = await createToken('Repo Analysis');
-        setFormData((prev) => ({
-          ...prev,
-          landscapeToken: newToken.value,
-        }));
-      } catch (error) {
-        console.error('Failed to register new landscape token', error);
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Failed to register new landscape token');
-      } finally {
-        setIsRegisteringToken(false);
-      }
-    };
-    registerToken();
-  }, [assignRandomToken, createToken]);
-
-  useEffect(() => {
-    if (landscapeTokenValue && !assignRandomToken) {
+    if (landscapeTokenValue) {
       setFormData((prev) => ({
         ...prev,
         landscapeToken: landscapeTokenValue,
       }));
     }
-  }, [landscapeTokenValue, assignRandomToken]);
+  }, [landscapeTokenValue]);
 
   const handleInputChange = (
     field: string,
@@ -294,28 +260,12 @@ export default function CodeAnalysisTriggerForm({
             onChange={(e) =>
               handleInputChange('landscapeToken', e.target.value)
             }
-            readOnly={!!landscapeTokenValue && !assignRandomToken}
+            readOnly={!!landscapeTokenValue}
           />
           <Form.Text className="text-muted">
-            {isRegisteringToken ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="me-2"
-                />
-                Registering token...
-              </>
-            ) : (
-              (() => {
-                if (assignRandomToken) return 'Randomly assigned';
-                if (landscapeTokenValue) return 'Using current landscape token';
-                else return 'No landscape token selected';
-              })()
-            )}
+            {landscapeTokenValue
+              ? 'Using current landscape token'
+              : 'No landscape token selected'}
           </Form.Text>
         </Form.Group>
 

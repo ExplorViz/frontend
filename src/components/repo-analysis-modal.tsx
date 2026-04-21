@@ -8,10 +8,11 @@ import { RepoAnalysisProgress } from './repo-analysis-progress';
 
 type Props = {
   show: boolean;
+  landscapeToken?: string;
   onClose: () => void;
 };
 
-export const RepoAnalysisModal = ({ show, onClose }: Props) => {
+export const RepoAnalysisModal = ({ show, landscapeToken, onClose }: Props) => {
   const [mode, setMode] = useState<'form' | 'running'>('form');
   const activeLandscapeTokenRef = useRef<string | null>(null);
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ export const RepoAnalysisModal = ({ show, onClose }: Props) => {
         {
           mode === 'running' 
             ? (<RepoAnalysisProgress state={progress} />) 
-            : <CodeAnalysisTriggerForm assignRandomToken onSubmitSuccess={onSuccess} />
+            : <CodeAnalysisTriggerForm landscapeToken={landscapeToken} onSubmitSuccess={onSuccess} />
         }
       </Modal.Body>
     </Modal>

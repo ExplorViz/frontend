@@ -22,7 +22,7 @@ import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
-  openRepoAnalysisModal(): void;
+  openRepoAnalysisModal(token?: LandscapeToken): void;
   selectToken(token: LandscapeToken): void;
   deleteToken(tokenId: string, event: React.MouseEvent): Promise<void>;
   reload(): void;
@@ -258,6 +258,25 @@ export default function TokenSelection({
                     </OverlayTrigger>
                   </li>
                   <li>
+                    <OverlayTrigger
+                      placement="bottom"
+                      overlay={
+                        <Tooltip>Trigger Analysis for Landscape</Tooltip>
+                      }
+                    >
+                      <button
+                        className="button-svg-with-hover"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openRepoAnalysisModal(token);
+                        }}
+                      >
+                        <CodeIcon size="small" className="align-middle" />
+                      </button>
+                    </OverlayTrigger>
+                  </li>
+                  <li>
                     <AdditionalTokenInfo token={token} />
                   </li>
                   {user?.sub === token.ownerId && (
@@ -336,14 +355,6 @@ export default function TokenSelection({
                 onClick={openTokenCreationModal}
               >
                 <PlusIcon size="small" />
-              </Button>
-
-              <Button
-                variant="success"
-                className="align-self-center pt-2 px-3 success"
-                onClick={openRepoAnalysisModal}
-              >
-                <CodeIcon size="small" />
               </Button>
             </div>
           </td>
