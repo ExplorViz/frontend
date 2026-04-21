@@ -65,6 +65,7 @@ import CollaborationPingSync from '../../collaboration/collaboration-ping-sync';
 import { CollaborationPopupSync } from '../../collaboration/collaboration-popup-sync';
 import SpectateStatusSync from '../../collaboration/spectate-status-sync';
 import CollaborationHighlightingSync from './collaboration-highlighting-sync';
+import HotkeyHandler from './hotkey-handler';
 import ImmersiveStateSync from './immersive-state-sync';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import LocalHighlightSync from './local-highlight-sync';
@@ -449,37 +450,13 @@ export default function CanvasWrapper({
     };
   }, [resetVisualizationState]);
 
-  // Keyboard handler for magnifier toggle
-  const handleKeyDown = (event: KeyboardEvent) => {
-    // Ignore if typing in an input field
-    if (
-      event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement
-    ) {
-      return;
-    }
-
-    // Toggle magnifier on M key press
-    if (event.key === 'M' || event.key === 'm') {
-      useUserSettingsStore
-        .getState()
-        .updateSetting('isMagnifierActive', !isMagnifierActive);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isMagnifierActive]);
-
   const minimapEnabled = useUserSettingsStore(
     (state) => state.visualizationSettings.isMinimapEnabled.value
   );
 
   return (
     <>
+      <HotkeyHandler />
       <PlayroomWrapper>
         <Canvas
           id="three-js-canvas"
