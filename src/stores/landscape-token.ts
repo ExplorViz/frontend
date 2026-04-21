@@ -17,6 +17,7 @@ interface LandscapeTokenState {
   _isStringArray: (possibleArray: unknown) => possibleArray is string[];
   _isObject: (variable: unknown) => variable is object;
   createToken: (alias: string) => Promise<LandscapeToken>;
+  updateTokenAlias: (tokenValue: string, alias: string) => Promise<void>;
 }
 
 export type LandscapeToken = {
@@ -158,6 +159,23 @@ export const useLandscapeTokenStore = create<LandscapeTokenState>(
 
       const token = (await response.json()) as LandscapeToken;
       return token;
+    },
+
+    updateTokenAlias: async (tokenValue: string, alias: string) => {
+      const response = await fetch(`${userService}/token/${tokenValue}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        },
+        body: JSON.stringify({ alias }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          'Failed to update landscape token alias - Status' + response.status
+        );
+      }
     },
   })
 );
