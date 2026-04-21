@@ -257,9 +257,6 @@ function populateDistrict(
       return;
     }
     const getMetricValue = (building: Building, metricKey: string): number => {
-      if (metricKey === 'Function Count') {
-        return building.functionIds?.length || 0;
-      }
       const metric = building.metrics?.[metricKey];
       return metric?.current || 0;
     };

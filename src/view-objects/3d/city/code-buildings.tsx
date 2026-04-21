@@ -263,10 +263,10 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
   const getBuildingHeight = useCallback(
     (building: Building) => {
-      const getMetricValue = (building: Building, metricKey: string): number => {
-        if (metricKey === 'Function Count') {
-          return building.functionIds?.length || 0;
-        }
+      const getMetricValue = (
+        building: Building,
+        metricKey: string
+      ): number => {
         const metric = building.metrics?.[metricKey];
         return metric?.current || 0;
       };
