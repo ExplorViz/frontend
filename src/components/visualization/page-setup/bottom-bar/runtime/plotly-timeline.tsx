@@ -13,9 +13,12 @@ export interface IMarkerStates {
   [timestampId: string]: {
     color: string;
     size: number;
+    text: string;
     emberModel: Timestamp;
   };
 }
+
+const MAX_TIMESTAMP_SELECTION = 1;
 
 interface PlotlyTimelineArgs {
   timelineDataObject: TimelineDataObject;
@@ -53,15 +56,11 @@ export default function PlotlyTimeline({
   const debugSnapshotMarkerColor = useRef<string>('#000000');
   const defaultMarkerSize = useRef<number>(8);
   const highlightedMarkerSize = useRef<number>(15);
-  const selectionCount = useRef<number>(2);
-  const timelineColors = useRef([undefined, undefined]);
 
   const renderingServiceVisualizationPaused = useRenderingServiceStore(
     (state) => state._visualizationPaused
   );
-  const bucketSize = useTimestampPollingStore(
-    (state) => state.bucketSize
-  );
+  const bucketSize = useTimestampPollingStore((state) => state.bucketSize);
   const setBucketSize = useTimestampPollingStore(
     (state) => state.setBucketSize
   );
@@ -233,28 +232,31 @@ export default function PlotlyTimeline({
       const selectedTimeline = data.points[0].curveNumber;
       const commitId = getCommitIdBasedForMapIndex(selectedTimeline);
 
-      const highlightedMarkerColor =
-        getHighlightedMarkerColorForCommitId(commitId);
-
       const timestampId = data.points[0].data.timestampId[pn];
 
-      if (
-        selectedCommitTimestampsMap.current.get(commitId)?.length ===
-        selectionCount.current
-      ) {
-        removeAllSelections(commitId);
+      let selectedTimestampsForCommit = [
+        ...(selectedCommitTimestampsMap.current.get(commitId) || []),
+      ];
+
+      const isAlreadySelected = selectedTimestampsForCommit.some(
+        (ts) => ts.epochNano === timestampId
+      );
+
+      if (isAlreadySelected) {
+        selectedTimestampsForCommit = selectedTimestampsForCommit.filter(
+          (ts) => ts.epochNano !== timestampId
+        );
+      } else {
+        if (selectedTimestampsForCommit.length === MAX_TIMESTAMP_SELECTION) {
+          selectedTimestampsForCommit.shift();
+        }
+        const markerStatesForCommit =
+          markerStateMap.current.get(commitId) || {};
+        selectedTimestampsForCommit.push(
+          markerStatesForCommit[timestampId].emberModel
+        );
       }
 
-      const markerStatesForCommit = markerStateMap.current.get(commitId) || {};
-      markerStatesForCommit[timestampId].color = highlightedMarkerColor;
-      markerStatesForCommit[timestampId].size = highlightedMarkerSize.current;
-      markerStateMap.current.set(commitId, markerStatesForCommit); // important
-
-      const selectedTimestampsForCommit =
-        selectedCommitTimestampsMap.current.get(commitId) || [];
-      selectedTimestampsForCommit.push(
-        markerStatesForCommit[timestampId].emberModel
-      );
       selectedCommitTimestampsMap.current.set(
         commitId,
         selectedTimestampsForCommit
@@ -317,18 +319,49 @@ export default function PlotlyTimeline({
           markerStates[tsId] = {
             color: defaultColor,
             size: defaultMarkerSize.current,
+            text: '',
             emberModel: timestamp,
           };
+        } else {
+          const isDebugTs = debugSnapshots?.some(
+            (ds) => ds.timestamp.epochNano === timestamp.epochNano
+          );
+          const defaultColor = isDebugTs
+            ? debugSnapshotMarkerColor.current
+            : defaultMarkerColor.current;
+
+          markerStates[tsId].color = defaultColor;
+          markerStates[tsId].size = defaultMarkerSize.current;
+          markerStates[tsId].text = '';
         }
       }
 
       // 2. highlight selected timestamps
-      for (const selectedTimestamp of timelineDataForCommit.selectedTimestamps) {
-        const tsId = selectedTimestamp.epochNano;
-        const state = markerStates[tsId];
-        if (state) {
-          state.color = timelineDataForCommit.highlightedMarkerColor;
-          state.size = highlightedMarkerSize.current;
+      timelineDataForCommit.selectedTimestamps.forEach(
+        (selectedTimestamp, index) => {
+          const tsId = selectedTimestamp.epochNano;
+          const state = markerStates[tsId];
+          if (state) {
+            state.color = timelineDataForCommit.highlightedMarkerColor;
+            state.text = (index + 1).toString();
+            state.size = highlightedMarkerSize.current;
+          }
+        }
+      );
+
+      // 3. If NO selection, show newest as default
+      if (timelineDataForCommit.selectedTimestamps.length === 0) {
+        const newestTimestamp =
+          timelineDataForCommit.timestamps[
+            timelineDataForCommit.timestamps.length - 1
+          ];
+        if (newestTimestamp) {
+          const state = markerStates[newestTimestamp.epochNano];
+          if (state) {
+            state.color = defaultMarkerColor.current;
+            state.text = '';
+            state.size = highlightedMarkerSize.current;
+          }
         }
       }
       markerStateMap.current.set(commitId, markerStates);
@@ -496,7 +529,7 @@ export default function PlotlyTimeline({
   const applyBucketSize = () => {
     setBucketSize(localBucketSize);
     restartPolling();
-  }
+  };
 
   const setMaxRequestFilter = (event: any) => {
     const maxRequestInput = event.target.value;
@@ -607,6 +640,7 @@ export default function PlotlyTimeline({
 
     const colors: string[] = [];
     const sizes: number[] = [];
+    const texts: string[] = [];
 
     const x: (string | null)[] = [];
     const y: (number | null)[] = [];
@@ -689,17 +723,29 @@ export default function PlotlyTimeline({
 
       if (addCurrentTimestampToDataObject) {
         if (!markerState) {
-          // Should not happen
-          // console.warn("Missing markerState for timestamp", commitId, timestampId);
+          console.warn(
+            'Missing markerState for timestamp',
+            commitId,
+            timestampId
+          );
           continue;
         }
         colors.push(markerState.color);
         sizes.push(markerState.size);
+        texts.push(markerState.text);
         timestampIds.push(timestampId);
       }
     }
     const updatedPlotlyDataObject = {
-      ...getPlotlyDataObject(x, y, colors, sizes, timestampIds, commitId),
+      ...getPlotlyDataObject(
+        x,
+        y,
+        colors,
+        sizes,
+        texts,
+        timestampIds,
+        commitId
+      ),
       ...{ shapes: shapes },
     };
 
@@ -711,6 +757,7 @@ export default function PlotlyTimeline({
     requests: (number | null)[],
     colors: string[],
     sizes: number[],
+    texts: string[],
     timestampIds: number[],
     commit: string
   ) => {
@@ -720,9 +767,18 @@ export default function PlotlyTimeline({
         align: 'left',
       },
       marker: { color: colors, size: sizes },
-      mode: 'lines+markers',
+      mode: 'lines+markers+text',
       connectgaps: false,
-      text: hoverText(dates, requests, commit),
+      text: texts,
+      texttemplate: '%{text}',
+      cliponaxis: false,
+      hovertext: hoverText(dates, requests, commit),
+      textposition: 'middle center',
+      textfont: {
+        color: 'white',
+        size: 10,
+        family: 'Arial, sans-serif',
+      },
       timestampId: timestampIds,
       x: dates,
       y: requests,
@@ -733,26 +789,6 @@ export default function PlotlyTimeline({
   const resetHighlightInStateObjects = () => {
     selectedCommitTimestampsMap.current = new Map();
     markerStateMap.current = new Map();
-  };
-
-  const removeAllSelections = (commitId: string) => {
-    const selectedTimestamps =
-      selectedCommitTimestampsMap.current.get(commitId);
-
-    const markerState = markerStateMap.current.get(commitId);
-
-    if (markerState) {
-      selectedTimestamps?.forEach((timestamp) => {
-        markerState[timestamp.epochNano].color = debugSnapshots?.some(
-          (ds) => ds.timestamp.epochNano === timestamp.epochNano
-        )
-          ? debugSnapshotMarkerColor.current
-          : defaultMarkerColor.current;
-        markerState[timestamp.epochNano].size = defaultMarkerSize.current;
-      });
-    }
-
-    selectedCommitTimestampsMap.current.set(commitId, []);
   };
 
   const getPlotlyOptionsObject = () => {
@@ -814,7 +850,9 @@ export default function PlotlyTimeline({
               value={localBucketSize}
               className="form-control input-lg"
               placeholder="10000"
-              onChange={(e) => setLocalBucketSize(Number(e.target.value) || 10000)}
+              onChange={(e) =>
+                setLocalBucketSize(Number(e.target.value) || 10000)
+              }
             />
             <Button
               variant="primary"

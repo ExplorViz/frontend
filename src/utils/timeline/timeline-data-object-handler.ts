@@ -28,9 +28,6 @@ export default class TimelineDataObjectHandler {
 
   // @action
 
-  // timelineClicked is defined as an arrow function so that "this" remains bound to
-  // the TimelineDataObjectHandler instance. This prevents losing the context when
-  // the method is passed as a callback to the PlotlyTimeline component.
   timelineClicked = async (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => {
@@ -40,11 +37,18 @@ export default class TimelineDataObjectHandler {
     ] of commitToSelectedTimestampMap.entries()) {
       const timelineData = this.timelineDataObject.get(commitId);
 
-      if (
-        !timelineData ||
-        timelineData.selectedTimestamps.length == 0 ||
-        selectedTimestamps.length === timelineData.selectedTimestamps.length // Nothing
-      ) {
+      if (!timelineData) {
+        continue;
+      }
+
+      const isSameSelection =
+        selectedTimestamps.length === timelineData.selectedTimestamps.length &&
+        selectedTimestamps.every(
+          (ts, i) =>
+            ts.epochNano === timelineData.selectedTimestamps[i].epochNano
+        );
+
+      if (isSameSelection) {
         // No update for this timeline
         continue;
       } else {
@@ -83,7 +87,6 @@ export default class TimelineDataObjectHandler {
       this.createEmptyTimelineDataForCommitObj();
 
     timelineDataForCommit.timestamps = timestamps;
-    // reset, since it might be new
     this.setTimelineDataForCommit(timelineDataForCommit, commitId);
   }
 
@@ -119,10 +122,6 @@ export default class TimelineDataObjectHandler {
 
   // #region Helper functions
 
-  private getTimelineDataForCommit(commitId: string) {
-    return this.timelineDataObject.get(commitId);
-  }
-
   private createEmptyTimelineDataForCommitObj(): TimelineDataForCommit {
     return {
       timestamps: [],
@@ -141,20 +140,7 @@ export default class TimelineDataObjectHandler {
 
   // #endregion
 
-  // #region Reset functions
-
   resetState() {
     this.timelineDataObject = new Map();
   }
-
-  // #endregion
-
-  //triggerTimelineUpdate() {
-  // Calling this in each update function will multiple renderings,
-  // therefore we manually call it when the updated data object is ready
-  // Additionally, we can manually trigger this update after the gsap
-  // animation of the play/pause icon
-
-  // this.debug('triggerTimelineUpdate');
-  //}
 }

@@ -669,9 +669,7 @@ export default function Visualization() {
 
     // TODO: Refactor
     const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
-    commitToSelectedTimestampMap.set('cross-commit', [
-      { epochNano: landscape.timestamp, spanCount: 0 },
-    ]);
+    commitToSelectedTimestampMap.set('cross-commit', []);
     await renderingServiceTriggerRenderingForGivenTimestamp(
       commitToSelectedTimestampMap
     );
@@ -683,9 +681,7 @@ export default function Visualization() {
   }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> => {
     // TODO: Refactor
     const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
-    commitToSelectedTimestampMap.set('cross-commit', [
-      { epochNano: timestamp, spanCount: 0 },
-    ]);
+    commitToSelectedTimestampMap.set('cross-commit', []);
     renderingServiceTriggerRenderingForGivenTimestamp(
       commitToSelectedTimestampMap
     );
@@ -699,9 +695,7 @@ export default function Visualization() {
 
     // TODO: Refactor
     const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
-    commitToSelectedTimestampMap.set('cross-commit', [
-      { epochNano: timestamp, spanCount: 0 },
-    ]);
+    commitToSelectedTimestampMap.set('cross-commit', []);
     await loadLandscapeByTimestamp(timestamp);
     renderingServiceTriggerRenderingForGivenTimestamp(
       commitToSelectedTimestampMap

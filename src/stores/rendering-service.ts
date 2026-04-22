@@ -11,13 +11,15 @@ import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { convertStructureLandscapeFromFlat, FlatLandscape, getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  convertStructureLandscapeFromFlat,
+  FlatLandscape,
+  getAllIdsOfFlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
-import {
-  createEmptyStructureLandscapeData
-} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import { createEmptyStructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { create } from 'zustand';
 
@@ -68,9 +70,9 @@ interface RenderingServiceState {
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
   ) => void;
   _setEvolutionModeActiveAndHandleRendering: (
-      repositoryName: string,
-      repoNameToSelectedCommits: Map<string, SelectedCommit[]>
-    ) => Promise<void>;
+    repositoryName: string,
+    repoNameToSelectedCommits: Map<string, SelectedCommit[]>
+  ) => Promise<void>;
   _setRuntimeModeActive: () => void;
   _handleError: (e: any) => void;
   toggleVisualizationUpdating: () => void;
@@ -168,8 +170,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     ) => {
       set({
         _landscapeData: {
-          structureLandscapeData: !!structureData 
-            ? structureData 
+          structureLandscapeData: structureData
+            ? structureData
             : convertStructureLandscapeFromFlat(flatData), // TODO: Can be removed, when LandscapeData doesn't contain StructureLandscapeData anymore
           dynamicLandscapeData: dynamicData,
           flatLandscapeData: flatData,
@@ -226,7 +228,20 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       const commitToRuntimeLandscapeDataMap = new Map<string, LandscapeData>();
 
       for (const [commitId, timestamps] of commitToSelectedTimestampMap) {
-        const sortedTimestamps = [...timestamps].sort(
+        let timestampsToFetch = timestamps;
+        if (timestampsToFetch.length === 0) {
+          const timelineData =
+            get()._timelineDataObjectHandler?.timelineDataObject.get(commitId);
+          if (timelineData && timelineData.timestamps.length > 0) {
+            timestampsToFetch = [
+              timelineData.timestamps[timelineData.timestamps.length - 1],
+            ];
+          } else {
+            continue;
+          }
+        }
+
+        const sortedTimestamps = [...timestampsToFetch].sort(
           (a, b) => a.epochNano - b.epochNano
         );
 
@@ -244,7 +259,9 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           .loadLandscapeByTimestamp(timestampFrom, timestampTo);
 
         commitToRuntimeLandscapeDataMap.set(commitId, {
-          structureLandscapeData: convertStructureLandscapeFromFlat(latestFetchedFlatLandscapeData), // TODO: Remove after removing StructureLD from LandscapeData
+          structureLandscapeData: convertStructureLandscapeFromFlat(
+            latestFetchedFlatLandscapeData
+          ), // TODO: Remove after removing StructureLD from LandscapeData
           dynamicLandscapeData: latestFetchedDynamicLandscapeData,
           flatLandscapeData: latestFetchedFlatLandscapeData,
         });
@@ -258,10 +275,12 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       newLandscapeData: LandscapeData
     ): LandscapeData => {
       if (prevLandscapeData) {
-        const newFlatLandscapeData = 
-          newLandscapeData.flatLandscapeData ?? prevLandscapeData.flatLandscapeData;
+        const newFlatLandscapeData =
+          newLandscapeData.flatLandscapeData ??
+          prevLandscapeData.flatLandscapeData;
         return {
-          structureLandscapeData: convertStructureLandscapeFromFlat(newFlatLandscapeData),
+          structureLandscapeData:
+            convertStructureLandscapeFromFlat(newFlatLandscapeData),
           dynamicLandscapeData: combineDynamicLandscapeData(
             prevLandscapeData.dynamicLandscapeData,
             newLandscapeData.dynamicLandscapeData
@@ -290,14 +309,18 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     // private
     _requiresRerendering: (
       newFlatLandscapeData: FlatLandscape,
-      newDynamicLandscapeData: DynamicLandscapeData,
+      newDynamicLandscapeData: DynamicLandscapeData
     ) => {
       let requiresRerendering = false;
-      const latestFlatLandscapeIds = getAllIdsOfFlatLandscape(newFlatLandscapeData);
+      const latestFlatLandscapeIds =
+        getAllIdsOfFlatLandscape(newFlatLandscapeData);
 
       if (
         get()._landscapeData === null ||
-        !areArraysEqual(latestFlatLandscapeIds, get().previousFlatLandscapeIds) ||
+        !areArraysEqual(
+          latestFlatLandscapeIds,
+          get().previousFlatLandscapeIds
+        ) ||
         !areArraysEqual(
           newDynamicLandscapeData,
           get()._getCombineDynamicLandscapeData(
@@ -350,16 +373,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       await useEvolutionDataRepositoryStore
         .getState()
         .fetchAndStoreEvolutionDataForSelectedCommits(
-          repositoryName, 
-          repoNameToSelectedCommits.get(repositoryName) 
-          ?? []
+          repositoryName,
+          repoNameToSelectedCommits.get(repositoryName) ?? []
         );
 
       const selectedFlatLandscape = useEvolutionDataRepositoryStore
         .getState()
         .getRepoNameToFlatLandscapeMap()
         .get(repositoryName);
-        
+
       const flattenedSelectedCommits: SelectedCommit[] = Array.from(
         repoNameToSelectedCommits.values()
       ).flat();
@@ -382,37 +404,37 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
         // Remove timestamp and landscape data with commits that are not selected anymore
         let notSelectedCommitIds: string[] = Array.from(
-            get().currentRuntimeLandscapeData.keys()
-          ).flat();
+          get().currentRuntimeLandscapeData.keys()
+        ).flat();
 
-          notSelectedCommitIds = notSelectedCommitIds.filter(
-            (commitId1) =>
-              !flattenedSelectedCommits.some(
-                ({ commitId: id2 }) => id2 === commitId1
-              )
-          );
+        notSelectedCommitIds = notSelectedCommitIds.filter(
+          (commitId1) =>
+            !flattenedSelectedCommits.some(
+              ({ commitId: id2 }) => id2 === commitId1
+            )
+        );
 
-          for (const commitIdToBeRemoved of notSelectedCommitIds) {
-            const newCRLD = get().currentRuntimeLandscapeData;
-            const newTDOH = get()._timelineDataObjectHandler;
-            newCRLD.delete(commitIdToBeRemoved);
-            useTimestampRepositoryStore
-              .getState()
-              .commitToTimestampMap.delete(commitIdToBeRemoved);
-            newTDOH?.timelineDataObject.delete(commitIdToBeRemoved);
-            set({
-              currentRuntimeLandscapeData: newCRLD,
-              _timelineDataObjectHandler: newTDOH,
-            });
-          }
-
-          get().triggerRenderingForGivenLandscapeData(
-            selectedFlatLandscape,
-            combinedDynamicLandscapeData
-          );
+        for (const commitIdToBeRemoved of notSelectedCommitIds) {
+          const newCRLD = get().currentRuntimeLandscapeData;
+          const newTDOH = get()._timelineDataObjectHandler;
+          newCRLD.delete(commitIdToBeRemoved);
+          useTimestampRepositoryStore
+            .getState()
+            .commitToTimestampMap.delete(commitIdToBeRemoved);
+          newTDOH?.timelineDataObject.delete(commitIdToBeRemoved);
+          set({
+            currentRuntimeLandscapeData: newCRLD,
+            _timelineDataObjectHandler: newTDOH,
+          });
         }
 
-        useTimestampRepositoryStore
+        get().triggerRenderingForGivenLandscapeData(
+          selectedFlatLandscape,
+          combinedDynamicLandscapeData
+        );
+      }
+
+      useTimestampRepositoryStore
         .getState()
         .restartTimestampPollingAndVizUpdate(flattenedSelectedCommits);
     },
