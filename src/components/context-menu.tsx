@@ -8,6 +8,7 @@ import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/l
 import { useConfigurationStore } from 'explorviz-frontend/src/stores/configuration';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 export type ContextMenuItem = {
   title: string;
@@ -21,6 +22,9 @@ interface ContextMenuProps {
 export default function ContextMenu({ children }: ContextMenuProps) {
   const [visible, setVisible] = useState<boolean>(false);
   const [position, setPosition] = useState<Position2D | null>(null);
+  const closedDistrictIds = useVisualizationStore(
+    (state) => state.closedDistrictIds
+  );
 
   const mouseMoved = useRef<boolean>(false);
 
@@ -73,15 +77,13 @@ export default function ContextMenu({ children }: ContextMenuProps) {
   const menuItems: ContextMenuItem[] = [
     { title: 'Reset View', action: resetView },
     {
-      title: 'Open All Components',
+      title: closedDistrictIds.size > 0 ? 'Open All Districts' : 'Close All Districts',
       action: () => {
-        EntityManipulation.openAllDistrictsInLandscape();
-      },
-    },
-    {
-      title: 'Close All Components',
-      action: () => {
-        EntityManipulation.closeAllDistrictsInLandscape();
+        if (closedDistrictIds.size > 0) {
+          EntityManipulation.openAllDistrictsInLandscape();
+        } else {
+          EntityManipulation.closeAllDistrictsInLandscape();
+        }
       },
     },
     {

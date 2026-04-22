@@ -133,7 +133,10 @@ export function closeAllDistrictsInCity(city: City, sendMessage = true) {
   );
   closeDistricts(city.allContainedDistrictIds);
   hideDistricts(districtIdsToHide);
-  hideBuildings(city.allContainedBuildingIds);
+  const buildingIdsToHide = city.allContainedBuildingIds.filter(
+    (id) => !city.buildingIds.includes(id)
+  );
+  hideBuildings(buildingIdsToHide);
 
   if (sendMessage) {
     useMessageSenderStore
@@ -161,7 +164,11 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
   hideDistricts(
     Array.from(new Set(allDistrictIds).difference(new Set(topLevelDistrictIds)))
   );
-  hideBuildings(allBuildingIds);
+  const buildingIdsToHide = allBuildingIds.filter((id) => {
+    const building = useModelStore.getState().getBuilding(id);
+    return building?.parentDistrictId !== undefined;
+  });
+  hideBuildings(buildingIdsToHide);
 
   if (sendMessage) {
     useMessageSenderStore.getState().sendDistrictUpdate(allDistrictIds, false);
