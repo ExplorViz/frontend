@@ -566,7 +566,7 @@ export default function CanvasWrapper({
                       key={communication.id}
                       communicationModel={communication}
                       applicationElement={communication.sourceApp}
-                      layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                      layoutMap={layoutMap || applicationModels[0]?.boxLayoutMap}
                       applicationModels={applicationModels}
                     />
                   ))}
@@ -576,7 +576,7 @@ export default function CanvasWrapper({
                     key={communication.id}
                     communicationModel={communication}
                     applicationElement={communication.sourceApp}
-                    layoutMap={layoutMap || applicationModels[0].boxLayoutMap}
+                    layoutMap={layoutMap || applicationModels[0]?.boxLayoutMap}
                     applicationModels={applicationModels}
                   />
                 ))}

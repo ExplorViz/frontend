@@ -73,7 +73,6 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
@@ -83,51 +82,19 @@ import { useShallow } from 'zustand/react/shallow';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 import { convertToFlatLandscape } from '../utils/landscape-schemes/flat-landscape';
 
-const queryParams = [
-  'roomId',
-  'deviceId',
-  'sharedSnapshot',
-  'owner',
-  'createdAt',
-  'commit1',
-  'commit2',
-  'bottomBar',
-];
 
 export default function Visualization() {
   const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
   const navigate = useNavigate();
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // #region States
   const [commit1, setCommit1] = useState<string | undefined | null>(undefined);
   const [commit2, setCommit2] = useState<string | undefined | null>(undefined);
-  const [roomId, setRoomId] = useState<string | undefined | null>(undefined);
-  const [sharedSnapshot, setSharedSnapshot] = useState<
-    boolean | undefined | null
-  >(undefined);
-  const [owner, setOwner] = useState<string | undefined | null>(undefined);
-  const [createdAt, setCreatedAt] = useState<number | undefined | null>(
-    undefined
-  );
   const [userApiTokens, setUserApiTokens] = useState<ApiToken[]>([]);
-  const [showSettingsSidebar, setShowSettingsSidebar] =
-    useState<boolean>(false);
-  const [showToolsSiderbar, setShowToolsSiderbar] = useState<boolean>(false);
-  const [components, setComponents] = useState<string[]>([]);
-  const [componentsToolsSidebar, setComponentsToolsSidebar] = useState<
-    string[]
-  >([]);
-  const [isTimelineActive, setIsTimelineActive] = useState<boolean>(true);
-  const [landscapeData, setLandscapeData] = useState<LandscapeData | null>(
-    null
-  );
   const [visualizationPaused, setVisualizationPaused] =
     useState<boolean>(false);
-  const [timelineTimestamps, setTimelineTimestamps] = useState<Timestamp[]>([]);
-  const [highlightedMarkerColor, setHighlightedMarkerColor] =
-    useState<string>('blue');
   const [vrSupported, setVrSupported] = useState<boolean>(false);
   const [vrButtonText, setVrButtonText] = useState<string>('');
   const [timelineDataObjectHandler, setTimelineDataObjectHandler] =
@@ -847,7 +814,6 @@ export default function Visualization() {
     useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
     useCommitTreeStateStore.getState().resetSelectedCommits();
 
-    setRoomId(null);
     setVisualizationMode('browser');
 
     if (useWebSocketStore.getState().isWebSocketOpen()) {
@@ -922,8 +888,8 @@ export default function Visualization() {
         )}
 
         <BrowserRendering
-          components={components}
-          componentsToolsSidebar={componentsToolsSidebar}
+          components={[]}
+          componentsToolsSidebar={[]}
           id="browser-rendering"
           isDisplayed={true}
           landscapeData={renderingServiceLandscapeData}
