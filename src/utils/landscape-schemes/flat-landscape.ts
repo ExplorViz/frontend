@@ -54,7 +54,7 @@ export type District = FlatBaseModel & {
 
 export type Building = FlatBaseModel & {
   parentCityId: string;
-  parentDistrictId: string;
+  parentDistrictId?: string;
   language?: Language;
   classIds?: string[];
   functionIds?: string[];
@@ -95,8 +95,9 @@ export function isDistrict(x: any): x is District {
 export function isBuilding(x: any): x is Building {
   return (
     isObject(x) &&
-    Object.prototype.hasOwnProperty.call(x, 'parentDistrictId') &&
-    !Object.prototype.hasOwnProperty.call(x, 'districtIds')
+    Object.prototype.hasOwnProperty.call(x, 'parentCityId') &&
+    !Object.prototype.hasOwnProperty.call(x, 'districtIds') &&
+    !Object.prototype.hasOwnProperty.call(x, 'allContainedBuildingIds')
   );
 }
 
@@ -233,6 +234,69 @@ export function convertToFlatLandscape(
       for (const pkg of app.packages) {
         walkPackages(pkg, app, cityId, [app.name]);
       }
+
+      if (app.classes) {
+        for (const cls of app.classes) {
+          const buildingId = cls.id;
+
+          if (!buildings[buildingId]) {
+            buildings[buildingId] = {
+              id: buildingId,
+              name: cls.name,
+              fqn: cls.fqn,
+              originOfData: cls.originOfData,
+              language: (() => {
+                const lang = app.language.toUpperCase();
+                if (lang === 'JAVA') return 'JAVA';
+                if (lang === 'CPP' || lang === 'C++') return 'CPP';
+                if (lang === 'PYTHON') return 'PYTHON';
+                if (lang === 'JAVASCRIPT' || lang === 'JS') return 'JAVASCRIPT';
+                if (lang === 'TYPESCRIPT' || lang === 'TS') return 'TYPESCRIPT';
+                return 'LANGUAGE_UNSPECIFIED';
+              })(),
+              parentCityId: cityId,
+              classIds: [],
+              functionIds: [],
+              allContainedFunctionIds: [],
+              allContainedClassIds: [],
+              metrics: { numOfFunctions: { current: 0 } },
+            };
+
+            cities[cityId].buildingIds.push(buildingId);
+          }
+
+          cities[cityId].allContainedBuildingIds.push(buildingId);
+
+          if (!classes[cls.id]) {
+            classes[cls.id] = {
+              id: cls.id,
+              name: cls.name,
+              originOfData: cls.originOfData,
+              functionIds: [],
+              innerClassIds: [],
+              parentBuildingId: buildingId,
+            };
+          }
+
+          buildings[buildingId].classIds?.push(cls.id);
+
+          for (const method of cls.methods) {
+            const functionId = method.methodHash;
+
+            if (!functions[functionId]) {
+              functions[functionId] = {
+                id: functionId,
+                name: method.name,
+                originOfData: method.originOfData,
+                parentId: buildingId,
+                parentBuildingId: buildingId,
+              };
+            }
+
+            buildings[buildingId].functionIds?.push(functionId);
+          }
+        }
+      }
     }
   }
 
@@ -283,6 +347,15 @@ export function convertStructureLandscapeFromFlat(
         pkg.parent = undefined; // Root packages have no parent
         pkg.level = 0;
         app.packages.push(pkg);
+      }
+    });
+
+    city.buildingIds.forEach((buildingId) => {
+      const building = buildings[buildingId];
+      if (building) {
+        if (!app.classes) app.classes = [];
+        const cls = buildClass(building, functions);
+        app.classes.push(cls);
       }
     });
 

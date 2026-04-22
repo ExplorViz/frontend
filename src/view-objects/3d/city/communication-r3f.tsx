@@ -397,6 +397,9 @@ export default function CommunicationR3F({
     if (element && 'parentDistrictId' in element && element.parentDistrictId) {
       return useModelStore.getState().getComponent(element.parentDistrictId);
     }
+    if (element && 'parentCityId' in element && element.parentCityId) {
+      return useModelStore.getState().getCity(element.parentCityId);
+    }
     return undefined;
   }, []);
 

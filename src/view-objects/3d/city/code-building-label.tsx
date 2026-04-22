@@ -38,10 +38,16 @@ export default function CodeBuildingLabel({
       isBuildingVisible:
         !state.hiddenBuildingIds.has(buildingId) &&
         !state.removedDistrictIds.has(buildingId),
-      isParentHovered: state.hoveredEntityId === building?.parentDistrictId,
+      isParentHovered:
+        state.hoveredEntityId === building?.parentDistrictId ||
+        (building?.parentDistrictId === undefined &&
+          state.hoveredEntityId === building?.parentCityId),
       isBuildingHighlighted: state.highlightedEntityIds.has(buildingId),
       isParentHighlighted: state.highlightedEntityIds.has(
-        building?.parentDistrictId || ''
+        building?.parentDistrictId ||
+          (building?.parentDistrictId === undefined
+            ? building?.parentCityId || ''
+            : '')
       ),
     }))
   );

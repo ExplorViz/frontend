@@ -243,6 +243,15 @@ function populateCityGraph(
       removedDistrictIds
     );
   });
+
+  city.buildingIds.forEach((buildingId) => {
+    const building = landscape.buildings[buildingId];
+    if (!building) {
+      return;
+    }
+    const buildingNode = createBuildingNode(building);
+    cityGraph.children.push(buildingNode);
+  });
 }
 
 function populateDistrict(
@@ -256,27 +265,7 @@ function populateDistrict(
     if (!building) {
       return;
     }
-    const getMetricValue = (building: Building, metricKey: string): number => {
-      const metric = building.metrics?.[metricKey];
-      return metric?.current || 0;
-    };
-
-    const widthByMetric =
-      WIDTH_METRIC_MULTIPLIER *
-      metricMappingMultipliers[WIDTH_METRIC as MetricKey] *
-      getMetricValue(building, WIDTH_METRIC);
-
-    const depthByMetric =
-      DEPTH_METRIC_MULTIPLIER *
-      metricMappingMultipliers[DEPTH_METRIC as MetricKey] *
-      getMetricValue(building, DEPTH_METRIC);
-
-    const buildingNode = {
-      id: BUILDING_PREFIX + building.id,
-      children: [],
-      width: BUILDING_FOOTPRINT + widthByMetric,
-      height: BUILDING_FOOTPRINT + depthByMetric,
-    };
+    const buildingNode = createBuildingNode(building);
     districtGraphChildren.push(buildingNode);
   });
 
@@ -323,6 +312,30 @@ function populateWithDummyBuilding(packageGraphChildren: any[]) {
     height: BUILDING_FOOTPRINT,
   };
   packageGraphChildren.push(dummyClassNode);
+}
+
+function createBuildingNode(building: Building) {
+  const getMetricValue = (building: Building, metricKey: string): number => {
+    const metric = building.metrics?.[metricKey];
+    return metric?.current || 0;
+  };
+
+  const widthByMetric =
+    WIDTH_METRIC_MULTIPLIER *
+    metricMappingMultipliers[WIDTH_METRIC as MetricKey] *
+    getMetricValue(building, WIDTH_METRIC);
+
+  const depthByMetric =
+    DEPTH_METRIC_MULTIPLIER *
+    metricMappingMultipliers[DEPTH_METRIC as MetricKey] *
+    getMetricValue(building, DEPTH_METRIC);
+
+  return {
+    id: BUILDING_PREFIX + building.id,
+    children: [],
+    width: BUILDING_FOOTPRINT + widthByMetric,
+    height: BUILDING_FOOTPRINT + depthByMetric,
+  };
 }
 
 function addEdges(landscapeGraph: any, cities: City[]) {

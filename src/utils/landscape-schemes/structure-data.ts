@@ -70,6 +70,7 @@ export type Application = BaseModel &
     instanceId: string;
     parentId: string;
     packages: Package[];
+    classes?: Class[];
   };
 
 export type Node = BaseModel &
@@ -256,6 +257,16 @@ export function preProcessAndEnhanceStructureLandscape(
         addParentToClazzes(component);
       });
       createClassIds(app.packages);
+      if (app.classes) {
+        app.classes.forEach((clazz) => {
+          clazz.id = `${app.id}.class-${clazz.name}`;
+          clazz.fqn = `${app.name}.${clazz.name}`;
+          entitiesForIdHashing.add(clazz);
+          clazz.methods.forEach((method) => {
+            method.originOfData = typeOfAnalysis;
+          });
+        });
+      }
     });
   });
 

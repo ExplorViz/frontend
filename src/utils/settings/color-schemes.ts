@@ -8,7 +8,7 @@ export const defaultColors = {
   pythonBuildingColor: '#a7cffb',
   typescriptBuildingColor: '#a7cffb',
   otherBuildingColor: '#a7cffb',
-  buildingTextColor: '#ffffff', // white
+  buildingTextColor: '#000000', // black
   communicationArrowColor: '#000000', // black
   communicationColor: '#d6d48b', // light yellow
   communicationStartColor: '#00ff00', // green
