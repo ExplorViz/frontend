@@ -1,14 +1,20 @@
 import {
+  CheckIcon,
   CodeIcon,
   DesktopDownloadIcon,
   EyeIcon,
+  PencilIcon,
   PlusIcon,
-  TrashIcon
+  TrashIcon,
+  XIcon,
 } from '@primer/octicons-react';
 import AdditionalTokenInfo from 'explorviz-frontend/src/components/additional-token-info';
 import ShareLandscape from 'explorviz-frontend/src/components/share-landscape';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
+import {
+  LandscapeToken,
+  useLandscapeTokenStore,
+} from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import JSZip from 'jszip';
 import React, { useState } from 'react';
@@ -16,7 +22,7 @@ import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 interface TokenSelectionArgs {
   tokens: LandscapeToken[];
   openTokenCreationModal(): void;
-  openRepoAnalysisModal(): void;
+  openRepoAnalysisModal(token?: LandscapeToken): void;
   selectToken(token: LandscapeToken): void;
   deleteToken(tokenId: string, event: React.MouseEvent): Promise<void>;
   reload(): void;
@@ -33,6 +39,20 @@ export default function TokenSelection({
   const [sortProperty, setSortProperty] =
     useState<keyof LandscapeToken>('value');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [editingTokenValue, setEditingTokenValue] = useState<string | null>(
+    null
+  );
+  const [editAliasValue, setEditAliasValue] = useState<string>('');
+
+  const updateTokenAlias = useLandscapeTokenStore(
+    (state) => state.updateTokenAlias
+  );
+  const showSuccessToastMessage = useToastHandlerStore(
+    (state) => state.showSuccessToastMessage
+  );
+  const showErrorToastMessage = useToastHandlerStore(
+    (state) => state.showErrorToastMessage
+  );
 
   const user = useAuthStore((state) => state.user);
 
@@ -133,6 +153,30 @@ export default function TokenSelection({
     }
   };
 
+  const startEditing = (token: LandscapeToken, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setEditingTokenValue(token.value);
+    setEditAliasValue(token.alias);
+  };
+
+  const cancelEditing = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setEditingTokenValue(null);
+    setEditAliasValue('');
+  };
+
+  const saveAlias = async (token: LandscapeToken, event: React.MouseEvent) => {
+    event.stopPropagation();
+    try {
+      await updateTokenAlias(token.value, editAliasValue);
+      showSuccessToastMessage('Token alias updated successfully.');
+      setEditingTokenValue(null);
+      reload();
+    } catch (e) {
+      showErrorToastMessage('Failed to update token alias.');
+    }
+  };
+
   return (
     <table
       id="token-selection-table"
@@ -165,7 +209,35 @@ export default function TokenSelection({
               className="token-selection-row"
               onClick={() => selectToken(token)}
             >
-              <td data-label="Alias">{token.alias}</td>
+              <td data-label="Alias">
+                {editingTokenValue === token.value ? (
+                  <div className="d-flex gap-1 align-items-center">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      value={editAliasValue}
+                      onChange={(e) => setEditAliasValue(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <button
+                      className="button-svg-with-hover"
+                      type="button"
+                      onClick={(e) => saveAlias(token, e)}
+                    >
+                      <CheckIcon size="small" className="align-middle" />
+                    </button>
+                    <button
+                      className="button-svg-with-hover"
+                      type="button"
+                      onClick={(e) => cancelEditing(e)}
+                    >
+                      <XIcon size="small" className="align-middle" />
+                    </button>
+                  </div>
+                ) : (
+                  token.alias
+                )}
+              </td>
               <td className="token-timestamp-cell">
                 {new Date(token.created).toLocaleString()}
               </td>
@@ -186,23 +258,58 @@ export default function TokenSelection({
                     </OverlayTrigger>
                   </li>
                   <li>
+                    <OverlayTrigger
+                      placement="bottom"
+                      overlay={
+                        <Tooltip>Trigger Analysis for Landscape</Tooltip>
+                      }
+                    >
+                      <button
+                        className="button-svg-with-hover"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openRepoAnalysisModal(token);
+                        }}
+                      >
+                        <CodeIcon size="small" className="align-middle" />
+                      </button>
+                    </OverlayTrigger>
+                  </li>
+                  <li>
                     <AdditionalTokenInfo token={token} />
                   </li>
                   {user?.sub === token.ownerId && (
-                    <li>
-                      <OverlayTrigger
-                        placement="bottom"
-                        overlay={<Tooltip>Delete token permanently</Tooltip>}
-                      >
-                        <button
-                          className="button-svg-with-hover"
-                          type="button"
-                          onClick={(e) => deleteToken(token.value, e)}
+                    <>
+                      <li>
+                        <OverlayTrigger
+                          placement="bottom"
+                          overlay={<Tooltip>Edit token alias</Tooltip>}
                         >
-                          <TrashIcon size="small" className="align-middle" />
-                        </button>
-                      </OverlayTrigger>
-                    </li>
+                          <button
+                            className="button-svg-with-hover"
+                            type="button"
+                            onClick={(e) => startEditing(token, e)}
+                          >
+                            <PencilIcon size="small" className="align-middle" />
+                          </button>
+                        </OverlayTrigger>
+                      </li>
+                      <li>
+                        <OverlayTrigger
+                          placement="bottom"
+                          overlay={<Tooltip>Delete token permanently</Tooltip>}
+                        >
+                          <button
+                            className="button-svg-with-hover"
+                            type="button"
+                            onClick={(e) => deleteToken(token.value, e)}
+                          >
+                            <TrashIcon size="small" className="align-middle" />
+                          </button>
+                        </OverlayTrigger>
+                      </li>
+                    </>
                   )}
                   <li>
                     <OverlayTrigger
@@ -248,14 +355,6 @@ export default function TokenSelection({
                 onClick={openTokenCreationModal}
               >
                 <PlusIcon size="small" />
-              </Button>
-
-              <Button
-                variant="success"
-                className="align-self-center pt-2 px-3 success"
-                onClick={openRepoAnalysisModal}
-              >
-                <CodeIcon size="small" />
               </Button>
             </div>
           </td>

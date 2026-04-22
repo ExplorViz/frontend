@@ -16,6 +16,8 @@ interface LandscapeTokenState {
   _isValidToken: (token: unknown) => token is LandscapeToken;
   _isStringArray: (possibleArray: unknown) => possibleArray is string[];
   _isObject: (variable: unknown) => variable is object;
+  createToken: (alias: string) => Promise<LandscapeToken>;
+  updateTokenAlias: (tokenValue: string, alias: string) => Promise<void>;
 }
 
 export type LandscapeToken = {
@@ -135,6 +137,45 @@ export const useLandscapeTokenStore = create<LandscapeTokenState>(
 
     _isObject: (variable: unknown): variable is object => {
       return Object.prototype.toString.call(variable) === '[object Object]';
+    },
+    createToken: async (alias: string) => {
+      const userId = encodeURI(useAuthStore.getState().user?.sub || '');
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+
+      const response = await fetch(`${userService}/user/${userId}/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        },
+        body: JSON.stringify({ alias }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create landscape token');
+      }
+
+      const token = (await response.json()) as LandscapeToken;
+      return token;
+    },
+
+    updateTokenAlias: async (tokenValue: string, alias: string) => {
+      const response = await fetch(`${userService}/token/${tokenValue}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+        },
+        body: JSON.stringify({ alias }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          'Failed to update landscape token alias - Status' + response.status
+        );
+      }
     },
   })
 );

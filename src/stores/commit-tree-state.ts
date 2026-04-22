@@ -84,7 +84,7 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
         }
       }
 
-      set({ _selectedCommits: defaultSelectedCommits });
+      get().setSelectedCommits(defaultSelectedCommits);
       set({ _currentSelectedRepositoryName: commit1RepoAndBranch.repoName });
       return true;
     },
@@ -97,8 +97,14 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     setSelectedCommits: (newSelectedCommits: Map<string, SelectedCommit[]>) => {
       set({ _selectedCommits: newSelectedCommits });
-      // Show everything by default
-      if (newSelectedCommits.size === 0) {
+
+      const totalSelectedCount = Array.from(newSelectedCommits.values()).reduce(
+        (acc, curr) => acc + curr.length,
+        0
+      );
+
+      // Show everything by default or when one commit is selected
+      if (totalSelectedCount <= 1) {
         useVisibilityServiceStore
           .getState()
           .applyEvolutionModeRenderingConfiguration({
@@ -106,19 +112,20 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
             renderStatic: true,
             renderOnlyDifferences: false,
           });
+      } else if (totalSelectedCount === 2) {
+        // Show only differences when two commits are selected
+        useVisibilityServiceStore
+          .getState()
+          .applyEvolutionModeRenderingConfiguration({
+            renderDynamic: false,
+            renderStatic: true,
+            renderOnlyDifferences: true,
+          });
       }
     },
 
     resetSelectedCommits: () => {
-      set({ _selectedCommits: new Map() });
-      // Show everything by default
-      useVisibilityServiceStore
-        .getState()
-        .applyEvolutionModeRenderingConfiguration({
-          renderDynamic: true,
-          renderStatic: true,
-          renderOnlyDifferences: false,
-        });
+      get().setSelectedCommits(new Map());
     },
 
     getCloneOfRepoNameAndBranchNameToColorMap: () => {

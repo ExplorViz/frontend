@@ -136,11 +136,11 @@ export default function Visualization() {
     (state) => state.timelineUpdateVersion
   );
   const [isBottomBarMaximized, setIsBottomBarMaximized] =
-    useState<boolean>(false);
-  const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
     useState<boolean>(true);
-  const [isCommitTreeSelected, setIsCommitTreeSelected] =
+  const [isRuntimeTimelineSelected, setIsRuntimeTimelineSelected] =
     useState<boolean>(false);
+  const [isCommitTreeSelected, setIsCommitTreeSelected] =
+    useState<boolean>(true);
   const [isCommitTreeRefreshing, setIsCommitTreeRefreshing] =
     useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(10);
@@ -850,11 +850,8 @@ export default function Visualization() {
     useRenderingServiceStore.getState().resetAllRenderingStates();
     useModelStore.getState().clearAll();
 
-    // Always show runtime first
-    setIsRuntimeTimelineSelected(true);
-    setIsCommitTreeSelected(false);
-
     useEvolutionDataRepositoryStore.getState().resetAllEvolutionData();
+    useCommitTreeStateStore.getState().resetSelectedCommits();
 
     setRoomId(null);
     setVisualizationMode('browser');

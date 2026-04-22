@@ -7,7 +7,6 @@ import {
 
 export const metricMappingMultipliers = {
   [SelectedBuildingMetric.None]: 1,
-  [SelectedBuildingMetric.Method]: 10,
   [SelectedBuildingMetric.loc]: 1,
   [SelectedBuildingMetric.sloc]: 1,
   [SelectedBuildingMetric.cloc]: 1,

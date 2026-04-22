@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Form, Spinner } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
-import { generateRandomToken } from './generateRandomToken';
 
 const codeAgentUrl =
   import.meta.env.VITE_CODE_AGENT_URL || 'http://localhost:8078';
@@ -54,7 +53,7 @@ interface AnalysisRequest {
 }
 
 type Props = {
-  assignRandomToken?: boolean;
+  landscapeToken?: string;
   onSubmitSuccess?: (landscapeToken: string) => void;
 };
 
@@ -77,7 +76,7 @@ const getInitialFormData = (landscapeToken: string): AnalysisRequest => ({
 });
 
 export default function CodeAnalysisTriggerForm({
-  assignRandomToken,
+  landscapeToken,
   onSubmitSuccess,
 }: Props) {
   const [searchParams] = useSearchParams();
@@ -91,12 +90,8 @@ export default function CodeAnalysisTriggerForm({
   >([]);
 
   const landscapeTokenValue = useMemo(() => {
-    if (assignRandomToken) {
-      return generateRandomToken(16);
-    }
-
-    return searchParams.get('landscapeToken') || '';
-  }, [searchParams, assignRandomToken]);
+    return landscapeToken || searchParams.get('landscapeToken') || '';
+  }, [searchParams, landscapeToken]);
 
   console.log({
     landscapeTokenValue,
@@ -141,13 +136,6 @@ export default function CodeAnalysisTriggerForm({
       useToastHandlerStore
         .getState()
         .showErrorToastMessage('Please provide a local repository path');
-      return;
-    }
-
-    if (!formData.applicationName) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Please provide an application name');
       return;
     }
 
@@ -265,14 +253,12 @@ export default function CodeAnalysisTriggerForm({
             onChange={(e) =>
               handleInputChange('landscapeToken', e.target.value)
             }
-            readOnly={!!landscapeTokenValue && !assignRandomToken}
+            readOnly={!!landscapeTokenValue}
           />
           <Form.Text className="text-muted">
-            {(() => {
-              if (assignRandomToken) return 'Randomly assigned';
-              if (landscapeTokenValue) return 'Using current landscape token';
-              else return 'No landscape token selected';
-            })()}
+            {landscapeTokenValue
+              ? 'Using current landscape token'
+              : 'No landscape token selected'}
           </Form.Text>
         </Form.Group>
 
@@ -301,7 +287,7 @@ export default function CodeAnalysisTriggerForm({
         )}
 
         <Form.Group className="mb-3">
-          <Form.Label>Application Name *</Form.Label>
+          <Form.Label>Application Name</Form.Label>
           <Form.Control
             type="text"
             placeholder="my-application"

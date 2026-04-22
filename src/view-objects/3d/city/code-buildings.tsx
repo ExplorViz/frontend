@@ -246,12 +246,14 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     }
   }, [selectedGeometryType]);
 
-  const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
-    useShallow((state) => ({
-      heatmapActive: state.isActive(),
-      selectedBuildingMetric: state.getSelectedBuildingMetric(),
-    }))
-  );
+  const { heatmapActive, selectedBuildingMetric, selectedGradient } =
+    useHeatmapStore(
+      useShallow((state) => ({
+        heatmapActive: state.isActive(),
+        selectedBuildingMetric: state.getSelectedBuildingMetric(),
+        selectedGradient: state.selectedGradient,
+      }))
+    );
 
   const { addPopup } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -263,10 +265,10 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
   const getBuildingHeight = useCallback(
     (building: Building) => {
-      const getMetricValue = (building: Building, metricKey: string): number => {
-        if (metricKey === 'Function Count') {
-          return building.functionIds?.length || 0;
-        }
+      const getMetricValue = (
+        building: Building,
+        metricKey: string
+      ): number => {
         const metric = building.metrics?.[metricKey];
         return metric?.current || 0;
       };
@@ -328,6 +330,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     [
       heatmapActive,
       selectedBuildingMetric,
+      selectedGradient,
       evoConfig.renderOnlyDifferences,
       addedBuildingColor,
       removedBuildingColor,

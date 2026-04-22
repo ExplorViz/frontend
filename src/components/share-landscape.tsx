@@ -8,7 +8,7 @@ import {
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { LandscapeToken } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { OverlayTrigger, Popover, Tooltip } from 'react-bootstrap';
 
 interface ShareLandscapeArgs {
@@ -20,11 +20,9 @@ const userService = import.meta.env.VITE_USER_SERV_URL;
 
 export default function ShareLandscape(args: ShareLandscapeArgs) {
   const user = useAuthStore((state) => state.user);
-  const focusedClicks = useRef<number>(0);
-
   const [username, setUserName] = useState<string>('');
 
-  const grantAccess = async (event: React.FormEvent) => {
+  const grantAccess = async (event: React.MouseEvent) => {
     event.stopPropagation();
     try {
       await sendModifyAccess(args.token.value, username, 'grant');
@@ -35,12 +33,12 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
         .showSuccessToastMessage(
           `Access of ${username} granted for token ${args.token.value}`
         );
-    } catch (e) {
+    } catch (e: any) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   };
 
-  const revokeAccess = async (userId: string, event: React.FormEvent) => {
+  const revokeAccess = async (userId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     try {
       await sendModifyAccess(args.token.value, userId, 'revoke');
@@ -50,12 +48,12 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
         .showSuccessToastMessage(
           `Access of ${userId} revoked for token ${args.token.value}`
         );
-    } catch (e) {
+    } catch (e: any) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   };
 
-  const cloneToken = async (userId: string, event: React.FormEvent) => {
+  const cloneToken = async (userId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     try {
       await sendModifyAccess(args.token.value, userId, 'clone');
@@ -63,21 +61,12 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
       useToastHandlerStore
         .getState()
         .showSuccessToastMessage(`Cloned token ${args.token.value}`);
-    } catch (e) {
+    } catch (e: any) {
       useToastHandlerStore.getState().showErrorToastMessage(e.message);
     }
   };
 
-  const hidePopover = (event: React.FormEvent) => {
-    // Clicks enable us to differentiate between opened and closed popovers
-    if (focusedClicks.current % 2 === 1) {
-      event.target?.dispatchEvent(new Event('click'));
-    }
-    focusedClicks.current = 0;
-  };
-
-  const onClick = (event: React.FormEvent) => {
-    focusedClicks.current = focusedClicks.current + 1;
+  const handleShareClick = (event: React.MouseEvent) => {
     // Prevent click on table row which would trigger to open the visualization
     event.stopPropagation();
   };
@@ -113,7 +102,11 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
   };
 
   const popover = (
-    <Popover title="Manage Access">
+    <Popover
+      id="share-landscape-popover"
+      title="Manage Access"
+      onClick={(e) => e.stopPropagation()}
+    >
       <Popover.Header>Manage Access</Popover.Header>
       <Popover.Body>
         <table className="table table-striped" style={{ width: '100%' }}>
@@ -152,8 +145,11 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
                     <label htmlFor="username">Enter username</label>
                     <input
                       id="username"
+                      className="form-control"
                       value={username}
                       placeholder="github|12345"
+                      onChange={(e) => setUserName(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
                     />
                   </td>
                   <td className="col-2">
@@ -237,7 +233,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
   );
 
   return (
-    <div id="colorPresets" className="dropdown">
+    <div id="shareLandscape" onClick={(e) => e.stopPropagation()}>
       <OverlayTrigger
         trigger={['hover', 'focus']}
         placement="bottom"
@@ -253,8 +249,7 @@ export default function ShareLandscape(args: ShareLandscapeArgs) {
             <button
               className="button-svg-with-hover"
               type="button"
-              onBlur={(event) => hidePopover(event)}
-              onClick={(event) => onClick(event)}
+              onClick={(event) => handleShareClick(event)}
             >
               <ShareAndroidIcon size="small" className="octicon align-middle" />
             </button>

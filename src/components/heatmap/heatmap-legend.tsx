@@ -64,7 +64,7 @@ export default function HeatmapLegend() {
 
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, [[], selectedGradient]);
+  }, [selectedGradient]);
 
   return (
     <div id="heatmap-legend-container" className="d-flex flex-column p-2">

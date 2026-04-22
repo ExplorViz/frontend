@@ -9,12 +9,20 @@ import {
   XR,
   XROrigin,
 } from '@react-three/xr';
+import { CollaborationKickRPC } from 'explorviz-frontend/src/components/collaboration/collaboration-kick-RPC';
+import { CollaborationAnnotationSync } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-annotation-sync';
 import {
   default as CollaborationCameraSync,
   default as SpectateCameraController,
 } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-camera-sync';
 import CollaborationComponentSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-component-sync';
+import CollaborationHighlightingSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-highlighting-sync';
 import CollaborationLandscapeSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-landscape-sync';
+import CollaborationPingSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-ping-sync';
+import { CollaborationPopupSync } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-popup-sync';
+import ImmersiveStateSync from 'explorviz-frontend/src/components/collaboration/sync/immersive-state-sync';
+import LocalHighlightSync from 'explorviz-frontend/src/components/collaboration/sync/local-highlight-sync';
+import SpectateStatusSync from 'explorviz-frontend/src/components/collaboration/sync/spectate-status-sync';
 import PlayroomWrapper from 'explorviz-frontend/src/components/collaboration/visualization/rendering/playroom-wrapper';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
@@ -60,14 +68,7 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
-import { CollaborationKickRPC } from '../../collaboration/collaboration-kick-RPC';
-import { CollaborationAnnotationSync } from '../../collaboration/sync/collaboration-annotation-sync';
-import CollaborationHighlightingSync from '../../collaboration/sync/collaboration-highlighting-sync';
-import CollaborationPingSync from '../../collaboration/sync/collaboration-ping-sync';
-import { CollaborationPopupSync } from '../../collaboration/sync/collaboration-popup-sync';
-import ImmersiveStateSync from '../../collaboration/sync/immersive-state-sync';
-import LocalHighlightSync from '../../collaboration/sync/local-highlight-sync';
-import SpectateStatusSync from '../../collaboration/sync/spectate-status-sync';
+import HotkeyHandler from './hotkey-handler';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
 
@@ -450,37 +451,13 @@ export default function CanvasWrapper({
     };
   }, [resetVisualizationState]);
 
-  // Keyboard handler for magnifier toggle
-  const handleKeyDown = (event: KeyboardEvent) => {
-    // Ignore if typing in an input field
-    if (
-      event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement
-    ) {
-      return;
-    }
-
-    // Toggle magnifier on M key press
-    if (event.key === 'M' || event.key === 'm') {
-      useUserSettingsStore
-        .getState()
-        .updateSetting('isMagnifierActive', !isMagnifierActive);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isMagnifierActive]);
-
   const minimapEnabled = useUserSettingsStore(
     (state) => state.visualizationSettings.isMinimapEnabled.value
   );
 
   return (
     <>
+      <HotkeyHandler />
       <PlayroomWrapper>
         <Canvas
           id="three-js-canvas"

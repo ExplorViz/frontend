@@ -17,7 +17,7 @@ export default function AdditionalTokenInfo({
   };
 
   const popover = (
-    <Popover title={token.alias}>
+    <Popover title={token.alias} onClick={(e) => e.stopPropagation()}>
       <Popover.Header>{token.alias}</Popover.Header>
       <Popover.Body>
         <table className="token-info-table">
