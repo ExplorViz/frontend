@@ -10,7 +10,7 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
-import { RPC } from 'playroomkit';
+import { me, RPC } from 'playroomkit';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { AnimationMixer } from 'three';
@@ -163,7 +163,7 @@ function _logPingToChat(
 
   useChatStore
     .getState()
-    .sendChatMessage(pingMsg, true, 'ping', [
+    .sendChatMessage(me().id, pingMsg, true, 'ping', [
       modelId ?? '',
       posData,
       durationMs,

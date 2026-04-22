@@ -74,23 +74,33 @@ export const useChatStore = create<ChatState>((set, get) => {
       isChatRpcRegistered = true;
 
       RPC.register('chatMessage', async (data: any) => {
-
         // Check if a toast message have to be sent
         if (!data.isEvent && data.userId != me().id) {
-          useToastHandlerStore.getState().showInfoToastMessage(`Message received: ` + data.msg);
+          useToastHandlerStore
+            .getState()
+            .showInfoToastMessage(`Message received: ` + data.msg);
         }
 
         // Add themessage toi the interface
         get().addChatMessage(
-          data.msgId, data.userId, data.msg, data.userName, data.timestamp,
-          data.isEvent, data.eventType, data.eventData, data.color
+          data.msgId,
+          data.userId,
+          data.msg,
+          data.userName,
+          data.timestamp,
+          data.isEvent,
+          data.eventType,
+          data.eventData,
+          data.color
         );
       });
 
       // Register a function to listen for delete messages
       RPC.register('deleteMessage', async (messageIds: any) => {
         get().removeChatMessage(messageIds, true);
-        useToastHandlerStore.getState().showErrorToastMessage('Message(s) deleted');
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('Message(s) deleted');
       });
     },
 
@@ -108,7 +118,9 @@ export const useChatStore = create<ChatState>((set, get) => {
       // Check if the current user is muted
       const mutedUsers = getState('globalMutedUsers') || [];
       if (mutedUsers.includes(userId) && !isEvent) {
-        useToastHandlerStore.getState().showErrorToastMessage('You have been muted by the host.');
+        useToastHandlerStore
+          .getState()
+          .showErrorToastMessage('You have been muted by the host.');
         return;
       }
       // Create a uniqze ID for te message
@@ -122,12 +134,34 @@ export const useChatStore = create<ChatState>((set, get) => {
       const timestamp = get()._getTime();
 
       // Construct payload for playroomkit and send it
-      const payload = { msgId: newId, userId, msg, userName, color, timestamp, isEvent, eventType, eventData };
+      const payload = {
+        msgId: newId,
+        userId,
+        msg,
+        userName,
+        color,
+        timestamp,
+        isEvent,
+        eventType,
+        eventData,
+      };
+
+      // Add the message locally
+      get().addChatMessage(
+        newId,
+        userId,
+        msg,
+        userName,
+        timestamp,
+        isEvent,
+        eventType,
+        eventData,
+        color
+      );
 
       try {
-        RPC.call('chatMessage', payload, RPC.Mode.ALL);   // Message is send to all, so the current user does not need to actibely add the message here
-      } catch (e) { }
-
+        RPC.call('chatMessage', payload, RPC.Mode.OTHERS); // Message is sent to others, as the current user already added it locally
+      } catch (e) {}
     },
 
     addChatMessage: (
@@ -141,17 +175,32 @@ export const useChatStore = create<ChatState>((set, get) => {
       eventData: any[] = [],
       colorHex?: number
     ) => {
-      const userColor = new THREE.Color(colorHex !== undefined ? colorHex : 0x888888);
+      // Avoid duplicate messages
+      if (get().chatMessages.some((m) => m.msgId === msgId)) {
+        return;
+      }
+
+      const userColor = new THREE.Color(
+        colorHex !== undefined ? colorHex : 0x888888
+      );
       const timestamp = time === '' ? get()._getTime() : time;
 
       // Check if the message is from yourself
       if (userId == me().id) {
-        username = "You";
+        username = 'You';
       }
 
       // Create a message object
       const chatMessage: ChatMessageInterface = {
-        msgId, userId, userName: username, userColor, timestamp, message: msg, isEvent, eventType, eventData,
+        msgId,
+        userId,
+        userName: username,
+        userColor,
+        timestamp,
+        message: msg,
+        isEvent,
+        eventType,
+        eventData,
       };
 
       // Add the message
@@ -169,7 +218,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       if (!received) {
         try {
           RPC.call('deleteMessage', messageId, RPC.Mode.OTHERS);
-        } catch (e) { }
+        } catch (e) {}
       } else {
         set({ deletedMessage: true });
         let newDeletedMessageIds = get().deletedMessageIds;
@@ -184,7 +233,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       );
       return messages.length > 0;
     },
-
 
     filterChat: (filterMode: string, filterValue: string): void => {
       get()._applyCurrentFilter(filterMode, filterValue);

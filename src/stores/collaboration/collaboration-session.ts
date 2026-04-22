@@ -238,6 +238,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       useChatStore
         .getState()
         .sendChatMessage(
+          self.id,
           `${self.name}(${self.id}) connected to room ${get().currentRoomId || 'unknown'}`,
           true,
           'connection_event',
@@ -341,6 +342,7 @@ export const useCollaborationSessionStore = create<CollaborationSessionState>(
       useChatStore
         .getState()
         .sendChatMessage(
+          useLocalUserStore.getState().userId,
           `${useLocalUserStore.getState().userName}(${useLocalUserStore.getState().userId}) disconnected from room ${roomId}`,
           true,
           'disconnection_event',
