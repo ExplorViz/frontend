@@ -75,7 +75,8 @@ export const useChatStore = create<ChatState>((set, get) => {
 
       RPC.register('chatMessage', async (data: any) => {
         // Check if a toast message have to be sent
-        if (!data.isEvent && data.userId != me().id) {
+        const myPlayer = me();
+        if (!data.isEvent && myPlayer && data.userId != myPlayer.id) {
           useToastHandlerStore
             .getState()
             .showInfoToastMessage(`Message received: ` + data.msg);
@@ -128,8 +129,9 @@ export const useChatStore = create<ChatState>((set, get) => {
       set({ msgId: newId });
 
       // Get the current users ID and color
-      const userName = me().getProfile().name;
-      const color = me().getProfile().color.hex;
+      const myPlayer = me();
+      const userName = myPlayer ? myPlayer.getProfile().name : 'You';
+      const color = myPlayer ? myPlayer.getProfile().color.hex : 0xffffff;
       // Get the current time
       const timestamp = get()._getTime();
 
@@ -186,7 +188,8 @@ export const useChatStore = create<ChatState>((set, get) => {
       const timestamp = time === '' ? get()._getTime() : time;
 
       // Check if the message is from yourself
-      if (userId == me().id) {
+      const myPlayer = me();
+      if (myPlayer && userId == myPlayer.id) {
         username = 'You';
       }
 

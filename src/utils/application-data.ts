@@ -66,14 +66,22 @@ export default class ApplicationData {
     return newPackages;
   }
 
-  getClasses(
-    packages = this.application.packages,
-    classes: Class[] = []
-  ): Class[] {
-    packages.forEach((appPackage) => {
-      classes = classes.concat(appPackage.classes);
-      classes = this.getClasses(appPackage.subPackages, classes);
-    });
+  getClasses(): Class[] {
+    let classes: Class[] = [];
+
+    // Add classes that are directly attached to the application (flat structure)
+    if (this.application.classes) {
+      classes = classes.concat(this.application.classes);
+    }
+
+    const collectClasses = (packages: Package[]) => {
+      packages.forEach((appPackage) => {
+        classes = classes.concat(appPackage.classes);
+        collectClasses(appPackage.subPackages);
+      });
+    };
+
+    collectClasses(this.application.packages);
 
     return classes;
   }

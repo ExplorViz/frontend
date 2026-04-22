@@ -161,9 +161,12 @@ function _logPingToChat(
     pingMsg = `📍 Pinged position ${truncate(posStr)}`;
   }
 
+  const myPlayer = me();
+  if (!myPlayer) return;
+
   useChatStore
     .getState()
-    .sendChatMessage(me().id, pingMsg, true, 'ping', [
+    .sendChatMessage(myPlayer.id, pingMsg, true, 'ping', [
       modelId ?? '',
       posData,
       durationMs,
