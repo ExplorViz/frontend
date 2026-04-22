@@ -105,6 +105,14 @@ export default function PlotlyCommitTree({
         const pn = data.points[0].pointNumber;
         let colors = data.points[0].fullData.marker.color;
         let sizes = data.points[0].fullData.marker.size;
+
+        if (!Array.isArray(colors)) {
+          colors = Array(data.points[0].data.x.length).fill(colors);
+        }
+        if (!Array.isArray(sizes)) {
+          sizes = Array(data.points[0].data.x.length).fill(sizes);
+        }
+
         const branchName = data.points[0].data.name;
 
         const commitId = getCommitId(branchName, pn);
@@ -173,7 +181,7 @@ export default function PlotlyCommitTree({
               );
               sizes = Array(branch.commits.length).fill(COMMIT_UNSELECTED_SIZE);
               const update = { marker: { color: colors, size: sizes } };
-              Plotly.restyle(plotlyDiv, update, curveNumber);
+              Plotly.restyle(plotlyDiv, update, [curveNumber]);
             }
           }
         }
@@ -249,7 +257,12 @@ export default function PlotlyCommitTree({
     ) {
       updatePlotlyCommitTree();
     }
-  }, [selectedRepoName, _repoNameCommitTreeMap, repoNameCommitTreeMap]);
+  }, [
+    selectedRepoName,
+    _repoNameCommitTreeMap,
+    repoNameCommitTreeMap,
+    selectedCommits,
+  ]);
 
   // #endregion useEffect & useRef
 

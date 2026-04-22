@@ -27,10 +27,11 @@ export default function Landscapes() {
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [tokenCreationModalIsOpen, setTokenCreationModalIsOpen] =
     useState<boolean>(false);
-    const [repoAnalysisModalIsOpen, setRepoAnalysisModalIsOpen] = 
+  const [repoAnalysisModalIsOpen, setRepoAnalysisModalIsOpen] =
     useState<boolean>(false);
-  const [selectedAnalysisToken, setSelectedAnalysisToken] = 
-    useState<LandscapeToken | undefined>(undefined);
+  const [selectedAnalysisToken, setSelectedAnalysisToken] = useState<
+    LandscapeToken | undefined
+  >(undefined);
 
   const [activeKey, setActiveKey] = useState<string>('landscapes');
 

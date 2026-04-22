@@ -139,13 +139,6 @@ export default function CodeAnalysisTriggerForm({
       return;
     }
 
-    if (!formData.applicationName) {
-      useToastHandlerStore
-        .getState()
-        .showErrorToastMessage('Please provide an application name');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -294,7 +287,7 @@ export default function CodeAnalysisTriggerForm({
         )}
 
         <Form.Group className="mb-3">
-          <Form.Label>Application Name *</Form.Label>
+          <Form.Label>Application Name</Form.Label>
           <Form.Control
             type="text"
             placeholder="my-application"
