@@ -1,8 +1,8 @@
 services:
 
-  demo-supplier:
-    container_name: explorviz-demo-supplier
-    image: explorviz/demo-supplier
+  backend-mock:
+    container_name: explorviz-backend-mock
+    image: explorviz/backend-mock
     ports:
       - ${USER_PORT}:8084
       - ${PERSISTENCE_PORT}:8085
