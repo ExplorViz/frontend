@@ -50,9 +50,13 @@ export function getAllPackagesInApplicationForGivenOrigin(
 }
 
 export function getAllClassesInApplication(application: Application) {
-  return getAllPackagesInApplication(application)
+  const classes = getAllPackagesInApplication(application)
     .map((pckg) => pckg.classes)
     .flat();
+  if (application.classes) {
+    classes.push(...application.classes);
+  }
+  return classes;
 }
 
 export function getAllClassesInApplications(

@@ -6,9 +6,14 @@ import {
   City,
   District,
   FlatLandscape,
+  convertStructureLandscapeFromFlat,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { calculateSpiralSideLength } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
+import { applyCircleLayoutToClasses } from 'explorviz-frontend/src/utils/layout/circle-layouter';
+import {
+  applySpiralLayoutToClasses,
+  calculateSpiralSideLength,
+} from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import {
   MetricKey,
   metricMappingMultipliers,
@@ -131,10 +136,14 @@ export default async function layoutLandscape(
         );
       }
       landscapeGraph.children.push(
-        createdFixedSizeCity(city, {
-          width: citySideLength,
-          depth: citySideLength,
-        })
+        createdFixedSizeCity(
+          city,
+          {
+            width: citySideLength,
+            depth: citySideLength,
+          },
+          landscape
+        )
       );
       // Layout without special class layout algorithm
     } else {
@@ -153,11 +162,15 @@ export default async function layoutLandscape(
 
   // Apply custom class layout if enabled
   if (useCustomBuildingLayout) {
-    // Note: In flat structure with buildings, we might need a different way
-    // to apply circle/spiral layout if buildings contain multiple classes.
-    // For now, we keep the structure but skip the package removal since
-    // we don't have packages in the building graph.
-    // TODO: Adapt applyCircleLayoutToClasses and applySpiralLayoutToClasses for Building[] if needed
+    const structureLandscape = convertStructureLandscapeFromFlat(landscape);
+    const applications = structureLandscape.nodes.flatMap(
+      (node) => node.applications
+    );
+    if (useCircleLayout) {
+      applyCircleLayoutToClasses(boxLayoutMap, applications);
+    } else {
+      applySpiralLayoutToClasses(boxLayoutMap, applications);
+    }
   }
 
   return boxLayoutMap;
@@ -189,9 +202,10 @@ function createCityGraph(
 
 function createdFixedSizeCity(
   city: City,
-  size: { width: number; depth: number }
+  size: { width: number; depth: number },
+  landscape: FlatLandscape
 ) {
-  const buildingGraph = {
+  const buildingGraph: any = {
     id: CITY_PREFIX + city.id,
     width: size.width,
     height: size.depth,
@@ -206,6 +220,13 @@ function createdFixedSizeCity(
       ),
     },
   };
+
+  city.allContainedBuildingIds.forEach((buildingId) => {
+    const building = landscape.buildings[buildingId];
+    if (building) {
+      buildingGraph.children.push(createBuildingNode(building));
+    }
+  });
 
   return buildingGraph;
 }
