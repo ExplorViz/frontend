@@ -15,4 +15,6 @@ export interface CommunicationDto {
 export interface AggregatedBuildingCommunication {
   metrics: Record<string, MetricSummary>;
   communications: CommunicationDto[];
+  from?: number;
+  to?: number;
 }

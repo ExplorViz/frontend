@@ -51,6 +51,8 @@ import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-d
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/city/communication-r3f';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
+import { findFirstOpen } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
 import ImmersiveSphere from 'explorviz-frontend/src/view-objects/3d/city/immersive-sphere';
@@ -214,7 +216,12 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { removedDistrictIds } = useVisualizationStore();
+  const { removedDistrictIds, closedDistrictIds } = useVisualizationStore(
+    useShallow((state) => ({
+      removedDistrictIds: state.removedDistrictIds,
+      closedDistrictIds: state.closedDistrictIds,
+    }))
+  );
 
   const allApplications = useMemo(() => {
     if (!landscapeData) return [];
@@ -365,6 +372,77 @@ export default function CanvasWrapper({
   const allCommunications = useModelStore(
     useShallow((state) => Object.values(state.communications))
   );
+
+  const effectiveCommunications = useMemo(() => {
+    if (!isCommRendered || !applicationModels.length) return [];
+
+    const groupedComms = new Map<string, AggregatedCommunication>();
+
+    allCommunications.forEach((comm) => {
+      const sourceApp = applicationModels.find(
+        (app) => app.application.id === comm.sourceEntity.parentCityId
+      );
+      const targetApp = applicationModels.find(
+        (app) => app.application.id === comm.targetEntity.parentCityId
+      );
+
+      if (!sourceApp || !targetApp) return;
+
+      const effSource = findFirstOpen(sourceApp.application, comm.sourceEntity);
+      const effTarget = findFirstOpen(targetApp.application, comm.targetEntity);
+
+      const key = `${effSource.id}-${effTarget.id}`;
+
+      if (groupedComms.has(key)) {
+        const existing = groupedComms.get(key)!;
+        existing.metrics.requestCount =
+          (existing.metrics.requestCount || 0) + (comm.metrics.requestCount || 0);
+        existing.buildingCommunicationIds = [
+          ...new Set([
+            ...existing.buildingCommunicationIds,
+            ...comm.buildingCommunicationIds,
+          ]),
+        ];
+        existing.originalCommIds = [
+          ...new Set([...existing.originalCommIds, comm.id]),
+        ];
+        existing.isBidirectional = existing.isBidirectional || comm.isBidirectional;
+        existing.isRecursive = existing.isRecursive || comm.isRecursive;
+      } else {
+        const newComm = new AggregatedCommunication(
+          comm.id,
+          effSource as any,
+          effTarget as any,
+          [...comm.buildingCommunicationIds],
+          [comm.id]
+        );
+        newComm.metrics = { ...comm.metrics };
+        newComm.isBidirectional = comm.isBidirectional;
+        newComm.isRecursive = comm.isRecursive;
+        newComm.sourceApp = comm.sourceApp;
+        groupedComms.set(key, newComm);
+      }
+    });
+
+    // Re-normalize metrics
+    const maxRequests = Math.max(
+      0,
+      ...Array.from(groupedComms.values()).map(
+        (c) => c.metrics.requestCount || 0
+      )
+    );
+    groupedComms.forEach((c) => {
+      c.metrics.normalizedRequestCount =
+        maxRequests > 0 ? (c.metrics.requestCount || 0) / maxRequests : 1;
+    });
+
+    return Array.from(groupedComms.values());
+  }, [
+    allCommunications,
+    applicationModels,
+    isCommRendered,
+    closedDistrictIds,
+  ]);
 
   useEffect(() => {
     if (landscapeData) {
@@ -562,7 +640,7 @@ export default function CanvasWrapper({
                   <CodeCity key={city.id} city={city} />
                 ))}
               {isCommRendered &&
-                allCommunications.map((communication) => (
+                effectiveCommunications.map((communication) => (
                   <CommunicationR3F
                     key={communication.id}
                     communicationModel={communication}

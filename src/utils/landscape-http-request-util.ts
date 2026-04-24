@@ -1,6 +1,7 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
+import { EntityPairCommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/entity-pair-communication';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
@@ -83,6 +84,8 @@ export function requestDynamicData(
         if (response.ok) {
           const dynamicData =
             (await response.json()) as AggregatedBuildingCommunication;
+          dynamicData.from = fromTimestamp;
+          dynamicData.to = toTimestamp;
           resolve(dynamicData);
         } else {
           reject();
@@ -114,6 +117,37 @@ export function deleteTraceData(): Promise<void> {
         } else {
           const errorText = await response.text();
           reject(new Error(`Failed to delete trace data: ${errorText}`));
+        }
+      })
+      .catch((e) => reject(e));
+  });
+}
+export function requestCommunicationFunctions(
+  sourceEntityId: string,
+  targetEntityId: string,
+  fromTimestamp: number,
+  toTimestamp: number
+) {
+  return new Promise<EntityPairCommunicationDto[]>((resolve, reject) => {
+    if (useLandscapeTokenStore.getState().token === null) {
+      reject(new Error('No landscape token selected'));
+      return;
+    }
+    fetch(
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/communication/${sourceEntityId}/${targetEntityId}?from=${fromTimestamp}&to=${toTimestamp}`,
+      {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    )
+      .then(async (response: Response) => {
+        if (response.ok) {
+          const data = (await response.json()) as EntityPairCommunicationDto[];
+          resolve(data);
+        } else {
+          reject();
         }
       })
       .catch((e) => reject(e));

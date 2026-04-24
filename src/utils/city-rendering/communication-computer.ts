@@ -31,6 +31,8 @@ export default function computeAggregatedCommunication(
     );
     classComm.metrics.requestCount = comm.metrics['requestCount'] || 0;
     classComm.isBidirectional = comm.isBidirectional;
+    classComm.from = aggregatedFileCommunication.from;
+    classComm.to = aggregatedFileCommunication.to;
 
     classCommunications.push(classComm);
   }

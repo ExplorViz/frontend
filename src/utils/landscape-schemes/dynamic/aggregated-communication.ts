@@ -17,6 +17,16 @@ export default class AggregatedCommunication {
 
   buildingCommunicationIds: string[] = [];
 
+  originalCommIds: string[] = [];
+
+  from?: number;
+
+  to?: number;
+
+  sourceApp?: any;
+
+  targetApp?: any;
+
   metrics: {
     normalizedRequestCount: number;
     [key: string]: number;
@@ -28,12 +38,14 @@ export default class AggregatedCommunication {
     id: string,
     sourceEntity: District | Building,
     targetEntity: District | Building,
-    buildingCommunicationIds: string[] = []
+    buildingCommunicationIds: string[] = [],
+    originalCommIds: string[] = []
   ) {
     this.id = id;
     this.sourceEntity = sourceEntity;
     this.targetEntity = targetEntity;
     this.buildingCommunicationIds = buildingCommunicationIds;
+    this.originalCommIds = originalCommIds.length > 0 ? originalCommIds : [id];
   }
 }
 
