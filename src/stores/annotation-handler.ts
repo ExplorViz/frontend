@@ -1,7 +1,7 @@
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   Class,
@@ -55,7 +55,7 @@ interface AnnotationHandlerState {
     | Package
     | Class
     | ClazzCommuMeshDataModel
-    | ClassCommunication;
+    | AggregatedCommunication;
     position: Position2D | undefined;
     wasMoved?: boolean;
     menuId?: string | null;
@@ -229,7 +229,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       | Package
       | Class
       | ClazzCommuMeshDataModel
-      | ClassCommunication;
+      | AggregatedCommunication;
       position: Position2D | undefined;
       wasMoved?: boolean;
       menuId?: string | null;

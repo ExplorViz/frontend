@@ -2,140 +2,136 @@ import React from 'react';
 
 import {
   ArrowRightIcon,
-  ArrowSwitchIcon,
   CodeIcon,
-  CommentIcon,
+  SyncIcon,
+  ArrowSwitchIcon,
 } from '@primer/octicons-react';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 
 interface CommunicationPopupRuntimeProps {
-  communication: ClassCommunication;
+  communication: AggregatedCommunication;
 }
 
 export default function CommunicationPopupRuntime({
   communication,
 }: CommunicationPopupRuntimeProps) {
+  const metrics = Object.entries(communication.metrics).filter(
+    ([key]) => key !== 'normalizedRequestCount'
+  );
+
   return (
     <table className="w-100">
       <tbody>
-        {/* Aggregated Information */}
-        {communication.methodCalls.length > 1 && (
-          <>
-            {/* Aggregated request count */}
-            <tr>
-              <td className="text-nowrap align-top">
-                <CodeIcon verticalAlign="middle" size="small" />
-              </td>
-              <td className="text-right text-break pl-1">
-                {communication.totalRequests}( 100% )
-              </td>
-            </tr>
-            {/* # of unique method calls */}
-            <tr>
-              <td className="text-nowrap align-top">#</td>
-              <td className="text-right text-break pl-1">
-                {communication.methodCalls.length}
-              </td>
-            </tr>
-          </>
+        {/* Source Entity */}
+        <tr>
+          <td className="text-nowrap align-top">
+            Source:
+          </td>
+          <td className="text-right text-break pl-1">
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={
+                <Tooltip>
+                  App ID: {communication.sourceEntity.parentCityId}
+                </Tooltip>
+              }
+            >
+              <button
+                type="button"
+                className="buttonToLink"
+                onClick={() => {
+                  pingByModelId(communication.sourceEntity.id);
+                }}
+              >
+                {communication.sourceEntity.name}
+              </button>
+            </OverlayTrigger>
+          </td>
+        </tr>
+
+        {/* Target Entity */}
+        <tr>
+          <td className="text-nowrap align-top">
+            Target:
+          </td>
+          <td className="text-right text-break pl-1">
+            <OverlayTrigger
+              placement="top"
+              trigger={['hover', 'focus']}
+              overlay={
+                <Tooltip>
+                  App ID: {communication.targetEntity.parentCityId}
+                </Tooltip>
+              }
+            >
+              <button
+                type="button"
+                className="buttonToLink"
+                onClick={() =>
+                  pingByModelId(communication.targetEntity.id)
+                }
+              >
+                {communication.targetEntity.name}
+              </button>
+            </OverlayTrigger>
+          </td>
+        </tr>
+
+        <tr className="border-bottom">
+          <td colSpan={2} className="py-1"></td>
+        </tr>
+
+        {/* Communication Properties */}
+        {communication.isBidirectional && (
+          <tr>
+            <td className="text-nowrap align-top">
+              <ArrowSwitchIcon verticalAlign="middle" size="small" className="mr-1" />
+              Direction:
+            </td>
+            <td className="text-right text-break pl-1">
+              Bidirectional
+            </td>
+          </tr>
         )}
 
-        {communication.methodCalls.map((classCommunication, index) => {
-          return (
-            <React.Fragment key={classCommunication.id}>
-              {/* Relationship */}
-              <tr>
-                <td className="text-nowrap align-top">
-                  <ArrowSwitchIcon verticalAlign="middle" size="small" />
-                </td>
-                <td className="text-right text-break pl-1">
-                  <OverlayTrigger
-                    placement="top"
-                    trigger={['hover', 'focus']}
-                    overlay={
-                      <Tooltip>
-                        Application: {classCommunication.sourceApp.name}
-                      </Tooltip>
-                    }
-                  >
-                    <button
-                      type="button"
-                      className="buttonToLink"
-                      onClick={() => {
-                        pingByModelId(classCommunication.sourceClass.id);
-                      }}
-                    >
-                      {classCommunication.sourceClass.name}
-                    </button>
-                  </OverlayTrigger>
+        {communication.isRecursive && (
+          <tr>
+            <td className="text-nowrap align-top">
+              <SyncIcon verticalAlign="middle" size="small" className="mr-1" />
+              Recursive:
+            </td>
+            <td className="text-right text-break pl-1">
+              Yes
+            </td>
+          </tr>
+        )}
 
-                  <ArrowRightIcon verticalAlign="middle" size="small" />
+        {/* Metrics */}
+        {metrics.map(([key, value]) => (
+          <tr key={key}>
+            <td className="text-nowrap align-top">
+              <CodeIcon verticalAlign="middle" size="small" className="mr-1" />
+              {key}:
+            </td>
+            <td className="text-right text-break pl-1">
+              {value}
+            </td>
+          </tr>
+        ))}
 
-                  <OverlayTrigger
-                    placement="top"
-                    trigger={['hover', 'focus']}
-                    overlay={
-                      <Tooltip>
-                        Application: {classCommunication.targetApp.name}
-                      </Tooltip>
-                    }
-                  >
-                    <button
-                      type="button"
-                      className="buttonToLink"
-                      onClick={() =>
-                        pingByModelId(classCommunication.targetClass.id)
-                      }
-                    >
-                      {classCommunication.targetClass.name}
-                    </button>
-                  </OverlayTrigger>
-                </td>
-              </tr>
-              {/* Name */}
-              <tr>
-                <td className="text-nowrap align-top">
-                  <CommentIcon
-                    verticalAlign="middle"
-                    size="small"
-                    className="mr-1"
-                  />
-                </td>
-                <td className="text-right text-break pl-1">
-                  {classCommunication.callerMethodName}
-                  <ArrowRightIcon verticalAlign="middle" size="small" />
-                  {classCommunication.operationName}
-                </td>
-              </tr>
-
-              {/* Requests */}
-              <tr>
-                <td className="text-nowrap align-top">
-                  <CodeIcon
-                    verticalAlign="middle"
-                    size="small"
-                    className="mr-1"
-                  />
-                </td>
-                <td className="text-right text-break pl-1">
-                  {classCommunication.totalRequests}
-                  {Math.round(
-                    (classCommunication.totalRequests /
-                      communication.totalRequests) *
-                      100
-                  )}
-                  %
-                </td>
-              </tr>
-              {communication instanceof ComponentCommunication &&
-                index < communication.classCommunications.length - 1 && <hr />}
-            </React.Fragment>
-          );
-        })}
+        {/* Building Communications Count */}
+        <tr>
+          <td className="text-nowrap align-top">
+            Aggregated from:
+          </td>
+          <td className="text-right text-break pl-1">
+            {communication.buildingCommunicationIds.length} building-links
+          </td>
+        </tr>
       </tbody>
     </table>
   );

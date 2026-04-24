@@ -3,7 +3,7 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   Class,
@@ -102,8 +102,8 @@ export function duplicateApplication(
   app: Application,
   wrapper: {
     idCounter: number;
-    comms: ClassCommunication[];
-    copiedComms: ClassCommunication[];
+    comms: AggregatedCommunication[];
+    copiedComms: AggregatedCommunication[];
   }
 ) {
   const originalNode = getNodeById(landscapeData, app.parentId)!;
@@ -335,8 +335,8 @@ export function pastePackage(
   pasteToDestination: Application | Package,
   wrapper: {
     idCounter: number;
-    comms: ClassCommunication[];
-    copiedComms: ClassCommunication[];
+    comms: AggregatedCommunication[];
+    copiedComms: AggregatedCommunication[];
   }
 ) {
   let destinationApplication: Application | undefined;
@@ -377,8 +377,8 @@ export function pasteClass(
   pasteToDestination: Package,
   commsWrapper: {
     idCounter: number;
-    comms: ClassCommunication[];
-    copiedComms: ClassCommunication[];
+    comms: AggregatedCommunication[];
+    copiedComms: AggregatedCommunication[];
   }
 ) {
   // Verify if the destination is a package
@@ -422,9 +422,9 @@ export function movePackage(
   clippedPackage: Package,
   destination: Application | Package,
   wrapper: {
-    comms: ClassCommunication[];
+    comms: AggregatedCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms: ClassCommunication[];
+    updatedComms: AggregatedCommunication[];
   }
 ) {
   let destinationApplication: Application | undefined;
@@ -476,9 +476,9 @@ export function moveClass(
   clippedClass: Class,
   clipToDestination: Package,
   commsWrapper: {
-    comms: ClassCommunication[];
+    comms: AggregatedCommunication[];
     meshTodelete?: Application | Package | Class;
-    updatedComms?: ClassCommunication[];
+    updatedComms?: AggregatedCommunication[];
   }
 ) {
   // Verify if the destination is a package
@@ -614,8 +614,8 @@ function removePrependFromID(changedID: string, prepend: string) {
 function updateAffectedCommunications(
   classesInPackage: Class[],
   commsWrapper: {
-    comms: ClassCommunication[];
-    updatedComms?: ClassCommunication[];
+    comms: AggregatedCommunication[];
+    updatedComms?: AggregatedCommunication[];
   },
   destinationApplication: Application | undefined
 ) {
@@ -640,8 +640,8 @@ function copyCommunications(
   classesInPackage: Class[],
   commsWrapper: {
     idCounter: number;
-    comms: ClassCommunication[];
-    copiedComms: ClassCommunication[];
+    comms: AggregatedCommunication[];
+    copiedComms: AggregatedCommunication[];
   },
   destinationApplication: Application | undefined
 ) {
@@ -675,8 +675,8 @@ function copyCommunications(
   commsWrapper.copiedComms = Array.from(copiedCommsMap.values());
 }
 
-function copyCommunication(commToCopy: ClassCommunication, idCounter: number) {
-  const comm: ClassCommunication = {
+function copyCommunication(commToCopy: AggregatedCommunication, idCounter: number) {
+  const comm: AggregatedCommunication = {
     id: 'copied' + idCounter + '|' + commToCopy.id,
     isRecursive: commToCopy.isRecursive,
     isBidirectional: commToCopy.isBidirectional,
@@ -714,8 +714,8 @@ function insertPackageToPackage(
 export function removeAffectedCommunications(
   classesInApplication: Class[],
   commsWrapper: {
-    comms: ClassCommunication[];
-    deletedComms?: ClassCommunication[];
+    comms: AggregatedCommunication[];
+    deletedComms?: AggregatedCommunication[];
   }
 ) {
   classesInApplication.forEach((clazz) => {

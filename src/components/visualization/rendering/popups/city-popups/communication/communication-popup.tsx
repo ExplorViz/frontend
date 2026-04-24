@@ -3,7 +3,7 @@ import CommunicationPopupRestructure from 'explorviz-frontend/src/components/vis
 import CommunicationPopupRuntime from 'explorviz-frontend/src/components/visualization/rendering/popups/city-popups/communication/communication-popup-runtime';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import PopupTabs from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-tabs';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface CommunicationPopupProps {
@@ -13,7 +13,7 @@ interface CommunicationPopupProps {
 export default function CommunicationPopup({
   popupData,
 }: CommunicationPopupProps) {
-  const communication = popupData.entity as ClassCommunication;
+  const communication = popupData.entity as AggregatedCommunication;
 
   return (
     <>

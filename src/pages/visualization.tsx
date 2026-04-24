@@ -162,6 +162,7 @@ export default function Visualization() {
       renderingServiceTriggerRenderingForGivenLandscapeData(
         convertToFlatLandscape(structureData), // TODO: Used in restructuring. Restructuring may not work with flatlandscape at the moment
         dynamicData,
+        { metrics: {}, communications: [] },
         structureData
       );
     };

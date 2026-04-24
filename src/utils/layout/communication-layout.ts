@@ -1,9 +1,8 @@
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import * as THREE from 'three';
 
 export default class CommunicationLayout {
-  model: ClassCommunication | ComponentCommunication;
+  model: AggregatedCommunication;
 
   startX: number = -5;
 
@@ -21,14 +20,14 @@ export default class CommunicationLayout {
 
   pointsFor3D: THREE.Vector3[] = [];
 
-  constructor(model: ClassCommunication | ComponentCommunication) {
+  constructor(model: AggregatedCommunication) {
     this.model = model;
   }
 
   // Copy function
   copy(): CommunicationLayout {
     const copy = new CommunicationLayout(this.model);
-    copy.model = this.model; // Assuming shallow copy is sufficient, otherwise you need to handle deep copy based on the actual structure of ClassCommunication or ComponentCommunication
+    copy.model = this.model;
     copy.startX = this.startX;
     copy.startY = this.startY;
     copy.startZ = this.startZ;

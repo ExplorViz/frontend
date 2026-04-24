@@ -15,7 +15,7 @@ import {
 import {
   MENU_DETACHED_EVENT
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Building,
   City,
@@ -83,7 +83,7 @@ interface PopupHandlerState {
       | Application
       | Package
       | Class
-      | ClassCommunication
+      | AggregatedCommunication
       | City
       | District
       | Building;

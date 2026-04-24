@@ -1,4 +1,4 @@
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Building,
   City,
@@ -10,7 +10,7 @@ export interface PopupDataArgs {
   mouseY: number;
   wasMoved: boolean;
   entityId: string;
-  entity: City | District | Building | ClassCommunication;
+  entity: City | District | Building | AggregatedCommunication;
   isPinned: boolean;
   sharedBy: string;
   menuId: string | null;
@@ -29,7 +29,7 @@ export default class PopupData {
 
   entityId: string;
 
-  entity: City | District | Building | ClassCommunication;
+  entity: City | District | Building | AggregatedCommunication;
 
   // @tracked
   isPinned: boolean;

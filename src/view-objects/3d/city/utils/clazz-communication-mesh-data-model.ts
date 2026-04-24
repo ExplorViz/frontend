@@ -1,12 +1,11 @@
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   TypeOfAnalysis,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 export default class ClazzCommuMeshDataModel {
-  communication: ClassCommunication | ComponentCommunication;
+  communication: AggregatedCommunication;
 
   id: string;
 
@@ -17,7 +16,7 @@ export default class ClazzCommuMeshDataModel {
   targetApplication?: Application;
 
   constructor(
-    communication: ClassCommunication | ComponentCommunication,
+    communication: AggregatedCommunication,
     id: string
   ) {
     this.communication = communication;

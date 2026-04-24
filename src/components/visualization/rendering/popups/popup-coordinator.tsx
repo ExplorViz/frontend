@@ -23,7 +23,7 @@ import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/land
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isEntityAnnotated } from 'explorviz-frontend/src/utils/annotation-utils';
 import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
-import { isClassCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import { isAggregatedCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   isBuilding,
   isCity,
@@ -385,7 +385,7 @@ function getEntityType(popupData?: PopupData): string {
   if (isMethod(popupData.entity)) {
     return 'method';
   }
-  if (isClassCommunication(popupData.entity)) {
+  if (isAggregatedCommunication(popupData.entity)) {
     return 'classCommunication';
   }
   if ('htmlNode' in popupData.entity) {

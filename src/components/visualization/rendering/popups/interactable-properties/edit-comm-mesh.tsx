@@ -1,12 +1,12 @@
 import { TrashIcon } from '@primer/octicons-react';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 
 interface EditCommMeshProps {
-  classCommunication: ClassCommunication;
+  classCommunication: AggregatedCommunication;
 }
 
 export default function EditCommMesh({

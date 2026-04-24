@@ -1,6 +1,6 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
+import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 const persistenceService = import.meta.env.VITE_PERSISTENCE_SERV_URL;
@@ -65,13 +65,13 @@ export function requestDynamicData(
   exactTimestamp: number,
   toTimestamp: number
 ) {
-  return new Promise<DynamicLandscapeData>((resolve, reject) => {
+  return new Promise<AggregatedBuildingCommunication>((resolve, reject) => {
     if (useLandscapeTokenStore.getState().token === null) {
       reject(new Error('No landscape token selected'));
       return;
     }
     fetch(
-      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/dynamic?from=${fromTimestamp}&exact=${exactTimestamp}&to=${toTimestamp}`,
+      `${persistenceService}/v3/landscapes/${useLandscapeTokenStore.getState().token!.value}/file-communication?from=${fromTimestamp}&to=${toTimestamp}`,
       {
         headers: {
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
@@ -81,7 +81,8 @@ export function requestDynamicData(
     )
       .then(async (response: Response) => {
         if (response.ok) {
-          const dynamicData = (await response.json()) as DynamicLandscapeData;
+          const dynamicData =
+            (await response.json()) as AggregatedBuildingCommunication;
           resolve(dynamicData);
         } else {
           reject();

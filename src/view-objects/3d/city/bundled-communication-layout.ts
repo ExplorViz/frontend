@@ -1,5 +1,4 @@
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import {
   EdgeBundlingConfig,
@@ -21,7 +20,7 @@ export class BundledCommunicationLayout extends CommunicationLayout {
   private _leafPackagesOnly: boolean = false;
 
   constructor(
-    model: ClassCommunication | ComponentCommunication,
+    model: AggregatedCommunication,
     startPoint: THREE.Vector3,
     endPoint: THREE.Vector3,
     lineThickness: number = 1,

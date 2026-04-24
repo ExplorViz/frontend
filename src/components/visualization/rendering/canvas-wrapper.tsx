@@ -351,7 +351,7 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { applicationModels, interAppCommunications } =
+  const { applicationModels } =
     useLandscapeDataWatcher(landscapeData);
 
   const { resetVisualizationState } = useVisualizationStore(
@@ -361,6 +361,10 @@ export default function CanvasWrapper({
   );
 
   const [position, setPosition] = useState(new THREE.Vector3());
+
+  const allCommunications = useModelStore(
+    useShallow((state) => Object.values(state.communications))
+  );
 
   useEffect(() => {
     if (landscapeData) {
@@ -392,7 +396,7 @@ export default function CanvasWrapper({
       const classIds = new Set(allClasses.map((classModel) => classModel.id));
 
       const communicationIds = new Set(
-        interAppCommunications.map((comm) => comm.id)
+        allCommunications.map((comm) => comm.id)
       );
 
       const entityIds = new Set([
@@ -404,7 +408,7 @@ export default function CanvasWrapper({
       // Remove all ids that are no longer part of the landscape
       useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
-  }, [landscapeData, interAppCommunications, removedDistrictIds]);
+  }, [landscapeData, allCommunications, removedDistrictIds]);
 
   const updateLayout = useCallback(async () => {
     if (!landscapeData) return;
@@ -558,20 +562,7 @@ export default function CanvasWrapper({
                   <CodeCity key={city.id} city={city} />
                 ))}
               {isCommRendered &&
-                useModelStore
-                  .getState()
-                  .getAllCommunications()
-                  .map((communication) => (
-                    <CommunicationR3F
-                      key={communication.id}
-                      communicationModel={communication}
-                      applicationElement={communication.sourceApp}
-                      layoutMap={layoutMap || applicationModels[0]?.boxLayoutMap}
-                      applicationModels={applicationModels}
-                    />
-                  ))}
-              {isCommRendered &&
-                interAppCommunications.map((communication) => (
+                allCommunications.map((communication) => (
                   <CommunicationR3F
                     key={communication.id}
                     communicationModel={communication}

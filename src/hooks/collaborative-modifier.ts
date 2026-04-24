@@ -74,7 +74,7 @@ import {
   ShareSettingsMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/share-settings';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   Class,
@@ -126,7 +126,7 @@ export default function useCollaborativeModifier() {
   const landscapeRestructureState = useLandscapeRestructureStore(
     useShallow((state) => ({
       landscapeData: state.landscapeData,
-      allClassCommunications: state.allClassCommunications,
+      allAggregatedCommunications: state.allAggregatedCommunications,
     }))
   );
   const landscapeRestructureActions = useLandscapeRestructureStore(
@@ -397,11 +397,11 @@ export default function useCollaborativeModifier() {
   const onRestructureDeleteCommunication = ({
     originalMessage: { undo, commId },
   }: ForwardedMessage<RestructureDeleteCommunicationMessage>): void => {
-    const comm = landscapeRestructureState.allClassCommunications.find(
+    const comm = landscapeRestructureState.allAggregatedCommunications.find(
       (comm) => comm.id === commId
     );
     landscapeRestructureActions.deleteCommunication(
-      comm as ClassCommunication,
+      comm as AggregatedCommunication,
       undo,
       true
     );
@@ -410,12 +410,12 @@ export default function useCollaborativeModifier() {
   const onRestructureRenameOperationMessage = ({
     originalMessage: { commId, newName, undo },
   }: ForwardedMessage<RestructureRenameOperationMessage>): void => {
-    const comm = landscapeRestructureState.allClassCommunications.find(
+    const comm = landscapeRestructureState.allAggregatedCommunications.find(
       (comm) => comm.id === commId
     );
 
     landscapeRestructureActions.renameOperation(
-      comm as ClassCommunication,
+      comm as AggregatedCommunication,
       newName,
       true,
       undo

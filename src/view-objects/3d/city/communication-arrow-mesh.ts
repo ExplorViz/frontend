@@ -1,12 +1,11 @@
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { VisualizationMode } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
 import * as THREE from 'three';
 
 export default class CommunicationArrowMesh extends BaseMesh {
-  dataModel: ClassCommunication | ComponentCommunication;
+  dataModel: AggregatedCommunication;
 
   _axis = new THREE.Vector3();
 
@@ -14,7 +13,7 @@ export default class CommunicationArrowMesh extends BaseMesh {
   HOVER_SCALE_FACTOR = 2.5;
 
   constructor(
-    dataModel: ClassCommunication | ComponentCommunication,
+    dataModel: AggregatedCommunication,
     dir: THREE.Vector3,
     origin: THREE.Vector3,
     length: number,

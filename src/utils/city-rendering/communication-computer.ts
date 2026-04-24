@@ -1,192 +1,55 @@
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import {
-  DynamicLandscapeData,
-  Span,
-} from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import MethodCall from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/method-call';
-import {
-  Building,
-  City,
-  FlatLandscape
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { getTraceIdToSpanTreeMap } from 'explorviz-frontend/src/utils/trace-helpers';
+import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
-function computeClassCommunicationRecursively(
-  span: Span,
-  spanIdToChildSpanMap: Map<string, Span[]>,
-  flatLandscape: FlatLandscape
+export default function computeAggregatedCommunication(
+  flatLandscape: FlatLandscape,
+  aggregatedFileCommunication: AggregatedBuildingCommunication
 ) {
-  if (span === undefined) {
+  if (
+    !aggregatedFileCommunication ||
+    !aggregatedFileCommunication.communications ||
+    aggregatedFileCommunication.communications.length === 0
+  )
     return [];
-  }
 
-  const childSpans = spanIdToChildSpanMap.get(span.spanId);
+  const classCommunications: AggregatedCommunication[] = [];
 
-  if (childSpans === undefined || childSpans.length === 0) {
-    // no child span, therefore no one to call => no communication line
-    return [];
-  }
+  for (const comm of aggregatedFileCommunication.communications) {
+    const sourceBuilding = flatLandscape.buildings[comm.sourceBuildingId];
+    const targetBuilding = flatLandscape.buildings[comm.targetBuildingId];
 
-  const func = flatLandscape.functions[span.functionId];
-  if (!func) {
-    return [];
-  }
-  const building = flatLandscape.buildings[func.parentBuildingId];
-  if (!building) {
-    return [];
-  }
-
-  const callerMethodName = func.name;
-
-  const classCommunications: SingleCommunication[] = [];
-
-  childSpans.forEach((childSpan) => {
-    const childFunc = flatLandscape.functions[childSpan.functionId];
-    if (childFunc) {
-      // const childBuilding = flatLandscape.buildings[childFunc.parentId];
-      const childBuilding = flatLandscape.buildings[childFunc.parentBuildingId];
-      if (childBuilding) {
-        const methodName = childFunc.name;
-
-        // create classCommunication (eventually results in a single
-        // communication line) and proceed with remaining method calls
-        classCommunications.push({
-          sourceBuilding: building,
-          targetBuilding: childBuilding,
-          operationName: methodName,
-          callerMethodName: callerMethodName,
-        });
-        classCommunications.push(
-          ...computeClassCommunicationRecursively(
-            childSpan,
-            spanIdToChildSpanMap,
-            flatLandscape
-          )
-        );
-      }
+    if (!sourceBuilding || !targetBuilding) {
+      continue;
     }
-  });
+
+    const classComm = new AggregatedCommunication(
+      comm.id,
+      sourceBuilding,
+      targetBuilding,
+      [comm.id]
+    );
+    classComm.metrics.requestCount = comm.metrics['requestCount'] || 0;
+    classComm.isBidirectional = comm.isBidirectional;
+
+    classCommunications.push(classComm);
+  }
+
+  computeCommunicationMetrics(classCommunications);
 
   return classCommunications;
 }
 
-export default function computeAggregatedCommunication(
-  flatLandscape: FlatLandscape,
-  landscapeDynamicData: DynamicLandscapeData
-) {
-  if (!landscapeDynamicData || landscapeDynamicData.length === 0) return [];
-
-  const buildingToCityMap = new Map<Building, City>();
-  for (const building of Object.values(flatLandscape.buildings)) {
-    const city = flatLandscape.cities[building.parentCityId];
-    if (city) {
-      buildingToCityMap.set(building, city);
-    }
-  }
-
-  const traceIdToSpanTrees = getTraceIdToSpanTreeMap(landscapeDynamicData);
-
-  const totalCommunications: SingleCommunication[] = [];
-
-  landscapeDynamicData.forEach((trace) => {
-    const traceSpanTree = traceIdToSpanTrees.get(trace.traceId);
-
-    if (traceSpanTree) {
-      const firstSpan = traceSpanTree.root;
-      totalCommunications.push(
-        ...computeClassCommunicationRecursively(
-          firstSpan,
-          traceSpanTree.tree,
-          flatLandscape
-        )
-      );
-    }
-  });
-
-  const methodCalls = new Map<string, MethodCall>();
-
-  totalCommunications.forEach(
-    ({ sourceBuilding, targetBuilding, operationName, callerMethodName }) => {
-      const sourceToTargetMethodId = `${sourceBuilding.id}_${targetBuilding.id}_${operationName}`;
-
-      // Get source app
-      const sourceCity = buildingToCityMap.get(sourceBuilding);
-
-      // Get target app
-      const targetCity = buildingToCityMap.get(targetBuilding);
-
-      if (!sourceCity || !targetCity) {
-        console.error('City for class communication not found!');
-        return;
-      }
-
-      // Find all identical method calls based on their source
-      // and target and aggregate identical method calls with exactly
-      // same source and target within a single representative
-      const maybeMethodCall = methodCalls.get(sourceToTargetMethodId);
-
-      if (!maybeMethodCall) {
-        methodCalls.set(
-          sourceToTargetMethodId,
-          new MethodCall(
-            sourceToTargetMethodId,
-            sourceCity,
-            sourceBuilding,
-            targetCity,
-            targetBuilding,
-            operationName,
-            callerMethodName
-          ).addSpan()
-        );
-      } else {
-        maybeMethodCall.addSpan();
-      }
-    }
-  );
-
-  const aggregatedCommunications = new Map<string, ClassCommunication>();
-
-  methodCalls.forEach((methodCall) => {
-    const classIds = [
-      methodCall.sourceClass.id,
-      methodCall.targetClass.id,
-    ].sort();
-    const communicationId = classIds[0] + '_' + classIds[1];
-    const maybeClassCommunication =
-      aggregatedCommunications.get(communicationId);
-
-    if (maybeClassCommunication) {
-      maybeClassCommunication.addMethodCalls(methodCall);
-    } else {
-      const newCommunication = new ClassCommunication(
-        communicationId,
-        methodCall.sourceApp,
-        methodCall.sourceClass,
-        methodCall.targetApp,
-        methodCall.targetClass,
-        methodCall.operationName
-      );
-      newCommunication.addMethodCalls(methodCall);
-      aggregatedCommunications.set(communicationId, newCommunication);
-    }
-  });
-
-  const computedCommunication = [...aggregatedCommunications.values()];
-  computeCommunicationMetrics(computedCommunication);
-
-  return computedCommunication;
-}
-
 function computeCommunicationMetrics(
-  classCommunications: ClassCommunication[]
+  classCommunications: AggregatedCommunication[]
 ) {
   const maxRequests = Math.max(
     0,
-    ...classCommunications.map((x) => x.totalRequests)
+    ...classCommunications.map((x) => x.metrics.requestCount || 0)
   );
 
   classCommunications.forEach((communication) => {
-    const { totalRequests } = communication;
+    const totalRequests = communication.metrics.requestCount || 0;
     if (maxRequests > 0) {
       communication.metrics.normalizedRequestCount =
         totalRequests / maxRequests;
@@ -196,12 +59,12 @@ function computeCommunicationMetrics(
   });
 }
 
-export function computeRestructuredClassCommunication(
-  classCommunications: ClassCommunication[],
-  classCommunication: ClassCommunication[],
-  copiedClassCommunications: Map<string, ClassCommunication[]>,
-  updatedClassCommunications: Map<string, ClassCommunication[]>,
-  deletedClassCommunication: Map<string, ClassCommunication[]> = new Map()
+export function computeRestructuredAggregatedCommunication(
+  classCommunications: AggregatedCommunication[],
+  classCommunication: AggregatedCommunication[],
+  copiedAggregatedCommunications: Map<string, AggregatedCommunication[]>,
+  updatedAggregatedCommunications: Map<string, AggregatedCommunication[]>,
+  deletedAggregatedCommunication: Map<string, AggregatedCommunication[]> = new Map()
 ) {
   if (classCommunication.length) {
     classCommunication.forEach((comm) => {
@@ -209,20 +72,18 @@ export function computeRestructuredClassCommunication(
     });
   }
 
-  if (copiedClassCommunications.size) {
-    copiedClassCommunications.forEach((value) => {
+  if (copiedAggregatedCommunications.size) {
+    copiedAggregatedCommunications.forEach((value) => {
       classCommunications = classCommunications.concat(value);
     });
   }
 
-  if (deletedClassCommunication.size) {
-    const allDeletedComms: ClassCommunication[] = [];
-    deletedClassCommunication.forEach((value) => {
+  if (deletedAggregatedCommunication.size) {
+    const allDeletedComms: AggregatedCommunication[] = [];
+    deletedAggregatedCommunication.forEach((value) => {
       value.forEach((deletedComm) => {
         const foundComm = classCommunications.filter(
-          (comm) =>
-            comm.id === deletedComm.id ||
-            comm.operationName === deletedComm.operationName
+          (comm) => comm.id === deletedComm.id
         );
         if (foundComm.length) allDeletedComms.push(...foundComm);
       });
@@ -233,29 +94,21 @@ export function computeRestructuredClassCommunication(
     );
   }
 
-  if (updatedClassCommunications.size) {
-    const allUpdatedComms: ClassCommunication[] = [];
+  if (updatedAggregatedCommunications.size) {
+    const allUpdatedComms: AggregatedCommunication[] = [];
 
-    updatedClassCommunications.forEach((value) => {
+    updatedAggregatedCommunications.forEach((value) => {
       allUpdatedComms.push(...value);
     });
 
     classCommunications = classCommunications.concat(allUpdatedComms);
     const removeUnwantedComms = classCommunications.filter(
       (comm) =>
-        !comm.operationName.includes('removed') &&
-        !comm.sourceClass.id.includes('removed') &&
-        !comm.targetClass.id.includes('removed')
+        !comm.sourceEntity.id.includes('removed') &&
+        !comm.targetEntity.id.includes('removed')
     );
     classCommunications = removeUnwantedComms;
   }
 
   return classCommunications;
-}
-
-interface SingleCommunication {
-  sourceBuilding: Building;
-  targetBuilding: Building;
-  operationName: string;
-  callerMethodName: string;
 }

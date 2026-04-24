@@ -10,6 +10,7 @@ import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handle
 import { animatePlayPauseIcon } from 'explorviz-frontend/src/utils/animate';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-dynamic-helpers';
+import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
   convertStructureLandscapeFromFlat,
@@ -46,6 +47,7 @@ interface RenderingServiceState {
   triggerRenderingForGivenLandscapeData: (
     flatData: FlatLandscape,
     dynamicData: DynamicLandscapeData,
+    aggregatedFileCommunication: AggregatedBuildingCommunication,
     structureData?: StructureLandscapeData // TODO: Should be remove, when LandscapeData doesn't contain StructureLandscapeData anymore
   ) => void;
   triggerRenderingForSelectedCommits: () => Promise<void>;
@@ -64,7 +66,8 @@ interface RenderingServiceState {
   ) => DynamicLandscapeData;
   _requiresRerendering: (
     newFlatLandscape: FlatLandscape,
-    newDynamicLandscapeData: DynamicLandscapeData
+    newDynamicLandscapeData: DynamicLandscapeData,
+    newAggregatedCommunication: AggregatedBuildingCommunication
   ) => boolean;
   _updateTimelineData: (
     commitToSelectedTimestampMap: Map<string, Timestamp[]>
@@ -139,10 +142,20 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
           const flatToRender = combinedRuntimeLandscapeData.flatLandscapeData;
 
-          if (get()._requiresRerendering(flatToRender, dynamicToRender)) {
+          const aggregatedToRender =
+            combinedRuntimeLandscapeData.aggregatedFileCommunication;
+
+          if (
+            get()._requiresRerendering(
+              flatToRender,
+              dynamicToRender,
+              aggregatedToRender
+            )
+          ) {
             get().triggerRenderingForGivenLandscapeData(
               flatToRender,
-              dynamicToRender
+              dynamicToRender,
+              aggregatedToRender
             );
           }
         }
@@ -166,6 +179,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     triggerRenderingForGivenLandscapeData: (
       flatData: FlatLandscape,
       dynamicData: DynamicLandscapeData,
+      aggregatedFileCommunication: AggregatedBuildingCommunication,
       structureData?: StructureLandscapeData
     ) => {
       set({
@@ -174,6 +188,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             ? structureData
             : convertStructureLandscapeFromFlat(flatData), // TODO: Can be removed, when LandscapeData doesn't contain StructureLandscapeData anymore
           dynamicLandscapeData: dynamicData,
+          aggregatedFileCommunication: aggregatedFileCommunication,
           flatLandscapeData: flatData,
         },
       });
@@ -254,6 +269,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         const [
           latestFetchedFlatLandscapeData,
           latestFetchedDynamicLandscapeData,
+          latestFetchedAggregatedCommunication,
         ] = await useReloadHandlerStore
           .getState()
           .loadLandscapeByTimestamp(timestampFrom, timestampTo);
@@ -263,6 +279,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             latestFetchedFlatLandscapeData
           ), // TODO: Remove after removing StructureLD from LandscapeData
           dynamicLandscapeData: latestFetchedDynamicLandscapeData,
+          aggregatedFileCommunication: latestFetchedAggregatedCommunication,
           flatLandscapeData: latestFetchedFlatLandscapeData,
         });
       }
@@ -285,6 +302,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
             prevLandscapeData.dynamicLandscapeData,
             newLandscapeData.dynamicLandscapeData
           ),
+          aggregatedFileCommunication:
+            newLandscapeData.aggregatedFileCommunication, // For now, just take the new one or merge them if needed
           flatLandscapeData: newFlatLandscapeData,
         };
       } else {
@@ -309,7 +328,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     // private
     _requiresRerendering: (
       newFlatLandscapeData: FlatLandscape,
-      newDynamicLandscapeData: DynamicLandscapeData
+      newDynamicLandscapeData: DynamicLandscapeData,
+      newAggregatedCommunication: AggregatedBuildingCommunication
     ) => {
       let requiresRerendering = false;
       const latestFlatLandscapeIds =
@@ -326,7 +346,13 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           get()._getCombineDynamicLandscapeData(
             get().currentRuntimeLandscapeData
           )
-        )
+        ) ||
+        (newAggregatedCommunication &&
+          !areArraysEqual(
+            newAggregatedCommunication.communications,
+            get()._landscapeData?.aggregatedFileCommunication?.communications ??
+              []
+          ))
       ) {
         requiresRerendering = true;
       }
@@ -430,7 +456,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
         get().triggerRenderingForGivenLandscapeData(
           selectedFlatLandscape,
-          combinedDynamicLandscapeData
+          combinedDynamicLandscapeData,
+          { metrics: {}, communications: [] } // Default for evolution mode for now
         );
       }
 

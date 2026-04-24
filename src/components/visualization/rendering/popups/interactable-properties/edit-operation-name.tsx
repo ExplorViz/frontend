@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { CommentIcon } from '@primer/octicons-react';
 
 interface EditOperationNameProps {
-  communication: ClassCommunication;
+  communication: AggregatedCommunication;
 }
 
 export default function EditOperationName({

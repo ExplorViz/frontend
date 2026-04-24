@@ -8,7 +8,7 @@ import {
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/src/utils/changelog-entry';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   Class,
@@ -111,12 +111,12 @@ interface ChangelogState {
     origin: Class,
     landscapeData: StructureLandscapeData
   ) => void;
-  communicationEntry: (communication: ClassCommunication) => void;
+  communicationEntry: (communication: AggregatedCommunication) => void;
   renameOperationEntry: (
-    communication: ClassCommunication,
+    communication: AggregatedCommunication,
     newName: string
   ) => void;
-  deleteCommunicationEntry: (communication: ClassCommunication) => void;
+  deleteCommunicationEntry: (communication: AggregatedCommunication) => void;
   getChangeLog: () => string[];
   restoreDeletedEntries: (key: string, collabMode?: boolean) => void;
   findBaseChangeLogEntry: (
@@ -718,7 +718,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     eventEmitter.emit('showChangeLog');
   },
 
-  communicationEntry: (communication: ClassCommunication) => {
+  communicationEntry: (communication: AggregatedCommunication) => {
     const commEntry = new CommunicationChangeLogEntry(
       RestructureAction.Create,
       communication
@@ -728,7 +728,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
   },
 
   renameOperationEntry: (
-    communication: ClassCommunication,
+    communication: AggregatedCommunication,
     newName: string
   ) => {
     const foundEntry = get().findCommunicationLogEntry(communication.id, true);
@@ -754,7 +754,7 @@ export const useChangelogStore = create<ChangelogState>((set, get) => ({
     eventEmitter.emit('showChangeLog');
   },
 
-  deleteCommunicationEntry: (communication: ClassCommunication) => {
+  deleteCommunicationEntry: (communication: AggregatedCommunication) => {
     const foundEntry = get().findCommunicationLogEntry(
       communication.id,
       true

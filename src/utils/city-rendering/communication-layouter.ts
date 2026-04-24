@@ -2,8 +2,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
-import ComponentCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/component-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Building,
   City,
@@ -19,10 +18,9 @@ import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communicati
 import * as THREE from 'three';
 
 export function calculateLineThickness(
-  communication: ClassCommunication | ComponentCommunication,
+  communication: AggregatedCommunication,
   commLineThickness: number
 ) {
-  // Normalized request count might be above 1 for component communication
   const normalizedRequestCount = clamp(
     communication.metrics.normalizedRequestCount,
     0.25,
@@ -67,49 +65,29 @@ export function findFirstOpen(
 }
 
 export function computeCommunicationLayout(
-  communication: ClassCommunication | ComponentCommunication,
+  communication: AggregatedCommunication,
   applicationModels: ApplicationData[],
   layoutMap: Map<string, BoxLayout>
 ) {
   const sourceApp = applicationModels.find(
-    (app) => app.application.id === communication.sourceApp.id
+    (app) => app.application.id === communication.sourceEntity.parentCityId
   );
   const targetApp = applicationModels.find(
-    (app) => app.application.id === communication.targetApp.id
+    (app) => app.application.id === communication.targetEntity.parentCityId
   );
 
   if (!sourceApp || !layoutMap || !targetApp) {
     return;
   }
 
-  let sourceClass, targetClass;
-
-  if (communication instanceof ClassCommunication) {
-    sourceClass = communication.sourceClass;
-    targetClass = communication.targetClass;
-  } else {
-    sourceClass = communication.sourceEntity;
-    targetClass = communication.targetEntity;
-  }
-  if (communication instanceof ClassCommunication) {
-    sourceClass = findFirstOpen(
-      sourceApp.application,
-      communication.sourceClass
-    );
-    targetClass = findFirstOpen(
-      targetApp.application,
-      communication.targetClass
-    );
-  } else {
-    sourceClass = findFirstOpen(
-      sourceApp.application,
-      communication.sourceEntity
-    );
-    targetClass = findFirstOpen(
-      targetApp.application,
-      communication.targetEntity
-    );
-  }
+  const sourceClass = findFirstOpen(
+    sourceApp.application,
+    communication.sourceEntity
+  );
+  const targetClass = findFirstOpen(
+    targetApp.application,
+    communication.targetEntity
+  );
 
   const sourceAppLayout = layoutMap.get(sourceApp.getId());
   const sourceClassLayout = layoutMap.get(sourceClass.id);
@@ -125,7 +103,6 @@ export function computeCommunicationLayout(
   let end = new THREE.Vector3()
     .copy(targetAppLayout.position)
     .add(targetClassLayout.center);
-
 
   const commLayout = new CommunicationLayout(communication);
   commLayout.startPoint = start;

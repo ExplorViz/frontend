@@ -86,7 +86,7 @@ export default function TokenSelection({
       `${persistenceService}/v2/landscapes/${token.value}/structure`
     );
     const dynamicPromise = getJsonBlob(
-      `${persistenceService}/v2/landscapes/${token.value}/dynamic`
+      `${persistenceService}/v3/landscapes/${token.value}/file-communication`
     );
     const timestampPromise = getJsonBlob(
       `${persistenceService}/v2/landscapes/${token.value}/timestamps`

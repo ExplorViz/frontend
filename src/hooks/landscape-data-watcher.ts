@@ -8,9 +8,11 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import computeAggregatedCommunication from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { convertToFlatLandscape, getAllIdsOfFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  convertToFlatLandscape,
+  getAllIdsOfFlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
@@ -23,7 +25,6 @@ export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
 ): {
   applicationModels: ApplicationData[];
-  interAppCommunications: ClassCommunication[];
 } {
   const log = debug('app:hooks:useLandscapeWatcher');
 
@@ -32,47 +33,34 @@ export default function useLandscapeDataWatcher(
   const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
     []
   );
-  const [interAppCommunications, setInterAppCommunications] = useState<
-    ClassCommunication[]
-  >([]);
 
   // Variables
   const structureLandscapeData = landscapeData?.structureLandscapeData;
   const dynamicLandscapeData = landscapeData?.dynamicLandscapeData;
+  const aggregatedFileCommunication =
+    landscapeData?.aggregatedFileCommunication;
   const flatLandscapeData = landscapeData?.flatLandscapeData;
 
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
   const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
 
   const updateApplicationData = useCallback(
-    async (
-      application: Application,
-      classCommunication: ClassCommunication[],
-      boxLayoutMap: any
-    ) => {
-      let applicationData = new ApplicationData(
-        application,
-        boxLayoutMap,
-      );
-
-      applicationData.classCommunications = classCommunication.filter(
-        (communication) => {
-          return (
-            communication.sourceApp.id === application.id &&
-            communication.targetApp.id === application.id
-          );
-        }
-      );
+    async (application: Application, boxLayoutMap: any) => {
+      const applicationData = new ApplicationData(application, boxLayoutMap);
 
       return applicationData;
     },
-    [dynamicLandscapeData, log]
+    [log]
   );
 
   const handleLandscapeUpdate = useCallback(async () => {
     log('handleLandscapeUpdate');
     await Promise.resolve();
-    if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
+    if (
+      !structureLandscapeData ||
+      !dynamicLandscapeData ||
+      !flatLandscapeData
+    ) {
       return;
     }
 
@@ -96,9 +84,9 @@ export default function useLandscapeDataWatcher(
 
     // ToDo: This can take quite some time. Optimize.
     log('Compute class communication');
-    let classCommunications = computeAggregatedCommunication(
+    const aggregatedCommunications = computeAggregatedCommunication(
       flatLandscapeStructure,
-      dynamicLandscapeData
+      aggregatedFileCommunication!
     );
 
     // Compute application models
@@ -106,21 +94,12 @@ export default function useLandscapeDataWatcher(
     for (let i = 0; i < applications.length; ++i) {
       const applicationData = await updateApplicationData(
         applications[i],
-        classCommunications,
         boxLayoutMap
       );
       if (!removedDistrictIds.has(applicationData.getId())) {
         applicationModels.push(applicationData);
       }
     }
-
-    // Add inter-app communication
-    const interAppCommunications = classCommunications.filter(
-      (x) =>
-        x.sourceApp.id !== x.targetApp.id &&
-        !removedDistrictIds.has(x.sourceApp.id) &&
-        !removedDistrictIds.has(x.targetApp.id)
-    );
 
     // TODO: Add data for IDE extension
 
@@ -132,10 +111,9 @@ export default function useLandscapeDataWatcher(
     for (const applicationData of applicationModels) {
       applicationRepository.add(applicationData.getId(), applicationData);
     }
-    
+
     setApplicationModels(applicationModels);
-    setInterAppCommunications(interAppCommunications);
-    
+
     // Add data to model repository
     const { packages, classes } = getAllPackagesAndClassesFromLandscape(
       structureLandscapeData
@@ -156,13 +134,14 @@ export default function useLandscapeDataWatcher(
     modelRepository.setFunctions(
       Object.values(flatLandscapeStructure.functions)
     );
-    modelRepository.setCommunications(classCommunications);
+    modelRepository.setCommunications(aggregatedCommunications);
 
     // Update layout store after model repository is populated
     useLayoutStore.getState().updateLayouts(boxLayoutMap);
   }, [
     structureLandscapeData,
     dynamicLandscapeData,
+    aggregatedFileCommunication,
     landscapeData,
     removedDistrictIds,
     log,
@@ -170,7 +149,11 @@ export default function useLandscapeDataWatcher(
   ]);
 
   useEffect(() => {
-    if (!structureLandscapeData || !dynamicLandscapeData || !flatLandscapeData) {
+    if (
+      !structureLandscapeData ||
+      !dynamicLandscapeData ||
+      !flatLandscapeData
+    ) {
       return;
     }
 
@@ -194,7 +177,13 @@ export default function useLandscapeDataWatcher(
     lastProcessedFlatLandscapeIds.current = currentFlatLandscapeIds;
 
     handleLandscapeUpdate();
-  }, [structureLandscapeData, dynamicLandscapeData, flatLandscapeData, handleLandscapeUpdate]);
+  }, [
+    structureLandscapeData,
+    dynamicLandscapeData,
+    aggregatedFileCommunication,
+    flatLandscapeData,
+    handleLandscapeUpdate,
+  ]);
 
-  return { applicationModels, interAppCommunications };
+  return { applicationModels };
 }

@@ -1,4 +1,4 @@
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Building,
   City,
@@ -31,7 +31,7 @@ interface ModelRepositoryState {
   buildings: Record<string, Building>;
   functions: Record<string, Func>;
 
-  communications: Record<string, ClassCommunication>;
+  communications: Record<string, AggregatedCommunication>;
 
   // Getter functions for individual models
   getApplication: (id: string) => Application | undefined;
@@ -42,7 +42,7 @@ interface ModelRepositoryState {
   getClass: (id: string) => Cls | undefined;
   getBuilding: (id: string) => Building | undefined;
   getFunc: (id: string) => Func | undefined;
-  getCommunication: (id: string) => ClassCommunication | undefined;
+  getCommunication: (id: string) => AggregatedCommunication | undefined;
   getModel: (
     id: string
   ) =>
@@ -52,7 +52,7 @@ interface ModelRepositoryState {
     | City
     | District
     | Building
-    | ClassCommunication
+    | AggregatedCommunication
     | undefined;
   getFlatModel: (id: string) => City | District | Building | undefined;
   getEntityType: (id: string) => EntityType;
@@ -63,7 +63,7 @@ interface ModelRepositoryState {
   getAllCities: () => City[];
   getAllDistricts: () => District[];
   getAllBuildings: () => Building[];
-  getAllCommunications: () => ClassCommunication[];
+  getAllCommunications: () => AggregatedCommunication[];
 
   // Actions for adding individual models
   addApplication: (id: string, application: Application) => void;
@@ -72,7 +72,7 @@ interface ModelRepositoryState {
   addDistrict: (id: string, district: District) => void;
   addClass: (id: string, classModel: Class) => void;
   addBuilding: (id: string, building: Building) => void;
-  addCommunication: (id: string, communication: ClassCommunication) => void;
+  addCommunication: (id: string, communication: AggregatedCommunication) => void;
 
   // Actions for setting (overwriting) models
   setApplications: (applications: Application[]) => void;
@@ -82,7 +82,7 @@ interface ModelRepositoryState {
   setClasses: (classes: Class[]) => void;
   setBuildings: (buildings: Building[]) => void;
   setFunctions: (functions: Func[]) => void;
-  setCommunications: (communications: ClassCommunication[]) => void;
+  setCommunications: (communications: AggregatedCommunication[]) => void;
 
   // Actions for removing individual models
   removeApplication: (id: string) => void;

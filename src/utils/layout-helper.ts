@@ -2,7 +2,7 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import * as THREE from 'three';
 
 const ZERO_VECTOR = new THREE.Vector3(0, 0, 0);
@@ -167,7 +167,7 @@ export function getLandscapePositionOfCommunication(
   const userSettings = useUserSettingsStore.getState().visualizationSettings;
 
   const communication = modelStore.getCommunication(communicationId);
-  if (!(communication instanceof ClassCommunication)) {
+  if (!(communication instanceof AggregatedCommunication)) {
     console.warn(
       `[getLandscapePositionOfCommunication] Invalid communication ID: ${communicationId}`
     );
@@ -216,7 +216,7 @@ export function getWorldPositionOfCommunication(
   const userSettings = useUserSettingsStore.getState().visualizationSettings;
 
   const communication = modelStore.getCommunication(communicationId);
-  if (!(communication instanceof ClassCommunication)) {
+  if (!(communication instanceof AggregatedCommunication)) {
     console.warn(
       `[getWorldPositionOfCommunication] Invalid communication ID: ${communicationId}`
     );

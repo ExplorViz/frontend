@@ -1,5 +1,5 @@
 import sha256 from 'crypto-js/sha256';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   Class,
@@ -305,10 +305,10 @@ export class ClassChangeLogEntry extends BaseChangeLogEntry {
 }
 
 export class CommunicationChangeLogEntry extends BaseChangeLogEntry {
-  communication: ClassCommunication;
+  communication: AggregatedCommunication;
   originalOperationName: string;
 
-  constructor(action: RestructureAction, communication: ClassCommunication) {
+  constructor(action: RestructureAction, communication: AggregatedCommunication) {
     const id = sha256(action + communication.id).toString();
     super(id, action, undefined);
     this.communication = communication;

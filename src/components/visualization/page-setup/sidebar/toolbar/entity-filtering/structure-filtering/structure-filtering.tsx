@@ -141,6 +141,7 @@ const StructureFiltering = forwardRef<
     triggerRenderingForGivenLandscapeData(
       convertToFlatLandscape(deepCopyStructure), // TODO: Should be a deepCopyStructure of the FlatLandscape after removal of StructureData from LandscapeData
       landscapeData.dynamicLandscapeData,
+      landscapeData.aggregatedFileCommunication,
       deepCopyStructure,
     );
   };
@@ -150,7 +151,8 @@ const StructureFiltering = forwardRef<
     return () => {
       triggerRenderingForGivenLandscapeData(
         initialLandscapeData.current.flatLandscapeData,
-        initialLandscapeData.current.dynamicLandscapeData
+        initialLandscapeData.current.dynamicLandscapeData,
+        initialLandscapeData.current.aggregatedFileCommunication
       );
       eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     };

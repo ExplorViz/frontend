@@ -14,7 +14,7 @@ import {
 } from 'explorviz-frontend/src/utils/changelog-entry';
 import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
@@ -78,11 +78,11 @@ type MeshModelTextureMapping = {
 
 type CommModelColorMapping = {
   action: RestructureAction;
-  comm: ClassCommunication;
+  comm: AggregatedCommunication;
   color: THREE.Color;
 };
 
-type diverseDataModel = Application | Package | Class | ClassCommunication;
+type diverseDataModel = Application | Package | Class | AggregatedCommunication;
 
 interface LandscapeRestructureState {
   restructureMode: boolean; // tracked
@@ -94,12 +94,12 @@ interface LandscapeRestructureState {
   canvas?: HTMLCanvasElement; // tracked
   clipboard: string; // tracked
   clippedMesh: Package | Class | null; // tracked
-  createdClassCommunication: ClassCommunication[]; // tracked
-  allClassCommunications: ClassCommunication[]; // tracked
-  copiedClassCommunications: Map<string, ClassCommunication[]>; // tracked
-  updatedClassCommunications: Map<string, ClassCommunication[]>; // tracked
-  completelyDeletedClassCommunications: Map<string, ClassCommunication[]>; // tracked
-  deletedClassCommunications: ClassCommunication[]; // tracked
+  createdAggregatedCommunication: AggregatedCommunication[]; // tracked
+  allAggregatedCommunications: AggregatedCommunication[]; // tracked
+  copiedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
+  updatedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
+  completelyDeletedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
+  deletedAggregatedCommunications: AggregatedCommunication[]; // tracked
   sourceClass: Class | null; // tracked
   targetClass: Class | null; // tracked
   resetLandscapeRestructure: () => void;
@@ -113,7 +113,7 @@ interface LandscapeRestructureState {
   ) => void;
   addCommunication: (methodName: string, collabMode?: boolean) => void;
   deleteCommunication: (
-    comm: ClassCommunication,
+    comm: AggregatedCommunication,
     undo?: boolean,
     collabMode?: boolean
   ) => void;
@@ -148,7 +148,7 @@ interface LandscapeRestructureState {
     undo?: boolean
   ) => void;
   renameOperation: (
-    communication: ClassCommunication,
+    communication: AggregatedCommunication,
     newName: string,
     collabMode?: boolean,
     undo?: boolean
@@ -242,10 +242,10 @@ interface LandscapeRestructureState {
     clazz?: Class
   ) => void;
   _sendCutInsertMessage(destination: Application | Package): void;
-  removeCopiedClassCommunication: (key: string) => void;
+  removeCopiedAggregatedCommunication: (key: string) => void;
   setCanvas: (canvas: HTMLCanvasElement) => void;
-  setAllClassCommunications: (
-    allClassCommunications: ClassCommunication[]
+  setAllAggregatedCommunications: (
+    allAggregatedCommunications: AggregatedCommunication[]
   ) => void;
   _addOriginOfData: (entity: Package) => Package;
 }
@@ -261,16 +261,16 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
     canvas: undefined,
     clipboard: '',
     clippedMesh: null,
-    createdClassCommunication: [],
-    allClassCommunications: [],
-    copiedClassCommunications: new Map<string, ClassCommunication[]>(),
-    removeCopiedClassCommunication,
-    updatedClassCommunications: new Map<string, ClassCommunication[]>(),
-    completelyDeletedClassCommunications: new Map<
+    createdAggregatedCommunication: [],
+    allAggregatedCommunications: [],
+    copiedAggregatedCommunications: new Map<string, AggregatedCommunication[]>(),
+    removeCopiedAggregatedCommunication,
+    updatedAggregatedCommunications: new Map<string, AggregatedCommunication[]>(),
+    completelyDeletedAggregatedCommunications: new Map<
       string,
-      ClassCommunication[]
+      AggregatedCommunication[]
     >(),
-    deletedClassCommunications: [],
+    deletedAggregatedCommunications: [],
     sourceClass: null,
     targetClass: null,
 
@@ -284,12 +284,12 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         deletedDataModels: [],
         clipboard: '',
         clippedMesh: null,
-        createdClassCommunication: [],
-        allClassCommunications: [],
-        copiedClassCommunications: new Map(),
-        updatedClassCommunications: new Map(),
-        completelyDeletedClassCommunications: new Map(),
-        deletedClassCommunications: [],
+        createdAggregatedCommunication: [],
+        allAggregatedCommunications: [],
+        copiedAggregatedCommunications: new Map(),
+        updatedAggregatedCommunications: new Map(),
+        completelyDeletedAggregatedCommunications: new Map(),
+        deletedAggregatedCommunications: [],
         sourceClass: null,
         targetClass: null,
       });
@@ -377,7 +377,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         addMethodToClass(get().targetClass!, methodName);
 
         // Create model of communication between two classes
-        const classCommunication: ClassCommunication = {
+        const classCommunication: AggregatedCommunication = {
           id:
             get().sourceClass!.name +
             ' => ' +
@@ -402,8 +402,8 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         useChangelogStore.getState().communicationEntry(classCommunication);
 
         set({
-          createdClassCommunication: [
-            ...get().createdClassCommunication,
+          createdAggregatedCommunication: [
+            ...get().createdAggregatedCommunication,
             classCommunication,
           ],
         });
@@ -428,7 +428,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
     },
 
     deleteCommunication: (
-      comm: ClassCommunication,
+      comm: AggregatedCommunication,
       undo: boolean = false,
       collabMode: boolean = false
     ) => {
@@ -441,7 +441,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         const newCreatedComm = comm.id.includes(' => ');
         if (newCreatedComm) {
           set({
-            createdClassCommunication: get().createdClassCommunication.filter(
+            createdAggregatedCommunication: get().createdAggregatedCommunication.filter(
               (c) => c != comm
             ),
           });
@@ -450,7 +450,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           });
         } else {
           set({
-            deletedClassCommunications: get().deletedClassCommunications.filter(
+            deletedAggregatedCommunications: get().deletedAggregatedCommunications.filter(
               (d) => d != comm
             ),
           });
@@ -475,14 +475,14 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         const newCreatedComm = comm.id.includes(' => ');
         if (newCreatedComm) {
           set({
-            createdClassCommunication: get().createdClassCommunication.filter(
+            createdAggregatedCommunication: get().createdAggregatedCommunication.filter(
               (c) => comm
             ),
           });
         } else {
           set({
-            deletedClassCommunications: [
-              ...get().deletedClassCommunications,
+            deletedAggregatedCommunications: [
+              ...get().deletedAggregatedCommunications,
               comm,
             ],
             commModelColorMappings: [
@@ -535,7 +535,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const wrapper = {
           idCounter: get().newMeshCounter,
-          comms: get().allClassCommunications,
+          comms: get().allAggregatedCommunications,
           copiedComms: [],
         };
 
@@ -563,11 +563,11 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const key = 'DUPLICATED|' + duplicatedApp.id;
 
-        let newCopiedClassCommunications = new Map(
-          get().copiedClassCommunications
+        let newCopiedAggregatedCommunications = new Map(
+          get().copiedAggregatedCommunications
         );
-        newCopiedClassCommunications.set(key, wrapper.copiedComms);
-        set({ copiedClassCommunications: newCopiedClassCommunications });
+        newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
+        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
 
         eventEmitter.emit('showChangeLog');
         eventEmitter.emit(
@@ -862,7 +862,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
     },
 
     renameOperation: (
-      communication: ClassCommunication,
+      communication: AggregatedCommunication,
       newName: string,
       collabMode: boolean = false,
       undo: boolean = false
@@ -878,7 +878,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
       }
 
       const key = 'RENAMED|' + communication.id;
-      const found = get().updatedClassCommunications.has(key);
+      const found = get().updatedAggregatedCommunications.has(key);
 
       if (!undo) {
         useChangelogStore
@@ -888,18 +888,18 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         // If the communication was not updated before, then create an entry
         if (!found) {
-          let newUpdatedClassCommunications = new Map(
-            get().updatedClassCommunications
+          let newUpdatedAggregatedCommunications = new Map(
+            get().updatedAggregatedCommunications
           );
-          newUpdatedClassCommunications.set(key as string, [communication]);
-          set({ updatedClassCommunications: newUpdatedClassCommunications });
+          newUpdatedAggregatedCommunications.set(key as string, [communication]);
+          set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
         }
       } else {
-        let newUpdatedClassCommunications = new Map(
-          get().updatedClassCommunications
+        let newUpdatedAggregatedCommunications = new Map(
+          get().updatedAggregatedCommunications
         );
-        newUpdatedClassCommunications.delete(key);
-        set({ updatedClassCommunications: newUpdatedClassCommunications });
+        newUpdatedAggregatedCommunications.delete(key);
+        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
         communication.operationName = newName;
       }
 
@@ -935,8 +935,8 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         ),
       });
       if (undoCutOperation) {
-        if (get().createdClassCommunication.length) {
-          get().createdClassCommunication.forEach((comm) => {
+        if (get().createdAggregatedCommunication.length) {
+          get().createdAggregatedCommunication.forEach((comm) => {
             if (!comm.sourceApp) {
               comm.sourceApp = app;
             }
@@ -947,13 +947,13 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         }
         restoreID({ entity: app }, 'removed|');
       } else {
-        let newCompletelyDeletedClassCommunications = new Map(
-          get().completelyDeletedClassCommunications
+        let newCompletelyDeletedAggregatedCommunications = new Map(
+          get().completelyDeletedAggregatedCommunications
         );
-        newCompletelyDeletedClassCommunications.delete(app.id);
+        newCompletelyDeletedAggregatedCommunications.delete(app.id);
         set({
-          completelyDeletedClassCommunications:
-            newCompletelyDeletedClassCommunications,
+          completelyDeletedAggregatedCommunications:
+            newCompletelyDeletedAggregatedCommunications,
         });
       }
 
@@ -993,15 +993,15 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
       if (undoCutOperation) {
         const keyToRemove = 'CUTINSERT|' + pckg.id;
 
-        let newUpdatedClassCommunications = new Map(
-          get().updatedClassCommunications
+        let newUpdatedAggregatedCommunications = new Map(
+          get().updatedAggregatedCommunications
         );
-        newUpdatedClassCommunications.delete(keyToRemove);
-        set({ updatedClassCommunications: newUpdatedClassCommunications });
+        newUpdatedAggregatedCommunications.delete(keyToRemove);
+        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
 
         const app = get().getApp(pckg)!;
-        if (get().createdClassCommunication.length) {
-          get().createdClassCommunication.forEach((comm) => {
+        if (get().createdAggregatedCommunication.length) {
+          get().createdAggregatedCommunication.forEach((comm) => {
             if (!comm.sourceApp) {
               comm.sourceApp = app;
             }
@@ -1018,13 +1018,13 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         );
         restoreID({ entity: pckg }, 'removed|');
       } else {
-        let newCompletelyDeletedClassCommunications = new Map(
-          get().completelyDeletedClassCommunications
+        let newCompletelyDeletedAggregatedCommunications = new Map(
+          get().completelyDeletedAggregatedCommunications
         );
-        newCompletelyDeletedClassCommunications.delete(pckg.id);
+        newCompletelyDeletedAggregatedCommunications.delete(pckg.id);
         set({
-          completelyDeletedClassCommunications:
-            newCompletelyDeletedClassCommunications,
+          completelyDeletedAggregatedCommunications:
+            newCompletelyDeletedAggregatedCommunications,
         });
       }
 
@@ -1070,15 +1070,15 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
       if (undoCutOperation) {
         const keyToRemove = 'CUTINSERT|' + clazz.id;
 
-        let newUpdatedClassCommunications = new Map(
-          get().updatedClassCommunications
+        let newUpdatedAggregatedCommunications = new Map(
+          get().updatedAggregatedCommunications
         );
-        newUpdatedClassCommunications.delete(keyToRemove);
-        set({ updatedClassCommunications: newUpdatedClassCommunications });
+        newUpdatedAggregatedCommunications.delete(keyToRemove);
+        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
 
         restoreID({ entity: clazz }, 'removed|');
-        if (get().createdClassCommunication.length) {
-          get().createdClassCommunication.forEach((comm) => {
+        if (get().createdAggregatedCommunication.length) {
+          get().createdAggregatedCommunication.forEach((comm) => {
             // referencing the original app again
             if (!comm.sourceApp) {
               comm.sourceApp = app;
@@ -1104,13 +1104,13 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           clazz
         );
       } else {
-        let newCompletelyDeletedClassCommunications = new Map(
-          get().completelyDeletedClassCommunications
+        let newCompletelyDeletedAggregatedCommunications = new Map(
+          get().completelyDeletedAggregatedCommunications
         );
-        newCompletelyDeletedClassCommunications.delete(clazz.id);
+        newCompletelyDeletedAggregatedCommunications.delete(clazz.id);
         set({
-          completelyDeletedClassCommunications:
-            newCompletelyDeletedClassCommunications,
+          completelyDeletedAggregatedCommunications:
+            newCompletelyDeletedAggregatedCommunications,
         });
       }
 
@@ -1158,11 +1158,11 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
       const keyToRemove = 'DUPLICATED|' + app.id;
 
-      let newCopiedClassCommunications = new Map(
-        get().copiedClassCommunications
+      let newCopiedAggregatedCommunications = new Map(
+        get().copiedAggregatedCommunications
       );
-      newCopiedClassCommunications.delete(keyToRemove);
-      set({ copiedClassCommunications: newCopiedClassCommunications });
+      newCopiedAggregatedCommunications.delete(keyToRemove);
+      set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
     },
 
     undoCopyPackage(app: Application, pckg: Package) {
@@ -1182,31 +1182,31 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
       const keyToRemove = 'COPIED|' + pckg.id;
 
-      let newCopiedClassCommunications = new Map(
-        get().copiedClassCommunications
+      let newCopiedAggregatedCommunications = new Map(
+        get().copiedAggregatedCommunications
       );
-      newCopiedClassCommunications.delete(keyToRemove);
-      set({ copiedClassCommunications: newCopiedClassCommunications });
+      newCopiedAggregatedCommunications.delete(keyToRemove);
+      set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
     },
 
     //TODO: app gets passed but not used
     undoCopyClass(app: Application, clazz: Class) {
       const keyToRemove = 'DUPLICATED|' + clazz.id;
-      const copiedComms = get().copiedClassCommunications.get(keyToRemove);
+      const copiedComms = get().copiedAggregatedCommunications.get(keyToRemove);
       if (copiedComms) {
-        let newDeletedClassCommunications = [
-          ...get().deletedClassCommunications,
+        let newDeletedAggregatedCommunications = [
+          ...get().deletedAggregatedCommunications,
         ];
         copiedComms.forEach((comm) => {
-          newDeletedClassCommunications.push(comm);
+          newDeletedAggregatedCommunications.push(comm);
         });
-        set({ deletedClassCommunications: newDeletedClassCommunications });
+        set({ deletedAggregatedCommunications: newDeletedAggregatedCommunications });
 
-        let newCopiedClassCommunications = new Map(
-          get().copiedClassCommunications
+        let newCopiedAggregatedCommunications = new Map(
+          get().copiedAggregatedCommunications
         );
-        newCopiedClassCommunications.delete(keyToRemove);
-        set({ copiedClassCommunications: newCopiedClassCommunications });
+        newCopiedAggregatedCommunications.delete(keyToRemove);
+        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
       }
     },
 
@@ -1795,7 +1795,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         }
         // Create wrapper for Communication, since it can change inside the function
         const wrapper = {
-          comms: get().allClassCommunications,
+          comms: get().allAggregatedCommunications,
           deletedComms: [],
         };
 
@@ -1806,16 +1806,16 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
           // Updating deleted communications
 
-          let newCompletelyDeletedClassCommunications = new Map(
-            get().completelyDeletedClassCommunications
+          let newCompletelyDeletedAggregatedCommunications = new Map(
+            get().completelyDeletedAggregatedCommunications
           );
-          newCompletelyDeletedClassCommunications.set(
+          newCompletelyDeletedAggregatedCommunications.set(
             app.id,
             wrapper.deletedComms
           );
           set({
-            completelyDeletedClassCommunications:
-              newCompletelyDeletedClassCommunications,
+            completelyDeletedAggregatedCommunications:
+              newCompletelyDeletedAggregatedCommunications,
           });
         } else {
           removeApplication(get().landscapeData!.structureLandscapeData, app);
@@ -1903,7 +1903,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
         const wrapper = {
-          comms: get().allClassCommunications,
+          comms: get().allAggregatedCommunications,
           deletedComms: [],
         };
 
@@ -1911,16 +1911,16 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           const classesInPackge = getClassesInPackage(pckg);
           removeAffectedCommunications(classesInPackge, wrapper);
 
-          let newCompletelyDeletedClassCommunications = new Map(
-            get().completelyDeletedClassCommunications
+          let newCompletelyDeletedAggregatedCommunications = new Map(
+            get().completelyDeletedAggregatedCommunications
           );
-          newCompletelyDeletedClassCommunications.set(
+          newCompletelyDeletedAggregatedCommunications.set(
             pckg.id,
             wrapper.deletedComms
           );
           set({
-            completelyDeletedClassCommunications:
-              newCompletelyDeletedClassCommunications,
+            completelyDeletedAggregatedCommunications:
+              newCompletelyDeletedAggregatedCommunications,
           });
 
           // Create Changelog Entry
@@ -2109,23 +2109,23 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
         const wrapper = {
-          comms: get().allClassCommunications,
+          comms: get().allAggregatedCommunications,
           deletedComms: [],
         };
 
         if (!shouldUndo) {
           removeAffectedCommunications([clazz], wrapper);
 
-          let newCompletelyDeletedClassCommunications = new Map(
-            get().completelyDeletedClassCommunications
+          let newCompletelyDeletedAggregatedCommunications = new Map(
+            get().completelyDeletedAggregatedCommunications
           );
-          newCompletelyDeletedClassCommunications.set(
+          newCompletelyDeletedAggregatedCommunications.set(
             clazz.id,
             wrapper.deletedComms
           );
           set({
-            completelyDeletedClassCommunications:
-              newCompletelyDeletedClassCommunications,
+            completelyDeletedAggregatedCommunications:
+              newCompletelyDeletedAggregatedCommunications,
           });
 
           set({
@@ -2315,12 +2315,12 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         }
         const app = get().getApp(get().clippedMesh as Package) as Application;
 
-        const copiedClassCommunications: ClassCommunication[] = [];
+        const copiedAggregatedCommunications: AggregatedCommunication[] = [];
 
         const wrapper = {
           idCounter: get().newMeshCounter,
-          comms: get().allClassCommunications,
-          copiedComms: copiedClassCommunications,
+          comms: get().allAggregatedCommunications,
+          copiedComms: copiedAggregatedCommunications,
         };
 
         // Copy the clipped package
@@ -2392,11 +2392,11 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const key = 'COPIED|' + copiedPackage.id;
 
-        let newCopiedClassCommunications = new Map(
-          get().copiedClassCommunications
+        let newCopiedAggregatedCommunications = new Map(
+          get().copiedAggregatedCommunications
         );
-        newCopiedClassCommunications.set(key, wrapper.copiedComms);
-        set({ copiedClassCommunications: newCopiedClassCommunications });
+        newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
+        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
 
         eventEmitter.emit('showChangeLog');
         eventEmitter.emit(
@@ -2419,12 +2419,12 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         }
         const app = get().getApp(get().clippedMesh as Class) as Application;
 
-        const copiedClassCommunications: ClassCommunication[] = [];
+        const copiedAggregatedCommunications: AggregatedCommunication[] = [];
 
         const wrapper = {
           idCounter: get().newMeshCounter,
-          comms: get().allClassCommunications,
-          copiedComms: copiedClassCommunications,
+          comms: get().allAggregatedCommunications,
+          copiedComms: copiedAggregatedCommunications,
         };
 
         // Copy the clipped class
@@ -2474,11 +2474,11 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const key = 'COPIED|' + copiedClass.id;
 
-        let newCopiedClassCommunications = new Map(
-          get().copiedClassCommunications
+        let newCopiedAggregatedCommunications = new Map(
+          get().copiedAggregatedCommunications
         );
-        newCopiedClassCommunications.set(key, wrapper.copiedComms);
-        set({ copiedClassCommunications: newCopiedClassCommunications });
+        newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
+        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
 
         eventEmitter.emit('showChangeLog');
         eventEmitter.emit(
@@ -2527,13 +2527,13 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
         const app = get().getApp(get().clippedMesh as Package | Class);
 
-        const updatedClassCommunications: ClassCommunication[] = [];
+        const updatedAggregatedCommunications: AggregatedCommunication[] = [];
 
         // Create wrapper for Communication and the Mesh to delete, since it can change inside the function
         const wrapper = {
-          comms: get().allClassCommunications,
+          comms: get().allAggregatedCommunications,
           meshTodelete: get().clippedMesh as Package,
-          updatedComms: updatedClassCommunications,
+          updatedComms: updatedAggregatedCommunications,
         };
 
         const meshTextureMapping: Partial<MeshModelTextureMapping> = {
@@ -2660,11 +2660,11 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         // const key = this.changeLog.changeLogEntries.at(-1)?.id;
         const key = 'CUTINSERT|' + get().clippedMesh?.id;
 
-        let newUpdatedClassCommunications = new Map(
-          get().updatedClassCommunications
+        let newUpdatedAggregatedCommunications = new Map(
+          get().updatedAggregatedCommunications
         );
-        newUpdatedClassCommunications.set(key, wrapper.updatedComms);
-        set({ updatedClassCommunications: newUpdatedClassCommunications });
+        newUpdatedAggregatedCommunications.set(key, wrapper.updatedComms);
+        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
 
         get().resetClipboard();
 
@@ -2730,7 +2730,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         } else if (entry instanceof CommunicationChangeLogEntry) {
           const { communication } = entry;
           get().deleteCommunication(
-            communication as ClassCommunication,
+            communication as AggregatedCommunication,
             true,
             false
           );
@@ -2774,7 +2774,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         } else if (entry instanceof CommunicationChangeLogEntry) {
           const { communication, originalOperationName } = entry;
           get().renameOperation(
-            communication as ClassCommunication,
+            communication as AggregatedCommunication,
             originalOperationName as string,
             false,
             true
@@ -2807,7 +2807,7 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
             .getState()
             .restoreDeletedEntries(communication.id as string);
           get().deleteCommunication(
-            communication as ClassCommunication,
+            communication as AggregatedCommunication,
             true,
             false
           );
@@ -2941,17 +2941,17 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
 
     setCanvas: (canvas) => set({ canvas: canvas }),
 
-    setAllClassCommunications: (allClassCommunications) =>
-      set({ allClassCommunications: allClassCommunications }),
+    setAllAggregatedCommunications: (allAggregatedCommunications) =>
+      set({ allAggregatedCommunications: allAggregatedCommunications }),
   })
 );
 
-function removeCopiedClassCommunication(key: string) {
+function removeCopiedAggregatedCommunication(key: string) {
   useLandscapeRestructureStore.setState((prev) => {
-    const updatedMap = new Map(prev.copiedClassCommunications);
+    const updatedMap = new Map(prev.copiedAggregatedCommunications);
     updatedMap.delete(key);
     return {
-      copiedClassCommunications: updatedMap,
+      copiedAggregatedCommunications: updatedMap,
     };
   });
 }

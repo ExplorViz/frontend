@@ -1,5 +1,5 @@
 // import { tracked } from '@glimmer/tracking';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   Class,
@@ -21,7 +21,7 @@ export default class ApplicationData {
   // @tracked
   applicationMetrics: ApplicationMetrics;
 
-  classCommunications: ClassCommunication[] = [];
+  classCommunications: AggregatedCommunication[] = [];
 
   constructor(
     application: Application,

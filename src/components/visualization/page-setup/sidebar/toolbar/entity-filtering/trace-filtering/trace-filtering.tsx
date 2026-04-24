@@ -105,7 +105,8 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
 
       triggerRenderingForGivenLandscapeData(
         landscapeData.flatLandscapeData,
-        newTraces
+        newTraces,
+        landscapeData.aggregatedFileCommunication
       );
     };
 
@@ -142,7 +143,8 @@ const TraceFiltering = forwardRef<TraceFilteringHandle, TraceFilteringProps>(
         eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
         triggerRenderingForGivenLandscapeData(
           initialLandscapeData.flatLandscapeData,
-          initialLandscapeData.dynamicLandscapeData
+          initialLandscapeData.dynamicLandscapeData,
+          initialLandscapeData.aggregatedFileCommunication
         );
       };
     }, []);

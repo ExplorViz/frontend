@@ -64,7 +64,8 @@ const EntityFiltering = forwardRef<
   const resetToInit = () => {
     triggerRenderingForGivenLandscapeData(
       initialLandscapeData.current!.flatLandscapeData,
-      initialLandscapeData.current!.dynamicLandscapeData
+      initialLandscapeData.current!.dynamicLandscapeData,
+      initialLandscapeData.current!.aggregatedFileCommunication
     );
     updateSelectedTimestamp(timestamp);
   };
@@ -79,7 +80,8 @@ const EntityFiltering = forwardRef<
     return () => {
       triggerRenderingForGivenLandscapeData(
         initialLandscapeData.current!.flatLandscapeData,
-        initialLandscapeData.current!.dynamicLandscapeData
+        initialLandscapeData.current!.dynamicLandscapeData,
+        initialLandscapeData.current!.aggregatedFileCommunication
       );
       eventEmitter.off(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     };

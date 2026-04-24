@@ -1,9 +1,9 @@
+import { useCommunicationStore } from 'explorviz-frontend/src/stores/communication-store';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { requestData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
+import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import {
-  FlatLandscape
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   preProcessAndEnhanceStructureLandscape,
   StructureLandscapeData,
@@ -16,7 +16,7 @@ interface ReloadHandlerState {
     timestampFrom: number,
     timestampTo?: number
   ) => Promise<
-    [FlatLandscape, DynamicLandscapeData]
+    [FlatLandscape, DynamicLandscapeData, AggregatedBuildingCommunication]
   >;
   loadLandscapeByTimestampSnapshot: (
     structureData: StructureLandscapeData,
@@ -91,21 +91,17 @@ export const useReloadHandlerStore = create<ReloadHandlerState>((set, get) => ({
       );
 
       if (structureDataPromise.status === 'fulfilled') {
-        const flat: FlatLandscape = structureDataPromise.value
-        const dynamic =
+        const flat: FlatLandscape = structureDataPromise.value;
+        const aggregatedCommunication: AggregatedBuildingCommunication =
           dynamicDataPromise.status === 'fulfilled'
             ? dynamicDataPromise.value
-            : [];
+            : { metrics: {}, communications: [] };
 
-        for (const t of dynamic) {
-          const traceId = t.traceId;
+        useCommunicationStore
+          .getState()
+          .setCommunications(aggregatedCommunication);
 
-          for (const s of t.spanList) {
-            s.traceId = traceId;
-          }
-        }
-
-        return [flat, dynamic];
+        return [flat, [], aggregatedCommunication];
       }
       throw Error('No data available.');
     } catch (e: any) {

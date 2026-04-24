@@ -1,4 +1,4 @@
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Application,
   Class,
@@ -20,7 +20,7 @@ export interface AnnotationDataArgs {
     | Package
     | Class
     | ClazzCommuMeshDataModel
-    | ClassCommunication;
+    | AggregatedCommunication;
   applicationId?: string;
   menuId: string | null;
   hovered: boolean;
@@ -55,7 +55,7 @@ export default class AnnotationData {
     | Package
     | Class
     | ClazzCommuMeshDataModel
-    | ClassCommunication;
+    | AggregatedCommunication;
 
   applicationId?: string;
 

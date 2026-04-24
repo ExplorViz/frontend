@@ -12,7 +12,7 @@ import {
   computeCommunicationLayout,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
-import ClassCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/class-communication';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   isBuilding,
   isCity,
@@ -51,7 +51,7 @@ export default function CommunicationR3F({
   layoutMap,
   applicationModels,
 }: {
-  communicationModel: ClassCommunication;
+  communicationModel: AggregatedCommunication;
   applicationElement?: any;
   layoutMap?: Map<string, BoxLayout>;
   applicationModels?: ApplicationData[];
@@ -275,7 +275,8 @@ export default function CommunicationR3F({
 
   // Detect if this is an inter-app communication
   const isInterAppCommunication =
-    communicationModel.sourceApp.id !== communicationModel.targetApp.id;
+    communicationModel.sourceEntity.parentCityId !==
+    communicationModel.targetEntity.parentCityId;
 
   const [updateTrigger, setUpdateTrigger] = useState(0);
 
@@ -564,10 +565,10 @@ export default function CommunicationR3F({
     if (!hapSystem) return null;
 
     const originHAP = hapSystemManager.getHAPNode(
-      communicationModel.sourceClass?.id
+      communicationModel.sourceEntity.id
     );
     const destinationHAP = hapSystemManager.getHAPNode(
-      communicationModel.targetClass?.id
+      communicationModel.targetEntity.id
     );
 
     if (!originHAP || !destinationHAP) {
@@ -577,8 +578,8 @@ export default function CommunicationR3F({
     return { originHAP, destinationHAP };
   }, [
     hapSystem,
-    communicationModel.sourceClass?.id,
-    communicationModel.targetClass?.id,
+    communicationModel.sourceEntity.id,
+    communicationModel.targetEntity.id,
     use3DHAPAlgorithm,
     enableEdgeBundling,
     isInterAppCommunication,
@@ -908,7 +909,7 @@ export default function CommunicationR3F({
       return updatedLayout;
     }
     const isInterApp =
-      communicationModel.sourceApp.id !== communicationModel.targetApp.id;
+      communicationModel.sourceEntity.parentCityId !== communicationModel.targetEntity.parentCityId;
 
     const shouldUse3DHAPForThisEdge = is3DHAPAlgorithm && !isInterApp;
     let shouldUseForceDirectedForThisEdge =
@@ -935,10 +936,10 @@ export default function CommunicationR3F({
 
         if (hapSystem) {
           const currentOriginHAP = hapSystemManager.getHAPNode(
-            communicationModel.sourceClass?.id
+            communicationModel.sourceEntity?.id
           );
           const currentDestinationHAP = hapSystemManager.getHAPNode(
-            communicationModel.targetClass?.id
+            communicationModel.targetEntity?.id
           );
 
           if (currentOriginHAP && currentDestinationHAP) {
@@ -971,10 +972,10 @@ export default function CommunicationR3F({
         endPoint,
         {
           type,
-          app1Id: communicationModel.sourceApp.id,
-          app2Id: communicationModel.targetApp.id,
-          sourceId: communicationModel.sourceClass?.id,
-          targetId: communicationModel.targetClass?.id,
+          app1Id: communicationModel.sourceEntity.parentCityId,
+          app2Id: communicationModel.targetEntity.parentCityId,
+          sourceId: communicationModel.sourceEntity?.id,
+          targetId: communicationModel.targetEntity?.id,
           use3DHAP: false,
           isCircleLayout: isCircleLayout,
         }
@@ -1611,10 +1612,10 @@ export default function CommunicationR3F({
 
     if (positionsUpdated) {
       const originHAP = hapSystemManager.getHAPNode(
-        communicationModel.sourceClass?.id
+        communicationModel.sourceEntity?.id
       );
       const destinationHAP = hapSystemManager.getHAPNode(
-        communicationModel.targetClass?.id
+        communicationModel.targetEntity?.id
       );
 
       if (originHAP && destinationHAP) {
@@ -1719,10 +1720,10 @@ export default function CommunicationR3F({
 
       if (meshRef.current) {
         const originHAP = hapSystemManager.getHAPNode(
-          communicationModel.sourceClass?.id
+          communicationModel.sourceEntity?.id
         );
         const destinationHAP = hapSystemManager.getHAPNode(
-          communicationModel.targetClass?.id
+          communicationModel.targetEntity?.id
         );
 
         if (originHAP && destinationHAP) {
@@ -1780,8 +1781,8 @@ export default function CommunicationR3F({
     };
   }, [
     applicationElement?.id,
-    communicationModel.sourceClass?.id,
-    communicationModel.targetClass?.id,
+    communicationModel.sourceEntity?.id,
+    communicationModel.targetEntity?.id,
     edgeBundlingStreamline,
   ]);
 
@@ -1899,10 +1900,10 @@ export default function CommunicationR3F({
       meshRef.current.releaseSharedGeometry(meshRef.current.geometry);
 
       const originHAP = hapSystemManager.getHAPNode(
-        communicationModel.sourceClass?.id
+        communicationModel.sourceEntity?.id
       );
       const destinationHAP = hapSystemManager.getHAPNode(
-        communicationModel.targetClass?.id
+        communicationModel.targetEntity?.id
       );
 
       if (originHAP && destinationHAP) {
@@ -1975,9 +1976,9 @@ export default function CommunicationR3F({
       onDoubleClick={handleDoubleClickWithPrevent}
       name={
         'Communication between ' +
-        communicationModel.sourceClass.name +
+        communicationModel.sourceEntity.name +
         ' and ' +
-        communicationModel.targetClass.name
+        communicationModel.targetEntity.name
       }
       args={constructorArgs}
       arrowColor={new THREE.Color(arrowColor)}
@@ -1994,9 +1995,9 @@ export default function CommunicationR3F({
       enableEdgeBundling={enableEdgeBundling}
       bundleGroupId={
         enableEdgeBundling && !use3DHAPAlgorithm
-          ? communicationModel.sourceClass.id +
+          ? communicationModel.sourceEntity.id +
             '_' +
-            communicationModel.targetClass.id
+            communicationModel.targetEntity.id
           : null
       }
       enableEdgeColoring={enableEdgeColoring}
