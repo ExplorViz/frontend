@@ -9,6 +9,11 @@ import Raycaster from 'explorviz-frontend/src/utils/raycaster';
 import * as THREE from 'three';
 import { Object3D, Vector2 } from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import {
+  pingByModelId,
+  pingPosition,
+} from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
+import BaseMesh from 'explorviz-frontend/src/view-objects/3d/base-mesh';
 
 interface InteractionModifierEventCallbacks {
   onSingleClick?: (intersection: THREE.Intersection | null) => void;
@@ -48,7 +53,7 @@ export default function useInteractionModifier(
 
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
   const localUserActions = useLocalUserStore(
-    useShallow((state) => ({ ping: state.ping }))
+    useShallow((state) => ({}))
   );
 
   const makeFullsizeMinimap = useMinimapStore(
@@ -368,10 +373,15 @@ export default function useInteractionModifier(
 
     const ping = (intersectedViewObj: THREE.Intersection | null) => {
       if (intersectedViewObj) {
-        localUserActions.ping(
-          intersectedViewObj.object,
-          intersectedViewObj.point
-        );
+        const mesh = intersectedViewObj.object;
+        if (
+          mesh instanceof BaseMesh &&
+          typeof (mesh as any).getModelId === 'function'
+        ) {
+          pingByModelId((mesh as any).getModelId());
+        } else {
+          pingPosition(intersectedViewObj.point);
+        }
       }
     };
 

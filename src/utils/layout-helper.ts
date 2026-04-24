@@ -59,7 +59,7 @@ export function getWorldPositionOfModel(
   modelId: string
 ): THREE.Vector3 | undefined {
   // Check is model is a communication
-  if (modelId.indexOf('_') !== -1) {
+  if (useModelStore.getState().getCommunication(modelId)) {
     return getWorldPositionOfCommunication(modelId);
   }
   const layoutStore = useLayoutStore.getState();
@@ -107,7 +107,7 @@ export function getLandscapePositionOfModel(
   modelId: string
 ): THREE.Vector3 | undefined {
   // Check is model is a communication
-  if (modelId.indexOf('_') !== -1) {
+  if (useModelStore.getState().getCommunication(modelId)) {
     return getLandscapePositionOfCommunication(modelId);
   }
   const appRepo = useApplicationRepositoryStore.getState();
@@ -174,8 +174,8 @@ export function getLandscapePositionOfCommunication(
     return new THREE.Vector3();
   }
 
-  const sourcePos = getLandscapePositionOfModel(communication.sourceClass.id);
-  const targetPos = getLandscapePositionOfModel(communication.targetClass.id);
+  const sourcePos = getLandscapePositionOfModel(communication.sourceEntity.id);
+  const targetPos = getLandscapePositionOfModel(communication.targetEntity.id);
 
   if (!sourcePos || !targetPos) {
     console.warn(
@@ -223,8 +223,8 @@ export function getWorldPositionOfCommunication(
     return new THREE.Vector3();
   }
 
-  const sourcePos = getWorldPositionOfModel(communication.sourceClass.id);
-  const targetPos = getWorldPositionOfModel(communication.targetClass.id);
+  const sourcePos = getWorldPositionOfModel(communication.sourceEntity.id);
+  const targetPos = getWorldPositionOfModel(communication.targetEntity.id);
 
   if (!sourcePos || !targetPos) {
     console.warn(
