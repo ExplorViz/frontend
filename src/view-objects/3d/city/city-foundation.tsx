@@ -1,6 +1,5 @@
 import { Text } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
-import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -9,7 +8,6 @@ import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-ut
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   getHighlightingColorForEntity,
-  toggleHighlightById,
 } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -82,19 +80,6 @@ export default function CityFoundation({
     }))
   );
 
-  const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation();
-    addPopup({
-      entityId: city.id,
-      entity: city,
-      position: {
-        x: event.clientX,
-        y: event.clientY,
-      },
-    });
-  };
-
-  const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const {
     cityLabelMargin,
@@ -130,8 +115,16 @@ export default function CityFoundation({
     setHoveredEntityId(null);
   };
 
-  const handleClick = (/*event: any*/) => {
-    toggleHighlightById(city.id);
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    addPopup({
+      entityId: city.id,
+      entity: city,
+      position: {
+        x: event.clientX,
+        y: event.clientY,
+      },
+    });
   };
 
   const handleDoubleClick = (/*event: any*/) => {
@@ -183,7 +176,6 @@ export default function CityFoundation({
         onPointerOver: handleOnPointerOver,
         onPointerOut: handleOnPointerOut,
       })}
-      {...pointerStopHandlers}
     >
       <meshBasicMaterial
         color={computeColor()}

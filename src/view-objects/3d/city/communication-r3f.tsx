@@ -1,5 +1,4 @@
 import { ThreeElements, ThreeEvent, useThree } from '@react-three/fiber';
-import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -11,7 +10,6 @@ import {
   calculateLineThickness,
   computeCommunicationLayout,
 } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
-import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   isBuilding,
@@ -177,18 +175,6 @@ export default function CommunicationR3F({
     }))
   );
 
-  const handlePointerStop = (event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation();
-    addPopup({
-      entityId: communicationModel.id,
-      position: {
-        x: event.clientX,
-        y: event.clientY,
-      },
-    });
-  };
-
-  const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const handleOnPointerOver = (event: any) => {
     event.stopPropagation();
@@ -200,8 +186,15 @@ export default function CommunicationR3F({
     setHoveredEntity(null);
   };
 
-  const handleClick = (/*event*/) => {
-    toggleHighlightById(communicationModel.id);
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    addPopup({
+      entityId: communicationModel.id,
+      position: {
+        x: event.clientX,
+        y: event.clientY,
+      },
+    });
   };
 
   const handleDoubleClick = (/*event*/) => {};
@@ -1967,7 +1960,6 @@ export default function CommunicationR3F({
     <clazzCommunicationMesh
       layers={sceneLayers.Communication}
       key={`${enableEdgeBundling}-${use3DHAPAlgorithm}`}
-      {...pointerStopHandlers}
       {...(enableHoverEffects && {
         onPointerOver: handleOnPointerOver,
         onPointerOut: handleOnPointerOut,

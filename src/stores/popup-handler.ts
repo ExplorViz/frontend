@@ -2,7 +2,6 @@ import { create } from 'zustand';
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
@@ -12,9 +11,7 @@ import {
   DETACHED_MENU_CLOSED_EVENT,
   DetachedMenuClosedMessage,
 } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import {
-  MENU_DETACHED_EVENT
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
+import { MENU_DETACHED_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Building,
@@ -25,31 +22,9 @@ import {
   Application,
   Class,
   Node,
-  Package
+  Package,
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { me } from 'playroomkit';
-
-function isCity(entity: any): entity is City {
-  return (
-    entity && Object.prototype.hasOwnProperty.call(entity, 'rootDistrictIds')
-  );
-}
-
-function isBuilding(entity: any): entity is Building {
-  return (
-    entity &&
-    Object.prototype.hasOwnProperty.call(entity, 'parentCityId') &&
-    Object.prototype.hasOwnProperty.call(entity, 'parentDistrictId')
-  );
-}
-
-function isDistrict(entity: any): entity is District {
-  return (
-    entity &&
-    Object.prototype.hasOwnProperty.call(entity, 'parentCityId') &&
-    !Object.prototype.hasOwnProperty.call(entity, 'parentDistrictId')
-  );
-}
 
 type Position2D = {
   x: number;
@@ -96,7 +71,6 @@ interface PopupHandlerState {
     model?: Application | Package | Class | City | District | Building;
     applicationId?: string;
   }) => void;
-  _removePopupAfterTimeout: (popup: PopupData) => void;
   updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;
   /**
    * React on detached menu (popup in VR) update and show a regular HTML popup.
@@ -120,8 +94,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
   popupData: [],
   deactivated: false,
 
-  _constructor: () => {
-  },
+  _constructor: () => {},
 
   clearPopups: () => {
     set({ popupData: [] });
@@ -173,11 +146,14 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     hovered,
   }) => {
     // TODO: Handle HTML Mesh better
-    if (
-      useUserSettingsStore.getState().visualizationSettings.hidePopupDelay
-        .value == 0 ||
-      get().deactivated
-    ) {
+    if (get().deactivated) {
+      return;
+    }
+
+    // Check if popup for entity already exists and remove it if so (toggle)
+    const existingPopup = get().popupData.find((pd) => pd.entityId === entityId);
+    if (existingPopup) {
+      get().removePopup(entityId);
       return;
     }
 
@@ -210,70 +186,14 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       hovered: hovered || false,
     });
 
-    // Check if popup for entity already exists and update it if so
-    const maybePopup = get().popupData.find(
-      (pd) => pd.entityId === newPopup.entityId
-    );
-    if (maybePopup) {
-      get().updatePopup(newPopup, false);
-      return;
-    }
-
-    // Ensure that there is at most one unpinned popup
-    const unpinnedPopupIndex = get().popupData.findIndex((pd) => !pd.isPinned);
-
-    if (unpinnedPopupIndex === -1 || newPopup.isPinned) {
+    if (newPopup.isPinned) {
       set({ popupData: [...get().popupData, newPopup] });
     } else {
-      const unpinnedPopup = get().popupData[unpinnedPopupIndex];
-
-      // Place new popup at same position of previously moved popup
-      if (unpinnedPopup.wasMoved) {
-        newPopup.mouseX = unpinnedPopup.mouseX;
-        newPopup.mouseY = unpinnedPopup.mouseY;
-        newPopup.wasMoved = true;
-      }
-
-      // Replace unpinned popup
-      set((state) => ({
-        popupData: state.popupData.map((pd) =>
-          pd.entity.id === unpinnedPopup.entity.id ? newPopup : pd
-        ),
-      }));
+      // Replace all unpinned popups
+      set({
+        popupData: [...get().popupData.filter((pd) => pd.isPinned), newPopup],
+      });
     }
-
-    get()._removePopupAfterTimeout(newPopup);
-  },
-
-  _removePopupAfterTimeout: (popup: PopupData) => {
-    // Store popup position
-    const mouseX = popup.mouseX;
-    const mouseY = popup.mouseY;
-
-    setTimeout(() => {
-      const maybePopup = get().popupData.find(
-        (pd) => pd.entity.id === popup.entity.id
-      );
-
-      // Popup no longer available
-      if (!maybePopup || maybePopup.wasMoved || popup.isPinned) {
-        return;
-      }
-
-      // Do not remove popup when mouse is on the popup
-      if (maybePopup.hovered) {
-        get()._removePopupAfterTimeout(popup);
-        return;
-      }
-
-      // Popup did not move (was not updated)
-      if (maybePopup.mouseX == mouseX && maybePopup.mouseY == mouseY) {
-        get().removePopup(popup.entityId);
-        return;
-      }
-
-      get()._removePopupAfterTimeout(popup);
-    }, useUserSettingsStore.getState().visualizationSettings.hidePopupDelay.value * 1000);
   },
 
   updatePopup: (updatedPopup: PopupData, updatePosition = true) => {
@@ -285,14 +205,14 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
       popupData: state.popupData.map((pd) =>
         pd.entityId === updatedPopup.entityId
           ? {
-            ...pd,
-            wasMoved: pd.wasMoved || updatedPopup.wasMoved,
-            mouseX: updatePosition ? updatedPopup.mouseX : pd.mouseX,
-            mouseY: updatePosition ? updatedPopup.mouseY : pd.mouseY,
-            isPinned: pd.isPinned || updatedPopup.isPinned,
-            sharedBy: updatedPopup.sharedBy,
-            hovered: updatedPopup.hovered,
-          }
+              ...pd,
+              wasMoved: pd.wasMoved || updatedPopup.wasMoved,
+              mouseX: updatePosition ? updatedPopup.mouseX : pd.mouseX,
+              mouseY: updatePosition ? updatedPopup.mouseY : pd.mouseY,
+              isPinned: pd.isPinned || updatedPopup.isPinned,
+              sharedBy: updatedPopup.sharedBy,
+              hovered: updatedPopup.hovered,
+            }
           : pd
       ),
     }));
@@ -346,4 +266,3 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
 
   setDeactivated: (value: boolean) => set({ deactivated: value }),
 }));
-

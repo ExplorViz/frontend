@@ -887,16 +887,6 @@ export const defaultVizSettings: VisualizationSettings = {
       'Height of closed districts (i.e. when contained buildings are hidden)',
     isRangeSetting: true,
   },
-  // Popup settings
-  hidePopupDelay: {
-    level: SettingLevel.DEFAULT,
-    value: 1.0,
-    range: { min: 0.0, max: 3.0, step: 0.25 },
-    group: 'Popups',
-    displayName: 'Hide Popups After',
-    description: 'Determines how many seconds popups stay on screen',
-    isRangeSetting: true,
-  },
   // Semantic Zoom Settings
   enableClustering: {
     level: SettingLevel.DEFAULT,

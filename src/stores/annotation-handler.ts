@@ -29,7 +29,6 @@ interface AnnotationHandlerState {
     annotationId: number,
     stillMinimized?: boolean
   ) => void;
-  removeAnnotationAfterTimeout: (annotation: AnnotationData) => void;
   shareAnnotation: (annotation: AnnotationData) => void;
   addAnnotation: ({
     annotationId,
@@ -164,33 +163,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       });
     },
 
-    removeAnnotationAfterTimeout: (annotation: AnnotationData) => {
-      // Store annotation position
-      const mouseX = annotation.mouseX;
-      const mouseY = annotation.mouseY;
-
-      setTimeout(() => {
-        const maybeAnnotation = get().annotationData.find(
-          (ad) => ad.annotationId === annotation.annotationId
-        );
-
-        // Annotation no longer available
-        if (!maybeAnnotation || maybeAnnotation.wasMoved) {
-          return;
-        }
-
-        // Annotation did not move (was not updated)
-        if (
-          maybeAnnotation.mouseX == mouseX &&
-          maybeAnnotation.mouseY == mouseY
-        ) {
-          get().removeAnnotation(annotation.annotationId);
-          return;
-        }
-
-        get().removeAnnotationAfterTimeout(annotation);
-      }, useUserSettingsStore.getState().visualizationSettings.hidePopupDelay.value);
-    },
 
     shareAnnotation: (annotation: AnnotationData) => {
       set({
@@ -263,7 +235,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
             ),
           });
           minimized = true;
-          get().removeAnnotationAfterTimeout(annotations[0]);
         }
 
         const anno = get().annotationData.filter(
@@ -323,8 +294,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
         }
 
         set({ annotationData: [...get().annotationData, newAnnotation] });
-
-        get().removeAnnotationAfterTimeout(newAnnotation);
       }
     },
 

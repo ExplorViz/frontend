@@ -1,6 +1,5 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
-import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
@@ -11,7 +10,6 @@ import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibil
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   getHighlightingColorForEntity,
-  toggleHighlightById,
 } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
@@ -574,11 +572,19 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     const { instanceId } = e;
     if (instanceId === undefined) return;
     e.stopPropagation();
+
     const buildingId = instanceIdToBuildingId.get(instanceId);
     if (!buildingId) return;
 
-    // Toggle highlighting
-    toggleHighlightById(buildingId);
+    const building = useModelStore.getState().getBuilding(buildingId);
+    addPopup({
+      entityId: buildingId,
+      entity: building,
+      position: {
+        x: e.clientX,
+        y: e.clientY,
+      },
+    });
   };
 
   const handleOnPointerOver = (e: ThreeEvent<MouseEvent>) => {
@@ -612,29 +618,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
   const handleDoubleClick = (/*event: any*/) => {};
 
-  const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
-    if (meshRef === null || typeof meshRef === 'function') {
-      return;
-    }
-    if (!meshRef.current) return;
-    const { instanceId } = e;
-    if (instanceId === undefined) return;
-    e.stopPropagation();
-
-    const buildingId = instanceIdToBuildingId.get(instanceId);
-    if (!buildingId) return;
-    const building = useModelStore.getState().getBuilding(buildingId);
-    addPopup({
-      entityId: buildingId,
-      entity: building,
-      position: {
-        x: e.clientX,
-        y: e.clientY,
-      },
-    });
-  };
-
-  const pointerStopHandlers = usePointerStop(handlePointerStop);
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
@@ -651,7 +634,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         onPointerOut: handleOnPointerOut,
       })}
       onDoubleClick={handleDoubleClickWithPrevent}
-      {...pointerStopHandlers}
       frustumCulled={false}
     ></instancedMesh2>
   );

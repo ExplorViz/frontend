@@ -1,6 +1,5 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
-import { usePointerStop } from 'explorviz-frontend/src/hooks/pointer-stop';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
@@ -13,7 +12,6 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   getHighlightingColorForEntity,
-  toggleHighlightById,
 } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -452,8 +450,16 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       e.stopPropagation();
       const districtId = instanceIdToDistrictId.get(instanceId);
       if (!districtId) return;
-      // Toggle highlighting
-      toggleHighlightById(districtId);
+
+      const district = useModelStore.getState().getDistrict(districtId);
+      addPopup({
+        entityId: districtId,
+        entity: district,
+        position: {
+          x: e.clientX,
+          y: e.clientY,
+        },
+      });
     };
 
     const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
@@ -502,29 +508,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       setHoveredEntity(null);
     };
 
-    const handlePointerStop = (e: ThreeEvent<PointerEvent>) => {
-      if (ref === null || typeof ref === 'function') {
-        return;
-      }
-      if (!meshRef.current) return;
-      const { instanceId } = e;
-      if (instanceId === undefined) return;
-      e.stopPropagation();
-
-      const districtId = instanceIdToDistrictId.get(instanceId);
-      if (!districtId) return;
-      const district = useModelStore.getState().getDistrict(districtId);
-      addPopup({
-        entityId: districtId,
-        entity: district,
-        position: {
-          x: e.clientX,
-          y: e.clientY,
-        },
-      });
-    };
-
-    const pointerStopHandlers = usePointerStop(handlePointerStop);
 
     const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
       useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
@@ -546,7 +529,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           onPointerOut: handleOnPointerOut,
         })}
         onDoubleClick={handleDoubleClickWithPrevent}
-        {...pointerStopHandlers}
         frustumCulled={false}
       ></instancedMesh2>
     );

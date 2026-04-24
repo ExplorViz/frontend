@@ -243,7 +243,7 @@ export default function PopupCoordinator({
       onPointerOut={onPointerOut}
       ref={element}
     >
-      {popupData.wasMoved || popupData.isPinned ? (
+      <>
         <>
           <OverlayTrigger
             placement="top"
@@ -348,11 +348,7 @@ export default function PopupCoordinator({
             </Button>
           </OverlayTrigger>
         </>
-      ) : (
-        <Button variant="outline-secondary" size="sm" disabled>
-          Drag with Mouse
-        </Button>
-      )}
+      </>
 
       {entityType == 'city' && <FoundationPopup popupData={popupData} />}
       {entityType == 'district' && <DistrictPopup popupData={popupData} />}

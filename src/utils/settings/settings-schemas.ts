@@ -12,7 +12,6 @@ export type SettingGroup =
   | 'Magnifier'
   | 'Minimap'
   | 'Misc'
-  | 'Popups'
   | 'Semantic Zoom'
   | 'Virtual Reality';
 
@@ -193,11 +192,6 @@ export type MinimapSettings = {
 };
 export type MinimapSettingId = keyof MinimapSettings;
 
-export type PopupSettings = {
-  hidePopupDelay: RangeSetting;
-};
-export type PopupSettingId = keyof PopupSettings;
-
 export type SemanticZoomSettings = {
   enableClustering: FlagSetting;
   displayClusters: FlagSetting;
@@ -250,7 +244,6 @@ export type VisualizationSettingId =
   | MagnifierSettingId
   | MinimapSettingId
   | MiscSettingId
-  | PopupSettingId
   | SemanticZoomSettingId
   | 'autoEnterVr'
   | GeometrySettingId
@@ -268,7 +261,6 @@ export type VisualizationSettings = CameraSettings &
   MagnifierSettings &
   MinimapSettings &
   MiscSettings &
-  PopupSettings &
   SemanticZoomSettings &
   XrSettings &
   ColorSettings &
