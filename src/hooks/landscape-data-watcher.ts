@@ -131,10 +131,8 @@ export default function useLandscapeDataWatcher(
     modelRepository.setBuildings(
       Object.values(flatLandscapeStructure.buildings)
     );
-    modelRepository.setFunctions(
-      Object.values(flatLandscapeStructure.functions)
-    );
     modelRepository.setCommunications(aggregatedCommunications);
+
 
     // Update layout store after model repository is populated
     useLayoutStore.getState().updateLayouts(boxLayoutMap);

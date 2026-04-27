@@ -16,8 +16,6 @@ export type FlatLandscape = {
   cities: Record<string, City>;
   districts: Record<string, District>;
   buildings: Record<string, Building>;
-  classes: Record<string, Cls>;
-  functions: Record<string, Func>;
 };
 
 type FlatBaseModel = {
@@ -56,11 +54,7 @@ export type Building = FlatBaseModel & {
   parentCityId: string;
   parentDistrictId?: string;
   language?: Language;
-  classIds?: string[];
-  functionIds?: string[];
   metrics?: Record<string, MetricValue>;
-  allContainedFunctionIds: string[];
-  allContainedClassIds: string[];
 };
 
 export type MetricValue = {
@@ -68,17 +62,6 @@ export type MetricValue = {
   previous?: number;
 };
 
-export type Cls = FlatBaseModel & {
-  functionIds: string[];
-  innerClassIds: string[];
-  parentBuildingId: string;
-};
-
-export type Func = FlatBaseModel & {
-  parentId: string;
-  metrics?: Record<string, number>;
-  parentBuildingId: string;
-};
 
 export function isCity(x: any): x is City {
   return isObject(x) && Object.prototype.hasOwnProperty.call(x, 'allContainedBuildingIds');
@@ -115,8 +98,6 @@ export function convertToFlatLandscape(
   const cities: Record<string, City> = {};
   const districts: Record<string, District> = {};
   const buildings: Record<string, Building> = {};
-  const classes: Record<string, Cls> = {};
-  const functions: Record<string, Func> = {};
 
   function walkPackages(
     pkg: Package,
@@ -167,46 +148,13 @@ export function convertToFlatLandscape(
           })(),
           parentCityId: cityId,
           parentDistrictId: districtId,
-          classIds: [],
-          functionIds: [],
-          allContainedFunctionIds: [],
-          allContainedClassIds: [],
-          metrics: { numOfFunctions: { current: 0 } },
+          metrics: {},
         };
 
         districts[districtId].buildingIds.push(buildingId);
       }
 
       cities[cityId].allContainedBuildingIds.push(buildingId);
-
-      if (!classes[cls.id]) {
-        classes[cls.id] = {
-          id: cls.id,
-          name: cls.name,
-          originOfData: cls.originOfData,
-          functionIds: [],
-          innerClassIds: [],
-          parentBuildingId: buildingId,
-        };
-      }
-
-      buildings[buildingId].classIds?.push(cls.id);
-
-      for (const method of cls.methods) {
-        const functionId = method.methodHash;
-
-        if (!functions[functionId]) {
-          functions[functionId] = {
-            id: functionId,
-            name: method.name,
-            originOfData: method.originOfData,
-            parentId: buildingId,
-            parentBuildingId: buildingId,
-          };
-        }
-
-        buildings[buildingId].functionIds?.push(functionId);
-      }
     }
 
     // Recurse into sub-packages
@@ -255,46 +203,13 @@ export function convertToFlatLandscape(
                 return 'LANGUAGE_UNSPECIFIED';
               })(),
               parentCityId: cityId,
-              classIds: [],
-              functionIds: [],
-              allContainedFunctionIds: [],
-              allContainedClassIds: [],
-              metrics: { numOfFunctions: { current: 0 } },
+              metrics: {},
             };
 
             cities[cityId].buildingIds.push(buildingId);
           }
 
           cities[cityId].allContainedBuildingIds.push(buildingId);
-
-          if (!classes[cls.id]) {
-            classes[cls.id] = {
-              id: cls.id,
-              name: cls.name,
-              originOfData: cls.originOfData,
-              functionIds: [],
-              innerClassIds: [],
-              parentBuildingId: buildingId,
-            };
-          }
-
-          buildings[buildingId].classIds?.push(cls.id);
-
-          for (const method of cls.methods) {
-            const functionId = method.methodHash;
-
-            if (!functions[functionId]) {
-              functions[functionId] = {
-                id: functionId,
-                name: method.name,
-                originOfData: method.originOfData,
-                parentId: buildingId,
-                parentBuildingId: buildingId,
-              };
-            }
-
-            buildings[buildingId].functionIds?.push(functionId);
-          }
         }
       }
     }
@@ -305,8 +220,6 @@ export function convertToFlatLandscape(
     cities,
     districts,
     buildings,
-    classes,
-    functions,
   };
 }
 
@@ -328,7 +241,7 @@ export function convertStructureLandscapeFromFlat(
 
   nodes.push(defaultNode);
 
-  const { cities, districts, buildings, functions } = flatLandscape;
+  const { cities, districts, buildings } = flatLandscape;
 
   Object.values(cities).forEach((city) => {
     const app: Application = {
@@ -342,7 +255,7 @@ export function convertStructureLandscapeFromFlat(
     };
 
     city.districtIds.forEach((districtId) => {
-      const pkg = buildPackage(districtId, districts, buildings, functions);
+      const pkg = buildPackage(districtId, districts, buildings);
       if (pkg) {
         pkg.parent = undefined; // Root packages have no parent
         pkg.level = 0;
@@ -354,7 +267,7 @@ export function convertStructureLandscapeFromFlat(
       const building = buildings[buildingId];
       if (building) {
         if (!app.classes) app.classes = [];
-        const cls = buildClass(building, functions);
+        const cls = buildClass(building);
         app.classes.push(cls);
       }
     });
@@ -384,8 +297,7 @@ export function convertStructureLandscapeFromFlat(
 function buildPackage(
   districtId: string,
   districts: Record<string, District>,
-  buildings: Record<string, Building>,
-  functions: Record<string, Func>
+  buildings: Record<string, Building>
 ): Package | undefined {
   const district = districts[districtId];
   if (!district) return undefined;
@@ -401,7 +313,7 @@ function buildPackage(
   };
 
   district.districtIds.forEach((subDistrictId) => {
-    const subPkg = buildPackage(subDistrictId, districts, buildings, functions);
+    const subPkg = buildPackage(subDistrictId, districts, buildings);
     if (subPkg) {
       subPkg.parent = pkg;
       pkg.subPackages.push(subPkg);
@@ -411,7 +323,7 @@ function buildPackage(
   district.buildingIds.forEach((buildingId) => {
     const building = buildings[buildingId];
     if (building) {
-      const cls = buildClass(building, functions);
+      const cls = buildClass(building);
       cls.parent = pkg;
       pkg.classes.push(cls);
     }
@@ -421,31 +333,13 @@ function buildPackage(
 }
 
 function buildClass(
-  building: Building,
-  functions: Record<string, Func>
+  building: Building
 ): Class {
-  const methods: Method[] = [];
-
-  building.functionIds?.forEach((funcId) => {
-    const func = functions[funcId];
-    if (func) {
-      methods.push({
-        id: func.id,
-        name: func.name,
-        type: '', // Missing in FlatLandscape
-        private: false, // Missing in FlatLandscape
-        methodHash: func.id,
-        parameters: [], // Missing in FlatLandscape
-        originOfData: func.originOfData || TypeOfAnalysis.Dynamic,
-      });
-    }
-  });
-
   return {
     id: building.id,
     name: building.name,
     fqn: building.fqn,
-    methods,
+    methods: [],
     originOfData: building.originOfData || TypeOfAnalysis.Dynamic,
     parent: undefined as any, // Set by caller
     level: 0, // Set by caller/recalculate
@@ -461,3 +355,4 @@ function calculateLevels(packages: Package[], level: number) {
     });
   });
 }
+

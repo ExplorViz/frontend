@@ -60,20 +60,20 @@ export function ToolCallCard({
   onClick,
 }: ToolCallCardProps) {
   const disabled = !component?.id && !onClick;
-  const application = component?.id
-    ? useModelStore.getState().getApplication(component?.id)
+  const city = component?.id
+    ? useModelStore.getState().getCity(component?.id)
     : undefined;
-  const pckg = component?.id
-    ? useModelStore.getState().getComponent(component?.id)
+  const district = component?.id
+    ? useModelStore.getState().getDistrict(component?.id)
     : undefined;
-  const clazz = component?.id
-    ? useModelStore.getState().getClass(component?.id)
+  const building = component?.id
+    ? useModelStore.getState().getBuilding(component?.id)
     : undefined;
   const displayComponent =
     component?.name ||
-    (application?.name && `application ${application.name}`) ||
-    (pckg?.fqn && `package ${pckg.fqn}`) ||
-    (clazz?.fqn && `class ${clazz.fqn}`) ||
+    (city?.name && `city ${city.name}`) ||
+    (district?.fqn && `district ${district.fqn}`) ||
+    (building?.fqn && `building ${building.fqn}`) ||
     component?.id?.slice(0, 8);
   const { addPopup } = usePopupHandlerStore();
 

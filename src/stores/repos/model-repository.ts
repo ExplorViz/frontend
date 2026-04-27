@@ -2,9 +2,7 @@ import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-sche
 import {
   Building,
   City,
-  Cls,
   District,
-  Func,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   Application,
@@ -29,7 +27,6 @@ interface ModelRepositoryState {
 
   classes: Record<string, Class>;
   buildings: Record<string, Building>;
-  functions: Record<string, Func>;
 
   communications: Record<string, AggregatedCommunication>;
 
@@ -39,9 +36,7 @@ interface ModelRepositoryState {
   getCityForModel: (id: string) => City | undefined;
   getComponent: (id: string) => Package | District | undefined;
   getDistrict: (id: string) => District | undefined;
-  getClass: (id: string) => Cls | undefined;
   getBuilding: (id: string) => Building | undefined;
-  getFunc: (id: string) => Func | undefined;
   getCommunication: (id: string) => AggregatedCommunication | undefined;
   getModel: (
     id: string
@@ -81,7 +76,6 @@ interface ModelRepositoryState {
   setDistricts: (districts: District[]) => void;
   setClasses: (classes: Class[]) => void;
   setBuildings: (buildings: Building[]) => void;
-  setFunctions: (functions: Func[]) => void;
   setCommunications: (communications: AggregatedCommunication[]) => void;
 
   // Actions for removing individual models
@@ -111,7 +105,6 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   districts: {},
   classes: {},
   buildings: {},
-  functions: {},
   communications: {},
 
   // Getter functions for individual models
@@ -135,9 +128,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   },
   getComponent: (id) => get().districts[id] || get().components[id],
   getDistrict: (id) => get().districts[id],
-  getClass: (id) => get().classes[id],
   getBuilding: (id) => get().buildings[id],
-  getFunc: (id) => get().functions[id],
   getCommunication: (id) => get().communications[id],
 
   // Getter functions for all models
@@ -247,10 +238,6 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
     set(() => ({
       buildings: Object.fromEntries(buildings.map((b) => [b.id, b])),
     })),
-  setFunctions: (functions) =>
-    set(() => ({
-      functions: Object.fromEntries(functions.map((f) => [f.id, f])),
-    })),
 
   setCommunications: (communications) =>
     set(() => ({
@@ -318,7 +305,7 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       districts: {},
       classes: {},
       buildings: {},
-      functions: {},
       communications: {},
     })),
 }));
+
