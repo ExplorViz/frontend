@@ -147,12 +147,10 @@ export function closeAllDistrictsInCity(city: City, sendMessage = true) {
 
 export function closeAllDistrictsInLandscape(sendMessage = true) {
   const allDistricts = useModelStore.getState().getAllDistricts();
+  const allCities = useModelStore.getState().getAllCities();
 
-  const topLevelDistrictIds = allDistricts
-    .filter((district) => {
-      return district.parentDistrictId === undefined;
-    })
-    .map((district) => district.id);
+  const topLevelDistrictIds = allCities.flatMap((city) => city.districtIds);
+  const topLevelBuildingIds = allCities.flatMap((city) => city.buildingIds);
 
   const allDistrictIds = allDistricts.map((district) => district.id);
   const allBuildingIds = useModelStore
@@ -161,14 +159,18 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
     .map((building) => building.id);
 
   closeDistricts(allDistrictIds);
-  hideDistricts(
-    Array.from(new Set(allDistrictIds).difference(new Set(topLevelDistrictIds)))
+
+  const districtIdsToHide = Array.from(
+    new Set(allDistrictIds).difference(new Set(topLevelDistrictIds))
   );
-  const buildingIdsToHide = allBuildingIds.filter((id) => {
-    const building = useModelStore.getState().getBuilding(id);
-    return building?.parentDistrictId !== undefined;
-  });
+  hideDistricts(districtIdsToHide);
+  showDistricts(topLevelDistrictIds);
+
+  const buildingIdsToHide = Array.from(
+    new Set(allBuildingIds).difference(new Set(topLevelBuildingIds))
+  );
   hideBuildings(buildingIdsToHide);
+  showBuildings(topLevelBuildingIds);
 
   if (sendMessage) {
     useMessageSenderStore.getState().sendDistrictUpdate(allDistrictIds, false);

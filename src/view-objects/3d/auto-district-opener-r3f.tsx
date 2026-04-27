@@ -70,7 +70,7 @@ export default function AutoDistrictOpenerR3F() {
         // Open district when close to cluster centroid
         // But only if parent district is already opened (or district has no parent)
         const parentIsOpen =
-          district.parentDistrictId === undefined ||
+          !district.parentDistrictId ||
           !closedDistrictIds.has(district.parentDistrictId);
 
         if (parentIsOpen) {

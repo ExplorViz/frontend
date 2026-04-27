@@ -40,12 +40,12 @@ export default function CodeBuildingLabel({
         !state.removedDistrictIds.has(buildingId),
       isParentHovered:
         state.hoveredEntityId === building?.parentDistrictId ||
-        (building?.parentDistrictId === undefined &&
+        (!building?.parentDistrictId &&
           state.hoveredEntityId === building?.parentCityId),
       isBuildingHighlighted: state.highlightedEntityIds.has(buildingId),
       isParentHighlighted: state.highlightedEntityIds.has(
         building?.parentDistrictId ||
-          (building?.parentDistrictId === undefined
+          (!building?.parentDistrictId
             ? building?.parentCityId || ''
             : '')
       ),
