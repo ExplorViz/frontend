@@ -16,6 +16,7 @@ import {
   useLandscapeTokenStore,
 } from 'explorviz-frontend/src/stores/landscape-token';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { CommitTree } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import JSZip from 'jszip';
 import React, { useState } from 'react';
 import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
@@ -82,6 +83,63 @@ export default function TokenSelection({
     event: React.MouseEvent
   ) => {
     event?.stopPropagation();
+    // Fetch repository names first to know what else to download
+    const repoNamesResponse = await fetch(
+      `${persistenceService}/v3/landscapes/${token.value}/repositories`,
+      {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    );
+
+    const repoNames: string[] = repoNamesResponse.ok
+      ? await repoNamesResponse.json()
+      : [];
+
+    const treePromises = repoNames.map(async (repoName) => {
+      const response = await fetch(
+        `${persistenceService}/v3/landscapes/${token.value}/commit-tree/${repoName}`,
+        {
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+      if (response.ok) {
+        const tree = (await response.json()) as CommitTree;
+        return { repoName, tree };
+      }
+      return null;
+    });
+
+    const trees = (await Promise.all(treePromises)).filter(
+      (t): t is { repoName: string; tree: CommitTree } => t !== null
+    );
+
+    const commitDataPromises: Promise<{
+      repoName: string;
+      commitId: string;
+      blob: Blob | undefined;
+    }>[] = [];
+
+    trees.forEach(({ repoName, tree }) => {
+      const uniqueCommits = new Set<string>();
+      tree.branches.forEach((branch) => {
+        branch.commits.forEach((commitId) => uniqueCommits.add(commitId));
+      });
+
+      uniqueCommits.forEach((commitId) => {
+        commitDataPromises.push(
+          getJsonBlob(
+            `${persistenceService}/v3/landscapes/${token.value}/structure/evolution/${repoName}/${commitId}`
+          ).then((blob) => ({ repoName, commitId, blob }))
+        );
+      });
+    });
+
     const structurePromise = getJsonBlob(
       `${persistenceService}/v3/landscapes/${token.value}/structure/runtime`
     );
@@ -92,17 +150,13 @@ export default function TokenSelection({
       `${persistenceService}/v3/landscapes/${token.value}/timestamps`
     );
 
-    const repoNamesPromise = getJsonBlob(
-      `${persistenceService}/v3/landscapes/${token.value}/repositories`
-    );
-
     // Wait on all downloads
-    const [structureBlob, dynamicBlob, timestampBlob, repoNamesBlob] =
+    const [structureBlob, dynamicBlob, timestampBlob, commitDataResults] =
       await Promise.all([
         structurePromise,
         dynamicPromise,
         timestampPromise,
-        repoNamesPromise,
+        Promise.all(commitDataPromises),
       ]);
 
     const zip = new JSZip();
@@ -115,10 +169,29 @@ export default function TokenSelection({
     if (timestampBlob) {
       zip.file('timestamps.json', timestampBlob);
     }
-    if (repoNamesBlob) {
-      zip.file('repository-names.json', repoNamesBlob);
-      console.log(repoNamesBlob);
-    }
+
+    // Add repository names
+    zip.file(
+      'repository-names.json',
+      new Blob([JSON.stringify(repoNames, null, 2)], {
+        type: 'application/json',
+      })
+    );
+
+    // Add commit trees
+    trees.forEach(({ repoName, tree }) => {
+      zip.file(
+        `commit-tree-${repoName}.json`,
+        new Blob([JSON.stringify(tree, null, 2)], { type: 'application/json' })
+      );
+    });
+
+    // Add individual commit data
+    commitDataResults.forEach(({ repoName, commitId, blob }) => {
+      if (blob) {
+        zip.file(`commit-${repoName}-${commitId}.json`, blob);
+      }
+    });
 
     zip.generateAsync({ type: 'blob' }).then(function (content) {
       // Create a temporary link element
@@ -145,7 +218,12 @@ export default function TokenSelection({
   const getJsonBlob = async (url: string) => {
     try {
       // Fetch the JSON data from the backend service
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Error fetching JSON: ${response.statusText}`);
