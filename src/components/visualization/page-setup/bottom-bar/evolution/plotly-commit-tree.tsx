@@ -1,5 +1,9 @@
 import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import {
+  calculateCommitOffset,
+  getCommitXPosition,
+} from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import {
   Branch,
   Commit,
   CROSS_COMMIT_IDENTIFIER,
@@ -119,6 +123,24 @@ export default function PlotlyCommitTree({
             selectedCommitsForRepo.shift();
           }
           selectedCommitsForRepo.push(selectedCommit);
+        }
+
+        if (selectedCommitsForRepo.length === 2) {
+          selectedCommitsForRepo.sort((a, b) => {
+            const xA = getCommitXPosition(
+              _repoNameCommitTreeMap,
+              selectedRepoName,
+              a.branchName,
+              a.commitId
+            );
+            const xB = getCommitXPosition(
+              _repoNameCommitTreeMap,
+              selectedRepoName,
+              b.branchName,
+              b.commitId
+            );
+            return xA - xB;
+          });
         }
 
         if (selectedCommitsForRepo.length === 0) {
@@ -371,33 +393,7 @@ export default function PlotlyCommitTree({
   };
 
   const calculateOffset = (selectedRepoName: string, branch: Branch) => {
-    // TODO: commit can have more than one predecessor (if merged). So we need to calculate and add the maximum of both recursive calls to our counter
-
-    const commitTreeForSelectedRepoName =
-      _repoNameCommitTreeMap.get(selectedRepoName);
-
-    let counter = 0;
-
-    if (commitTreeForSelectedRepoName) {
-      const fromCommit = branch.branchPoint.commit;
-      const fromBranch = branch.branchPoint.name;
-
-      if (fromBranch !== 'NONE') {
-        for (const b of commitTreeForSelectedRepoName.branches) {
-          if (b.name === fromBranch) {
-            for (const commit of b.commits) {
-              counter++;
-              if (commit === fromCommit) {
-                counter += calculateOffset(selectedRepoName, b);
-                break;
-              }
-            }
-            break;
-          }
-        }
-      }
-    }
-    return counter;
+    return calculateCommitOffset(_repoNameCommitTreeMap, selectedRepoName, branch);
   };
 
   const randomRGBA = () => {

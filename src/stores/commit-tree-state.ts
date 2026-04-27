@@ -1,5 +1,8 @@
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
-import { findRepoNameAndBranchNameForCommit } from 'explorviz-frontend/src/utils/evolution-data-helpers';
+import {
+  findRepoNameAndBranchNameForCommit,
+  getCommitXPosition,
+} from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import {
   Commit,
   RepoNameCommitTreeMap
@@ -80,6 +83,27 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
           defaultSelectedCommits.get(commit2RepoAndBranch.repoName)?.push({
             commitId: commit2,
             branchName: commit2RepoAndBranch.branchName,
+          });
+        }
+      }
+
+      // Sort commits within each repo if there are two
+      for (const [repoName, commits] of defaultSelectedCommits.entries()) {
+        if (commits.length === 2) {
+          commits.sort((a, b) => {
+            const xA = getCommitXPosition(
+              currentRepoNameCommitTreeMap,
+              repoName,
+              a.branchName,
+              a.commitId
+            );
+            const xB = getCommitXPosition(
+              currentRepoNameCommitTreeMap,
+              repoName,
+              b.branchName,
+              b.commitId
+            );
+            return xA - xB;
           });
         }
       }
