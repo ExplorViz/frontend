@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { create } from 'zustand';
+import { FileDetailedDto } from 'explorviz-frontend/src/utils/landscape-schemes/file-detailed-data';
 
 // This store is used to control the immersive view mode
 // When you want to enter it, use the enter function, when you want to leave it, use the exit function.
@@ -31,8 +32,9 @@ interface ImmersiveViewState {
     activeMeshId: string | null;
     targetPosition: THREE.Vector3 | null;
     activeMetadata: ImmersiveInfo | null;
+    fileDetailedData: FileDetailedDto | null;
 
-    enterImmersive: (id: string, target: THREE.Vector3, info?: ImmersiveInfo) => void;
+    enterImmersive: (id: string, target: THREE.Vector3, info?: ImmersiveInfo, detailedData?: FileDetailedDto) => void;
     exitImmersive: () => void;
 }
 
@@ -40,18 +42,21 @@ export const useImmersiveViewStore = create<ImmersiveViewState>((set) => ({
     activeMeshId: null,
     targetPosition: null,
     activeMetadata: null,
+    fileDetailedData: null,
 
-    enterImmersive: (id, target, info) =>
+    enterImmersive: (id, target, info, detailedData) =>
         set({
             activeMeshId: id,
             targetPosition: target,
-            activeMetadata: info || null
+            activeMetadata: info || null,
+            fileDetailedData: detailedData || null
         }),
 
     exitImmersive: () =>
         set({
             activeMeshId: null,
             targetPosition: null,
-            activeMetadata: null
+            activeMetadata: null,
+            fileDetailedData: null
         }),
 }));

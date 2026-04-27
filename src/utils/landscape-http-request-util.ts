@@ -153,3 +153,38 @@ export function requestCommunicationFunctions(
       .catch((e) => reject(e));
   });
 }
+
+export function requestFileDetailedData(fileRevisionId: string) {
+  return new Promise<import('explorviz-frontend/src/utils/landscape-schemes/file-detailed-data').FileDetailedDto>(
+    (resolve, reject) => {
+      const token = useLandscapeTokenStore.getState().token;
+      if (token === null) {
+        reject(new Error('No landscape token selected'));
+        return;
+      }
+      fetch(
+        `${persistenceService}/v3/landscapes/${token.value}/structure/evolution/file-revision/${fileRevisionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      )
+        .then(async (response: Response) => {
+          if (response.ok) {
+            const data =
+              (await response.json()) as import('explorviz-frontend/src/utils/landscape-schemes/file-detailed-data').FileDetailedDto;
+            resolve(data);
+          } else {
+            reject(
+              new Error(
+                `Failed to fetch file detailed data: ${response.statusText}`
+              )
+            );
+          }
+        })
+        .catch((e) => reject(e));
+    }
+  );
+}

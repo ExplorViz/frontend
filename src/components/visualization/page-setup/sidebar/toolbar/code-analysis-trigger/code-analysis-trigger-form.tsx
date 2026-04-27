@@ -93,10 +93,6 @@ export default function CodeAnalysisTriggerForm({
     return landscapeToken || searchParams.get('landscapeToken') || '';
   }, [searchParams, landscapeToken]);
 
-  console.log({
-    landscapeTokenValue,
-  });
-
   // form state
   const [formData, setFormData] = useState<AnalysisRequest>(() =>
     getInitialFormData(landscapeTokenValue)

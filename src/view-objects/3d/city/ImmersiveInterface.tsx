@@ -13,7 +13,7 @@ const MAX_ARC_ANGLE = 160; // The angle on the sphere which can be used for the 
 const ITEM_GAP_ANGLE = 5;  // The distance between to cards (also given as an angle)
 
 export default function ImmersiveInterface() {
-    const { activeMeshId, targetPosition, activeMetadata } = useImmersiveViewStore();
+    const { activeMeshId, targetPosition, activeMetadata, fileDetailedData } = useImmersiveViewStore();
 
     const sphereRadius = useUserSettingsStore((state) => state.visualizationSettings.sphereRadius.value) || 0.7;
 
@@ -29,7 +29,18 @@ export default function ImmersiveInterface() {
 
     // Compute the positions of the cards and the pagination logic
     const { varPages, methodPages } = useMemo(() => {
-        if (!activeMetadata) return { varPages: [], methodPages: [] };
+        if (!activeMetadata && !fileDetailedData) return { varPages: [], methodPages: [] };
+
+        const variables = fileDetailedData 
+            ? fileDetailedData.classes.flatMap(c => c.fields.map(f => ({ name: f.name, type: f.type })))
+            : activeMetadata?.variables || [];
+        
+        const methods = fileDetailedData
+            ? [
+                ...fileDetailedData.functions.map(f => ({ name: f.name, returnType: f.returnType, parameters: [] })),
+                ...fileDetailedData.classes.flatMap(c => c.functions.map(f => ({ name: f.name, returnType: f.returnType, parameters: [] })))
+              ]
+            : activeMetadata?.methods || [];
 
         const estimateAngle = (textLength: number, radius: number) => {
             const estimatedWidth = (textLength * 0.032) + 0.15;
@@ -81,16 +92,19 @@ export default function ImmersiveInterface() {
         };
 
         return {
-            varPages: layoutItems(activeMetadata.variables, 'var'),
-            methodPages: layoutItems(activeMetadata.methods, 'method')
+            varPages: layoutItems(variables, 'var'),
+            methodPages: layoutItems(methods, 'method')
         };
 
-    }, [activeMetadata, sphereRadius]);
+    }, [activeMetadata, fileDetailedData, sphereRadius]);
 
 
-    if (!activeMeshId || !targetPosition || !activeMetadata) {
+    if (!activeMeshId || !targetPosition || (!activeMetadata && !fileDetailedData)) {
         return null;
     }
+
+    const name = fileDetailedData ? fileDetailedData.name : activeMetadata?.name;
+    const fqn = fileDetailedData ? fileDetailedData.packageName : activeMetadata?.fqn;
 
     const currentVars = varPages[varPage] || [];
     const currentMethods = methodPages[methodPage] || [];
@@ -104,10 +118,10 @@ export default function ImmersiveInterface() {
             {/* --- HEADER --- */}
             <SphereItem azimuth={0} elevation={30} radius={sphereRadius + 0.1}>
                 <Text fontSize={0.15} color="black" anchorX="center" anchorY="middle" outlineWidth={0.005} outlineColor="white">
-                    {activeMetadata.name}
+                    {name}
                 </Text>
                 <Text position={[0, -0.08, 0]} fontSize={0.08} color="#333" anchorX="center" anchorY="middle">
-                    {activeMetadata.fqn}
+                    {fqn}
                 </Text>
             </SphereItem>
 

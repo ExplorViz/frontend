@@ -1,4 +1,5 @@
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
+import { FileDetailedDto } from 'explorviz-frontend/src/utils/landscape-schemes/file-detailed-data';
 import {
   Building,
   City,
@@ -15,6 +16,7 @@ export interface PopupDataArgs {
   sharedBy: string;
   menuId: string | null;
   hovered: boolean;
+  fileDetailedData?: FileDetailedDto;
 }
 
 export default class PopupData {
@@ -42,6 +44,8 @@ export default class PopupData {
   // @tracked
   hovered: boolean;
 
+  fileDetailedData?: FileDetailedDto;
+
   constructor({
     mouseX,
     mouseY,
@@ -52,6 +56,7 @@ export default class PopupData {
     sharedBy,
     menuId,
     hovered,
+    fileDetailedData,
   }: PopupDataArgs) {
     this.mouseX = mouseX;
     this.mouseY = mouseY;
@@ -62,5 +67,6 @@ export default class PopupData {
     this.sharedBy = sharedBy;
     this.menuId = menuId;
     this.hovered = hovered;
+    this.fileDetailedData = fileDetailedData;
   }
 }

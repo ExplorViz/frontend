@@ -8,6 +8,8 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
+import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   getHighlightingColorForEntity,
 } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
@@ -253,11 +255,15 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       }))
     );
 
-  const { addPopup } = usePopupHandlerStore(
+  const { addPopup, updatePopup, popups } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
+      updatePopup: state.updatePopup,
+      popups: state.popups,
     }))
   );
+
+  const enterImmersive = useImmersiveViewStore((state) => state.enterImmersive);
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
@@ -616,7 +622,59 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     setHoveredEntity(null);
   };
 
-  const handleDoubleClick = (/*event: any*/) => {};
+  const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (meshRef === null || typeof meshRef === 'function') {
+      return;
+    }
+    if (!meshRef.current) return;
+    const { instanceId } = e;
+    if (instanceId === undefined) return;
+    e.stopPropagation();
+
+    const buildingId = instanceIdToBuildingId.get(instanceId);
+    if (!buildingId) return;
+
+    const building = useModelStore.getState().getBuilding(buildingId);
+    if (!building) return;
+
+    const targetPos = new THREE.Vector3();
+    const tempMatrix = new THREE.Matrix4();
+    meshRef.current.getMatrixAt(instanceId, tempMatrix);
+    targetPos.setFromMatrixPosition(tempMatrix);
+
+    // Check if we have data in an existing popup
+    const existingPopup = popups.find((p) => p.entityId === buildingId);
+
+    if (existingPopup && existingPopup.fileDetailedData) {
+      enterImmersive(
+        buildingId,
+        targetPos,
+        undefined,
+        existingPopup.fileDetailedData
+      );
+    } else if (
+      building.originOfData === TypeOfAnalysis.Static ||
+      building.originOfData === TypeOfAnalysis.StaticAndDynamic
+    ) {
+      requestFileDetailedData(buildingId)
+        .then((data) => {
+          enterImmersive(buildingId, targetPos, undefined, data);
+          // Also update popup if it exists
+          if (existingPopup) {
+            updatePopup({ ...existingPopup, fileDetailedData: data });
+          }
+        })
+        .catch((err) => {
+          console.error(
+            'Failed to fetch detailed file data for immersive view:',
+            err
+          );
+          enterImmersive(buildingId, targetPos);
+        });
+    } else {
+      enterImmersive(buildingId, targetPos);
+    }
+  };
 
 
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
