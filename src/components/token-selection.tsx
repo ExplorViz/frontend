@@ -83,21 +83,27 @@ export default function TokenSelection({
   ) => {
     event?.stopPropagation();
     const structurePromise = getJsonBlob(
-      `${persistenceService}/v2/landscapes/${token.value}/structure`
+      `${persistenceService}/v3/landscapes/${token.value}/structure/runtime`
     );
     const dynamicPromise = getJsonBlob(
       `${persistenceService}/v3/landscapes/${token.value}/file-communication`
     );
     const timestampPromise = getJsonBlob(
-      `${persistenceService}/v2/landscapes/${token.value}/timestamps`
+      `${persistenceService}/v3/landscapes/${token.value}/timestamps`
+    );
+
+    const repoNamesPromise = getJsonBlob(
+      `${persistenceService}/v3/landscapes/${token.value}/repositories`
     );
 
     // Wait on all downloads
-    const [structureBlob, dynamicBlob, timestampBlob] = await Promise.all([
-      structurePromise,
-      dynamicPromise,
-      timestampPromise,
-    ]);
+    const [structureBlob, dynamicBlob, timestampBlob, repoNamesBlob] =
+      await Promise.all([
+        structurePromise,
+        dynamicPromise,
+        timestampPromise,
+        repoNamesPromise,
+      ]);
 
     const zip = new JSZip();
     if (structureBlob) {
@@ -108,6 +114,10 @@ export default function TokenSelection({
     }
     if (timestampBlob) {
       zip.file('timestamps.json', timestampBlob);
+    }
+    if (repoNamesBlob) {
+      zip.file('repository-names.json', repoNamesBlob);
+      console.log(repoNamesBlob);
     }
 
     zip.generateAsync({ type: 'blob' }).then(function (content) {
