@@ -9,11 +9,7 @@ import RangeSetting from 'explorviz-frontend/src/components/visualization/page-s
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
-import { useMinimapStore } from 'explorviz-frontend/src/stores/minimap-service';
-import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { deleteTraceData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
@@ -57,14 +53,6 @@ export default function Settings({
     (state) => state.showErrorToastMessage
   );
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
-  const updateMinimapSphereRadius = useMinimapStore(
-    (state) => state.updateSphereRadius
-  );
-  const setMinimapEnabled = useMinimapStore((state) => state.setMinimapEnabled);
-  const sendSyncRoomState = useMessageSenderStore(
-    (state) => state.sendSyncRoomState
-  );
-  const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
   const setHeatmapActive = useHeatmapConfigurationStore(
     (state) => state.setActive
   );
@@ -77,12 +65,6 @@ export default function Settings({
         setColorScheme: state.setColorScheme,
       }))
     );
-
-  const popupHandlerState = usePopupHandlerStore(
-    useShallow((state) => ({
-      popupData: state.popupData,
-    }))
-  );
 
   /**
    * Checks if a setting's dependency condition is met.
@@ -138,7 +120,6 @@ export default function Settings({
       Layout: [],
       Magnifier: [],
       Minimap: [],
-      Popups: [],
       'Semantic Zoom': [],
       'Virtual Reality': [],
       Misc: [],
@@ -200,13 +181,6 @@ export default function Settings({
     } catch (e: any) {
       showErrorToastMessage(e.message);
     }
-    switch (settingId) {
-      case 'zoom':
-        updateMinimapSphereRadius();
-        break;
-      default:
-        break;
-    }
   };
 
   const updateSelectSetting = (
@@ -222,15 +196,6 @@ export default function Settings({
 
   const updateButtonSetting = (settingId: VisualizationSettingId) => {
     switch (settingId) {
-      case 'syncRoomState':
-        if (
-          confirm(
-            'Synchronize room state: This may lead to loading times for other users. Continue?'
-          )
-        ) {
-          sendSyncRoomState(serializeRoom(popupHandlerState.popupData));
-        }
-        break;
       case 'fullscreen':
         if (enterFullscreen) {
           enterFullscreen();
@@ -297,9 +262,6 @@ export default function Settings({
           break;
         case 'heatmapEnabled':
           setHeatmapActive(value);
-          break;
-        case 'minimap':
-          setMinimapEnabled(value);
           break;
         default:
           break;

@@ -55,10 +55,6 @@ import {
   TimestampUpdateTimerMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
 import {
-  SYNC_ROOM_STATE_EVENT,
-  SyncRoomStateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
-import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
@@ -81,7 +77,6 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
 import { convertToFlatLandscape } from '../utils/landscape-schemes/flat-landscape';
-
 
 export default function Visualization() {
   const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
@@ -193,7 +188,6 @@ export default function Visualization() {
     // Register collaboration event listeners
     eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
     eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-    eventEmitter.on(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
 
     if (!isSingleLandscapeMode) {
       eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
@@ -203,7 +197,6 @@ export default function Visualization() {
     return () => {
       eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
       eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-      eventEmitter.off(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
       if (!isSingleLandscapeMode) {
         eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
       }
@@ -670,32 +663,6 @@ export default function Visualization() {
     );
   };
 
-  const onSyncRoomState = async (event: {
-    userId: string;
-    originalMessage: SyncRoomStateMessage;
-  }) => {
-    const {
-      landscape,
-      closedComponentIds,
-      highlightedEntities,
-      popups,
-      annotations,
-      detachedMenus,
-    } = event.originalMessage;
-
-    // Apply room state (without reset for sync)
-    // highlightedEntities is already in {userId, entityId} format
-    applyRoomState(
-      closedComponentIds,
-      highlightedEntities,
-      detachedMenus as SerializedDetachedMenu[],
-      annotations as SerializedAnnotation[],
-      popups as SerializedPopup[]
-    );
-
-    showInfoToastMessage('Room state synchronizing ...');
-  };
-
   const loadSnapshot = async () => {
     if (snapshotToken === null) {
       return;
@@ -821,7 +788,6 @@ export default function Visualization() {
       eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
       eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
       eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-      eventEmitter.off(SYNC_ROOM_STATE_EVENT, onSyncRoomState);
     }
 
     eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);

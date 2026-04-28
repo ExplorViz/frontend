@@ -51,7 +51,7 @@ export const defaultVizSettings: VisualizationSettings = {
     level: SettingLevel.DEFAULT,
     value: defaultColors.cppBuildingColor,
     group: 'Colors',
-    displayName: 'CPP Building',
+    displayName: 'C(++) Building',
     description: 'Color used for CPP buildings',
     isColorSetting: true,
   },
@@ -977,7 +977,7 @@ export const defaultVizSettings: VisualizationSettings = {
   },
   // Camera settings
   cameraNear: {
-    level: SettingLevel.EXTENDED,
+    level: SettingLevel.DEFAULT,
     value: 0.1,
     range: { min: 0.01, max: 5.0, step: 0.01 },
     group: 'Camera',
@@ -986,7 +986,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   cameraFar: {
-    level: SettingLevel.EXTENDED,
+    level: SettingLevel.DEFAULT,
     value: 100,
     range: { min: 5.0, max: 500.0, step: 1.0 },
     group: 'Camera',
@@ -995,7 +995,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   cameraFov: {
-    level: SettingLevel.EXTENDED,
+    level: SettingLevel.DEFAULT,
     value: 75,
     range: { min: 50.0, max: 150.0, step: 5.0 },
     group: 'Camera',
@@ -1004,7 +1004,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   raycastEnabled: {
-    level: SettingLevel.DEFAULT,
+    level: SettingLevel.EXTENDED,
     value: true,
     group: 'Camera',
     displayName: 'Raycast Enabled',
@@ -1012,7 +1012,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   raycastFirstHit: {
-    level: SettingLevel.DEFAULT,
+    level: SettingLevel.EXTENDED,
     value: true,
     group: 'Camera',
     displayName: 'Raycast First Hit',
@@ -1024,7 +1024,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isFlagSetting: true,
   },
   raycastNear: {
-    level: SettingLevel.EXTENDED,
+    level: SettingLevel.DEFAULT,
     value: 0.1,
     range: { min: 0.01, max: 100, step: 0.01 },
     group: 'Camera',
@@ -1038,7 +1038,7 @@ export const defaultVizSettings: VisualizationSettings = {
     isRangeSetting: true,
   },
   raycastFar: {
-    level: SettingLevel.EXTENDED,
+    level: SettingLevel.DEFAULT,
     value: 100,
     range: { min: 0.1, max: 500.0, step: 0.1 },
     group: 'Camera',
@@ -1210,7 +1210,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Debug Settings
   showExtendedSettings: {
     level: SettingLevel.DEFAULT,
-    value: true,
+    value: false,
     group: 'Debugging',
     displayName: 'Show Extended Settings',
     description: 'Shows/hides additional settings',
@@ -1259,16 +1259,6 @@ export const defaultVizSettings: VisualizationSettings = {
     description:
       'Enter canvas in fullscreen mode. Press escape key to leave fullscreen.',
     buttonText: 'Enter Fullscreen',
-    isButtonSetting: true,
-  },
-  syncRoomState: {
-    level: SettingLevel.DEFAULT,
-    value: false,
-    type: 'danger',
-    group: 'Debugging',
-    displayName: 'Synchronize Room State',
-    description: 'Sends current state of room to all users, use with caution.',
-    buttonText: 'Synchronize',
     isButtonSetting: true,
   },
   clearTraceData: {

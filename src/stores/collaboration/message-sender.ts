@@ -79,14 +79,9 @@ import {
   SpectatingUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/spectating-update';
 import {
-  SYNC_ROOM_STATE_EVENT,
-  SyncRoomStateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/synchronize-room-state';
-import {
   TIMESTAMP_UPDATE_EVENT,
   TimestampUpdateMessage,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
-import { SerializedRoom } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import { default as VRController } from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
 import { getControllerPose } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import { JoinVrMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/join-vr';
@@ -211,7 +206,6 @@ interface MessageSenderState {
     spectatingUserIds: string[],
     configurationId: string
   ) => void;
-  sendSyncRoomState: (room: SerializedRoom | null) => void;
   sendControllerConnect: (
     controller: VRController | undefined
   ) => Promise<void>;
@@ -598,24 +592,6 @@ export const useMessageSenderStore = create<MessageSenderState>((set, get) => ({
         spectatingUserIds,
         configurationId,
         configuration: { id: configurationId, devices: null },
-      });
-  },
-
-  sendSyncRoomState: (room: SerializedRoom | null) => {
-    if (!room) {
-      return;
-    }
-
-    useWebSocketStore
-      .getState()
-      .send<SyncRoomStateMessage>(SYNC_ROOM_STATE_EVENT, {
-        event: SYNC_ROOM_STATE_EVENT,
-        landscape: room.landscape,
-        closedComponentIds: room.closedComponentIds,
-        highlightedEntities: room.highlightedEntities, // Already in {userId, entityId} format
-        popups: room.popups.map(({ ...popup }) => popup),
-        annotations: room.annotations!.map(({ ...annotation }) => annotation),
-        detachedMenus: room.detachedMenus.map(({ ...menu }) => menu),
       });
   },
 

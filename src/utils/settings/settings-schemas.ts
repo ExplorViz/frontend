@@ -109,7 +109,6 @@ export type DebugSettings = {
   showLightHelper: FlagSetting;
   entityOpacity: RangeSetting;
   fullscreen: ButtonSetting;
-  syncRoomState: ButtonSetting;
   resetToDefaults: ButtonSetting;
   clearTraceData: ButtonSetting;
 };
