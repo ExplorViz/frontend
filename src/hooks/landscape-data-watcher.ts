@@ -43,6 +43,7 @@ export default function useLandscapeDataWatcher(
 
   const lastProcessedDynamicData = useRef<DynamicLandscapeData | null>(null);
   const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
+  const lastProcessedLandscapeData = useRef<LandscapeData | null>(null);
 
   const updateApplicationData = useCallback(
     async (application: Application, boxLayoutMap: any) => {
@@ -167,9 +168,13 @@ export default function useLandscapeDataWatcher(
       lastProcessedDynamicData.current
     );
 
-    if (!flatChanged && !dynamicChanged) {
+    const landscapeChanged = landscapeData !== lastProcessedLandscapeData.current;
+
+    if (!flatChanged && !dynamicChanged && !landscapeChanged) {
       return;
     }
+
+    lastProcessedLandscapeData.current = landscapeData;
 
     lastProcessedDynamicData.current = dynamicLandscapeData;
     lastProcessedFlatLandscapeIds.current = currentFlatLandscapeIds;

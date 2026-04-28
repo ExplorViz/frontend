@@ -9,6 +9,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   getHighlightingColorForEntity,
@@ -129,6 +130,15 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
+    const _selectedCommits = useCommitTreeStateStore(
+      (state) => state._selectedCommits
+    );
+    const currentSelectedRepo = useCommitTreeStateStore(
+      (state) => state._currentSelectedRepositoryName
+    );
+
+    const isDiffMode = (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
+
     const { addPopup } = usePopupHandlerStore(
       useShallow((state) => ({
         addPopup: state.addPopup,
@@ -137,16 +147,18 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
 
+    const districts = useModelStore((state) => state.districts);
+
     const computeColor = useCallback(
       (districtId: string) => {
-        const district = useModelStore.getState().getDistrict(districtId);
+        const district = districts[districtId];
         if (!district) return new Color('white');
 
         if (heatmapActive) {
           return new Color('white');
         }
 
-        if (evoConfig.renderOnlyDifferences && district.commitComparison) {
+        if ((isDiffMode || evoConfig.renderOnlyDifferences) && district.commitComparison) {
           if (district.commitComparison === 'ADDED') {
             return new Color(addedDistrictColor);
           } else if (district.commitComparison === 'REMOVED') {
@@ -204,6 +216,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         heatmapActive,
         layoutMap,
         evoConfig.renderOnlyDifferences,
+        isDiffMode,
+        districts,
       ]
     );
 
@@ -276,6 +290,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       computeColor,
       districtIdToInstanceId,
       instanceIdToDistrictId,
+      districts,
     ]);
 
     const animateComponentChange = useCallback(() => {

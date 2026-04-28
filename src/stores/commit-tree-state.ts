@@ -136,15 +136,6 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
             renderStatic: true,
             renderOnlyDifferences: false,
           });
-      } else if (totalSelectedCount === 2) {
-        // Show only differences when two commits are selected
-        useVisibilityServiceStore
-          .getState()
-          .applyEvolutionModeRenderingConfiguration({
-            renderDynamic: false,
-            renderStatic: true,
-            renderOnlyDifferences: true,
-          });
       }
     },
 

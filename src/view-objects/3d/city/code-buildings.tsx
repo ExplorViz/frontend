@@ -1,21 +1,20 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
-import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
-import {
-  getHighlightingColorForEntity,
-} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
+import { requestFileDetailedData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
 import {
   type Building,
   type City,
@@ -50,41 +49,81 @@ declare module '@react-three/fiber' {
   }
 }
 
+export type BuildingGeometryType = 'Box' | 'Cone' | 'Sphere' | 'Cylinder';
+
 /**
- * Groups building IDs by their language type.
+ * Helper to get the geometry type for a language based on settings.
  */
-function groupBuildingsByLanguage(
+function getGeometryForLanguage(
+  lang: Language,
+  settings: {
+    languageGeometryJava: BuildingGeometryType;
+    languageGeometryCpp: BuildingGeometryType;
+    languageGeometryPython: BuildingGeometryType;
+    languageGeometryTypeScript: BuildingGeometryType;
+    languageGeometryOther: BuildingGeometryType;
+  }
+): BuildingGeometryType {
+  switch (lang) {
+    case 'JAVA':
+      return settings.languageGeometryJava;
+    case 'CPP':
+      return settings.languageGeometryCpp;
+    case 'PYTHON':
+      return settings.languageGeometryPython;
+    case 'TYPESCRIPT':
+    case 'JAVASCRIPT':
+      return settings.languageGeometryTypeScript;
+    case 'PLAINTEXT':
+    case 'LANGUAGE_UNSPECIFIED':
+    default:
+      return settings.languageGeometryOther;
+  }
+}
+
+/**
+ * Groups building IDs by their geometry type.
+ */
+function groupBuildingsByGeometry(
   buildingIds: string[],
-  getBuilding: (id: string) => Building | undefined
-): Map<Language, string[]> {
-  const groups = new Map<Language, string[]>();
+  getBuilding: (id: string) => Building | undefined,
+  settings: {
+    languageGeometryJava: BuildingGeometryType;
+    languageGeometryCpp: BuildingGeometryType;
+    languageGeometryPython: BuildingGeometryType;
+    languageGeometryTypeScript: BuildingGeometryType;
+    languageGeometryOther: BuildingGeometryType;
+  }
+): Map<BuildingGeometryType, string[]> {
+  const groups = new Map<BuildingGeometryType, string[]>();
 
   buildingIds.forEach((buildingId) => {
     const building = getBuilding(buildingId);
     if (!building) return;
 
     const lang = building.language ?? 'LANGUAGE_UNSPECIFIED';
+    const geometryType = getGeometryForLanguage(lang, settings);
 
-    if (!groups.has(lang)) {
-      groups.set(lang, []);
+    if (!groups.has(geometryType)) {
+      groups.set(geometryType, []);
     }
-    groups.get(lang)!.push(buildingId);
+    groups.get(geometryType)!.push(buildingId);
   });
 
   return groups;
 }
 
-interface LanguageGroupProps {
-  language: Language;
+interface GeometryGroupProps {
+  geometryType: BuildingGeometryType;
   buildingIds: string[];
   city: City;
 }
 
 /**
- * Renders buildings for a single language with its own geometry.
+ * Renders buildings for a single geometry type with its own instanced mesh.
  */
-const LanguageGroup: React.FC<LanguageGroupProps> = ({
-  language,
+const GeometryGroup: React.FC<GeometryGroupProps> = ({
+  geometryType,
   buildingIds,
   city,
 }) => {
@@ -94,9 +133,9 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
   const instanceIdToBuildingId = useRef(new Map<number, string>()).current;
   const buildingIdToInstanceId = useRef(new Map<string, number>()).current;
 
-  const previousGeometryType = useRef<string | null>(null);
-
   const layoutMap = useLayoutStore.getState().getBuildingLayouts();
+
+  const buildings = useModelStore((state) => state.buildings);
 
   const {
     hiddenBuildingIds,
@@ -120,6 +159,16 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     }))
   );
 
+  const _selectedCommits = useCommitTreeStateStore(
+    (state) => state._selectedCommits
+  );
+  const currentSelectedRepo = useCommitTreeStateStore(
+    (state) => state._currentSelectedRepositoryName
+  );
+
+  const isDiffMode =
+    (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
+
   const {
     buildingFootprint,
     buildingHeightMultiplier,
@@ -132,11 +181,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     modifiedBuildingColor,
     removedBuildingColor,
     unchangedBuildingColor,
-    languageGeometryJava,
-    languageGeometryCpp,
-    languageGeometryPython,
-    languageGeometryTypeScript,
-    languageGeometryOther,
     javaBuildingColor,
     cppBuildingColor,
     pythonBuildingColor,
@@ -159,16 +203,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         state.visualizationSettings.removedBuildingColor.value,
       unchangedBuildingColor:
         state.visualizationSettings.unchangedBuildingColor.value,
-      languageGeometryJava:
-        state.visualizationSettings.languageGeometryJava?.value,
-      languageGeometryCpp:
-        state.visualizationSettings.languageGeometryCpp?.value,
-      languageGeometryPython:
-        state.visualizationSettings.languageGeometryPython?.value,
-      languageGeometryTypeScript:
-        state.visualizationSettings.languageGeometryTypeScript?.value,
-      languageGeometryOther:
-        state.visualizationSettings.languageGeometryOther?.value,
       javaBuildingColor: state.visualizationSettings.javaBuildingColor?.value,
       cppBuildingColor: state.visualizationSettings.cppBuildingColor?.value,
       pythonBuildingColor:
@@ -179,61 +213,35 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     }))
   );
 
-  // Compute geometry type based on language setting
-  const selectedGeometryType = useMemo(() => {
-    switch (language) {
-      case 'JAVA':
-        return languageGeometryJava;
-      case 'CPP':
-        return languageGeometryCpp;
-      case 'PYTHON':
-        return languageGeometryPython;
-      case 'TYPESCRIPT':
-        return languageGeometryTypeScript;
-      case 'JAVASCRIPT':
-        return languageGeometryTypeScript;
-      case 'PLAINTEXT':
-      case 'LANGUAGE_UNSPECIFIED':
-      default:
-        return languageGeometryOther;
-    }
-  }, [
-    language,
-    languageGeometryJava,
-    languageGeometryCpp,
-    languageGeometryPython,
-    languageGeometryTypeScript,
-    languageGeometryOther,
-  ]);
-
-  // Compute color based on language setting
-  const selectedLanguageColor = useMemo(() => {
-    switch (language) {
-      case 'JAVA':
-        return javaBuildingColor;
-      case 'CPP':
-        return cppBuildingColor;
-      case 'PYTHON':
-        return pythonBuildingColor;
-      case 'TYPESCRIPT':
-      case 'JAVASCRIPT':
-        return typescriptBuildingColor;
-      case 'PLAINTEXT':
-      case 'LANGUAGE_UNSPECIFIED':
-      default:
-        return otherBuildingColor;
-    }
-  }, [
-    language,
-    javaBuildingColor,
-    cppBuildingColor,
-    pythonBuildingColor,
-    typescriptBuildingColor,
-    otherBuildingColor,
-  ]);
+  const getLanguageColor = useCallback(
+    (lang: Language) => {
+      switch (lang) {
+        case 'JAVA':
+          return javaBuildingColor;
+        case 'CPP':
+          return cppBuildingColor;
+        case 'PYTHON':
+          return pythonBuildingColor;
+        case 'TYPESCRIPT':
+        case 'JAVASCRIPT':
+          return typescriptBuildingColor;
+        case 'PLAINTEXT':
+        case 'LANGUAGE_UNSPECIFIED':
+        default:
+          return otherBuildingColor;
+      }
+    },
+    [
+      javaBuildingColor,
+      cppBuildingColor,
+      pythonBuildingColor,
+      typescriptBuildingColor,
+      otherBuildingColor,
+    ]
+  );
 
   const geometry = useMemo(() => {
-    switch (selectedGeometryType) {
+    switch (geometryType) {
       case 'Cone':
         return new ConeGeometry();
       case 'Sphere':
@@ -244,7 +252,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       default:
         return new BoxGeometry();
     }
-  }, [selectedGeometryType]);
+  }, [geometryType]);
 
   const { heatmapActive, selectedBuildingMetric, selectedGradient } =
     useHeatmapStore(
@@ -291,7 +299,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
 
   const computeColor = useCallback(
     (buildingId: string) => {
-      const building = useModelStore.getState().getBuilding(buildingId);
+      const building = buildings[buildingId];
       if (!building) {
         return new THREE.Color('red');
       }
@@ -302,7 +310,10 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
         );
       }
 
-      if (evoConfig.renderOnlyDifferences && building.commitComparison) {
+      if (
+        (isDiffMode || evoConfig.renderOnlyDifferences) &&
+        building.commitComparison
+      ) {
         if (building.commitComparison === 'ADDED') {
           return new THREE.Color(addedBuildingColor);
         } else if (building.commitComparison === 'REMOVED') {
@@ -321,9 +332,11 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       const isHovered = hoveredEntityId === building.id;
       const isHighlighted = highlightedEntityIds.has(building.id);
 
+      const lang = building.language ?? 'LANGUAGE_UNSPECIFIED';
+
       let baseColor = isHighlighted
         ? getHighlightingColorForEntity(building.id)
-        : new THREE.Color(selectedLanguageColor);
+        : new THREE.Color(getLanguageColor(lang));
 
       if (enableHoverEffects && isHovered) {
         baseColor = calculateColorBrightness(baseColor, 1.1);
@@ -336,14 +349,16 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       selectedBuildingMetric,
       selectedGradient,
       evoConfig.renderOnlyDifferences,
+      isDiffMode,
       addedBuildingColor,
       removedBuildingColor,
       modifiedBuildingColor,
       unchangedBuildingColor,
       hoveredEntityId,
       highlightedEntityIds,
-      selectedLanguageColor,
+      getLanguageColor,
       enableHoverEffects,
+      buildings,
     ]
   );
 
@@ -375,7 +390,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       );
 
       const visibleDueToEvo = (() => {
-        if (evoConfig.renderOnlyDifferences) {
+        if (isDiffMode || evoConfig.renderOnlyDifferences) {
           return !!building.commitComparison;
         }
 
@@ -409,10 +424,12 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     hiddenBuildingIds,
     removedDistrictIds,
     evoConfig,
+    isDiffMode,
     getBuildingHeight,
     computeColor,
     instanceIdToBuildingId,
     buildingIdToInstanceId,
+    buildings,
   ]);
 
   const animateMeshInstanceChanges = useCallback(() => {
@@ -500,16 +517,11 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
       return;
     }
 
-    const geometryChanged =
-      previousGeometryType.current !== null &&
-      previousGeometryType.current !== selectedGeometryType;
-
-    if (geometryChanged || meshRef.current.geometry !== geometry) {
+    if (meshRef.current.geometry !== geometry) {
       meshRef.current.geometry = geometry;
     }
 
     if (
-      !geometryChanged &&
       buildingIdToInstanceId.size > 0 &&
       buildingIds.length === buildingIdToInstanceId.size &&
       buildingIds.every((id) => buildingIdToInstanceId.has(id)) &&
@@ -519,13 +531,10 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     } else {
       computeMeshInstances();
     }
-
-    previousGeometryType.current = selectedGeometryType;
   }, [
     meshRef,
     buildingIds,
     enableAnimations,
-    selectedGeometryType,
     geometry,
     animateMeshInstanceChanges,
     computeMeshInstances,
@@ -676,7 +685,6 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     }
   };
 
-
   const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
@@ -684,7 +692,7 @@ const LanguageGroup: React.FC<LanguageGroupProps> = ({
     <instancedMesh2
       layers={sceneLayers.Building}
       ref={meshRef}
-      name={`Buildings-${language}-${city.name}`}
+      name={`Buildings-${geometryType}-${city.name}`}
       args={[geometry, material.current]}
       onClick={handleClickWithPrevent}
       {...(enableHoverEffects && {
@@ -703,7 +711,7 @@ interface CodeBuildingsArgs {
 }
 
 /**
- * Groups buildings by language and renders a LanguageGroup for each language.
+ * Groups buildings by geometry and renders a GeometryGroup for each geometry type.
  */
 const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
   const getBuilding = useModelStore.getState().getBuilding;
@@ -711,17 +719,60 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
     (state) => state.hiddenLanguages
   );
 
-  const buildingsByLanguage = useMemo(
-    () => groupBuildingsByLanguage(buildingIds, getBuilding),
-    [buildingIds, getBuilding]
+  const {
+    languageGeometryJava,
+    languageGeometryCpp,
+    languageGeometryPython,
+    languageGeometryTypeScript,
+    languageGeometryOther,
+  } = useUserSettingsStore(
+    useShallow((state) => ({
+      languageGeometryJava:
+        state.visualizationSettings.languageGeometryJava?.value,
+      languageGeometryCpp:
+        state.visualizationSettings.languageGeometryCpp?.value,
+      languageGeometryPython:
+        state.visualizationSettings.languageGeometryPython?.value,
+      languageGeometryTypeScript:
+        state.visualizationSettings.languageGeometryTypeScript?.value,
+      languageGeometryOther:
+        state.visualizationSettings.languageGeometryOther?.value,
+    }))
   );
 
-  // Filter the hidden langiages out
-  const filteredBuildingsByLanguage = useMemo(() => {
-    return Array.from(buildingsByLanguage.entries()).filter(
-      ([lang, _]) => !hiddenLanguages.has(lang)
-    );
-  }, [buildingsByLanguage, hiddenLanguages]);
+  const geometrySettings = useMemo(
+    () => ({
+      languageGeometryJava,
+      languageGeometryCpp,
+      languageGeometryPython,
+      languageGeometryTypeScript,
+      languageGeometryOther,
+    }),
+    [
+      languageGeometryJava,
+      languageGeometryCpp,
+      languageGeometryPython,
+      languageGeometryTypeScript,
+      languageGeometryOther,
+    ]
+  );
+
+  const visibleBuildingIds = useMemo(() => {
+    return buildingIds.filter((id) => {
+      const lang = getBuilding(id)?.language ?? 'LANGUAGE_UNSPECIFIED';
+      return !hiddenLanguages.has(lang);
+    });
+  }, [buildingIds, getBuilding, hiddenLanguages]);
+
+  const buildingsByGeometry = useMemo(
+    () =>
+      groupBuildingsByGeometry(
+        visibleBuildingIds,
+        getBuilding,
+        geometrySettings
+      ),
+    [visibleBuildingIds, getBuilding, geometrySettings]
+  );
 
   if (buildingIds.length === 0) {
     return null;
@@ -729,14 +780,16 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
 
   return (
     <>
-      {filteredBuildingsByLanguage.map(([lang, langBuildingIds]) => (
-        <LanguageGroup
-          key={`${city.id}-${lang}`}
-          language={lang}
-          buildingIds={langBuildingIds}
-          city={city}
-        />
-      ))}
+      {Array.from(buildingsByGeometry.entries()).map(
+        ([geometryType, groupBuildingIds]) => (
+          <GeometryGroup
+            key={`${city.id}-${geometryType}`}
+            geometryType={geometryType}
+            buildingIds={groupBuildingIds}
+            city={city}
+          />
+        )
+      )}
     </>
   );
 };

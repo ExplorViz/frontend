@@ -38,7 +38,9 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
+import { findFirstOpen } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
+import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
@@ -51,8 +53,6 @@ import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-d
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import CodeCity from 'explorviz-frontend/src/view-objects/3d/city/code-city';
 import CommunicationR3F from 'explorviz-frontend/src/view-objects/3d/city/communication-r3f';
-import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { findFirstOpen } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import globalBundlingService from 'explorviz-frontend/src/view-objects/3d/city/global-bundling-service';
 import { HAPSystemManager } from 'explorviz-frontend/src/view-objects/3d/city/hap-system-manager';
 import ImmersiveSphere from 'explorviz-frontend/src/view-objects/3d/city/immersive-sphere';
@@ -358,8 +358,7 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { applicationModels } =
-    useLandscapeDataWatcher(landscapeData);
+  const { applicationModels } = useLandscapeDataWatcher(landscapeData);
 
   const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
@@ -396,7 +395,8 @@ export default function CanvasWrapper({
       if (groupedComms.has(key)) {
         const existing = groupedComms.get(key)!;
         existing.metrics.requestCount =
-          (existing.metrics.requestCount || 0) + (comm.metrics.requestCount || 0);
+          (existing.metrics.requestCount || 0) +
+          (comm.metrics.requestCount || 0);
         existing.buildingCommunicationIds = [
           ...new Set([
             ...existing.buildingCommunicationIds,
@@ -406,7 +406,8 @@ export default function CanvasWrapper({
         existing.originalCommIds = [
           ...new Set([...existing.originalCommIds, comm.id]),
         ];
-        existing.isBidirectional = existing.isBidirectional || comm.isBidirectional;
+        existing.isBidirectional =
+          existing.isBidirectional || comm.isBidirectional;
         existing.isRecursive = existing.isRecursive || comm.isRecursive;
       } else {
         const newComm = new AggregatedCommunication(
@@ -437,12 +438,7 @@ export default function CanvasWrapper({
     });
 
     return Array.from(groupedComms.values());
-  }, [
-    allCommunications,
-    applicationModels,
-    isCommRendered,
-    closedDistrictIds,
-  ]);
+  }, [allCommunications, applicationModels, isCommRendered, closedDistrictIds]);
 
   useEffect(() => {
     if (landscapeData) {
@@ -637,7 +633,7 @@ export default function CanvasWrapper({
                 .getState()
                 .getAllCities()
                 .map((city) => (
-                  <CodeCity key={city.id} city={city} />
+                  <CodeCity key={city.id} cityId={city.id} />
                 ))}
               {isCommRendered &&
                 effectiveCommunications.map((communication) => (

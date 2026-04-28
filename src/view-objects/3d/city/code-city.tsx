@@ -5,7 +5,6 @@ import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import CityDistrictLabel from 'explorviz-frontend/src/view-objects/3d/city/city-district-label';
 import CityDistricts from 'explorviz-frontend/src/view-objects/3d/city/city-districts';
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/city/city-foundation';
@@ -16,7 +15,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function CodeCity({ city }: { city: City }) {
+export default function CodeCity({ cityId }: { cityId: string }) {
+  const city = useModelStore((state) => state.cities[cityId]);
   const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
     useUserSettingsStore(
       useShallow((state) => ({
