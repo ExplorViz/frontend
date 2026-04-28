@@ -63,7 +63,7 @@ const getInitialFormData = (landscapeToken: string): AnalysisRequest => ({
   repoPath: '',
   username: '',
   password: '',
-  branch: 'main',
+  branch: '',
   applicationRoot: '',
   includeInAnalysisExpressions: '',
   excludeFromAnalysisExpressions: '',
@@ -282,11 +282,35 @@ export default function CodeAnalysisTriggerForm({
           </Form.Group>
         )}
 
+        {!useLocalRepo && (
+          <>
+            <Form.Group className="mb-3">
+              <Form.Label>Username (for private repos)</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="username"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Password/Token (for private repos)</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="password or access token"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+              />
+            </Form.Group>
+          </>
+        )}
+
         <Form.Group className="mb-3">
           <Form.Label>Application Name</Form.Label>
           <Form.Control
             type="text"
-            placeholder="my-application"
+            placeholder="default-application-name"
             value={formData.applicationName}
             onChange={(e) =>
               handleInputChange('applicationName', e.target.value)
@@ -298,7 +322,7 @@ export default function CodeAnalysisTriggerForm({
           <Form.Label>Branch</Form.Label>
           <Form.Control
             type="text"
-            placeholder="master"
+            placeholder="default-branch"
             value={formData.branch}
             onChange={(e) => handleInputChange('branch', e.target.value)}
           />
@@ -356,30 +380,6 @@ export default function CodeAnalysisTriggerForm({
           </Form.Text>
         </Form.Group>
 
-        {!useLocalRepo && (
-          <>
-            <Form.Group className="mb-3">
-              <Form.Label>Username (for private repos)</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="username"
-                value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Password/Token (for private repos)</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="password or access token"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-              />
-            </Form.Group>
-          </>
-        )}
-
         <Form.Group className="mb-3">
           <Form.Label>Analyze Commit Count</Form.Label>
           <Form.Control
@@ -429,7 +429,7 @@ export default function CodeAnalysisTriggerForm({
             <Form.Label>Start Commit SHA</Form.Label>
             <Form.Control
               type="text"
-              placeholder="abc123def456..."
+              placeholder="e.g. abc123def456..."
               value={formData.startCommit}
               onChange={(e) => handleInputChange('startCommit', e.target.value)}
             />
@@ -439,7 +439,7 @@ export default function CodeAnalysisTriggerForm({
             <Form.Label>End Commit SHA</Form.Label>
             <Form.Control
               type="text"
-              placeholder="xyz789uvw012..."
+              placeholder="e.g. xyz789uvw012..."
               value={formData.endCommit}
               onChange={(e) => handleInputChange('endCommit', e.target.value)}
             />
