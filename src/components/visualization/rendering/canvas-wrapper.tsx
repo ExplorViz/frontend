@@ -609,7 +609,7 @@ export default function CanvasWrapper({
               <CollaborationCameraSync />
             </>
           )}
-          <XR store={xrStore || createXRStore({})}>
+          <XR store={xrStore || createXRStore({ offerSession: false })}>
             <IfInSessionMode allow={['immersive-ar', 'immersive-vr']}>
               <XROrigin position={position}>
                 <ControllerMenu handedness="left" />
