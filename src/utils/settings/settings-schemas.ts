@@ -7,6 +7,7 @@ export type SettingGroup =
   | 'Effects'
   | 'Geometries'
   | 'Heatmap'
+  | 'Immersive Building View'
   | 'Layout'
   | 'Label'
   | 'Magnifier'

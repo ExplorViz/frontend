@@ -116,6 +116,7 @@ export default function Settings({
       Effects: [],
       Geometries: [],
       Heatmap: [],
+      'Immersive Building View': [],
       Label: [],
       Layout: [],
       Magnifier: [],
