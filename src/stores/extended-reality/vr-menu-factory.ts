@@ -22,7 +22,6 @@ import OnlineMenu2 from 'explorviz-frontend/src/utils/extended-reality/vr-menus/
 import SpectateMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/connection/spectate-menu';
 import SpectateViewMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/connection/spectate-view-menu';
 import DetailInfoMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/detail-info-menu';
-import HeatmapMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/heatmap-menu';
 import HintMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/hud/hint-menu';
 import MessageBoxMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/hud/message-box-menu';
 import MainMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/main-menu';

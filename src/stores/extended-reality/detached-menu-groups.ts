@@ -1,14 +1,12 @@
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useVrAssetRepoStore } from 'explorviz-frontend/src/stores/extended-reality/vr-asset-repo';
-import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { toggleHighlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import ActionIcon from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/action-icon';
 import CloseIcon from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/close-icon';
 import { DetachableMenu } from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
 import DetachedMenuGroup from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detached-menu-group';
 import SpectateViewMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/connection/spectate-view-menu';
-import HeatmapMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus/ui-menu/heatmap-menu';
 import {
   MenuDetachedResponse,
   isMenuDetachedResponse,
@@ -203,15 +201,7 @@ export const useDetachedMenuGroupsStore = create<DetachedMenuGroupsState>(
           textures: useVrAssetRepoStore.getState().shareIconTextures,
           color: new THREE.Color(color),
           onAction: () => {
-            useHeatmapConfigurationStore.getState().toggleShared();
-            if (useHeatmapConfigurationStore.getState().heatmapShared) {
-              shareIcon.material.color = new THREE.Color(
-                useCollaborationSessionStore.getState().getColor('')
-              );
-            } else {
-              shareIcon.material.color = new THREE.Color('white');
-            }
-            // shareIcon.updateColor();
+            // ToDo: Change according to heat map
             return Promise.resolve(true);
           },
           radius: 0.04,
@@ -224,8 +214,6 @@ export const useDetachedMenuGroupsStore = create<DetachedMenuGroupsState>(
           textures: useVrAssetRepoStore.getState().fireIconTextures,
           color: new THREE.Color(color),
           onAction: () => {
-            useHeatmapConfigurationStore.getState().switchMetric();
-            menu.redrawMenu();
             return Promise.resolve(true);
           },
           radius: 0.04,

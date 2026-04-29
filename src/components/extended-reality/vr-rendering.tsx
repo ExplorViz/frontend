@@ -19,7 +19,6 @@ import { useDetachedMenuGroupsStore } from '../../stores/extended-reality/detach
 import { useDetachedMenuRendererStore } from '../../stores/extended-reality/detached-menu-renderer';
 import { useGrabbedObjectStore } from '../../stores/extended-reality/grabbed-object';
 import { useVrMenuFactoryStore } from '../../stores/extended-reality/vr-menu-factory';
-import { useHeatmapConfigurationStore } from '../../stores/heatmap/heatmap-configuration';
 import { useSceneRepositoryStore } from '../../stores/repos/scene-repository';
 import { useUserSettingsStore } from '../../stores/user-settings';
 import { ForwardedMessage } from '../../utils/collaboration/web-socket-messages/receivable/forwarded';
@@ -126,12 +125,6 @@ export default function VrRendering({
   const detachedMenuRenderer = useDetachedMenuRendererStore(
     useShallow((state) => ({
       restoreDetachedMenu: state.restoreDetachedMenu,
-    }))
-  );
-  const heatmapConf = useHeatmapConfigurationStore(
-    useShallow((state) => ({
-      heatmapActive: state.heatmapActive,
-      setActiveApplication: state.setActiveApplication,
     }))
   );
   const grabbedObject = useGrabbedObjectStore(
@@ -395,11 +388,6 @@ export default function VrRendering({
       targetType: FoundationMesh,
       triggerDown: (event) => {
         const application = event.target.parent as ApplicationObject3D;
-        if (heatmapConf.heatmapActive) {
-          heatmapConf.setActiveApplication(application);
-        } else {
-          // appRenderer.closeAllComponents(application);
-        }
       },
     });
 

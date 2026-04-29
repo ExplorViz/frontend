@@ -9,7 +9,6 @@ import RangeSetting from 'explorviz-frontend/src/components/visualization/page-s
 import ResetButton from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/reset-button';
 import SelectSetting from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/setting-type/select-setting';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useHeatmapConfigurationStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-configuration';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { deleteTraceData } from 'explorviz-frontend/src/utils/landscape-http-request-util';
@@ -53,9 +52,6 @@ export default function Settings({
     (state) => state.showErrorToastMessage
   );
   const minimapCamera = useLocalUserStore((state) => state.minimapCamera);
-  const setHeatmapActive = useHeatmapConfigurationStore(
-    (state) => state.setActive
-  );
 
   const { applyDefaultSettings, applyDefaultSettingsForGroup, setColorScheme } =
     useUserSettingsStore(
