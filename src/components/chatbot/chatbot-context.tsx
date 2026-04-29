@@ -1,6 +1,5 @@
 import { CopilotKit } from '@copilotkit/react-core';
 import { type LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
   createContext,
   MutableRefObject,
@@ -40,7 +39,7 @@ export type EntityFilteringController = {
   reset: () => void;
 };
 
-export type ApplicationSearchController = {
+export type EntitySearchController = {
   search: (params: { query: string; selectAll?: boolean }) => void;
   selectEntities: (ids: string[]) => void;
   reset: () => void;
@@ -63,7 +62,7 @@ interface Context {
   openedSettingComponent: string | null;
   setOpenedSettingComponent: (component: string | null) => void;
   entityFilteringControllerRef: MutableRefObject<EntityFilteringController | null> | null;
-  applicationSearchControllerRef: MutableRefObject<ApplicationSearchController | null> | null;
+  entitySearchControllerRef: MutableRefObject<EntitySearchController | null> | null;
 }
 
 const defaultContext: Context = {
@@ -83,7 +82,7 @@ const defaultContext: Context = {
   openedSettingComponent: null,
   setOpenedSettingComponent: () => {},
   entityFilteringControllerRef: null,
-  applicationSearchControllerRef: null,
+  entitySearchControllerRef: null,
 };
 
 export const ChatbotContext = createContext(defaultContext);
@@ -99,7 +98,7 @@ interface ChatbotProviderProps extends PropsWithChildren {
   openedSettingComponent: string | null;
   setOpenedSettingComponent: (component: string | null) => void;
   entityFilteringControllerRef: MutableRefObject<EntityFilteringController | null> | null;
-  applicationSearchControllerRef: MutableRefObject<ApplicationSearchController | null> | null;
+  entitySearchControllerRef: MutableRefObject<EntitySearchController | null> | null;
 }
 
 export function ChatbotProvider({
@@ -114,7 +113,7 @@ export function ChatbotProvider({
   openedSettingComponent,
   setOpenedSettingComponent,
   entityFilteringControllerRef,
-  applicationSearchControllerRef,
+  entitySearchControllerRef,
 }: ChatbotProviderProps) {
   const [providers, setProviders] = useState(defaultContext.providers);
   const [selectedProvider, setSelectedProvider] = useState(
@@ -135,12 +134,7 @@ export function ChatbotProvider({
     localStorage.setItem(modelKey, model.id);
   }
 
-  const applications = landscapeData?.structureLandscapeData.nodes.reduce(
-    (acc, node) => {
-      return acc.concat(node.applications);
-    },
-    [] as Application[]
-  );
+  const cities = Object.values(landscapeData?.flatLandscapeData.cities ? landscapeData?.flatLandscapeData.cities: {});
 
   const pingScreenAtPoint = useCallback((x: number, y: number) => {
     setActivePing({ x, y });
@@ -190,7 +184,7 @@ export function ChatbotProvider({
         openedSettingComponent,
         setOpenedSettingComponent,
         entityFilteringControllerRef,
-        applicationSearchControllerRef,
+        entitySearchControllerRef: entitySearchControllerRef,
       }}
     >
       <CopilotKit
@@ -202,8 +196,8 @@ export function ChatbotProvider({
           ['x-explorviz-model']: selectedModel.id,
         }}
       >
-        <CopilotResources applications={applications} />
-        <CopilotTools applications={applications} />
+        <CopilotResources cities={cities} />
+        <CopilotTools cities={cities} />
         {children}
         {activePing && <PingIndicator x={activePing.x} y={activePing.y} />}
       </CopilotKit>

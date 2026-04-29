@@ -13,6 +13,7 @@ import {
   openAllDistrictsInCity,
   openDistrict,
 } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
+import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   Application,
   Class,
@@ -28,7 +29,7 @@ import { EditingContext } from '../editing/editing-context';
 import { ChatbotContext } from './chatbot-context';
 
 interface CopilotToolsProps {
-  applications?: Application[];
+  cities?: City[];
 }
 
 const SCREENSHOT_MAX_WIDTH = 1280;
@@ -202,7 +203,7 @@ function buildSettingsPromptDescription() {
 
 const settingsPromptDescription = buildSettingsPromptDescription();
 
-export function CopilotTools({ applications }: CopilotToolsProps) {
+export function CopilotTools({ cities }: CopilotToolsProps) {
   const { actions } = useVisualizationStore();
   const { lookAtEntity, resetCamera } = useCameraControlsStore();
   const {
@@ -216,7 +217,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   } = use(EditingContext);
   const packages = () => {
     const list = [] as Package[];
-    applications?.forEach(({ packages }) => {
+    cities?.forEach(({ packages }) => {
       packages.forEach((pck) => {
         list.push(...getAllSubPackages(pck));
       });
@@ -236,7 +237,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     openedSettingComponent,
     setOpenedSettingComponent,
     entityFilteringControllerRef,
-    applicationSearchControllerRef,
+    entitySearchControllerRef,
   } = use(ChatbotContext);
 
   useCopilotAction({
@@ -322,7 +323,7 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
       const level: DetailLevel = isValidDetailLevel(detailLevel)
         ? detailLevel
         : 'summary';
-      const availableApplications = applications ?? [];
+      const availableApplications = cities ?? [];
       const filteredApplications = availableApplications.filter((app) => {
         const idMatches =
           !Array.isArray(applicationIds) ||
@@ -573,13 +574,13 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
   useCopilotAction({
     name: 'open-close-tools-component',
     description:
-      'Opens or closes a component inside the tools sidebar. Opening the component will also open the sidebar. Allowed component ids: entity-filtering, application-search, Trace-Replayer.',
+      'Opens or closes a component inside the tools sidebar. Opening the component will also open the sidebar. Allowed component ids: entity-filtering, entity-search, Trace-Replayer.',
     parameters: [
       {
         name: 'id',
         type: 'string',
         description:
-          'ID of the component in the tools sidebar to be opened or closed. Valid values: entity-filtering, application-search, Trace-Replayer.',
+          'ID of the component in the tools sidebar to be opened or closed. Valid values: entity-filtering, entity-search, Trace-Replayer.',
         required: true,
       },
       {
@@ -795,9 +796,9 @@ export function CopilotTools({ applications }: CopilotToolsProps) {
     _isRenderAndWait: true,
     handler: async ({ query, selectAll }) => {
       setShowToolsSidebar(true);
-      setOpenedToolComponent('application-search');
+      setOpenedToolComponent('entity-search');
       setTimeout(() => {
-        applicationSearchControllerRef?.current?.search({
+        entitySearchControllerRef?.current?.search({
           query,
           selectAll,
         });

@@ -1,32 +1,24 @@
 import { useImperativeHandle, useMemo, useState } from 'react';
 
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { highlightById } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import getPossibleEntityNames from 'explorviz-frontend/src/utils/search-logic';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 import Select, { MultiValue, MultiValueGenericProps } from 'react-select';
 
-interface ApplicationSearchEntity {
-  fqn: string;
+interface EntitySearchEntry {
   modelId: string;
-  applicationName: string;
+  fqn: string;
 }
 
-const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
-  useApplicationRepositoryStore((state) => state.applications);
-
+const EntitySearch = function EntitySearch({ ref, ..._ }) {
   const [searchString, setSearchString] = useState<string>('');
   const [selected, setSelected] = useState<any[]>([]);
   const [entityNames, setEntityNames] = useState<any[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const formatEntry = (selectOption: ApplicationSearchEntity) => {
+  const formatEntry = (selectOption: EntitySearchEntry) => {
     const fqnStr = selectOption?.fqn;
-
-    if (!fqnStr) {
-      return selectOption.applicationName ?? '';
-    }
 
     if (!searchString) {
       return fqnStr;
@@ -41,19 +33,18 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
   };
 
   const onChange = (
-    newSelectedOptions: MultiValue<ApplicationSearchEntity>
+    newSelectedOptions: MultiValue<EntitySearchEntry>
   ) => {
     const newlySelectedItems = newSelectedOptions.filter(
-      (newItem) =>
+      (newItem: EntitySearchEntry) =>
         !selected.some(
           (existingItem) =>
-            existingItem.applicationName === newItem.applicationName &&
             existingItem.fqn === newItem.fqn
         )
     );
 
     // Ping all newly selected items
-    newlySelectedItems.forEach((item) => {
+    newlySelectedItems.forEach((item: EntitySearchEntry) => {
       pingByModelId(item.modelId);
     });
 
@@ -80,7 +71,7 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
   const optionLookup = useMemo(
     () =>
       new Map(
-        entityNames.map((entry: ApplicationSearchEntity) => [
+        entityNames.map((entry: EntitySearchEntry) => [
           entry.modelId,
           entry,
         ])
@@ -89,7 +80,7 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
   );
 
   useImperativeHandle(ref, () => ({
-    search: ({ query, selectAll }) => {
+    search: ({ query, selectAll }: {query: string, selectAll: boolean}) => {
       setSearchString(query);
       const names = isBlank(query) ? [] : getPossibleEntityNames(query);
       setEntityNames(names);
@@ -98,8 +89,7 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
         const newlySelectedItems = names.filter(
           (newItem) =>
             !selected.some(
-              (existingItem: ApplicationSearchEntity) =>
-                existingItem.applicationName === newItem.applicationName &&
+              (existingItem: EntitySearchEntry) =>
                 existingItem.fqn === newItem.fqn
             )
         );
@@ -112,13 +102,12 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
         optionLookup.size > 0
           ? (ids
               .map((id) => optionLookup.get(id))
-              .filter(Boolean) as ApplicationSearchEntity[])
+              .filter(Boolean) as EntitySearchEntry[])
           : [];
       const newlySelectedItems = matches.filter(
         (item) =>
           !selected.some(
-            (existingItem: ApplicationSearchEntity) =>
-              existingItem.applicationName === item.applicationName &&
+            (existingItem: EntitySearchEntry) =>
               existingItem.fqn === item.fqn
           )
       );
@@ -143,8 +132,8 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
         inputValue={searchString}
         value={selected}
         options={entityNames}
-        getOptionLabel={(entity) => entity.fqn}
-        getOptionValue={(entity) => entity.applicationName + '-' + entity.fqn}
+        getOptionLabel={(entity: EntitySearchEntry) => entity.fqn}
+        getOptionValue={(entity: EntitySearchEntry) => entity.modelId}
         formatOptionLabel={formatEntry}
         onChange={onChange}
         onInputChange={onInputChange}
@@ -175,7 +164,7 @@ const ApplicationSearch = function ApplicationSearch({ ref, ..._ }) {
 
 // Show selected options as clickable links
 function CustomMultiValueLabel(
-  props: MultiValueGenericProps<ApplicationSearchEntity>
+  props: MultiValueGenericProps<EntitySearchEntry>
 ) {
   const { data, innerProps } = props;
   const onClick = () => {
@@ -199,4 +188,4 @@ function isBlank(testString: string) {
   return /^\s*$/.test(testString);
 }
 
-export default ApplicationSearch;
+export default EntitySearch;

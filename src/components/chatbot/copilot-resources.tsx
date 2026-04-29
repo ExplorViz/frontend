@@ -1,7 +1,8 @@
 import { useCopilotReadable } from '@copilotkit/react-core';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { type Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { use } from 'react';
@@ -9,10 +10,10 @@ import { EditingContext } from '../editing/editing-context';
 import { ChatbotContext } from './chatbot-context';
 
 interface CopilotResourcesProps {
-  applications?: Application[];
+  cities?: City[];
 }
 
-export function CopilotResources({ applications }: CopilotResourcesProps) {
+export function CopilotResources({ cities }: CopilotResourcesProps) {
   const {
     closedDistrictIds: closedComponentIds,
     highlightedEntityIds,
@@ -32,33 +33,46 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
     });
     return result;
   };
-  const summarizeApplications = (apps: Application[]) =>
-    apps.map((app) => {
-      let packageCount = 0;
-      let classCount = 0;
-      let methodCount = 0;
 
-      const traversePackages = (pkg: Application['packages'][number]) => {
-        packageCount += 1;
-        classCount += pkg.classes.length;
-        methodCount += pkg.classes.reduce(
-          (count, clazz) => count + clazz.methods.length,
-          0
-        );
-        pkg.subPackages.forEach(traversePackages);
-      };
+  const summarizeCities = (cities: City[]) =>
+    cities.map((city) => {
+      let directoryCount = city.allContainedDistrictIds.length;
+      let fileCount = city.allContainedBuildingIds.length;
+      let languages: string[] = [];
+      let functionCount = 0;
+      let linesOfCode = 0;
+      let sourceCodeLines = 0;
+      let commentedLines = 0;
+      let combinedFileSizeInBytes = 0;
 
-      app.packages.forEach(traversePackages);
+      city.allContainedBuildingIds.forEach(buildingId => {
+        const building = useModelStore.getState().getBuilding(buildingId);
+        const language = building?.language;
+        functionCount += building?.metrics?.functionCount.current || 0;
+        linesOfCode += building?.metrics?.loc.current || 0;
+        sourceCodeLines += building?.metrics?.sloc.current || 0;
+        commentedLines += building?.metrics?.cloc.current || 0;
+        combinedFileSizeInBytes += building?.metrics?.size.current || 0;
+        if (language && !languages.includes(language)) {
+          languages.push(language);
+        }
+      })
+
       return {
-        id: app.id,
-        name: app.name,
-        language: app.language,
-        originOfData: app.originOfData,
-        packageCount,
-        classCount,
-        methodCount,
+        id: city.id,
+        name: city.name,
+        languages,
+        originOfData: city.originOfData,
+        directoryCount,
+        fileCount,
+        functionCount,
+        linesOfCode,
+        sourceCodeLines,
+        commentedLines,
+        combinedFileSizeInBytes
       };
     });
+
   const {
     showToolsSidebar,
     showSettingsSidebar,
@@ -69,7 +83,7 @@ export function CopilotResources({ applications }: CopilotResourcesProps) {
   useCopilotReadable({
     description:
       "Get a lightweight summary of the applications in the 3D landscape (counts only). Use the 'query-landscape-data' tool when you need filtered or detailed data.",
-    value: JSON.stringify(summarizeApplications(applications ?? [])),
+    value: JSON.stringify(summarizeCities(cities ?? [])),
   });
 
   useCopilotReadable({

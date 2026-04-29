@@ -1,12 +1,12 @@
-interface ApplicationSearchSelectedItemProps {
+interface SelectedSearchItemProps {
   option: any;
   onClick: (clickedElement: any) => void;
 }
 
-export default function ApplicationSearchSelectedItem({
+export default function SelectedSearchItem({
   option,
   onClick,
-}: ApplicationSearchSelectedItemProps) {
+}: SelectedSearchItemProps) {
   if (option.className) {
     return (
       <a href="#" onClick={() => onClick(option)}>

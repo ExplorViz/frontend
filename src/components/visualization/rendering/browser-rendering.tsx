@@ -7,10 +7,10 @@ import RestructureOpener from 'explorviz-frontend/src/components/visualization/p
 import Settings from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings';
 import SettingsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/settings/settings-opener';
 import SnapshotOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/customizationbar/snapshot/snapshot-opener';
-import ApplicationSearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search';
-import ApplicationSearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/application-search/application-search-opener';
 import CodeAnalysisTriggerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/code-analysis-trigger/code-analysis-trigger-opener';
 import EntityFilteringOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/entity-filtering-opener';
+import EntitySearch from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-search/entity-search';
+import EntitySearchOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-search/entity-search-opener';
 import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams';
 import KubernetesDiagramsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
@@ -34,9 +34,9 @@ import { useEffect, useRef, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import { useShallow } from 'zustand/react/shallow';
 import {
-  ApplicationSearchController,
   ChatbotProvider,
   EntityFilteringController,
+  EntitySearchController,
 } from '../../chatbot/chatbot-context';
 import CollaborationControls from '../../collaboration/visualization/page-setup/sidebar/customizationbar/collaboration/collaboration-controls';
 import ContextMenu from '../../context-menu';
@@ -209,7 +209,7 @@ export default function BrowserRendering({
   >(null);
 
   const entityFilteringRef = useRef<EntityFilteringController | null>(null);
-  const applicationSearchRef = useRef<ApplicationSearchController | null>(null);
+  const entitySearchRef = useRef<EntitySearchController | null>(null);
 
   // MARK: Refs
 
@@ -284,7 +284,7 @@ export default function BrowserRendering({
         openedSettingComponent={openedSettingComponent}
         setOpenedSettingComponent={setOpenedSettingComponent}
         entityFilteringControllerRef={entityFilteringRef}
-        applicationSearchControllerRef={applicationSearchRef}
+        entitySearchControllerRef={entitySearchRef}
       >
         <div className="row h-100">
           <div className="d-flex flex-column h-100 col-12">
@@ -350,7 +350,7 @@ export default function BrowserRendering({
                           toggleToolsSidebarComponent
                         }
                       />
-                      <ApplicationSearchOpener
+                      <EntitySearchOpener
                         openedComponent={openedToolComponent}
                         toggleToolsSidebarComponent={
                           toggleToolsSidebarComponent
@@ -389,10 +389,10 @@ export default function BrowserRendering({
                               />
                             </>
                           )}
-                        {openedToolComponent === 'application-search' && (
+                        {openedToolComponent === 'entity-search' && (
                           <>
-                            <h5 className="text-center">Application Search</h5>
-                            <ApplicationSearch ref={applicationSearchRef} />
+                            <h5 className="text-center">Entity Search</h5>
+                            <EntitySearch ref={entitySearchRef} />
                           </>
                         )}
                         {openedToolComponent === 'Trace-Replayer' &&
