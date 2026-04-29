@@ -2,6 +2,7 @@ import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -9,7 +10,6 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import {
   getHighlightingColorForEntity,
@@ -117,10 +117,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
     const isOnline = useCollaborationSessionStore.getState().isOnline();
 
-    const { heatmapActive, selectedClassMetric } = useHeatmapStore(
+    const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
       useShallow((state) => ({
         heatmapActive: state.isActive(),
-        selectedClassMetric: state.getSelectedBuildingMetric(),
+        selectedBuildingMetric: state.getSelectedBuildingMetric(),
       }))
     );
 
@@ -186,7 +186,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           const rootLevel = 1;
           const deepestLevel = useLayoutStore.getState().maxDistrictDepth ?? 20;
           if (rootLevel === deepestLevel) {
-            // All components are at the same level, use top level color
+            // All districts are at the same level, use top level color
             baseColor = new Color(districtRootLevelColor);
           } else {
             // Interpolate between top and deepest level colors
@@ -254,7 +254,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
             !removedDistrictIds.has(district.id);
 
           const closedPosition = layout.center.clone();
-          // Y-Position of layout is center of opened component
+          // Y-Position of layout is center of opened district
           closedPosition.y = layout.positionY + closedDistrictHeight / 2;
 
           if (isOpen) {
@@ -293,7 +293,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       districts,
     ]);
 
-    const animateComponentChange = useCallback(() => {
+    const animateDistrictChange = useCallback(() => {
       const currentMeshRef = meshRef.current;
       if (!currentMeshRef) return;
 
@@ -305,7 +305,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
 
         const isOpen = !closedDistrictIds.has(districtId);
 
-        // target values based on layout / component state
+        // target values based on layout / district state
         const layout = layoutMap.get(districtId);
         if (!layout) return;
 
@@ -328,7 +328,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         }
         tempMatrix.decompose(pos, quat, scale);
 
-        // skip animation if nothing changed for the component instance
+        // skip animation if nothing changed for the district instance
         if (
           pos.x === targetPositionX &&
           pos.y === targetPositionY &&
@@ -392,14 +392,14 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         districtIdToInstanceId.size === districtIds.length &&
         enableAnimations
       ) {
-        animateComponentChange();
+        animateDistrictChange();
       } else {
         computeInstances();
       }
     }, [
       districtIds.length,
       enableAnimations,
-      animateComponentChange,
+      animateDistrictChange,
       computeInstances,
       ref,
       districtIdToInstanceId.size,
@@ -447,7 +447,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       isOnline,
       hoveredEntityId,
       heatmapActive,
-      selectedClassMetric,
+      selectedBuildingMetric,
       districtRootLevelColor,
       districtDeepestLevelColor,
       districtIdToInstanceId,

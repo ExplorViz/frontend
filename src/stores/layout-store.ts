@@ -44,13 +44,13 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
 
       const entityType = modelStore.getEntityType(entityId);
       switch (entityType) {
-        case 'application':
+        case 'city':
           cityLayouts.set(entityId, layout);
           break;
-        case 'component':
+        case 'district':
           districtLayouts.set(entityId, layout);
           break;
-        case 'class':
+        case 'building':
           buildingLayouts.set(entityId, layout);
           break;
         default:

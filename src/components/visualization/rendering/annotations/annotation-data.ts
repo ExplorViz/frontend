@@ -1,11 +1,5 @@
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import {
-  Application,
-  Class,
-  Node,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/city/utils/clazz-communication-mesh-data-model';
+import { Building, City, District } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export interface AnnotationDataArgs {
   annotationId: number | undefined;
@@ -15,13 +9,10 @@ export interface AnnotationDataArgs {
   isAssociated: boolean;
   entityId?: string;
   entity?:
-    | Node
-    | Application
-    | Package
-    | Class
-    | ClazzCommuMeshDataModel
+    | City
+    | District
+    | Building
     | AggregatedCommunication;
-  applicationId?: string;
   menuId: string | null;
   hovered: boolean;
   annotationText: string;
@@ -50,14 +41,10 @@ export default class AnnotationData {
   entityId?: string;
 
   entity?:
-    | Node
-    | Application
-    | Package
-    | Class
-    | ClazzCommuMeshDataModel
+    | City
+    | District
+    | Building
     | AggregatedCommunication;
-
-  applicationId?: string;
 
   menuId: string | null;
 
@@ -96,7 +83,6 @@ export default class AnnotationData {
     isAssociated,
     entityId,
     entity,
-    applicationId,
     menuId,
     hovered,
     annotationText,
@@ -121,7 +107,6 @@ export default class AnnotationData {
     this.isAssociated = isAssociated;
     this.entityId = entityId;
     this.entity = entity;
-    this.applicationId = applicationId;
     this.menuId = menuId;
     this.hovered = hovered;
     this.annotationText = annotationText;

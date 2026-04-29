@@ -18,12 +18,6 @@ import {
   City,
   District,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  Application,
-  Class,
-  Node,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { me } from 'playroomkit';
 
 type Position2D = {
@@ -54,21 +48,17 @@ interface PopupHandlerState {
   }: {
     entityId: string;
     entity?:
-      | Node
-      | Application
-      | Package
-      | Class
-      | AggregatedCommunication
-      | City
-      | District
-      | Building;
+    | City
+    | District
+    | Building
+    | AggregatedCommunication;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
     menuId?: string | null;
     sharedBy?: string | null;
     hovered?: boolean;
-    model?: Application | Package | Class | City | District | Building;
+    model?: City | District | Building | AggregatedCommunication;
     applicationId?: string;
   }) => void;
   updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;

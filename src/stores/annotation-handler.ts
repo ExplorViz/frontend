@@ -1,16 +1,9 @@
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import {
-  Application,
-  Class,
-  Node,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import ClazzCommuMeshDataModel from 'explorviz-frontend/src/view-objects/3d/city/utils/clazz-communication-mesh-data-model';
 
 import { create } from 'zustand';
+import { Building, City, District } from '../utils/landscape-schemes/flat-landscape';
 import { useAuthStore } from './auth';
 
 type Position2D = {
@@ -49,11 +42,9 @@ interface AnnotationHandlerState {
     annotationId: number | undefined;
     entityId?: string;
     entity?:
-    | Node
-    | Application
-    | Package
-    | Class
-    | ClazzCommuMeshDataModel
+    | City
+    | District
+    | Building
     | AggregatedCommunication;
     position: Position2D | undefined;
     wasMoved?: boolean;
@@ -95,18 +86,11 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
     },
 
     clearAnnotations: () => {
-      get().annotationData.forEach((an) => {
-        if (an.entityId) {
-          // Todo: Update label
-          // useApplicationRendererStore.getState().updateLabel(an.entityId, '');
-        }
-      });
-
       set({ annotationData: [] });
     },
 
     removeUnmovedAnnotations: () => {
-      // remvove annotation from minimized, if minimized one was opened and moved again
+      // Remove annotation from minimized, if minimized one was opened and moved again
       get().minimizedAnnotations.forEach((man) => {
         get().annotationData.forEach((an) => {
           if (man.annotationId === an.annotationId && an.wasMoved) {
@@ -118,23 +102,8 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           }
         });
       });
-
-      const unmovedAnnotations = get().annotationData.filter(
-        (data) => !data.wasMoved
-      );
       set({
         annotationData: get().annotationData.filter((data) => data.wasMoved),
-      });
-
-      unmovedAnnotations.forEach((an) => {
-        let found = false;
-        if (an.entityId) {
-          get().minimizedAnnotations.forEach((man) => {
-            if (an.annotationId === man.annotationId) {
-              found = true;
-            }
-          });
-        }
       });
     },
 
@@ -157,7 +126,7 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       });
     },
 
-    removeAnnotation: (annotationId: number, stillMinimized: boolean = false) => {
+    removeAnnotation: (annotationId: number) => {
       set({
         annotationData: get().annotationData.filter((an) => an.annotationId !== annotationId),
       });
@@ -196,11 +165,9 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
       annotationId: number | undefined;
       entityId?: string;
       entity?:
-      | Node
-      | Application
-      | Package
-      | Class
-      | ClazzCommuMeshDataModel
+      | City
+      | District
+      | Building
       | AggregatedCommunication;
       position: Position2D | undefined;
       wasMoved?: boolean;
@@ -265,7 +232,6 @@ export const useAnnotationHandlerStore = create<AnnotationHandlerState>(
           isAssociated: !!resolvedEntityId,
           entityId: resolvedEntityId,
           entity: resolvedEntity,
-          applicationId: resolvedEntity?.applicationId,
           menuId: menuId || null,
           hovered: hovered || false,
           annotationText: annotationText,

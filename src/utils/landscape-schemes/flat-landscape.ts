@@ -1,7 +1,6 @@
 import {
   Application,
   Class,
-  Method,
   Node,
   Package,
   StructureLandscapeData,
@@ -27,7 +26,7 @@ type FlatBaseModel = {
   editingState?: 'added' | 'removed'; // Reflect changes from restructuring
 };
 
-export type Language = 
+export type Language =
   | 'JAVA'
   | 'CPP'
   | 'JAVASCRIPT'
@@ -69,8 +68,8 @@ export function isCity(x: any): x is City {
 
 export function isDistrict(x: any): x is District {
   return (
-    isObject(x) && 
-    Object.prototype.hasOwnProperty.call(x, 'districtIds') && 
+    isObject(x) &&
+    Object.prototype.hasOwnProperty.call(x, 'districtIds') &&
     Object.prototype.hasOwnProperty.call(x, 'parentCityId')
   );
 }

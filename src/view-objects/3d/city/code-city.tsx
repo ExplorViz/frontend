@@ -16,7 +16,8 @@ import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 export default function CodeCity({ cityId }: { cityId: string }) {
-  const city = useModelStore((state) => state.cities[cityId]);
+  const city = useModelStore((state) => state.getCity(cityId))!;
+
   const { animationDuration, enableAnimations, showEmbeddedBrowserIcon } =
     useUserSettingsStore(
       useShallow((state) => ({
@@ -27,23 +28,23 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       }))
     );
 
-  const appLayout = useLayoutStore.getState().getLayout(city.id);
+  const cityLayout = useLayoutStore.getState().getLayout(city.id);
 
-  const [appPosition, setAppPosition] = useState<THREE.Vector3 | undefined>(
-    appLayout?.position
+  const [cityPosition, setCityPosition] = useState<THREE.Vector3 | undefined>(
+    cityLayout?.position
   );
   const [isBrowserActive, setIsBrowserActive] = useState(false);
 
   const componentInstanceMeshRef = useRef<InstancedMesh2>(null);
 
   useEffect(() => {
-    const newPosition = appLayout?.position;
+    const newPosition = cityLayout?.position;
     if (!newPosition) return;
-    if (enableAnimations && appPosition) {
+    if (enableAnimations && cityPosition) {
       const gsapValues = {
-        positionX: appPosition.x,
-        positionY: appPosition.y,
-        positionZ: appPosition.z,
+        positionX: cityPosition.x,
+        positionY: cityPosition.y,
+        positionZ: cityPosition.z,
       };
       gsap.to(gsapValues, {
         positionX: newPosition.x,
@@ -51,7 +52,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
         positionZ: newPosition.z,
         duration: animationDuration,
         onUpdate: () => {
-          setAppPosition(
+          setCityPosition(
             new THREE.Vector3(
               gsapValues.positionX,
               gsapValues.positionY,
@@ -61,14 +62,14 @@ export default function CodeCity({ cityId }: { cityId: string }) {
         },
       });
     } else {
-      setAppPosition(newPosition);
+      setCityPosition(newPosition);
     }
-  }, [appLayout]);
+  }, [cityLayout]);
 
   if (!city) return null;
 
   return (
-    <group position={appPosition} userData={{ cityName: city.name }}>
+    <group position={cityPosition} userData={{ cityName: city.name }}>
       {showEmbeddedBrowserIcon && (
         <Root positionBottom={15} positionLeft={0} pixelSize={1}>
           <Container>
@@ -89,7 +90,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
       {/* {isBrowserActive && (
         <EmbeddedBrowser application={applicationData.application} />
       )} */}
-      {appLayout && <CityFoundation city={city} layout={appLayout} />}
+      {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings
         buildingIds={city.allContainedBuildingIds.filter((id) =>
           useLayoutStore.getState().getBuildingLayouts().has(id)

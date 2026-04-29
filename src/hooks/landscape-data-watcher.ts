@@ -16,8 +16,7 @@ import {
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   Application,
-  getAllPackagesAndClassesFromLandscape,
-  getApplicationsFromNodes,
+  getApplicationsFromNodes
 } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 
@@ -83,8 +82,8 @@ export default function useLandscapeDataWatcher(
     );
     log('Layouted landscape: ', boxLayoutMap);
 
-    // ToDo: This can take quite some time. Optimize.
-    log('Compute class communication');
+
+    log('Compute building communication');
     const aggregatedCommunications = computeAggregatedCommunication(
       flatLandscapeStructure,
       aggregatedFileCommunication!
@@ -116,19 +115,11 @@ export default function useLandscapeDataWatcher(
     setApplicationModels(applicationModels);
 
     // Add data to model repository
-    const { packages, classes } = getAllPackagesAndClassesFromLandscape(
-      structureLandscapeData
-    );
     const modelRepository = useModelStore.getState();
-    modelRepository.setApplications(
-      applicationModels.map((app) => app.application)
-    );
     modelRepository.setCities(Object.values(flatLandscapeStructure.cities));
-    modelRepository.setComponents(packages);
     modelRepository.setDistricts(
       Object.values(flatLandscapeStructure.districts)
     );
-    modelRepository.setClasses(classes);
     modelRepository.setBuildings(
       Object.values(flatLandscapeStructure.buildings)
     );

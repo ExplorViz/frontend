@@ -15,11 +15,11 @@ const PING_DURATION_MS = 3000;
  * - localHighlightedNodeNames: nodes highlighted directly in the diagram sidebar
  * - highlightedEntityIds from the visualization store: nodes highlighted on the 3D canvas
  *
- * A click on a node that has a matching canvas application toggles the shared store highlight.
+ * A click on a node that has a matching canvas city toggles the shared store highlight.
  * A click on a node with no canvas match toggles the local (sidebar-only) highlight.
  */
 export function useNodeInteractions() {
-  const getAllApplications = useModelStore((state) => state.getAllApplications);
+  const getAllCities = useModelStore((state) => state.getAllCities);
   const lookAtEntity = useCameraControlsStore((state) => state.lookAtEntity);
   const highlightedEntityIds = useVisualizationStore(
     (state) => state.highlightedEntityIds
@@ -37,23 +37,23 @@ export function useNodeInteractions() {
 
   const highlightedNodeNames = useMemo(() => {
     const names = new Set<string>(localHighlightedNodeNames);
-    for (const app of getAllApplications()) {
-      if (highlightedEntityIds.has(app.id)) {
-        names.add(app.name);
+    for (const city of getAllCities()) {
+      if (highlightedEntityIds.has(city.id)) {
+        names.add(city.name);
       }
     }
     return names;
-  }, [getAllApplications, highlightedEntityIds, localHighlightedNodeNames]);
+  }, [getAllCities, highlightedEntityIds, localHighlightedNodeNames]);
 
   const handleNodeHighlight = useCallback(
     (nodeName: string) => {
-      const matchingApp = getAllApplications().find(
-        (app) => app.name === nodeName
+      const matchingCity = getAllCities().find(
+        (city) => city.name === nodeName
       );
-      if (matchingApp) {
+      if (matchingCity) {
         setHighlightedEntityId(
-          matchingApp.id,
-          !highlightedEntityIds.has(matchingApp.id)
+          matchingCity.id,
+          !highlightedEntityIds.has(matchingCity.id)
         );
       } else {
         setLocalHighlightedNodeNames((prev) => {
@@ -63,33 +63,33 @@ export function useNodeInteractions() {
         });
       }
     },
-    [getAllApplications, highlightedEntityIds, setHighlightedEntityId]
+    [getAllCities, highlightedEntityIds, setHighlightedEntityId]
   );
 
   const handleNodePing = useCallback(
     (nodeName: string) => {
-      const matchingApp = getAllApplications().find(
-        (app) => app.name === nodeName
+      const matchingCity = getAllCities().find(
+        (city) => city.name === nodeName
       );
-      if (matchingApp) {
-        pingByModelId(matchingApp.id, false, { durationMs: PING_DURATION_MS });
+      if (matchingCity) {
+        pingByModelId(matchingCity.id, false, { durationMs: PING_DURATION_MS });
       } else {
         usePingStore.getState().addPing(nodeName, PING_DURATION_MS);
       }
     },
-    [getAllApplications]
+    [getAllCities]
   );
 
   const handleNodeLookAt = useCallback(
     (nodeName: string) => {
-      const matchingApp = getAllApplications().find(
-        (app) => app.name === nodeName
+      const matchingCity = getAllCities().find(
+        (city) => city.name === nodeName
       );
-      if (matchingApp) {
-        lookAtEntity(matchingApp.id);
+      if (matchingCity) {
+        lookAtEntity(matchingCity.id);
       }
     },
-    [getAllApplications, lookAtEntity]
+    [getAllCities, lookAtEntity]
   );
 
   const clearHighlighting = useCallback(() => {

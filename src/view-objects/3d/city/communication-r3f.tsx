@@ -497,7 +497,7 @@ export default function CommunicationR3F({
   const getParentEntity = useCallback((element: any) => {
     if (element && 'parent' in element) return element.parent;
     if (element && 'parentDistrictId' in element && element.parentDistrictId) {
-      return useModelStore.getState().getComponent(element.parentDistrictId);
+      return useModelStore.getState().getDistrict(element.parentDistrictId);
     }
     if (element && 'parentCityId' in element && element.parentCityId) {
       return useModelStore.getState().getCity(element.parentCityId);
@@ -511,20 +511,20 @@ export default function CommunicationR3F({
       const level = getHapLevel(element);
       const parent = getParentEntity(element);
 
-      if (isApplication(element) || isCity(element)) {
+      if (isCity(element)) {
         return new THREE.Vector3(
           (Math.random() - 0.5) * 5,
           0 + level * 10, // Application (Level 2) = 20
           (Math.random() - 0.5) * 5
         );
-      } else if ((isPackage(element) || isDistrict(element)) && parent) {
+      } else if ((isDistrict(element)) && parent) {
         const parentPos = getPosition(parent);
         return new THREE.Vector3(
           parentPos.x + (Math.random() - 0.5) * 30,
           0 + level * 10, // Package (Level 1) = 10
           parentPos.z + (Math.random() - 0.5) * 30
         );
-      } else if ((isClass(element) || isBuilding(element)) && parent) {
+      } else if ((isBuilding(element)) && parent) {
         const parentPos = getPosition(parent);
         return new THREE.Vector3(
           parentPos.x + (Math.random() - 0.5) * 10,

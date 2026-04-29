@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
-import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
+import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { Language } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { useShallow } from 'zustand/react/shallow';
+import { useMemo } from 'react';
 import Form from 'react-bootstrap/Form';
+import { useShallow } from 'zustand/react/shallow';
 
 const LANGUAGE_LABELS: Record<Language, string> = {
+  CPP: 'CPP',
   JAVA: 'Java',
   PYTHON: 'Python',
   TYPESCRIPT: 'TypeScript',
@@ -16,6 +17,7 @@ const LANGUAGE_LABELS: Record<Language, string> = {
 };
 
 const LANGUAGE_COLOR_KEYS: Record<Language, string> = {
+  CPP: 'languageColorCPP',
   JAVA: 'languageColorJava',
   PYTHON: 'languageColorPython',
   TYPESCRIPT: 'languageColorTypeScript',

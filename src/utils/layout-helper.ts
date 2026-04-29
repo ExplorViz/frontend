@@ -1,5 +1,4 @@
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
@@ -11,16 +10,9 @@ const ZERO_VECTOR = new THREE.Vector3(0, 0, 0);
  * Computes the world-space center of the landscape.
  */
 export function getLandscapeCenterPosition(): THREE.Vector3 {
-  const appRepo = useApplicationRepositoryStore.getState();
   const settings = useUserSettingsStore.getState().visualizationSettings;
 
-  const allApps = Array.from(appRepo.getAll());
-  if (allApps.length === 0) {
-    console.warn('No application data available.');
-    return ZERO_VECTOR.clone();
-  }
-
-  const landscapeLayout = allApps[0]?.boxLayoutMap.get('landscape');
+  const landscapeLayout = useLayoutStore.getState().getLandscapeLayout();
   if (!landscapeLayout) {
     console.warn('Landscape layout not found.');
     return ZERO_VECTOR.clone();
@@ -99,7 +91,7 @@ export function getWorldPositionOfModel(
 }
 
 /**
- * Computes the landscape-space position of a specific model (application, package, or class)
+ * Computes the landscape-space position of a specific model (city, district, or building)
  * based on the current layout and landscape settings. Unlike getWorldPositionOfModel,
  * this returns the position relative to the landscape coordinate system (without the landscape center offset).
  */
@@ -110,13 +102,13 @@ export function getLandscapePositionOfModel(
   if (useModelStore.getState().getCommunication(modelId)) {
     return getLandscapePositionOfCommunication(modelId);
   }
-  const appRepo = useApplicationRepositoryStore.getState();
+  const modelStore = useModelStore.getState();
   const settings = useUserSettingsStore.getState().visualizationSettings;
   const layoutStore = useLayoutStore.getState();
 
-  const applicationData = appRepo.getByModelId(modelId);
-  if (!applicationData) {
-    console.warn(`No application found for model ID "${modelId}".`);
+  const cityForModel = modelStore.getCityForModel(modelId);
+  if (!cityForModel) {
+    console.warn(`No city found for model ID "${modelId}".`);
     return undefined;
   }
 
@@ -124,24 +116,24 @@ export function getLandscapePositionOfModel(
   const landscapeLayout = layoutStore.landscapeLayout;
 
   if (!landscapeLayout) {
-    console.warn(`Landscape layout missing for model ID "${modelId}".`);
+    console.warn("Landscape layout missing.");
     return undefined;
   }
 
-  const appLayout = layoutStore.getLayout(applicationData.getId());
-  if (!appLayout) {
-    console.warn(`Application layout missing for model ID "${modelId}".`);
+  const cityLayout = layoutStore.getLayout(cityForModel.id);
+  if (!cityLayout) {
+    console.warn(`City layout missing for model ID "${modelId}".`);
     return undefined;
   }
 
-  const appPosition = appLayout.position
+  const cityPosition = cityLayout.position
     .clone()
     .multiplyScalar(landscapeScalar.value);
 
-  const isModelApplication = modelId === applicationData.getId();
+  const isModelCity = modelId === cityForModel.id;
   let modelPosition: THREE.Vector3 | undefined;
 
-  if (isModelApplication) {
+  if (isModelCity) {
     const modelLayout = layoutStore.getLayout(modelId);
     if (!modelLayout) return undefined;
     modelPosition = new THREE.Vector3(
@@ -157,7 +149,7 @@ export function getLandscapePositionOfModel(
       .multiplyScalar(landscapeScalar.value);
   }
 
-  return appPosition.add(modelPosition);
+  return cityPosition.add(modelPosition);
 }
 
 export function getLandscapePositionOfCommunication(
