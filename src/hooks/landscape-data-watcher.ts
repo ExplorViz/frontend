@@ -1,37 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import debug from 'debug';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import computeAggregatedCommunication from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  convertToFlatLandscape,
-  getAllIdsOfFlatLandscape,
+  getAllIdsOfFlatLandscape
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
-import {
-  Application,
-  getApplicationsFromNodes
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 
 export default function useLandscapeDataWatcher(
   landscapeData: LandscapeData | null
-): {
-  applicationModels: ApplicationData[];
-} {
+) {
   const log = debug('app:hooks:useLandscapeWatcher');
 
   const { removedDistrictIds } = useVisualizationStore();
-
-  const [applicationModels, setApplicationModels] = useState<ApplicationData[]>(
-    []
-  );
 
   // Variables
   const structureLandscapeData = landscapeData?.structureLandscapeData;
@@ -44,15 +31,6 @@ export default function useLandscapeDataWatcher(
   const lastProcessedFlatLandscapeIds = useRef<string[]>([]);
   const lastProcessedLandscapeData = useRef<LandscapeData | null>(null);
 
-  const updateApplicationData = useCallback(
-    async (application: Application, boxLayoutMap: any) => {
-      const applicationData = new ApplicationData(application, boxLayoutMap);
-
-      return applicationData;
-    },
-    [log]
-  );
-
   const handleLandscapeUpdate = useCallback(async () => {
     log('handleLandscapeUpdate');
     await Promise.resolve();
@@ -64,16 +42,7 @@ export default function useLandscapeDataWatcher(
       return;
     }
 
-    const flatLandscapeStructure =
-      landscapeData.flatLandscapeData ??
-      convertToFlatLandscape(structureLandscapeData);
-
-    const { nodes } = structureLandscapeData;
-
-    log('Get applications from nodes');
-    const applications = getApplicationsFromNodes(nodes).filter(
-      ({ id }) => !removedDistrictIds.has(id)
-    );
+    const flatLandscapeStructure = landscapeData.flatLandscapeData;
 
     log('Layouting landscape ...');
     const boxLayoutMap = await layoutLandscape(
@@ -89,30 +58,7 @@ export default function useLandscapeDataWatcher(
       aggregatedFileCommunication!
     );
 
-    // Compute application models
-    const applicationModels: ApplicationData[] = [];
-    for (let i = 0; i < applications.length; ++i) {
-      const applicationData = await updateApplicationData(
-        applications[i],
-        boxLayoutMap
-      );
-      if (!removedDistrictIds.has(applicationData.getId())) {
-        applicationModels.push(applicationData);
-      }
-    }
-
     // TODO: Add data for IDE extension
-
-    document.dispatchEvent(new Event('Landscape initialized'));
-
-    // Add application data to application repository
-    const applicationRepository = useApplicationRepositoryStore.getState();
-    applicationRepository.cleanup();
-    for (const applicationData of applicationModels) {
-      applicationRepository.add(applicationData.getId(), applicationData);
-    }
-
-    setApplicationModels(applicationModels);
 
     // Add data to model repository
     const modelRepository = useModelStore.getState();
@@ -135,7 +81,6 @@ export default function useLandscapeDataWatcher(
     landscapeData,
     removedDistrictIds,
     log,
-    updateApplicationData,
   ]);
 
   useEffect(() => {
@@ -178,6 +123,4 @@ export default function useLandscapeDataWatcher(
     flatLandscapeData,
     handleLandscapeUpdate,
   ]);
-
-  return { applicationModels };
 }

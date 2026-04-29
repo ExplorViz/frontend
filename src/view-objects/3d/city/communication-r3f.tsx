@@ -5,7 +5,6 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import {
   calculateLineThickness,
   computeCommunicationLayout
@@ -47,12 +46,10 @@ export default function CommunicationR3F({
   communicationModel,
   applicationElement,
   layoutMap,
-  applicationModels,
 }: {
   communicationModel: AggregatedCommunication;
   applicationElement?: any;
   layoutMap?: Map<string, BoxLayout>;
-  applicationModels?: ApplicationData[];
 }) {
   const {
     arrowColor,
@@ -148,10 +145,9 @@ export default function CommunicationR3F({
   // Compute communication layout internally
   // This ensures the layout is recomputed when components in the hierarchy are opened/closed
   const communicationLayout = useMemo(() => {
-    if (applicationModels && layoutMap) {
+    if (layoutMap) {
       return computeCommunicationLayout(
         communicationModel,
-        applicationModels,
         layoutMap
       );
     }
@@ -159,7 +155,7 @@ export default function CommunicationR3F({
     // closedComponentIds is intentionally included as a dependency even though it's not directly used
     // It triggers recomputation when districts are opened/closed, which affects findFirstOpen inside computeCommunicationLayout
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [communicationModel, applicationModels, layoutMap, closedComponentIds]);
+  }, [communicationModel, layoutMap, closedComponentIds]);
 
   const { scene } = useThree();
 

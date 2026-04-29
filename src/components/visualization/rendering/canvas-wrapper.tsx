@@ -358,7 +358,7 @@ export default function CanvasWrapper({
     }))
   );
 
-  const { applicationModels } = useLandscapeDataWatcher(landscapeData);
+  useLandscapeDataWatcher(landscapeData);
 
   const { resetVisualizationState } = useVisualizationStore(
     useShallow((state) => ({
@@ -373,20 +373,11 @@ export default function CanvasWrapper({
   );
 
   const effectiveCommunications = useMemo(() => {
-    if (!isCommRendered || !applicationModels.length) return [];
+    if (!isCommRendered) return [];
 
     const groupedComms = new Map<string, AggregatedCommunication>();
 
     allCommunications.forEach((comm) => {
-      const sourceApp = applicationModels.find(
-        (app) => app.application.id === comm.sourceEntity.parentCityId
-      );
-      const targetApp = applicationModels.find(
-        (app) => app.application.id === comm.targetEntity.parentCityId
-      );
-
-      if (!sourceApp || !targetApp) return;
-
       const effSourceId = findFirstEntityWithOpenedParent(comm.sourceEntity.id);
       const effTargetId = findFirstEntityWithOpenedParent(comm.targetEntity.id);
       if (!effSourceId || !effTargetId) {
@@ -453,7 +444,7 @@ export default function CanvasWrapper({
     });
 
     return Array.from(groupedComms.values());
-  }, [allCommunications, applicationModels, isCommRendered, closedDistrictIds]);
+  }, [allCommunications, isCommRendered, closedDistrictIds]);
 
   useEffect(() => {
     if (landscapeData) {
@@ -650,14 +641,13 @@ export default function CanvasWrapper({
                 .map((city) => (
                   <CodeCity key={city.id} cityId={city.id} />
                 ))}
-              {isCommRendered &&
+              {isCommRendered && layoutMap &&
                 effectiveCommunications.map((communication) => (
                   <CommunicationR3F
                     key={communication.id}
                     communicationModel={communication}
                     applicationElement={communication.sourceApp}
-                    layoutMap={layoutMap || applicationModels[0]?.boxLayoutMap}
-                    applicationModels={applicationModels}
+                    layoutMap={layoutMap}
                   />
                 ))}
             </LandscapeR3F>

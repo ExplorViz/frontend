@@ -2,7 +2,6 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   isBuilding,
@@ -67,20 +66,8 @@ export function findFirstEntityWithOpenedParent(entityId: string) {
 
 export function computeCommunicationLayout(
   communication: AggregatedCommunication,
-  applicationModels: ApplicationData[],
   layoutMap: Map<string, BoxLayout>
 ) {
-  const sourceApp = applicationModels.find(
-    (app) => app.application.id === communication.sourceEntity.parentCityId
-  );
-  const targetApp = applicationModels.find(
-    (app) => app.application.id === communication.targetEntity.parentCityId
-  );
-
-  if (!sourceApp || !layoutMap || !targetApp) {
-    return;
-  }
-
   const sourceEntityId = findFirstEntityWithOpenedParent(
     communication.sourceEntity.id
   );

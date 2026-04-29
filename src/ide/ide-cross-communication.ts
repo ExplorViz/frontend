@@ -1,5 +1,4 @@
 import IdeCrossCommunicationEvent from 'explorviz-frontend/src/ide/ide-cross-communication-event';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import {
   Application,
@@ -147,9 +146,6 @@ export default class IdeCrossCommunication {
     openApplications.forEach((element) => {
       const application = element;
 
-      const applicationData = useApplicationRepositoryStore
-        .getState()
-        .getByAppId(application.getModelId());
 
       const classCommunications = applicationData?.classCommunications;
 

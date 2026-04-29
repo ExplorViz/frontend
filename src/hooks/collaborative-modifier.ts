@@ -2,10 +2,8 @@ import { useEffect } from 'react';
 
 import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
 import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { BaseChangeLogEntry } from 'explorviz-frontend/src/utils/changelog-entry';
@@ -100,12 +98,6 @@ export default function useCollaborativeModifier() {
     }))
   );
 
-  const applicationRepositoryActions = useApplicationRepositoryStore(
-    useShallow((state) => ({
-      cleanup: state.cleanup,
-    }))
-  );
-
   const landscapeTokenState = useLandscapeTokenStore(
     useShallow((state) => ({
       token: state.token,
@@ -168,12 +160,6 @@ export default function useCollaborativeModifier() {
       removeEntry: state.removeEntry,
       removeEntries: state.removeEntries,
       restoreDeletedEntries: state.restoreDeletedEntries,
-    }))
-  );
-
-  const localUserState = useLocalUserStore(
-    useShallow((state) => ({
-      defaultCamera: state.defaultCamera,
     }))
   );
 

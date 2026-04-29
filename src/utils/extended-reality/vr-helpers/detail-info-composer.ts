@@ -1,4 +1,3 @@
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
 import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
@@ -124,9 +123,7 @@ function composeClazzContent(clazzMesh: ClazzMesh) {
     return null;
   }
   // TODO refactor, duplicated from clazz-popup
-  const applicationMetricsForCurrentApplication = useApplicationRepositoryStore
-    .getState()
-    .getByAppId(application.getModelId())?.applicationMetrics;
+  const applicationMetricsForCurrentApplication = {};
   // const applicationMetricsForCurrentApplication = applicationRepo.getById(
   //   application.getModelId()
   // )?.applicationMetrics;

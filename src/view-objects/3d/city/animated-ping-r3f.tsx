@@ -5,10 +5,11 @@ import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/l
 import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
-import { useApplicationRepositoryStore } from 'explorviz-frontend/src/stores/repos/application-repository';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects/vr/ping-mesh';
+import { isAggregatedCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { me, RPC } from 'playroomkit';
 import { useEffect, useRef } from 'react';
@@ -115,29 +116,18 @@ function truncate(str: string): string {
 }
 
 /**
- * Resolves a human-readable name for a model ID by searching through the application
- * repository for a matching application, package, or class.
+ * Resolves a human-readable name for a model ID
  * Returns the raw ID if no match is found.
  */
 function getEntityName(modelId: string): string {
-  const appRepo = useApplicationRepositoryStore.getState();
-  const appData = appRepo.getByModelId(modelId);
-  if (!appData) return modelId;
+  const entity = useModelStore.getState().getModel(modelId);
+  if (!entity) return modelId;
 
-  // Check if it's the application itself
-  if (appData.getId() === modelId) {
-    return appData.application.name;
+  if (isAggregatedCommunication(entity)) {
+    return `${entity.sourceEntity.name}<->${entity.targetEntity.name}`
   }
 
-  // Check packages
-  const matchingPackage = appData.getPackages().find((p) => p.id === modelId);
-  if (matchingPackage) return matchingPackage.name;
-
-  // Check classes
-  const matchingClass = appData.getClasses().find((c) => c.id === modelId);
-  if (matchingClass) return matchingClass.name;
-
-  return modelId;
+  return entity.name;
 }
 
 /**
