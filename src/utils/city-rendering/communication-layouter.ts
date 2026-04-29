@@ -1,18 +1,14 @@
+import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
-  Building,
-  City,
-  District,
+  isBuilding,
+  isCity,
+  isDistrict
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  Application,
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import * as THREE from 'three';
@@ -38,30 +34,35 @@ export function clamp(value: number, min: number, max: number) {
   return value > max ? max : value < min ? min : value;
 }
 
-export function findFirstOpen(
-  app: Application | City,
-  entity: Package | Class | District | Building
-): Package | Class | District | Building {
-  let parent: Package | District | undefined;
-
-  if ('parent' in entity && entity.parent) {
-    parent = entity.parent;
-  } else if ('parentDistrictId' in entity && entity.parentDistrictId) {
-    parent = useModelStore.getState().getDistrict(entity.parentDistrictId);
+export function findFirstEntityWithOpenedParent(entityId: string) {
+  const entity = useModelStore.getState().getModel(entityId);
+  if (!isDistrict(entity) && !isBuilding(entity)) {
+    console.error("Provided entity has unexpected type:", entity);
+    return entityId;
+  }
+  const parentId = entity.parentDistrictId ?? entity.parentDistrictId;
+  if (!parentId) {
+    console.error("Provided entity has no parent.")
+    return entityId;
+  }
+  const parent = useModelStore.getState().getModel(parentId);
+  // Entity is already most outer entity
+  if (isCity(parent)) {
+    return entityId;
+  }
+  if (!isDistrict(parent)) {
+    console.error("Provided entity has unexpected parent type:", entity);
+    return entityId;
   }
 
-  if (!parent) return entity;
-
-  // Check open status in corresponding component mesh
-  const isParentOpen = !useVisualizationStore
-    .getState()
-    .closedDistrictIds.has(parent.id);
-  if (isParentOpen) {
-    return entity;
+  // Parent is closed, inspect parent entity
+  if (useVisualizationStore.getState().closedDistrictIds.has(parentId)) {
+    return findFirstEntityWithOpenedParent(parentId);
+  } else {
+    // Found entity with opened parent
+    return entityId;
   }
 
-  // Recursive call
-  return findFirstOpen(app, parent);
 }
 
 export function computeCommunicationLayout(
@@ -80,40 +81,55 @@ export function computeCommunicationLayout(
     return;
   }
 
-  const sourceClass = findFirstOpen(
-    sourceApp.application,
-    communication.sourceEntity
+  const sourceEntityId = findFirstEntityWithOpenedParent(
+    communication.sourceEntity.id
   );
-  const targetClass = findFirstOpen(
-    targetApp.application,
-    communication.targetEntity
+  const targetEntityId = findFirstEntityWithOpenedParent(
+    communication.targetEntity.id
   );
+  if (!sourceEntityId || !targetEntityId) {
+    console.error("Could not find source or target entity for communication.")
+    return;
+  }
 
-  const sourceAppLayout = layoutMap.get(sourceApp.getId());
-  const sourceClassLayout = layoutMap.get(sourceClass.id);
-  if (!sourceAppLayout || !sourceClassLayout) return;
+  const sourceEntityLayout = useLayoutStore.getState().getLayout(sourceEntityId);
+  const targetEntityLayout = useLayoutStore.getState().getLayout(targetEntityId);
+  if(!sourceEntityLayout || !targetEntityLayout) {
+    console.error("Could not find source or target layout for communication.")
+    return;
+  }
 
-  let start = new THREE.Vector3()
-    .copy(sourceAppLayout.position)
-    .add(sourceClassLayout.center);
+  const sourceCity = useModelStore.getState().getCityForModel(sourceEntityId);
+  const targetCity =useModelStore.getState().getCityForModel(targetEntityId);
 
-  const targetAppLayout = layoutMap.get(targetApp.getId());
-  const targetClassLayout = layoutMap.get(targetClass.id);
-  if (!targetAppLayout || !targetClassLayout) return;
-  let end = new THREE.Vector3()
-    .copy(targetAppLayout.position)
-    .add(targetClassLayout.center);
+  if (!sourceCity || !targetCity) {
+    console.error('Could not find source or target city for communication.');
+    return;
+  }
+
+  const sourceCityLayout = layoutMap.get(sourceCity.id);
+  const targetCityLayout = layoutMap.get(targetCity.id);
+  if (!sourceCityLayout || !targetCityLayout) {
+    console.error("Could not find source or target city layout for communication.")
+    return;
+  }
+
+  const startPosition = new THREE.Vector3()
+    .copy(sourceCityLayout.position)
+    .add(sourceEntityLayout.center);
+
+  const endPosition =new THREE.Vector3().copy(targetCityLayout.position).add(targetEntityLayout.center);
 
   const commLayout = new CommunicationLayout(communication);
-  commLayout.startPoint = start;
-  commLayout.endPoint = end;
+  commLayout.startPoint = startPosition;
+  commLayout.endPoint = endPosition;
   commLayout.lineThickness = calculateLineThickness(
     communication,
     useUserSettingsStore.getState().visualizationSettings.commThickness.value
   );
 
   // Place recursive communication slightly above class
-  if (sourceClass.id === targetClass.id) {
+  if (sourceEntityId === targetEntityId) {
     commLayout.startY += 4.0;
     commLayout.endY += 4.0;
   }

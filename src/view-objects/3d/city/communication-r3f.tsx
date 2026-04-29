@@ -8,8 +8,7 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import ApplicationData from 'explorviz-frontend/src/utils/application-data';
 import {
   calculateLineThickness,
-  computeCommunicationLayout,
-  findFirstOpen,
+  computeCommunicationLayout
 } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
@@ -158,7 +157,7 @@ export default function CommunicationR3F({
     }
     return undefined;
     // closedComponentIds is intentionally included as a dependency even though it's not directly used
-    // It triggers recomputation when components are opened/closed, which affects findFirstOpen() inside computeCommunicationLayout
+    // It triggers recomputation when districts are opened/closed, which affects findFirstOpen inside computeCommunicationLayout
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [communicationModel, applicationModels, layoutMap, closedComponentIds]);
 
@@ -193,116 +192,14 @@ export default function CommunicationR3F({
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
-
-    // Find the effective entities (the ones the user actually sees as endpoints)
-    const sourceApp = applicationModels?.find(
-      (app) =>
-        app.application.id === communicationModel.sourceEntity.parentCityId
-    );
-    const targetApp = applicationModels?.find(
-      (app) =>
-        app.application.id === communicationModel.targetEntity.parentCityId
-    );
-
-    if (sourceApp && targetApp) {
-      const effectiveSource = findFirstOpen(
-        sourceApp.application,
-        communicationModel.sourceEntity
-      );
-      const effectiveTarget = findFirstOpen(
-        targetApp.application,
-        communicationModel.targetEntity
-      );
-
-      // Filter and aggregate ALL communications that are mapped to this visual line
-      const allComms = useModelStore.getState().communications;
-      const relatedCommunications = Object.values(allComms).filter((comm) => {
-        const commSrcApp = applicationModels?.find(
-          (app) => app.application.id === comm.sourceEntity.parentCityId
-        );
-        const commTgtApp = applicationModels?.find(
-          (app) => app.application.id === comm.targetEntity.parentCityId
-        );
-        if (!commSrcApp || !commTgtApp) return false;
-
-        const effSrc = findFirstOpen(commSrcApp.application, comm.sourceEntity);
-        const effTgt = findFirstOpen(commTgtApp.application, comm.targetEntity);
-
-        const matchesForward =
-          effSrc.id === effectiveSource.id && effTgt.id === effectiveTarget.id;
-        const matchesBackward =
-          effSrc.id === effectiveTarget.id && effTgt.id === effectiveSource.id;
-
-        return matchesForward || matchesBackward;
-      });
-
-      const totalRequestCount = relatedCommunications.reduce(
-        (sum, comm) => sum + (comm.metrics.requestCount || 0),
-        0
-      );
-      const allBuildingCommIds = Array.from(
-        new Set(
-          relatedCommunications.flatMap((comm) => comm.buildingCommunicationIds)
-        )
-      );
-
-      const hasForward = relatedCommunications.some((comm) => {
-        const commSrcApp = applicationModels?.find(
-          (app) => app.application.id === comm.sourceEntity.parentCityId
-        );
-        return (
-          commSrcApp &&
-          findFirstOpen(commSrcApp.application, comm.sourceEntity).id ===
-            effectiveSource.id
-        );
-      });
-      const hasBackward = relatedCommunications.some((comm) => {
-        const commSrcApp = applicationModels?.find(
-          (app) => app.application.id === comm.sourceEntity.parentCityId
-        );
-        return (
-          commSrcApp &&
-          findFirstOpen(commSrcApp.application, comm.sourceEntity).id ===
-            effectiveTarget.id
-        );
-      });
-
-      // Create a copy of the communication model for the popup with effective entities
-      // This ensures the popup uses the directory IDs if the line is drawn between districts
-      const popupCommunication = new AggregatedCommunication(
-        communicationModel.id,
-        effectiveSource as any,
-        effectiveTarget as any,
-        allBuildingCommIds,
-        communicationModel.originalCommIds
-      );
-      popupCommunication.metrics = {
-        ...communicationModel.metrics,
-        requestCount: totalRequestCount,
-      };
-      popupCommunication.isBidirectional = hasForward && hasBackward;
-      popupCommunication.isRecursive =
-        communicationModel.isRecursive || effectiveSource.id === effectiveTarget.id;
-      popupCommunication.from = communicationModel.from;
-      popupCommunication.to = communicationModel.to;
-
-      addPopup({
-        entityId: communicationModel.id,
-        entity: popupCommunication,
-        position: {
-          x: event.clientX,
-          y: event.clientY,
-        },
-      });
-    } else {
-      addPopup({
-        entityId: communicationModel.id,
-        position: {
-          x: event.clientX,
-          y: event.clientY,
-        },
-      });
-    }
+    addPopup({
+      entityId: communicationModel.id,
+      entity: communicationModel,
+      position: {
+        x: event.clientX,
+        y: event.clientY,
+      },
+    });
   };
 
   const handleDoubleClick = (/*event*/) => {};

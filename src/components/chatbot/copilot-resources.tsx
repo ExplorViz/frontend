@@ -48,11 +48,11 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
       city.allContainedBuildingIds.forEach(buildingId => {
         const building = useModelStore.getState().getBuilding(buildingId);
         const language = building?.language;
-        functionCount += building?.metrics?.functionCount.current || 0;
-        linesOfCode += building?.metrics?.loc.current || 0;
-        sourceCodeLines += building?.metrics?.sloc.current || 0;
-        commentedLines += building?.metrics?.cloc.current || 0;
-        combinedFileSizeInBytes += building?.metrics?.size.current || 0;
+        functionCount += building?.metrics?.functionCount?.current ?? 0;
+        linesOfCode += building?.metrics?.loc?.current ?? 0;
+        sourceCodeLines += building?.metrics?.sloc?.current ?? 0;
+        commentedLines += building?.metrics?.cloc?.current ?? 0;
+        combinedFileSizeInBytes += building?.metrics?.size?.current ?? 0;
         if (language && !languages.includes(language)) {
           languages.push(language);
         }

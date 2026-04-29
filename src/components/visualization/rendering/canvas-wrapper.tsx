@@ -38,10 +38,10 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import { findFirstOpen } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
+import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { convertToFlatLandscape, isBuilding, isDistrict } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   getAllApplicationsInLandscape,
@@ -387,10 +387,14 @@ export default function CanvasWrapper({
 
       if (!sourceApp || !targetApp) return;
 
-      const effSource = findFirstOpen(sourceApp.application, comm.sourceEntity);
-      const effTarget = findFirstOpen(targetApp.application, comm.targetEntity);
+      const effSourceId = findFirstEntityWithOpenedParent(comm.sourceEntity.id);
+      const effTargetId = findFirstEntityWithOpenedParent(comm.targetEntity.id);
+      if (!effSourceId || !effTargetId) {
+        console.error("Could not find source or target for communication.", effSourceId, effTargetId)
+        return;
+      }
 
-      const key = `${effSource.id}-${effTarget.id}`;
+      const key = `${effSourceId}-${effTargetId}`;
 
       if (groupedComms.has(key)) {
         const existing = groupedComms.get(key)!;
@@ -410,10 +414,21 @@ export default function CanvasWrapper({
           existing.isBidirectional || comm.isBidirectional;
         existing.isRecursive = existing.isRecursive || comm.isRecursive;
       } else {
+        const sourceEntity = useModelStore.getState().getModel(effSourceId);
+        const targetEntity = useModelStore.getState().getModel(effTargetId);
+        if (!isDistrict(sourceEntity) && !isBuilding(sourceEntity)) {
+          console.error("No source entity for communication found.")
+          return;
+        }
+        if (!isDistrict(targetEntity) && !isBuilding(targetEntity)) {
+          console.error("No target entity for communication found.")
+          return;
+        }
+
         const newComm = new AggregatedCommunication(
           comm.id,
-          effSource as any,
-          effTarget as any,
+          sourceEntity,
+          targetEntity,
           [...comm.buildingCommunicationIds],
           [comm.id]
         );
