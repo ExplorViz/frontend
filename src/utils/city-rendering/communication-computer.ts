@@ -1,8 +1,14 @@
-import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
+import { AggregatedBuildingCommunication, CommunicationDto } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
-import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import {
+  FlatLandscape,
+  isBuilding,
+  isDistrict,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
+import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 
-export default function computeAggregatedCommunication(
+export function computeBuildingCommunication(
   flatLandscape: FlatLandscape,
   aggregatedFileCommunication: AggregatedBuildingCommunication
 ) {
@@ -13,33 +19,98 @@ export default function computeAggregatedCommunication(
   )
     return [];
 
-  const classCommunications: AggregatedCommunication[] = [];
-
-  for (const comm of aggregatedFileCommunication.communications) {
+  return aggregatedFileCommunication.communications.filter((comm) => {
     const sourceBuilding = flatLandscape.buildings[comm.sourceBuildingId];
     const targetBuilding = flatLandscape.buildings[comm.targetBuildingId];
+    return !!sourceBuilding && !!targetBuilding;
+  });
+}
 
-    if (!sourceBuilding || !targetBuilding) {
-      continue;
+export function computeAggregatedCommunication(
+  allCommunications: CommunicationDto[]
+) {
+  const groupedComms = new Map<string, AggregatedCommunication>();
+
+  allCommunications.forEach((comm) => {
+    const effSourceId = findFirstEntityWithOpenedParent(comm.sourceBuildingId);
+    const effTargetId = findFirstEntityWithOpenedParent(comm.targetBuildingId);
+    if (!effSourceId || !effTargetId) {
+      console.error(
+        'Could not find source or target for communication.',
+        effSourceId,
+        effTargetId
+      );
+      return;
     }
 
-    const classComm = new AggregatedCommunication(
-      comm.id,
-      sourceBuilding,
-      targetBuilding,
-      [comm.id]
-    );
-    classComm.metrics.requestCount = comm.metrics['requestCount'] || 0;
-    classComm.isBidirectional = comm.isBidirectional;
-    classComm.from = aggregatedFileCommunication.from;
-    classComm.to = aggregatedFileCommunication.to;
+    const key = `${effSourceId}-${effTargetId}`;
 
-    classCommunications.push(classComm);
+    if (groupedComms.has(key)) {
+      const existing = groupedComms.get(key)!;
+      // Aggregate metrics
+      Object.entries(comm.metrics).forEach(([metricName, value]) => {
+        existing.metrics[metricName] = (existing.metrics[metricName] || 0) + value;
+      });
+      existing.buildingCommunicationIds = [
+        ...new Set([...existing.buildingCommunicationIds, comm.id]),
+      ];
+      existing.originalCommIds = [
+        ...new Set([...existing.originalCommIds, comm.id]),
+      ];
+      existing.isBidirectional =
+        existing.isBidirectional || comm.isBidirectional;
+      existing.isRecursive =
+        existing.isRecursive || effSourceId === effTargetId;
+    } else {
+      const sourceEntity = useModelStore.getState().getModel(effSourceId);
+      const targetEntity = useModelStore.getState().getModel(effTargetId);
+      if (!isDistrict(sourceEntity) && !isBuilding(sourceEntity)) {
+        console.error('No source entity for communication found.');
+        return;
+      }
+      if (!isDistrict(targetEntity) && !isBuilding(targetEntity)) {
+        console.error('No target entity for communication found.');
+        return;
+      }
+
+      const newComm = new AggregatedCommunication(
+        comm.id,
+        sourceEntity,
+        targetEntity,
+        [comm.id],
+        [comm.id]
+      );
+      newComm.metrics = { ...comm.metrics, normalizedRequestCount: 1 };
+      newComm.isBidirectional = comm.isBidirectional;
+      newComm.isRecursive = effSourceId === effTargetId;
+      groupedComms.set(key, newComm);
+    }
+  });
+
+  const aggregatedComms = Array.from(groupedComms.values());
+
+  // Re-normalize metrics
+  computeCommunicationMetrics(aggregatedComms);
+
+  return aggregatedComms;
+}
+
+export function calculateAggregatedCommunications(
+  buildingCommunications?: CommunicationDto[]
+) {
+  const comms =
+    buildingCommunications ??
+    useModelStore.getState().getAllBuildingCommunications();
+
+  if (comms.length === 0) {
+    useModelStore.getState().setAggregatedCommunications([]);
+    return;
   }
 
-  computeCommunicationMetrics(classCommunications);
-
-  return classCommunications;
+  const aggregatedCommunications = computeAggregatedCommunication(comms);
+  useModelStore
+    .getState()
+    .setAggregatedCommunications(aggregatedCommunications);
 }
 
 function computeCommunicationMetrics(
@@ -114,3 +185,4 @@ export function computeRestructuredAggregatedCommunication(
 
   return classCommunications;
 }
+

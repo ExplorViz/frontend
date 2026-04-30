@@ -8,6 +8,7 @@ interface LayoutStoreState {
   cityLayouts: Map<string, BoxLayout>;
   districtLayouts: Map<string, BoxLayout>;
   buildingLayouts: Map<string, BoxLayout>;
+  fullLayoutMap: Map<string, BoxLayout>;
   maxDistrictDepth: number | null;
 
   // Actions
@@ -25,6 +26,7 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
   cityLayouts: new Map<string, BoxLayout>(),
   districtLayouts: new Map<string, BoxLayout>(),
   buildingLayouts: new Map<string, BoxLayout>(),
+  fullLayoutMap: new Map<string, BoxLayout>(),
   maxDistrictDepth: null,
 
   updateLayouts: (boxLayoutMap: Map<string, BoxLayout>) => {
@@ -76,6 +78,7 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       cityLayouts: cityLayouts,
       districtLayouts: districtLayouts,
       buildingLayouts: buildingLayouts,
+      fullLayoutMap: boxLayoutMap,
       maxDistrictDepth: maxDistrictDepth,
     });
   },
@@ -131,6 +134,7 @@ export const useLayoutStore = create<LayoutStoreState>((set, get) => ({
       cityLayouts: new Map<string, BoxLayout>(),
       districtLayouts: new Map<string, BoxLayout>(),
       buildingLayouts: new Map<string, BoxLayout>(),
+      fullLayoutMap: new Map<string, BoxLayout>(),
       maxDistrictDepth: null,
     });
   },

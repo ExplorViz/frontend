@@ -4,7 +4,10 @@ import debug from 'debug';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import computeAggregatedCommunication from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
+import {
+  computeBuildingCommunication,
+  calculateAggregatedCommunications,
+} from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { areArraysEqual } from 'explorviz-frontend/src/utils/helpers/array-helpers';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
@@ -53,7 +56,7 @@ export default function useLandscapeDataWatcher(
 
 
     log('Compute building communication');
-    const aggregatedCommunications = computeAggregatedCommunication(
+    const buildingCommunications = computeBuildingCommunication(
       flatLandscapeStructure,
       aggregatedFileCommunication!
     );
@@ -61,15 +64,14 @@ export default function useLandscapeDataWatcher(
     // TODO: Add data for IDE extension
 
     // Add data to model repository
-    const modelRepository = useModelStore.getState();
-    modelRepository.setCities(Object.values(flatLandscapeStructure.cities));
-    modelRepository.setDistricts(
-      Object.values(flatLandscapeStructure.districts)
-    );
-    modelRepository.setBuildings(
-      Object.values(flatLandscapeStructure.buildings)
-    );
-    modelRepository.setCommunications(aggregatedCommunications);
+    useModelStore.getState().setAllModels({
+      cities: Object.values(flatLandscapeStructure.cities),
+      districts: Object.values(flatLandscapeStructure.districts),
+      buildings: Object.values(flatLandscapeStructure.buildings),
+      buildingCommunications: buildingCommunications,
+    });
+
+    calculateAggregatedCommunications(buildingCommunications);
 
 
     // Update layout store after model repository is populated

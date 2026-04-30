@@ -41,6 +41,7 @@ import {
 import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
+import { calculateAggregatedCommunications } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import { convertToFlatLandscape, isBuilding, isDistrict } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
@@ -96,9 +97,7 @@ export default function CanvasWrapper({
   landscapeData: LandscapeData | null;
   xrStore?: XRStore | undefined;
 }) {
-  const [layoutMap, setLayoutMap] = useState<Map<string, BoxLayout> | null>(
-    null
-  );
+  const layoutMap = useLayoutStore((state) => state.fullLayoutMap);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const floorTexture = useLoader(
@@ -368,83 +367,21 @@ export default function CanvasWrapper({
 
   const [position, setPosition] = useState(new THREE.Vector3());
 
-  const allCommunications = useModelStore(
-    useShallow((state) => Object.values(state.communications))
+  const { buildingCommunications, aggregatedCommunications } = useModelStore(
+    useShallow((state) => ({
+      buildingCommunications: state.buildingCommunications,
+      aggregatedCommunications: state.aggregatedCommunications,
+    }))
   );
 
-  const effectiveCommunications = useMemo(() => {
-    if (!isCommRendered) return [];
+  const allAggregatedCommunications = useMemo(
+    () => Object.values(aggregatedCommunications),
+    [aggregatedCommunications]
+  );
 
-    const groupedComms = new Map<string, AggregatedCommunication>();
-
-    allCommunications.forEach((comm) => {
-      const effSourceId = findFirstEntityWithOpenedParent(comm.sourceEntity.id);
-      const effTargetId = findFirstEntityWithOpenedParent(comm.targetEntity.id);
-      if (!effSourceId || !effTargetId) {
-        console.error("Could not find source or target for communication.", effSourceId, effTargetId)
-        return;
-      }
-
-      const key = `${effSourceId}-${effTargetId}`;
-
-      if (groupedComms.has(key)) {
-        const existing = groupedComms.get(key)!;
-        existing.metrics.requestCount =
-          (existing.metrics.requestCount || 0) +
-          (comm.metrics.requestCount || 0);
-        existing.buildingCommunicationIds = [
-          ...new Set([
-            ...existing.buildingCommunicationIds,
-            ...comm.buildingCommunicationIds,
-          ]),
-        ];
-        existing.originalCommIds = [
-          ...new Set([...existing.originalCommIds, comm.id]),
-        ];
-        existing.isBidirectional =
-          existing.isBidirectional || comm.isBidirectional;
-        existing.isRecursive = existing.isRecursive || comm.isRecursive;
-      } else {
-        const sourceEntity = useModelStore.getState().getModel(effSourceId);
-        const targetEntity = useModelStore.getState().getModel(effTargetId);
-        if (!isDistrict(sourceEntity) && !isBuilding(sourceEntity)) {
-          console.error("No source entity for communication found.")
-          return;
-        }
-        if (!isDistrict(targetEntity) && !isBuilding(targetEntity)) {
-          console.error("No target entity for communication found.")
-          return;
-        }
-
-        const newComm = new AggregatedCommunication(
-          comm.id,
-          sourceEntity,
-          targetEntity,
-          [...comm.buildingCommunicationIds],
-          [comm.id]
-        );
-        newComm.metrics = { ...comm.metrics };
-        newComm.isBidirectional = comm.isBidirectional;
-        newComm.isRecursive = comm.isRecursive;
-        newComm.sourceApp = comm.sourceApp;
-        groupedComms.set(key, newComm);
-      }
-    });
-
-    // Re-normalize metrics
-    const maxRequests = Math.max(
-      0,
-      ...Array.from(groupedComms.values()).map(
-        (c) => c.metrics.requestCount || 0
-      )
-    );
-    groupedComms.forEach((c) => {
-      c.metrics.normalizedRequestCount =
-        maxRequests > 0 ? (c.metrics.requestCount || 0) / maxRequests : 1;
-    });
-
-    return Array.from(groupedComms.values());
-  }, [allCommunications, isCommRendered, closedDistrictIds]);
+  useEffect(() => {
+    calculateAggregatedCommunications();
+  }, [buildingCommunications, closedDistrictIds]);
 
   useEffect(() => {
     if (landscapeData) {
@@ -455,8 +392,6 @@ export default function CanvasWrapper({
       // Clear all HAP systems so they are rebuilt fresh for the new landscape.
       hapSystemManager.clearAllHAPSystems();
 
-      // Use layout of landscape data watcher
-      setLayoutMap(null);
       const allPackages = getAllApplicationsInLandscape(
         landscapeData.structureLandscapeData
       )
@@ -476,7 +411,7 @@ export default function CanvasWrapper({
       const classIds = new Set(allClasses.map((classModel) => classModel.id));
 
       const communicationIds = new Set(
-        allCommunications.map((comm) => comm.id)
+        Object.values(buildingCommunications).map((comm) => comm.id)
       );
 
       const entityIds = new Set([
@@ -488,7 +423,7 @@ export default function CanvasWrapper({
       // Remove all ids that are no longer part of the landscape
       useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
-  }, [landscapeData, allCommunications, removedDistrictIds]);
+  }, [landscapeData, buildingCommunications, removedDistrictIds]);
 
   const updateLayout = useCallback(async () => {
     if (!landscapeData) return;
@@ -499,7 +434,6 @@ export default function CanvasWrapper({
 
     const layoutMap = await layoutLandscape(flatStructure, removedDistrictIds);
     useLayoutStore.getState().updateLayouts(layoutMap);
-    setLayoutMap(layoutMap);
   }, [landscapeData, removedDistrictIds]);
 
   useEffect(() => {
@@ -641,8 +575,9 @@ export default function CanvasWrapper({
                 .map((city) => (
                   <CodeCity key={city.id} cityId={city.id} />
                 ))}
-              {isCommRendered && layoutMap &&
-                effectiveCommunications.map((communication) => (
+              {isCommRendered &&
+                layoutMap &&
+                allAggregatedCommunications.map((communication) => (
                   <CommunicationR3F
                     key={communication.id}
                     communicationModel={communication}
