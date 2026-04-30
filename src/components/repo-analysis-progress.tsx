@@ -12,11 +12,7 @@ export const RepoAnalysisProgress = ({ state }: { state: ProgressState | null })
     ? state.analyzedFiles / state.totalFiles
     : 0;
 
-  const commitUnitsDone = state.analyzedCommits + filesProgressInCurrentCommit;
-
-  const percentage = state.totalCommits > 0
-    ? Math.min(100, (commitUnitsDone / state.totalCommits) * 100)
-    : 0;
+  const percentage = filesProgressInCurrentCommit * 100;
 
   return (
     <div>
