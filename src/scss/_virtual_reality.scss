@@ -13,9 +13,14 @@
   font: normal 13px sans-serif;
   text-align: center;
   opacity: 0.5;
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   z-index: 950;
   bottom: 10px;
+}
+
+.vr-button:focus {
+  outline-color: var(--bs-primary, #0d6efd);
 }
 
 .vr-button:hover {

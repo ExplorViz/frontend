@@ -2,7 +2,7 @@
   display: block;
   padding: 0.5rem 1rem;
   font-weight: bold;
-  color: #000000;
+  color: var(--bs-body-color, #212529);
   text-decoration: none;
   background: none;
   border: 0;
@@ -21,14 +21,14 @@
 }
 
 .navbar-highlight {
-  color: red;
+  color: var(--bs-danger, #dc3545);
 }
 
 .explorviz-visualization-navbar {
   position: relative;
   z-index: 750;
   align-self: center;
-  background-color: #f9f9f9;
+  background-color: var(--bs-body-bg, #f8f9fa);
   width: 100%;
   border-radius: 0.25rem;
   pointer-events: all;
@@ -50,11 +50,11 @@
 
 .explorviz-visualization-navbar > ul.nav > li.nav-item {
   cursor: pointer;
-  transition: all 0.1s ease-in-out;
+  transition: color var(--ev-transition-fast);
   color: rgba(0, 0, 0, 0.5);
 }
 
 .explorviz-visualization-navbar > ul.nav > li.nav-item:hover {
-  color: rgb(85 126 187 / 95%);
-  transform: scale(1.1);
+  color: var(--bs-primary, #0d6efd);
+  transform: none;
 }

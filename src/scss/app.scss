@@ -20,6 +20,15 @@
 @use '_login';
 @use '_kubediagrams';
 
+:root {
+  --ev-radius-sm: 0.25rem;
+  --ev-radius-md: 0.5rem;
+  --ev-radius-lg: 0.75rem;
+  --ev-transition-fast: 0.2s ease;
+  --ev-button-min-height: 2rem;
+  --ev-focus-outline: 2px solid var(--bs-primary, #0d6efd);
+}
+
 .disable-select {
   user-select: none;
   /* supported by most browsers */

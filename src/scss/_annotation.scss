@@ -3,9 +3,9 @@
   padding: 0.5rem;
   cursor: move;
   max-width: 550px !important;
-  border: 1px solid lightgray;
+  border: 1px solid var(--bs-border-color, #dee2e6);
   border-radius: 5px;
-  background-color: white;
+  background-color: var(--bs-body-bg, #f8f9fa);
 }
 
 .annotation > .annotation-header {
@@ -19,13 +19,13 @@
 }
 
 .annotation.hovered {
-  background-color: #dddddd !important;
-  border-color: #eeeeee !important;
+  background-color: var(--bs-light, #e9ecef) !important;
+  border-color: var(--bs-border-color, #dee2e6) !important;
 }
 
 .annotation.hovered > .annotation-header {
-  background-color: #999999 !important;
-  border-color: #aaaaaa !important;
+  background-color: var(--bs-secondary-bg, #ced4da) !important;
+  border-color: var(--bs-border-color, #adb5bd) !important;
 }
 
 .annotation > button[disabled] {
@@ -84,7 +84,7 @@
   width: 250px;
   overflow: auto;
   white-space: nowrap;
-  background-color: white;
+  background-color: var(--bs-body-bg, #f8f9fa);
   align-self: center;
 }
 
@@ -96,7 +96,7 @@
 }
 
 .annotation-title-display {
-  background-color: lightgray;
+  background-color: var(--bs-light, #e9ecef);
   font-weight: bold;
 }
 
@@ -113,17 +113,47 @@
 
 // Annotation buttons
 .annotation-update-button {
-  background-color: #28a745;
-  color: white;
-  font-weight: bold;
-  font-size: large;
+  background-color: var(--bs-success, #198754);
+  color: var(--bs-light, #f8f9fa);
+  min-height: var(--ev-button-min-height);
+  border-radius: var(--ev-radius-md);
+  padding: 0.375rem 0.75rem;
+  font-weight: 500;
+  font-size: 1rem;
   border: none;
+  transition:
+    background-color var(--ev-transition-fast),
+    color var(--ev-transition-fast);
+
+  &:hover {
+    background-color: var(--bs-success-text-emphasis, #157347);
+  }
+
+  &:focus {
+    outline: var(--ev-focus-outline);
+    outline-offset: 2px;
+  }
 }
 
 .annotation-edit-button {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
-  font-size: large;
+  background-color: var(--bs-primary, #0d6efd);
+  color: var(--bs-light, #f8f9fa);
+  min-height: var(--ev-button-min-height);
+  border-radius: var(--ev-radius-md);
+  padding: 0.375rem 0.75rem;
+  font-weight: 500;
+  font-size: 1rem;
   border: none;
+  transition:
+    background-color var(--ev-transition-fast),
+    color var(--ev-transition-fast);
+
+  &:hover {
+    background-color: var(--bs-primary-text-emphasis, #0b5ed7);
+  }
+
+  &:focus {
+    outline: var(--ev-focus-outline);
+    outline-offset: 2px;
+  }
 }

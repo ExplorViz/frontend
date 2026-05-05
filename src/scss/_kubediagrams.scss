@@ -10,11 +10,11 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--bs-border-color, #ced4da);
 }
 
 .kube-diagrams-error {
-  color: red;
+  color: var(--bs-danger, #dc3545);
 }
 
 .kube-diagrams-viewport {
@@ -24,7 +24,7 @@
 
 .kube-diagrams-empty {
   padding: 16px;
-  color: #666;
+  color: var(--bs-secondary-color, #6c757d);
 }
 
 @keyframes kube-ping-pulse {
@@ -48,7 +48,7 @@
 // color-picker-section.tsx
 .kube-color-picker-section {
   padding: 12px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--bs-border-color, #ced4da);
 }
 
 // context-menu.tsx
@@ -62,7 +62,7 @@
 // diagram-generator-menu.tsx
 .kube-diagram-generator-menu {
   padding: 12px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--bs-border-color, #ced4da);
 }
 
 .kube-diagram-generator-form {

@@ -30,12 +30,12 @@
 }
 
 .playing {
-  color: red !important;
+  color: var(--bs-danger, #dc3545) !important;
   text-decoration: none;
 }
 
 .red-hover:hover {
-  color: red !important;
+  color: var(--bs-danger, #dc3545) !important;
   text-decoration: none;
 }
 
@@ -136,16 +136,17 @@
   opacity: 0.5;
 }
 
-#sidebarButtonContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-right: 1rem;
-}
-
+#sidebarButtonContainer,
 #toolsSidebarButtonContainer {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+#sidebarButtonContainer {
+  margin-right: 1rem;
+}
+
+#toolsSidebarButtonContainer {
   margin-left: 1rem;
 }

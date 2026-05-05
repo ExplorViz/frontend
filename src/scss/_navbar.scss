@@ -11,11 +11,11 @@
 }
 
 .navbar-token-link {
-  color: #007bff;
+  color: var(--bs-primary, #0d6efd);
 }
 
 .navbar-rendering-mode {
-  color: #a4a4a4;
+  color: var(--bs-secondary-color, #6c757d);
 }
 
 .truncate-text {
@@ -36,13 +36,13 @@
 .navbar-success-icon {
   display: flex;
   align-items: center;
-  color: green;
+  color: var(--bs-success, #198754);
 }
 
 .navbar-danger-icon {
   display: flex;
   align-items: center;
-  color: red;
+  color: var(--bs-danger, #dc3545);
 }
 
 #navbar-user-options {
@@ -64,11 +64,11 @@
   width: 200px;
 
   &.dropdown-item:nth-child(0):hover {
-    background-color: #fff;
+    background-color: var(--bs-body-bg, #f8f9fa);
   }
 
   > .dropdown-item:active {
-    background-color: #3f72a9;
+    background-color: var(--bs-primary, #0d6efd);
   }
 }
 
@@ -107,6 +107,6 @@
 }
 
 #avatar {
-  height: 24px;
+  height: 32px;
   border-radius: 4px;
 }

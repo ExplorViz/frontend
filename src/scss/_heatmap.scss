@@ -5,9 +5,9 @@
 
 #heatmap-legend-container {
   width: 200px;
-  border: 1px solid lightgray;
+  border: 1px solid var(--bs-border-color, #dee2e6);
   border-radius: 0.2rem;
-  background-color: white;
+  background-color: var(--bs-body-bg, #f8f9fa);
   user-select: none;
 }
 

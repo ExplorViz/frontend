@@ -16,8 +16,11 @@
 }
 
 .quick-navigation-button {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  min-height: var(--ev-button-min-height);
+  border-radius: var(--ev-radius-md);
+  font-size: 0.875rem;
+  padding: 0.375rem 0.625rem;
+  font-weight: 500;
 }
 
 .range-slider--values {
@@ -58,48 +61,52 @@
   right: 0.5rem;
   height: 1.25rem;
   width: 3rem;
-  background-color: #ffbaba;
+  background-color: var(--bs-secondary-bg, #d9dde2);
 }
 
 .setting-container:hover {
-  background-color: whitesmoke;
+  background-color: var(--bs-tertiary-bg, #f1f3f5);
 }
 
 .setting-button {
-  height: 1.25rem !important;
-  padding: 0.25rem !important;
+  min-height: 2rem !important;
+  border-radius: var(--ev-radius-md) !important;
+  padding: 0.25rem 0.5rem !important;
   line-height: 0.5rem !important;
-  font-size: 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
 }
 
 .setting-reset-button {
-  height: 1.25rem !important;
+  min-height: 2rem !important;
+  min-width: 2rem !important;
+  border-radius: var(--ev-radius-md) !important;
   margin-top: auto;
   margin-bottom: auto;
-  padding: 0 !important;
+  padding: 0 0.375rem !important;
   line-height: 1 !important;
 }
 
 /* On mouse-over, add a grey background color */
 .wide-checkbox-container:hover input ~ .wide-checkbox {
-  background-color: #ff9b9b;
+  background-color: var(--bs-secondary-bg, #cfd4da);
 }
 
 /* When the checkbox is checked, add a blue background */
 .wide-checkbox-container input:checked ~ .wide-checkbox {
-  background-color: #86d993;
+  background-color: var(--bs-primary, #22497c);
 }
 
 .wide-checkbox-container:hover input:checked ~ .wide-checkbox {
-  background-color: #5cc86c;
+  background-color: var(--bs-primary-text-emphasis, #1b3b66);
 }
 
 .wide-checkbox:before {
   content: 'Off';
   display: block;
-  color: white;
+  color: var(--bs-emphasis-color, #212529);
   text-align: center;
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 
 .wide-checkbox-container input:checked ~ .wide-checkbox:before {
@@ -110,9 +117,9 @@
 .wide-checkbox:after {
   content: 'On';
   display: none;
-  color: white;
+  color: var(--bs-light, #f8f9fa);
   text-align: center;
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 
 /* Show the wide-checkbox when checked */

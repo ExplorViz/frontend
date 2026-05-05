@@ -2,7 +2,7 @@
 
 .room-entry {
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color var(--ev-transition-fast);
 
   &:hover {
     background-color: var(--bs-light) !important;
@@ -18,22 +18,17 @@
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
   font-size: 0.8rem;
   color: var(--bs-dark);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: var(--bs-body-bg, #f8f9fa);
   padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
+  border-radius: var(--ev-radius-md);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  box-shadow: none;
+  transition: background-color var(--ev-transition-fast);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.05);
-    box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background: var(--bs-light, #e9ecef);
+    transform: none;
+    box-shadow: none;
   }
 }
 

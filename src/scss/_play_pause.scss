@@ -9,26 +9,26 @@
   --button-size: 75%;
   width: var(--button-size);
   height: var(--button-size);
-  border: 10px solid black;
+  border: 10px solid var(--bs-dark, #212529);
   position: relative;
   top: calc(var(--button-container-size) * 0.5 - var(--button-size) * 0.5);
   left: calc(var(--button-container-size) * 0.5 - var(--button-size) * 0.5);
   border-radius: 50%;
-  background: black;
+  background: var(--bs-dark, #212529);
 }
 .play {
   position: fixed;
   top: calc(50% - var(--button-container-size) * 0.25);
   left: calc(50% - var(--button-container-size) * 0.2);
   border-style: solid;
-  border-color: white;
+  border-color: var(--bs-light, #f8f9fa);
   box-sizing: border-box;
   width: calc(var(--button-container-size) * 0.5);
   height: calc(var(--button-container-size) * 0.5);
   border-width: calc(var(--button-container-size) * 0.25) 0px
     calc(var(--button-container-size) * 0.25)
     calc(var(--button-container-size) * 0.5);
-  border-color: transparent transparent transparent white;
+  border-color: transparent transparent transparent var(--bs-light, #f8f9fa);
 }
 .pause {
   width: 100%;
@@ -41,7 +41,7 @@
 .pause > .line {
   width: 18px;
   height: 80px;
-  background: white;
+  background: var(--bs-light, #f8f9fa);
   border-radius: 5mm;
   margin: 0 12px;
 }
@@ -50,7 +50,7 @@
   pointer-events: none;
   --button-container-size: 12rem;
   z-index: 3000;
-  background: black;
+  background: var(--bs-dark, #212529);
   border-radius: 100%;
   opacity: 0;
 }
