@@ -146,7 +146,6 @@ export default class IdeCrossCommunication {
     openApplications.forEach((element) => {
       const application = element;
 
-
       const classCommunications = applicationData?.classCommunications;
 
       // Add Communication meshes inside the foundations to the foundation communicationLinks list

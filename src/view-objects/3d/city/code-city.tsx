@@ -2,6 +2,7 @@ import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
+import RemoteImmersiveIndicators from 'explorviz-frontend/src/components/visualization/rendering/remote-immersive-indicators';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -10,6 +11,7 @@ import CityDistricts from 'explorviz-frontend/src/view-objects/3d/city/city-dist
 import CityFoundation from 'explorviz-frontend/src/view-objects/3d/city/city-foundation';
 import CodeBuildingLabel from 'explorviz-frontend/src/view-objects/3d/city/code-building-label';
 import CodeBuildings from 'explorviz-frontend/src/view-objects/3d/city/code-buildings';
+import EmbeddedBrowser from 'explorviz-frontend/src/view-objects/3d/city/embedded-browser';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -87,9 +89,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
           </Container>
         </Root>
       )}
-      {/* {isBrowserActive && (
-        <EmbeddedBrowser application={applicationData.application} />
-      )} */}
+      {isBrowserActive && <EmbeddedBrowser city={city} />}
       {cityLayout && <CityFoundation city={city} layout={cityLayout} />}
       <CodeBuildings
         buildingIds={city.allContainedBuildingIds.filter((id) =>
@@ -125,10 +125,7 @@ export default function CodeCity({ cityId }: { cityId: string }) {
         }
         return null;
       })}
-      {/* TODO: <RemoteImmersiveIndicators
-        layoutMap={layoutMap}
-        applicationData={applicationData}
-      /> */}
+      <RemoteImmersiveIndicators />
     </group>
   );
 }

@@ -3,15 +3,16 @@ import { Container, Root } from '@react-three/uikit';
 import { Button, Input } from '@react-three/uikit-default';
 import { ChevronLeft, SkipBack, Table } from '@react-three/uikit-lucide';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
+import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import HtmlVisualizer from 'explorviz-frontend/src/view-objects/3d/city/html-visualizer';
 import { useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-export default function EmbeddedBrowser({ application }: any) {
+export default function EmbeddedBrowser({ city }: { city: City }) {
   const iFrameRef = useRef<HTMLIFrameElement>(null);
   const [html, setHtml] = useState<HTMLElement | undefined>(undefined);
 
-  const defaultUrl = application.name.includes('PetClinic')
+  const defaultUrl = city.name.includes('PetClinic')
     ? 'http://localhost:18080'
     : 'http://localhost:4200';
   const [url, setUrl] = useState<string>(defaultUrl);

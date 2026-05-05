@@ -116,7 +116,7 @@ export function getLandscapePositionOfModel(
   const landscapeLayout = layoutStore.landscapeLayout;
 
   if (!landscapeLayout) {
-    console.warn("Landscape layout missing.");
+    console.warn('Landscape layout missing.');
     return undefined;
   }
 
