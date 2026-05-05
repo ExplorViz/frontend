@@ -1,4 +1,6 @@
+import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
+import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 
 export type TimelineDataForCommit = {
@@ -15,6 +17,67 @@ export type TimelineDataObject = Map<
 
 const PAUSED_COLOR = 'red';
 const UNPAUSED_COLOR = 'blue';
+
+const getAutoEvolutionRenderingConfiguration = (
+  selectedCommits: Map<string, { commitId: string; branchName: string }[]>,
+  selectedTimestamps: Map<string, Timestamp[]>
+) => {
+  const totalSelectedCommitCount = Array.from(selectedCommits.values()).reduce(
+    (acc, commits) => acc + commits.length,
+    0
+  );
+  const hasSelectedCommit = totalSelectedCommitCount > 0;
+
+  const hasSelectedTimestamp = Array.from(selectedTimestamps.values()).some(
+    (timestamps) => timestamps.length > 0
+  );
+
+  const hasTwoCommitsInAnyRepository = Array.from(selectedCommits.values()).some(
+    (commits) => commits.length >= 2
+  );
+
+  const hasAtMostOneCommitPerRepository = Array.from(selectedCommits.values()).every(
+    (commits) => commits.length <= 1
+  );
+
+  if (hasSelectedTimestamp && !hasSelectedCommit) {
+    return {
+      renderDynamic: true,
+      renderStatic: false,
+      renderOnlyDifferences: false,
+    };
+  }
+
+  if (!hasSelectedTimestamp && hasTwoCommitsInAnyRepository) {
+    return {
+      renderDynamic: false,
+      renderStatic: true,
+      renderOnlyDifferences: true,
+    };
+  }
+
+  if (hasSelectedTimestamp && hasSelectedCommit) {
+    return {
+      renderDynamic: true,
+      renderStatic: true,
+      renderOnlyDifferences: false,
+    };
+  }
+
+  if (!hasSelectedTimestamp && hasSelectedCommit && hasAtMostOneCommitPerRepository) {
+    return {
+      renderDynamic: false,
+      renderStatic: true,
+      renderOnlyDifferences: false,
+    };
+  }
+
+  return {
+    renderDynamic: true,
+    renderStatic: false,
+    renderOnlyDifferences: false,
+  };
+};
 
 export default class TimelineDataObjectHandler {
   // #region Properties
@@ -58,9 +121,25 @@ export default class TimelineDataObjectHandler {
 
     useRenderingServiceStore.getState().pauseVisualizationUpdating(true);
 
-    if (useRenderingServiceStore.getState()._analysisMode === 'evolution') {
+    if (
+      useRenderingServiceStore.getState()._analysisMode === 'evolution' ||
+      useRenderingServiceStore.getState()._analysisMode ===
+        'evolution comparison'
+    ) {
       useRenderingServiceStore.getState()._userInitiatedStaticDynamicCombination = true;
     }
+
+    const selectedCommits = useCommitTreeStateStore.getState().getSelectedCommits();
+    const autoConfig = getAutoEvolutionRenderingConfiguration(
+      selectedCommits,
+      commitToSelectedTimestampMap
+    );
+    useVisibilityServiceStore
+      .getState()
+      .applyEvolutionModeRenderingConfiguration(autoConfig);
+    useRenderingServiceStore
+      .getState()
+      .setAnalysisModeFromEvolutionRenderingConfig(autoConfig);
 
     useRenderingServiceStore
       .getState()

@@ -148,7 +148,7 @@ export default function CommitTreeRepositorySelection({
         ref={containerRef}
         className="col-md-auto d-flex align-items-center repository-selection-container"
       >
-        <span className="h5 p-2 repository-label">Repository:</span>
+        <span className="h5 p-2 repository-label">Repositories:</span>
         <div
           ref={buttonsContainerRef}
           className="d-flex align-items-center gap-2 repository-buttons-container"

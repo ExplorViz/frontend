@@ -1,4 +1,6 @@
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
+import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
   findRepoNameAndBranchNameForCommit,
   getCommitXPosition,
@@ -32,6 +34,67 @@ interface CommitTreeStateState {
     newRepoNameAndBranchNameToColorMap: Map<string, string>
   ) => void;
 }
+
+const getAutoEvolutionRenderingConfiguration = (
+  selectedCommits: Map<string, SelectedCommit[]>,
+  selectedTimestamps: Map<string, number[]>
+) => {
+  const totalSelectedCommitCount = Array.from(selectedCommits.values()).reduce(
+    (acc, commits) => acc + commits.length,
+    0
+  );
+  const hasSelectedCommit = totalSelectedCommitCount > 0;
+
+  const hasSelectedTimestamp = Array.from(selectedTimestamps.values()).some(
+    (timestamps) => timestamps.length > 0
+  );
+
+  const hasTwoCommitsInAnyRepository = Array.from(selectedCommits.values()).some(
+    (commits) => commits.length >= 2
+  );
+
+  const hasAtMostOneCommitPerRepository = Array.from(selectedCommits.values()).every(
+    (commits) => commits.length <= 1
+  );
+
+  if (hasSelectedTimestamp && !hasSelectedCommit) {
+    return {
+      renderDynamic: true,
+      renderStatic: false,
+      renderOnlyDifferences: false,
+    };
+  }
+
+  if (!hasSelectedTimestamp && hasTwoCommitsInAnyRepository) {
+    return {
+      renderDynamic: false,
+      renderStatic: true,
+      renderOnlyDifferences: true,
+    };
+  }
+
+  if (hasSelectedTimestamp && hasSelectedCommit) {
+    return {
+      renderDynamic: true,
+      renderStatic: true,
+      renderOnlyDifferences: false,
+    };
+  }
+
+  if (!hasSelectedTimestamp && hasSelectedCommit && hasAtMostOneCommitPerRepository) {
+    return {
+      renderDynamic: false,
+      renderStatic: true,
+      renderOnlyDifferences: false,
+    };
+  }
+
+  return {
+    renderDynamic: true,
+    renderStatic: false,
+    renderOnlyDifferences: false,
+  };
+};
 
 export const useCommitTreeStateStore = create<CommitTreeStateState>(
   (set, get) => ({
@@ -121,22 +184,17 @@ export const useCommitTreeStateStore = create<CommitTreeStateState>(
 
     setSelectedCommits: (newSelectedCommits: Map<string, SelectedCommit[]>) => {
       set({ _selectedCommits: newSelectedCommits });
-
-      const totalSelectedCount = Array.from(newSelectedCommits.values()).reduce(
-        (acc, curr) => acc + curr.length,
-        0
+      const selectedTimestamps = useTimestampStore.getState().timestamp;
+      const autoConfig = getAutoEvolutionRenderingConfiguration(
+        newSelectedCommits,
+        selectedTimestamps
       );
-
-      // Show everything by default or when one commit is selected
-      if (totalSelectedCount <= 1) {
-        useVisibilityServiceStore
-          .getState()
-          .applyEvolutionModeRenderingConfiguration({
-            renderDynamic: true,
-            renderStatic: true,
-            renderOnlyDifferences: false,
-          });
-      }
+      useVisibilityServiceStore
+        .getState()
+        .applyEvolutionModeRenderingConfiguration(autoConfig);
+      useRenderingServiceStore
+        .getState()
+        .setAnalysisModeFromEvolutionRenderingConfig(autoConfig);
     },
 
     resetSelectedCommits: () => {

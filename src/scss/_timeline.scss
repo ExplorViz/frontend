@@ -130,7 +130,26 @@
   top: 1rem;
   right: 1rem;
   z-index: 500;
-  padding: 0.5rem 0.5rem;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.commit-tree-unselect-button {
+  position: absolute;
+  top: 1rem;
+  right: 3.75rem;
+  z-index: 500;
+  white-space: nowrap;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .commit-tree-no-data-container {

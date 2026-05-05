@@ -24,7 +24,11 @@ import { createEmptyStructureLandscapeData } from 'explorviz-frontend/src/utils/
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { create } from 'zustand';
 
-export type AnalysisMode = 'evolution' | 'runtime';
+export type AnalysisMode =
+  | 'evolution'
+  | 'runtime'
+  | 'evolution+runtime'
+  | 'evolution comparison';
 
 export type EvolutionModeRenderingConfiguration = {
   renderDynamic: boolean;
@@ -77,6 +81,9 @@ interface RenderingServiceState {
     repoNameToSelectedCommits: Map<string, SelectedCommit[]>
   ) => Promise<void>;
   _setRuntimeModeActive: () => void;
+  setAnalysisModeFromEvolutionRenderingConfig: (
+    config: EvolutionModeRenderingConfiguration
+  ) => void;
   _handleError: (e: any) => void;
   toggleVisualizationUpdating: () => void;
   resumeVisualizationUpdating: () => void;
@@ -113,7 +120,8 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       }
 
       if (
-        get()._analysisMode === 'evolution' &&
+        (get()._analysisMode === 'evolution' ||
+          get()._analysisMode === 'evolution comparison') &&
         !get()._userInitiatedStaticDynamicCombination
       ) {
         return;
@@ -126,6 +134,7 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         let combinedRuntimeLandscapeData: LandscapeData = {
           structureLandscapeData: createEmptyStructureLandscapeData(),
           dynamicLandscapeData: [],
+          aggregatedFileCommunication: { metrics: {}, communications: [] },
           flatLandscapeData: {} as FlatLandscape,
         };
 
@@ -390,11 +399,18 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
         useToastHandlerStore
           .getState()
           .showInfoToastMessage('Switching to evolution mode.');
-        set({ _analysisMode: 'evolution' });
-
         // Reset all timestamp data upon first change to evolution mode
         useTimestampRepositoryStore.getState().resetState();
       }
+
+      const hasTwoCommitsInAnyRepository = Array.from(
+        repoNameToSelectedCommits.values()
+      ).some((commits) => commits.length >= 2);
+      set({
+        _analysisMode: hasTwoCommitsInAnyRepository
+          ? 'evolution comparison'
+          : 'evolution',
+      });
 
       await useEvolutionDataRepositoryStore
         .getState()
@@ -468,7 +484,11 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
     // private
     _setRuntimeModeActive: () => {
-      if (get()._analysisMode === 'evolution') {
+      if (
+        get()._analysisMode === 'evolution' ||
+        get()._analysisMode === 'evolution comparison' ||
+        get()._analysisMode === 'evolution+runtime'
+      ) {
         useToastHandlerStore
           .getState()
           .showInfoToastMessage(
@@ -484,6 +504,20 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
       useTimestampRepositoryStore
         .getState()
         .restartTimestampPollingAndVizUpdate([]);
+    },
+
+    setAnalysisModeFromEvolutionRenderingConfig: (
+      config: EvolutionModeRenderingConfiguration
+    ) => {
+      if (config.renderOnlyDifferences) {
+        set({ _analysisMode: 'evolution comparison' });
+      } else if (config.renderStatic && config.renderDynamic) {
+        set({ _analysisMode: 'evolution+runtime' });
+      } else if (config.renderStatic) {
+        set({ _analysisMode: 'evolution' });
+      } else {
+        set({ _analysisMode: 'runtime' });
+      }
     },
 
     // private
