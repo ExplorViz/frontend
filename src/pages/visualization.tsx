@@ -774,7 +774,7 @@ export default function Visualization() {
 
   const willDestroy = () => {
     useLandscapeRestructureStore.getState().resetLandscapeRestructure();
-    useTimestampPollingStore.getState().resetPolling();
+    useTimestampPollingStore.getState().resetState();
     useTimestampRepositoryStore.setState({ commitToTimestampMap: new Map() });
     useRenderingServiceStore.getState().resetAllRenderingStates();
     useModelStore.getState().clearAll();

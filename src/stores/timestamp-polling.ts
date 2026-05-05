@@ -26,6 +26,7 @@ interface TimestampPollingState {
   timer: NodeJS.Timeout | null;
   currentCommits: SelectedCommit[] | null;
   bucketSize: number;
+  newestCommitAutoSelectedForLandscapeToken: string | null;
   currentCallback:
     | ((commitToTimestampMap: Map<string, Timestamp[]>) => void)
     | null;
@@ -37,6 +38,7 @@ interface TimestampPollingState {
     ) => void
   ) => void;
   resetPolling: () => void;
+  resetState: () => void;
   restartPolling: () => void;
   setBucketSize: (value: number) => void;
   manuallyPollTimestamps: () => Promise<void>;
@@ -70,6 +72,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
     timer: null,
     currentCommits: null,
     bucketSize: 10000,
+    newestCommitAutoSelectedForLandscapeToken: null,
     currentCallback: null,
 
     initTimestampPollingWithCallback: async (
@@ -88,6 +91,15 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
         clearTimeout(get().timer!);
       }
       set({ timer: null });
+    },
+
+    resetState: () => {
+      get().resetPolling();
+      set({
+        currentCommits: null,
+        currentCallback: null,
+        newestCommitAutoSelectedForLandscapeToken: null,
+      });
     },
 
     restartPolling: () => {
@@ -174,7 +186,9 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
             if (
               !newestLocalTimestamp &&
               timestamps.length === 0 &&
-              useCommitTreeStateStore.getState().getSelectedCommits().size === 0
+              useCommitTreeStateStore.getState().getSelectedCommits().size === 0 &&
+              get().newestCommitAutoSelectedForLandscapeToken !==
+                useLandscapeTokenStore.getState().token?.value
             ) {
               switchedToNewestCommit = await selectNewestCommit();
             }
@@ -339,6 +353,7 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 );
 
 async function selectNewestCommit(): Promise<boolean> {
+  const currentLandscapeToken = useLandscapeTokenStore.getState().token?.value;
   const newestCommit = useEvolutionDataRepositoryStore
     .getState()
     .getNewestCommitFromCommitTrees();
@@ -359,5 +374,8 @@ async function selectNewestCommit(): Promise<boolean> {
     .setCurrentSelectedRepositoryName(newestCommit.repoName);
   useCommitTreeStateStore.getState().setSelectedCommits(selectedCommits);
   await useRenderingServiceStore.getState().triggerRenderingForSelectedCommits();
+  useTimestampPollingStore.setState({
+    newestCommitAutoSelectedForLandscapeToken: currentLandscapeToken ?? null,
+  });
   return true;
 }
