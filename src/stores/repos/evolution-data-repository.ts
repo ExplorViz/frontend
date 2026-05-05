@@ -6,12 +6,16 @@ import {
   CommitTree,
   RepoNameCommitTreeMap
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { getCommitXPosition } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
 
 interface EvolutionDataRepositoryState {
   _repoNameCommitTreeMap: RepoNameCommitTreeMap;
   _repoNameToFlatLandscapeMap: Map<string, FlatLandscape>;
+  getNewestCommitFromCommitTrees: () =>
+    | { repoName: string; branchName: string; commitId: string }
+    | undefined;
   getRepoNameToFlatLandscapeMap: () => Map<string, FlatLandscape>;
   fetchAndStoreRepositoryCommitTrees: () => Promise<boolean>;
   fetchAndStoreEvolutionDataForSelectedCommits: (
@@ -29,6 +33,52 @@ export const useEvolutionDataRepositoryStore =
   create<EvolutionDataRepositoryState>((set, get) => ({
     _repoNameCommitTreeMap: new Map<string, CommitTree>(),
     _repoNameToFlatLandscapeMap: new Map<string, FlatLandscape>(),
+
+    getNewestCommitFromCommitTrees: () => {
+      const repoNameCommitTreeMap = get()._repoNameCommitTreeMap;
+      let newestCommit:
+        | {
+            repoName: string;
+            branchName: string;
+            commitId: string;
+            xPosition: number;
+          }
+        | undefined;
+
+      for (const [repoName, commitTree] of repoNameCommitTreeMap.entries()) {
+        for (const branch of commitTree.branches) {
+          for (const commitId of branch.commits) {
+            const xPosition = getCommitXPosition(
+              repoNameCommitTreeMap,
+              repoName,
+              branch.name,
+              commitId
+            );
+            if (xPosition < 0) {
+              continue;
+            }
+            if (!newestCommit || xPosition > newestCommit.xPosition) {
+              newestCommit = {
+                repoName,
+                branchName: branch.name,
+                commitId,
+                xPosition,
+              };
+            }
+          }
+        }
+      }
+
+      if (!newestCommit) {
+        return undefined;
+      }
+
+      return {
+        repoName: newestCommit.repoName,
+        branchName: newestCommit.branchName,
+        commitId: newestCommit.commitId,
+      };
+    },
 
     getRepoNameToFlatLandscapeMap: (): Map<string, FlatLandscape> => {
       return get()._repoNameToFlatLandscapeMap;

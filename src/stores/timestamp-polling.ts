@@ -1,5 +1,10 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
+import {
+  SelectedCommit,
+  useCommitTreeStateStore,
+} from 'explorviz-frontend/src/stores/commit-tree-state';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import {
   DebugSnapshot,
@@ -160,9 +165,19 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
           undefined
         );
 
+        let switchedToNewestCommit = false;
         await allCommitsTimestampPromise
-          .then((timestamps: Timestamp[]) => {
+          .then(async (timestamps: Timestamp[]) => {
             polledCommitToTimestampMap.set(commitId, timestamps);
+
+            // If initial runtime fetch is empty, prefer newest commit view if available.
+            if (
+              !newestLocalTimestamp &&
+              timestamps.length === 0 &&
+              useCommitTreeStateStore.getState().getSelectedCommits().size === 0
+            ) {
+              switchedToNewestCommit = await selectNewestCommit();
+            }
           })
           .catch((error: Error) => {
             console.error(`Error on fetch of timestamps: ${error}`);
@@ -173,6 +188,9 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
             return;
           })
           .then(() => {
+            if (switchedToNewestCommit) {
+              return;
+            }
             // Snapshots are for debug landscapes only. Notice that we do not support the selection of commits at the moment (TODO: future work)
             // (therefore this code lays within the commits.length === 0 case)
             if (
@@ -319,3 +337,27 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
     },
   })
 );
+
+async function selectNewestCommit(): Promise<boolean> {
+  const newestCommit = useEvolutionDataRepositoryStore
+    .getState()
+    .getNewestCommitFromCommitTrees();
+  if (!newestCommit) {
+    return false;
+  }
+
+  const selectedCommits = new Map<string, SelectedCommit[]>();
+  selectedCommits.set(newestCommit.repoName, [
+    {
+      commitId: newestCommit.commitId,
+      branchName: newestCommit.branchName,
+    },
+  ]);
+
+  useCommitTreeStateStore
+    .getState()
+    .setCurrentSelectedRepositoryName(newestCommit.repoName);
+  useCommitTreeStateStore.getState().setSelectedCommits(selectedCommits);
+  await useRenderingServiceStore.getState().triggerRenderingForSelectedCommits();
+  return true;
+}
