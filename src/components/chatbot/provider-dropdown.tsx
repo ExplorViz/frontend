@@ -14,11 +14,16 @@ export function ProviderDropdown() {
   const { reset } = useCopilotChat();
 
   function onSelect(provider: typeof selectedProvider) {
+    if (provider.id === selectedProvider.id) return;
+
     setSelectedProvider(provider);
-    if (!provider.models.some((model) => model.id === selectedModel.id)) {
-      setSelectedModel(provider.models[0]);
+    const isCurrentModelSupported = provider.models.some(
+      (model) => model.id === selectedModel.id
+    );
+    if (!isCurrentModelSupported) {
+      setSelectedModel(provider.models[0] ?? { id: '', name: '' });
     }
-    reset(); // Reset the chat when a new provider is selected
+    reset();
   }
 
   return (

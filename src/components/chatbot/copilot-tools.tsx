@@ -1,7 +1,5 @@
-import {
-  useCopilotAction,
-  useCopilotChatInternal,
-} from '@copilotkit/react-core';
+import { useCopilotChatInternal } from '@copilotkit/react-core';
+import { useFrontendTool } from '@copilotkit/react-core/v2';
 import { ToolCallCard } from 'explorviz-frontend/src/components/chatbot/tool-call-card';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -25,6 +23,7 @@ import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/set
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import * as htmlToImage from 'html-to-image';
 import { use } from 'react';
+import { z } from 'zod';
 import { EditingContext } from '../editing/editing-context';
 import { ChatbotContext } from './chatbot-context';
 
@@ -240,72 +239,22 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     entitySearchControllerRef,
   } = use(ChatbotContext);
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'query-landscape-data',
     description:
       'Returns 3D landscape data with filters and adjustable level of detail so you can request only the slices you need instead of the full landscape.',
-    parameters: [
-      {
-        name: 'applicationIds',
-        type: 'string[]',
-        description:
-          'Optional list of application IDs to include. If omitted, all applications are considered.',
-      },
-      {
-        name: 'applicationName',
-        type: 'string',
-        description:
-          'Case-insensitive substring to match against application names.',
-      },
-      {
-        name: 'packageName',
-        type: 'string',
-        description:
-          'Case-insensitive substring to match against package names. Only used for detail levels packages/classes/methods.',
-      },
-      {
-        name: 'className',
-        type: 'string',
-        description:
-          'Case-insensitive substring to match against class names. Only used for detail levels classes/methods.',
-      },
-      {
-        name: 'methodName',
-        type: 'string',
-        description:
-          'Case-insensitive substring to match against method names. Only used for detail level methods.',
-      },
-      {
-        name: 'detailLevel',
-        type: 'string',
-        description:
-          "Level of detail for the result. Use 'summary' (default) for per-application counts only, 'packages' for flattened packages, 'classes' for flattened classes, or 'methods' to also include matching methods.",
-      },
-      {
-        name: 'maxApplications',
-        type: 'number',
-        description:
-          'Optional max number of applications to return after filtering.',
-      },
-      {
-        name: 'maxPackages',
-        type: 'number',
-        description:
-          'Optional max number of packages to return (applied per request when detailLevel is packages or higher).',
-      },
-      {
-        name: 'maxClasses',
-        type: 'number',
-        description:
-          'Optional max number of classes to return (applied when detailLevel is classes or methods).',
-      },
-      {
-        name: 'maxMethods',
-        type: 'number',
-        description:
-          'Optional max number of methods to return (applied when detailLevel is methods).',
-      },
-    ],
+    parameters: z.object({
+      applicationIds: z.array(z.string()).optional(),
+      applicationName: z.string().optional(),
+      packageName: z.string().optional(),
+      className: z.string().optional(),
+      methodName: z.string().optional(),
+      detailLevel: z.string().optional(),
+      maxApplications: z.number().optional(),
+      maxPackages: z.number().optional(),
+      maxClasses: z.number().optional(),
+      maxMethods: z.number().optional(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({
@@ -472,24 +421,14 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     },
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'highlight-component',
     description:
       'Permanently highlights or un-highlights a component in the 3D visualization by its id.',
-    parameters: [
-      {
-        name: 'id',
-        type: 'string',
-        description: 'ID of the component to highlight.',
-        required: true,
-      },
-      {
-        name: 'isHighlighted',
-        type: 'boolean',
-        description:
-          'Set to true if you want to set the component to be highlighted. Set to false to remove the highlighting.',
-      },
-    ],
+    parameters: z.object({
+      id: z.string(),
+      isHighlighted: z.boolean().default(true),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, isHighlighted }) => {
@@ -513,19 +452,13 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     },
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'open-close-tools-sidebar',
     description:
       'Opens or closes the tools sidebar in the UI. The tools sidebar is located on the top left side of the screen.',
-    parameters: [
-      {
-        name: 'open',
-        type: 'boolean',
-        description:
-          'Set to true if you want to open the tools sidebar. Set to false if you want to close it.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      open: z.boolean(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ open }) => {
@@ -542,19 +475,13 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'open-close-settings-sidebar',
     description:
       'Opens or closes the settings sidebar in the UI. The settings sidebar is located on the top right side of the screen.',
-    parameters: [
-      {
-        name: 'open',
-        type: 'boolean',
-        description:
-          'Set to true if you want to open the settings sidebar. Set to false if you want to close it.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      open: z.boolean(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ open }) => {
@@ -571,26 +498,14 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'open-close-tools-component',
     description:
       'Opens or closes a component inside the tools sidebar. Opening the component will also open the sidebar. Allowed component ids: entity-filtering, entity-search, Trace-Replayer.',
-    parameters: [
-      {
-        name: 'id',
-        type: 'string',
-        description:
-          'ID of the component in the tools sidebar to be opened or closed. Valid values: entity-filtering, entity-search, Trace-Replayer.',
-        required: true,
-      },
-      {
-        name: 'open',
-        type: 'boolean',
-        description:
-          'Set to true if you want to open the component. Set to false if you want to close it.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      id: z.string(),
+      open: z.boolean(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
@@ -610,26 +525,14 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'open-close-settings-component',
     description:
       'Opens or closes a component inside the settings sidebar. Opening the component will also open the sidebar. Allowed component ids: Collaboration, Chatbot, VSCode-Extension-Settings, Restructure-Landscape, Persist-Landscape, Settings.',
-    parameters: [
-      {
-        name: 'id',
-        type: 'string',
-        description:
-          'ID of the component in the settings sidebar to be opened or closed. Valid values: Collaboration, Chatbot, VSCode-Extension-Settings, Restructure-Landscape, Persist-Landscape, Settings.',
-        required: true,
-      },
-      {
-        name: 'open',
-        type: 'boolean',
-        description:
-          'Set to true if you want to open the component. Set to false if you want to close it.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      id: z.string(),
+      open: z.boolean(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
@@ -649,30 +552,15 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'filter-entities',
     description:
       'Filters entities in the visualization using the existing Entity Filtering panel. Provide one or more thresholds.',
-    parameters: [
-      {
-        name: 'minTraceStartTimestamp',
-        type: 'number',
-        description:
-          'Minimum allowed trace start timestamp. Traces starting earlier will be removed.',
-      },
-      {
-        name: 'minTraceDuration',
-        type: 'number',
-        description:
-          'Minimum allowed trace duration. Traces shorter than this will be removed.',
-      },
-      {
-        name: 'minClassMethodCount',
-        type: 'number',
-        description:
-          'Minimum number of methods required for a class to remain visible.',
-      },
-    ],
+    parameters: z.object({
+      minTraceStartTimestamp: z.number().optional(),
+      minTraceDuration: z.number().optional(),
+      minClassMethodCount: z.number().optional(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({
@@ -699,29 +587,14 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'update-visualization-settings',
     description: `Updates visualization settings by setting specific setting IDs to new values. You can also reset settings to their defaults. Available settings (id: description): ${settingsPromptDescription}`,
-    parameters: [
-      {
-        name: 'settings',
-        type: 'object',
-        description:
-          'Key-value pairs of setting IDs to update. Only IDs that exist in the current settings are applied.',
-      },
-      {
-        name: 'resetIds',
-        type: 'string[]',
-        description:
-          'Optional list of setting IDs to reset to their default values before applying updates.',
-      },
-      {
-        name: 'resetAll',
-        type: 'boolean',
-        description:
-          'If true, reset all settings to defaults before applying updates.',
-      },
-    ],
+    parameters: z.object({
+      settings: z.record(z.string(), z.unknown()).optional(),
+      resetIds: z.array(z.string()).optional(),
+      resetAll: z.boolean().optional(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ settings, resetIds, resetAll }) => {
@@ -775,23 +648,14 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'search-application-components',
     description:
       'Searches for components by name in the Application Search panel. Optionally selects all results.',
-    parameters: [
-      {
-        name: 'query',
-        type: 'string',
-        description: 'Search term to look for in application components.',
-        required: true,
-      },
-      {
-        name: 'selectAll',
-        type: 'boolean',
-        description: 'Select all search results and ping them.',
-      },
-    ],
+    parameters: z.object({
+      query: z.string(),
+      selectAll: z.boolean().optional(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ query, selectAll }) => {
@@ -813,25 +677,14 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'open-close-component',
     description:
       'Opens or closes a component, meaning its children are now visible or hidden in the 3d visualization.',
-    parameters: [
-      {
-        name: 'id',
-        type: 'string',
-        description: 'ID of the component to be opened or closed.',
-        required: true,
-      },
-      {
-        name: 'open',
-        type: 'boolean',
-        description:
-          'Set to true if you want to open the component. Set to false if you want to close it.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      id: z.string(),
+      open: z.boolean(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id, open }) => {
@@ -867,18 +720,13 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     },
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'ping-component',
     description:
       "Causes a visual ping effect on a component in the 3D visualization by its id to draw the user's attention to it. This does not change the state of the component, it only triggers a temporary visual effect.",
-    parameters: [
-      {
-        name: 'id',
-        type: 'string',
-        description: 'ID of the component to ping.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      id: z.string(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id }) => {
@@ -893,18 +741,13 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'move-camera-to-component',
     description:
       'Moves the camera to focus on a specific component in the 3D visualization by its id.',
-    parameters: [
-      {
-        name: 'id',
-        type: 'string',
-        description: 'ID of the component to move the camera to.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      id: z.string(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id }) => {
@@ -919,11 +762,11 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'reset-camera',
     description:
       'Resets the camera to its default position and orientation in the 3D visualization.',
-    parameters: [],
+    parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
@@ -934,79 +777,33 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'add-application',
     description:
       'Adds a new application to the current landscape. Classes should include their fully qualified name (FQN) and can optionally include methods.',
-    parameters: [
-      {
-        name: 'name',
-        type: 'string',
-        description: 'Name of the application to be added.',
-        required: true,
-      },
-      {
-        name: 'classes',
-        type: 'object[]',
-        description: 'List of classes for the application.',
-        required: true,
-        attributes: [
-          {
-            name: 'fqn',
-            type: 'string',
-            description: 'Fully qualified name of the class.',
-            required: true,
-          },
-          {
-            name: 'methods',
-            type: 'object[]',
-            description:
-              'Optional list of methods for the class. Each method should include name, private (boolean), parameters (array of { name, type }), and returnType (string).',
-            attributes: [
-              {
-                name: 'name',
-                type: 'string',
-                description: 'Name of the method.',
-                required: true,
-              },
-              {
-                name: 'private',
-                type: 'boolean',
-                description: 'Indicates if the method is private.',
-                required: true,
-              },
-              {
-                name: 'parameters',
-                type: 'object[]',
-                description:
-                  'List of parameters for the method. Each parameter should include name and type.',
-                required: true,
-                attributes: [
-                  {
-                    name: 'name',
-                    type: 'string',
-                    description: 'Name of the parameter.',
-                    required: true,
-                  },
-                  {
-                    name: 'type',
-                    type: 'string',
-                    description: 'Type of the parameter.',
-                    required: true,
-                  },
-                ],
-              },
-              {
-                name: 'returnType',
-                type: 'string',
-                description: 'Return type of the method.',
-                required: true,
-              },
-            ],
-          },
-        ],
-      },
-    ],
+    parameters: z.object({
+      name: z.string(),
+      classes: z.array(
+        z.object({
+          fqn: z.string(),
+          methods: z
+            .array(
+              z.object({
+                name: z.string(),
+                private: z.boolean(),
+                parameters: z.array(
+                  z.object({
+                    name: z.string(),
+                    type: z.string(),
+                  })
+                ),
+                returnType: z.string(),
+              })
+            )
+            .optional(),
+        })
+      ),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ name, classes }) => {
@@ -1021,79 +818,33 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'add-classes-to-application',
     description:
       'Adds new classes to an existing application in the current landscape. Classes should include their fully qualified name (FQN) and can optionally include methods.',
-    parameters: [
-      {
-        name: 'applicationId',
-        type: 'string',
-        description: 'ID of the application to which classes will be added.',
-        required: true,
-      },
-      {
-        name: 'classes',
-        type: 'object[]',
-        description: 'List of classes to add to the application.',
-        required: true,
-        attributes: [
-          {
-            name: 'fqn',
-            type: 'string',
-            description: 'Fully qualified name of the class.',
-            required: true,
-          },
-          {
-            name: 'methods',
-            type: 'object[]',
-            description:
-              'Optional list of methods for the class. Each method should include name, private (boolean), parameters (array of { name, type }), and returnType (string).',
-            attributes: [
-              {
-                name: 'name',
-                type: 'string',
-                description: 'Name of the method.',
-                required: true,
-              },
-              {
-                name: 'private',
-                type: 'boolean',
-                description: 'Indicates if the method is private.',
-                required: true,
-              },
-              {
-                name: 'parameters',
-                type: 'object[]',
-                description:
-                  'List of parameters for the method. Each parameter should include name and type.',
-                required: true,
-                attributes: [
-                  {
-                    name: 'name',
-                    type: 'string',
-                    description: 'Name of the parameter.',
-                    required: true,
-                  },
-                  {
-                    name: 'type',
-                    type: 'string',
-                    description: 'Type of the parameter.',
-                    required: true,
-                  },
-                ],
-              },
-              {
-                name: 'returnType',
-                type: 'string',
-                description: 'Return type of the method.',
-                required: true,
-              },
-            ],
-          },
-        ],
-      },
-    ],
+    parameters: z.object({
+      applicationId: z.string(),
+      classes: z.array(
+        z.object({
+          fqn: z.string(),
+          methods: z
+            .array(
+              z.object({
+                name: z.string(),
+                private: z.boolean(),
+                parameters: z.array(
+                  z.object({
+                    name: z.string(),
+                    type: z.string(),
+                  })
+                ),
+                returnType: z.string(),
+              })
+            )
+            .optional(),
+        })
+      ),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ applicationId, classes }) => {
@@ -1109,18 +860,13 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'remove-component-from-landscape',
     description:
       'Removes a component (application, package, or class) from the current landscape by its id. If you cant find the removed component, it has been removed already.',
-    parameters: [
-      {
-        name: 'id',
-        type: 'string',
-        description: 'ID of the component to be removed.',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      id: z.string(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ id }) => {
@@ -1136,11 +882,11 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     ),
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'undo-edit',
     description:
       'Undoes the last edit made to the landscape, reverting it to the previous state.',
-    parameters: [],
+    parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
@@ -1151,11 +897,11 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     render: ({ status }) => <ToolCallCard status={status} action="undoEdit" />,
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'redo-edit',
     description:
       'Redoes the last undone edit to the landscape, reapplying the change that was previously reverted.',
-    parameters: [],
+    parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
@@ -1166,11 +912,11 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     render: ({ status }) => <ToolCallCard status={status} action="redoEdit" />,
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'take-screenshot',
     description:
       'Takes a screenshot of the current browser window, scales it down to a max of 1280x720 if larger, and appends it as an user message to the chat. Use this to explain UI parts outside the 3d landscape. When an error occurs when taking the screenshot, please explain the error message to the user.',
-    parameters: [],
+    parameters: z.object({}),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async () => {
@@ -1242,26 +988,14 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     followUp: false,
   });
 
-  useCopilotAction({
+  useFrontendTool({
     name: 'click-on-screen',
     description:
       'Simulates a click on a specific position on the screen given by the normalized screen position. This can be used to interact with UI elements outside of the 3D visualization, such as buttons or menus in the ExplorViz frontend. Do the following steps to achieve optimal results: 1. Check if there was a screenshot taken already, if not take a screenshot with the take-screenshot tool. 2. Read the screenshot resolution (width W, height H in pixels). 3. Visually locate the target element and determine the pixel coordinates of its center (x_px, y_px). Do not guess. Do not eyeball. Aim for the center of interactive elements like texts and buttons. 4. Convert to normalized coordinates with 5 decimals: x = round(x_px / W, 5) y = round(y_px / H, 5). 5. Take these normalized coordinates as parameters for this tool call. If the target is ambiguous or partially hidden, ask for clarification before clicking. After clicking, verify the expected UI change; if not achieved, adjust by small offsets (±3–5 px) and retry once.',
-    parameters: [
-      {
-        name: 'x',
-        type: 'number',
-        description:
-          'Normalized x coordinate on the screen, 0 (left) to 1 (right).',
-        required: true,
-      },
-      {
-        name: 'y',
-        type: 'number',
-        description:
-          'Normalized y coordinate on the screen, 0 (top) to 1 (bottom).',
-        required: true,
-      },
-    ],
+    parameters: z.object({
+      x: z.number(),
+      y: z.number(),
+    }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({ x, y }) => {
