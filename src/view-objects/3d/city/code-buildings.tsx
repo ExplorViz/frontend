@@ -2,7 +2,10 @@ import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
+import {
+  HeatmapValueMapping,
+  useHeatmapStore,
+} from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useImmersiveViewStore } from 'explorviz-frontend/src/stores/immersive-view-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
@@ -254,12 +257,18 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }
   }, [geometryType]);
 
-  const { heatmapActive, selectedBuildingMetric, selectedGradient } =
+  const {
+    heatmapActive,
+    selectedBuildingMetric,
+    selectedGradient,
+    selectedValueMapping,
+  } =
     useHeatmapStore(
       useShallow((state) => ({
         heatmapActive: state.isActive(),
         selectedBuildingMetric: state.getSelectedBuildingMetric(),
         selectedGradient: state.selectedGradient,
+        selectedValueMapping: state.selectedValueMapping,
       }))
     );
 
@@ -309,7 +318,12 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
           return new THREE.Color('white');
         }
         return new THREE.Color(
-          getSimpleHeatmapColor(metricValues.current, metricValues.max)
+          getSimpleHeatmapColor(
+            metricValues.current,
+            metricValues.max,
+            undefined,
+            selectedValueMapping ?? HeatmapValueMapping.LINEAR
+          )
         );
       }
 
@@ -351,6 +365,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       heatmapActive,
       selectedBuildingMetric,
       selectedGradient,
+      selectedValueMapping,
       evoConfig.renderOnlyDifferences,
       isDiffMode,
       addedBuildingColor,

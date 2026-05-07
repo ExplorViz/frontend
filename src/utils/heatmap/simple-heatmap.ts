@@ -1,5 +1,6 @@
 import {
   HeatmapGradient,
+  HeatmapValueMapping,
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import simpleheat from 'simpleheat';
@@ -102,10 +103,11 @@ function stopsFromGradient(gradient: Gradient): { pos: number; color: RGB }[] {
 export function getSimpleHeatmapColor(
   value: number,
   max: number,
-  gradient: Gradient = getColorGradient()
+  gradient: Gradient = getColorGradient(),
+  valueMapping: HeatmapValueMapping = useHeatmapStore.getState()
+    .selectedValueMapping
 ): string {
-  const ratio =
-    max > 0 && Number.isFinite(max) ? Math.min(1, Math.max(0, value / max)) : 0;
+  const ratio = normalizeMetricValue(value, max, valueMapping);
 
   const stops = stopsFromGradient(gradient);
 
@@ -131,6 +133,25 @@ export function getSimpleHeatmapColor(
 
   // Fallback (shouldn’t hit due to clamps)
   return toRgbString(stops[stops.length - 1].color);
+}
+
+function normalizeMetricValue(
+  value: number,
+  max: number,
+  valueMapping: HeatmapValueMapping
+): number {
+  if (!(max > 0 && Number.isFinite(max))) {
+    return 0;
+  }
+
+  const clampedValue = Math.min(max, Math.max(0, value));
+
+  if (valueMapping === HeatmapValueMapping.LOGARITHMIC) {
+    const denominator = Math.log1p(max);
+    return denominator > 0 ? Math.log1p(clampedValue) / denominator : 0;
+  }
+
+  return clampedValue / max;
 }
 
 // Needed to revert keys of default gradient for heatmap legend

@@ -56,6 +56,11 @@ export enum HeatmapGradient {
   MONOCHROME_GRADIENT = 'Monochrome',
 }
 
+export enum HeatmapValueMapping {
+  LINEAR = 'Linear Mapping',
+  LOGARITHMIC = 'Logarithmic Mapping',
+}
+
 export type BuildingMetric = {
   name: string;
   description: string;
@@ -68,6 +73,7 @@ interface HeatmapConfigurationState {
   legendActive: boolean;
   selectedBuildingMetric: BuildingMetric; //tracked
   selectedGradient: HeatmapGradient;
+  selectedValueMapping: HeatmapValueMapping;
   opacityValue: number;
   showLegendValues: boolean;
   toggleShared: () => void;
@@ -76,6 +82,8 @@ interface HeatmapConfigurationState {
   setSelectedBuildingMetric: (metricName: BuildingMetricIds) => void;
   getSelectedGradient: () => HeatmapGradient;
   setSelectedGradient: (gradient: HeatmapGradient) => void;
+  getSelectedValueMapping: () => HeatmapValueMapping;
+  setSelectedValueMapping: (mapping: HeatmapValueMapping) => void;
   toggleLegend: () => void;
   cleanup: () => void;
   setShowLegendValues: (show: boolean) => void;
@@ -92,6 +100,7 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
       max: 0,
     },
     selectedGradient: HeatmapGradient.DEFAULT_GRADIENT,
+    selectedValueMapping: HeatmapValueMapping.LINEAR,
     opacityValue: 0.03,
     showLegendValues: true,
 
@@ -147,6 +156,12 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
     setSelectedGradient: (gradient: HeatmapGradient) => {
       set({ selectedGradient: gradient });
     },
+    getSelectedValueMapping: () => {
+      return get().selectedValueMapping;
+    },
+    setSelectedValueMapping: (mapping: HeatmapValueMapping) => {
+      set({ selectedValueMapping: mapping });
+    },
     toggleLegend: () => {
       set({ legendActive: !get().legendActive });
     },
@@ -159,6 +174,7 @@ export const useHeatmapStore = create<HeatmapConfigurationState>(
         selectedBuildingMetric: NO_SELECTED_METRIC,
         legendActive: true,
         heatmapShared: false,
+        selectedValueMapping: HeatmapValueMapping.LINEAR,
       });
     },
   })

@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { ShareAndroidIcon } from '@primer/octicons-react';
 import {
   HeatmapGradient,
+  HeatmapValueMapping,
   useHeatmapStore,
 } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -16,12 +17,16 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
 import { useShallow } from 'zustand/react/shallow';
 
+const LEGEND_RATIOS = [1, 0.75, 0.5, 0.25, 0];
+
 export default function HeatmapLegend() {
   const {
     heatmapShared,
     selectedClassMetric,
     selectedGradient,
+    selectedValueMapping,
     setGradient,
+    setValueMapping,
     setShowLegendValues,
     showLegendValues,
     toggleShared,
@@ -30,7 +35,9 @@ export default function HeatmapLegend() {
       heatmapShared: state.heatmapShared,
       selectedClassMetric: state.getSelectedBuildingMetric(),
       selectedGradient: state.getSelectedGradient(),
+      selectedValueMapping: state.getSelectedValueMapping(),
       setGradient: state.setSelectedGradient,
+      setValueMapping: state.setSelectedValueMapping,
       setShowLegendValues: state.setShowLegendValues,
       showLegendValues: state.showLegendValues,
       toggleShared: state.toggleShared,
@@ -41,6 +48,30 @@ export default function HeatmapLegend() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
+
+  const legendLabels = useMemo(() => {
+    if (!selectedClassMetric) {
+      return LEGEND_RATIOS.map((ratio) => ratio.toFixed(2));
+    }
+
+    const min = selectedClassMetric.min;
+    const max = selectedClassMetric.max;
+    const safeMax = Number.isFinite(max) && max > 0 ? max : 0;
+
+    return LEGEND_RATIOS.map((ratio) => {
+      let value: number;
+
+      if (selectedValueMapping === HeatmapValueMapping.LOGARITHMIC) {
+        value = Math.expm1(ratio * Math.log1p(safeMax));
+      } else {
+        value = ratio * safeMax;
+      }
+
+      // Keep labels consistent with selected metric boundaries in the UI.
+      const boundedValue = Math.min(max, Math.max(min, value));
+      return formatLegendValue(boundedValue);
+    });
+  }, [selectedClassMetric, selectedValueMapping]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -92,6 +123,18 @@ export default function HeatmapLegend() {
           <option value={HeatmapGradient.MONOCHROME_GRADIENT}>
             Monochrome
           </option>
+        </select>
+      </div>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <div>Mapping:</div>
+        <select
+          onChange={(e) =>
+            setValueMapping(e.target.value as HeatmapValueMapping)
+          }
+          value={selectedValueMapping}
+        >
+          <option value={HeatmapValueMapping.LINEAR}>Linear</option>
+          <option value={HeatmapValueMapping.LOGARITHMIC}>Logarithmic</option>
         </select>
       </div>
 
@@ -153,16 +196,11 @@ export default function HeatmapLegend() {
                 ></canvas>
               </div>
               <div id="heatmap-legend-label">
-                <span className="heatmap-label">
-                  {selectedClassMetric?.max}
-                </span>
-                <span className="heatmap-label">
-                  {selectedClassMetric &&
-                    (selectedClassMetric.max - selectedClassMetric.min) / 2}
-                </span>
-                <span className="heatmap-label">
-                  {selectedClassMetric?.min}
-                </span>
+                {LEGEND_RATIOS.map((ratio, index) => (
+                  <span key={`legend-label-${ratio}`} className="heatmap-label">
+                    {legendLabels[index]}
+                  </span>
+                ))}
               </div>
             </>
           </div>
@@ -170,4 +208,12 @@ export default function HeatmapLegend() {
       )}
     </div>
   );
+}
+
+function formatLegendValue(value: number): string {
+  if (!Number.isFinite(value)) {
+    return '0';
+  }
+
+  return Math.round(value).toString();
 }
