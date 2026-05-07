@@ -15,10 +15,10 @@ interface CopilotResourcesProps {
 
 export function CopilotResources({ cities }: CopilotResourcesProps) {
   const {
-    closedDistrictIds: closedComponentIds,
+    closedDistrictIds,
     highlightedEntityIds,
     hoveredEntityId,
-    removedDistrictIds: removedComponentIds,
+    removedDistrictIds,
   } = useVisualizationStore();
 
   const { canGoBack, canGoForward } = use(EditingContext);
@@ -45,7 +45,7 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
       let commentedLines = 0;
       let combinedFileSizeInBytes = 0;
 
-      city.allContainedBuildingIds.forEach(buildingId => {
+      city.allContainedBuildingIds.forEach((buildingId) => {
         const building = useModelStore.getState().getBuilding(buildingId);
         const language = building?.language;
         functionCount += building?.metrics?.functionCount?.current ?? 0;
@@ -56,7 +56,7 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
         if (language && !languages.includes(language)) {
           languages.push(language);
         }
-      })
+      });
 
       return {
         id: city.id,
@@ -69,7 +69,7 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
         linesOfCode,
         sourceCodeLines,
         commentedLines,
-        combinedFileSizeInBytes
+        combinedFileSizeInBytes,
       };
     });
 
@@ -89,7 +89,7 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
   useCopilotReadable({
     description:
       'Get the list of all currently closed components in the 3D visualization by their IDs. Closed components have their children hidden in the visualization.',
-    value: JSON.stringify([...closedComponentIds]),
+    value: JSON.stringify([...closedDistrictIds]),
   });
   useCopilotReadable({
     description:
@@ -104,7 +104,7 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
   useCopilotReadable({
     description:
       'Get the list of all currently removed components from the 3D visualization by their IDs. Removed components are not visible in the visualization.',
-    value: JSON.stringify([...removedComponentIds]),
+    value: JSON.stringify([...removedDistrictIds]),
   });
   useCopilotReadable({
     description:

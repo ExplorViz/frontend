@@ -1,4 +1,3 @@
-import { useCopilotChatInternal } from '@copilotkit/react-core';
 import { useFrontendTool } from '@copilotkit/react-core/v2';
 import { ToolCallCard } from 'explorviz-frontend/src/components/chatbot/tool-call-card';
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
@@ -11,13 +10,11 @@ import {
   openAllDistrictsInCity,
   openDistrict,
 } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
-  Application,
-  Class,
-  Method,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+  Building,
+  City,
+  District,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { defaultVizSettings } from 'explorviz-frontend/src/utils/settings/default-settings';
 import { VisualizationSettings } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
@@ -34,18 +31,9 @@ interface CopilotToolsProps {
 const SCREENSHOT_MAX_WIDTH = 1280;
 const SCREENSHOT_MAX_HEIGHT = 720;
 
-function getAllSubPackages(pkg: Package): Package[] {
-  return [pkg, ...pkg.subPackages.flatMap(getAllSubPackages)];
-}
+type DetailLevel = 'summary' | 'districts' | 'buildings';
 
-type DetailLevel = 'summary' | 'packages' | 'classes' | 'methods';
-
-const validDetailLevels: DetailLevel[] = [
-  'summary',
-  'packages',
-  'classes',
-  'methods',
-];
+const validDetailLevels: DetailLevel[] = ['summary', 'districts', 'buildings'];
 
 function isValidDetailLevel(level?: string): level is DetailLevel {
   return !!level && validDetailLevels.includes(level as DetailLevel);
@@ -70,116 +58,70 @@ function limitList<T>(list: T[], limit?: number) {
   return list;
 }
 
-function flattenPackages(application: Application) {
-  return application.packages.flatMap(getAllSubPackages);
-}
-
-function classMatchesFilters(
-  clazz: Class,
-  className?: string,
-  methodName?: string
-) {
-  const hasClassFilter = !!normalizeText(className);
-  const hasMethodFilter = !!normalizeText(methodName);
-  if (!hasClassFilter && !hasMethodFilter) {
+function districtMatchesFilter(district: District, districtName?: string) {
+  if (!normalizeText(districtName)) {
     return true;
   }
-  const classNameMatch =
-    hasClassFilter &&
-    (matchesText(clazz.name, className) ||
-      (clazz.fqn ? matchesText(clazz.fqn, className) : false));
-  const methodMatch =
-    hasMethodFilter &&
-    clazz.methods.some((method) => matchesText(method.name, methodName));
-  return classNameMatch || methodMatch;
+  return (
+    matchesText(district.name, districtName) ||
+    matchesText(district.fqn, districtName)
+  );
 }
 
-function packageMatchesFilters(
-  pkg: Package,
-  packageName?: string,
-  className?: string,
-  methodName?: string
-) {
-  if (normalizeText(packageName)) {
-    return (
-      matchesText(pkg.name, packageName) || matchesText(pkg.fqn, packageName)
-    );
+function buildingMatchesFilter(building: Building, buildingName?: string) {
+  if (!normalizeText(buildingName)) {
+    return true;
   }
-  if (normalizeText(className) || normalizeText(methodName)) {
-    return pkg.classes.some((clazz) =>
-      classMatchesFilters(clazz, className, methodName)
-    );
-  }
-  return true;
+  return (
+    matchesText(building.name, buildingName) ||
+    matchesText(building.fqn, buildingName)
+  );
 }
 
-function buildApplicationSummary(
-  application: Application,
-  packages: Package[],
-  classes: Class[],
-  methods: Method[],
-  limitedPackages: Package[],
-  limitedClasses: Class[],
-  limitedMethods: Method[]
+function buildCitySummary(
+  city: City,
+  districts: District[],
+  buildings: Building[],
+  limitedDistricts: District[],
+  limitedBuildings: Building[]
 ) {
   return {
-    id: application.id,
-    name: application.name,
-    language: application.language,
-    originOfData: application.originOfData,
-    instanceId: application.instanceId,
-    packageCount: packages.length,
-    classCount: classes.length,
-    methodCount: methods.length,
-    returnedPackageCount: limitedPackages.length,
-    returnedClassCount: limitedClasses.length,
-    returnedMethodCount: limitedMethods.length,
+    id: city.id,
+    name: city.name,
+    fqn: city.fqn,
+    originOfData: city.originOfData,
+    districtCount: districts.length,
+    buildingCount: buildings.length,
+    returnedDistrictCount: limitedDistricts.length,
+    returnedBuildingCount: limitedBuildings.length,
   };
 }
 
-function toPackageResult(pkg: Package, applicationId: string) {
+function toDistrictResult(district: District) {
   return {
-    id: pkg.id,
-    name: pkg.name,
-    fqn: pkg.fqn,
-    level: pkg.level,
-    parentPackageId: pkg.parent?.id ?? null,
-    applicationId,
-    originOfData: pkg.originOfData,
-    classCount: pkg.classes.length,
-    editingState: pkg.editingState,
+    id: district.id,
+    name: district.name,
+    fqn: district.fqn,
+    parentDistrictId: district.parentDistrictId ?? null,
+    cityId: district.parentCityId,
+    originOfData: district.originOfData,
+    childDistrictCount: district.districtIds.length,
+    buildingCount: district.buildingIds.length,
+    editingState: district.editingState,
   };
 }
 
-function toClassResult(clazz: Class, applicationId: string, packageId: string) {
+function toBuildingResult(building: Building) {
   return {
-    id: clazz.id,
-    name: clazz.name,
-    fqn: clazz.fqn,
-    level: clazz.level,
-    packageId,
-    applicationId,
-    originOfData: clazz.originOfData,
-    methodCount: clazz.methods.length,
-    editingState: clazz.editingState,
-  };
-}
-
-function toMethodResult(
-  method: Method,
-  identifiers: { applicationId: string; packageId: string; classId: string }
-) {
-  return {
-    id: method.id,
-    name: method.name,
-    type: method.type,
-    private: method.private,
-    parameters: method.parameters,
-    originOfData: method.originOfData,
-    methodHash: method.methodHash,
-    applicationId: identifiers.applicationId,
-    packageId: identifiers.packageId,
-    classId: identifiers.classId,
+    id: building.id,
+    name: building.name,
+    fqn: building.fqn,
+    districtId: building.parentDistrictId ?? null,
+    cityId: building.parentCityId,
+    language: building.language,
+    metrics: building.metrics,
+    originOfData: building.originOfData,
+    editingState: building.editingState,
   };
 }
 
@@ -214,17 +156,7 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
     canGoBack,
     canGoForward,
   } = use(EditingContext);
-  const packages = () => {
-    const list = [] as Package[];
-    cities?.forEach(({ packages }) => {
-      packages.forEach((pck) => {
-        list.push(...getAllSubPackages(pck));
-      });
-    });
-    return list;
-  };
 
-  const { sendMessage } = useCopilotChatInternal();
   const {
     pingScreenAtPoint,
     showToolsSidebar,
@@ -242,155 +174,121 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
   useFrontendTool({
     name: 'query-landscape-data',
     description:
-      'Returns 3D landscape data with filters and adjustable level of detail so you can request only the slices you need instead of the full landscape.',
+      'Returns flat 3D landscape data (cities, districts, buildings) with filters and adjustable detail level so you can request only the slices you need.',
     parameters: z.object({
-      applicationIds: z.array(z.string()).optional(),
-      applicationName: z.string().optional(),
-      packageName: z.string().optional(),
-      className: z.string().optional(),
-      methodName: z.string().optional(),
+      cityIds: z.array(z.string()).optional(),
+      cityName: z.string().optional(),
+      districtName: z.string().optional(),
+      buildingName: z.string().optional(),
       detailLevel: z.string().optional(),
-      maxApplications: z.number().optional(),
-      maxPackages: z.number().optional(),
-      maxClasses: z.number().optional(),
-      maxMethods: z.number().optional(),
+      maxCities: z.number().optional(),
+      maxDistricts: z.number().optional(),
+      maxBuildings: z.number().optional(),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
     handler: async ({
-      applicationIds,
-      applicationName,
-      packageName,
-      className,
-      methodName,
+      cityIds,
+      cityName,
+      districtName,
+      buildingName,
       detailLevel,
-      maxApplications,
-      maxPackages,
-      maxClasses,
-      maxMethods,
+      maxCities,
+      maxDistricts,
+      maxBuildings,
     }) => {
       const level: DetailLevel = isValidDetailLevel(detailLevel)
         ? detailLevel
         : 'summary';
-      const availableApplications = cities ?? [];
-      const filteredApplications = availableApplications.filter((app) => {
+      const availableCities = cities ?? [];
+      const filteredCities = availableCities.filter((city) => {
         const idMatches =
-          !Array.isArray(applicationIds) ||
-          applicationIds.length === 0 ||
-          applicationIds.includes(app.id);
-        const nameMatches = matchesText(app.name, applicationName);
+          !Array.isArray(cityIds) ||
+          cityIds.length === 0 ||
+          cityIds.includes(city.id);
+        const nameMatches = matchesText(city.name, cityName);
         return idMatches && nameMatches;
       });
 
-      const limitedApplications = limitList(
-        filteredApplications,
-        maxApplications
-      );
+      const limitedCities = limitList(filteredCities, maxCities);
 
       const response: {
         detailLevel: DetailLevel;
         filters: Record<string, unknown>;
-        applications: ReturnType<typeof buildApplicationSummary>[];
-        packages?: ReturnType<typeof toPackageResult>[];
-        classes?: ReturnType<typeof toClassResult>[];
-        methods?: ReturnType<typeof toMethodResult>[];
+        cities: ReturnType<typeof buildCitySummary>[];
+        districts?: ReturnType<typeof toDistrictResult>[];
+        buildings?: ReturnType<typeof toBuildingResult>[];
       } = {
         detailLevel: level,
         filters: {
-          applicationIds:
-            Array.isArray(applicationIds) && applicationIds.length > 0
-              ? applicationIds
-              : undefined,
-          applicationName: applicationName || undefined,
-          packageName: packageName || undefined,
-          className: className || undefined,
-          methodName: methodName || undefined,
-          maxApplications,
-          maxPackages,
-          maxClasses,
-          maxMethods,
+          cityIds:
+            Array.isArray(cityIds) && cityIds.length > 0 ? cityIds : undefined,
+          cityName: cityName || undefined,
+          districtName: districtName || undefined,
+          buildingName: buildingName || undefined,
+          maxCities,
+          maxDistricts,
+          maxBuildings,
         },
-        applications: [],
+        cities: [],
       };
 
-      limitedApplications.forEach((application) => {
-        const allPackages = flattenPackages(application);
-        const filteredPackages = allPackages.filter((pkg) =>
-          packageMatchesFilters(pkg, packageName, className, methodName)
+      limitedCities.forEach((city) => {
+        const cityDistricts = city.allContainedDistrictIds
+          .map((districtId) => useModelStore.getState().getDistrict(districtId))
+          .filter((district): district is District => !!district);
+        const cityBuildings = city.allContainedBuildingIds
+          .map((buildingId) => useModelStore.getState().getBuilding(buildingId))
+          .filter((building): building is Building => !!building);
+
+        const filteredDistricts = cityDistricts.filter((district) =>
+          districtMatchesFilter(district, districtName)
         );
-        const filteredClasses = filteredPackages.flatMap((pkg) =>
-          pkg.classes
-            .filter((clazz) =>
-              classMatchesFilters(clazz, className, methodName)
-            )
-            .map((clazz) => ({ clazz, packageId: pkg.id }))
+        const filteredBuildings = cityBuildings.filter((building) =>
+          buildingMatchesFilter(building, buildingName)
         );
 
-        const filteredMethods =
-          level === 'methods'
-            ? filteredClasses.flatMap(({ clazz, packageId }) =>
-                clazz.methods
-                  .filter((method) => matchesText(method.name, methodName))
-                  .map((method) => ({ method, classId: clazz.id, packageId }))
-              )
+        const filteredBuildingsWithDistrictConstraint = normalizeText(
+          districtName
+        )
+          ? filteredBuildings.filter((building) => {
+              const districtId = building.parentDistrictId;
+              if (!districtId) {
+                return false;
+              }
+              return filteredDistricts.some(
+                (district) => district.id === districtId
+              );
+            })
+          : filteredBuildings;
+
+        const limitedDistricts =
+          level === 'districts' || level === 'buildings'
+            ? limitList(filteredDistricts, maxDistricts)
+            : [];
+        const limitedBuildings =
+          level === 'buildings'
+            ? limitList(filteredBuildingsWithDistrictConstraint, maxBuildings)
             : [];
 
-        const limitedPackages =
-          level === 'packages' || level === 'classes' || level === 'methods'
-            ? limitList(filteredPackages, maxPackages)
-            : [];
-        const limitedClasses =
-          level === 'classes' || level === 'methods'
-            ? limitList(filteredClasses, maxClasses)
-            : [];
-        const limitedMethods =
-          level === 'methods' ? limitList(filteredMethods, maxMethods) : [];
-
-        response.applications.push(
-          buildApplicationSummary(
-            application,
-            filteredPackages,
-            filteredClasses.map(({ clazz }) => clazz),
-            filteredMethods.map(({ method }) => method),
-            limitedPackages,
-            limitedClasses.map(({ clazz }) => clazz),
-            limitedMethods.map(({ method }) => method)
+        response.cities.push(
+          buildCitySummary(
+            city,
+            filteredDistricts,
+            filteredBuildingsWithDistrictConstraint,
+            limitedDistricts,
+            limitedBuildings
           )
         );
 
-        if (
-          level === 'packages' ||
-          level === 'classes' ||
-          level === 'methods'
-        ) {
-          response.packages ??= [];
-          response.packages.push(
-            ...limitedPackages.map((pkg) =>
-              toPackageResult(pkg, application.id)
-            )
-          );
+        if (level === 'districts' || level === 'buildings') {
+          response.districts ??= [];
+          response.districts.push(...limitedDistricts.map(toDistrictResult));
         }
 
-        if (level === 'classes' || level === 'methods') {
-          response.classes ??= [];
-          response.classes.push(
-            ...limitedClasses.map(({ clazz, packageId }) =>
-              toClassResult(clazz, application.id, packageId)
-            )
-          );
-        }
-
-        if (level === 'methods') {
-          response.methods ??= [];
-          response.methods.push(
-            ...limitedMethods.map(({ method, classId, packageId }) =>
-              toMethodResult(method, {
-                applicationId: application.id,
-                packageId,
-                classId,
-              })
-            )
-          );
+        if (level === 'buildings') {
+          response.buildings ??= [];
+          response.buildings.push(...limitedBuildings.map(toBuildingResult));
         }
       });
 
@@ -401,12 +299,12 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
       if (args.detailLevel) {
         labelParts.push(args.detailLevel);
       }
-      if (args.applicationName) {
-        labelParts.push(`app~${args.applicationName}`);
-      } else if (args.packageName) {
-        labelParts.push(`pkg~${args.packageName}`);
-      } else if (args.className) {
-        labelParts.push(`class~${args.className}`);
+      if (args.cityName) {
+        labelParts.push(`city~${args.cityName}`);
+      } else if (args.districtName) {
+        labelParts.push(`district~${args.districtName}`);
+      } else if (args.buildingName) {
+        labelParts.push(`building~${args.buildingName}`);
       }
 
       return (
@@ -962,16 +860,17 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
       const [format, bytes] = url
         .split(/data:image\/|;|base64,/)
         .filter(Boolean);
-      await sendMessage({
-        id: 'screenshot-' + Date.now(),
-        role: 'user',
-        image: {
-          format,
-          bytes,
+      const mimeType = format === 'jpg' ? 'image/jpeg' : `image/${format}`;
+      return [
+        {
+          type: 'image',
+          source: {
+            type: 'data',
+            value: bytes,
+            mimeType,
+          },
         },
-        content: '',
-      });
-      return 'Screenshot taken and appended to the chat.';
+      ];
     },
     render: ({ status, result }) => (
       <ToolCallCard
