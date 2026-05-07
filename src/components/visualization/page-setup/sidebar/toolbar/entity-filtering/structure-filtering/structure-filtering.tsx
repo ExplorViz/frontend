@@ -11,17 +11,17 @@ import ClassMethodFiltering, {
 } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/entity-filtering/structure-filtering/class-method-filtering';
 import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { NEW_SELECTED_TIMESTAMP_EVENT } from 'explorviz-frontend/src/stores/timestamp';
-import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
-  Class,
-  Package,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+  Building,
+  FlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
+import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
 interface StructureFilteringProps {
   readonly landscapeData: LandscapeData;
+  readonly flatLandscapeData: FlatLandscape;
 }
 
 export type StructureFilteringHandle = {
@@ -32,14 +32,24 @@ export type StructureFilteringHandle = {
 const StructureFiltering = forwardRef<
   StructureFilteringHandle,
   StructureFilteringProps
->(function StructureFiltering({ landscapeData }: StructureFilteringProps, ref) {
+>(function StructureFiltering(
+  { landscapeData, flatLandscapeData }: StructureFilteringProps,
+  ref
+) {
   const triggerRenderingForGivenLandscapeData = useRenderingServiceStore(
     (state) => state.triggerRenderingForGivenLandscapeData
   );
 
-  const classes: Class[] = landscapeData.structureLandscapeData.nodes.flatMap(
-    (node) =>
-      node.applications.flatMap((app) => getAllClassesInApplication(app))
+  const getMethodCount = (building: Building): number =>
+    building.metrics?.functionCount?.current ?? 0;
+
+  const toMethodCountClass = (building: Building): Class =>
+    ({
+      methods: Array.from({ length: getMethodCount(building) }),
+    }) as Class;
+
+  const classes: Class[] = Object.values(flatLandscapeData.buildings).map(
+    toMethodCountClass
   );
 
   const classCount = classes.length;
@@ -51,6 +61,7 @@ const StructureFiltering = forwardRef<
   ] = useState<number>(initialClasses.length);
 
   const initialLandscapeData = useRef<LandscapeData>(landscapeData);
+  const initialFlatLandscapeData = useRef<FlatLandscape>(flatLandscapeData);
   const selectedMinMethodCount = useRef<number>(0);
   const initialClassCount = initialClasses.length;
   const classMethodRef = useRef<ClassMethodFilteringHandle>(null);
@@ -62,87 +73,57 @@ const StructureFiltering = forwardRef<
 
   const resetState = () => {
     // reset state, since new timestamp has been loaded
-    let classes: Class[] = [];
-
-    for (const node of landscapeData.structureLandscapeData.nodes) {
-      for (const app of node.applications) {
-        classes = [...classes, ...getAllClassesInApplication(app)];
-      }
-    }
+    const classes: Class[] = Object.values(flatLandscapeData.buildings).map(
+      toMethodCountClass
+    );
     setInitialClasses(classes);
     initialLandscapeData.current = landscapeData;
-    setNumRemainingClassesAfterFilteredByMethodCount(initialClasses.length);
-  };
-
-  const removeFilteredClassesOfNestedPackages = (
-    pack: Package,
-    classesToRemove: Class[]
-  ) => {
-    if (classesToRemove.length == 0) {
-      return;
-    }
-
-    for (let i = pack.classes.length - 1; i >= 0; i--) {
-      if (classesToRemove.find((clazz) => clazz.id == pack.classes[i].id)) {
-        pack.classes.splice(i, 1);
-      }
-    }
-
-    for (const subPack of pack.subPackages) {
-      removeFilteredClassesOfNestedPackages(subPack, classesToRemove);
-    }
+    initialFlatLandscapeData.current = flatLandscapeData;
+    setNumRemainingClassesAfterFilteredByMethodCount(classes.length);
   };
 
   const _triggerRenderingForGivenLandscapeData = () => {
-    let numFilter = 0;
-
-    // hide all classes that have a strict lower method count than selected
-    const classesToRemove = initialClasses.filter((t) => {
-      if (t.methods.length < selectedMinMethodCount.current!) {
-        return true;
-      }
-      numFilter++;
-      return false;
-    });
-
-    setNumRemainingClassesAfterFilteredByMethodCount(numFilter);
-    numFilter = 0;
-
-    const deepCopyStructure = structuredClone(
-      initialLandscapeData.current.structureLandscapeData
+    const deepCopyFlatLandscape = structuredClone(
+      initialFlatLandscapeData.current
+    );
+    const classesToRemove = Object.values(
+      deepCopyFlatLandscape.buildings
+    ).filter(
+      (building) => getMethodCount(building) < selectedMinMethodCount.current
     );
 
-    let classes: Class[] = [];
+    setNumRemainingClassesAfterFilteredByMethodCount(
+      Object.keys(deepCopyFlatLandscape.buildings).length -
+        classesToRemove.length
+    );
 
-    for (const node of deepCopyStructure.nodes) {
-      for (const app of node.applications) {
-        classes = [...classes, ...getAllClassesInApplication(app)];
-      }
+    for (const building of classesToRemove) {
+      delete deepCopyFlatLandscape.buildings[building.id];
     }
 
-    classes = [];
+    const remainingBuildingIds = new Set(
+      Object.keys(deepCopyFlatLandscape.buildings)
+    );
 
-    for (const node of deepCopyStructure.nodes) {
-      for (const app of node.applications) {
-        for (const pack of app.packages) {
-          removeFilteredClassesOfNestedPackages(pack, classesToRemove);
-        }
-      }
+    for (const district of Object.values(deepCopyFlatLandscape.districts)) {
+      district.buildingIds = district.buildingIds.filter((id) =>
+        remainingBuildingIds.has(id)
+      );
     }
 
-    for (const node of deepCopyStructure.nodes) {
-      for (const app of node.applications) {
-        classes = [...classes, ...getAllClassesInApplication(app)];
-      }
+    for (const city of Object.values(deepCopyFlatLandscape.cities)) {
+      city.buildingIds = city.buildingIds.filter((id) =>
+        remainingBuildingIds.has(id)
+      );
+      city.allContainedBuildingIds = city.allContainedBuildingIds.filter((id) =>
+        remainingBuildingIds.has(id)
+      );
     }
-
-    classes = [];
 
     triggerRenderingForGivenLandscapeData(
-      convertToFlatLandscape(deepCopyStructure), // TODO: Should be a deepCopyStructure of the FlatLandscape after removal of StructureData from LandscapeData
-      landscapeData.dynamicLandscapeData,
-      landscapeData.aggregatedFileCommunication,
-      deepCopyStructure,
+      deepCopyFlatLandscape,
+      initialLandscapeData.current.dynamicLandscapeData,
+      initialLandscapeData.current.aggregatedFileCommunication
     );
   };
 
@@ -150,7 +131,7 @@ const StructureFiltering = forwardRef<
     eventEmitter.on(NEW_SELECTED_TIMESTAMP_EVENT, resetState);
     return () => {
       triggerRenderingForGivenLandscapeData(
-        initialLandscapeData.current.flatLandscapeData,
+        initialFlatLandscapeData.current,
         initialLandscapeData.current.dynamicLandscapeData,
         initialLandscapeData.current.aggregatedFileCommunication
       );

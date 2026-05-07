@@ -1,5 +1,8 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
+import {
+  City,
+  FlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   Application,
   Package,
@@ -59,37 +62,39 @@ export function collectPackageIds(
  */
 export function applyCircleLayoutToClasses(
   boxLayoutMap: Map<string, BoxLayout>,
-  applications: Application[]
+  flatLandscape: FlatLandscape,
+  cities: City[]
 ) {
   setCircleLayoutSettings();
-  applications.forEach((application) => {
-    // Get application layout to determine circle size
-    const appLayout = boxLayoutMap.get(application.id);
-    if (!appLayout) {
+  cities.forEach((city) => {
+    // Get city layout to determine circle size
+    const cityLayout = boxLayoutMap.get(city.id);
+    if (!cityLayout) {
       return;
     }
 
-    // Get all classes in applications and sort by fqn
-    const classes = getAllClassesInApplication(application).sort(
-      (classA, classB) => classA.fqn!.localeCompare(classB.fqn!)
-    );
+    // Get all buildings in city and sort by fqn
+    const buildings = city.allContainedBuildingIds
+      .map((id) => flatLandscape.buildings[id])
+      .filter((building) => building !== undefined)
+      .sort((a, b) => (a.fqn ?? a.name).localeCompare(b.fqn ?? b.name));
 
-    if (classes.length === 0) {
+    if (buildings.length === 0) {
       return;
     }
 
-    // Calculate circle radius based on application size and label margins
-    const appWidth = appLayout.width;
-    const appDepth = appLayout.depth;
+    // Calculate circle radius based on city size and label margins
+    const appWidth = cityLayout.width;
+    const appDepth = cityLayout.depth;
     const radius =
       Math.min(appWidth, appDepth) * 0.5 -
       BUILDING_FOOTPRINT / 2 -
       Math.max(CITY_LABEL_MARGIN, CITY_MARGIN);
 
-    // Arrange classes in a circle with equal angular spacing
-    const angleStep = (2 * Math.PI) / classes.length;
+    // Arrange buildings in a circle with equal angular spacing
+    const angleStep = (2 * Math.PI) / buildings.length;
 
-    classes.forEach((classModel, index) => {
+    buildings.forEach((building, index) => {
       const classLayout = new BoxLayout();
 
       classLayout.width = BUILDING_FOOTPRINT;
@@ -100,10 +105,10 @@ export function applyCircleLayoutToClasses(
       // As Label and regular margin can differ, we offset by half the label margin difference
       const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_MARGIN / 2;
 
-      if (classes.length === 1) {
-        // If there is only one class, place it at the center of the application
-        classLayout.positionX = appLayout.width / 2;
-        classLayout.positionZ = appLayout.depth / 2 + zMarginOffset;
+      if (buildings.length === 1) {
+        // If there is only one building, place it at the center of the city
+        classLayout.positionX = cityLayout.width / 2;
+        classLayout.positionZ = cityLayout.depth / 2 + zMarginOffset;
         return;
       }
 
@@ -111,15 +116,15 @@ export function applyCircleLayoutToClasses(
 
       const classX =
         radius * Math.cos(classAngle) +
-        appLayout.width / 2 -
+        cityLayout.width / 2 -
         BUILDING_FOOTPRINT / 2;
       const classZ =
-        radius * Math.sin(classAngle) + appLayout.depth / 2 + zMarginOffset;
+        radius * Math.sin(classAngle) + cityLayout.depth / 2 + zMarginOffset;
 
       classLayout.positionX = classX;
       classLayout.positionZ = classZ;
 
-      boxLayoutMap.set(classModel.id, classLayout);
+      boxLayoutMap.set(building.id, classLayout);
     });
   });
 }

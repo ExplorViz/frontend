@@ -11,15 +11,13 @@ import {
 } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
+  Building,
+  City,
+  District,
   isBuilding,
   isCity,
   isDistrict,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  isApplication,
-  isClass,
-  isPackage,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import CommunicationLayout from 'explorviz-frontend/src/utils/layout/communication-layout';
 import ClazzCommunicationMesh from 'explorviz-frontend/src/view-objects/3d/city/clazz-communication-mesh';
@@ -44,13 +42,17 @@ export function setGlobalLayoutMap(map: Map<string, BoxLayout>) {
 
 export default function CommunicationR3F({
   communicationModel,
-  applicationElement,
+  cityElement,
+  applicationElement: legacyApplicationElement,
   layoutMap,
 }: {
   communicationModel: AggregatedCommunication;
+  cityElement?: City;
   applicationElement?: any;
   layoutMap?: Map<string, BoxLayout>;
 }) {
+  const resolvedCityElement = cityElement ?? legacyApplicationElement;
+  const applicationElement = resolvedCityElement;
   const {
     arrowColor,
     arrowOffset,
@@ -204,10 +206,14 @@ export default function CommunicationR3F({
     useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
 
   // The deeper into the hierarchy tree, the closer the 3D-HAP is to its geometric element
+  const isClass = isBuilding;
+  const isPackage = isDistrict;
+  const isApplication = isCity;
+
   const getHapLevel = useCallback((element: any): number => {
-    if (isClass(element) || isBuilding(element)) return 0; // LOWEST level - closest to geometry
-    if (isPackage(element) || isDistrict(element)) return 1; // Middle level
-    if (isApplication(element) || isCity(element)) return 2; // HIGHEST level - farthest from geometry
+    if (isClass(element)) return 0; // LOWEST level - closest to geometry
+    if (isPackage(element)) return 1; // Middle level
+    if (isApplication(element)) return 2; // HIGHEST level - farthest from geometry
     return 0;
   }, []);
 
@@ -245,8 +251,8 @@ export default function CommunicationR3F({
       }
 
       let appPosition = new THREE.Vector3(0, 0, 0);
-      if (applicationElement && effectiveLayoutMap?.has(applicationElement.id)) {
-        appPosition = effectiveLayoutMap.get(applicationElement.id)!.position;
+      if (resolvedCityElement && effectiveLayoutMap?.has(resolvedCityElement.id)) {
+        appPosition = effectiveLayoutMap.get(resolvedCityElement.id)!.position;
       }
 
       const buildingCenter = layout.center.clone();
@@ -262,7 +268,7 @@ export default function CommunicationR3F({
       hapPackageElevation,
       hapApplicationElevation,
       hapUseRelativeElevation,
-      applicationElement,
+      resolvedCityElement,
       effectiveLayoutMap,
     ]
   );
@@ -284,8 +290,32 @@ export default function CommunicationR3F({
 
   // Memoize helper functions to prevent recreating on each render
   const getChildren = useCallback((element: any): any[] => {
-    if (isPackage(element)) return [...element.subPackages, ...element.classes];
-    if (isApplication(element)) return element.packages;
+    if (isDistrict(element)) {
+      const districtChildren: Array<District | Building> = [];
+      element.districtIds.forEach((districtId: string) => {
+        const district = useModelStore.getState().getDistrict(districtId);
+        if (district) districtChildren.push(district);
+      });
+      element.buildingIds.forEach((buildingId: string) => {
+        const building = useModelStore.getState().getBuilding(buildingId);
+        if (building) districtChildren.push(building);
+      });
+      return districtChildren;
+    }
+
+    if (isCity(element)) {
+      const cityChildren: Array<District | Building> = [];
+      element.districtIds.forEach((districtId: string) => {
+        const district = useModelStore.getState().getDistrict(districtId);
+        if (district) cityChildren.push(district);
+      });
+      element.buildingIds.forEach((buildingId: string) => {
+        const building = useModelStore.getState().getBuilding(buildingId);
+        if (building) cityChildren.push(building);
+      });
+      return cityChildren;
+    }
+
     return [];
   }, []);
 
@@ -446,16 +476,10 @@ export default function CommunicationR3F({
     // Use application-level HAP system for intra-app communications
     let system = hapSystemManager.getHAPSystem(applicationElement.id);
     if (!system) {
-      const getChildrenLocal = (el: any) => {
-        if (isPackage(el)) return [...el.subPackages, ...el.classes];
-        if (isApplication(el)) return el.packages;
-        return [];
-      };
-
       hapSystemManager.buildApplicationHAPTree(
         applicationElement.id,
         applicationElement,
-        getChildrenLocal,
+        getChildren,
         getPosition,
         getHapLevel
       );
@@ -469,6 +493,7 @@ export default function CommunicationR3F({
     applicationElement?.id,
     enableEdgeBundling,
     effectiveLayoutMap,
+    getChildren,
     getPosition,
     getHapLevel,
     isInterAppCommunication,
@@ -1131,13 +1156,6 @@ export default function CommunicationR3F({
       if (enableEdgeBundling) {
         hapSystemManager.clearHAPSystem(applicationElement.id);
 
-        const getChildren = (element: any): any[] => {
-          if (isPackage(element))
-            return [...element.subPackages, ...element.classes];
-          if (isApplication(element)) return element.packages;
-          return [];
-        };
-
         hapSystemManager.buildApplicationHAPTree(
           applicationElement.id,
           applicationElement,
@@ -1360,12 +1378,7 @@ export default function CommunicationR3F({
         hapSystemManager.rebuildHAPTreeWithLeafSetting(
           applicationElement.id,
           applicationElement,
-          (element: any) => {
-            if (isPackage(element))
-              return [...element.subPackages, ...element.classes];
-            if (isApplication(element)) return element.packages;
-            return [];
-          },
+          getChildren,
           getPosition,
           getHapLevel,
           leafPackagesOnly
@@ -1401,6 +1414,7 @@ export default function CommunicationR3F({
     showHAPTree,
     scene,
     isInterAppCommunication,
+    getChildren,
   ]);
 
   useEffect(() => {
@@ -1411,17 +1425,10 @@ export default function CommunicationR3F({
 
       hapSystemManager.clearHAPSystem(applicationElement.id);
 
-      const getChildrenLocal = (element: any): any[] => {
-        if (isPackage(element))
-          return [...element.subPackages, ...element.classes];
-        if (isApplication(element)) return element.packages;
-        return [];
-      };
-
       hapSystemManager.buildApplicationHAPTree(
         applicationElement.id,
         applicationElement,
-        getChildrenLocal,
+        getChildren,
         getPosition,
         getHapLevel,
         leafPackagesOnly

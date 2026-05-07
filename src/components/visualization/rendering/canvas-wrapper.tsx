@@ -34,18 +34,14 @@ import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import {
-  getAllClassesInApplication,
-  getAllPackagesInApplication,
-} from 'explorviz-frontend/src/utils/application-helpers';
 import { calculateAggregatedCommunications } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
 import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
-import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
-  getAllApplicationsInLandscape,
-  getApplicationFromPackage,
-} from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+  isBuilding,
+  isCity,
+  isDistrict,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-district-opener-r3f';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
@@ -223,11 +219,11 @@ export default function CanvasWrapper({
   );
 
   const allApplications = useMemo(() => {
-    if (!landscapeData) return [];
-    return getAllApplicationsInLandscape(
-      landscapeData.structureLandscapeData
-    ).filter((app) => !removedDistrictIds.has(app.id));
-  }, [landscapeData, removedDistrictIds]);
+    return useModelStore
+      .getState()
+      .getAllCities()
+      .filter((city) => !removedDistrictIds.has(city.id));
+  }, [removedDistrictIds]);
 
   const getHAPPosition = useCallback(
     (element: any): THREE.Vector3 => {
@@ -236,16 +232,13 @@ export default function CanvasWrapper({
       }
 
       const layout = layoutMap.get(element.id)!;
-      const level =
-        element.type === 'application' ? 2 : element.type === 'package' ? 1 : 0;
-
-      const isApplication = element.type === 'application';
+      const level = isCity(element) ? 2 : isDistrict(element) ? 1 : 0;
 
       // Following the pattern from layout-helper.ts:getLandscapePositionOfModel
       // but without landscapeScalar since we're rendering inside the scaled landscape group
 
-      if (isApplication) {
-        // For applications: use position + (width/2, 0, depth/2) as center
+      if (isCity(element)) {
+        // For cities: use position + (width/2, 0, depth/2) as center
         const modelPosition = new THREE.Vector3(
           layout.position.x + layout.width / 2,
           layout.position.y + level * 20,
@@ -254,29 +247,9 @@ export default function CanvasWrapper({
         return modelPosition;
       }
 
-      // For classes and packages: need to add application position offset
-      // Check if application context was provided (via _tempApp)
-      let application = element._tempApp;
-
-      if (!application) {
-        // Try to find the parent application by traversing up the parent chain
-        let currentElement = element;
-        while (currentElement.parent) {
-          currentElement = currentElement.parent;
-        }
-
-        // If we found a top-level package, try to find its application by ID pattern
-        if (currentElement.id && currentElement.id.includes('.component-')) {
-          application = getApplicationFromPackage(
-            landscapeData!.structureLandscapeData,
-            currentElement.id
-          );
-        }
-      }
-
-      // Get application layout if we found the application
-      const appLayout = application ? layoutMap.get(application.id) : null;
-      if (!appLayout) {
+      // For districts/buildings: use parent city as base offset
+      const parentCityId = element.parentCityId;
+      if (!parentCityId || !layoutMap.has(parentCityId)) {
         // Fallback: use layout center
         return new THREE.Vector3(
           layout.center.x,
@@ -284,24 +257,25 @@ export default function CanvasWrapper({
           layout.center.z
         );
       }
+      const cityLayout = layoutMap.get(parentCityId)!;
 
-      // For classes/packages: appPosition + modelCenter
-      const appPosition = appLayout.position.clone();
+      // For districts/buildings: cityPosition + modelCenter
+      const cityPosition = cityLayout.position.clone();
       const modelPosition = layout.center.clone();
 
       return new THREE.Vector3(
-        appPosition.x + modelPosition.x,
+        cityPosition.x + modelPosition.x,
         modelPosition.y + level * 20,
-        appPosition.z + modelPosition.z
+        cityPosition.z + modelPosition.z
       );
     },
-    [layoutMap, landscapeData]
+    [layoutMap]
   );
 
   const getLevel = useCallback((element: any): number => {
-    if (element.type === 'application') return 2;
-    if (element.type === 'package') return 1;
-    if (element.type === 'class') return 0;
+    if (isCity(element)) return 2;
+    if (isDistrict(element)) return 1;
+    if (isBuilding(element)) return 0;
     return 0;
   }, []);
 
@@ -392,47 +366,40 @@ export default function CanvasWrapper({
       // Clear all HAP systems so they are rebuilt fresh for the new landscape.
       hapSystemManager.clearAllHAPSystems();
 
-      const allPackages = getAllApplicationsInLandscape(
-        landscapeData.structureLandscapeData
-      )
-        .filter((app) => !removedDistrictIds.has(app.id))
-        .map((app) => getAllPackagesInApplication(app))
-        .flat()
-        .filter((pkg) => !removedDistrictIds.has(pkg.id));
-      const packagesIds = new Set(allPackages.map((pkg) => pkg.id));
+      const allDistricts = useModelStore
+        .getState()
+        .getAllDistricts()
+        .filter((district) => !removedDistrictIds.has(district.id));
+      const districtIds = new Set(allDistricts.map((district) => district.id));
 
-      const allClasses = getAllApplicationsInLandscape(
-        landscapeData.structureLandscapeData
-      )
-        .filter((app) => !removedDistrictIds.has(app.id))
-        .map((app) => getAllClassesInApplication(app))
-        .flat()
-        .filter((classModel) => !removedDistrictIds.has(classModel.id));
-      const classIds = new Set(allClasses.map((classModel) => classModel.id));
+      const allBuildings = useModelStore
+        .getState()
+        .getAllBuildings()
+        .filter((building) => !removedDistrictIds.has(building.id));
+      const buildingIds = new Set(allBuildings.map((building) => building.id));
 
       const communicationIds = new Set(
         Object.values(buildingCommunications).map((comm) => comm.id)
       );
 
       const entityIds = new Set([
-        ...packagesIds,
-        ...classIds,
+        ...districtIds,
+        ...buildingIds,
         ...communicationIds,
       ]);
 
       // Remove all ids that are no longer part of the landscape
       useVisualizationStore.getState().actions.filterEntityIds(entityIds);
     }
-  }, [landscapeData, buildingCommunications, removedDistrictIds]);
+  }, [landscapeData, buildingCommunications, removedDistrictIds, hapSystemManager]);
 
   const updateLayout = useCallback(async () => {
     if (!landscapeData) return;
 
-    const flatStructure =
-      landscapeData.flatLandscapeData ??
-      convertToFlatLandscape(landscapeData.structureLandscapeData);
-
-    const layoutMap = await layoutLandscape(flatStructure, removedDistrictIds);
+    const layoutMap = await layoutLandscape(
+      landscapeData.flatLandscapeData,
+      removedDistrictIds
+    );
     useLayoutStore.getState().updateLayouts(layoutMap);
   }, [landscapeData, removedDistrictIds]);
 
@@ -582,7 +549,9 @@ export default function CanvasWrapper({
                   <CommunicationR3F
                     key={communication.id}
                     communicationModel={communication}
-                    applicationElement={communication.sourceApp}
+                    applicationElement={useModelStore.getState().getCityForModel(
+                      communication.sourceEntity.id
+                    )}
                     layoutMap={layoutMap}
                   />
                 ))}

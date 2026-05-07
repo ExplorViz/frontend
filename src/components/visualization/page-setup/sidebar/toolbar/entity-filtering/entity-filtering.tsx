@@ -114,6 +114,7 @@ const EntityFiltering = forwardRef<
       <StructureFiltering
         ref={structureFilteringRef}
         landscapeData={landscapeData}
+        flatLandscapeData={landscapeData.flatLandscapeData}
       />
     </>
   );

@@ -4,14 +4,13 @@ import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator
 import {
   Building,
   City,
-  convertStructureLandscapeFromFlat,
   District,
   FlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import { applyCircleLayoutToClasses } from 'explorviz-frontend/src/utils/layout/circle-layouter';
+import { applyCircleLayoutToClasses as applyCircleLayoutToBuildings } from 'explorviz-frontend/src/utils/layout/circle-layouter';
 import {
-  applySpiralLayoutToClasses,
+  applySpiralLayoutToClasses as applySpiralLayoutToBuildings,
   calculateSpiralSideLength,
 } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import {
@@ -166,16 +165,12 @@ export default async function layoutLandscape(
 
   const boxLayoutMap = convertElkToBoxLayout(layoutedGraph);
 
-  // Apply custom class layout if enabled
+  // Apply custom building layout if enabled
   if (useCustomBuildingLayout) {
-    const structureLandscape = convertStructureLandscapeFromFlat(landscape);
-    const applications = structureLandscape.nodes.flatMap(
-      (node) => node.applications
-    );
     if (useCircleLayout) {
-      applyCircleLayoutToClasses(boxLayoutMap, applications);
+      applyCircleLayoutToBuildings(boxLayoutMap, landscape, cities);
     } else {
-      applySpiralLayoutToClasses(boxLayoutMap, applications);
+      applySpiralLayoutToBuildings(boxLayoutMap, landscape, cities);
     }
   }
 

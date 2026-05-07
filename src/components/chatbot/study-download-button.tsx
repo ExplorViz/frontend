@@ -49,12 +49,7 @@ export function StudyDownloadButton() {
   const handleDownload = () => {
     const applicationSummary = landscapeData
       ? {
-          applicationCount:
-            landscapeData.structureLandscapeData?.nodes?.reduce(
-              (count, node) => count + (node.applications?.length ?? 0),
-              0
-            ) ?? 0,
-          nodeCount: landscapeData.structureLandscapeData?.nodes?.length ?? 0,
+          applicationCount: landscapeData.flatLandscapeData.cities.length,
         }
       : null;
 

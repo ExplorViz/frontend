@@ -5,7 +5,7 @@ import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-s
 import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export interface LandscapeData {
-  structureLandscapeData: StructureLandscapeData;
+  structureLandscapeData?: StructureLandscapeData;
   dynamicLandscapeData: DynamicLandscapeData;
   aggregatedFileCommunication: AggregatedBuildingCommunication;
   flatLandscapeData: FlatLandscape;

@@ -24,7 +24,6 @@ export default function useLandscapeDataWatcher(
   const { removedDistrictIds } = useVisualizationStore();
 
   // Variables
-  const structureLandscapeData = landscapeData?.structureLandscapeData;
   const dynamicLandscapeData = landscapeData?.dynamicLandscapeData;
   const aggregatedFileCommunication =
     landscapeData?.aggregatedFileCommunication;
@@ -37,11 +36,7 @@ export default function useLandscapeDataWatcher(
   const handleLandscapeUpdate = useCallback(async () => {
     log('handleLandscapeUpdate');
     await Promise.resolve();
-    if (
-      !structureLandscapeData ||
-      !dynamicLandscapeData ||
-      !flatLandscapeData
-    ) {
+    if (!dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
 
@@ -77,7 +72,6 @@ export default function useLandscapeDataWatcher(
     // Update layout store after model repository is populated
     useLayoutStore.getState().updateLayouts(boxLayoutMap);
   }, [
-    structureLandscapeData,
     dynamicLandscapeData,
     aggregatedFileCommunication,
     landscapeData,
@@ -86,11 +80,7 @@ export default function useLandscapeDataWatcher(
   ]);
 
   useEffect(() => {
-    if (
-      !structureLandscapeData ||
-      !dynamicLandscapeData ||
-      !flatLandscapeData
-    ) {
+    if (!dynamicLandscapeData || !flatLandscapeData) {
       return;
     }
 
@@ -119,7 +109,6 @@ export default function useLandscapeDataWatcher(
 
     handleLandscapeUpdate();
   }, [
-    structureLandscapeData,
     dynamicLandscapeData,
     aggregatedFileCommunication,
     flatLandscapeData,

@@ -1,6 +1,8 @@
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { getAllClassesInApplication } from 'explorviz-frontend/src/utils/application-helpers';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import {
+  City,
+  FlatLandscape,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 
 type SpiralState = {
@@ -92,7 +94,8 @@ export function calculateSpiralSideLength(
  */
 export function applySpiralLayoutToClasses(
   boxLayoutMap: Map<string, BoxLayout>,
-  applications: Application[]
+  flatLandscape: FlatLandscape,
+  cities: City[]
 ) {
   // Get settings from the store
   const { visualizationSettings: vs } = useUserSettingsStore.getState();
@@ -104,32 +107,33 @@ export function applySpiralLayoutToClasses(
   const SPIRAL_CENTER_OFFSET = vs.spiralCenterOffset.value;
   const SPIRAL_GAP = vs.spiralGap.value;
 
-  applications.forEach((application) => {
-    // Get application layout to determine spiral size
-    const appLayout = boxLayoutMap.get(application.id);
-    if (!appLayout) {
+  cities.forEach((city) => {
+    // Get city layout to determine spiral size
+    const cityLayout = boxLayoutMap.get(city.id);
+    if (!cityLayout) {
       return;
     }
 
-    // Get all classes in this application
-    const classes = getAllClassesInApplication(application).sort(
-      (classA, classB) => classA.fqn!.localeCompare(classB.fqn!)
-    );
+    // Get all buildings in this city
+    const buildings = city.allContainedBuildingIds
+      .map((id) => flatLandscape.buildings[id])
+      .filter((building) => building !== undefined)
+      .sort((a, b) => (a.fqn ?? a.name).localeCompare(b.fqn ?? b.name));
 
-    if (classes.length === 0) {
+    if (buildings.length === 0) {
       return;
     }
 
-    appLayout.width =
+    cityLayout.width =
       calculateSpiralSideLength(
-        classes.length,
+        buildings.length,
         BUILDING_FOOTPRINT,
         BUILDING_MARGIN,
         SPIRAL_GAP,
         SPIRAL_CENTER_OFFSET
       ) +
       2 * CITY_MARGIN;
-    appLayout.depth = appLayout.width - CITY_MARGIN + CITY_LABEL_MARGIN;
+    cityLayout.depth = cityLayout.width - CITY_MARGIN + CITY_LABEL_MARGIN;
 
     // Calculate spacing between classes (footprint + margin)
     const spacing = BUILDING_FOOTPRINT + BUILDING_MARGIN;
@@ -137,12 +141,12 @@ export function applySpiralLayoutToClasses(
     // As Label and regular margin can differ, we offset by half the label margin difference
     const zMarginOffset = -CITY_LABEL_MARGIN / 2 + CITY_MARGIN / 2;
 
-    if (classes.length === 1) {
-      // If there is only one class, place it at the center of the application
-      const classLayout = boxLayoutMap.get(classes[0].id);
+    if (buildings.length === 1) {
+      // If there is only one building, place it at the center of the city
+      const classLayout = boxLayoutMap.get(buildings[0].id);
       if (classLayout) {
-        classLayout.positionX = appLayout.width / 2;
-        classLayout.positionZ = appLayout.depth / 2 + zMarginOffset;
+        classLayout.positionX = cityLayout.width / 2;
+        classLayout.positionZ = cityLayout.depth / 2 + zMarginOffset;
       }
       return;
     }
@@ -150,8 +154,8 @@ export function applySpiralLayoutToClasses(
     // Calculate grid dimensions for snake-like spiral
     // Start from center and spiral outward
     // Apply center offset to shift the starting position
-    const centerX = appLayout.width / 2;
-    const centerZ = appLayout.depth / 2 + zMarginOffset;
+    const centerX = cityLayout.width / 2;
+    const centerZ = cityLayout.depth / 2 + zMarginOffset;
 
     let spiralConfig: SpiralConfig = {
       segmentAddition: SPIRAL_GAP + 1,
@@ -172,7 +176,7 @@ export function applySpiralLayoutToClasses(
       SPIRAL_CENTER_OFFSET
     );
 
-    classes.forEach((classModel, _) => {
+    buildings.forEach((building, _) => {
       const classLayout = new BoxLayout();
 
       classLayout.width = BUILDING_FOOTPRINT;
@@ -189,7 +193,7 @@ export function applySpiralLayoutToClasses(
 
       spiralState = advanceInSpiral(spiralState, spiralConfig);
 
-      boxLayoutMap.set(classModel.id, classLayout);
+      boxLayoutMap.set(building.id, classLayout);
     });
   });
 }

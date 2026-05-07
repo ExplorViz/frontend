@@ -69,14 +69,13 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useDebugSnapshotRepositoryStore } from '../stores/repos/debug-snapshot-repository';
-import { convertToFlatLandscape } from '../utils/landscape-schemes/flat-landscape';
+import { FlatLandscape } from '../utils/landscape-schemes/flat-landscape';
 
 export default function Visualization() {
   const bottomBar = useRef<AnalysisMode | undefined | null>(undefined);
@@ -151,14 +150,13 @@ export default function Visualization() {
 
   useEffect(() => {
     const handleRestructureLandscapeData = (
-      structureData: StructureLandscapeData,
+      flatStructure: FlatLandscape,
       dynamicData: DynamicLandscapeData
     ) => {
       renderingServiceTriggerRenderingForGivenLandscapeData(
-        convertToFlatLandscape(structureData), // TODO: Used in restructuring. Restructuring may not work with flatlandscape at the moment
         dynamicData,
         { metrics: {}, communications: [] },
-        structureData
+        flatStructure
       );
     };
     const handleToggleVisualizationUpdating = () => {

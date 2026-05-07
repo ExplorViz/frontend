@@ -23,8 +23,14 @@ export default class AggregatedCommunication {
 
   to?: number;
 
+  sourceCity?: any;
+
+  targetCity?: any;
+
+  // Backward compatibility for legacy application naming.
   sourceApp?: any;
 
+  // Backward compatibility for legacy application naming.
   targetApp?: any;
 
   metrics: {

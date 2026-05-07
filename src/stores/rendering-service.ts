@@ -13,7 +13,6 @@ import { combineDynamicLandscapeData } from 'explorviz-frontend/src/utils/landsc
 import { AggregatedBuildingCommunication } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-file-communication';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  convertStructureLandscapeFromFlat,
   FlatLandscape,
   getAllIdsOfFlatLandscape,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
@@ -188,14 +187,10 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
     triggerRenderingForGivenLandscapeData: (
       flatData: FlatLandscape,
       dynamicData: DynamicLandscapeData,
-      aggregatedFileCommunication: AggregatedBuildingCommunication,
-      structureData?: StructureLandscapeData
+      aggregatedFileCommunication: AggregatedBuildingCommunication
     ) => {
       set({
         _landscapeData: {
-          structureLandscapeData: structureData
-            ? structureData
-            : convertStructureLandscapeFromFlat(flatData), // TODO: Can be removed, when LandscapeData doesn't contain StructureLandscapeData anymore
           dynamicLandscapeData: dynamicData,
           aggregatedFileCommunication: aggregatedFileCommunication,
           flatLandscapeData: flatData,
@@ -284,9 +279,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           .loadLandscapeByTimestamp(timestampFrom, timestampTo);
 
         commitToRuntimeLandscapeDataMap.set(commitId, {
-          structureLandscapeData: convertStructureLandscapeFromFlat(
-            latestFetchedFlatLandscapeData
-          ), // TODO: Remove after removing StructureLD from LandscapeData
           dynamicLandscapeData: latestFetchedDynamicLandscapeData,
           aggregatedFileCommunication: latestFetchedAggregatedCommunication,
           flatLandscapeData: latestFetchedFlatLandscapeData,
@@ -305,8 +297,6 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
           newLandscapeData.flatLandscapeData ??
           prevLandscapeData.flatLandscapeData;
         return {
-          structureLandscapeData:
-            convertStructureLandscapeFromFlat(newFlatLandscapeData),
           dynamicLandscapeData: combineDynamicLandscapeData(
             prevLandscapeData.dynamicLandscapeData,
             newLandscapeData.dynamicLandscapeData
