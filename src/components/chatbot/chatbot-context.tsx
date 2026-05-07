@@ -313,7 +313,6 @@ export function ChatbotProvider({
     >
       <CopilotKit
         key={copilotRuntimeKey}
-        showDevConsole={false}
         enableInspector={false}
         runtimeUrl={copilotRuntimeUrl}
         headers={copilotHeaders}

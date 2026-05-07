@@ -59,8 +59,8 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
       });
 
       return {
-        id: city.id,
-        name: city.name,
+        cityId: city.id,
+        cityName: city.name,
         languages,
         originOfData: city.originOfData,
         directoryCount,
@@ -82,7 +82,7 @@ export function CopilotResources({ cities }: CopilotResourcesProps) {
 
   useCopilotReadable({
     description:
-      "Get a lightweight summary of the applications in the 3D landscape (counts only). Use the 'query-landscape-data' tool when you need filtered or detailed data.",
+      "Get a lightweight summary of the cities/applications in the 3D landscape (counts only). Use the 'query-landscape-data' tool when you need filtered or detailed data.",
     value: JSON.stringify(summarizeCities(cities ?? [])),
   });
 

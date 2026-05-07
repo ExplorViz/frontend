@@ -24,20 +24,8 @@ import { z } from 'zod';
 import { EditingContext } from '../editing/editing-context';
 import { ChatbotContext } from './chatbot-context';
 
-interface CopilotToolsProps {
-  cities?: City[];
-}
-
 const SCREENSHOT_MAX_WIDTH = 1280;
 const SCREENSHOT_MAX_HEIGHT = 720;
-
-type DetailLevel = 'summary' | 'districts' | 'buildings';
-
-const validDetailLevels: DetailLevel[] = ['summary', 'districts', 'buildings'];
-
-function isValidDetailLevel(level?: string): level is DetailLevel {
-  return !!level && validDetailLevels.includes(level as DetailLevel);
-}
 
 function normalizeText(value?: string) {
   return (value ?? '').trim().toLowerCase();
@@ -86,9 +74,8 @@ function buildCitySummary(
   limitedBuildings: Building[]
 ) {
   return {
-    id: city.id,
-    name: city.name,
-    fqn: city.fqn,
+    cityId: city.id,
+    cityName: city.name,
     originOfData: city.originOfData,
     districtCount: districts.length,
     buildingCount: buildings.length,
@@ -99,11 +86,11 @@ function buildCitySummary(
 
 function toDistrictResult(district: District) {
   return {
-    id: district.id,
-    name: district.name,
-    fqn: district.fqn,
-    parentDistrictId: district.parentDistrictId ?? null,
-    cityId: district.parentCityId,
+    districtId: district.id,
+    districtName: district.name,
+    districtFqn: district.fqn,
+    districtParentDistrictId: district.parentDistrictId ?? null,
+    districtParentCityId: district.parentCityId,
     originOfData: district.originOfData,
     childDistrictCount: district.districtIds.length,
     buildingCount: district.buildingIds.length,
@@ -113,11 +100,11 @@ function toDistrictResult(district: District) {
 
 function toBuildingResult(building: Building) {
   return {
-    id: building.id,
-    name: building.name,
-    fqn: building.fqn,
-    districtId: building.parentDistrictId ?? null,
-    cityId: building.parentCityId,
+    buildingId: building.id,
+    buildingName: building.name,
+    buildingFqn: building.fqn,
+    buildingParentDistrictId: building.parentDistrictId ?? null,
+    buildingParentCityId: building.parentCityId,
     language: building.language,
     metrics: building.metrics,
     originOfData: building.originOfData,
@@ -144,7 +131,7 @@ function buildSettingsPromptDescription() {
 
 const settingsPromptDescription = buildSettingsPromptDescription();
 
-export function CopilotTools({ cities }: CopilotToolsProps) {
+export function CopilotTools() {
   const { actions } = useVisualizationStore();
   const { lookAtEntity, resetCamera } = useCameraControlsStore();
   const {
@@ -192,15 +179,11 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
       cityName,
       districtName,
       buildingName,
-      detailLevel,
       maxCities,
       maxDistricts,
       maxBuildings,
     }) => {
-      const level: DetailLevel = isValidDetailLevel(detailLevel)
-        ? detailLevel
-        : 'summary';
-      const availableCities = cities ?? [];
+      const availableCities = useModelStore.getState().getAllCities() ?? [];
       const filteredCities = availableCities.filter((city) => {
         const idMatches =
           !Array.isArray(cityIds) ||
@@ -213,13 +196,11 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
       const limitedCities = limitList(filteredCities, maxCities);
 
       const response: {
-        detailLevel: DetailLevel;
         filters: Record<string, unknown>;
         cities: ReturnType<typeof buildCitySummary>[];
         districts?: ReturnType<typeof toDistrictResult>[];
         buildings?: ReturnType<typeof toBuildingResult>[];
       } = {
-        detailLevel: level,
         filters: {
           cityIds:
             Array.isArray(cityIds) && cityIds.length > 0 ? cityIds : undefined,
@@ -262,14 +243,10 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
             })
           : filteredBuildings;
 
-        const limitedDistricts =
-          level === 'districts' || level === 'buildings'
-            ? limitList(filteredDistricts, maxDistricts)
-            : [];
-        const limitedBuildings =
-          level === 'buildings'
-            ? limitList(filteredBuildingsWithDistrictConstraint, maxBuildings)
-            : [];
+        const limitedDistricts = limitList(filteredDistricts, maxDistricts);
+        const limitedBuildings = limitList(
+          filteredBuildingsWithDistrictConstraint
+        );
 
         response.cities.push(
           buildCitySummary(
@@ -281,15 +258,11 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
           )
         );
 
-        if (level === 'districts' || level === 'buildings') {
-          response.districts ??= [];
-          response.districts.push(...limitedDistricts.map(toDistrictResult));
-        }
+        response.districts ??= [];
+        response.districts.push(...limitedDistricts.map(toDistrictResult));
 
-        if (level === 'buildings') {
-          response.buildings ??= [];
-          response.buildings.push(...limitedBuildings.map(toBuildingResult));
-        }
+        response.buildings ??= [];
+        response.buildings.push(...limitedBuildings.map(toBuildingResult));
       });
 
       return response;
@@ -320,29 +293,29 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
   });
 
   useFrontendTool({
-    name: 'highlight-component',
+    name: 'highlight-entities',
     description:
-      'Permanently highlights or un-highlights a component in the 3D visualization by its id.',
+      'Highlights or un-highlights cities, districts, or buildings by their ids in the 3D visualization.',
     parameters: z.object({
-      id: z.string(),
-      isHighlighted: z.boolean().default(true),
+      ids: z.array(z.string()),
+      areHighlighted: z.boolean().default(true),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
-    handler: async ({ id, isHighlighted }) => {
-      actions.setHighlightedEntityId(id, isHighlighted);
+    handler: async ({ ids, areHighlighted }) => {
+      actions.setHighlightedEntityIds(ids, areHighlighted);
     },
     render: ({ args, status }) => {
       const action =
-        args.isHighlighted === undefined
+        args.areHighlighted === undefined
           ? undefined
-          : args.isHighlighted
+          : args.areHighlighted
             ? 'highlight'
             : 'removeHighlight';
 
       return (
         <ToolCallCard
-          component={{ id: args.id }}
+          component={{ name: args.ids?.toString() }}
           status={status}
           action={action}
         />
@@ -547,9 +520,9 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
   });
 
   useFrontendTool({
-    name: 'search-application-components',
+    name: 'entity-search',
     description:
-      'Searches for components by name in the Application Search panel. Optionally selects all results.',
+      'Searches for cities, districts, and buildings by fully qualified name in the search panel. Optionally selects all results.',
     parameters: z.object({
       query: z.string(),
       selectAll: z.boolean().optional(),
@@ -576,9 +549,9 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
   });
 
   useFrontendTool({
-    name: 'open-close-component',
+    name: 'open-close-district',
     description:
-      'Opens or closes a component, meaning its children are now visible or hidden in the 3d visualization.',
+      'Opens or closes a district (usually representing a folder), meaning its children are now visible (if opened) or hidden (if closed) in the 3d visualization. Closing a district also closes all its sub-districts automatically. The provided id can also be an id of a city to open or close all districts in this city.',
     parameters: z.object({
       id: z.string(),
       open: z.boolean(),
@@ -619,20 +592,22 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
   });
 
   useFrontendTool({
-    name: 'ping-component',
+    name: 'ping-entities',
     description:
-      "Causes a visual ping effect on a component in the 3D visualization by its id to draw the user's attention to it. This does not change the state of the component, it only triggers a temporary visual effect.",
+      "Causes a visual ping effect on given entities (cities, districts, buildings) in the 3D visualization to draw the user's attention to it. This does not change the state of the entity, it only triggers a temporary animated visual effect.",
     parameters: z.object({
-      id: z.string(),
+      ids: z.array(z.string()),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
-    handler: async ({ id }) => {
-      pingByModelId(id);
+    handler: async ({ ids }) => {
+      ids.forEach((id) => {
+        pingByModelId(id);
+      });
     },
     render: ({ args, status }) => (
       <ToolCallCard
-        component={{ id: args.id }}
+        component={{ name: args.ids?.toString() }}
         status={status}
         action={'ping'}
       />
@@ -640,9 +615,9 @@ export function CopilotTools({ cities }: CopilotToolsProps) {
   });
 
   useFrontendTool({
-    name: 'move-camera-to-component',
+    name: 'move-camera-to-entity',
     description:
-      'Moves the camera to focus on a specific component in the 3D visualization by its id.',
+      'Moves the camera to focus on a specific entity (city, district, building) in the 3D visualization by its id.',
     parameters: z.object({
       id: z.string(),
     }),

@@ -18,6 +18,7 @@ interface VisualizationStoreState {
     // Actions for all entities
     setHoveredEntityId: (id: string | null) => void;
     setHighlightedEntityId: (id: string, isHighlighted: boolean) => void;
+    setHighlightedEntityIds: (ids: string[], areHighlighted: boolean) => void;
     removeAllHighlightedEntityIds: () => void;
     resetVisualizationState: () => void;
     filterEntityIds: (validEntityIds: Set<string>) => void;
@@ -85,14 +86,8 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       },
       setHighlightedEntityId: (id: string, isHighlighted: boolean) => {
         if (isHighlighted) {
-          set((prevState) => {
-            const updatedHighlightedEntityIds = new Set(
-              prevState.highlightedEntityIds
-            );
-            updatedHighlightedEntityIds.add(id);
-            return {
-              highlightedEntityIds: updatedHighlightedEntityIds,
-            };
+          set({
+            highlightedEntityIds: get().highlightedEntityIds.add(id),
           });
         } else {
           set((prevState) => {
@@ -103,6 +98,21 @@ export const useVisualizationStore = create<VisualizationStoreState>(
             return {
               highlightedEntityIds: updatedHighlightedEntityIds,
             };
+          });
+        }
+      },
+      setHighlightedEntityIds: (ids: string[], areHighlighted: boolean) => {
+        if (areHighlighted) {
+          set({
+            highlightedEntityIds: get().highlightedEntityIds.union(
+              new Set(ids)
+            ),
+          });
+        } else {
+          set({
+            highlightedEntityIds: get().highlightedEntityIds.difference(
+              new Set(ids)
+            ),
           });
         }
       },
@@ -208,7 +218,7 @@ export const useVisualizationStore = create<VisualizationStoreState>(
       toggleLanguageVisibility: (language: Language) => {
         const current = new Set(get().hiddenLanguages);
         if (current.has(language)) {
-          current.delete(language); 
+          current.delete(language);
         } else {
           current.add(language);
         }

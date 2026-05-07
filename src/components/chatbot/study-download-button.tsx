@@ -27,10 +27,10 @@ function flattenSettings(settings: VisualizationSettings) {
 export function StudyDownloadButton() {
   const { messages } = useCopilotChatInternal();
   const {
-    closedDistrictIds: closedComponentIds,
+    closedDistrictIds,
     highlightedEntityIds,
     hoveredEntityId,
-    removedDistrictIds: removedComponentIds,
+    removedDistrictIds,
   } = useVisualizationStore();
   const {
     selectedProvider,
@@ -67,10 +67,10 @@ export function StudyDownloadButton() {
       landscapeData,
       landscapeSummary: applicationSummary,
       resourcesSnapshot: {
-        closedComponentIds: [...closedComponentIds],
+        closedDistrictIds: [...closedDistrictIds],
         highlightedEntityIds: [...highlightedEntityIds],
         hoveredEntityId: hoveredEntityId ?? null,
-        removedComponentIds: [...removedComponentIds],
+        removedDistrictIds: [...removedDistrictIds],
         canGoBack,
         canGoForward,
         showToolsSidebar,
