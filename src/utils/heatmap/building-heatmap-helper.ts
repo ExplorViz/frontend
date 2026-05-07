@@ -36,7 +36,7 @@ import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-la
 export function getMetricValues(
   dataModel: Class | Building,
   classHeatmapMetric: BuildingMetric
-): { min: number; max: number; current: number } {
+): { min: number; max: number; current: number | null } {
   const isBuilding = (x: any): x is Building =>
     Object.prototype.hasOwnProperty.call(x, 'parentCityId');
 
@@ -45,12 +45,12 @@ export function getMetricValues(
   const getMetricValueFromModel = (
     model: Class | Building,
     metricName: string
-  ): number => {
+  ): number | null => {
     if (isBuilding(model)) {
-      return model.metrics?.[metricName]?.current || 0;
+      return model.metrics?.[metricName]?.current ?? null;
     }
     // Fallback for legacy models if any
-    return (model as any)[metricName] || 0;
+    return (model as any)[metricName] ?? null;
   };
 
   switch (classHeatmapMetric.name) {
@@ -76,7 +76,7 @@ export function getMetricValues(
       return {
         min: 0,
         max: 0,
-        current: 0,
+        current: null,
       };
   }
 }
@@ -89,6 +89,9 @@ export function getHeatmapColor(
   maxColor: string
 ): string {
   const { min, max, current } = getMetricValues(dataModel, classHeatmapMetric);
+  if (current === null) {
+    return '#ffffff';
+  }
   // Edge cases for min and max
   if (current <= min) {
     return minColor;

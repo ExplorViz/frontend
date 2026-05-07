@@ -305,6 +305,9 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       }
       if (heatmapActive) {
         const metricValues = getMetricValues(building, selectedBuildingMetric!);
+        if (metricValues.current === null) {
+          return new THREE.Color('white');
+        }
         return new THREE.Color(
           getSimpleHeatmapColor(metricValues.current, metricValues.max)
         );
