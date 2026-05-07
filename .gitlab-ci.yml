@@ -8,7 +8,7 @@ variables:
 default:
   tags:
     - exec-docker
-  image: explorviz/build-images:frontend-node-22-alpine
+  image: node:25-alpine
 
 stages:
   - code-analysis
