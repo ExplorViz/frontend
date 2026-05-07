@@ -239,7 +239,7 @@ export default function BrowserRendering({
     );
 
     // IDE Websocket connection setup
-    restartAndSetSocket(landscapeToken?.value);
+    //restartAndSetSocket(landscapeToken?.value);
 
     // Cleanup on component unmount
     return function cleanup() {
