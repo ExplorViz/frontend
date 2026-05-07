@@ -14,7 +14,6 @@ export default defineConfig({
     alias: {
       '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
       'explorviz-frontend': path.resolve(__dirname),
-      '*': ['types/*'],
     },
   },
   server: {
