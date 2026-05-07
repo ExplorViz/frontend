@@ -8,8 +8,9 @@ import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
+  applyMetricMapping,
+  getMetricMappingMultiplier,
   MetricKey,
-  metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
 import gsap from 'gsap';
 import { useCallback, useEffect, useState } from 'react';
@@ -45,18 +46,16 @@ export default function CodeBuildingLabel({
       isBuildingHighlighted: state.highlightedEntityIds.has(buildingId),
       isParentHighlighted: state.highlightedEntityIds.has(
         building?.parentDistrictId ||
-          (!building?.parentDistrictId
-            ? building?.parentCityId || ''
-            : '')
+          (!building?.parentDistrictId ? building?.parentCityId || '' : '')
       ),
     }))
   );
 
   const sceneLayers = useVisualizationStore((state) => state.sceneLayers);
-
   const {
     buildingFootprint,
     buildingHeightMultiplier,
+    metricMapping,
     buildingLabelFontSize,
     buildingLabelLength,
     buildingTextColor,
@@ -70,6 +69,7 @@ export default function CodeBuildingLabel({
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
       buildingHeightMultiplier:
         state.visualizationSettings.buildingHeightMultiplier.value,
+      metricMapping: state.visualizationSettings.buildingMetricMapping.value,
       buildingLabelFontSize:
         state.visualizationSettings.buildingLabelFontSize.value,
       buildingLabelLength:
@@ -96,12 +96,12 @@ export default function CodeBuildingLabel({
       const metricValue = building.metrics?.[heightMetric]?.current || 0;
       return (
         buildingFootprint +
-        metricMappingMultipliers[heightMetric as MetricKey] *
+        getMetricMappingMultiplier(heightMetric as MetricKey, metricMapping) *
           buildingHeightMultiplier *
-          metricValue
+          applyMetricMapping(metricValue, metricMapping)
       );
     },
-    [buildingFootprint, buildingHeightMultiplier, heightMetric]
+    [buildingFootprint, buildingHeightMultiplier, heightMetric, metricMapping]
   );
 
   const [labelPosition, setLabelPosition] = useState<THREE.Vector3>(
@@ -147,6 +147,7 @@ export default function CodeBuildingLabel({
     heightMetric,
     buildingFootprint,
     buildingHeightMultiplier,
+    metricMapping,
     labelOffset,
     getBuildingHeight,
   ]);

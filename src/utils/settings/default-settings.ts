@@ -1,21 +1,53 @@
 import { defaultColors } from 'explorviz-frontend/src/utils/settings/color-schemes';
 import {
+  BuildingMetricMapping,
   SelectedBuildingMetric,
   SettingLevel,
   VisualizationSettings,
 } from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 export const metricMappingMultipliers = {
-  [SelectedBuildingMetric.None]: 1,
-  [SelectedBuildingMetric.loc]: 1,
-  [SelectedBuildingMetric.sloc]: 1,
-  [SelectedBuildingMetric.cloc]: 1,
-  [SelectedBuildingMetric.functionCount]: 10,
-  [SelectedBuildingMetric.variableCount]: 10,
-  [SelectedBuildingMetric.size]: 0.001,
+  [BuildingMetricMapping.Linear]: {
+    [SelectedBuildingMetric.None]: 1,
+    [SelectedBuildingMetric.loc]: 1,
+    [SelectedBuildingMetric.sloc]: 1,
+    [SelectedBuildingMetric.cloc]: 1,
+    [SelectedBuildingMetric.functionCount]: 10,
+    [SelectedBuildingMetric.variableCount]: 10,
+    [SelectedBuildingMetric.size]: 0.001,
+  },
+  [BuildingMetricMapping.Logarithmic]: {
+    [SelectedBuildingMetric.None]: 1,
+    [SelectedBuildingMetric.loc]: 20,
+    [SelectedBuildingMetric.sloc]: 20,
+    [SelectedBuildingMetric.cloc]: 20,
+    [SelectedBuildingMetric.functionCount]: 25,
+    [SelectedBuildingMetric.variableCount]: 20,
+    [SelectedBuildingMetric.size]: 10,
+  },
 } as const;
 
+export function applyMetricMapping(
+  value: number,
+  mapping: BuildingMetricMapping
+): number {
+  const numericValue = Number(value);
+  const safeValue = Number.isFinite(numericValue)
+    ? Math.max(0, numericValue)
+    : 0;
+  if (mapping === BuildingMetricMapping.Logarithmic) {
+    return Math.log1p(safeValue);
+  }
+  return safeValue;
+}
+
 export type MetricKey = SelectedBuildingMetric;
+export function getMetricMappingMultiplier(
+  metric: MetricKey,
+  mapping: BuildingMetricMapping
+): number {
+  return metricMappingMultipliers[mapping][metric];
+}
 export const metricKeys = Object.values(SelectedBuildingMetric);
 export const MOUSE_ACTIONS = [
   'NONE',
@@ -705,6 +737,16 @@ export const defaultVizSettings: VisualizationSettings = {
     group: 'Layout',
     displayName: 'Building Layout',
     description: 'Layout algorithm for buildings within cities',
+    isSelectSetting: true,
+  },
+  buildingMetricMapping: {
+    level: SettingLevel.DEFAULT,
+    value: BuildingMetricMapping.Linear,
+    options: [BuildingMetricMapping.Linear, BuildingMetricMapping.Logarithmic],
+    group: 'Layout',
+    displayName: 'Metric Mapping',
+    description:
+      'Mapping used for width, depth, and height metric values of buildings.',
     isSelectSetting: true,
   },
   buildingWidthMetric: {

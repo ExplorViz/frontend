@@ -38,17 +38,14 @@ import {
   getAllClassesInApplication,
   getAllPackagesInApplication,
 } from 'explorviz-frontend/src/utils/application-helpers';
-import { findFirstEntityWithOpenedParent } from 'explorviz-frontend/src/utils/city-rendering/communication-layouter';
-import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
-import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { calculateAggregatedCommunications } from 'explorviz-frontend/src/utils/city-rendering/communication-computer';
-import { convertToFlatLandscape, isBuilding, isDistrict } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import ControllerMenu from 'explorviz-frontend/src/utils/extended-reality/vr-menus-r3f/controller-menu';
+import { convertToFlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import {
   getAllApplicationsInLandscape,
   getApplicationFromPackage,
 } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
-import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import layoutLandscape from 'explorviz-frontend/src/utils/layout/elk-layouter';
 import AutoDistrictOpenerR3F from 'explorviz-frontend/src/view-objects/3d/auto-district-opener-r3f';
 import { AnimatedPing } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
@@ -126,6 +123,7 @@ export default function CanvasWrapper({
     buildingFootprint,
     buildingLayoutAlgorithm,
     buildingWidthMetric,
+    buildingMetricMapping,
     buildingWidthMultiplier,
     buildingDepthMetric,
     buildingDepthMultiplier,
@@ -173,6 +171,8 @@ export default function CanvasWrapper({
       buildingMargin: state.visualizationSettings.buildingMargin.value,
       buildingWidthMetric:
         state.visualizationSettings.buildingWidthMetric.value,
+      buildingMetricMapping:
+        state.visualizationSettings.buildingMetricMapping.value,
       buildingWidthMultiplier:
         state.visualizationSettings.buildingWidthMultiplier.value,
       buildingDepthMetric:
@@ -451,6 +451,7 @@ export default function CanvasWrapper({
     buildingLayoutAlgorithm,
     buildingMargin,
     buildingWidthMetric,
+    buildingMetricMapping,
     buildingWidthMultiplier,
     closedDistrictHeight,
     openedDistrictHeight,

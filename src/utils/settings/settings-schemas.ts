@@ -157,6 +157,7 @@ export type LayoutSettings = {
   cityMargin: RangeSetting;
   districtMargin: RangeSetting;
   buildingFootprint: RangeSetting;
+  buildingMetricMapping: SelectSetting<BuildingMetricMapping>;
   buildingWidthMetric: SelectSetting<SelectedBuildingMetric>;
   buildingWidthMultiplier: RangeSetting;
   buildingDepthMetric: SelectSetting<SelectedBuildingMetric>;
@@ -365,6 +366,11 @@ export enum SelectedBuildingMetric {
   functionCount = 'functionCount',
   variableCount = 'variableCount',
   size = 'size',
+}
+
+export enum BuildingMetricMapping {
+  Linear = 'Linear',
+  Logarithmic = 'Logarithmic',
 }
 
 export interface FlagSetting extends Setting<boolean> {

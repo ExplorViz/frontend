@@ -4,9 +4,9 @@ import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator
 import {
   Building,
   City,
+  convertStructureLandscapeFromFlat,
   District,
   FlatLandscape,
-  convertStructureLandscapeFromFlat,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import { applyCircleLayoutToClasses } from 'explorviz-frontend/src/utils/layout/circle-layouter';
@@ -15,10 +15,14 @@ import {
   calculateSpiralSideLength,
 } from 'explorviz-frontend/src/utils/layout/spiral-layouter';
 import {
+  applyMetricMapping,
+  getMetricMappingMultiplier,
   MetricKey,
-  metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
-import { SelectedBuildingMetric } from 'explorviz-frontend/src/utils/settings/settings-schemas';
+import {
+  BuildingMetricMapping,
+  SelectedBuildingMetric,
+} from 'explorviz-frontend/src/utils/settings/settings-schemas';
 
 // Prefixes with leading non-number characters are temporarily added
 // since ELK cannot handle IDs with leading numbers
@@ -39,6 +43,7 @@ let WIDTH_METRIC: SelectedBuildingMetric;
 let WIDTH_METRIC_MULTIPLIER: number;
 let DEPTH_METRIC: SelectedBuildingMetric;
 let DEPTH_METRIC_MULTIPLIER: number;
+let METRIC_MAPPING: BuildingMetricMapping;
 let BUILDING_MARGIN: number;
 let CITY_LABEL_MARGIN: number;
 let CITY_MARGIN: number;
@@ -60,6 +65,7 @@ function setVisualizationSettings() {
   WIDTH_METRIC_MULTIPLIER = vs.buildingWidthMultiplier.value;
   DEPTH_METRIC = vs.buildingDepthMetric.value;
   DEPTH_METRIC_MULTIPLIER = vs.buildingDepthMultiplier.value;
+  METRIC_MAPPING = vs.buildingMetricMapping.value;
   BUILDING_MARGIN = vs.buildingMargin.value;
   CITY_LABEL_MARGIN = vs.cityLabelMargin.value;
   CITY_MARGIN = vs.cityMargin.value;
@@ -115,7 +121,7 @@ export default async function layoutLandscape(
   cities.forEach((city) => {
     const buildingCount = city.allContainedBuildingIds.length;
     if (useCustomBuildingLayout) {
-      let citySideLength = 1;
+      let citySideLength: number;
       if (useCircleLayout) {
         const circumference =
           buildingCount * (BUILDING_FOOTPRINT * 2 + BUILDING_MARGIN * 2);
@@ -343,13 +349,13 @@ function createBuildingNode(building: Building) {
 
   const widthByMetric =
     WIDTH_METRIC_MULTIPLIER *
-    metricMappingMultipliers[WIDTH_METRIC as MetricKey] *
-    getMetricValue(building, WIDTH_METRIC);
+    getMetricMappingMultiplier(WIDTH_METRIC as MetricKey, METRIC_MAPPING) *
+    applyMetricMapping(getMetricValue(building, WIDTH_METRIC), METRIC_MAPPING);
 
   const depthByMetric =
     DEPTH_METRIC_MULTIPLIER *
-    metricMappingMultipliers[DEPTH_METRIC as MetricKey] *
-    getMetricValue(building, DEPTH_METRIC);
+    getMetricMappingMultiplier(DEPTH_METRIC as MetricKey, METRIC_MAPPING) *
+    applyMetricMapping(getMetricValue(building, DEPTH_METRIC), METRIC_MAPPING);
 
   return {
     id: BUILDING_PREFIX + building.id,

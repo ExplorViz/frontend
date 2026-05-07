@@ -25,8 +25,9 @@ import {
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import {
+  applyMetricMapping,
+  getMetricMappingMultiplier,
   MetricKey,
-  metricMappingMultipliers,
 } from 'explorviz-frontend/src/utils/settings/default-settings';
 import gsap from 'gsap';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -175,6 +176,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   const {
     buildingFootprint,
     buildingHeightMultiplier,
+    metricMapping,
     enableHoverEffects,
     heightMetric,
     highlightedEntityColor,
@@ -194,6 +196,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
       buildingHeightMultiplier:
         state.visualizationSettings.buildingHeightMultiplier.value,
+      metricMapping: state.visualizationSettings.buildingMetricMapping.value,
       enableHoverEffects: state.visualizationSettings.enableHoverEffects.value,
       heightMetric: state.visualizationSettings.buildingHeightMetric.value,
       highlightedEntityColor: state.colors?.highlightedEntityColor,
@@ -262,15 +265,14 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     selectedBuildingMetric,
     selectedGradient,
     selectedValueMapping,
-  } =
-    useHeatmapStore(
-      useShallow((state) => ({
-        heatmapActive: state.isActive(),
-        selectedBuildingMetric: state.getSelectedBuildingMetric(),
-        selectedGradient: state.selectedGradient,
-        selectedValueMapping: state.selectedValueMapping,
-      }))
-    );
+  } = useHeatmapStore(
+    useShallow((state) => ({
+      heatmapActive: state.isActive(),
+      selectedBuildingMetric: state.getSelectedBuildingMetric(),
+      selectedGradient: state.selectedGradient,
+      selectedValueMapping: state.selectedValueMapping,
+    }))
+  );
 
   const { addPopup, updatePopup, popups } = usePopupHandlerStore(
     useShallow((state) => ({
@@ -298,12 +300,12 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
 
       return (
         buildingFootprint +
-        metricMappingMultipliers[heightMetric as MetricKey] *
+        getMetricMappingMultiplier(heightMetric as MetricKey, metricMapping) *
           buildingHeightMultiplier *
-          metricValue
+          applyMetricMapping(metricValue, metricMapping)
       );
     },
-    [buildingFootprint, buildingHeightMultiplier, heightMetric]
+    [buildingFootprint, buildingHeightMultiplier, heightMetric, metricMapping]
   );
 
   const computeColor = useCallback(
