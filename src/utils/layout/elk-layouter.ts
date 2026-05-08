@@ -1,6 +1,5 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import generateUuidv4 from 'explorviz-frontend/src/utils/helpers/uuid4-generator';
 import {
   Building,
   City,
@@ -242,6 +241,13 @@ function populateCityGraph(
     if (removedDistrictIds.has(districtId)) {
       return;
     }
+    const district = landscape.districts[districtId];
+    if (
+      !district ||
+      !hasVisibleBuildingsRecursively(landscape, district, removedDistrictIds)
+    ) {
+      return;
+    }
     const districtGraph = {
       id: DISTRICT_PREFIX + districtId,
       children: [],
@@ -261,7 +267,7 @@ function populateCityGraph(
     populateDistrict(
       districtGraph.children,
       landscape,
-      landscape.districts[districtId],
+      district,
       removedDistrictIds
     );
   });
@@ -295,6 +301,13 @@ function populateDistrict(
     if (removedDistrictIds.has(districtId)) {
       return;
     }
+    const district = landscape.districts[districtId];
+    if (
+      !district ||
+      !hasVisibleBuildingsRecursively(landscape, district, removedDistrictIds)
+    ) {
+      return;
+    }
     const packageNode = {
       id: DISTRICT_PREFIX + districtId,
       children: [],
@@ -311,29 +324,36 @@ function populateDistrict(
     };
     districtGraphChildren.push(packageNode);
 
-    const district = landscape.districts[districtId];
-    if (district.districtIds.length > 0 || district.buildingIds.length > 0) {
-      populateDistrict(
-        packageNode.children,
-        landscape,
-        district,
-        removedDistrictIds
-      );
-    } else {
-      // Add dummy class, otherwise package would be assigned with zero width/depth
-      populateWithDummyBuilding(packageNode.children);
-    }
+    populateDistrict(packageNode.children, landscape, district, removedDistrictIds);
   });
 }
 
-function populateWithDummyBuilding(packageGraphChildren: any[]) {
-  const dummyClassNode = {
-    id: DUMMY_PREFIX + generateUuidv4(),
-    children: [],
-    width: BUILDING_FOOTPRINT,
-    height: BUILDING_FOOTPRINT,
-  };
-  packageGraphChildren.push(dummyClassNode);
+function hasVisibleBuildingsRecursively(
+  landscape: FlatLandscape,
+  district: District,
+  removedDistrictIds: Set<string>
+): boolean {
+  const hasDirectBuildings = district.buildingIds.some(
+    (buildingId) => !!landscape.buildings[buildingId]
+  );
+  if (hasDirectBuildings) {
+    return true;
+  }
+
+  return district.districtIds.some((childDistrictId) => {
+    if (removedDistrictIds.has(childDistrictId)) {
+      return false;
+    }
+    const childDistrict = landscape.districts[childDistrictId];
+    if (!childDistrict) {
+      return false;
+    }
+    return hasVisibleBuildingsRecursively(
+      landscape,
+      childDistrict,
+      removedDistrictIds
+    );
+  });
 }
 
 function createBuildingNode(building: Building) {
