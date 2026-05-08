@@ -3,9 +3,9 @@ import { useClusterStore } from 'explorviz-frontend/src/stores/cluster-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
-import { clusterEntities } from 'explorviz-frontend/src/utils/clustering/k-means';
+import { clusterEntitiesAsync } from 'explorviz-frontend/src/utils/clustering/k-means';
+import { ClusterCentroid } from 'explorviz-frontend/src/stores/cluster-store';
 import { useCallback, useEffect, useRef } from 'react';
-import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 
 const CLUSTER_BALL_RADIUS = 0.05;
@@ -15,6 +15,11 @@ const CLUSTER_BALL_SEGMENTS = 16;
  * Component that visualizes cluster centroids as balls in the 3D visualization.
  * The centroids are positioned in the layout coordinate system, so they will be
  * automatically transformed by the LandscapeR3F component's scale and position.
+ *
+ * The k-means computation is offloaded to a Web Worker via `clusterEntitiesAsync`
+ * so the main thread (and therefore the renderer) stays responsive while
+ * clustering runs. A generation counter ensures that stale results from a
+ * superseded computation are discarded.
  */
 export default function ClusterCentroidsR3F() {
   const {
@@ -42,7 +47,12 @@ export default function ClusterCentroidsR3F() {
   const { camera } = useThree();
   const lastUpdateTimeRef = useRef<number>(performance.now());
 
-  // Calculate distances of clusters of to camera at configured frequency
+  // Each time a new computation is kicked off we increment this counter.
+  // The async callback checks the counter before writing to the store so that
+  // results from superseded runs are silently dropped.
+  const generationRef = useRef(0);
+
+  // Calculate distances of clusters to camera at configured frequency
   useFrame(() => {
     if (enableClustering && distanceUpdateFrequency > 0) {
       const now = performance.now();
@@ -56,11 +66,12 @@ export default function ClusterCentroidsR3F() {
     }
   });
 
-  const computeClusters = useCallback(() => {
+  const computeClusters = useCallback(async () => {
     if (!enableClustering) {
       useClusterStore.getState().clearClusters();
-      return [];
+      return;
     }
+
     const buildingIds = useModelStore
       .getState()
       .getAllBuildings()
@@ -70,14 +81,16 @@ export default function ClusterCentroidsR3F() {
       .getAllDistricts()
       .map((d) => d.id);
 
-    const clusteringResult = clusterEntities(
+    // Capture the generation for this run so we can detect stale results
+    const generation = ++generationRef.current;
+
+    const clusteringResult = await clusterEntitiesAsync(
       [...buildingIds, ...districtIds],
       clusterCount
     );
-    const positions: THREE.Vector3[] = [];
-    clusteringResult.centroids.forEach((centroid) => {
-      positions.push(centroid.position.clone());
-    });
+
+    // Discard the result if a newer computation has already been started
+    if (generation !== generationRef.current) return;
 
     useClusterStore
       .getState()
@@ -85,20 +98,18 @@ export default function ClusterCentroidsR3F() {
         clusteringResult.entityToCluster,
         clusteringResult.centroids
       );
-
-    if (displayClusters) {
-      return positions;
-    } else {
-      return [];
-    }
-  }, [enableClustering, clusterCount, displayClusters]);
+  }, [enableClustering, clusterCount]);
 
   useEffect(() => {
     computeClusters();
   }, [computeClusters, buildingLayouts, districtLayouts]);
 
-  const clusters = displayClusters
-    ? Array.from(useClusterStore.getState().getAllClusters().values())
+  // Subscribe to the cluster store so the centroid balls re-render whenever
+  // setClusters is called (the previous code read getState() outside a
+  // subscription, so the balls were never updated reactively).
+  const centroids = useClusterStore((state) => state.centroids);
+  const clusters: ClusterCentroid[] = displayClusters
+    ? Array.from(centroids.values())
     : [];
 
   return (

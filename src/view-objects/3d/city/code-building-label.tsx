@@ -69,6 +69,7 @@ export default function CodeBuildingLabel({
     labelRotation,
     showAllBuildingLabels,
     labelDistanceThreshold,
+    enableClustering,
   } = useUserSettingsStore(
     useShallow((state) => ({
       buildingFootprint: state.visualizationSettings.buildingFootprint.value,
@@ -87,6 +88,7 @@ export default function CodeBuildingLabel({
         state.visualizationSettings.showAllBuildingLabels.value,
       labelDistanceThreshold:
         state.visualizationSettings.labelDistanceThreshold.value,
+      enableClustering: state.visualizationSettings.enableClustering.value,
     }))
   );
 
@@ -158,9 +160,13 @@ export default function CodeBuildingLabel({
   ]);
 
   const sizeMultiplier = 1.0 + layout.area / 10000.0;
-  const isWithinSemanticZoomDistance = centroidDistance
-    ? centroidDistance <= labelDistanceThreshold * sizeMultiplier
-    : true;
+  // When clustering is enabled but the async computation hasn't finished yet,
+  // centroidDistance is undefined. Hide the label in that case rather than
+  // showing everything at once before the clusters are ready.
+  const isWithinSemanticZoomDistance =
+    centroidDistance !== undefined
+      ? centroidDistance <= labelDistanceThreshold * sizeMultiplier
+      : !enableClustering;
 
   const shouldShowLabel =
     (showAllBuildingLabels ||

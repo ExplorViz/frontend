@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { ClusterCentroid } from '../../stores/cluster-store';
-import { getWorldPositionOfModel } from '../layout-helper';
+import {
+  getWorldPositionOfModel,
+  getWorldPositionsForEntities,
+} from '../layout-helper';
 
 export interface ClusteringResult {
   entityToCluster: Map<string, number>;
@@ -274,4 +277,138 @@ export function clusterEntities(
     entityToCluster,
     centroids: centroidsMap,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Async worker-based clustering
+// ---------------------------------------------------------------------------
+
+interface WorkerRequest {
+  resolve: (result: {
+    assignments: Int32Array;
+    centroids: Float32Array;
+  }) => void;
+  reject: (err: Error) => void;
+}
+
+let _worker: Worker | null = null;
+let _nextId = 0;
+const _pending = new Map<number, WorkerRequest>();
+
+/**
+ * Returns the shared worker instance, creating it on first call.
+ * The worker is kept alive across calls to amortize creation cost.
+ */
+function getWorker(): Worker {
+  if (!_worker) {
+    _worker = new Worker(new URL('./k-means-worker.ts', import.meta.url), {
+      type: 'module',
+    });
+
+    _worker.onmessage = (
+      event: MessageEvent<{
+        id: number;
+        assignments: Int32Array;
+        centroids: Float32Array;
+      }>
+    ) => {
+      const { id, assignments, centroids } = event.data;
+      const req = _pending.get(id);
+      if (req) {
+        _pending.delete(id);
+        req.resolve({ assignments, centroids });
+      }
+    };
+
+    _worker.onerror = (err: ErrorEvent) => {
+      const error = new Error(err.message ?? 'k-means worker error');
+      _pending.forEach((req) => req.reject(error));
+      _pending.clear();
+      // Allow a fresh worker to be created on the next call
+      _worker = null;
+    };
+  }
+  return _worker;
+}
+
+/**
+ * Dispatches a k-means run to the shared Web Worker and returns a Promise.
+ * The `points` buffer is *transferred* (zero-copy) to the worker, so the
+ * caller must not use the Float32Array after this call.
+ */
+function kMeansClusteringAsync(
+  points: Float32Array,
+  k: number,
+  maxIterations = 100,
+  convergenceThreshold = 0.01
+): Promise<{ assignments: Int32Array; centroids: Float32Array }> {
+  return new Promise((resolve, reject) => {
+    const worker = getWorker();
+    const id = _nextId++;
+    _pending.set(id, { resolve, reject });
+    worker.postMessage({ id, points, k, maxIterations, convergenceThreshold }, [
+      points.buffer,
+    ]);
+  });
+}
+
+/**
+ * Async version of `clusterEntities` that offloads the k-means computation
+ * to a Web Worker so the main thread (and therefore the renderer) stays
+ * responsive even for large landscapes.
+ *
+ * Position collection still happens synchronously on the main thread because
+ * it needs Zustand store access, but the batch helper reads each store exactly
+ * once – greatly reducing per-entity overhead compared to the synchronous path.
+ */
+export async function clusterEntitiesAsync(
+  entityIds: string[],
+  normalizedClusterCount: number = 0.3
+): Promise<ClusteringResult> {
+  if (entityIds.length === 0) {
+    return {
+      entityToCluster: new Map<string, number>(),
+      centroids: new Map<number, ClusterCentroid>(),
+    };
+  }
+
+  // Collect positions in a single pass over the stores (main thread)
+  const { positions, validEntityIds } = getWorldPositionsForEntities(entityIds);
+
+  if (validEntityIds.length === 0) {
+    return {
+      entityToCluster: new Map<string, number>(),
+      centroids: new Map<number, ClusterCentroid>(),
+    };
+  }
+
+  const n = validEntityIds.length;
+  const normalized = Math.max(0, Math.min(1, normalizedClusterCount));
+  const k = Math.max(1, Math.min(n, 1 + Math.floor(normalized * (n - 1))));
+
+  // Run k-means off the main thread; `positions` buffer is transferred
+  const { assignments, centroids: rawCentroids } = await kMeansClusteringAsync(
+    positions,
+    k
+  );
+
+  // Rebuild typed results as Maps with THREE.Vector3 centroids
+  const entityToCluster = new Map<string, number>();
+  for (let i = 0; i < validEntityIds.length; i++) {
+    entityToCluster.set(validEntityIds[i], assignments[i]);
+  }
+
+  const centroidsMap = new Map<number, ClusterCentroid>();
+  for (let i = 0; i < k; i++) {
+    centroidsMap.set(i, {
+      id: i,
+      position: new THREE.Vector3(
+        rawCentroids[i * 3],
+        rawCentroids[i * 3 + 1],
+        rawCentroids[i * 3 + 2]
+      ),
+    });
+  }
+
+  return { entityToCluster, centroids: centroidsMap };
 }

@@ -201,6 +201,97 @@ export function getLandscapePositionOfCommunication(
   return midpoint;
 }
 
+/**
+ * Batch-computes world-space positions for a list of entity IDs.
+ *
+ * Unlike calling `getWorldPositionOfModel` in a loop, this function reads each
+ * Zustand store **once** and re-uses the landscape center offset for every
+ * entity, eliminating O(n) redundant store accesses and Vector3 allocations.
+ *
+ * Returns a packed Float32Array [x0,y0,z0, x1,y1,z1, …] together with the
+ * subset of entity IDs that had a valid layout (communications are skipped).
+ * The returned buffer is exactly `validEntityIds.length * 3` floats long.
+ */
+export function getWorldPositionsForEntities(entityIds: string[]): {
+  positions: Float32Array;
+  validEntityIds: string[];
+} {
+  if (entityIds.length === 0) {
+    return { positions: new Float32Array(0), validEntityIds: [] };
+  }
+
+  // Read each store exactly once
+  const layoutStore = useLayoutStore.getState();
+  const modelStore = useModelStore.getState();
+  const landscapeScalar =
+    useUserSettingsStore.getState().visualizationSettings.landscapeScalar.value;
+
+  if (!layoutStore.landscapeLayout) {
+    return { positions: new Float32Array(0), validEntityIds: [] };
+  }
+
+  // Compute landscape center once (not per entity)
+  const lc = getLandscapeCenterPosition();
+  const lcx = lc.x;
+  const lcy = lc.y;
+  const lcz = lc.z;
+
+  // Allocate an upper-bound buffer; we'll slice to the actual count at the end
+  const buf = new Float32Array(entityIds.length * 3);
+  const validEntityIds: string[] = [];
+  let count = 0;
+
+  for (const entityId of entityIds) {
+    // Communications are not visualized as positioned entities in the city
+    if (modelStore.getCommunication(entityId)) continue;
+
+    // Use the pre-built fullLayoutMap for a single O(1) lookup per entity
+    const modelLayout = layoutStore.fullLayoutMap.get(entityId);
+    const city = modelStore.getCityForModel(entityId);
+    if (!city) continue;
+
+    const cityLayout = layoutStore.fullLayoutMap.get(city.id);
+    if (!modelLayout || !cityLayout) continue;
+
+    const cityX = cityLayout.positionX * landscapeScalar;
+    const cityY = cityLayout.positionY * landscapeScalar;
+    const cityZ = cityLayout.positionZ * landscapeScalar;
+
+    let modelX: number;
+    let modelY: number;
+    let modelZ: number;
+
+    if (modelStore.cities[entityId]) {
+      // Entity is a city: use its own dimensions for the center
+      modelX = (modelLayout.width / 2) * landscapeScalar;
+      modelY = 0;
+      modelZ = (modelLayout.depth / 2) * landscapeScalar;
+    } else {
+      // District or building: use the box center (positionX + width/2, …)
+      modelX =
+        (modelLayout.positionX + modelLayout.width / 2) * landscapeScalar;
+      modelY =
+        (modelLayout.positionY + modelLayout.height / 2) * landscapeScalar;
+      modelZ =
+        (modelLayout.positionZ + modelLayout.depth / 2) * landscapeScalar;
+    }
+
+    buf[count * 3] = lcx + cityX + modelX;
+    buf[count * 3 + 1] = lcy + cityY + modelY;
+    buf[count * 3 + 2] = lcz + cityZ + modelZ;
+
+    validEntityIds.push(entityId);
+    count++;
+  }
+
+  return {
+    // slice creates a new buffer of exactly the right size so the caller
+    // can safely transfer it to a Web Worker
+    positions: buf.slice(0, count * 3),
+    validEntityIds,
+  };
+}
+
 export function getWorldPositionOfCommunication(
   communicationId: string
 ): THREE.Vector3 {

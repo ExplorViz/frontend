@@ -28,6 +28,7 @@ export default function CityDistrictLabel({
     animationDuration,
     districtLabelPlacement,
     labelDistanceThreshold,
+    enableClustering,
   } = useUserSettingsStore(
     useShallow((state) => ({
       labelOffset: state.visualizationSettings.labelOffset.value,
@@ -44,6 +45,7 @@ export default function CityDistrictLabel({
         state.visualizationSettings.districtLabelPlacement.value,
       labelDistanceThreshold:
         state.visualizationSettings.labelDistanceThreshold.value,
+      enableClustering: state.visualizationSettings.enableClustering.value,
     }))
   );
 
@@ -74,18 +76,26 @@ export default function CityDistrictLabel({
       : Math.max(layout.width * 0.1, districtLabelMargin * 0.5);
   }, [isOpen, districtLabelMargin, layout.width]);
 
-  // Track distance to cluster centroid for label visibility
+  // Track distance to cluster centroid for label visibility.
+  // When clustering is enabled but the async computation hasn't finished yet,
+  // centroidDistance is undefined. Hide the label in that case rather than
+  // showing everything at once before the clusters are ready.
   const isWithinDistance = useMemo(() => {
     if (centroidDistance !== undefined) {
-      // Larger Labels of larger districts should be visible from a greater distance
+      // Larger labels of larger districts should be visible from a greater distance
       const sizeMultiplier =
         1.0 + layout.area / 100000.0 + getFontSize() / 10.0;
       const adjustedThreshold = labelDistanceThreshold * sizeMultiplier;
       return centroidDistance <= adjustedThreshold;
     }
-    // Default: show label
-    return true;
-  }, [centroidDistance, layout.area, labelDistanceThreshold, getFontSize]);
+    return !enableClustering;
+  }, [
+    centroidDistance,
+    enableClustering,
+    layout.area,
+    labelDistanceThreshold,
+    getFontSize,
+  ]);
 
   const getLabelPositionForPlacement = useCallback(
     (placement: string, isOpen: boolean): THREE.Vector3 => {

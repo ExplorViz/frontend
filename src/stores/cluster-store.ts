@@ -17,6 +17,9 @@ interface ClusterStoreState {
   // Centroids for each cluster
   centroids: Map<number, ClusterCentroid>;
 
+  // Reverse index: cluster id -> entity ids (kept in sync with entityIdToCluster)
+  clusterToEntities: Map<number, string[]>;
+
   // Distance from camera to each centroid
   centroidDistances: Map<number, number>;
 
@@ -37,15 +40,33 @@ interface ClusterStoreState {
   getAllCentroidDistances: () => Map<number, number>;
 }
 
+/** Builds a cluster-id -> entity-ids reverse index from the forward map. */
+function buildReverseIndex(
+  entityIdToCluster: Map<string, number>
+): Map<number, string[]> {
+  const index = new Map<number, string[]>();
+  entityIdToCluster.forEach((clusterId, entityId) => {
+    let list = index.get(clusterId);
+    if (!list) {
+      list = [];
+      index.set(clusterId, list);
+    }
+    list.push(entityId);
+  });
+  return index;
+}
+
 export const useClusterStore = create<ClusterStoreState>()((set, get) => ({
   entityIdToCluster: new Map<string, number>(),
   centroids: new Map<number, ClusterCentroid>(),
+  clusterToEntities: new Map<number, string[]>(),
   centroidDistances: new Map<number, number>(),
 
   setClusters: (entityToCluster, centroids) => {
     set({
       entityIdToCluster: entityToCluster,
       centroids,
+      clusterToEntities: buildReverseIndex(entityToCluster),
       // Reset distances when clusters change
       centroidDistances: new Map<number, number>(),
     });
@@ -72,30 +93,24 @@ export const useClusterStore = create<ClusterStoreState>()((set, get) => ({
   },
 
   getEntitiesInCluster: (clusterId) => {
-    const entities: string[] = [];
-    get().entityIdToCluster.forEach((id, entityId) => {
-      if (id === clusterId) {
-        entities.push(entityId);
-      }
-    });
-    return entities;
+    return get().clusterToEntities.get(clusterId) ?? [];
   },
 
   clearClusters: () => {
     set({
       entityIdToCluster: new Map<string, number>(),
       centroids: new Map<number, ClusterCentroid>(),
+      clusterToEntities: new Map<number, string[]>(),
       centroidDistances: new Map<number, number>(),
     });
   },
 
   calculateDistanceToCamera: (cameraPosition: THREE.Vector3) => {
-    const distances = new Map<number, number>();
-    const centroids = get().centroids;
+    const { centroids, centroidDistances } = get();
 
+    const distances = new Map<number, number>(centroidDistances);
     centroids.forEach((centroid, clusterId) => {
-      const distance = cameraPosition.distanceTo(centroid.position);
-      distances.set(clusterId, distance);
+      distances.set(clusterId, cameraPosition.distanceTo(centroid.position));
     });
 
     set({ centroidDistances: distances });
