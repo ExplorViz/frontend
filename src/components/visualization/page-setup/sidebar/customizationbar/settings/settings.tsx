@@ -286,21 +286,49 @@ export default function Settings({
     applyDefaultSettings(true);
   };
 
+  // Walk up the DOM until we find an ancestor that actually scrolls.
+  // We avoid Element.scrollIntoView because it scrolls every scrollable
+  // ancestor up to the document, which can scroll outer layout containers
+  // that are only marginally scrollable (e.g. due to Bootstrap gutter
+  // margins on .row, or layout shifts when the bottom bar is open). That
+  // manifests as a strip of whitespace at the bottom of the page after
+  // clicking a Quick Navigation link.
+  const findScrollParent = (element: HTMLElement): HTMLElement => {
+    let current: HTMLElement | null = element.parentElement;
+    while (current && current !== document.body) {
+      const style = window.getComputedStyle(current);
+      const overflowY = style.overflowY;
+      const isScrollable =
+        (overflowY === 'auto' || overflowY === 'scroll') &&
+        current.scrollHeight > current.clientHeight;
+      if (isScrollable) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+    return document.scrollingElement as HTMLElement;
+  };
+
   const scrollToSection = (groupId: string) => {
     const htmlSettingGroup = document.getElementById(
       `settings-group-${groupId.toLowerCase().replace(/\s+/g, '-')}`
     );
-    if (htmlSettingGroup) {
-      const navHeight = stickyNavRef.current
-        ? stickyNavRef.current.offsetHeight
-        : 0;
+    if (!htmlSettingGroup) return;
 
-      htmlSettingGroup.style.scrollMarginTop = `${navHeight}px`;
+    const navHeight = stickyNavRef.current
+      ? stickyNavRef.current.offsetHeight
+      : 0;
 
-      htmlSettingGroup.scrollIntoView({
-        behavior: 'smooth',
-      });
-    }
+    const scrollParent = findScrollParent(htmlSettingGroup);
+    const parentRect = scrollParent.getBoundingClientRect();
+    const targetRect = htmlSettingGroup.getBoundingClientRect();
+    const targetTop =
+      targetRect.top - parentRect.top + scrollParent.scrollTop - navHeight;
+
+    scrollParent.scrollTo({
+      top: targetTop,
+      behavior: 'smooth',
+    });
   };
 
   const groupedSettings = Object.entries(filteredSettingsByGroup).map(
