@@ -83,6 +83,7 @@ export default function CityFoundation({
 
   const {
     cityLabelMargin,
+    labelOffset,
     castShadows,
     enableAnimations,
     enableHoverEffects,
@@ -93,6 +94,7 @@ export default function CityFoundation({
   } = useUserSettingsStore(
     useShallow((state) => ({
       cityLabelMargin: state.visualizationSettings.cityLabelMargin.value,
+      labelOffset: state.visualizationSettings.labelOffset.value,
       castShadows: state.visualizationSettings.castShadows.value,
       enableAnimations: state.visualizationSettings.enableAnimations.value,
       foundationColor: state.visualizationSettings.foundationColor.value,
@@ -148,7 +150,9 @@ export default function CityFoundation({
 
   const getLabelPosition = (): [number, number, number] => {
     const margin = cityLabelMargin / layout.depth / 2;
-    const yPos = 0.51; // Just above the foundation
+    // Convert world-space label offset to local mesh-space because foundation is scaled.
+    const normalizedLabelOffset = layout.height === 0 ? 0 : labelOffset / layout.height;
+    const yPos = 0.51 + normalizedLabelOffset; // Just above the foundation + global label offset
     switch (districtLabelPlacement) {
       case 'top':
         return [0, yPos, -0.5 + margin];
