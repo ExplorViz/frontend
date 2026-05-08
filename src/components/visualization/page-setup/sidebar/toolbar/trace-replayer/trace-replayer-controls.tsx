@@ -18,12 +18,9 @@ import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualizati
 import { openAllDistrictsInLandscape } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  Application,
-  Class,
-  Package,
-  StructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+  FlatLandscape,
+  getFunctionIdToBuildingMap,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
@@ -31,12 +28,12 @@ import { useShallow } from 'zustand/react/shallow';
 
 interface TraceReplayerControlsProps {
   selectedTrace: Trace;
-  structureData: StructureLandscapeData;
+  flatData: FlatLandscape;
 }
 
 export default function TraceReplayerControls({
   selectedTrace,
-  structureData,
+  flatData,
 }: TraceReplayerControlsProps) {
   const visualizationStore = useVisualizationStore(
     useShallow((state) => ({
@@ -53,24 +50,12 @@ export default function TraceReplayerControls({
   );
 
   const [localTimeline, setLocalTimeline] = useState<TraceNode[]>([]);
-  let classMap = new Map<string, Class>(getHashCodeToClassMap(structureData));
+  const classMap = getFunctionIdToBuildingMap(flatData);
+  const cityMap = flatData.cities;
 
   const [observer] = useState<((cursor: number) => void)[]>([]);
   const trace = getSortedTraceSpans(selectedTrace);
   const tree = new TraceTreeBuilder(trace, classMap).build();
-
-  const turnAncestorsTransparent = (
-    component: Package | undefined,
-    innerOpacity: number,
-    step: number = 0
-  ) => {
-    if (component && innerOpacity >= opacity) {
-      // Instead of manipulating meshes directly, we'll use the visualization store
-      // to control highlighting and transparency through the new system
-      visualizationStore.removeAllHighlightedEntityIds();
-      turnAncestorsTransparent(component.parent, opacity - step, step);
-    }
-  };
 
   const {
     loadTimeline: loadReplay,
@@ -214,9 +199,10 @@ export default function TraceReplayerControls({
 
       if (!sourceClass || !targetClass) return;
 
-      // Find applications for source and target classes
-      const sourceApp = sourceClass.parent?.parent as Application | undefined;
-      const targetApp = targetClass.parent?.parent as Application | undefined;
+      const sourceCityName = sourceClass
+        ? (cityMap[sourceClass.parentCityId]?.name ?? '')
+        : '';
+      const targetCityName = cityMap[targetClass.parentCityId]?.name ?? '';
 
       // Create a color for this tab
       const hue = (index * 137.5) % 360; // Golden angle for good distribution
@@ -232,8 +218,8 @@ export default function TraceReplayerControls({
       const tab = new TraceTab(
         node,
         node,
-        sourceApp,
-        targetApp,
+        sourceCityName,
+        targetCityName,
         color,
         callback
       );

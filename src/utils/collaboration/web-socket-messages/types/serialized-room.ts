@@ -9,7 +9,6 @@ export type SerializedRoom = {
   closedComponentIds: string[];
   popups: SerializedPopup[];
   annotations?: SerializedAnnotation[];
-  detachedMenus: SerializedDetachedMenu[];
 };
 
 export type SerializedLandscape = {

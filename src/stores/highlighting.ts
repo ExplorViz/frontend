@@ -1,7 +1,5 @@
 import { useCameraControlsStore } from 'explorviz-frontend/src/stores/camera-controls-store';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import { me } from 'playroomkit';
@@ -22,14 +20,10 @@ interface HighlightingState {
 
 export const useHighlightingStore = create<HighlightingState>((set, get) => ({
   highlightingColor: () => {
-    if (useCollaborationSessionStore.getState().isOnline()) {
-      return useLocalUserStore.getState().color;
-    } else {
-      return new THREE.Color(
-        useUserSettingsStore.getState().visualizationSettings
-          .highlightedEntityColor.value
-      );
-    }
+    return new THREE.Color(
+      useUserSettingsStore.getState().visualizationSettings
+        .highlightedEntityColor.value
+    );
   },
 
   /**

@@ -65,7 +65,6 @@ export default function Popups({ landscapeData }: Args) {
       updatePopup={popupHandlerActions.updatePopup}
       removePopup={removePopup}
       sharePopup={popupHandlerActions.sharePopup}
-      structureData={landscapeData.structureLandscapeData}
     />
   ));
 }

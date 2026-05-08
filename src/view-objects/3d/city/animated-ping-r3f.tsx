@@ -1,8 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useChatStore } from 'explorviz-frontend/src/stores/chat';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useHighlightingStore } from 'explorviz-frontend/src/stores/highlighting';
 import { usePingStore } from 'explorviz-frontend/src/stores/ping-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
@@ -124,7 +122,7 @@ function getEntityName(modelId: string): string {
   if (!entity) return modelId;
 
   if (isAggregatedCommunication(entity)) {
-    return `${entity.sourceEntity.name}<->${entity.targetEntity.name}`
+    return `${entity.sourceEntity.name}<->${entity.targetEntity.name}`;
   }
 
   return entity.name;
@@ -203,9 +201,7 @@ export function pingByModelId(
 
   // Send network message
   if (sendMessage) {
-    useMessageSenderStore.getState().sendPingUpdate({
-      modelIds: [modelId],
-    });
+    // TODO
   }
 }
 
@@ -221,14 +217,7 @@ export function pingReplay(
   const isLocalUser = userId === useLocalUserStore.getState().userId;
   let color: THREE.ColorRepresentation;
 
-  if (isLocalUser) {
-    color = useHighlightingStore.getState().highlightingColor();
-  } else {
-    const remoteUser = useCollaborationSessionStore
-      .getState()
-      .lookupRemoteUserById(userId);
-    color = remoteUser?.color ?? new THREE.Color(0xffffff);
-  }
+  color = useHighlightingStore.getState().highlightingColor();
 
   if (modelId) {
     pingByModelId(modelId, false, {

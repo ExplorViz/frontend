@@ -6,11 +6,10 @@ import {
   ChatMessageInterface,
   useChatStore,
 } from 'explorviz-frontend/src/stores/chat';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import { pingReplay } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
-import { me } from 'playroomkit';
+import { me, usePlayersList } from 'playroomkit';
 import Button from 'react-bootstrap/Button';
 
 interface ChatUser {
@@ -19,9 +18,6 @@ interface ChatUser {
 }
 
 export default function ChatBox() {
-  const connectionStatus = useCollaborationSessionStore(
-    (state) => state.connectionStatus
-  );
   const userId = useLocalUserStore((state) => state.userId);
   const userIsHost = useLocalUserStore((state) => state.isHost);
   const { lookAtEntity } = useCameraControlsStore();
@@ -31,7 +27,7 @@ export default function ChatBox() {
   const removeChatMessage = useChatStore((state) => state.removeChatMessage);
   const clearFilter = useChatStore((state) => state.clearFilter);
   const filterChat = useChatStore((state) => state.filterChat);
-  const clearChat = () => removeChatMessage(chatMessages.map(m => m.msgId));
+  const clearChat = () => removeChatMessage(chatMessages.map((m) => m.msgId));
   const [openFilterOptions, setOpenFilterOptions] = useState<boolean>(false);
   const [openDeleteActions, setOpenDeleteActions] = useState<boolean>(false);
   const [isFilterEnabled, setIsFilterEnabled] = useState<boolean>(false);
@@ -59,7 +55,8 @@ export default function ChatBox() {
     }));
   }, [chatMessages]);
 
-  const canModifyChat = userIsHost || connectionStatus === 'offline';
+  const playerCount = usePlayersList().length;
+  const canModifyChat = userIsHost || playerCount === 0;
 
   useEffect(() => {
     if (chatThreadRef.current) {
@@ -147,8 +144,6 @@ export default function ChatBox() {
       filterChat(filterMode, event.target.value);
     }
   };
-
-
 
   const downloadChat = () => {
     const chatContent = chatMessages

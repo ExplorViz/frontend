@@ -15,7 +15,6 @@ import KubernetesDiagrams from 'explorviz-frontend/src/components/visualization/
 import KubernetesDiagramsOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/kubernetes-diagrams/kubernetes-diagrams-opener';
 import TraceReplayerOpener from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-replayer-opener';
 import CanvasWrapper from 'explorviz-frontend/src/components/visualization/rendering/canvas-wrapper';
-import useCollaborativeModifier from 'explorviz-frontend/src/hooks/collaborative-modifier';
 import { useIdeWebsocketStore } from 'explorviz-frontend/src/ide/ide-websocket';
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
@@ -69,7 +68,6 @@ interface BrowserRenderingProps {
     structureData: StructureLandscapeData,
     dynamicData: DynamicLandscapeData
   ): void;
-  removeTimestampListener(): void;
 }
 
 export default function BrowserRendering({
@@ -79,7 +77,6 @@ export default function BrowserRendering({
   visualizationPaused,
   toggleVisualizationUpdating,
   restructureLandscape,
-  removeTimestampListener,
 }: BrowserRenderingProps) {
   // MARK: Stores
   const configurationActions = useConfigurationStore(
@@ -257,8 +254,6 @@ export default function BrowserRendering({
     };
   }, []);
 
-  useCollaborativeModifier();
-
   // Close the sidebar, when the connection menu is opened (so ot does not overlap)
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const isLobbyOpen = usePlayroomConnectionStore((state) => state.isLobbyOpen);
@@ -382,7 +377,7 @@ export default function BrowserRendering({
                         {openedToolComponent === 'entity-filtering' &&
                           landscapeData && (
                             <>
-                              <h5 className="text-center">Entity Filtering</h5>
+                              <h5 className="text-center">Filter</h5>
                               <EntityFiltering
                                 ref={entityFilteringRef}
                                 landscapeData={landscapeData}
@@ -391,19 +386,17 @@ export default function BrowserRendering({
                           )}
                         {openedToolComponent === 'entity-search' && (
                           <>
-                            <h5 className="text-center">Entity Search</h5>
+                            <h5 className="text-center">Search</h5>
                             <EntitySearch ref={entitySearchRef} />
                           </>
                         )}
                         {openedToolComponent === 'Trace-Replayer' &&
                           landscapeData && (
                             <TraceSelectionAndReplayer
-                              highlightTrace={() => { }}
-                              removeHighlighting={() => { }}
+                              highlightTrace={() => {}}
+                              removeHighlighting={() => {}}
                               dynamicData={landscapeData.dynamicLandscapeData}
-                              structureData={
-                                landscapeData.structureLandscapeData
-                              }
+                              flatData={landscapeData.flatLandscapeData}
                             />
                           )}
                         {openedToolComponent === 'code-analysis-trigger' && (
@@ -491,8 +484,8 @@ export default function BrowserRendering({
                       )}
                       {openedSettingComponent ===
                         'VSCode-Extension-Settings' && (
-                          <VscodeExtensionSettings />
-                        )}
+                        <VscodeExtensionSettings />
+                      )}
                       {openedSettingComponent === 'Restructure-Landscape' && (
                         <Restructure
                           landscapeData={landscapeData!}
@@ -501,7 +494,6 @@ export default function BrowserRendering({
                           toggleVisualizationUpdating={
                             toggleVisualizationUpdating
                           }
-                          removeTimestampListener={removeTimestampListener}
                           userApiTokens={userApiTokens}
                           annotationData={annotationHandlerState.annotationData}
                           minimizedAnnotations={

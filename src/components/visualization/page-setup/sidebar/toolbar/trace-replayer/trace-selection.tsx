@@ -2,10 +2,10 @@ import { TimeUnit } from 'explorviz-frontend/src/components/visualization/page-s
 import { formatNumber } from 'explorviz-frontend/src/utils/format-number';
 import { Trace } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import {
-  Class,
-  StructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+  Building,
+  FlatLandscape,
+  getFunctionIdToBuildingMap,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import {
   calculateDuration,
   getSortedTraceSpans,
@@ -18,7 +18,7 @@ import React, { useState } from 'react';
 
 interface TraceSelectionProps {
   selectTrace: (trace: Trace) => void;
-  structureData: StructureLandscapeData;
+  flatData: FlatLandscape;
   selectedTrace: Trace | null;
   applicationTraces: Trace[];
   toggleUnit: () => void;
@@ -27,7 +27,7 @@ interface TraceSelectionProps {
 
 const TraceSelection: React.FC<TraceSelectionProps> = ({
   selectTrace,
-  structureData,
+  flatData,
   selectedTrace,
   applicationTraces,
   toggleUnit,
@@ -37,8 +37,15 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
   const [isSortedAsc, setIsSortedAsc] = useState<boolean>(true);
   const [filterTerm, setFilterTerm] = useState<string>('');
 
-  const firstClasses = getFirstClasses(applicationTraces, structureData);
-  const lastClasses = getLastClasses(applicationTraces, structureData);
+  const functionIdToBuildingMap = getFunctionIdToBuildingMap(flatData);
+  const firstClasses = getFirstClasses(
+    applicationTraces,
+    functionIdToBuildingMap
+  );
+  const lastClasses = getLastClasses(
+    applicationTraces,
+    functionIdToBuildingMap
+  );
 
   const traces = filterAndSortTraces(
     applicationTraces,
@@ -54,18 +61,17 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
 
   function getFirstClasses(
     applicationTraces: Trace[],
-    structureData: StructureLandscapeData
+    functionIdToBuildingMap: Map<string, Building>
   ) {
     const sortedSpanLists = applicationTraces.map((trace) =>
       getSortedTraceSpans(trace)
     );
-    const hashCodeToClassInLandscapeMap = getHashCodeToClassMap(structureData);
-    const traceIdToFirstClassMap = new Map<string, Class>();
+    const traceIdToFirstClassMap = new Map<string, Building>();
 
     applicationTraces.forEach((trace, index) => {
       const spanList = sortedSpanLists[index];
       const firstClassHashCode = spanList[0].functionId;
-      const firstClass = hashCodeToClassInLandscapeMap.get(firstClassHashCode)!;
+      const firstClass = functionIdToBuildingMap.get(firstClassHashCode)!;
       traceIdToFirstClassMap.set(trace.traceId, firstClass);
     });
 
@@ -74,18 +80,17 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
 
   function getLastClasses(
     applicationTraces: Trace[],
-    structureData: StructureLandscapeData
+    functionIdToBuildingMap: Map<string, Building>
   ) {
     const sortedSpanLists = applicationTraces.map((trace) =>
       getSortedTraceSpans(trace)
     );
-    const hashCodeToClassInLandscapeMap = getHashCodeToClassMap(structureData);
-    const traceIdToLastClassMap = new Map<string, Class>();
+    const traceIdToLastClassMap = new Map<string, Building>();
 
     applicationTraces.forEach((trace, index) => {
       const spanList = sortedSpanLists[index];
       const lastClassHashCode = spanList[spanList.length - 1].functionId;
-      const lastClass = hashCodeToClassInLandscapeMap.get(lastClassHashCode)!;
+      const lastClass = functionIdToBuildingMap.get(lastClassHashCode)!;
       traceIdToLastClassMap.set(trace.traceId, lastClass);
     });
 
@@ -98,8 +103,8 @@ const TraceSelection: React.FC<TraceSelectionProps> = ({
     filterTerm: string,
     sortBy: string,
     isSortedAsc: boolean,
-    firstClasses: Map<string, Class>,
-    lastClasses: Map<string, Class>
+    firstClasses: Map<string, Building>,
+    lastClasses: Map<string, Building>
   ) {
     if (selectedTrace) {
       return [selectedTrace];

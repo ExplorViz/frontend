@@ -8,7 +8,7 @@ export default function EntityFilteringOpener({
   return (
     <ComponentOpener
       openedComponent={openedComponent}
-      componentTitle="Entity Filtering"
+      componentTitle="Filter"
       componentId="entity-filtering"
       toggleComponent={toggleToolsSidebarComponent}
     />

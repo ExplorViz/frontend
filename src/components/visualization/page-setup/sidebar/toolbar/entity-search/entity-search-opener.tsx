@@ -8,7 +8,7 @@ export default function EntitySearchOpener({
   return (
     <ComponentOpener
       openedComponent={openedComponent}
-      componentTitle="Entity Search"
+      componentTitle="Search"
       componentId="entity-search"
       toggleComponent={toggleToolsSidebarComponent}
     />

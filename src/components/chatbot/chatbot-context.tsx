@@ -34,8 +34,6 @@ const EMPTY_MODEL: Model = { id: '', name: '' };
 const EMPTY_PROVIDER: Provider = { id: '', name: '', models: [] };
 
 export type EntityFilteringFilters = {
-  minTraceStartTimestamp?: number;
-  minTraceDuration?: number;
   minClassMethodCount?: number;
 };
 

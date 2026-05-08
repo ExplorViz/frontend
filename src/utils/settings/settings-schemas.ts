@@ -358,6 +358,15 @@ export interface ButtonSetting extends Setting<boolean> {
   readonly isButtonSetting: true;
 }
 
+export enum BuildingMetrics {
+  loc = 'loc',
+  sloc = 'sloc',
+  cloc = 'cloc',
+  functionCount = 'functionCount',
+  variableCount = 'variableCount',
+  size = 'size',
+}
+
 export enum SelectedBuildingMetric {
   None = 'None',
   loc = 'loc',

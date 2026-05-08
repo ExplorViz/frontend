@@ -1,7 +1,6 @@
 import { extend, ThreeElement, ThreeEvent } from '@react-three/fiber';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
 import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useClickPreventionOnDoubleClick';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
@@ -11,14 +10,13 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import {
-  getHighlightingColorForEntity,
-} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import gsap from 'gsap';
+import { usePlayersList } from 'playroomkit';
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   BoxGeometry,
@@ -115,7 +113,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const isOnline = useCollaborationSessionStore.getState().isOnline();
+    const isOnline = usePlayersList().length > 0;
 
     const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
       useShallow((state) => ({
@@ -137,7 +135,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       (state) => state._currentSelectedRepositoryName
     );
 
-    const isDiffMode = (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
+    const isDiffMode =
+      (_selectedCommits.get(currentSelectedRepo)?.length || 0) === 2;
 
     const { addPopup } = usePopupHandlerStore(
       useShallow((state) => ({
@@ -158,7 +157,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
           return new Color('white');
         }
 
-        if ((isDiffMode || evoConfig.renderOnlyDifferences) && district.commitComparison) {
+        if (
+          (isDiffMode || evoConfig.renderOnlyDifferences) &&
+          district.commitComparison
+        ) {
           if (district.commitComparison === 'ADDED') {
             return new Color(addedDistrictColor);
           } else if (district.commitComparison === 'REMOVED') {
@@ -522,7 +524,6 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       event.stopPropagation();
       setHoveredEntity(null);
     };
-
 
     const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
       useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);

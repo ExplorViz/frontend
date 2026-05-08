@@ -11,7 +11,6 @@ import WideCheckbox from 'explorviz-frontend/src/components/visualization/page-s
 import AnnotationData from 'explorviz-frontend/src/components/visualization/rendering/annotations/annotation-data';
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
 import { useChangelogStore } from 'explorviz-frontend/src/stores/changelog';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
@@ -29,6 +28,7 @@ import convertDate from 'explorviz-frontend/src/utils/helpers/time-convter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
 import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { usePlayersList } from 'playroomkit';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Select from 'react-select';
@@ -53,7 +53,6 @@ interface RestructureProps {
   minimizedAnnotations: AnnotationData[];
   userApiTokens: ApiToken[];
   toggleVisualizationUpdating: () => void;
-  removeTimestampListener: () => void;
 }
 
 export default function Restructure({
@@ -65,7 +64,6 @@ export default function Restructure({
   minimizedAnnotations,
   userApiTokens,
   toggleVisualizationUpdating,
-  removeTimestampListener,
 }: RestructureProps) {
   // MARK: Stores
 
@@ -102,7 +100,8 @@ export default function Restructure({
   );
 
   const changeLogEntries = useChangelogStore((state) => state.changeLogEntries);
-  const isOnline = useCollaborationSessionStore((state) => state.isOnline);
+  const userCount = usePlayersList().length;
+  const isOnline = userCount > 0;
   const authUser = useAuthStore((state) => state.user);
   const serializeRoom = useRoomSerializerStore((state) => state.serializeRoom);
   const getTimestampsForCommitId = useTimestampRepositoryStore(
@@ -259,7 +258,6 @@ export default function Restructure({
 
   const toggleRestructureMode = () => {
     if (useLandscapeRestructureStore.getState().restructureMode) {
-      if (isOnline()) removeTimestampListener();
       landscapeRestructureActions.setLandscapeData(landscapeData);
 
       if (!visualizationPaused) {

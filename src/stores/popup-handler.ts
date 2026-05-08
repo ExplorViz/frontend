@@ -3,15 +3,8 @@ import { create } from 'zustand';
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
 import { SerializedPopup } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
-import { MenuDetachedForwardMessage } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/receivable/menu-detached-forward';
-import {
-  DETACHED_MENU_CLOSED_EVENT,
-  DetachedMenuClosedMessage,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/detached-menu-closed';
-import { MENU_DETACHED_EVENT } from 'explorviz-frontend/src/utils/extended-reality/vr-web-wocket-messages/sendable/request/menu-detached';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import {
   Building,
@@ -47,11 +40,7 @@ interface PopupHandlerState {
     model,
   }: {
     entityId: string;
-    entity?:
-    | City
-    | District
-    | Building
-    | AggregatedCommunication;
+    entity?: City | District | Building | AggregatedCommunication;
     position?: Position2D;
     wasMoved?: boolean;
     pinned?: boolean;
@@ -62,21 +51,7 @@ interface PopupHandlerState {
     applicationId?: string;
   }) => void;
   updatePopup: (newPopup: PopupData, updatePosition?: boolean) => void;
-  /**
-   * React on detached menu (popup in VR) update and show a regular HTML popup.
-   */
-  onMenuDetached: ({
-    objectId,
-    userId,
-    detachId,
-  }: MenuDetachedForwardMessage) => void;
   onRestorePopups: (popups: SerializedPopup[]) => void;
-  onMenuClosed: ({
-    originalMessage: { menuId },
-  }: ForwardedMessage<DetachedMenuClosedMessage>) => void;
-  /**
-   * Updates mesh reference of popup with given ID in popup data.
-   */
   cleanup: () => void;
 }
 
@@ -141,7 +116,9 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
 
     // Check if popup for entity already exists and remove it if so (toggle)
-    const existingPopup = get().popupData.find((pd) => pd.entityId === entityId);
+    const existingPopup = get().popupData.find(
+      (pd) => pd.entityId === entityId
+    );
     if (existingPopup) {
       get().removePopup(entityId);
       return;
@@ -209,25 +186,6 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }));
   },
 
-  /**
-   * React on detached menu (popup in VR) update and show a regular HTML popup.
-   */
-  onMenuDetached: ({
-    objectId,
-    userId,
-    detachId,
-  }: MenuDetachedForwardMessage) => {
-    // TODO: Check if mesh is deactivated
-
-    get().addPopup({
-      entityId: detachId,
-      wasMoved: true,
-      pinned: true,
-      sharedBy: userId,
-      menuId: objectId,
-    });
-  },
-
   onRestorePopups: (popups: SerializedPopup[]) => {
     if (get().deactivated) return;
     set({ popupData: [] });
@@ -243,15 +201,7 @@ export const usePopupHandlerStore = create<PopupHandlerState>((set, get) => ({
     }
   },
 
-  onMenuClosed: ({
-    originalMessage: { menuId },
-  }: ForwardedMessage<DetachedMenuClosedMessage>) => {
-    set({ popupData: get().popupData.filter((pd) => pd.menuId !== menuId) });
-  },
-
   cleanup: () => {
-    eventEmitter.off(MENU_DETACHED_EVENT, get().onMenuDetached);
-    eventEmitter.off(DETACHED_MENU_CLOSED_EVENT, get().onMenuClosed);
     eventEmitter.off('restore_popups', get().onRestorePopups);
   },
 

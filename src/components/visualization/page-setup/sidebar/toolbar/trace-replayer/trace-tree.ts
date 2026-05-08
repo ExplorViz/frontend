@@ -1,11 +1,11 @@
 import { Span } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { Class } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 
 export class TraceNode {
   readonly id: string;
   readonly name: string;
-  sourceClass?: Class | null;
-  targetClass: Class;
+  sourceClass?: Building | null;
+  targetClass: Building;
   start: number;
   end: number;
   startDelay: number;
@@ -17,7 +17,7 @@ export class TraceNode {
   constructor(
     id: string,
     name: string,
-    targetClass: Class,
+    targetClass: Building,
     start: number,
     end: number
   ) {
@@ -111,9 +111,9 @@ export class TraceTree {
 
 export class TraceTreeBuilder {
   private readonly trace: Span[];
-  private readonly classMap: Map<string, Class>;
+  private readonly classMap: Map<string, Building>;
 
-  constructor(trace: Span[], classMap: Map<string, Class>) {
+  constructor(trace: Span[], classMap: Map<string, Building>) {
     this.trace = trace;
     this.classMap = classMap;
   }
@@ -121,9 +121,7 @@ export class TraceTreeBuilder {
   private buildNode(span: Span): TraceNode | undefined {
     const targetClass = this.classMap.get(span.functionId);
     if (targetClass) {
-      const name = targetClass.methods.find(
-        (method) => method.methodHash === span.functionId
-      )!.name;
+      const name = targetClass.name;
       const node = new TraceNode(
         span.spanId,
         name,

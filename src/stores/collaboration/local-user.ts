@@ -1,6 +1,3 @@
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
-import VRController from 'explorviz-frontend/src/utils/extended-reality/vr-controller';
-import { getPoses } from 'explorviz-frontend/src/utils/extended-reality/vr-helpers/vr-poses';
 import * as THREE from 'three';
 import { create } from 'zustand';
 
@@ -15,15 +12,12 @@ interface LocalUserState {
   visualizationMode: VisualizationMode;
   userGroup: THREE.Group;
   task: any;
-  controller1: VRController | undefined;
-  controller2: VRController | undefined;
   panoramaSphere: THREE.Object3D | undefined;
   animationMixer: THREE.AnimationMixer;
   xr?: THREE.WebXRManager;
   isHost: boolean;
   getCamera: () => THREE.PerspectiveCamera;
   tick: (delta: number) => void;
-  sendPositions: () => void;
   connected: ({
     id,
     name,
@@ -33,10 +27,7 @@ interface LocalUserState {
     name: string;
     color: THREE.Color;
   }) => void;
-  setController1: (controller1: VRController) => void;
-  setController2: (controller2: VRController) => void;
   setPanoramaSphere: (panoramaSphere: THREE.Object3D) => void;
-  updateControllers: (delta: number) => void;
   updateCameraAspectRatio: (width: number, height: number) => void;
   teleportToPosition: (position: THREE.Vector3) => void;
   getCameraWorldPosition: () => THREE.Vector3;
@@ -53,7 +44,6 @@ interface LocalUserState {
   rotateCamera: (x: number, y: number) => void;
   resetPositionAndRotation: () => void;
   reset: () => void;
-  _resetController: (controller: VRController | undefined) => void;
   setDefaultCamera: (camera: THREE.PerspectiveCamera) => void;
   setVisualizationMode: (mode: VisualizationMode) => void;
   setXr: (value: THREE.WebXRManager) => void;
@@ -119,18 +109,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       const newAnimationMixer = get().animationMixer;
       newAnimationMixer.update(delta);
       set({ animationMixer: newAnimationMixer });
-      get().sendPositions();
-    },
-
-    sendPositions: () => {
-      const { camera, controller1, controller2 } = getPoses(
-        get().getCamera(),
-        get().controller1,
-        get().controller2
-      );
-      useMessageSenderStore
-        .getState()
-        .sendPoseUpdate(camera, controller1, controller2);
     },
 
     connected: ({
@@ -148,20 +126,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       set({ color: new THREE.Color('#' + color.getHexString()) });
     },
 
-    setController1: (controller1: VRController) => {
-      set({ controller1: controller1 });
-      const newUserGroup = get().userGroup;
-      newUserGroup.add(controller1);
-      set({ userGroup: newUserGroup });
-    },
-
-    setController2: (controller2: VRController) => {
-      set({ controller2: controller2 });
-      const newUserGroup = get().userGroup;
-      newUserGroup.add(controller2);
-      set({ userGroup: newUserGroup });
-    },
-
     setPanoramaSphere: (panoramaSphere: THREE.Object3D) => {
       // Remove panorama sphere from userGroup
       const prevPanoramaSphere = get().panoramaSphere;
@@ -173,19 +137,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
       const newUserGroup = get().userGroup;
       newUserGroup.add(panoramaSphere);
       set({ userGroup: newUserGroup });
-    },
-
-    updateControllers: (delta: number) => {
-      if (get().controller1) {
-        const newController1 = get().controller1;
-        newController1!.update(delta);
-        set({ controller1: newController1 });
-      }
-      if (get().controller2) {
-        const newController2 = get().controller2;
-        newController2!.update(delta);
-        set({ controller2: newController2 });
-      }
     },
 
     updateCameraAspectRatio: (width: number, height: number) => {
@@ -308,26 +259,6 @@ export const useLocalUserStore = create<LocalUserState>((set, get) => {
 
     reset: () => {
       get().resetPositionAndRotation();
-
-      get()._resetController(get().controller1);
-      set({ controller1: undefined });
-
-      get()._resetController(get().controller2);
-      set({ controller2: undefined });
-    },
-
-    // private
-    _resetController: (controller: VRController | undefined) => {
-      if (!controller) return;
-
-      const newUserGroup = get().userGroup;
-      newUserGroup.remove(controller);
-      set({ userGroup: newUserGroup });
-      controller.children.forEach((child) => controller.remove(child));
-      controller.gripSpace?.children.forEach((child) => {
-        controller.gripSpace?.remove(child);
-      });
-      controller.removeTeleportArea();
     },
   };
 });

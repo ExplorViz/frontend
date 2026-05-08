@@ -17,7 +17,6 @@ import MethodPopup from 'explorviz-frontend/src/components/visualization/renderi
 
 import PopupData from 'explorviz-frontend/src/components/visualization/rendering/popups/popup-data';
 import { Position2D } from 'explorviz-frontend/src/hooks/interaction-modifier';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
 import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
@@ -29,10 +28,7 @@ import {
   isCity,
   isDistrict,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
-import {
-  isMethod,
-  StructureLandscapeData,
-} from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import { isMethod } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import { pingByModelId } from 'explorviz-frontend/src/view-objects/3d/city/animated-ping-r3f';
 import Button from 'react-bootstrap/Button';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
@@ -40,7 +36,6 @@ import Tooltip from 'react-bootstrap/Tooltip';
 
 interface PopupCoordinatorProps {
   readonly popupData: PopupData;
-  structureData: StructureLandscapeData;
   addAnnotationForPopup(popup: PopupData): void;
   pinPopup(popup: PopupData): void;
   removePopup(entityId: string): void;
@@ -58,7 +53,6 @@ export default function PopupCoordinator({
 }: PopupCoordinatorProps) {
   const isConnected = usePlayroomConnectionStore((state) => state.isConnected);
   const isOnline = () => isConnected;
-  const getColor = useCollaborationSessionStore((state) => state.getColor);
   const restructureMode = useLandscapeRestructureStore(
     (state) => state.restructureMode
   );
@@ -66,7 +60,6 @@ export default function PopupCoordinator({
   const element = useRef<HTMLDivElement | null>(null);
   const lastMousePosition = useRef<Position2D>({ x: 0, y: 0 });
 
-  const sharedByColor = popupData.sharedBy ? getColor(popupData.sharedBy) : '';
   const entityType = getEntityType(popupData);
 
   const vizStore = useVisualizationStore();

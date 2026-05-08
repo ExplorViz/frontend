@@ -21,7 +21,7 @@ interface ChatState {
   chatMessages: ChatMessageInterface[];
   filteredChatMessages: ChatMessageInterface[];
   msgId: number;
-  deletedMessage: boolean; // Can be adjusted to 'needSynchronization' for exmaple, to synchronize chat whenever necessary..
+  deletedMessage: boolean; // Can be adjusted to 'needSynchronization' for example, to synchronize chat whenever necessary..
   deletedMessageIds: number[];
   _constructor: () => void;
   cleanup: () => void;

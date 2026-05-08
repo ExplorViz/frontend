@@ -8,15 +8,9 @@ import PlotlyTimeline from 'explorviz-frontend/src/components/visualization/page
 import BrowserRendering from 'explorviz-frontend/src/components/visualization/rendering/browser-rendering';
 import PlayPauseButton from 'explorviz-frontend/src/components/visualization/rendering/play-pause-button';
 import XrRendering from 'explorviz-frontend/src/components/visualization/rendering/xr-rendering';
-import { useCollaborationSessionStore } from 'explorviz-frontend/src/stores/collaboration/collaboration-session';
-import {
-  useLocalUserStore,
-  VisualizationMode,
-} from 'explorviz-frontend/src/stores/collaboration/local-user';
+import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useRoomSerializerStore } from 'explorviz-frontend/src/stores/collaboration/room-serializer';
-import { useWebSocketStore } from 'explorviz-frontend/src/stores/collaboration/web-socket';
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useDetachedMenuRendererStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-renderer';
 import { useLandscapeRestructureStore } from 'explorviz-frontend/src/stores/landscape-restructure';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { useReloadHandlerStore } from 'explorviz-frontend/src/stores/reload-handler';
@@ -41,27 +35,7 @@ import {
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { closeDistrictsByList } from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import {
-  highlightById,
-  removeAllHighlighting,
-} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
-import { ForwardedMessage } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/forwarded';
-import {
-  INITIAL_LANDSCAPE_EVENT,
-  InitialLandscapeMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/landscape';
-import {
-  TIMESTAMP_UPDATE_TIMER_EVENT,
-  TimestampUpdateTimerMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/receivable/timestamp-update-timer';
-import {
-  TIMESTAMP_UPDATE_EVENT,
-  TimestampUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/timestamp-update';
-import {
-  VISUALIZATION_MODE_UPDATE_EVENT,
-  VisualizationModeUpdateMessage,
-} from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/sendable/visualization-mode-update';
+import { removeAllHighlighting } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import {
   SerializedAnnotation,
   SerializedDetachedMenu,
@@ -69,7 +43,6 @@ import {
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import { DynamicLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import TimelineDataObjectHandler from 'explorviz-frontend/src/utils/timeline/timeline-data-object-handler';
 import { Button } from 'react-bootstrap';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -180,77 +153,13 @@ export default function Visualization() {
     };
   }, []);
 
-  // Register event listeners immediately on mount to ensure they're ready
-  // before any WebSocket connection (e.g., from auto-connect or landscape selection)
-  useEffect(() => {
-    // Register collaboration event listeners
-    eventEmitter.on(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
-    eventEmitter.on(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-
-    if (!isSingleLandscapeMode) {
-      eventEmitter.on(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-    }
-
-    // Cleanup: remove listeners on unmount
-    return () => {
-      eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
-      eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-      if (!isSingleLandscapeMode) {
-        eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-      }
-    };
-  }, []);
-
   useEffect(() => {
     initRenderingAndSetupListeners();
-  }, []);
-
-  // equivalent to old auto-join-lobby
-  useEffect(() => {
-    const autoJoinLobby = async (retries = 5) => {
-      const currentConnectionStatus =
-        useCollaborationSessionStore.getState().connectionStatus;
-      // Don't try to reconnect if already online or if intentionally disconnected
-      if (
-        currentConnectionStatus === 'online' ||
-        currentConnectionStatus === 'connecting'
-      ) {
-        return;
-      }
-      // Only try to auto-join if there's a roomId in the URL
-      const roomId = searchParams.get('roomId');
-      if (!roomId) {
-        return;
-      }
-      const roomHosted = await hostRoom(roomId);
-
-      if (!roomHosted && retries <= 0) {
-        useToastHandlerStore
-          .getState()
-          .showErrorToastMessage('Failed to join room automatically.');
-      } else if (!roomHosted && retries > 0) {
-        setTimeout(() => {
-          autoJoinLobby(retries - 1);
-        }, 5000);
-      }
-    };
-
-    if (searchParams.get('roomId')) {
-      autoJoinLobby();
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const fetchVrStatus = async () => {
-      await updateVrStatus();
-    };
-    fetchVrStatus();
   }, []);
 
   // #endregion
 
   // #region Store state declaration
-  const hostRoom = useCollaborationSessionStore((state) => state.hostRoom);
   const renderingServiceToggleVisualizationUpdating = useRenderingServiceStore(
     (state) => state.toggleVisualizationUpdating
   );
@@ -259,9 +168,6 @@ export default function Visualization() {
   );
   const setLandscapeDataRenderingService = useRenderingServiceStore(
     (state) => state.setLandscapeData
-  );
-  const renderingServiceVisualizationPaused = useRenderingServiceStore(
-    (state) => state._visualizationPaused
   );
   const setVisualizationPausedRenderingService = useRenderingServiceStore(
     (state) => state.setVisualizationPaused
@@ -322,12 +228,6 @@ export default function Visualization() {
   const loadLandscapeByTimestamp = useReloadHandlerStore(
     (state) => state.loadLandscapeByTimestamp
   );
-  const detachedMenuRendererRestore = useDetachedMenuRendererStore(
-    (state) => state.restore
-  );
-  const detachedMenuRendererRestoreAnnotations = useDetachedMenuRendererStore(
-    (state) => state.restoreAnnotations
-  );
   const showInfoToastMessage = useToastHandlerStore(
     (state) => state.showInfoToastMessage
   );
@@ -337,7 +237,6 @@ export default function Visualization() {
   const snapshotToken = useSnapshotTokenStore((state) => state.snapshotToken);
   const defaultCamera = useLocalUserStore((state) => state.defaultCamera);
   const setDefaultCamera = useLocalUserStore((state) => state.setDefaultCamera);
-  const webSocketSend = useWebSocketStore((state) => state.send);
   const visualizationSettings = useUserSettingsStore(
     (state) => state.visualizationSettings
   );
@@ -367,8 +266,6 @@ export default function Visualization() {
   const isLandscapeExistentAndEmpty = (() => {
     return (
       renderingServiceLandscapeData !== null &&
-      renderingServiceLandscapeData.structureLandscapeData?.nodes.length ===
-        0 &&
       (!renderingServiceLandscapeData.flatLandscapeData ||
         Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
           .length === 0)
@@ -378,10 +275,9 @@ export default function Visualization() {
   const allLandscapeDataExistsAndNotEmpty = (() => {
     return (
       renderingServiceLandscapeData !== null &&
-      (renderingServiceLandscapeData.structureLandscapeData?.nodes.length > 0 ||
-        (renderingServiceLandscapeData.flatLandscapeData &&
-          Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
-            .length > 0))
+      renderingServiceLandscapeData.flatLandscapeData &&
+      Object.keys(renderingServiceLandscapeData.flatLandscapeData.cities)
+        .length > 0
     );
   })();
 
@@ -569,96 +465,6 @@ export default function Visualization() {
 
     // Reset all highlights first
     removeAllHighlighting(false);
-
-    // Apply highlighted entities if provided
-    if (highlightedEntities && highlightedEntities.length > 0) {
-      highlightedEntities.forEach(({ userId, entityId }) => {
-        const user = useCollaborationSessionStore
-          .getState()
-          .lookupRemoteUserById(userId);
-        if (user) {
-          user.highlightedEntityIds.add(entityId);
-        }
-        highlightById(entityId, false);
-      });
-    }
-
-    // Restore detached menus and popups
-    const popupsToRestore = popups || [];
-    detachedMenuRendererRestore(popupsToRestore, detachedMenus);
-
-    // Restore annotations
-    detachedMenuRendererRestoreAnnotations(annotations);
-  };
-
-  const onInitialLandscape = async ({
-    landscape,
-    detachedMenus,
-    annotations,
-    closedComponents,
-    highlightedEntities,
-  }: InitialLandscapeMessage): Promise<void> => {
-    // Convert detached menus to popups format for browser mode
-    const popupsFromMenus: SerializedPopup[] = detachedMenus.map(
-      (detachedMenu) => ({
-        userId: detachedMenu.userId || null,
-        entityId: detachedMenu.entityId,
-        menuId: detachedMenu.objectId,
-      })
-    );
-
-    // Apply room state (with reset for initial landscape)
-    applyRoomState(
-      closedComponents,
-      highlightedEntities,
-      detachedMenus as SerializedDetachedMenu[],
-      annotations as SerializedAnnotation[],
-      popupsFromMenus
-    );
-
-    // Serialized room is used in landscape-data-watcher
-    roomSerializer.setSerializedRoom({
-      landscape: landscape,
-      highlightedEntities: highlightedEntities || [], // Already in {userId, entityId} format
-      closedComponentIds: closedComponents || [],
-      detachedMenus: detachedMenus as SerializedDetachedMenu[],
-      popups: popupsFromMenus,
-      annotations: annotations as SerializedAnnotation[],
-    });
-
-    // TODO: Refactor
-    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
-    commitToSelectedTimestampMap.set('cross-commit', []);
-    await renderingServiceTriggerRenderingForGivenTimestamp(
-      commitToSelectedTimestampMap
-    );
-    // Disable polling. It is now triggerd by the websocket.
-  };
-
-  const onTimestampUpdate = async ({
-    originalMessage: { timestamp },
-  }: ForwardedMessage<TimestampUpdateMessage>): Promise<void> => {
-    // TODO: Refactor
-    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
-    commitToSelectedTimestampMap.set('cross-commit', []);
-    renderingServiceTriggerRenderingForGivenTimestamp(
-      commitToSelectedTimestampMap
-    );
-  };
-
-  const onTimestampUpdateTimer = async ({
-    timestamp,
-  }: TimestampUpdateTimerMessage): Promise<void> => {
-    // Reset countdown when fetch is triggered
-    setCountdown(10);
-
-    // TODO: Refactor
-    const commitToSelectedTimestampMap = new Map<string, Timestamp[]>();
-    commitToSelectedTimestampMap.set('cross-commit', []);
-    await loadLandscapeByTimestamp(timestamp);
-    renderingServiceTriggerRenderingForGivenTimestamp(
-      commitToSelectedTimestampMap
-    );
   };
 
   const loadSnapshot = async () => {
@@ -679,55 +485,6 @@ export default function Visualization() {
     );
     setDefaultCamera(dc);
   };
-  // #endregion
-
-  // #region XR
-  const switchToAR = () => {
-    switchToMode('ar');
-  };
-
-  const switchToVR = () => {
-    if (vrSupported) {
-      switchToMode('vr');
-    }
-  };
-
-  const switchToOnScreenMode = () => {
-    switchToMode('browser');
-  };
-
-  const switchToMode = (mode: VisualizationMode) => {
-    roomSerializer.serializeRoom();
-    setVisualizationMode(mode);
-    webSocketSend<VisualizationModeUpdateMessage>(
-      VISUALIZATION_MODE_UPDATE_EVENT,
-      { mode }
-    );
-  };
-
-  /**
-   * Checks the current status of WebXR in the browser and if compatible
-   * devices are connected. Sets the tracked properties
-   * 'vrButtonText' and 'vrSupported' accordingly.
-   */
-  const updateVrStatus = async () => {
-    if ('xr' in navigator) {
-      const isSessionSupported =
-        (await navigator.xr?.isSessionSupported('immersive-vr')) || false;
-      setVrSupported(isSessionSupported!);
-
-      if (isSessionSupported) {
-        setVrButtonText('Enter VR');
-      } else if (!window.isSecureContext) {
-        setVrButtonText('WEBXR NEEDS HTTPS');
-      } else {
-        setVrButtonText('WEBXR NOT AVAILABLE');
-      }
-    } else {
-      setVrButtonText('WEBXR NOT SUPPORTED');
-    }
-  };
-
   // #endregion
 
   const refreshCommitTreeData = async () => {
@@ -781,20 +538,6 @@ export default function Visualization() {
     useCommitTreeStateStore.getState().resetSelectedCommits();
 
     setVisualizationMode('browser');
-
-    if (useWebSocketStore.getState().isWebSocketOpen()) {
-      eventEmitter.off(INITIAL_LANDSCAPE_EVENT, onInitialLandscape);
-      eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-      eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-    }
-
-    eventEmitter.off(TIMESTAMP_UPDATE_EVENT, onTimestampUpdate);
-  };
-
-  const removeTimestampListener = () => {
-    if (useWebSocketStore.getState().isWebSocketOpen()) {
-      eventEmitter.off(TIMESTAMP_UPDATE_TIMER_EVENT, onTimestampUpdateTimer);
-    }
   };
 
   // #endregion
@@ -859,7 +602,6 @@ export default function Visualization() {
           isDisplayed={true}
           landscapeData={renderingServiceLandscapeData}
           landscapeToken={landscapeTokenServiceToken}
-          removeTimestampListener={removeTimestampListener}
           snapshot={snapshotSelected}
           snapshotReload={snapshotToken}
           toggleVisualizationUpdating={

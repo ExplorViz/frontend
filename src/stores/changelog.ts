@@ -1,4 +1,3 @@
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import {
   AppChangeLogEntry,
   BaseChangeLogEntry,

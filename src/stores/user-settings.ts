@@ -1,4 +1,3 @@
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import {
   blueColors,
   classicColors,
@@ -105,9 +104,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
       },
 
       shareVisualizationSettings: () => {
-        useMessageSenderStore
-          .getState()
-          .sendSharedSettings(get().visualizationSettings);
+        // ToDo in playroomkit
       },
 
       updateSettings: (settings: VisualizationSettings) => {

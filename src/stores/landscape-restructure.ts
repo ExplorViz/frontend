@@ -1,4 +1,3 @@
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import {
   getAllClassesInApplication,
@@ -12,7 +11,6 @@ import {
   PackageChangeLogEntry,
   SubPackageChangeLogEntry,
 } from 'explorviz-frontend/src/utils/changelog-entry';
-import { getClassById } from 'explorviz-frontend/src/utils/class-helpers';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
 import AggregatedCommunication from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/aggregated-communication';
 import { LandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/landscape-data';
@@ -98,7 +96,10 @@ interface LandscapeRestructureState {
   allAggregatedCommunications: AggregatedCommunication[]; // tracked
   copiedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
   updatedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
-  completelyDeletedAggregatedCommunications: Map<string, AggregatedCommunication[]>; // tracked
+  completelyDeletedAggregatedCommunications: Map<
+    string,
+    AggregatedCommunication[]
+  >; // tracked
   deletedAggregatedCommunications: AggregatedCommunication[]; // tracked
   sourceClass: Class | null; // tracked
   targetClass: Class | null; // tracked
@@ -263,9 +264,15 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
     clippedMesh: null,
     createdAggregatedCommunication: [],
     allAggregatedCommunications: [],
-    copiedAggregatedCommunications: new Map<string, AggregatedCommunication[]>(),
+    copiedAggregatedCommunications: new Map<
+      string,
+      AggregatedCommunication[]
+    >(),
     removeCopiedAggregatedCommunication,
-    updatedAggregatedCommunications: new Map<string, AggregatedCommunication[]>(),
+    updatedAggregatedCommunications: new Map<
+      string,
+      AggregatedCommunication[]
+    >(),
     completelyDeletedAggregatedCommunications: new Map<
       string,
       AggregatedCommunication[]
@@ -441,18 +448,16 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         const newCreatedComm = comm.id.includes(' => ');
         if (newCreatedComm) {
           set({
-            createdAggregatedCommunication: get().createdAggregatedCommunication.filter(
-              (c) => c != comm
-            ),
+            createdAggregatedCommunication:
+              get().createdAggregatedCommunication.filter((c) => c != comm),
           });
           set({
             commModelColorMappings: get().commModelColorMappings.slice(0, -1),
           });
         } else {
           set({
-            deletedAggregatedCommunications: get().deletedAggregatedCommunications.filter(
-              (d) => d != comm
-            ),
+            deletedAggregatedCommunications:
+              get().deletedAggregatedCommunications.filter((d) => d != comm),
           });
           const newCommModelColorMappings = get().commModelColorMappings.slice(
             0,
@@ -475,9 +480,8 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         const newCreatedComm = comm.id.includes(' => ');
         if (newCreatedComm) {
           set({
-            createdAggregatedCommunication: get().createdAggregatedCommunication.filter(
-              (c) => comm
-            ),
+            createdAggregatedCommunication:
+              get().createdAggregatedCommunication.filter((c) => comm),
           });
         } else {
           set({
@@ -567,7 +571,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           get().copiedAggregatedCommunications
         );
         newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
-        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
+        set({
+          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+        });
 
         eventEmitter.emit('showChangeLog');
         eventEmitter.emit(
@@ -891,15 +897,21 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           let newUpdatedAggregatedCommunications = new Map(
             get().updatedAggregatedCommunications
           );
-          newUpdatedAggregatedCommunications.set(key as string, [communication]);
-          set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
+          newUpdatedAggregatedCommunications.set(key as string, [
+            communication,
+          ]);
+          set({
+            updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+          });
         }
       } else {
         let newUpdatedAggregatedCommunications = new Map(
           get().updatedAggregatedCommunications
         );
         newUpdatedAggregatedCommunications.delete(key);
-        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
+        set({
+          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+        });
         communication.operationName = newName;
       }
 
@@ -997,7 +1009,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           get().updatedAggregatedCommunications
         );
         newUpdatedAggregatedCommunications.delete(keyToRemove);
-        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
+        set({
+          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+        });
 
         const app = get().getApp(pckg)!;
         if (get().createdAggregatedCommunication.length) {
@@ -1074,7 +1088,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           get().updatedAggregatedCommunications
         );
         newUpdatedAggregatedCommunications.delete(keyToRemove);
-        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
+        set({
+          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+        });
 
         restoreID({ entity: clazz }, 'removed|');
         if (get().createdAggregatedCommunication.length) {
@@ -1162,7 +1178,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         get().copiedAggregatedCommunications
       );
       newCopiedAggregatedCommunications.delete(keyToRemove);
-      set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
+      set({
+        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+      });
     },
 
     undoCopyPackage(app: Application, pckg: Package) {
@@ -1186,7 +1204,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         get().copiedAggregatedCommunications
       );
       newCopiedAggregatedCommunications.delete(keyToRemove);
-      set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
+      set({
+        copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+      });
     },
 
     //TODO: app gets passed but not used
@@ -1200,13 +1220,17 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
         copiedComms.forEach((comm) => {
           newDeletedAggregatedCommunications.push(comm);
         });
-        set({ deletedAggregatedCommunications: newDeletedAggregatedCommunications });
+        set({
+          deletedAggregatedCommunications: newDeletedAggregatedCommunications,
+        });
 
         let newCopiedAggregatedCommunications = new Map(
           get().copiedAggregatedCommunications
         );
         newCopiedAggregatedCommunications.delete(keyToRemove);
-        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
+        set({
+          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+        });
       }
     },
 
@@ -2396,7 +2420,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           get().copiedAggregatedCommunications
         );
         newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
-        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
+        set({
+          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+        });
 
         eventEmitter.emit('showChangeLog');
         eventEmitter.emit(
@@ -2478,7 +2504,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           get().copiedAggregatedCommunications
         );
         newCopiedAggregatedCommunications.set(key, wrapper.copiedComms);
-        set({ copiedAggregatedCommunications: newCopiedAggregatedCommunications });
+        set({
+          copiedAggregatedCommunications: newCopiedAggregatedCommunications,
+        });
 
         eventEmitter.emit('showChangeLog');
         eventEmitter.emit(
@@ -2664,7 +2692,9 @@ export const useLandscapeRestructureStore = create<LandscapeRestructureState>(
           get().updatedAggregatedCommunications
         );
         newUpdatedAggregatedCommunications.set(key, wrapper.updatedComms);
-        set({ updatedAggregatedCommunications: newUpdatedAggregatedCommunications });
+        set({
+          updatedAggregatedCommunications: newUpdatedAggregatedCommunications,
+        });
 
         get().resetClipboard();
 

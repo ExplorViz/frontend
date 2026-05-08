@@ -1,22 +1,15 @@
 import { useAnnotationHandlerStore } from 'explorviz-frontend/src/stores/annotation-handler';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
-import { useDetachedMenuGroupsStore } from 'explorviz-frontend/src/stores/extended-reality/detached-menu-groups';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useTimestampStore } from 'explorviz-frontend/src/stores/timestamp';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
   SerializedAnnotation,
-  SerializedDetachedMenu,
   SerializedLandscape,
   SerializedPopup,
   SerializedRoom,
 } from 'explorviz-frontend/src/utils/collaboration/web-socket-messages/types/serialized-room';
-import {
-  DetachableMenu,
-  isDetachableMenu,
-} from 'explorviz-frontend/src/utils/extended-reality/vr-menus/detachable-menu';
-import * as THREE from 'three';
 import { create } from 'zustand';
 
 interface RoomSerializerState {
@@ -26,7 +19,6 @@ interface RoomSerializerState {
   _serializeLandscape: () => SerializedLandscape;
   _serializeOpenPopups: (snapshot: boolean) => SerializedPopup[];
   _serializeOpenAnnotations: (snapshot: boolean) => SerializedAnnotation[];
-  _serializeDetachedMenus: () => SerializedDetachedMenu[];
 }
 
 export const useRoomSerializerStore = create<RoomSerializerState>(
@@ -53,7 +45,6 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
         }), // TODO: Add highlighted entities of remote users
         popups: get()._serializeOpenPopups(snapshot),
         annotations: get()._serializeOpenAnnotations(snapshot),
-        detachedMenus: get()._serializeDetachedMenus(),
       };
       return serializedRoom;
     },
@@ -118,32 +109,6 @@ export const useRoomSerializerStore = create<RoomSerializerState>(
             shared: snapshot ? false : true,
             inEdit: annotation.inEdit,
             lastEditor: annotation.lastEditor,
-          };
-        });
-    },
-
-    // private
-    _serializeDetachedMenus: (): SerializedDetachedMenu[] => {
-      return useDetachedMenuGroupsStore
-        .getState()
-        .getDetachedMenus()
-        .filter((detachedMenuGroup) =>
-          isDetachableMenu(detachedMenuGroup.currentMenu)
-        )
-        .map((detachedMenuGroup) => {
-          const detachedMenu = detachedMenuGroup.currentMenu as DetachableMenu;
-          return {
-            userId: null,
-            objectId: detachedMenuGroup.getGrabId(),
-            entityId: detachedMenu.getDetachId(),
-            entityType: detachedMenu.getEntityType(),
-            position: detachedMenuGroup
-              .getWorldPosition(new THREE.Vector3())
-              .toArray(),
-            quaternion: detachedMenuGroup
-              .getWorldQuaternion(new THREE.Quaternion())
-              .toArray(),
-            scale: detachedMenuGroup.scale.toArray(),
           };
         });
     },

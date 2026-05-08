@@ -1,10 +1,9 @@
-import { useMessageSenderStore } from 'explorviz-frontend/src/stores/collaboration/message-sender';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import {
-    Building,
-    City,
-    District,
+  Building,
+  City,
+  District,
 } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { Package } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 
@@ -77,10 +76,6 @@ export function openDistrict(districtId: string, sendMessage = true) {
   openDistricts([district.id]);
   showDistricts(getChildDistrictIds(district));
   showBuildings(getChildBuildingIds(district));
-
-  if (sendMessage) {
-    useMessageSenderStore.getState().sendDistrictUpdate([district.id], true);
-  }
 }
 
 /**
@@ -108,10 +103,6 @@ export function closeDistrict(
     return;
   }
 
-  if (sendMessage) {
-    useMessageSenderStore.getState().sendDistrictUpdate([district.id], false);
-  }
-
   closeDistricts([district.id]);
 
   hideBuildings(getChildBuildingIds(district));
@@ -137,12 +128,6 @@ export function closeAllDistrictsInCity(city: City, sendMessage = true) {
     (id) => !city.buildingIds.includes(id)
   );
   hideBuildings(buildingIdsToHide);
-
-  if (sendMessage) {
-    useMessageSenderStore
-      .getState()
-      .sendDistrictUpdate(city.allContainedDistrictIds, false);
-  }
 }
 
 export function closeAllDistrictsInLandscape(sendMessage = true) {
@@ -171,10 +156,6 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
   );
   hideBuildings(buildingIdsToHide);
   showBuildings(topLevelBuildingIds);
-
-  if (sendMessage) {
-    useMessageSenderStore.getState().sendDistrictUpdate(allDistrictIds, false);
-  }
 }
 
 /**
@@ -185,10 +166,6 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
 export function openAllDistrictsInCity(city: City, sendMessage = true) {
   openDistricts(city.allContainedDistrictIds);
   showBuildings(city.allContainedBuildingIds);
-
-  if (sendMessage) {
-    useMessageSenderStore.getState().sendDistrictUpdate(city.allContainedDistrictIds, true);
-  }
 }
 
 export function openAllDistrictsInLandscape(sendMessage = true) {
@@ -204,8 +181,4 @@ export function openAllDistrictsInLandscape(sendMessage = true) {
   openDistricts(districtIds);
   showDistricts(districtIds);
   showBuildings(buildingIds);
-
-  if (sendMessage) {
-    useMessageSenderStore.getState().sendDistrictUpdate(districtIds, true);
-  }
 }

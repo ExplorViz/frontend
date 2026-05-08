@@ -30,16 +30,12 @@ interface ModelRepositoryState {
   getAggregatedCommunication: (
     id: string
   ) => AggregatedCommunication | undefined;
-  getCommunication: (id: string) => CommunicationDto | AggregatedCommunication | undefined;
+  getCommunication: (
+    id: string
+  ) => CommunicationDto | AggregatedCommunication | undefined;
   getModel: (
     id: string
-  ) =>
-    | City
-    | District
-    | Building
-    | CommunicationDto
-    | AggregatedCommunication
-    | undefined;
+  ) => City | District | Building | AggregatedCommunication | undefined;
   getEntityType: (id: string) => EntityType;
 
   // Getter functions for all models
@@ -135,7 +131,6 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
     get().cities[id] ||
     get().districts[id] ||
     get().buildings[id] ||
-    get().buildingCommunications[id] ||
     get().aggregatedCommunications[id],
 
   getEntityType: (id) => {
@@ -233,7 +228,8 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
 
   removeBuildingCommunication: (id) =>
     set((state) => {
-      const { [id]: _, ...buildingCommunications } = state.buildingCommunications;
+      const { [id]: _, ...buildingCommunications } =
+        state.buildingCommunications;
       return { buildingCommunications };
     }),
 
@@ -248,7 +244,8 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
   clearAllCities: () => set(() => ({ cities: {} })),
   clearAllDistricts: () => set(() => ({ districts: {} })),
   clearAllBuildings: () => set(() => ({ buildings: {} })),
-  clearAllBuildingCommunications: () => set(() => ({ buildingCommunications: {} })),
+  clearAllBuildingCommunications: () =>
+    set(() => ({ buildingCommunications: {} })),
   clearAllAggregatedCommunications: () =>
     set(() => ({ aggregatedCommunications: {} })),
 
@@ -262,4 +259,3 @@ export const useModelStore = create<ModelRepositoryState>((set, get) => ({
       aggregatedCommunications: {},
     })),
 }));
-

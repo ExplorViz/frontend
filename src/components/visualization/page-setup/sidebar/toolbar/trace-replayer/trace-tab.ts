@@ -1,5 +1,5 @@
 import { TraceNode } from 'explorviz-frontend/src/components/visualization/page-setup/sidebar/toolbar/trace-replayer/trace-tree';
-import { Application } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
+import * as THREE from 'three';
 
 export class TraceTab {
   readonly style: string;
@@ -22,8 +22,8 @@ export class TraceTab {
   constructor(
     caller: TraceNode,
     callee: TraceNode,
-    origin: Application | undefined,
-    target: Application | undefined,
+    origin: string,
+    target: string,
     color: THREE.Color,
     callback: () => void
   ) {
@@ -32,8 +32,8 @@ export class TraceTab {
     this.name = callee.name;
     this.caller = caller.sourceClass?.name ?? '';
     this.callee = callee.targetClass.name;
-    this.origin = origin !== undefined ? origin.name : '';
-    this.target = target !== undefined ? target.name : '';
+    this.origin = origin;
+    this.target = target;
     this.start = callee.start;
     this.end = callee.end;
     this.duration = this.end - this.start;

@@ -5,8 +5,10 @@ import {
   DynamicLandscapeData,
   Trace,
 } from 'explorviz-frontend/src/utils/landscape-schemes/dynamic/dynamic-data';
-import { StructureLandscapeData } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
-import { getHashCodeToClassMap } from 'explorviz-frontend/src/utils/landscape-structure-helpers';
+import {
+  FlatLandscape,
+  getFunctionIdToBuildingMap,
+} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { getSortedTraceSpans } from 'explorviz-frontend/src/utils/trace-helpers';
 import React, { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -17,14 +19,14 @@ interface TraceSelectionAndReplayerProps {
   highlightTrace: (trace: Trace, traceStep: string) => void;
   removeHighlighting: () => void;
   dynamicData: DynamicLandscapeData;
-  structureData: StructureLandscapeData;
+  flatData: FlatLandscape;
 }
 
 const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
   highlightTrace,
   removeHighlighting,
   dynamicData,
-  structureData,
+  flatData,
 }) => {
   const renderingStore = useRenderingServiceStore(
     useShallow((state) => ({
@@ -37,10 +39,11 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
   const [unit, setUnit] = useState<TimeUnit>('ns');
 
+  const functionIdToBuildingMap = getFunctionIdToBuildingMap(flatData);
+
   const applicationTraces = dynamicData.filter((trace) => {
-    const hashCodeToClassMap = getHashCodeToClassMap(structureData);
     return trace.spanList.some(
-      (span) => hashCodeToClassMap.get(span.functionId) !== undefined
+      (span) => functionIdToBuildingMap.get(span.functionId) !== undefined
     );
   });
 
@@ -96,7 +99,7 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
     <div>
       <TraceSelection
         selectTrace={selectTrace}
-        structureData={structureData}
+        flatData={flatData}
         applicationTraces={applicationTraces}
         selectedTrace={selectedTrace}
         unit={unit}
@@ -106,7 +109,7 @@ const TraceSelectionAndReplayer: React.FC<TraceSelectionAndReplayerProps> = ({
       {selectedTrace && (
         <TraceReplayerControls
           selectedTrace={selectedTrace}
-          structureData={structureData}
+          flatData={flatData}
         />
       )}
     </div>

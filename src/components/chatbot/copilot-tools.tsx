@@ -428,30 +428,22 @@ export function CopilotTools() {
     description:
       'Filters entities in the visualization using the existing Entity Filtering panel. Provide one or more thresholds.',
     parameters: z.object({
-      minTraceStartTimestamp: z.number().optional(),
-      minTraceDuration: z.number().optional(),
       minClassMethodCount: z.number().optional(),
     }),
     // @ts-ignore
     _isRenderAndWait: true,
-    handler: async ({
-      minTraceStartTimestamp,
-      minTraceDuration,
-      minClassMethodCount,
-    }) => {
+    handler: async ({ minClassMethodCount }) => {
       setShowToolsSidebar(true);
       setOpenedToolComponent('entity-filtering');
       setTimeout(() => {
         entityFilteringControllerRef?.current?.applyFilters({
-          minTraceStartTimestamp,
-          minTraceDuration,
           minClassMethodCount,
         });
       }, 200);
     },
     render: ({ status }) => (
       <ToolCallCard
-        component={{ id: 'entity-filtering', name: 'Entity Filtering' }}
+        component={{ id: 'entity-filtering', name: 'Filter' }}
         status={status}
         action={'filterEntities'}
       />

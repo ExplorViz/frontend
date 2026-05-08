@@ -92,3 +92,20 @@ export function getAllIdsOfFlatLandscape(
     .filter((item) => 'id' in item)
     .map((item) => item.id);
 }
+
+export function getBuildingById(
+  flatLandscape: FlatLandscape,
+  buildingId: string
+): Building | undefined {
+  return flatLandscape.buildings[buildingId];
+}
+
+export function getFunctionIdToBuildingMap(flatLandscape: FlatLandscape) {
+  const functionIdToBuildingMap = new Map<string, Building>();
+
+  Object.values(flatLandscape.buildings).forEach((building) => {
+    functionIdToBuildingMap.set(building.id, building);
+  });
+
+  return functionIdToBuildingMap;
+}
