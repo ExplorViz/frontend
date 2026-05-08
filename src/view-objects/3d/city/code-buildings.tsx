@@ -13,6 +13,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibility-service';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
+import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
@@ -144,6 +145,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
   const {
     hiddenBuildingIds,
     removedDistrictIds,
+    hiddenLanguages,
     hoveredEntityId,
     setHoveredEntity,
     highlightedEntityIds,
@@ -151,6 +153,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     useShallow((state) => ({
       hiddenBuildingIds: state.hiddenBuildingIds,
       removedDistrictIds: state.removedDistrictIds,
+      hiddenLanguages: state.hiddenLanguages,
       hoveredEntityId: state.hoveredEntityId,
       setHoveredEntity: state.actions.setHoveredEntityId,
       highlightedEntityIds: state.highlightedEntityIds,
@@ -427,9 +430,13 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       })();
 
       obj.visible =
-        !hiddenBuildingIds.has(building.id) &&
-        !removedDistrictIds.has(building.id) &&
-        visibleDueToEvo;
+        isBuildingVisible({
+          buildingId: building.id,
+          building,
+          hiddenBuildingIds,
+          removedDistrictIds,
+          hiddenLanguages,
+        }) && visibleDueToEvo;
 
       obj.scale.set(layout.width, getBuildingHeight(building), layout.depth);
       obj.color = computeColor(building.id);
@@ -443,6 +450,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     layoutMap,
     hiddenBuildingIds,
     removedDistrictIds,
+    hiddenLanguages,
     evoConfig,
     isDiffMode,
     getBuildingHeight,
@@ -591,13 +599,25 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     // Update the visibility of the instances based
     instanceIdToBuildingId.forEach((buildingId, instanceId) => {
       // Set visibility based on hidden buildings
+      const building = useModelStore.getState().getBuilding(buildingId);
       meshRef.current?.setVisibilityAt(
         instanceId,
-        !hiddenBuildingIds.has(buildingId) &&
-          !removedDistrictIds.has(buildingId)
+        isBuildingVisible({
+          buildingId,
+          building,
+          hiddenBuildingIds,
+          removedDistrictIds,
+          hiddenLanguages,
+        })
       );
     });
-  }, [meshRef, instanceIdToBuildingId, hiddenBuildingIds, removedDistrictIds]);
+  }, [
+    meshRef,
+    instanceIdToBuildingId,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
+  ]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (meshRef === null || typeof meshRef === 'function') {
@@ -735,9 +755,14 @@ interface CodeBuildingsArgs {
  */
 const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
   const getBuilding = useModelStore.getState().getBuilding;
-  const hiddenLanguages = useVisualizationStore(
-    (state) => state.hiddenLanguages
-  );
+  const { hiddenBuildingIds, removedDistrictIds, hiddenLanguages } =
+    useVisualizationStore(
+      useShallow((state) => ({
+        hiddenBuildingIds: state.hiddenBuildingIds,
+        removedDistrictIds: state.removedDistrictIds,
+        hiddenLanguages: state.hiddenLanguages,
+      }))
+    );
 
   const {
     languageGeometryJava,
@@ -779,10 +804,22 @@ const CodeBuildings: React.FC<CodeBuildingsArgs> = ({ buildingIds, city }) => {
 
   const visibleBuildingIds = useMemo(() => {
     return buildingIds.filter((id) => {
-      const lang = getBuilding(id)?.language ?? 'LANGUAGE_UNSPECIFIED';
-      return !hiddenLanguages.has(lang);
+      const building = getBuilding(id);
+      return isBuildingVisible({
+        buildingId: id,
+        building,
+        hiddenBuildingIds,
+        removedDistrictIds,
+        hiddenLanguages,
+      });
     });
-  }, [buildingIds, getBuilding, hiddenLanguages]);
+  }, [
+    buildingIds,
+    getBuilding,
+    hiddenBuildingIds,
+    removedDistrictIds,
+    hiddenLanguages,
+  ]);
 
   const buildingsByGeometry = useMemo(
     () =>

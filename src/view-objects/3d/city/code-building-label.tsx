@@ -5,6 +5,7 @@ import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-reposit
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getTruncatedDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
+import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { Building } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import {
@@ -32,13 +33,17 @@ export default function CodeBuildingLabel({
     isParentHovered,
     isBuildingHighlighted,
     isParentHighlighted,
-    isBuildingVisible,
+    isCurrentBuildingVisible,
   } = useVisualizationStore(
     useShallow((state) => ({
       isBuildingHovered: state.hoveredEntityId === buildingId,
-      isBuildingVisible:
-        !state.hiddenBuildingIds.has(buildingId) &&
-        !state.removedDistrictIds.has(buildingId),
+      isCurrentBuildingVisible: isBuildingVisible({
+        buildingId,
+        building,
+        hiddenBuildingIds: state.hiddenBuildingIds,
+        removedDistrictIds: state.removedDistrictIds,
+        hiddenLanguages: state.hiddenLanguages,
+      }),
       isParentHovered:
         state.hoveredEntityId === building?.parentDistrictId ||
         (!building?.parentDistrictId &&
@@ -176,7 +181,7 @@ export default function CodeBuildingLabel({
       name={'Code building label of ' + building.name}
       position={labelPosition}
       color={buildingTextColor}
-      visible={isBuildingVisible}
+      visible={isCurrentBuildingVisible}
       rotation={[1.5 * Math.PI, 0, labelRotation]}
       fontSize={
         buildingLabelFontSize * Math.min(layout.width, layout.depth) * 0.5
