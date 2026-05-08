@@ -929,7 +929,7 @@ export const defaultVizSettings: VisualizationSettings = {
   // Semantic Zoom Settings
   enableClustering: {
     level: SettingLevel.DEFAULT,
-    value: true,
+    value: false,
     group: 'Semantic Zoom',
     displayName: 'Enable Clustering',
     description:
