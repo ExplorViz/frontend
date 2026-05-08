@@ -12,6 +12,40 @@ interface BuildingPopupProps {
   popupData: PopupData;
 }
 
+function formatInteger(value: number): string {
+  return Math.round(value).toLocaleString('en-US');
+}
+
+function formatWithUpToTwoDecimals(value: number): string {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatSizeMetric(valueInBytes: number): string {
+  const kiloBytes = 1024;
+  const megaBytes = kiloBytes * 1024;
+
+  if (Math.abs(valueInBytes) >= megaBytes) {
+    return `${formatWithUpToTwoDecimals(valueInBytes / megaBytes)} MegaBytes`;
+  }
+
+  if (Math.abs(valueInBytes) >= kiloBytes) {
+    return `${formatWithUpToTwoDecimals(valueInBytes / kiloBytes)} KiloBytes`;
+  }
+
+  return `${formatWithUpToTwoDecimals(valueInBytes)} Bytes`;
+}
+
+function formatMetricValue(name: string, value: number): string {
+  if (name.trim().toLowerCase() === 'size') {
+    return formatSizeMetric(value);
+  }
+
+  return formatInteger(value);
+}
+
 export default function BuildingPopup({ popupData }: BuildingPopupProps) {
   const building = popupData.entity as Building;
 
@@ -89,14 +123,14 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                         value.previous !== undefined
                           ? value.current - value.previous
                           : 0;
-                      const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+                      const diffText = diff > 0 ? `+${formatInteger(diff)}` : `${formatInteger(diff)}`;
 
                       return (
                         <tr key={name}>
                           <td className="fw-bold">{name}:</td>
                           <td className="text-right">
                             {!hasChanged ? (
-                              value.current
+                              formatMetricValue(name, value.current)
                             ) : (
                               <>
                                 <span
@@ -107,7 +141,8 @@ export default function BuildingPopup({ popupData }: BuildingPopupProps) {
                                   {diffText}
                                 </span>
                                 <span className="ml-2 small text-muted">
-                                  (C1: {value.previous}, C2: {value.current})
+                                  (C1: {formatMetricValue(name, value.previous!)},
+                                  {' '}C2: {formatMetricValue(name, value.current)})
                                 </span>
                               </>
                             )}
