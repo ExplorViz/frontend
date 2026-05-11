@@ -138,18 +138,26 @@
   justify-content: center;
 }
 
-.commit-tree-unselect-button {
+.commit-tree-evolution-actions {
   position: absolute;
   top: 1rem;
-  right: 3.75rem;
+  right: calc(1rem + 32px + 0.5rem);
   z-index: 500;
-  white-space: nowrap;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  max-width: calc(100% - 2rem);
+
+  .btn {
+    white-space: nowrap;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .commit-tree-no-data-container {

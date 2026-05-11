@@ -1,5 +1,6 @@
 import {
   Branch,
+  Commit,
   RepoNameCommitTreeMap,
 } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 
@@ -70,4 +71,40 @@ export function getCommitXPosition(
   return (
     pointNumber + calculateCommitOffset(repoNameCommitTreeMap, repoName, branch)
   );
+}
+
+/** Latest commit on the chart for each repo (maximum Plotly x position). */
+export function buildNewestCommitSelectionMap(
+  repoNameCommitTreeMap: RepoNameCommitTreeMap
+): Map<string, Commit[]> {
+  const result = new Map<string, Commit[]>();
+
+  for (const repoName of repoNameCommitTreeMap.keys()) {
+    const commitTree = repoNameCommitTreeMap.get(repoName);
+    if (!commitTree?.branches?.length) continue;
+
+    let best: Commit | undefined;
+    let bestX = -Infinity;
+
+    for (const branch of commitTree.branches) {
+      for (const commitId of branch.commits) {
+        const x = getCommitXPosition(
+          repoNameCommitTreeMap,
+          repoName,
+          branch.name,
+          commitId
+        );
+        if (x !== -1 && x >= bestX) {
+          bestX = x;
+          best = { commitId, branchName: branch.name };
+        }
+      }
+    }
+
+    if (best) {
+      result.set(repoName, [best]);
+    }
+  }
+
+  return result;
 }

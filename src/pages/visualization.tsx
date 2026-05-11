@@ -691,9 +691,13 @@ export default function Visualization() {
                       className={isCommitTreeRefreshing ? 'spinning' : ''}
                     />
                   </Button>
-                  <EvolutionRenderingButtons />
-                  <div className="row justify-content-md-center">
-                    <div className="row justify-content-md-center align-items-center">
+                  <EvolutionRenderingButtons
+                    repoNameCommitTreeMap={
+                      repoNameCommitTreeMapEvolutionDataRepository
+                    }
+                  />
+                  <div className="row justify-content-center w-100 mx-0">
+                    <div className="col-12">
                       <CommitTreeRepositorySelection
                         repoNameCommitTreeMap={
                           repoNameCommitTreeMapEvolutionDataRepository

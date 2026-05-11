@@ -404,15 +404,15 @@ export const useRenderingServiceStore = create<RenderingServiceState>(
 
       await useEvolutionDataRepositoryStore
         .getState()
-        .fetchAndStoreEvolutionDataForSelectedCommits(
-          repositoryName,
-          repoNameToSelectedCommits.get(repositoryName) ?? []
-        );
+        .fetchAndStoreEvolutionDataForSelectedCommits(repoNameToSelectedCommits);
 
-      const selectedFlatLandscape = useEvolutionDataRepositoryStore
+      const evolutionLandscapeMap = useEvolutionDataRepositoryStore
         .getState()
-        .getRepoNameToFlatLandscapeMap()
-        .get(repositoryName);
+        .getRepoNameToFlatLandscapeMap();
+
+      const selectedFlatLandscape =
+        evolutionLandscapeMap.get(repositoryName) ??
+        evolutionLandscapeMap.values().next().value;
 
       const flattenedSelectedCommits: SelectedCommit[] = Array.from(
         repoNameToSelectedCommits.values()

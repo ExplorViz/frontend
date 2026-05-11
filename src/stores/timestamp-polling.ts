@@ -3,16 +3,17 @@ import {
   SelectedCommit,
   useCommitTreeStateStore,
 } from 'explorviz-frontend/src/stores/commit-tree-state';
-import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
-import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
+import { useRenderingServiceStore } from 'explorviz-frontend/src/stores/rendering-service';
 import {
   DebugSnapshot,
   useDebugSnapshotRepositoryStore,
 } from 'explorviz-frontend/src/stores/repos/debug-snapshot-repository';
+import { useEvolutionDataRepositoryStore } from 'explorviz-frontend/src/stores/repos/evolution-data-repository';
 import { useTimestampRepositoryStore } from 'explorviz-frontend/src/stores/repos/timestamp-repository';
 import { useToastHandlerStore } from 'explorviz-frontend/src/stores/toast-handler';
 import eventEmitter from 'explorviz-frontend/src/utils/event-emitter';
+import { buildNewestCommitSelectionMap } from 'explorviz-frontend/src/utils/evolution-data-helpers';
 import { CROSS_COMMIT_IDENTIFIER } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
 import { Timestamp } from 'explorviz-frontend/src/utils/landscape-schemes/timestamp';
 import { create } from 'zustand';
@@ -186,7 +187,8 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
             if (
               !newestLocalTimestamp &&
               timestamps.length === 0 &&
-              useCommitTreeStateStore.getState().getSelectedCommits().size === 0 &&
+              useCommitTreeStateStore.getState().getSelectedCommits().size ===
+                0 &&
               get().newestCommitAutoSelectedForLandscapeToken !==
                 useLandscapeTokenStore.getState().token?.value
             ) {
@@ -354,26 +356,23 @@ export const useTimestampPollingStore = create<TimestampPollingState>(
 
 async function selectNewestCommit(): Promise<boolean> {
   const currentLandscapeToken = useLandscapeTokenStore.getState().token?.value;
-  const newestCommit = useEvolutionDataRepositoryStore
-    .getState()
-    .getNewestCommitFromCommitTrees();
-  if (!newestCommit) {
+  const repoNameCommitTreeMap =
+    useEvolutionDataRepositoryStore.getState()._repoNameCommitTreeMap;
+
+  const selectedCommits = buildNewestCommitSelectionMap(repoNameCommitTreeMap);
+
+  if (selectedCommits.size === 0) {
     return false;
   }
 
-  const selectedCommits = new Map<string, SelectedCommit[]>();
-  selectedCommits.set(newestCommit.repoName, [
-    {
-      commitId: newestCommit.commitId,
-      branchName: newestCommit.branchName,
-    },
-  ]);
-
+  const firstRepoName = selectedCommits.keys().next().value!;
   useCommitTreeStateStore
     .getState()
-    .setCurrentSelectedRepositoryName(newestCommit.repoName);
+    .setCurrentSelectedRepositoryName(firstRepoName);
   useCommitTreeStateStore.getState().setSelectedCommits(selectedCommits);
-  await useRenderingServiceStore.getState().triggerRenderingForSelectedCommits();
+  await useRenderingServiceStore
+    .getState()
+    .triggerRenderingForSelectedCommits();
   useTimestampPollingStore.setState({
     newestCommitAutoSelectedForLandscapeToken: currentLandscapeToken ?? null,
   });

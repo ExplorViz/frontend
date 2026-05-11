@@ -1,24 +1,26 @@
 import { useAuthStore } from 'explorviz-frontend/src/stores/auth';
-import { SelectedCommit } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useLandscapeTokenStore } from 'explorviz-frontend/src/stores/landscape-token';
-import {
-  CommitTree
-} from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
-import {
-  FlatLandscape
-} from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
+import { CommitTree } from 'explorviz-frontend/src/utils/evolution-schemes/evolution-data';
+import { FlatLandscape } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { create } from 'zustand';
+
+export type EvolutionStructureBatchRequestBody = {
+  repositories: {
+    repositoryName: string;
+    commitHashes: string[];
+  }[];
+};
 
 interface EvolutionDataFetchState {
   fetchRepositories: () => Promise<string[]>;
   fetchCommitTreeForRepoName(repoName: string): Promise<CommitTree>;
-  fetchFlatLandscapeForRepoNameAndCommits(
-    repoName: string, 
-    commits: SelectedCommit[]
+  fetchFlatLandscapeForRepositoriesAndCommits(
+    body: EvolutionStructureBatchRequestBody
   ): Promise<FlatLandscape>;
   _getLandscapeToken(): string;
   _constructUrl(endpoint: string, ...params: string[]): string;
   _fetchFromService<T>(url: string): Promise<T>;
+  _postJsonToService<T>(url: string, body: unknown): Promise<T>;
 }
 
 export const useEvolutionDataFetchServiceStore =
@@ -28,25 +30,19 @@ export const useEvolutionDataFetchServiceStore =
       return await get()._fetchFromService<string[]>(url);
     },
 
-    fetchCommitTreeForRepoName: async (repoName: string): Promise<CommitTree> => {
+    fetchCommitTreeForRepoName: async (
+      repoName: string
+    ): Promise<CommitTree> => {
       const url = get()._constructUrl('commit-tree', repoName);
       return await get()._fetchFromService<CommitTree>(url);
     },
 
-    fetchFlatLandscapeForRepoNameAndCommits: async (
-      repoName: string, 
-      commits: SelectedCommit[]
+    fetchFlatLandscapeForRepositoriesAndCommits: async (
+      body: EvolutionStructureBatchRequestBody
     ): Promise<FlatLandscape> => {
-      if (commits.length < 1 || commits.length > 2) {
-        throw new Error('Invalid number of commits');
-      }
-      
-      const [firstCommit, secondCommit] = commits;
-      const commitPath = secondCommit
-        ? `${firstCommit.commitId}-${secondCommit.commitId}`
-        : firstCommit.commitId;
-      const url = get()._constructUrl('structure', 'evolution', repoName, commitPath);
-      return await get()._fetchFromService<FlatLandscape>(url);
+      const landscapeToken = get()._getLandscapeToken();
+      const url = `${import.meta.env.VITE_PERSISTENCE_SERV_URL}/v3/landscapes/${landscapeToken}/structure/evolution/batch`;
+      return await get()._postJsonToService<FlatLandscape>(url, body);
     },
 
     _getLandscapeToken: (): string => {
@@ -68,6 +64,25 @@ export const useEvolutionDataFetchServiceStore =
           Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
           'Access-Control-Allow-Origin': '*',
         },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new FetchError(response.status, errorText);
+      }
+
+      return (await response.json()) as T;
+    },
+
+    _postJsonToService: async <T>(url: string, body: unknown): Promise<T> => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
