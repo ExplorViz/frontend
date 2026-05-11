@@ -285,8 +285,9 @@ export default function PlotlyCommitTree({
         );
         const texts = Array.from(Array(numOfCommits)).map(() => '');
 
-        const allSelectedCommits = Array.from(selectedCommits.values()).flat();
-        markCommit(allSelectedCommits, branch, colors, sizes, texts);
+        const selectedCommitsForChartRepo =
+          selectedCommits.get(selectedRepoName) || [];
+        markCommit(selectedCommitsForChartRepo, branch, colors, sizes, texts);
 
         const plotlyBranch = getPlotlyDataObject(
           commits,
