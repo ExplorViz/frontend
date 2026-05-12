@@ -3,14 +3,14 @@ import PingMesh from 'explorviz-frontend/src/utils/extended-reality/view-objects
 import CommunicationArrowMesh from 'explorviz-frontend/src/view-objects/3d/city/communication-arrow-mesh';
 import CrosshairMesh from 'explorviz-frontend/src/view-objects/3d/crosshair-mesh.ts';
 import * as THREE from 'three';
+import { Text as TroikaText } from 'troika-three-text';
 import ThreeMeshUI from 'three-mesh-ui';
 
 export function defaultRaycastFilter(
   intersection: THREE.Intersection
 ): boolean {
   return !(
-    intersection.object instanceof LabelMesh ||
-    intersection.object instanceof LogoMesh ||
+    intersection.object instanceof TroikaText ||
     intersection.object instanceof PingMesh ||
     intersection.object instanceof CrosshairMesh ||
     intersection.object instanceof CommunicationArrowMesh ||
@@ -78,7 +78,7 @@ export default class Raycaster extends THREE.Raycaster {
       visibleObjects = visibleObjects.filter(raycastFilter);
     } else {
       visibleObjects = visibleObjects.filter(defaultRaycastFilter);
-      // visibleObjects = visibleObjects.filter((x) => !(x.object instanceof LabelMesh);
+      // visibleObjects = visibleObjects.filter((x) => !(x.object instanceof TroikaText));
     }
 
     // Returns the nearest hit object if one exists

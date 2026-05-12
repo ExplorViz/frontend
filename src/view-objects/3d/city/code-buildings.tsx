@@ -15,6 +15,7 @@ import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibil
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { isBuildingVisible } from 'explorviz-frontend/src/utils/city-rendering/building-visibility';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import { getMetricValues } from 'explorviz-frontend/src/utils/heatmap/building-heatmap-helper';
 import { getSimpleHeatmapColor } from 'explorviz-frontend/src/utils/heatmap/simple-heatmap';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
@@ -277,13 +278,13 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }))
   );
 
-  const { addPopup, updatePopup, popups } = usePopupHandlerStore(
+  const { addPopup, updatePopup } = usePopupHandlerStore(
     useShallow((state) => ({
       addPopup: state.addPopup,
       updatePopup: state.updatePopup,
-      popups: state.popups,
     }))
   );
+  const popupData = usePopupHandlerStore((state) => state.popupData);
 
   const enterImmersive = useImmersiveViewStore((state) => state.enterImmersive);
 
@@ -444,6 +445,10 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       i++;
     });
     meshRef.current.computeBVH();
+
+    meshRef.current.userData.explorvizResolveBuildingId = (
+      meshInstanceId: number
+    ) => instanceIdToBuildingId.get(meshInstanceId);
   }, [
     meshRef,
     buildingIds,
@@ -692,7 +697,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     targetPos.setFromMatrixPosition(tempMatrix);
 
     // Check if we have data in an existing popup
-    const existingPopup = popups.find((p) => p.entityId === buildingId);
+    const existingPopup = popupData.find((p) => p.entityId === buildingId);
 
     if (existingPopup && existingPopup.fileDetailedData) {
       enterImmersive(
@@ -725,8 +730,26 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
     }
   };
 
-  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
-    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
+  const handleRightClick = (e: ThreeEvent<MouseEvent>) => {
+    if (meshRef === null || typeof meshRef === 'function') {
+      return;
+    }
+    if (!meshRef.current) return;
+    const { instanceId } = e;
+    if (instanceId === undefined) return;
+    const buildingId = instanceIdToBuildingId.get(instanceId);
+    if (!buildingId) return;
+    e.stopPropagation();
+    emitContextMenuFromWorld({ kind: 'building', buildingId }, e.nativeEvent);
+  };
+
+  const [
+    handleClickWithPrevent,
+    handleDoubleClickWithPrevent,
+    handleRightClickWithPrevent,
+  ] = useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
+    onRightClick: handleRightClick,
+  });
 
   return (
     <instancedMesh2
@@ -735,6 +758,7 @@ const GeometryGroup: React.FC<GeometryGroupProps> = ({
       name={`Buildings-${geometryType}-${city.name}`}
       args={[geometry, material.current]}
       onClick={handleClickWithPrevent}
+      onContextMenu={handleRightClickWithPrevent}
       {...(enableHoverEffects && {
         onPointerOver: handleOnPointerOver,
         onPointerOut: handleOnPointerOut,

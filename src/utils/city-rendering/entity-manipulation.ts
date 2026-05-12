@@ -165,6 +165,7 @@ export function closeAllDistrictsInLandscape(sendMessage = true) {
  */
 export function openAllDistrictsInCity(city: City, sendMessage = true) {
   openDistricts(city.allContainedDistrictIds);
+  showDistricts(city.allContainedDistrictIds);
   showBuildings(city.allContainedBuildingIds);
 }
 

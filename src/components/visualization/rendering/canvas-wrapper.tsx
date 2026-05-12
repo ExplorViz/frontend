@@ -64,6 +64,7 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
+import ContextMenuRaycastRegister from './context-menu-raycast-register';
 import HotkeyHandler from './hotkey-handler';
 import ImmersiveCameraHandler from './immersive-view-camrea-handler';
 import MinimapView from './minimap-view';
@@ -462,6 +463,7 @@ export default function CanvasWrapper({
             }
           }}
         >
+          <ContextMenuRaycastRegister />
           <ImmersiveCameraHandler
             controlsRef={cameraControlsRef}
           ></ImmersiveCameraHandler>

@@ -11,6 +11,7 @@ import { useVisibilityServiceStore } from 'explorviz-frontend/src/stores/visibil
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
 import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
@@ -280,6 +281,10 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         }
       );
       mesh.computeBVH();
+
+      meshRef.current.userData.explorvizResolveDistrictId = (
+        meshInstanceId: number
+      ) => instanceIdToDistrictId.get(meshInstanceId);
     }, [
       ref,
       districtIds,
@@ -520,13 +525,31 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       setHoveredEntity(districtId);
     };
 
+    const handleRightClick = (e: ThreeEvent<MouseEvent>) => {
+      if (ref === null || typeof ref === 'function') {
+        return;
+      }
+      if (!meshRef.current) return;
+      const { instanceId } = e;
+      if (instanceId === undefined) return;
+      const districtId = instanceIdToDistrictId.get(instanceId);
+      if (!districtId) return;
+      e.stopPropagation();
+      emitContextMenuFromWorld({ kind: 'district', districtId }, e.nativeEvent);
+    };
+
     const handleOnPointerOut = (event: ThreeEvent<MouseEvent>) => {
       event.stopPropagation();
       setHoveredEntity(null);
     };
 
-    const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
-      useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
+    const [
+      handleClickWithPrevent,
+      handleDoubleClickWithPrevent,
+      handleRightClickWithPrevent,
+    ] = useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
+      onRightClick: handleRightClick,
+    });
 
     return (
       <instancedMesh2
@@ -540,6 +563,7 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
         castShadow={castShadows}
         args={[geometry.current, material.current]}
         onClick={handleClickWithPrevent}
+        onContextMenu={handleRightClickWithPrevent}
         {...(enableHoverEffects && {
           onPointerOver: handleOnPointerOver,
           onPointerOut: handleOnPointerOut,

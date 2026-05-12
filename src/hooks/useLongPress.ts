@@ -6,22 +6,32 @@ interface UseLongPressOptions {
   movementThreshold?: number;
 }
 
+export type LongPressPosition = Position2D & {
+  clientX: number;
+  clientY: number;
+};
+
 const useLongPress = (
-  onLongPress: (position: Position2D) => void,
+  onLongPress: (position: LongPressPosition) => void,
   options: UseLongPressOptions = {}
 ) => {
   const { delay: LONG_PRESS_DELAY = 500, movementThreshold = 35 } = options;
 
   const touchMoved = useRef<boolean>(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const touchStartPosition = useRef<Position2D | null>(null);
+  const touchStartPosition = useRef<LongPressPosition | null>(null);
   const longPressTriggered = useRef<boolean>(false);
 
   const onTouchStart = (event: React.TouchEvent) => {
     touchMoved.current = false;
     longPressTriggered.current = false;
     const touch = event.touches[0];
-    touchStartPosition.current = { x: touch.pageX, y: touch.pageY };
+    touchStartPosition.current = {
+      x: touch.pageX,
+      y: touch.pageY,
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+    };
 
     // Clear any existing timer
     if (longPressTimer.current) {
@@ -31,10 +41,7 @@ const useLongPress = (
     longPressTimer.current = setTimeout(() => {
       if (!touchMoved.current && touchStartPosition.current) {
         longPressTriggered.current = true;
-        onLongPress({
-          x: touchStartPosition.current.x,
-          y: touchStartPosition.current.y,
-        });
+        onLongPress(touchStartPosition.current);
       }
     }, LONG_PRESS_DELAY);
   };

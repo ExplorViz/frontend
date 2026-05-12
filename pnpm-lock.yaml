@@ -185,6 +185,9 @@ importers:
       three-stdlib:
         specifier: ^2.36.1
         version: 2.36.1(three@0.183.2)
+      troika-three-text:
+        specifier: ^0.52.4
+        version: 0.52.4(three@0.183.2)
       typescript:
         specifier: '5'
         version: 5.9.3

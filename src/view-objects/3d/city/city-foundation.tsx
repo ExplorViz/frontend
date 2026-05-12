@@ -6,9 +6,8 @@ import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-setting
 import { useVisualizationStore } from 'explorviz-frontend/src/stores/visualization-store';
 import { getEntityDisplayName } from 'explorviz-frontend/src/utils/annotation-utils';
 import * as EntityManipulation from 'explorviz-frontend/src/utils/city-rendering/entity-manipulation';
-import {
-  getHighlightingColorForEntity,
-} from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { getHighlightingColorForEntity } from 'explorviz-frontend/src/utils/city-rendering/highlighting';
+import { emitContextMenuFromWorld } from 'explorviz-frontend/src/utils/context-menu-bridge';
 import calculateColorBrightness from 'explorviz-frontend/src/utils/helpers/threejs-helpers';
 import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landscape';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
@@ -80,7 +79,6 @@ export default function CityFoundation({
     }))
   );
 
-
   const {
     cityLabelMargin,
     labelOffset,
@@ -133,8 +131,21 @@ export default function CityFoundation({
     EntityManipulation.closeAllDistrictsInCity(city);
   };
 
-  const [handleClickWithPrevent, handleDoubleClickWithPrevent] =
-    useClickPreventionOnDoubleClick(handleClick, handleDoubleClick);
+  const handleRightClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    emitContextMenuFromWorld(
+      { kind: 'city', cityId: city.id },
+      event.nativeEvent
+    );
+  };
+
+  const [
+    handleClickWithPrevent,
+    handleDoubleClickWithPrevent,
+    handleRightClickWithPrevent,
+  ] = useClickPreventionOnDoubleClick(handleClick, handleDoubleClick, {
+    onRightClick: handleRightClick,
+  });
 
   const computeColor = () => {
     const baseColor = isHighlighted
@@ -151,7 +162,8 @@ export default function CityFoundation({
   const getLabelPosition = (): [number, number, number] => {
     const margin = cityLabelMargin / layout.depth / 2;
     // Convert world-space label offset to local mesh-space because foundation is scaled.
-    const normalizedLabelOffset = layout.height === 0 ? 0 : labelOffset / layout.height;
+    const normalizedLabelOffset =
+      layout.height === 0 ? 0 : labelOffset / layout.height;
     const yPos = 0.51 + normalizedLabelOffset; // Just above the foundation + global label offset
     switch (districtLabelPlacement) {
       case 'top':
@@ -174,7 +186,9 @@ export default function CityFoundation({
       name={'Foundation of ' + city.name}
       scale={[layout.width, layout.height, layout.depth]}
       position={foundationPosition} // Center around city's position
+      userData={{ explorvizEntity: { type: 'city', entityId: city.id } }}
       onClick={handleClickWithPrevent}
+      onContextMenu={handleRightClickWithPrevent}
       onDoubleClick={handleDoubleClickWithPrevent}
       {...(enableHoverEffects && {
         onPointerOver: handleOnPointerOver,
