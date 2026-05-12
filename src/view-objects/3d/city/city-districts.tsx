@@ -4,6 +4,8 @@ import useClickPreventionOnDoubleClick from 'explorviz-frontend/src/hooks/useCli
 import { useCommitTreeStateStore } from 'explorviz-frontend/src/stores/commit-tree-state';
 import { useHeatmapStore } from 'explorviz-frontend/src/stores/heatmap/heatmap-store';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
+import { usePlayroomConnectionStore } from 'explorviz-frontend/src/stores/collaboration/playroom-connection-store';
+import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
 import { usePopupHandlerStore } from 'explorviz-frontend/src/stores/popup-handler';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -17,7 +19,6 @@ import { City } from 'explorviz-frontend/src/utils/landscape-schemes/flat-landsc
 import { TypeOfAnalysis } from 'explorviz-frontend/src/utils/landscape-schemes/structure-data';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
 import gsap from 'gsap';
-import { usePlayersList } from 'playroomkit';
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   BoxGeometry,
@@ -114,7 +115,12 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
       }))
     );
 
-    const isOnline = usePlayersList().length > 0;
+    const isCollaborationConnected = usePlayroomConnectionStore(
+      (state) => state.isConnected
+    );
+    const remoteHighlights = useRemoteHighlightingStore(
+      (state) => state.remoteHighlights
+    );
 
     const { heatmapActive, selectedBuildingMetric } = useHeatmapStore(
       useShallow((state) => ({
@@ -451,7 +457,8 @@ const CityDistricts = forwardRef<InstancedMesh2, Args>(
     }, [
       highlightedEntityIds,
       highlightedEntityColor,
-      isOnline,
+      isCollaborationConnected,
+      remoteHighlights,
       hoveredEntityId,
       heatmapActive,
       selectedBuildingMetric,

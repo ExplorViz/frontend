@@ -1,12 +1,12 @@
 import { useFrame, useThree } from '@react-three/fiber';
+import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
-import { usePlayersList } from 'playroomkit';
 import * as THREE from 'three';
 
 // This component syncs the camera settings for spectating mode (not the position)
 export default function SpectateCameraController() {
   const { camera } = useThree();
-  const players = usePlayersList();
+  const players = usePlayroomPlayers();
   const spectatedPlayerId = useSpectateUserStore((state) => state.spectatedPlayerId);
 
   useFrame(() => {

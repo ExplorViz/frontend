@@ -1,11 +1,12 @@
+import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
 import { useRemoteHighlightingStore } from 'explorviz-frontend/src/stores/collaboration/remote-highlighting-store';
-import { myPlayer, usePlayersList } from 'playroomkit';
+import { myPlayer } from 'playroomkit';
 import { useEffect } from 'react';
 
 // This component is responsible to synchronizte highlighted entities of other users in the current room
 
 export default function CollaborationHighlightingSync() {
-    const players = usePlayersList(true);
+    const players = usePlayroomPlayers();
     const me = myPlayer();
     const setRemoteHighlights = useRemoteHighlightingStore((state) => state.setRemoteHighlights);
 

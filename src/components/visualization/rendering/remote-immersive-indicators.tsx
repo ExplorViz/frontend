@@ -2,51 +2,35 @@ import { useFrame } from '@react-three/fiber';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { getWorldPositionOfModel } from 'explorviz-frontend/src/utils/layout-helper';
 import BoxLayout from 'explorviz-frontend/src/utils/layout/box-layout';
-import {
-  myPlayer,
-  PlayerState,
-  usePlayersList,
-  usePlayerState,
-} from 'playroomkit';
+import { myPlayer, usePlayersState } from 'playroomkit';
 import { useRef } from 'react';
 import * as THREE from 'three';
 
 // This component is responsible to draw indicators, when another member of the current collaboration room is in immersive view mode.
 export default function RemoteImmersiveIndicators() {
-  const players = usePlayersList();
   const me = myPlayer();
+  const entries = usePlayersState('immersiveMeshId');
 
-  // Create a child component for each user. The child component listens for the user.
   return (
     <group>
-      {players.map((player) => {
+      {entries.map(({ player, state: buildingId }) => {
         if (me && player.id === me.id) return null;
-        return <PlayerIndicatorSphereHandler player={player} key={player.id} />;
+        if (!buildingId) return null;
+
+        const buildingLayout = useLayoutStore.getState().getLayout(buildingId);
+        const buildingPosition = getWorldPositionOfModel(buildingId);
+        if (!buildingLayout || !buildingPosition) return null;
+
+        return (
+          <IndicatorSphere
+            key={player.id}
+            buildingLayout={buildingLayout}
+            buildingPosition={buildingPosition}
+            color={player.getProfile()?.color?.hexString || '#000000'}
+          />
+        );
       })}
     </group>
-  );
-}
-
-// This component listens for a single user and only the immersiveMeshId state
-// It is needed for more performance (less rerenders of the react engine)
-function PlayerIndicatorSphereHandler({ player }: { player: PlayerState }) {
-  const [buildingId] = usePlayerState(player, 'immersiveMeshId', null);
-
-  // When the user is not in immersive view mode, just do nothing
-  if (!buildingId) return null;
-
-  const buildingLayout = useLayoutStore.getState().getLayout(buildingId);
-  const buildingPosition = getWorldPositionOfModel(buildingId);
-  if (!buildingLayout || !buildingPosition) return null;
-
-  // Render the indicator sphere
-  return (
-    <IndicatorSphere
-      key={buildingId as string}
-      buildingLayout={buildingLayout}
-      buildingPosition={buildingPosition}
-      color={player.getProfile()?.color?.hexString || '#000000'}
-    />
   );
 }
 

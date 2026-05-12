@@ -1,44 +1,35 @@
 import { useSpectateStatusStore } from 'explorviz-frontend/src/stores/collaboration/spectate-status-store';
-import { myPlayer, PlayerState, usePlayersList, usePlayerState } from 'playroomkit';
+import { myPlayer, usePlayersState } from 'playroomkit';
 import { useEffect } from 'react';
 
-// This component listens to all other players in the current room and checks wether they are spectating
+// Listens to all other players' spectatingTarget with one Playroom subscription
+// (avoids per-player usePlayerState / connected listeners).
 
 export default function SpectateStatusSync() {
-    const players = usePlayersList();
-    const me = myPlayer();
+  const me = myPlayer();
+  const entries = usePlayersState('spectatingTarget');
+  const addSpectator = useSpectateStatusStore((state) => state.addSpectator);
+  const removeSpectator = useSpectateStatusStore((state) => state.removeSpectator);
 
-    return (
-        <>
-            {players.map(player => {
-                if (me && player.id === me.id) return null;
-                return <PlayerSpectateListener key={player.id} player={player} />;
-            })}
-        </>
-    );
-}
+  useEffect(() => {
+    if (!me) return;
 
-function PlayerSpectateListener({ player }: { player: PlayerState }) {
-    const me = myPlayer();
+    const next = new Set<string>();
+    for (const { player, state: spectatingTarget } of entries) {
+      if (player.id === me.id) continue;
+      if (spectatingTarget === me.id) {
+        next.add(player.id);
+      }
+    }
 
-    const [spectatingTarget] = usePlayerState(player, 'spectatingTarget', null);
+    const prev = useSpectateStatusStore.getState().spectators;
+    for (const id of next) {
+      if (!prev.has(id)) addSpectator(id);
+    }
+    for (const id of prev) {
+      if (!next.has(id)) removeSpectator(id);
+    }
+  }, [entries, me, addSpectator, removeSpectator]);
 
-    const addSpectator = useSpectateStatusStore(state => state.addSpectator);
-    const removeSpectator = useSpectateStatusStore(state => state.removeSpectator);
-
-    useEffect(() => {
-        if (!me) return;
-
-        if (spectatingTarget === me.id) {
-            addSpectator(player.id);
-        } else {
-            removeSpectator(player.id);
-        }
-
-        return () => {
-            removeSpectator(player.id);
-        };
-    }, [spectatingTarget, me, player.id, addSpectator, removeSpectator]);
-
-    return null;
+  return null;
 }

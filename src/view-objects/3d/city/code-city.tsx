@@ -2,7 +2,6 @@ import { Container, Root } from '@react-three/uikit';
 import { Button } from '@react-three/uikit-default';
 import { AppWindow } from '@react-three/uikit-lucide';
 import { InstancedMesh2 } from '@three.ez/instanced-mesh';
-import RemoteImmersiveIndicators from 'explorviz-frontend/src/components/visualization/rendering/remote-immersive-indicators';
 import { useLayoutStore } from 'explorviz-frontend/src/stores/layout-store';
 import { useModelStore } from 'explorviz-frontend/src/stores/repos/model-repository';
 import { useUserSettingsStore } from 'explorviz-frontend/src/stores/user-settings';
@@ -125,7 +124,6 @@ export default function CodeCity({ cityId }: { cityId: string }) {
         }
         return null;
       })}
-      <RemoteImmersiveIndicators />
     </group>
   );
 }

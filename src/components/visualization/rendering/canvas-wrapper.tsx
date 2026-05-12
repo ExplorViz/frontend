@@ -11,12 +11,10 @@ import {
 } from '@react-three/xr';
 import { CollaborationKickRPC } from 'explorviz-frontend/src/components/collaboration/collaboration-kick-RPC';
 import { CollaborationAnnotationSync } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-annotation-sync';
-import {
-  default as CollaborationCameraSync,
-  default as SpectateCameraController,
-} from 'explorviz-frontend/src/components/collaboration/sync/collaboration-camera-sync';
+import CollaborationCameraSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-camera-sync';
 import CollaborationComponentSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-component-sync';
 import CollaborationHighlightingSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-highlighting-sync';
+import { PlayroomPlayersProvider } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
 import CollaborationLandscapeSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-landscape-sync';
 import CollaborationPingSync from 'explorviz-frontend/src/components/collaboration/sync/collaboration-ping-sync';
 import { CollaborationPopupSync } from 'explorviz-frontend/src/components/collaboration/sync/collaboration-popup-sync';
@@ -24,6 +22,8 @@ import ImmersiveStateSync from 'explorviz-frontend/src/components/collaboration/
 import LocalHighlightSync from 'explorviz-frontend/src/components/collaboration/sync/local-highlight-sync';
 import SpectateStatusSync from 'explorviz-frontend/src/components/collaboration/sync/spectate-status-sync';
 import PlayroomWrapper from 'explorviz-frontend/src/components/collaboration/visualization/rendering/playroom-wrapper';
+import SpectateCameraController from 'explorviz-frontend/src/components/visualization/rendering/spectate-camera-controller';
+import RemoteImmersiveIndicators from 'explorviz-frontend/src/components/visualization/rendering/remote-immersive-indicators';
 import useLandscapeDataWatcher from 'explorviz-frontend/src/hooks/landscape-data-watcher';
 import {
   CLICK_PREVENTION_DEFAULTS,
@@ -516,6 +516,7 @@ export default function CanvasWrapper({
             }
           }}
         >
+          <PlayroomPlayersProvider>
           <ContextMenuWorldPickRegister />
           <ImmersiveCameraHandler
             controlsRef={cameraControlsRef}
@@ -611,6 +612,7 @@ export default function CanvasWrapper({
                   />
                 ))}
             </LandscapeR3F>
+            <RemoteImmersiveIndicators />
             {enableClustering && <ClusterCentroidsR3F />}
             {enableClustering && autoOpenCloseDistricts && (
               <AutoDistrictOpenerR3F />
@@ -651,6 +653,7 @@ export default function CanvasWrapper({
           <CollaborationKickRPC />
           <CollaborationPopupSync />
           <CollaborationAnnotationSync />
+          </PlayroomPlayersProvider>
         </Canvas>
       </PlayroomWrapper>
     </>

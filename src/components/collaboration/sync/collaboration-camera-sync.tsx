@@ -1,9 +1,10 @@
 import { useFrame, useThree } from '@react-three/fiber';
+import { usePlayroomPlayers } from 'explorviz-frontend/src/components/collaboration/playroom-players-context';
 import { useLocalUserStore } from 'explorviz-frontend/src/stores/collaboration/local-user';
 import { useSpectateStatusStore } from 'explorviz-frontend/src/stores/collaboration/spectate-status-store';
 import { useSpectateUserStore } from 'explorviz-frontend/src/stores/collaboration/spectate-user';
 import equal from 'fast-deep-equal';
-import { myPlayer, usePlayersList } from 'playroomkit';
+import { myPlayer } from 'playroomkit';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -11,7 +12,7 @@ import * as THREE from 'three';
 
 export default function CollaborationCameraSync() {
   const { camera } = useThree();
-  const players = usePlayersList();
+  const players = usePlayroomPlayers();
   const localUserStore = useLocalUserStore();
 
   const spectatedPlayerId = useSpectateUserStore(

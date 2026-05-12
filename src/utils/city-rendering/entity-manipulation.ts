@@ -118,7 +118,7 @@ export function openDistrictAndChildren(
 /**
  * Closes a given district.
  *
- * @param districtId Id of districte which shall be closed
+ * @param districtId Id of district which shall be closed
  */
 export function closeDistrict(
   districtId: string,
